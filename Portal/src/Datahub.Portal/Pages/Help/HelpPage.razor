@@ -49,13 +49,10 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
 
-    <h1 id="maincontent" class="sr-only">
-        @Localizer["Support page"]
-    </h1>
+    
 
     <MudStack Spacing="6">
-        <MudText Typo="Typo.h2">@Localizer["Support Centre"]</MudText>
-
+        <DHMainContentTitle Title="@Localizer["Support centre"]" />
         <MudForm @ref="form">
             @if (_currentStep == Steps.Start)
             {

@@ -22,10 +22,8 @@
     return;
 }
 <MudStack>
-    <MudStack Row="true">
-        <MudText Typo="Typo.h2">
-            @Localizer["Web Application"]
-        </MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <DHMainContentTitle Title="@Localizer["Web Application"]" />
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">

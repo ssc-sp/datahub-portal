@@ -58,9 +58,9 @@ public class ProjectUsageScheduler(
         var allCosts = await AggregateCosts(subIds);
         var costBlobName = await PostToBlob(allCosts);
 
-        foreach (var resource in sortedProjects)
-        {
-            var usageMessage = new ProjectUsageUpdateMessage(resource.Project_Acronym_CD, costBlobName,
+        //foreach (var resource in sortedProjects)
+        //{
+            var usageMessage = new ProjectUsageUpdateMessage("DIE1", costBlobName,
                 manualRollover);
 
             // send/post the message
@@ -72,7 +72,7 @@ public class ProjectUsageScheduler(
             // send/post the message,
             await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName,
             capacityMessage);
-        }
+        //}
 
         // TODO: deadman switch?
         _logger.LogInformation($"All projects scheduled for usage and capacity update");

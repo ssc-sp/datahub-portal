@@ -43,10 +43,22 @@
             </MudMenuItem>
         </ChildContent>
     </MudMenu> *@
-    <LanguageToggle @ref="_languageToggle" />
-    <DHButton OnClick="@HandleLogOut">
-        @Localizer["Sign Out"]
-    </DHButton>
+    <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+        <LanguageToggle Style="margin-top: 20px;" @ref="_languageToggle" Size="Size.Small" />
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
+        <DHButton Style="margin-top: 20px;" OnClick="@HandleLogOut" Size="Size.Small">
+            @Localizer["Sign Out"]
+        </DHButton>
+    </MudHidden>
+    <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+        <LanguageToggle Style="margin-top: 20px;" @ref="_languageToggle" Size="Size.Medium" />
+        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
+        <DHButton Style="margin-top: 20px;"  OnClick="@HandleLogOut" Size="Size.Medium">
+            @Localizer["Sign Out"]
+        </DHButton>
+    </MudHidden>
 </DatahubAuthView>
 
 @code {

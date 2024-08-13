@@ -10,7 +10,7 @@
 @inject ILocalStorageService _localStorage
 @inject ILogger<ResourcesPage> _logger
 
-@layout PortalLayout
+@layout PortalContainerLayout
 
 @attribute [Route(PageRoutes.ResourceDefault)]
 @attribute [Route(PageRoutes.Resource)]
@@ -23,9 +23,7 @@
     @Localizer["Resources - Federal Science DataHub"]
 </PageTitle>
 
-<h1 id="maincontent" class="sr-only">
-    @Localizer["Resources page"]
-</h1>
+
 
 @if (PageIsLoading)
 {
@@ -33,6 +31,7 @@
 }
 else
 {
+    <DHMainContentTitle Title="@Localizer["Learning resources and documentation"]" />
     <MudGrid Class="px-4">
         <MudItem>
             @if (ShowPreviewCards)

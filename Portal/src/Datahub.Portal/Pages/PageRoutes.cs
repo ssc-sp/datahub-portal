@@ -16,7 +16,7 @@ public static class PageRoutes
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
     public const string WorkspaceSubSection = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}/{{SubSection}}";
 
-    public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/webapp-ext";
+    public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/app-ext";
 
     public const string AccountPrefix = "account";
     public const string AccountPrefix_FR = "compte";
@@ -39,9 +39,6 @@ public static class PageRoutes
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
     public const string Tool_FR = $"/{ToolPrefix_FR}/{{Section}}";
     
-    public const string WebAppDefault = $"/{IReverseProxyConfigService.WebAppPrefix}/";
-    public const string WebApp = $"/{WorkspacePrefix}/{IReverseProxyConfigService.WebAppPrefix}/{{Section}}";
-
     public const string Logout = "/signout-oidc";
     public const string TermsAndConditions = "/terms-and-conditions";
     public const string TermsAndConditions_FR = "/conditions-generales";

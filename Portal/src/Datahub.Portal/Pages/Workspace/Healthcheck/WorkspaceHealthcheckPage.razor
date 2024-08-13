@@ -48,37 +48,39 @@
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
-        <MudText Class="mb-6" Typo="Typo.h2">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Health Check"]</MudText>
+        <DHMainContentTitle>
+            <MudText Typo="Typo.h1">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Health Check"]</MudText>
+        </DHMainContentTitle>
     </MudStack>
     <MudStack>
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the workspace."]
         </MudText>
         <MudTable Items="_statusList" Hover Dense>
-             <HeaderContent>
+            <HeaderContent>
                 <MudTh>@Localizer["Resource"]</MudTh>
                 <MudTh>@Localizer["Status"]</MudTh>
                 <MudTh>@Localizer["Updated"]</MudTh>
                 <MudTh>@Localizer["Run Check"]</MudTh>
             </HeaderContent>
             <RowTemplate Context="context">
-                    <MudTd>@context.ResourceType</MudTd>
-                    <MudTd>
-                        <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
+                <MudTd>@context.ResourceType</MudTd>
+                <MudTd>
+                    <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
                         <MudChip T="string" Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
                             @Localizer[HealthCheckHelperService.GetStatusText(context)]
                         </MudChip>
-                        </MudTooltip>
-                    </MudTd>
-                    <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
-                    <MudTd>
-                        <DHButton Variant="Variant.Filled" Color="Color.Primary" 
-                            OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
-                            Size="Size.Small" >
-                            @Localizer["Run"]
-                        </DHButton>
-                    </MudTd>                    
-            </RowTemplate>            
+                    </MudTooltip>
+                </MudTd>
+                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                <MudTd>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                              OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
+                              Size="Size.Small">
+                        @Localizer["Run"]
+                    </DHButton>
+                </MudTd>
+            </RowTemplate>
         </MudTable>
     </MudStack>
     <iframe id="logStreamIframe" src="@($"/api/healthcheck/webapplogstream?ws={WorkspaceAcronym}")" width="100%" height="500px">
@@ -88,6 +90,7 @@
 </MudPaper>
 
 @code {
+
     private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
     {
         InfrastructureHealthResourceType.AzureSqlDatabase,
@@ -95,6 +98,7 @@
         InfrastructureHealthResourceType.AzureStorageAccount,
         InfrastructureHealthResourceType.AzureWebApp,
     };
+
     private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
     private DatahubProjectDBContext _projectDbContext;
     private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
@@ -104,8 +108,7 @@
     public string _userToken;
     public string _userID;
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -264,7 +267,7 @@
             .Where(h => h.ResourceType == InfrastructureHealthResourceType.AzureWebApp).Count();
         return webAppCount > 0;
     }
-    
+
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
         var request = new InfrastructureHealthCheckMessage(

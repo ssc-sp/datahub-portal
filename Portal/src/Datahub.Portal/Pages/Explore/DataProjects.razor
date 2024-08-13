@@ -25,10 +25,9 @@
 }
 
 
-<h1 id="maincontent" class="sr-only">
-    @Localizer["Explore page"]
-</h1>
+
 <MudStack>
+    <DHMainContentTitle Title="@Localizer["Explore workspaces and users"]" />
     @if (_featuredProjects.Any())
     {
         <MudText Typo="Typo.h2">@Localizer["Featured Workspaces"]</MudText>

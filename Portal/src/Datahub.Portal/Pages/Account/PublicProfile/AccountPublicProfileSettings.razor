@@ -6,10 +6,9 @@
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
 
-<h1 class="sr-only" id="maincontent">@Localizer["Customization page"]</h1>
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <MudText Typo="Typo.h4">@Localizer["Public Profile"]</MudText>
+        <DHMainContentTitle Title="@Localizer["Public profile"]" />
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
