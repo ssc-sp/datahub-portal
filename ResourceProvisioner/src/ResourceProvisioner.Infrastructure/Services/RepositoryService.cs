@@ -1,6 +1,7 @@
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Enums;
@@ -18,8 +19,16 @@ using Version = System.Version;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
-public class RepositoryService : IRepositoryService
+public partial class RepositoryService : IRepositoryService
 {
+    /// <summary>
+    /// Retrieves the regular expression used for matching module versions in the module repository.
+    /// The regular expression pattern matches the directory structure of the module repository versions in the format vX.Y.Z.
+    /// </summary>
+    /// <returns>The regular expression pattern for matching module versions.</returns>
+    [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
+    private static partial Regex ModuleRegex();
+    
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -74,6 +83,12 @@ public class RepositoryService : IRepositoryService
         return pullRequestMessage;
     }
 
+    /// <summary>
+    /// Retrieves a list of module versions from the module repository.
+    ///
+    /// Note: That the directory structure of the module repository must be in the format vX.Y.Z for it to be recognized as a version.
+    /// </summary>
+    /// <returns>A list of <see cref="Version"/> representing the available module versions.</returns>
     public async Task<List<Version>> GetModuleVersions()
     {
         var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
@@ -88,6 +103,7 @@ public class RepositoryService : IRepositoryService
         }
 
         var versions = Directory.GetDirectories(modulePath)
+            .Where(x => ModuleRegex().IsMatch(x))
             .Select(x =>
                 new Version(x
                         .Replace('/', Path.DirectorySeparatorChar)
