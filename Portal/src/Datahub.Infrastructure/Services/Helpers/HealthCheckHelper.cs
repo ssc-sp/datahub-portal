@@ -54,6 +54,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
         ISendEndpointProvider sendEndpointProvider,
+        IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
@@ -206,6 +207,23 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
 
             return new(status, errors);
+        }
+
+        public async Task<IntermediateHealthCheckResult?> TriggerWorkspaceSync(InfrastructureHealthCheckMessage request)
+        {
+            try
+            {
+                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(request.Name);
+                await resourceMessagingService.SendToUserQueue(workspaceDefinition);
+
+                logger.LogInformation("Triggered workspace sync");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error while setting up workspace sync for {request.Name}");
+                return new(InfrastructureHealthStatus.Unhealthy, [$"Error running workspace sync: {ex.Message}"]);
+            }
         }
 
         /// <summary>
@@ -575,28 +593,37 @@ namespace Datahub.Infrastructure.Services.Helpers
                 InfrastructureHealthResourceType.AsureServiceBus => await CheckAzureServiceBusQueue(request),
                 InfrastructureHealthResourceType.AzureWebApp => await CheckWebApp(request),
                 InfrastructureHealthResourceType.AzureFunction => await CheckAzureFunctions(request),
+                InfrastructureHealthResourceType.WorkspaceSync => await TriggerWorkspaceSync(request),
+                InfrastructureHealthResourceType.DatabricksSync => await TriggerWorkspaceSync(request),
                 _ => throw new InvalidOperationException()
             };
 
-            // if status is unhealthy or degraded but no errors are listed, there is some unknown problem
-            var details = intermediateResult.Errors.Count == 0 ?
-                (IsUnhealthyStatus(intermediateResult.Status) ? "Please investigate." : default) :
-                string.Join("; ", intermediateResult.Errors);
-
-            var result = new InfrastructureHealthCheck()
+            if (intermediateResult != null)
             {
-                Group = request.Group,
-                Name = GenerateHealthCheckName(request),
-                ResourceType = request.Type,
-                Status = intermediateResult.Status,
-                HealthCheckTimeUtc = DateTime.UtcNow,
-                Details = details,
-            };
+                // if status is unhealthy or degraded but no errors are listed, there is some unknown problem
+                var details = intermediateResult.Errors.Count == 0 ?
+                    (IsUnhealthyStatus(intermediateResult.Status) ? "Please investigate." : default) :
+                    string.Join("; ", intermediateResult.Errors);
 
-            await StoreHealthCheck(result);
-            await StoreHealthCheckRun(result);
+                var result = new InfrastructureHealthCheck()
+                {
+                    Group = request.Group,
+                    Name = GenerateHealthCheckName(request),
+                    ResourceType = request.Type,
+                    Status = intermediateResult.Status,
+                    HealthCheckTimeUtc = DateTime.UtcNow,
+                    Details = details,
+                };
 
-            return new(result, intermediateResult.Errors);
+                await StoreHealthCheck(result);
+                await StoreHealthCheckRun(result);
+
+                return new(result, intermediateResult.Errors);
+            }
+            else
+            {
+                return new(default, []);
+            }
         }
 
         public async Task<IEnumerable<InfrastructureHealthCheckResponse>> ProcessHealthCheckRequest(InfrastructureHealthCheckMessage request)
@@ -736,7 +763,7 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         public BugReportMessage? CreateBugReportMessage(InfrastructureHealthCheck result)
         {
-            if (IsUnhealthyStatus(result.Status))
+            if (result is not null && IsUnhealthyStatus(result.Status))
             {
                 return new BugReportMessage(
                     UserName: InfrastructureHealthCheckConstants.BugReportUsername,
@@ -765,5 +792,5 @@ namespace Datahub.Infrastructure.Services.Helpers
     }
 
     public record IntermediateHealthCheckResult(InfrastructureHealthStatus Status, List<string> Errors);
-    public record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
+    public record InfrastructureHealthCheckResponse(InfrastructureHealthCheck? Check, List<string>? Errors);
 }
