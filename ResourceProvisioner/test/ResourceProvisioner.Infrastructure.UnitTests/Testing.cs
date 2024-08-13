@@ -51,8 +51,8 @@ public class Testing
         _resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         _configuration.Bind(_resourceProvisionerConfiguration);
         
-        // Set the resource module branch to the latest branch
-        _resourceProvisionerConfiguration.ModuleRepository.Branch = "v3.5.0";
+        // Set the resource module branch to the latest dev branch
+        _resourceProvisionerConfiguration.ModuleRepository.Branch = "dev";
         
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
