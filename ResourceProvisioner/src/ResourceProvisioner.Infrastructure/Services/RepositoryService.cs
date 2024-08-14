@@ -86,7 +86,10 @@ public partial class RepositoryService : IRepositoryService
             return pullRequestMessage;
         }
 
-        pullRequestMessage.Events.ForEach(x => _logger.LogError(x.Message, x));
+        pullRequestMessage.Events
+            .Where(x => x.StatusCode == MessageStatusCode.Error)
+            .ToList()
+            .ForEach(x => _logger.LogError(x.Message, x));
         throw new Exception("Error while handling resource run request");
     }
 
