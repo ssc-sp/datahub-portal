@@ -28,7 +28,7 @@ public partial class RepositoryService : IRepositoryService
     /// <returns>The regular expression pattern for matching module versions.</returns>
     [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
     private static partial Regex ModuleRegex();
-    
+
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -80,7 +80,14 @@ public partial class RepositoryService : IRepositoryService
         };
 
         _semaphore.Release();
-        return pullRequestMessage;
+
+        if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
+        {
+            return pullRequestMessage;
+        }
+
+        pullRequestMessage.Events.ForEach(x => _logger.LogError(x.Message, x));
+        throw new Exception("Error while handling resource run request");
     }
 
     /// <summary>
