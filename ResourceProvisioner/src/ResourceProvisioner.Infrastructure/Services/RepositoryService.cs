@@ -32,7 +32,6 @@ public partial class RepositoryService : IRepositoryService
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly SemaphoreSlim _semaphore;
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
 
     public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger,
@@ -44,13 +43,10 @@ public partial class RepositoryService : IRepositoryService
         _resourceProvisionerConfiguration = resourceProvisionerConfiguration;
         _terraformService = terraformService;
 
-        _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
-        await _semaphore.WaitAsync();
-
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
         _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
         await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
@@ -78,8 +74,6 @@ public partial class RepositoryService : IRepositoryService
             TerraformWorkspace = command.Workspace,
             Events = repositoryUpdateEvents
         };
-
-        _semaphore.Release();
 
         if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
         {
