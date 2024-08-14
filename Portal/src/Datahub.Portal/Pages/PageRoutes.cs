@@ -43,7 +43,7 @@ public static class PageRoutes
     public const string TermsAndConditions = "/terms-and-conditions";
     public const string TermsAndConditions_FR = "/conditions-generales";
 
-    public const string Help = "/help";
+    public const string Help = "/support";
     public const string Help_FR = "/assistance";
   
     public const string CreateWorkspace = "/create-workspace";
