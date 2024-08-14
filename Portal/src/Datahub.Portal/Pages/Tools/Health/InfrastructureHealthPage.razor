@@ -106,7 +106,7 @@ else
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the workspaces."]
         </MudText>
-            <MudTable T="InfrastructureHealthCheck"
+            <MudTable T="InfrastructureHealthCheck" @ref="workspaceHealthTable"
             ServerData="LoadWorkspaceChecks" Hover Dense Sortable="true">
             <HeaderContent>
                 <MudTh>
@@ -127,14 +127,15 @@ else
                         InitialDirection="SortDirection.Ascending" 
                         SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.Status)">@Localizer["Status"]
                         </MudTableSortLabel>
-                    </MudTh>
-                <MudSelect T="InfrastructureHealthStatus?" @bind-Value="selectedStatus" Label="Filter by Status" Variant="Variant.Outlined" Dense="true">
-                    <MudSelectItem T="InfrastructureHealthStatus?" Value="null">@Localizer["All"]</MudSelectItem>
-                    @foreach (var status in statusList)
-                    {
-                        <MudSelectItem T="InfrastructureHealthStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
-                    }
-                </MudSelect>
+                    <MudSelect T="InfrastructureHealthStatus?" Value="selectedStatus"
+                        ValueChanged="OnStatusChanged" Variant="Variant.Text" Dense="true">
+                        <MudSelectItem T="InfrastructureHealthStatus?" Value="null">@Localizer["All"]</MudSelectItem>
+                        @foreach (var status in statusList)
+                        {
+                            <MudSelectItem T="InfrastructureHealthStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTh>
                 <MudTh>
                     <MudTableSortLabel 
                         InitialDirection="SortDirection.Ascending" 
@@ -203,6 +204,7 @@ else
     private string searchString = string.Empty;
     private List<InfrastructureHealthStatus> statusList = Enum.GetValues(typeof(InfrastructureHealthStatus)).Cast<InfrastructureHealthStatus>().ToList();
     private InfrastructureHealthStatus? selectedStatus;
+    private MudTable<InfrastructureHealthCheck> workspaceHealthTable;
 
 
     protected override async Task OnInitializedAsync()
@@ -409,9 +411,21 @@ else
         return matchesSearch && matchesStatus;
     }
 
+    private async Task OnStatusChanged(InfrastructureHealthStatus? newStatus)
+    {
+        selectedStatus = newStatus;
+        await workspaceHealthTable.ReloadServerData();
+    }
+
     private Task<TableData<InfrastructureHealthCheck>> LoadWorkspaceChecks(TableState state, CancellationToken cancellationToken)
     {
         var filteredData = _infrastructureHealthData;
+
+        // Apply status filter
+        if (selectedStatus.HasValue)
+        {
+            filteredData = filteredData.Where(check => check.Status == selectedStatus.Value).ToList();
+        }
 
         // Apply pagination
         var totalItems = filteredData.Count;
