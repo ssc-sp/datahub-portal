@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
 	ProjectSection(SolutionItems) = preProject
-		Portal\template.appsettings.json = Portal\template.appsettings.json
+		Portal\template.settings.json = Portal\template.settings.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"

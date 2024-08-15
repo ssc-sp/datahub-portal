@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
@@ -125,9 +126,11 @@ public class ProjectUsageUpdater(
         if (response.HasValue)
         {
             _logger.LogInformation($"Downloaded costs from blob {fileName}");
-            var plainTextResult = response.Value.Content.ToString();
-            var costs = JsonSerializer.Deserialize<List<DailyServiceCost>>(plainTextResult);
-            return costs;
+            var content = response.Value.Content.ToString();
+            var data = JsonSerializer.Deserialize<JsonObject>(content);
+            var costs = JsonSerializer.Deserialize<List<DailyServiceCost>>(data?["costs"]?.ToString() 
+                                                                           ?? throw new InvalidOperationException("Costs not found"));
+            return costs!;
         }
         _logger.LogError($"Cannot download costs from blob {fileName}");
         return null;

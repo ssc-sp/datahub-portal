@@ -39,9 +39,6 @@ public static class PageRoutes
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
     public const string Tool_FR = $"/{ToolPrefix_FR}/{{Section}}";
     
-    public const string WebAppDefault = $"/{IReverseProxyConfigService.WebAppPrefix}/";
-    public const string WebApp = $"/{WorkspacePrefix}/{IReverseProxyConfigService.WebAppPrefix}/{{Section}}";
-
     public const string Logout = "/signout-oidc";
     public const string TermsAndConditions = "/terms-and-conditions";
     public const string TermsAndConditions_FR = "/conditions-generales";

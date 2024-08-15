@@ -1,4 +1,5 @@
 ﻿@using Datahub.Application.Services
+@using Datahub.Core
 @using MudBlazor.Utilities
 @using Microsoft.Identity.Web
 @using MediatR
@@ -16,10 +17,10 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
-@inject IWebHostEnvironment _hostingEnv
 @inject IMediator _mediatr
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
+
 
 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
 <MudDialogProvider/>
@@ -45,6 +46,7 @@
         </MudDrawerContainer>
     </MudDrawer>
     <MudMainContent>
+        <EnvironmentTopBar/>
         <ErrorBoundary @ref="_errorBoundary">
             <ChildContent>
                 @Body
@@ -62,8 +64,7 @@
                 }
             </ErrorContent>
         </ErrorBoundary>
-
-        <DHFooter />
+        <DHFooter/>
     </MudMainContent>
 </MudLayout>
 
@@ -129,14 +130,14 @@
 
     public async Task ReportIssue(Exception ex, string correlationId)
     {
-        if (!_hostingEnv.IsDevelopment())
+        if (!DevTools.IsDevelopment())
         {
             var exceptionDetail = new Dictionary<string, string>()
             {
-                {"Type", ex.GetType().ToString()},
-                {"Message", ex.Message},
-                {"StackTrace", ex.StackTrace},
-                {"CorrelationId", correlationId}
+                { "Type", ex.GetType().ToString() },
+                { "Message", ex.Message },
+                { "StackTrace", ex.StackTrace },
+                { "CorrelationId", correlationId }
             };
             var exceptionData = Newtonsoft.Json.JsonConvert.SerializeObject(exceptionDetail);
 
@@ -145,12 +146,13 @@
             if (_portalUser is null)
             {
                 _portalUser = new PortalUser
-                    {
-                        GraphGuid = Guid.NewGuid().ToString(),
-                        DisplayName = "Unknown User",
-                        Email = "unknown_email",
-                    };
+                {
+                    GraphGuid = Guid.NewGuid().ToString(),
+                    DisplayName = "Unknown User",
+                    Email = "unknown_email",
+                };
             }
+
             var userLanguage = await _userSettingsService.GetUserLanguage();
 
             IJSObjectReference _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
@@ -168,6 +170,7 @@
                 var value = await _localStorage.GetItemAsStringAsync(key);
                 dataDict.Add(key, value);
             }
+
             var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
 
             var lastHourEvents = await GetTelemetryData();
@@ -200,14 +203,16 @@
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var lastHour = DateTime.Now.AddHours(-1);
         var events = dbContext.TelemetryEvents;
-        if (events != null && events.Count() > 0 )
+        if (events != null && events.Count() > 0)
         {
             return await events
                 .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour)
                 .ToListAsync();
-        } 
+        }
+
         return new List<TelemetryEvent>();
     }
+
     private string GetOrg(string email)
     {
         var org = "";
@@ -219,6 +224,8 @@
         {
             org = "unknown";
         }
+
         return org;
     }
+
 }

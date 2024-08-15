@@ -5,10 +5,11 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <RootNamespace>Datahub.SpecflowTests</RootNamespace>
-    </PropertyGroup>
+      <UserSecretsId>0e5da883-04b1-4ef6-87a0-33f222cc5391</UserSecretsId>
+  </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.17.5" />
+        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.1" />
         <PackageReference Include="bunit" Version="1.28.9" />
         <PackageReference Include="Deque.AxeCore.Commons" Version="4.9.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.6" />

@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace Datahub.SpecflowTests.Features
+namespace Datahub.SpecflowTests.Features.ReverseProxyRoles
 {
     using Reqnroll;
     using System;
@@ -19,21 +19,19 @@ namespace Datahub.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [Xunit.TraitAttribute("Category", "IWebHostEnvironment")]
-    public partial class NewsCarouselFeature : object, Xunit.IClassFixture<NewsCarouselFeature.FixtureData>, Xunit.IAsyncLifetime
+    public partial class GetWorkspaceRoleHttpContextExtensionFeature : object, Xunit.IClassFixture<GetWorkspaceRoleHttpContextExtensionFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private static global::Reqnroll.ITestRunner testRunner;
         
-        private static string[] featureTags = new string[] {
-                "IWebHostEnvironment"};
+        private static string[] featureTags = ((string[])(null));
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
-#line 1 "NewsCarousel.feature"
+#line 1 "HttpContextGetRoleExtension.feature"
 #line hidden
         
-        public NewsCarouselFeature(NewsCarouselFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
+        public GetWorkspaceRoleHttpContextExtensionFeature(GetWorkspaceRoleHttpContextExtensionFeature.FixtureData fixtureData, Xunit.Abstractions.ITestOutputHelper testOutputHelper)
         {
             this._testOutputHelper = testOutputHelper;
         }
@@ -41,7 +39,8 @@ namespace Datahub.SpecflowTests.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "News Carousel", "\tThe news carousel should display the latest news items from the news feed.", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/ReverseProxyRoles", "Get Workspace Role Http Context Extension", "Adds an extension method to fetch the role of a user in a workspace from the Http" +
+                    "Context", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -88,65 +87,48 @@ namespace Datahub.SpecflowTests.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it starts with an image", Skip="Ignored")]
-        [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
-        [Xunit.TraitAttribute("Description", "Show padding on the carousel when it starts with an image")]
-        public async System.Threading.Tasks.Task ShowPaddingOnTheCarouselWhenItStartsWithAnImage()
+        [Xunit.SkippableTheoryAttribute(DisplayName="Get the role of a user in a workspace")]
+        [Xunit.TraitAttribute("FeatureTitle", "Get Workspace Role Http Context Extension")]
+        [Xunit.TraitAttribute("Description", "Get the role of a user in a workspace")]
+        [Xunit.InlineDataAttribute("-admin", "test", "admin", new string[0])]
+        [Xunit.InlineDataAttribute("-workspace-lead", "test", "lead", new string[0])]
+        [Xunit.InlineDataAttribute("-collaborator", "test", "collaborator", new string[0])]
+        [Xunit.InlineDataAttribute("-guest", "test", "guest", new string[0])]
+        [Xunit.InlineDataAttribute("-super-admin", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("-workspace-leader", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("-write", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("-read", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("admin", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("workspace-lead", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("collaborator", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("guest", "test", "null", new string[0])]
+        [Xunit.InlineDataAttribute("null", "test", "null", new string[0])]
+        public async System.Threading.Tasks.Task GetTheRoleOfAUserInAWorkspace(string workspace_Role_Suffix, string workspace_Acronym, string role, string[] exampleTags)
         {
-            string[] tagsOfScenario = new string[] {
-                    "ignore"};
+            string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Show padding on the carousel when it starts with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            argumentsOfScenario.Add("workspace_role_suffix", workspace_Role_Suffix);
+            argumentsOfScenario.Add("workspace_acronym", workspace_Acronym);
+            argumentsOfScenario.Add("role", role);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Get the role of a user in a workspace", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 4
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 5
+        await testRunner.GivenAsync(string.Format("a user context with a claim of {0} and {1}", workspace_Role_Suffix, workspace_Acronym), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
 #line 6
-this.ScenarioInitialize(scenarioInfo);
+        await testRunner.WhenAsync(string.Format("the user requests their role in the workspace {0}", workspace_Acronym), ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
 #line 7
- await testRunner.GivenAsync("there is a news carousel component with an image", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 8
- await testRunner.ThenAsync("the carousel should not have padding on the x-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 9
- await testRunner.AndAsync("the carousel should not have padding on the y-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="Show padding on the carousel when it does not start with an image", Skip="Ignored")]
-        [Xunit.TraitAttribute("FeatureTitle", "News Carousel")]
-        [Xunit.TraitAttribute("Description", "Show padding on the carousel when it does not start with an image")]
-        public async System.Threading.Tasks.Task ShowPaddingOnTheCarouselWhenItDoesNotStartWithAnImage()
-        {
-            string[] tagsOfScenario = new string[] {
-                    "ignore"};
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Show padding on the carousel when it does not start with an image", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 12
-this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 13
- await testRunner.GivenAsync("there is a news carousel component without an image", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 14
- await testRunner.ThenAsync("the carousel should have padding on the x-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 15
- await testRunner.AndAsync("the carousel should have padding on the y-axis", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.ThenAsync(string.Format("the role should be {0}", role), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -159,12 +141,12 @@ this.ScenarioInitialize(scenarioInfo);
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
             {
-                await NewsCarouselFeature.FeatureSetupAsync();
+                await GetWorkspaceRoleHttpContextExtensionFeature.FeatureSetupAsync();
             }
             
             async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
             {
-                await NewsCarouselFeature.FeatureTearDownAsync();
+                await GetWorkspaceRoleHttpContextExtensionFeature.FeatureTearDownAsync();
             }
         }
     }
