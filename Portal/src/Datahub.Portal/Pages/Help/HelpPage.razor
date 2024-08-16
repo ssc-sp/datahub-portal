@@ -50,8 +50,8 @@
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
         <DHMainContentTitle Title="@Localizer["Support"]" />
-        <MudGrid>
-            <MudItem xs="12" sm="6" Class="d-flex flex-grow-1">
+        <ul class="my-4" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px">
+            <li style="display: flex; flex-grow: 1;">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
                     <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
                     <MudForm @ref="form">
@@ -148,8 +148,8 @@
                         </MudGrid>
                     </MudForm>
                         </MudPaper>
-            </MudItem>
-            <MudItem xs="12" sm="6" Class="d-flex flex-grow-1">
+            </li>
+            <li style="display: flex; flex-grow: 1;">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
                     <MudStack>
                         <MudText Typo="Typo.h2" Class="py-3">@Localizer["Resources"]</MudText>
@@ -164,8 +164,8 @@
                         </MudItem>
                     </MudStack>
                 </MudPaper>
-            </MudItem>
-        </MudGrid>
+            </li>
+        </ul>
         <MudDivider/>
         <MudText Typo="Typo.h2">@Localizer["Your Support Requests"]</MudText>
         <MudText Typo="Typo.body1">@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</MudText>
