@@ -8,7 +8,9 @@
 @inject IJSRuntime _jsRuntime
 
 <DHButton OnClick="() => ChangeLanguage(Language)" Size="@Size" @attributes="@InputAttributes">
-    @LanguageDisplay
+    <MudText Style="text-decoration:underline;">
+        @LanguageDisplay
+    </MudText>
 </DHButton>
 
 @code {

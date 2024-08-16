@@ -48,7 +48,7 @@
         <LanguageToggle Style="margin-top: 20px;" @ref="_languageToggle" Size="Size.Small" />
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
         <DHButton Style="margin-top: 20px;" OnClick="@HandleLogOut" Size="Size.Small">
-            @Localizer["Sign Out"]
+            <MudText Style="text-decoration:underline;">@Localizer["Sign Out"]</MudText>
         </DHButton>
     </MudHidden>
     <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
@@ -56,7 +56,7 @@
         <LanguageToggle Style="margin-top: 20px;" @ref="_languageToggle" Size="Size.Medium" />
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
         <DHButton Style="margin-top: 20px;"  OnClick="@HandleLogOut" Size="Size.Medium">
-            @Localizer["Sign Out"]
+            <MudText Style="text-decoration:underline;">@Localizer["Sign Out"]</MudText>
         </DHButton>
     </MudHidden>
 </DatahubAuthView>
