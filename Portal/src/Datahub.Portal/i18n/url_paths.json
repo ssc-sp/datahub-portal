@@ -30,7 +30,7 @@
   "/explore": "/explore",
   "support": "support",
   "/home": "/home",
-  "/news": "/news",
+  "/announcements": "/announcements",
   "/resources": "/resources",
   "/resources/": "/resources/",
   "/create-workspace": "/create-workspace",
@@ -38,8 +38,8 @@
   "tool": "tool",
   "home-lt": "accueil",
   "/home-lt": "/accueil",
-  "news-lt": "nouvelles",
-  "/news-lt": "/nouvelles",
+  "announcements-lt": "annonces",
+  "/announcements-lt": "/annonces",
   "explore-lt": "explorer",
   "/explore-lt": "/explorer",
   "support-lt": "assistance",
@@ -49,5 +49,5 @@
   "login-lt": "connexion",
   "/login-lt": "/connexion",
   "register-lt": "inscription",
-  "/register-lt": "/inscription",
+  "/register-lt": "/inscription"
 }
