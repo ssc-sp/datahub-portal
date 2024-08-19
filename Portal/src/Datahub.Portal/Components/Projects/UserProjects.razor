@@ -21,42 +21,56 @@
 }
 
 <MudStack>
-    @if (ShowTitle)
+    @if (_adminProjects.Any())
     {
-        <MudText Typo="Typo.h2" Class="my-4">@Localizer["Workspaces I Administer"]</MudText>
-    }
-    <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
-        @foreach (var project in _adminProjects)
+        @if (ShowTitle)
         {
-            <li>
-                <ProjectPreviewCard Project="@project"/>
-            </li>
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Administer"]</MudText>
         }
-    </ul>
-    @if (ShowTitle)
+        <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+            @foreach (var project in _adminProjects)
+            {
+                <li>
+                    <ProjectPreviewCard Project="@project"/>
+                </li>
+            }
+        </ul>
+    }
+
+    @if (_collaboratedProjects.Any())
     {
-        <MudText Typo="Typo.h2" Class="my-4">@Localizer["Workspaces I Collaborate In"]</MudText>
-    }
-    <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
-        @foreach (var project in _collaboratedProjects)
+        @if (ShowTitle)
         {
-            <li>
-                <ProjectPreviewCard Project="@project"/>
-            </li>
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Collaborate In"]</MudText>
         }
-    </ul>
-    @if (ShowTitle)
+        <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+            @foreach (var project in _collaboratedProjects)
+            {
+                <li>
+                    <ProjectPreviewCard Project="@project"/>
+                </li>
+            }
+        </ul>
+    }
+    
+    @if (_guestProjects.Any())
     {
-        <MudText Typo="Typo.h2" Class="my-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
-    }
-    <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
-        @foreach (var project in _guestProjects)
+        @if (ShowTitle)
         {
-            <li>
-                <ProjectPreviewCard Project="@project"/>
-            </li>
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
         }
-    </ul>
+        <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+            @foreach (var project in _guestProjects)
+            {
+                <li>
+                    <ProjectPreviewCard Project="@project"/>
+                </li>
+            }
+        </ul>
+    }
 </MudStack>
 
 @code {
