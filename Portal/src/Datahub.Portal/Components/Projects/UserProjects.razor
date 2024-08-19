@@ -23,7 +23,7 @@
 <MudStack>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin Workspaces"]</MudText>
+        <MudText Typo="Typo.h2" Class="my-4">@Localizer["Workspaces I Administer"]</MudText>
     }
     <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
         @foreach (var project in _adminProjects)
@@ -35,7 +35,7 @@
     </ul>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator Workspaces"]</MudText>
+        <MudText Typo="Typo.h2" Class="my-4">@Localizer["Workspaces I Collaborate In"]</MudText>
     }
     <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
         @foreach (var project in _collaboratedProjects)
@@ -47,7 +47,7 @@
     </ul>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest Workspaces"]</MudText>
+        <MudText Typo="Typo.h2" Class="my-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
     }
     <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
         @foreach (var project in _guestProjects)
