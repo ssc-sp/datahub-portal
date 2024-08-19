@@ -23,33 +23,38 @@
 <MudStack>
     @if (ShowTitle)
     {
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["My Workspaces"]</MudText>
+        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin Workspaces"]</MudText>
     }
     <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
-        @foreach (var project in _userRoles.Select(userRole => userRole.Project))
+        @foreach (var project in _adminProjects)
         {
-            <li >
+            <li>
                 <ProjectPreviewCard Project="@project"/>
             </li>
         }
-        @if (_isCurrentUser)
+    </ul>
+    @if (ShowTitle)
+    {
+        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator Workspaces"]</MudText>
+    }
+    <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+        @foreach (var project in _collaboratedProjects)
         {
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-                <Authorized>
-                    <li>
-                    <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
-                    </li>
-
-                </Authorized>
-                <NotAuthorized>
-                    @if (_numberOfRemainingWorkspaces > 0)
-                    {
-                        <li>
-                            <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
-                        </li>
-                    }
-                </NotAuthorized>
-            </DatahubAuthView>
+            <li>
+                <ProjectPreviewCard Project="@project"/>
+            </li>
+        }
+    </ul>
+    @if (ShowTitle)
+    {
+        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest Workspaces"]</MudText>
+    }
+    <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+        @foreach (var project in _guestProjects)
+        {
+            <li>
+                <ProjectPreviewCard Project="@project"/>
+            </li>
         }
     </ul>
 </MudStack>
@@ -68,6 +73,10 @@
 
     private List<Datahub_Project_User> _userRoles;
     private int _numberOfRemainingWorkspaces;
+
+    private List<Datahub_Project> _adminProjects;
+    private List<Datahub_Project> _collaboratedProjects;
+    private List<Datahub_Project> _guestProjects;
 
     private string _chipStyle = new StyleBuilder()
         .AddStyle("margin-left", "0")
@@ -92,6 +101,10 @@
             .ToListAsync();
 
         _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
+
+        _adminProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead || u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).ToList();
+        _collaboratedProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).ToList();
+        _guestProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).ToList();
     }
 
     private async Task ShowProjectDialog()
