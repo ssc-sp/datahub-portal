@@ -49,5 +49,7 @@
   "login-lt": "connexion",
   "/login-lt": "/connexion",
   "register-lt": "inscription",
-  "/register-lt": "/inscription"
+  "/register-lt": "/inscription",
+  "settings-lt": "parametres",
+  "/settings-lt": "/parametres",
 }

@@ -5,12 +5,24 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
+@inject IUserInformationService _userInformationService
+@inject ILocalStorageService _localStorage
+@inject IPortalUserTelemetryService _telemetryService
+
+@attribute [Route(PageRoutes.Settings)]
+@attribute [Route(PageRoutes.Settings_FR)]
+
+@if (ViewedUser is null)
+{
+    <DHLoadingInitializer />
+    return;
+}
+<DHMainContentTitle Title="@Localizer["Settings"]" />
 
 <MudStack Spacing="8" Class="mb-16">
-    <MudStack>
-        <DHMainContentTitle Title="@Localizer["Public profile"]" />
-        <MudDivider/>
-    </MudStack>
+    <MudText Typo="Typo.h2" Class="mt-4">
+        @Localizer["Public Profile"]
+    </MudText>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
         <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName" Label="@Localizer["Display name"]"/>
     </SettingsField>
@@ -37,15 +49,65 @@
         <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Value="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAlertsChanged"/>
         <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
     </SettingsField>
+
+    <MudDivider />
+    
+    <MudText Typo="Typo.h2">
+        @Localizer["Portal Appearance"]
+    </MudText>
+    <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
+        <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
+            <MudSelectItem T="string" Value="@("DataHub Light")" />
+            <MudSelectItem Disabled T="string" Value="@("DataHub Dark")" />
+            <MudSelectItem Disabled T="string" Value="@("Space Light")" />
+            <MudSelectItem Disabled T="string" Value="@("Space Dark")" />
+        </MudSelect>
+    </SettingsField>
+    <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
+        <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
+            <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
+            <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
+        </MudSelect>
+    </SettingsField>
+
+    <MudDivider />
+
+    <MudText Typo="Typo.h2">
+        @Localizer["Notifications"]
+    </MudText>
+    <SettingsField Label="@Localizer["Email preferences"]" Description="@Localizer["Choose your preferred frequency of communications from the DataHub team"]">
+        <MudRadioGroup T="int" Value="1">
+            <MudStack Spacing="0">
+                <MudRadio Value="1" Color="Color.Primary">
+                    @Localizer["I want to receive all notifications"]
+                </MudRadio>
+                <MudRadio Value="2" Disabled>
+                    @Localizer["I want to receive only important notifications"]
+                </MudRadio>
+                <MudRadio Value="3" Disabled>
+                    @Localizer["I want to receive only critical notifications"]
+                </MudRadio>
+            </MudStack>
+        </MudRadioGroup>
+    </SettingsField>
 </MudStack>
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    //[Parameter]
+    //public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+    //[Parameter]
+    //public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+
+    private PortalUser ViewedUser;
+    private EventCallback<PortalUser> OnViewedUserChanged;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ViewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        OnViewedUserChanged = EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged);
+    }
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
@@ -73,4 +135,31 @@
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
 
+    private async Task HandleViewedUserChanged(PortalUser updatedUser)
+    {
+        ViewedUser = updatedUser;
+        var success = await _userInformationService.UpdatePortalUserAsync(updatedUser);
+        // if (success)
+        // {
+        //     _snackbar.Add(Localizer["User information updated"], Severity.Success);
+        // }
+        // else
+        // {
+        //     _snackbar.Add(Localizer["Failed to update user information"], Severity.Error);
+        // }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task HandleLanguageChanged(string language)
+    {
+        await _localStorage.SetItemAsStringAsync("language", language);
+        await _userSettingsService.RegisterUserLanguage(language);
+        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
+        await _userSettingsService.SetLanguage(language);
+
+        ViewedUser.UserSettings.Language = language;
+
+        await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
 }

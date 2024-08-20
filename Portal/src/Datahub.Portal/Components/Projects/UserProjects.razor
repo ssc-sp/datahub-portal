@@ -28,7 +28,7 @@
             <MudDivider Class="my-4" />
             <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Administer"]</MudText>
         }
-        <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+        <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
             @foreach (var project in _adminProjects)
             {
                 <li>
@@ -45,7 +45,7 @@
             <MudDivider Class="my-4" />
             <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Collaborate In"]</MudText>
         }
-        <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+        <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
             @foreach (var project in _collaboratedProjects)
             {
                 <li>
@@ -62,7 +62,7 @@
             <MudDivider Class="my-4" />
             <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
         }
-        <ul style="display: grid; grid-template-columns: repeat(2, 1fr); list-style-type: none; gap: 25px">
+        <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
             @foreach (var project in _guestProjects)
             {
                 <li>
