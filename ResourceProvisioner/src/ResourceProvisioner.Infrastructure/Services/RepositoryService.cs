@@ -28,11 +28,10 @@ public partial class RepositoryService : IRepositoryService
     /// <returns>The regular expression pattern for matching module versions.</returns>
     [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
     private static partial Regex ModuleRegex();
-    
+
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly SemaphoreSlim _semaphore;
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
 
     public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger,
@@ -44,13 +43,10 @@ public partial class RepositoryService : IRepositoryService
         _resourceProvisionerConfiguration = resourceProvisionerConfiguration;
         _terraformService = terraformService;
 
-        _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
-        await _semaphore.WaitAsync();
-
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
         _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
         await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
@@ -79,8 +75,16 @@ public partial class RepositoryService : IRepositoryService
             Events = repositoryUpdateEvents
         };
 
-        _semaphore.Release();
-        return pullRequestMessage;
+        if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
+        {
+            return pullRequestMessage;
+        }
+
+        pullRequestMessage.Events
+            .Where(x => x.StatusCode == MessageStatusCode.Error)
+            .ToList()
+            .ForEach(x => _logger.LogError(x.Message, x));
+        throw new Exception("Error while handling resource run request");
     }
 
     /// <summary>
