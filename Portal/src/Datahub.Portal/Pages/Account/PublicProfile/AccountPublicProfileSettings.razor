@@ -1,6 +1,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Portal.Components.User
 @using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Layout
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
@@ -8,6 +9,8 @@
 @inject IUserInformationService _userInformationService
 @inject ILocalStorageService _localStorage
 @inject IPortalUserTelemetryService _telemetryService
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
 
 @attribute [Route(PageRoutes.Settings)]
 @attribute [Route(PageRoutes.Settings_FR)]
@@ -90,6 +93,31 @@
             </MudStack>
         </MudRadioGroup>
     </SettingsField>
+
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+        <MudDivider />
+        <MudText Typo="Typo.h2">
+            @Localizer["Admin Settings"]
+        </MudText>
+        @if (!_isViewAsAdmin)
+        {
+            <MudText Typo="Typo.body1">@Localizer["To access admin tools, you must enable Admin Access."]</MudText>
+        }
+        <MudSwitch T="bool"
+                   Color="Color.Primary"
+                   Value="@_isViewAsAdmin"
+                   ValueChanged="@ToggleAdminMode"
+                   Label="@Localizer["Admin Access Enabled"]" />
+    </DatahubAuthView>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+        <MudText Typo="Typo.h3">@Localizer["Admin Tools"]</MudText>
+        <span>
+        @foreach (var tool in _adminTools)
+        {
+            <DHButton Href="@($"{PageRoutes.ToolPrefix}/{tool}")" Size="Size.Small" Color="Color.Primary" Variant="Variant.Filled" Class="mr-4">@Localizer[tool]</DHButton>
+        }
+        </span>
+    </DatahubAuthView>
 </MudStack>
 
 @code {
@@ -102,11 +130,20 @@
 
     private PortalUser ViewedUser;
     private EventCallback<PortalUser> OnViewedUserChanged;
+    private bool _isViewAsAdmin;
+    private List<String> _adminTools;
 
     protected override async Task OnInitializedAsync()
     {
         ViewedUser = await _userInformationService.GetCurrentPortalUserAsync();
         OnViewedUserChanged = EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged);
+        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
+        _adminTools = new List<String> { 
+            PersonalSidebar.SectionViews.Diagnostics, PersonalSidebar.SectionViews.Statistics, 
+            PersonalSidebar.SectionViews.HealthCheck, PersonalSidebar.SectionViews.Users,
+            PersonalSidebar.SectionViews.Email, PersonalSidebar.SectionViews.SupportRequests,
+            PersonalSidebar.SectionViews.AzureSubscriptions
+        };
     }
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
@@ -139,14 +176,14 @@
     {
         ViewedUser = updatedUser;
         var success = await _userInformationService.UpdatePortalUserAsync(updatedUser);
-        // if (success)
-        // {
-        //     _snackbar.Add(Localizer["User information updated"], Severity.Success);
-        // }
-        // else
-        // {
-        //     _snackbar.Add(Localizer["Failed to update user information"], Severity.Error);
-        // }
+        if (success)
+        {
+            _snackbar.Add(Localizer["User information updated"], Severity.Success);
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Failed to update user information"], Severity.Error);
+        }
 
         await InvokeAsync(StateHasChanged);
     }
@@ -161,5 +198,12 @@
         ViewedUser.UserSettings.Language = language;
 
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
+
+    private async Task ToggleAdminMode()
+    {
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 }
