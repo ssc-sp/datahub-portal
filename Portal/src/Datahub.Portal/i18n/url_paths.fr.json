@@ -22,6 +22,7 @@
   "metadata": "metadonnees",
   "reports": "rapports",
   "settings": "parametres",
+  "/settings": "/parametres",
   "/terms-and-conditions": "/conditions-generales",
   "/account": "/compte",
   "/account/": "/compte/",
