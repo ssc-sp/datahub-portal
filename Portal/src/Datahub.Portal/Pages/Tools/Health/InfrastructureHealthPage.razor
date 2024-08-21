@@ -106,44 +106,89 @@ else
         <MudText Typo="Typo.body1">
             @Localizer["View the health of the infrastructure that supports the workspaces."]
         </MudText>
-        <MudTable Items="_infrastructureHealth" Hover Dense>
+            <MudTable T="InfrastructureHealthCheck" @ref="workspaceHealthTable"
+            ServerData="LoadWorkspaceChecks" Hover Dense Sortable="true">
             <HeaderContent>
-                <MudTh>Workspace</MudTh>
-                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh Style="width: 20%;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Workspace"
+                        SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.Name)">
+                        <MudTd @onclick:stopPropagation>
+                            <div>
+                                <span>Workspace</span>
+                                    <MudTextField Value="searchString" Label="" T="string" Immediate="true"
+                                                  ValueChanged="@(async(e) => await ReloadData(e))" />
+                            </div>
+                        </MudTd>
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="width: 20%;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="ResourceType"
+                        SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.ResourceType)">
+                        <div>
+                            <span>Resource</span>
+                            <MudSelect T="InfrastructureHealthResourceType?" Value="selectedType"
+                                ValueChanged="OnTypeChanged" Variant="Variant.Text" Dense="true">
+                                <MudSelectItem T="InfrastructureHealthResourceType?" Value="null">@Localizer["All"]</MudSelectItem>
+                                @foreach (var status in _workspaceChecks)
+                                {
+                                    <MudSelectItem T="InfrastructureHealthResourceType?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </div>
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="width: 30%;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Status"
+                        SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.Status)">
+                        <div style="min-width:300px">
+                            <span>@Localizer["Status"]</span>
+                                <MudSelect T="string" SelectedValues="selectedStatuses"
+                                           SelectedValuesChanged="@(new EventCallback(this, OnStatusChanged))"
+                                           MultiSelection="true" Variant="Variant.Text" Dense="true"
+                                           MultiSelectionTextFunc="@(selectedItems => string.Join(", ", selectedItems))"
+                                           Class="custom-mud-select">
+                                    <MudSelectItem T="string" Value="null">@Localizer["All"]</MudSelectItem>
+                                    @foreach (var status in statusList)
+                                    {
+                                        <MudSelectItem T="string" Value="status.ToString()">@Localizer[status.ToString()]</MudSelectItem>
+                                    }
+                                </MudSelect>
+                        </div>
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="width: 20%;">
+                    <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="HealthCheckTimeUtc"
+                        SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.HealthCheckTimeUtc)">
+                            <span>@Localizer["Updated"]</span>
+                            <div><br/></div>
+                    </MudTableSortLabel>
+                </MudTh>
+                <MudTh Style="width: 10%;">
+                    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ResetFilters">
+                        Reset
+                    </MudButton>
+                </MudTh>
             </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Key</MudTd>
+            <RowTemplate Context="context">
+                <MudTd DataLabel="Workspace">@context.Name</MudTd>
+                <MudTd DataLabel="Resource">@Localizer[context.ResourceType.ToString()]</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip Color="@GetColor(GetRealStatus(context))" T="string" Size="Size.Small">
+                        @Localizer[GetRealStatus(context).ToString()]
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Updated">@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
                 <MudTd>
-                    <MudStack>
-                        @foreach(var resourceType in _workspaceChecks)
-                        {
-                            var health = context.Value.FirstOrDefault(h => h.ResourceType == resourceType);
-                            if (health == null)
-                            {
-                            <MudChip T="string" Color="@GetColor(InfrastructureHealthStatus.Undefined)" Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-                                @Localizer[InfrastructureHealthStatus.Undefined.ToString()]
-                                </MudChip>
-                            }
-                            else
-                            {
-                                var realStatus = GetRealStatus(health);
-                                var details = GetStatusDetails(health);
-                                <MudStack Row>
-                                    <MudText>@Localizer[health.ResourceType.ToString()]</MudText>
-                                    <MudChip Color="@GetColor(realStatus)" T="string"
-                                                Size="Size.Small" OnClick="@(() => CallFunction((InfrastructureHealthResourceType)resourceType, context.Key, "workspace"))">
-                                        @Localizer[realStatus.ToString()]
-                                    </MudChip>
-                                    <MudText>
-                                        @details
-                                    </MudText>
-                                </MudStack>
-                            }
-                        }
-                    </MudStack>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Size="Size.Small" OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))">
+                        @Localizer["Run"]
+                    </DHButton>
                 </MudTd>
             </RowTemplate>
+            <PagerContent>
+                <MudTablePager />
+            </PagerContent>
         </MudTable>
+
     </MudStack>
 </MudStack>
 }
@@ -156,6 +201,8 @@ else
     private List<InfrastructureHealthCheck> _poisonQueueInfrastructureHealth = new();
     private DatahubProjectDBContext _projectDbContext;
     private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
+
+    private List<InfrastructureHealthCheck> _infrastructureHealthData = new ();
 
     private List<InfrastructureHealthResourceType> _coreChecks = new List<InfrastructureHealthResourceType>
 	{
@@ -180,6 +227,25 @@ else
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
 
+    // sort and filter workspaces' healthcheck
+    private MudTable<InfrastructureHealthCheck> workspaceHealthTable;
+    private List<InfrastructureHealthStatus> statusList = new List<InfrastructureHealthStatus>
+    {
+        InfrastructureHealthStatus.Healthy,
+        InfrastructureHealthStatus.Degraded,
+        InfrastructureHealthStatus.Unhealthy,
+        InfrastructureHealthStatus.NeedHealthCheckRun
+    };
+
+    private InfrastructureHealthStatus? selectedStatus;
+    private InfrastructureHealthResourceType? selectedType;
+    private HashSet<string> selectedStatuses = new HashSet<string>();
+
+    private string searchString = string.Empty;
+    private DateTime? startDate;
+    private DateTime? endDate;
+
+
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
@@ -191,6 +257,9 @@ else
         _projectDbContext = DbFactory.CreateDbContext();
 
         LoadDataForTables();
+
+        selectedStatuses = new HashSet<string>(statusList.Select(s => s.ToString()).ToList());
+        selectedStatuses.Remove(InfrastructureHealthStatus.Healthy.ToString());
 
         _timer = new System.Threading.Timer(e =>
         {
@@ -223,7 +292,11 @@ else
 
             foreach (var output in res)
             {
-                list.Add(output);
+                if (!_infrastructureHealthData.Any(h => h.Name == output.Name && h.ResourceType == output.ResourceType))
+                {
+                    list.Add(output);
+                    _infrastructureHealthData.Add(output);
+                }
             }
             _infrastructureHealth.Add(acronym, list);
         }
@@ -366,6 +439,141 @@ else
         return poison;
     }
 
+    // private bool FilterHealthCheckByStatus(InfrastructureHealthCheck check)
+    // {
+    //     bool matchesSearch = string.IsNullOrEmpty(searchString) || check.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    //     bool matchesStatus = !selectedStatus.HasValue || check.Status == selectedStatus.Value;
+
+    //     return matchesSearch && matchesStatus;
+    // }
+
+    // private async Task OnStatusChanged(InfrastructureHealthStatus? newStatus)
+    // {
+    //     selectedStatus = newStatus;
+    //     await workspaceHealthTable.ReloadServerData();
+    // }
+
+    private async Task OnStatusChanged(HashSet<string> newStatuses)
+    {
+        if (newStatuses.Contains(null))
+        {
+            selectedStatuses = new HashSet<string>(statusList.Select(s => s.ToString()).ToList());
+        }
+        else
+        {
+            selectedStatuses = newStatuses;
+        }
+        Console.WriteLine("After Update: " + string.Join(", ", selectedStatuses));
+
+        await workspaceHealthTable.ReloadServerData();
+    }
+
+    private async Task OnTypeChanged(InfrastructureHealthResourceType? newType)
+    {
+        selectedType = newType;
+        await workspaceHealthTable.ReloadServerData();
+    }
+    private async Task OnStartDateChanged(DateTime? newDate)
+    {
+        startDate = newDate;
+        await workspaceHealthTable.ReloadServerData();
+    }
+
+    private async Task OnEndDateChanged(DateTime? newDate)
+    {
+        endDate = newDate;
+        await workspaceHealthTable.ReloadServerData();
+    }
+
+    private async Task ReloadData(string e)
+    {
+        searchString = e;
+        await workspaceHealthTable.ReloadServerData();
+    }
+     
+    private async Task ResetFilters()
+    {
+        selectedStatuses = new HashSet<string>(statusList.Select(s => s.ToString()).ToList());
+        selectedStatuses.Remove(InfrastructureHealthStatus.Healthy.ToString());
+        selectedStatus = null;
+        selectedType = null;
+        searchString = string.Empty;
+        startDate = null;
+        endDate = null;
+        
+        // Reset sorting by setting default values
+        workspaceHealthTable.TableContext.InitializeSorting();
+
+        await workspaceHealthTable.ReloadServerData();
+    }
+
+    private Task<TableData<InfrastructureHealthCheck>> LoadWorkspaceChecks(TableState state, CancellationToken cancellationToken)
+    {
+        var filteredData = _infrastructureHealthData;
+
+        // Apply status filter
+        if (selectedStatus.HasValue)
+        {
+            filteredData = filteredData.Where(check => GetRealStatus(check) == selectedStatus.Value).ToList();
+        }
+
+        // Apply type filter
+        if (selectedType.HasValue)
+        {
+            filteredData = filteredData.Where(check => check.ResourceType == selectedType.Value).ToList();
+        }
+
+        if (selectedStatuses.Any())
+        {
+            filteredData = filteredData.Where(check => selectedStatuses.Contains(GetRealStatus(check).ToString())).ToList();
+        }
+
+        // Apply search filter
+        if (!string.IsNullOrEmpty(searchString))
+        {
+            filteredData = filteredData.Where(check => check.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase)).ToList();
+        }
+
+        // Apply date range filter
+        if (startDate.HasValue)
+        {
+            filteredData = filteredData.Where(check => check.HealthCheckTimeUtc >= startDate.Value).ToList();
+        }
+        if (endDate.HasValue)
+        {
+            filteredData = filteredData.Where(check => check.HealthCheckTimeUtc <= endDate.Value).ToList();
+        }
+        // Apply sorting
+        if (state.SortDirection != SortDirection.None)
+        {
+            Func<InfrastructureHealthCheck, object> sortBy = state.SortLabel switch
+            {
+                "Workspace" => x => x.Name,
+                "Resource" => x => x.ResourceType,
+                "Status" => x => x.Status,
+                "Updated" => x => x.HealthCheckTimeUtc,
+                _ => x => x.Name
+            };
+
+            filteredData = state.SortDirection == SortDirection.Ascending
+                ? filteredData.OrderBy(sortBy).ToList()
+                : filteredData.OrderByDescending(sortBy).ToList();
+        }
+
+        // Apply pagination
+        var totalItems = filteredData.Count;
+        var pagedData = filteredData
+            .Skip(state.Page * state.PageSize)
+            .Take(state.PageSize)
+            .ToList();
+
+        return Task.FromResult(new TableData<InfrastructureHealthCheck>
+            {
+                TotalItems = totalItems,
+                Items = pagedData
+            });
+    }
+
     private static InfrastructureHealthStatus GetRealStatus(InfrastructureHealthCheck health)
     {
         var realStatus = health.Status; 
@@ -395,7 +603,7 @@ else
         if (health.Status == InfrastructureHealthStatus.Healthy) return timeStamp;
         return $"{health.Details} (as of {timeStamp})";
     }
-    
+
     private static string GetStatusText(InfrastructureHealthCheck health)
     {
         var realStatus = GetRealStatus(health);
