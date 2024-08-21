@@ -109,11 +109,11 @@ else
             <MudTable T="InfrastructureHealthCheck" @ref="workspaceHealthTable"
             ServerData="LoadWorkspaceChecks" Hover Dense Sortable="true">
             <HeaderContent>
-                <MudTh>
+                <MudTh Style="width: 20%;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Workspace"
                         SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.Name)">
                         <MudTd @onclick:stopPropagation>
-                            <div style="display: flex; align-items: center;">
+                            <div>
                                 <span>Workspace</span>
                                     <MudTextField Value="searchString" Label="" T="string" Immediate="true"
                                                   ValueChanged="@(async(e) => await ReloadData(e))" />
@@ -121,10 +121,10 @@ else
                         </MudTd>
                     </MudTableSortLabel>
                 </MudTh>
-                <MudTh>
+                <MudTh Style="width: 20%;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="ResourceType"
                         SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.ResourceType)">
-                        <div style="display: flex; align-items: center;">
+                        <div>
                             <span>Resource</span>
                             <MudSelect T="InfrastructureHealthResourceType?" Value="selectedType"
                                 ValueChanged="OnTypeChanged" Variant="Variant.Text" Dense="true">
@@ -137,32 +137,33 @@ else
                         </div>
                     </MudTableSortLabel>
                 </MudTh>
-                <MudTh>
+                <MudTh Style="width: 30%;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="Status"
                         SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.Status)">
-                        <div style="display: flex; align-items: center;">
+                        <div style="min-width:300px">
                             <span>@Localizer["Status"]</span>
-                            <MudSelect T="InfrastructureHealthStatus?" Value="selectedStatus"
-                                ValueChanged="OnStatusChanged" Variant="Variant.Text" Dense="true">
-                                <MudSelectItem T="InfrastructureHealthStatus?" Value="null">@Localizer["All"]</MudSelectItem>
-                                @foreach (var status in statusList)
-                                {
-                                    <MudSelectItem T="InfrastructureHealthStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
-                                }
-                            </MudSelect>
+                                <MudSelect T="string" SelectedValues="selectedStatuses"
+                                           SelectedValuesChanged="@(new EventCallback(this, OnStatusChanged))"
+                                           MultiSelection="true" Variant="Variant.Text" Dense="true"
+                                           MultiSelectionTextFunc="@(selectedItems => string.Join(", ", selectedItems))"
+                                           Class="custom-mud-select">
+                                    <MudSelectItem T="string" Value="null">@Localizer["All"]</MudSelectItem>
+                                    @foreach (var status in statusList)
+                                    {
+                                        <MudSelectItem T="string" Value="status.ToString()">@Localizer[status.ToString()]</MudSelectItem>
+                                    }
+                                </MudSelect>
                         </div>
                     </MudTableSortLabel>
                 </MudTh>
-                <MudTh>
+                <MudTh Style="width: 20%;">
                     <MudTableSortLabel InitialDirection="SortDirection.Ascending" SortLabel="HealthCheckTimeUtc"
                         SortBy="new Func<InfrastructureHealthCheck, object>(x=>x.HealthCheckTimeUtc)">
-                        <div style="display: flex; align-items: center;margin-bottom: 1em;">
-                            <MudDatePicker @bind-Date="startDate" Label="Start Date" Class="mr-2" />
-                            <MudDatePicker @bind-Date="endDate" Label="End Date" Class="mr-2" />
-                        </div>
+                            <span>@Localizer["Updated"]</span>
+                            <div><br/></div>
                     </MudTableSortLabel>
                 </MudTh>
-                <MudTh>
+                <MudTh Style="width: 10%;">
                     <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="ResetFilters">
                         Reset
                     </MudButton>
@@ -238,6 +239,8 @@ else
 
     private InfrastructureHealthStatus? selectedStatus;
     private InfrastructureHealthResourceType? selectedType;
+    private HashSet<string> selectedStatuses = new HashSet<string>();
+
     private string searchString = string.Empty;
     private DateTime? startDate;
     private DateTime? endDate;
@@ -254,6 +257,9 @@ else
         _projectDbContext = DbFactory.CreateDbContext();
 
         LoadDataForTables();
+
+        selectedStatuses = new HashSet<string>(statusList.Select(s => s.ToString()).ToList());
+        selectedStatuses.Remove(InfrastructureHealthStatus.Healthy.ToString());
 
         _timer = new System.Threading.Timer(e =>
         {
@@ -433,17 +439,32 @@ else
         return poison;
     }
 
-    private bool FilterHealthCheckByStatus(InfrastructureHealthCheck check)
-    {
-        bool matchesSearch = string.IsNullOrEmpty(searchString) || check.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
-        bool matchesStatus = !selectedStatus.HasValue || check.Status == selectedStatus.Value;
+    // private bool FilterHealthCheckByStatus(InfrastructureHealthCheck check)
+    // {
+    //     bool matchesSearch = string.IsNullOrEmpty(searchString) || check.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase);
+    //     bool matchesStatus = !selectedStatus.HasValue || check.Status == selectedStatus.Value;
 
-        return matchesSearch && matchesStatus;
-    }
+    //     return matchesSearch && matchesStatus;
+    // }
 
-    private async Task OnStatusChanged(InfrastructureHealthStatus? newStatus)
+    // private async Task OnStatusChanged(InfrastructureHealthStatus? newStatus)
+    // {
+    //     selectedStatus = newStatus;
+    //     await workspaceHealthTable.ReloadServerData();
+    // }
+
+    private async Task OnStatusChanged(HashSet<string> newStatuses)
     {
-        selectedStatus = newStatus;
+        if (newStatuses.Contains(null))
+        {
+            selectedStatuses = new HashSet<string>(statusList.Select(s => s.ToString()).ToList());
+        }
+        else
+        {
+            selectedStatuses = newStatuses;
+        }
+        Console.WriteLine("After Update: " + string.Join(", ", selectedStatuses));
+
         await workspaceHealthTable.ReloadServerData();
     }
 
@@ -452,15 +473,28 @@ else
         selectedType = newType;
         await workspaceHealthTable.ReloadServerData();
     }
+    private async Task OnStartDateChanged(DateTime? newDate)
+    {
+        startDate = newDate;
+        await workspaceHealthTable.ReloadServerData();
+    }
+
+    private async Task OnEndDateChanged(DateTime? newDate)
+    {
+        endDate = newDate;
+        await workspaceHealthTable.ReloadServerData();
+    }
 
     private async Task ReloadData(string e)
     {
         searchString = e;
         await workspaceHealthTable.ReloadServerData();
     }
-
+     
     private async Task ResetFilters()
     {
+        selectedStatuses = new HashSet<string>(statusList.Select(s => s.ToString()).ToList());
+        selectedStatuses.Remove(InfrastructureHealthStatus.Healthy.ToString());
         selectedStatus = null;
         selectedType = null;
         searchString = string.Empty;
@@ -487,6 +521,11 @@ else
         if (selectedType.HasValue)
         {
             filteredData = filteredData.Where(check => check.ResourceType == selectedType.Value).ToList();
+        }
+
+        if (selectedStatuses.Any())
+        {
+            filteredData = filteredData.Where(check => selectedStatuses.Contains(GetRealStatus(check).ToString())).ToList();
         }
 
         // Apply search filter
