@@ -28,14 +28,16 @@
             <MudDivider Class="my-4" />
             <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Administer"]</MudText>
         }
-        <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
-            @foreach (var project in _adminProjects)
-            {
-                <li>
-                    <ProjectPreviewCard Project="@project"/>
-                </li>
-            }
-        </ul>
+        <div role="group">
+            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+                @foreach (var project in _adminProjects)
+                {
+                    <li>
+                        <ProjectPreviewCard Project="@project"/>
+                    </li>
+                }
+            </ul>
+        </div>
     }
 
     @if (_collaboratedProjects.Any())
@@ -45,14 +47,16 @@
             <MudDivider Class="my-4" />
             <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Collaborate In"]</MudText>
         }
-        <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
-            @foreach (var project in _collaboratedProjects)
-            {
-                <li>
-                    <ProjectPreviewCard Project="@project"/>
-                </li>
-            }
-        </ul>
+        <div role="group">
+            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+                @foreach (var project in _collaboratedProjects)
+                {
+                    <li>
+                        <ProjectPreviewCard Project="@project"/>
+                    </li>
+                }
+            </ul>
+        </div>
     }
     
     @if (_guestProjects.Any())
@@ -62,14 +66,16 @@
             <MudDivider Class="my-4" />
             <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
         }
-        <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
-            @foreach (var project in _guestProjects)
-            {
-                <li>
-                    <ProjectPreviewCard Project="@project"/>
-                </li>
-            }
-        </ul>
+        <div role="group">
+            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+                @foreach (var project in _guestProjects)
+                {
+                    <li>
+                        <ProjectPreviewCard Project="@project"/>
+                    </li>
+                }
+            </ul>
+        </div>
     }
 </MudStack>
 

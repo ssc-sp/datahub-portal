@@ -11,59 +11,67 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudText Typo="Typo.h2">@Localizer["Quick Links"]</MudText>
-<ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
-    <li style="display: flex; flex-grow: 1;">
-        <MudPaper Elevation="0" Outlined Class="px-3 py-2">
-            <MudStack>
-                <MudText Typo="Typo.h3">@Localizer["Recent Links"]</MudText>
-            </MudStack>
-            <MudStack Spacing="1" Class="px-3 mt-2">
-                <ul>
-                    @foreach (var recentActivity in _recentLinks)
+<div role="group">
+    <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+        <li style="display: flex; flex-grow: 1;">
+            <MudPaper Elevation="0" Outlined Class="px-3 py-2">
+                <MudStack>
+                    <MudText Typo="Typo.h3">@Localizer["Recent Links"]</MudText>
+                </MudStack>
+                <MudStack Spacing="1" Class="px-3 mt-2">
+                    @if (_recentLinks.Count == 0)
                     {
-                        <li>
-                            <MudLink Href="@GetSectionViewUrl(recentActivity)" Style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
-                                @GetLabel(recentActivity)
-                            </MudLink>
-                        </li>
+                        <MudText Typo="Typo.body2">@Localizer["No recent links found"]</MudText>
                     }
-                </ul>
-            </MudStack>
-        </MudPaper>
-    </li>
-    <li style="display: flex; flex-grow: 1;">
-        <MudPaper Elevation="0" Outlined Class="px-3 py-2">
-                <MudStack>
-                    <MudText Typo="Typo.h3">@Localizer["Create a new Workspace"]</MudText>
-                    <MudText Typo="Typo.body2">@Localizer["You can create a new workspace to start working on your project"]</MudText>
+                    else 
+                    {
+                        <ul>
+                            @foreach (var recentActivity in _recentLinks)
+                            {
+                                <li>
+                                    <MudLink Href="@GetSectionViewUrl(recentActivity)" Style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
+                                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
+                                        @GetLabel(recentActivity)
+                                    </MudLink>
+                                </li>
+                            }
+                        </ul>
+                    }
                 </MudStack>
-                <MudStack Spacing="1">
-                    <ProjectPreviewCardIconDetails NumberOfWorkspacesRemaining="5"/>
-                    <MudElement>
-                        <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.CreateWorkspace]">
-                            @Localizer["Create Workspace"]
-                        </DHButton>
-                    </MudElement>
-                </MudStack>
-        </MudPaper>
-    </li>
-    <li style="display: flex; flex-grow: 1;">
-        <MudPaper Elevation="0" Outlined Class="px-3 py-2">
-                <MudStack>
-                    <MudText Typo="Typo.h3">@Localizer["Explore Workspaces & Users"]</MudText>
-                    <MudText Typo="Typo.body2">@Localizer["You can explore existing projects and users on the platform using the Explore page"]</MudText>
-                </MudStack>
-                <MudStack Spacing="1" Class="mt-2">
-                    <MudElement>
-                        <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Explore]">
-                            @Localizer["Explore"]
-                        </DHButton>
-                    </MudElement>
-                </MudStack>
-        </MudPaper>
-    </li>
-</ul>
+            </MudPaper>
+        </li>
+        <li style="display: flex; flex-grow: 1;">
+            <MudPaper Elevation="0" Outlined Class="px-3 py-2">
+                    <MudStack>
+                        <MudText Typo="Typo.h3">@Localizer["Create a new Workspace"]</MudText>
+                        <MudText Typo="Typo.body2">@Localizer["You can create a new workspace to start working on your project"]</MudText>
+                    </MudStack>
+                    <MudStack Spacing="1" Class="mt-6">
+                        <MudElement>
+                            <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.CreateWorkspace]">
+                                @Localizer["Create Workspace"]
+                            </DHButton>
+                        </MudElement>
+                    </MudStack>
+            </MudPaper>
+        </li>
+        <li style="display: flex; flex-grow: 1;">
+            <MudPaper Elevation="0" Outlined Class="px-3 py-2">
+                    <MudStack>
+                        <MudText Typo="Typo.h3">@Localizer["Explore Workspaces & Users"]</MudText>
+                        <MudText Typo="Typo.body2">@Localizer["You can explore existing projects and users on the platform using the Explore page"]</MudText>
+                    </MudStack>
+                    <MudStack Spacing="1" Class="mt-6">
+                        <MudElement>
+                            <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Explore]">
+                                @Localizer["Explore"]
+                            </DHButton>
+                        </MudElement>
+                    </MudStack>
+            </MudPaper>
+        </li>
+    </ul>
+</div>
 
 @code {
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
