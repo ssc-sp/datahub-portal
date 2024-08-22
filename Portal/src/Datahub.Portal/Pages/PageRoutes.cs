@@ -8,8 +8,11 @@ public static class PageRoutes
     public const string Explore_FR = "/explorer";
     public const string Home = "/home";
     public const string Home_FR = "/accueil";
-    public const string News = "/news";
-    public const string News_FR = "/nouvelles";
+    public const string News = "/announcements";
+    public const string News_FR = "/annonces";
+
+    public const string Settings = "/settings";
+    public const string Settings_FR = "/parametres";
 
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
@@ -43,7 +46,7 @@ public static class PageRoutes
     public const string TermsAndConditions = "/terms-and-conditions";
     public const string TermsAndConditions_FR = "/conditions-generales";
 
-    public const string Help = "/help";
+    public const string Help = "/support";
     public const string Help_FR = "/assistance";
   
     public const string CreateWorkspace = "/create-workspace";
