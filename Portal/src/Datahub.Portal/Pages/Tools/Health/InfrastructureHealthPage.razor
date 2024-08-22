@@ -1,5 +1,7 @@
 @using Datahub.Core.Model.Health
 @using System.Text.Json
+@using Microsoft.Graph;
+@using Microsoft.Identity.Web;
 @using Microsoft.Extensions.Caching.Memory
 @using Datahub.Core.Services.Api
 @using Datahub.Infrastructure.Queues.Messages
@@ -10,7 +12,9 @@
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
 @inject ISendEndpointProvider _sendEndpointProvider
+@inject DatahubPortalConfiguration _portalConfiguration
 @inject IMemoryCache Cache
+@inject ITokenAcquisition _tokenAcquisition
 
 @if (isLoading)
     {
@@ -144,6 +148,18 @@ else
                 </MudTd>
             </RowTemplate>
         </MudTable>
+    </MudStack> 
+    <MudStack> 
+    <iframe id="logStreamIframe" src="/api/healthcheck/logstream" width="100%" height="500px">
+        <!-- Fallback content for browsers that do not support iframes -->
+        Your browser does not support iframes.
+    </iframe>
+
+    <iframe id="logStreamIframe" src="@($"/api/healthcheck/webapplogstream?token={_userToken}")" width="100%" height="500px">
+        <!-- Fallback content for browsers that do not support iframes -->
+        Your browser does not support iframes.
+    </iframe>
+    <h2>token: @_userToken</h2>
     </MudStack>
 </MudStack>
 }
@@ -179,6 +195,7 @@ else
     private InfrastructureHealthCheck selectedContext = new InfrastructureHealthCheck();
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
+    public string _userToken;
 
     protected override async Task OnInitializedAsync()
     {
@@ -201,8 +218,17 @@ else
             });
         }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
 
-
+        _userToken = await GetUserTokenAsync();
         isLoading = false;
+    }
+
+    public async Task<string> GetUserTokenAsync()
+    {
+        // var _tokenAcquisition = this.HttpContext.RequestServices
+        //      .GetRequiredService<ITokenAcquisition>() as ITokenAcquisition;
+
+        var tenantId = _portalConfiguration.AzureAd.TenantId;
+        return await _tokenAcquisition.GetAccessTokenForAppAsync("https://graph.microsoft.com/.default", tenant: tenantId);
     }
 
     private void LoadDataForTables()
