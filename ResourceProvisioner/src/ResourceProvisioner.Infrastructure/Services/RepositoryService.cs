@@ -327,7 +327,7 @@ public partial class RepositoryService : IRepositoryService
         return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
-    private async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
+    public async Task<bool> AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
     {
         var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
         var patchUrl =
@@ -342,10 +342,12 @@ public partial class RepositoryService : IRepositoryService
             _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
             var content = await response.Content.ReadAsStringAsync();
             _logger.LogError("Error: {Error}", content);
+            return false;
         }
         else
         {
             _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
+            return true;
         }
     }
 
@@ -371,7 +373,7 @@ public partial class RepositoryService : IRepositoryService
         return patchBody;
     }
 
-    private string GetBranchLastCommitId(string branchName)
+    public virtual string GetBranchLastCommitId(string branchName)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         using var repo = new Repository(repositoryPath);
