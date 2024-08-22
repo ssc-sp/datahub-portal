@@ -32,20 +32,20 @@
 else
 {
     <DHMainContentTitle Title="@Localizer["Learning resources and documentation"]" />
-    <MudGrid Class="px-4">
+    <MudGrid>
         <MudItem>
             @if (ShowPreviewCards)
             {
                 @if (_docIsLoading || _currentDoc is null)
                 {
-                    <MudContainer MaxWidth="MaxWidth.Small">
+                    <MudContainer>
                         <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
                     </MudContainer>
                 }
                 else if (_currentDoc.IsRoot)
                 {
-                    <MudStack Class="ma-6">
-                        <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
+                    <MudStack Class="my-6">
+                        <MudText Typo="Typo.h2">@Localizer["Popular Resources"]</MudText>
                         <MudText Typo="Typo.body1">
                             @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
                         </MudText>
