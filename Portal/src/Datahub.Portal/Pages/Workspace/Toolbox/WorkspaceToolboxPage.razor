@@ -51,52 +51,49 @@
                         <MudStack Row>
                             @switch (_toolCurrentDevelopmentStatusMap[tool])
                             {
-                                case ToolStatus.Available:
+                                case ProjectResourceStatus.Available:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
                                         @Localizer["Add to Workspace"]
                                         <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.SendingRequest:
+                                case ProjectResourceStatus.SendingRequest:
                                     <SpinnerButton Variant="@Variant.Filled">
                                         @Localizer["Sending Request..."]
                                     </SpinnerButton>
                                     break;
-                                case ToolStatus.PendingRequest:
+                                case ProjectResourceStatus.PendingRequest:
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
-                                case ToolStatus.Exists:
+                                case ProjectResourceStatus.Exists:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Tool has been created"]
                                         <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
-                                    <DHButton Variant="@Variant.Filled" Color="@Color.Error" Href="@_resourceDeletionUrl" OnClick="@(async () => await RemoveToolFromWorkspace(tool))">
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Error" Href="@_resourceDeletionUrl">
                                         @Localizer["Remove from Workspace"]
                                         <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.PendingDeletion:
-                                    <MudText>
-                                        @Localizer["Will be deleted lol"]
-                                    </MudText>
+                                case ProjectResourceStatus.PendingDeletion:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(async () => await ReinstateToolToWorkspace(tool))">
                                         @Localizer["Cancel deletion"]
-                                        <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        <DHIcon Icon="@SidebarIcons.Stop" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.Disabled:
+                                case ProjectResourceStatus.Disabled:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
                                         <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.UnderDevelopment:
+                                case ProjectResourceStatus.UnderDevelopment:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Under Development"]
                                         <DHIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.MetadataRequired:
+                                case ProjectResourceStatus.MetadataRequired:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Metadata Required"]
                                         <DHIcon Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;" />
@@ -118,6 +115,7 @@
 </MudStack>
 
 @code {
+    private string _yahoo = "T";
 
     [Parameter] public string WorkspaceAcronym { get; set; }
 
@@ -134,27 +132,27 @@
     TerraformTemplate.AzureAPI
     ];
 
-    private enum ToolStatus
-    {
-        Available,
-        SendingRequest,
-        PendingRequest,
-        Disabled,
-        PendingDeletion,
-        UnderDevelopment,
-        Exists,
-        MetadataRequired,
-        Error
-    }
+    // private enum ProjectResourceStatus
+    // {
+    //     Available,
+    //     SendingRequest,
+    //     PendingRequest,
+    //     Disabled,
+    //     PendingDeletion,
+    //     UnderDevelopment,
+    //     Exists,
+    //     MetadataRequired,
+    //     Error
+    // }
 
-    private readonly Dictionary<string, ToolStatus> _toolCurrentDevelopmentStatusMap = new()
+    private readonly Dictionary<string, ProjectResourceStatus> _toolCurrentDevelopmentStatusMap = new()
     {
-        { TerraformTemplate.AzureDatabricks, ToolStatus.Available },
-        { TerraformTemplate.AzureStorageBlob, ToolStatus.Available },
-        { TerraformTemplate.AzureAppService, ToolStatus.Available },
-        { TerraformTemplate.AzurePostgres, ToolStatus.Available },
-        { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment },
-        { TerraformTemplate.AzureAPI, ToolStatus.UnderDevelopment }
+        { TerraformTemplate.AzureDatabricks, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzureStorageBlob, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzureAppService, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzurePostgres, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzureArcGis, ProjectResourceStatus.UnderDevelopment },
+        { TerraformTemplate.AzureAPI, ProjectResourceStatus.UnderDevelopment }
     };
 
     private bool _metadataRequired = true;
@@ -171,12 +169,14 @@
             .Include(w => w.Resources)
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
+        //SetToolStatus();
+
         _metadataRequired = _workspace?.MetadataAdded != true;
         if (_metadataRequired)
         {
             foreach (var (tool, _) in _toolCurrentDevelopmentStatusMap)
             {
-                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.MetadataRequired;
+                _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.MetadataRequired;
             }
         }
         else
@@ -185,13 +185,52 @@
             foreach (var tool in _toolList)
             {
                 _toolCurrentDevelopmentStatusMap[tool] = GetToolStatus(tool);
+                //SetToolStatus(tool);
             }
+            ToolStatusDeletion();
         }
     }
 
-    private ToolStatus GetToolStatus(string tool)
+    private async void SetToolStatus(string tool)
     {
-        if (_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        //_yahoo = "<3";
+        if (_resourceCheck != null)
+        {
+            _resourceCheck.Status = _toolCurrentDevelopmentStatusMap[tool].ToString();
+            _yahoo = _resourceCheck.Status;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+    private async void ToolStatusDeletion()
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+
+        foreach (var tool in _toolList)
+        {
+            var _resourceCheck = await ctx.Project_Resources2
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            if(_resourceCheck != null && _resourceCheck.Status == "PendingDeletion")
+            {
+
+                _toolCurrentDevelopmentStatusMap[tool] = GetStatus(_resourceCheck.Status);
+                await RemoveToolFromWorkspace(tool);
+
+            }
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private ProjectResourceStatus GetToolStatus(string tool)
+    {
+        if (_toolCurrentDevelopmentStatusMap[tool] != ProjectResourceStatus.Available)
         {
             return _toolCurrentDevelopmentStatusMap[tool];
         }
@@ -199,57 +238,82 @@
         var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
         if (toolResource == null)
         {
-            return ToolStatus.Available;
+            return ProjectResourceStatus.Available;
         }
 
         if (toolResource.CreatedAt == null)
         {
-            return ToolStatus.PendingRequest;
+            return ProjectResourceStatus.PendingRequest;
         }
 
         if (toolResource.CreatedAt < DateTime.UtcNow)
         {
-            return ToolStatus.Exists;
+            return ProjectResourceStatus.Exists;
         }
 
-        return ToolStatus.Error;
+        return ProjectResourceStatus.Error;
     }
 
     private async Task AddToolToWorkspace(string tool)
     {
         _logger.LogInformation("Adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingRequest;
+        _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.SendingRequest;
         await InvokeAsync(StateHasChanged);
 
         try
         {
+            await using var ctx = await _contextFactory.CreateDbContextAsync();
+            var _resourceCheck = await ctx.Project_Resources2
+                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            _resourceCheck.Status = ProjectResourceStatus.PendingRequest.ToString();
+
+            await ctx.SaveChangesAsync();
+
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.PendingRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Error;
             _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
         }
     }
 
     private async Task ReinstateToolToWorkspace(string tool)
     {
-        await InvokeAsync(StateHasChanged);
+
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        _resourceCheck.Status = ProjectResourceStatus.Exists.ToString();
+
+        await ctx.SaveChangesAsync();
+
+
         _snackbar.Add(Localizer["{0} successfully reinstated to your workspace", GetLabel(tool)], Severity.Success);
-        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Exists;
+        _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Exists;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task RemoveToolFromWorkspace(string tool)
     {
-        await InvokeAsync(StateHasChanged);
+
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        _resourceCheck.Status = ProjectResourceStatus.PendingDeletion.ToString(); //ProjectResourceStatus.PendingDeletion.ToString();
+                                                                       //_yahoo = _resourceCheck.Status;
+
+        await ctx.SaveChangesAsync();
+
         _snackbar.Add(Localizer["{0} successfully removed from your workspace", GetLabel(tool)], Severity.Error);
-        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingDeletion;
+        _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.PendingDeletion;
+        await InvokeAsync(StateHasChanged);
     }
 
     private string GetLabel(string tool)
@@ -263,6 +327,15 @@
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
             TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
             _ => tool
+        };
+    }
+
+    private ProjectResourceStatus GetStatus(string toolStatus)
+    {
+        return toolStatus switch
+        {
+            "PendingDeletion" => ProjectResourceStatus.PendingDeletion,
+            _ => ProjectResourceStatus.Error
         };
     }
 
