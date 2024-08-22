@@ -106,10 +106,10 @@
     private string GetUserStatus(string email)
     {
         var status = "";
-        if (LockedUsers.Contains(email) && !LockedUsers.IsNullOrEmpty())
+        if (LockedUsers.Contains(email) && !LockedUsers.Any())
         {
             status = "locked";
-        } else if (!AllUsers.Contains(email) && !AllUsers.IsNullOrEmpty())
+        } else if (!AllUsers.Contains(email) && !AllUsers.Any())
         {
             status = "missing";
         }
