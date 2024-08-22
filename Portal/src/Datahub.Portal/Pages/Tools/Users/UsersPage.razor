@@ -90,7 +90,7 @@ else
     private async Task<bool> CopyToClipboard(List<string> emailList)
     {
         var result = false;
-        if (!emailList.IsNullOrEmpty())
+        if (!emailList.Any())
         {
             var tempstr = String.Join(",\n", emailList);
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);

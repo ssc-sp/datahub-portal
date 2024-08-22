@@ -11,6 +11,7 @@ using ResourceProvisioner.Domain.Messages;
 using ResourceProvisioner.Domain.ValueObjects;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Polly;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
@@ -28,11 +29,10 @@ public partial class RepositoryService : IRepositoryService
     /// <returns>The regular expression pattern for matching module versions.</returns>
     [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
     private static partial Regex ModuleRegex();
-    
+
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly SemaphoreSlim _semaphore;
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
 
     public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger,
@@ -44,13 +44,10 @@ public partial class RepositoryService : IRepositoryService
         _resourceProvisionerConfiguration = resourceProvisionerConfiguration;
         _terraformService = terraformService;
 
-        _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
-        await _semaphore.WaitAsync();
-
         var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
         _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
         await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
@@ -79,8 +76,16 @@ public partial class RepositoryService : IRepositoryService
             Events = repositoryUpdateEvents
         };
 
-        _semaphore.Release();
-        return pullRequestMessage;
+        if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
+        {
+            return pullRequestMessage;
+        }
+
+        pullRequestMessage.Events
+            .Where(x => x.StatusCode == MessageStatusCode.Error)
+            .ToList()
+            .ForEach(x => _logger.LogError(x.Message, x));
+        throw new Exception("Error while handling resource run request");
     }
 
     /// <summary>
@@ -323,12 +328,30 @@ public partial class RepositoryService : IRepositoryService
         return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
-    private async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
+    public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
     {
         var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
         var patchUrl =
             $"{_resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={_resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
 
+        const int retryAmount = 5;
+        var retryPolicy = Policy
+            .Handle<AutoApproveIncompleteException>()
+            .WaitAndRetryAsync(retryAmount, retryAttempt =>
+                TimeSpan.FromSeconds(1),
+                (exception, _, _, _) =>
+                {
+                    _logger.LogWarning(exception, "Auto-approve infrastructure pull request failed, retrying");
+                });
+
+        await retryPolicy.ExecuteAsync(async ct =>
+        {
+            await SendAutoApprovePatchRequestAsync(patchUrl, patchContent);
+        }, CancellationToken.None);
+    }
+    
+    public async Task SendAutoApprovePatchRequestAsync(string patchUrl, StringContent patchContent)
+    {
         _logger.LogInformation("Patching auto-approve infrastructure pull request to {Url}", patchUrl);
         var httpClient = _httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.PatchAsync(patchUrl, patchContent);
@@ -338,10 +361,18 @@ public partial class RepositoryService : IRepositoryService
             _logger.LogError("Could not auto-approve infrastructure pull request {PullRequestUrl}", patchUrl);
             var content = await response.Content.ReadAsStringAsync();
             _logger.LogError("Error: {Error}", content);
+            throw new AutoApproveException($"Could not auto-approve infrastructure pull request {patchUrl}");
         }
-        else
+        
+        _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
+        
+        // Check that the json content of the response has an object "closedBy"
+        var responseContent = await response.Content.ReadAsStringAsync();
+        var jsonContent = JsonSerializer.Deserialize<JsonNode>(responseContent);
+        if (jsonContent?["closedBy"] is null)
         {
-            _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
+            _logger.LogError("Infrastructure pull request {PullRequestUrl} was not auto-approved", patchUrl);
+            throw new AutoApproveIncompleteException($"Infrastructure pull request {patchUrl} was not auto-approved");
         }
     }
 
@@ -367,7 +398,7 @@ public partial class RepositoryService : IRepositoryService
         return patchBody;
     }
 
-    private string GetBranchLastCommitId(string branchName)
+    public virtual string GetBranchLastCommitId(string branchName)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         using var repo = new Repository(repositoryPath);
