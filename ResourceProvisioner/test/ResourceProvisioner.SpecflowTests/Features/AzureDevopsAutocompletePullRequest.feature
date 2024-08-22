@@ -5,8 +5,11 @@ This is the feature which merges the resource run changes with the Azure DevOps 
     Scenario: There is an existing pull request and it needs to be auto-completed
         Given a pull request id of 7
         And a workspace acronym "TEST1"
-        When a pull request patch request is sent
-        Then a successful response should be returned
+        When an auto approve pull request is expected
+        Then a successful response should be returned with no exceptions
 
-#        When the pull request patch request is sent
-#        Then the pull request should be created
+    Scenario: The auto-complete pull request doesn't complete successfully
+        Given a pull request id of 7
+        And a workspace acronym "TEST1"
+        When a pull request patch request is sent
+        Then an AutoApproveIncompleteException should be thrown

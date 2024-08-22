@@ -6,9 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
-using Reqnroll.BoDi;
 using ResourceProvisioner.Application.Config;
-using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Functions;
 using ResourceProvisioner.Infrastructure.Common;
@@ -31,12 +29,12 @@ public class Hooks
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         configuration.Bind(resourceProvisionerConfiguration);
 
-        var httpMessageHandler = new MockHttpMessageHandler();
-        httpMessageHandler.Response = new HttpResponseMessage
-        {
-            StatusCode = HttpStatusCode.OK,
-            Content = AdoPullRequestResponse()
-        };
+        var httpMessageHandler = new TestHttpMessageHandler();
+        httpMessageHandler.AddResponse(AdoPullRequestResponseMessage());
+        httpMessageHandler.AddResponse(AdoPullRequestResponseMessage());
+        httpMessageHandler.AddResponse(AdoPullRequestResponseMessage());
+        httpMessageHandler.AddResponse(AdoPullRequestResponseMessage());
+        httpMessageHandler.AddResponse(AdoPullRequestResponseMessage(true));
 
         var httpClient = new HttpClient(httpMessageHandler);
 
@@ -60,9 +58,9 @@ public class Hooks
         objectContainer.RegisterInstanceAs(repositoryService);
     }
 
-    private StringContent AdoPullRequestResponse()
+    private HttpResponseMessage AdoPullRequestResponseMessage(bool includeClosedBy = false)
     {
-        var response = new
+        var body = new
         {
             respository = new
             {
@@ -71,8 +69,22 @@ public class Hooks
             },
             pullRequestId = 1,
             status = "active",
+            closedBy = includeClosedBy
+                ? new
+                {
+                    id = "ae4d3b3d-4b3d-4b3d-4b3d-4b3d4b3d4b3d",
+                    displayName = "test-user"
+                }
+                : null
         };
-        return new StringContent(JsonSerializer.Serialize(response), Encoding.UTF8, "application/json");
+
+        var responseMessage = new HttpResponseMessage
+        {
+            StatusCode = HttpStatusCode.OK,
+            Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json")
+        };
+
+        return responseMessage;
     }
 
     [BeforeScenario("infra-repository")]
