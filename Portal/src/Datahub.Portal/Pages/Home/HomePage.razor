@@ -13,7 +13,8 @@
 @inject IDialogService _dialogService
 @inject NavigationManager _navigationManager
 
-
+@attribute [Route(PageRoutes.Home)]
+@attribute [Route(PageRoutes.Home_FR)]
 
 @if (_viewedPortalUser is null)
 {
@@ -76,6 +77,8 @@
             }
         </MudGrid>
     </div>
+    <MudDivider />
+    <HomeNav />
     <UserProjects UserId="@_userProjectGuid" SmSize="6"/>
 </MudStack>
 
@@ -84,7 +87,7 @@
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
-    private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private string _achievementsUrl => $"{Localizer[PageRoutes.AccountPrefix]}/{Localizer["achievements"]}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
     protected override async Task OnInitializedAsync()
     {
