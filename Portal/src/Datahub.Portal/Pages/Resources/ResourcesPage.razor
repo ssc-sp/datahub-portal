@@ -1,6 +1,7 @@
 ﻿@using Datahub.Core.Services.Docs
 @using Datahub.Markdown.Model
 @using Datahub.Portal.Components.Resources
+@using Datahub.Portal.Components.Sidebar
 
 @inject DocumentationService _docService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -24,14 +25,13 @@
 </PageTitle>
 
 
-
 @if (PageIsLoading)
 {
     <DHLoadingInitializer Message="@Localizer["Initializing Resources..."]"/>
 }
 else
 {
-    <DHMainContentTitle Title="@Localizer["Learning resources and documentation"]" />
+    <DHMainContentTitle Title="@Localizer["Learning resources and documentation"]"/>
     <MudGrid>
         <MudItem>
             @if (ShowPreviewCards)
@@ -67,14 +67,14 @@ else
 
     <ResourcesAdminView/>
 
-    <SectionContent SectionName="side-bar">
+    <DHSidebarDrawer>
         <LearnSidebar currentCategory="@_currentCategory"
                       currentMarkdownCategory="@_currentMarkdownCategory"
                       hiddenNavGroups="@_hiddenNavGroups"
                       BuildResourceLink="@BuildResourceLink"
                       UpdateCategory="@UpdateCategory"
                       PageIsLoading="@PageIsLoading"/>
-    </SectionContent>
+    </DHSidebarDrawer>
 }
 
 @code {
