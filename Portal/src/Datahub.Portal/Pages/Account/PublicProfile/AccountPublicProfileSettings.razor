@@ -135,7 +135,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        ViewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+        ViewedUser = await _userInformationService.GetCurrentPortalUserWithAchievementsAsync();
         OnViewedUserChanged = EventCallback.Factory.Create<PortalUser>(this, HandleViewedUserChanged);
         _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
         _adminTools = new List<String> { 
