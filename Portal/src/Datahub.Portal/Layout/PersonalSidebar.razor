@@ -23,89 +23,6 @@
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
     </MudStack>
     <MudStack Spacing="2">
-        @{
-            var userRoles = GetWorkspaces();
-        }
-        <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-                <b>
-                    @Localizer["My workspaces"]
-                </b>
-            </MudText>
-            <MudSpacer/>
-            @if (userRoles.Any())
-            {
-                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Href="@Localizer[PageRoutes.CreateWorkspace]" Disabled="@_canNotCreateWorkspace">
-                    <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;"/>
-                    @Localizer["New"]
-                    <span class="sr-only">@Localizer["Workspace"]</span>
-                </DHButton>
-            }
-        </MudStack>
-
-        @if (userRoles.Any())
-        {
-            <MudNavMenu Color="Color.Primary" role="navigation">
-                <ul>
-
-                    @foreach (var userRole in userRoles)
-                    {
-                        <li>
-                            <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
-                                <MudStack Row AlignItems="AlignItems.Center">
-                                    <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                    <MudText Style="@_workspaceLinkStyle">
-                                        @userRole.Project.ProjectName
-                                    </MudText>
-                                </MudStack>
-                            </MudNavLink>
-                        </li>
-                    }
-                </ul>
-                @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
-                {
-                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
-                        @Localizer["Show more"]
-                    </MudLink>
-                }
-            </MudNavMenu>
-        } 
-        else
-        {
-            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" Href="@PageRoutes.CreateWorkspace">
-                <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;" />
-                @Localizer["Create new"]
-                <MudSpacer/>
-            </DHButton>
-        }
-    </MudStack>
-
-    <MudStack Spacing="2">
-        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-            <b>
-                @Localizer["Recent activity"]
-            </b>
-        </MudText>
-        <MudNavMenu Color="Color.Primary" role="navigation">
-            <ul>
-                @foreach (var recentActivity in _recentLinks)
-                {
-                    <li>
-                        <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
-                                <MudText Style="@_workspaceLinkStyle">
-                                    @GetLabel(recentActivity)
-                                </MudText>
-                            </MudStack>
-                        </MudNavLink>
-                    </li>
-                }
-            </ul>
-        </MudNavMenu>
-    </MudStack>
-
-    <MudStack Spacing="2">
         <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
             <b>
                 @Localizer["My account"]
@@ -187,13 +104,11 @@
 
     public struct SectionViews
     {
-        public const string Profile = "public";
-        public const string Customization = "customization";
+        public const string Profile = "";
         public const string Appearance = "appearance";
         public const string Notifications = "notifications";
         public const string Achievements = "achievements";
-        public const string Profile_FR = "publique";
-        public const string Customization_FR = "personnalisation";
+        public const string Profile_FR = "";
         public const string Appearance_FR = "apparence";
         public const string Notifications_FR = "notifications";
         public const string Achievements_FR = "realisations";
@@ -218,7 +133,6 @@
     private List<string> _accountItems = new()
     {
         SectionViews.Profile,
-        SectionViews.Customization,
         SectionViews.Appearance,
         SectionViews.Notifications,
         SectionViews.Achievements
@@ -297,7 +211,6 @@
         return sectionView switch
         {
             SectionViews.Profile => SidebarIcons.Profile,
-            SectionViews.Customization => SidebarIcons.Customization,
             SectionViews.Appearance => SidebarIcons.Appearance,
             SectionViews.Notifications => SidebarIcons.Notifications,
             SectionViews.Achievements => SidebarIcons.Achievements,
@@ -319,7 +232,6 @@
         return sectionView switch
         {
             SectionViews.Profile => Localizer["Profile"],
-            SectionViews.Customization => Localizer["Customization"],
             SectionViews.Appearance => Localizer["Appearance"],
             SectionViews.Notifications => Localizer["Notifications"],
             SectionViews.Achievements => Localizer["Achievements"],

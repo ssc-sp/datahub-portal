@@ -11,9 +11,6 @@ public static class PageRoutes
     public const string News = "/announcements";
     public const string News_FR = "/annonces";
 
-    public const string Settings = "/settings";
-    public const string Settings_FR = "/parametres";
-
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
