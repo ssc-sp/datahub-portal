@@ -5,8 +5,10 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
 using Datahub.Application.Services.Budget;
+using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
+using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
@@ -18,6 +20,7 @@ using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
+using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
@@ -72,6 +75,7 @@ public static class ConfigureServices
                 });
             });
         services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+        services.AddTransient<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 
         if (configuration.GetValue<bool>("ReverseProxy:Enabled"))
         {
