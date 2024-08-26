@@ -11,6 +11,7 @@
 @using Color = MudBlazor.Color
 @using Size = MudBlazor.Size
 @using Align = MudBlazor.Align
+@using Datahub.Application.Services.Cost
 @using ApexCharts
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -117,7 +118,7 @@
         </MudStack>
         <MudStack Row>
             <MudStack Style="height: 100%; width: 100%">
-                <ApexChart @ref="_serviceCostChart" TItem="DailyServiceCost" Title="@Localizer["Cost per service"]" Options="@(_showingTotal ? _serviceTotalCostChartOptions : _serviceYesterdayCostChartOptions)">
+                <ApexChart @ref="_serviceCostChart" TItem="@DailyServiceCost" Title="@Localizer["Cost per service"]" Options="@(_showingTotal ? _serviceTotalCostChartOptions : _serviceYesterdayCostChartOptions)">
                     <ApexPointSeries
                         TItem="DailyServiceCost"
                         Name="@Localizer["Service cost"]"
