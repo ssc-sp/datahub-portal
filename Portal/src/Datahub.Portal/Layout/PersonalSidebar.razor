@@ -106,10 +106,12 @@
     {
         public const string Profile = "";
         public const string Appearance = "appearance";
+        public const string Customization = "customization";
         public const string Notifications = "notifications";
         public const string Achievements = "achievements";
         public const string Profile_FR = "";
         public const string Appearance_FR = "apparence";
+        public const string Customization_FR = "personnalisation";
         public const string Notifications_FR = "notifications";
         public const string Achievements_FR = "realisations";
 
@@ -133,6 +135,7 @@
     private List<string> _accountItems = new()
     {
         SectionViews.Profile,
+        SectionViews.Customization,
         SectionViews.Appearance,
         SectionViews.Notifications,
         SectionViews.Achievements
@@ -211,6 +214,7 @@
         return sectionView switch
         {
             SectionViews.Profile => SidebarIcons.Profile,
+            SectionViews.Customization => SidebarIcons.Customization,
             SectionViews.Appearance => SidebarIcons.Appearance,
             SectionViews.Notifications => SidebarIcons.Notifications,
             SectionViews.Achievements => SidebarIcons.Achievements,
@@ -232,6 +236,7 @@
         return sectionView switch
         {
             SectionViews.Profile => Localizer["Profile"],
+            SectionViews.Customization => Localizer["Customization"],
             SectionViews.Appearance => Localizer["Appearance"],
             SectionViews.Notifications => Localizer["Notifications"],
             SectionViews.Achievements => Localizer["Achievements"],
