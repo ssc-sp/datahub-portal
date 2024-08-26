@@ -5,13 +5,12 @@
 @using Datahub.Portal.Pages.Account.Notifications
 @using Datahub.Portal.Pages.Account.PublicProfile
 @using Datahub.Portal.Pages.Home
+@using Datahub.Portal.Components.Sidebar
 
 @inherits ViewUserBase<AccountPage>
 
 @inject ISnackbar _snackbar
 
-@attribute [Route(PageRoutes.Home)]
-@attribute [Route(PageRoutes.Home_FR)]
 @attribute [Route(PageRoutes.AccountDefault)]
 @attribute [Route(PageRoutes.AccountDefault_FR)]
 @attribute [Route(PageRoutes.Account)]
@@ -21,9 +20,9 @@
     @Localizer["{0} - Federal Science DataHub", _title]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
+<DHSidebarDrawer>
     <PersonalSidebar/>
-</SectionContent>
+</DHSidebarDrawer>
 
 @if (_viewedPortalUser is null)
 {
@@ -48,22 +47,16 @@ else
         { "ViewedUser", _viewedPortalUser }
     };
 
-    if (containsKey)
-    {
-        <MudGrid>
-            <MudItem xs="12">
-                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
-            </MudItem>
-            <MudItem xs="12" sm="8">
-                <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
-            </MudItem>
-        </MudGrid>
-    }
-    else
-    {
-        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-        <HomePage/>
-    }
+    var sectionKey = containsKey ? Section : PersonalSidebar.SectionViews.Profile;
+    <MudGrid>
+        <MudItem xs="12">
+            <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+        </MudItem>
+        <MudItem xs="12" sm="8">
+            <DynamicComponent Type="@_sectionComponents[sectionKey]" Parameters="@parameters"/>
+        </MudItem>
+    </MudGrid>
+}
 }
 
 @code {
@@ -74,7 +67,7 @@ else
 
     private string _title => _viewedPortalUser?.DisplayName != null
         ? $"{_viewedPortalUser.DisplayName}"
-        : Localizer["Home"]; 
+        : Localizer["Home"];
 
 
     protected override async Task OnParametersSetAsync()
@@ -87,11 +80,11 @@ else
 
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
+        { PersonalSidebar.SectionViews.Profile, typeof(AccountPublicProfile) },
         { PersonalSidebar.SectionViews.Customization, typeof(AccountPublicProfileSettings) },
         { PersonalSidebar.SectionViews.Appearance, typeof(AccountAppearanceSettings) },
         { PersonalSidebar.SectionViews.Notifications, typeof(AccountNotificationSettings) },
         { PersonalSidebar.SectionViews.Achievements, typeof(AchievementsPage) },
-        { PersonalSidebar.SectionViews.Customization_FR, typeof(AccountPublicProfileSettings) },
         { PersonalSidebar.SectionViews.Appearance_FR, typeof(AccountAppearanceSettings) },
         // Notifications is the same in English and French - Including it causes a duplicate key error
         { PersonalSidebar.SectionViews.Achievements_FR, typeof(AchievementsPage) },
@@ -114,4 +107,3 @@ else
     }
 
 }
-

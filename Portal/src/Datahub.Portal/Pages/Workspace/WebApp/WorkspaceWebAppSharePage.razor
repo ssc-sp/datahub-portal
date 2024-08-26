@@ -1,11 +1,5 @@
 ﻿@using Datahub.Application.Services.ReverseProxy
-@using Datahub.Application.Services.Security
-@using Datahub.Portal.Views.Dialogs
-@using Datahub.Shared.Entities
-@using Microsoft.Identity.Web
-@using Datahub.Core.Model.Projects
-@using System.Text.Json
-@using Datahub.Application.Services.WebApp
+@using Datahub.Portal.Components.Sidebar
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject NavigationManager _navigationManager
@@ -17,9 +11,9 @@
     @Localizer["SSC Datahub - Workspace - {0}", WorkspaceAcronymParam ?? ""]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
+<DHSidebarDrawer>
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
-</SectionContent>
+</DHSidebarDrawer>
 
 <MudItem xs="12" sm="12">
 

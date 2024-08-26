@@ -5,6 +5,7 @@
 @using Datahub.Portal.Pages.Tools.Statistics
 @using Datahub.Portal.Pages.Tools.SupportRequests
 @using Datahub.Portal.Pages.Tools.Users
+@using Datahub.Portal.Components.Sidebar
 
 @inject ILogger<ToolsPage> _logger
 
@@ -17,9 +18,9 @@
     @Localizer["Admin Tools - Federal Science DataHub"]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar />
-</SectionContent>
+<DHSidebarDrawer>
+    <PersonalSidebar/>
+</DHSidebarDrawer>
 
 @{
     var containsKey = !string.IsNullOrWhiteSpace(Section)
@@ -36,15 +37,14 @@
     else
     {
         _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-        <DiagnosticsPage />
+        <DiagnosticsPage/>
     }
 }
 
 @code {
-    
-    [Parameter]
-    public string Section { get; set; } = PersonalSidebar.SectionViews.Diagnostics;
-    
+
+    [Parameter] public string Section { get; set; } = PersonalSidebar.SectionViews.Diagnostics;
+
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { PersonalSidebar.SectionViews.Diagnostics, typeof(DiagnosticsPage) },
@@ -52,14 +52,15 @@
         { PersonalSidebar.SectionViews.HealthCheck, typeof(InfrastructureHealthPage) },
         { PersonalSidebar.SectionViews.Users, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email, typeof(ComposeEmailPage) },
-        { PersonalSidebar.SectionViews.AzureSubscriptions, typeof(AzureSubscriptionsPage)},
-        { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage)},
+        { PersonalSidebar.SectionViews.AzureSubscriptions, typeof(AzureSubscriptionsPage) },
+        { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage) },
         { PersonalSidebar.SectionViews.Diagnostics_FR, typeof(DiagnosticsPage) },
         { PersonalSidebar.SectionViews.Statistics_FR, typeof(StatisticsPage) },
         { PersonalSidebar.SectionViews.HealthCheck_FR, typeof(InfrastructureHealthPage) },
         { PersonalSidebar.SectionViews.Users_FR, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email_FR, typeof(ComposeEmailPage) },
-        { PersonalSidebar.SectionViews.AzureSubscriptions_FR, typeof(AzureSubscriptionsPage)},
-        { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage)}
+        { PersonalSidebar.SectionViews.AzureSubscriptions_FR, typeof(AzureSubscriptionsPage) },
+        { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage) }
     };
+
 }
