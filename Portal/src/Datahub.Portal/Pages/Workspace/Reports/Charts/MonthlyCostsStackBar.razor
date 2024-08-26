@@ -1,0 +1,93 @@
+﻿@using ApexCharts
+@using Datahub.Application.Services.Budget
+@using Datahub.Application.Services.Cost
+<ApexChart @ref="_monthlyCostsChart" TItem="MonthlyCost" Title="@Title" Options="_monthlyCostsChartOptions" Height="400">
+    @foreach (var service in _distinctServices)
+    {
+        <ApexPointSeries
+            TItem="MonthlyCost"
+            Items="monthlyCosts.Where(c => c.Service == service)"
+            Name="@service"
+            SeriesType="SeriesType.Bar" XValue="c => c.Month" YValue="c => c.Cost"/>
+    }
+</ApexChart>
+
+@code {
+    [Parameter] public List<DailyServiceCost> Costs { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private List<MonthlyCost> monthlyCosts => Costs
+        .GroupBy(c => (c.Date.ToString("MMMM yyyy"), c.Source))
+        .Select(g => new MonthlyCost { Month = g.Key.Item1, Cost = g.Sum(c => c.Amount), Service = g.Key.Source })
+        .OrderBy(c => DateTime.ParseExact(c.Month, "MMMM yyyy", _culture))
+        .ToList();
+
+    private ApexChart<MonthlyCost> _monthlyCostsChart = new();
+    private ApexChartOptions<MonthlyCost> _monthlyCostsChartOptions = new();
+    private List<string> _distinctServices => monthlyCosts.Select(c => c.Service).Distinct().ToList();
+    private string _locale = "en";
+    private CultureInfo _culture = new($"en-CA");
+
+    record MonthlyCost
+    {
+        public string Month { get; init; }
+        public decimal Cost { get; init; }
+        public string Service { get; init; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? CultureService.English : CultureService.French;
+        _culture = new(_locale + "-CA");
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _monthlyCostsChart.UpdateSeriesAsync();
+        await _monthlyCostsChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _monthlyCostsChartOptions.Chart = new Chart
+        {
+            Stacked = true,
+            StackType = StackType.Normal,
+            Locales = Locales,
+            DefaultLocale = _locale
+        };
+
+        _monthlyCostsChartOptions.Yaxis = new List<YAxis>();
+        _monthlyCostsChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+            DecimalsInFloat = 2
+        });
+        _monthlyCostsChartOptions.Xaxis = new XAxis();
+        _monthlyCostsChartOptions.Xaxis.Categories = monthlyCosts.Select(c => c.Month).Distinct().ToArray();
+        _monthlyCostsChartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return '$'+parseFloat(val).toFixed(2); }"
+            }
+        };
+        _monthlyCostsChartOptions.PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar
+            {
+                DataLabels = new PlotOptionsBarDataLabels
+                {
+                    Total = new()
+                    {
+                        Enabled = true,
+                        Formatter = "function(val) { return '$'+parseFloat(val).toFixed(2); }"
+                    }
+                }
+            }
+        };
+    }
+
+}

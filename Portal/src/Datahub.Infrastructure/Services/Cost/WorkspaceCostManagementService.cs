@@ -529,7 +529,7 @@ namespace Datahub.Infrastructure.Services.Cost
                 {
                     lstDailyCosts.Add(new DailyServiceCost
                     {
-                        Amount = costColumn < 0 ? 0 : decimal.Parse(r[costColumn].ToString()),
+                        Amount = costColumn < 0 ? 0 : decimal.Parse(r[costColumn].ToString(), CultureInfo.InvariantCulture),
                         Source = serviceColumn < 0
                             ? String.Empty
                             : r[serviceColumn].ToString().Replace("\"", ""),

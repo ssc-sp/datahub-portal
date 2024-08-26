@@ -1,0 +1,78 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject NavigationManager _navigationManager
+
+<MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true" St>
+    <ToolBarContent>
+        <MudText Typo="Typo.h2">
+            @Localizer["Your workspace's daily costs"]
+        </MudText>
+        <MudSpacer/>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">
+            @Localizer["Download to CSV"]
+        </DHButton>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<CostDisplay, string>(x => x.Date))">
+                <strong>@Localizer["Date"]</strong>
+            </MudTableSortLabel>
+        </MudTh>
+        <MudTd>
+            <MudTableSortLabel SortBy="@(new Func<CostDisplay, string>(x => x.Source))">
+                <strong>@Localizer["Source"]</strong>
+            </MudTableSortLabel>
+        </MudTd>
+        <MudTd>
+            <MudTableSortLabel SortBy="@(new Func<CostDisplay, object>(x => x.Cost))">
+                <strong>@Localizer["Cost"]</strong>
+            </MudTableSortLabel>
+        </MudTd>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="@Localizer["Date"]">
+            @context.Date
+        </MudTd>
+        <MudTd DataLabel="@Localizer["Source"]">
+            @context.Source
+        </MudTd>
+        <MudTd DataLabel="@Localizer["Cost"]">
+            @(context.Cost < (decimal)0.01 ? $"< {(0.01).ToString("C")}" : context.Cost.ToString("C"))
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new[] { 10, 50, 100, int.MaxValue }"/>
+    </PagerContent>
+</MudTable>
+
+@code {
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    private List<CostDisplay> Costs { get; set; } = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
+            .FirstAsync();
+        var projectCosts = await context.Project_Costs
+            .Where(c => c.Project_ID == project.Project_ID)
+            .OrderByDescending(c => c.Date)
+            .ToListAsync();
+        Costs = projectCosts.Select(c => new CostDisplay { Cost = (decimal)c.CadCost, Date = c.Date.ToString("d"), Source = c.ServiceName }).ToList();
+    }
+
+    private void HandleDownload()
+    {
+       _navigationManager.NavigateTo($"/api/costs/download/{WorkspaceAcronym}", true);
+    }
+    
+
+    record CostDisplay
+    {
+        public string Source { get; init; }
+        public decimal Cost { get; init; }
+        public string Date { get; init; }
+    }
+
+}
