@@ -67,6 +67,7 @@ public enum ProjectResourceStatus
     SendingRequest,
     PendingRequest,
     Disabled,
+    SendingDeletion,
     PendingDeletion,
     UnderDevelopment,
     Exists,

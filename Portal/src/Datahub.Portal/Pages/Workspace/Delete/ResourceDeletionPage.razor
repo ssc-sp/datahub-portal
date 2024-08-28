@@ -1,154 +1,88 @@
 ﻿@namespace Datahub.Portal.Pages.Workspace.Delete
+
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared.Entities
 
- @* @page "/w/{ProjectAcronym}/healthcheck" *@
+@inject NavigationManager NavigationManager
+@inject ISnackbar _snackbar
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 
- @inject NavigationManager NavigationManager
- @inject ISnackbar _snackbar
- @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
-
-@*  @if(currentStep == 5)
-{
-    <MudStack Class="px-4">
-        <MudGrid>
-            <MudItem xs="12">
-                <MudText Typo="Typo.h4">
-                    @Localizer["Resource Deletion"]
-                </MudText>
-                <MudText Typo="Typo.body1">
-                    @Localizer["Lorem ipsum odor amet, consectetuer adipiscing elit. Pretium quisque primis consectetur at tincidunt. Per ornare non potenti, interdum lacus neque. Lorem purus diam imperdiet auctor amet eget blandit. Amet et sem magnis varius hac arcu aptent curabitur. Cursus odio dictum nostra justo viverra vitae. Diam ullamcorper praesent aliquet ultrices mattis. Nostra vehicula nascetur finibus convallis scelerisque. Nullam ipsum tempor ut rutrum metus semper habitasse cursus. Nascetur suscipit fringilla mus feugiat sit rutrum natoque pretium finibus. Mus consectetur eu sed, gravida mi pharetra lorem."]
-                </MudText>
-                 <MudText Typo="Typo.body1">
-                        @Localizer["Primis dictumst id conubia elit ultrices fames eu aenean. Eget integer quam odio consequat mus; parturient vivamus diam. Molestie conubia sociosqu at cras mattis aliquam porttitor ad. Purus ultricies habitasse lorem dui ligula. Et facilisi cursus sapien id parturient amet dui pellentesque pulvinar. Finibus est maecenas lacinia id mollis eleifend. Hendrerit tellus tincidunt ac; purus cubilia velit curae lacinia. Dictum at primis lacinia vulputate nisi, consequat laoreet cursus. Inceptos proin luctus consequat velit ultricies placerat magnis at. Fames varius curabitur ad maximus tortor."]
-                </MudText>
-            </MudItem>
-            <MudItem xs="6">
-                <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@Cancel">
-                    @Localizer["Cancel"]
-                </DHButton>
-            </MudItem>
-            <MudItem xs="6">
-                <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@NextStep">
-                    @Localizer["Next"]
-                </DHButton>
-            </MudItem>
-        </MudGrid>
-    </MudStack>
-    
-}
-else if (currentStep == 8)
-{
-    <MudStack Class="px-4">
-        <MudGrid>
-            <MudItem xs="12">
-                <MudText Typo="Typo.h4">
-                    @Localizer["What day do you wish to delete the tool?"]
-                </MudText>
-                <MudDatePicker @bind-Date="DeletionDate"/>
-
-                <MudText Typo="Typo.h4">
-                    @Localizer["What time do you wish to delete the tool?"]
-                </MudText>
-                <MudTimePicker AmPm="true" @bind-Time="DeletionTime"/>
-                @if (_error.Equals("_noDateTime"))
-                {
-                    <MudAlert Severity="Severity.Error">
-                        <MudText Typo="Typo.body2">@Localizer["Please choose a time and date before proceeding."]</MudText>
-                    </MudAlert>
-                }
-                else if (_error.Equals("_badDate"))
-                {
-                    <MudAlert Severity="Severity.Error">
-                        <MudText Typo="Typo.body2">@Localizer["Date and time cannot be in the past."]</MudText>
-                    </MudAlert>
-                }
-            </MudItem>
+<MudStack Class="px-4">
+    <MudGrid>
+       <MudItem xs="12">
+            <MudText Typo="Typo.h4">
+                @Localizer["Are you sure you want to delete {0} from this workspace?", Resource]
+            </MudText>
+            <MudText Typo="Typo.body1">
+                @Localizer["This action cannot be undone. Upon deletion, all workspace admins will be notified via email. Please type {0} to confirm the deletion.", WorkspaceAcronym]
+            </MudText>
+            <MudTextField @bind-Value="DeleteConfirmation" Variant="Variant.Text"></MudTextField>
             
-             <MudItem xs="6">
-                <DHButton Variant="@Variant.Filled" Color="@Color.Default" Href="@_toolboxPage">
-                    @Localizer["Cancel"]
-                </DHButton>
-            </MudItem>
-            <MudItem xs="6">
-                <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@ConfirmationStep">
-                    @Localizer["Next"]
-                </DHButton>
-            </MudItem>
-            </MudGrid>
-    </MudStack>
- 
-
-} *@
-@* else if(currentStep == 0)
-{ *@
-    <MudStack Class="px-4">
-        <MudGrid>
-            <MudItem xs="12">
-                <MudText Typo="Typo.h4">
-                    @Localizer["Do you want to delete this tool?"]
-                </MudText>
-                <MudText Typo="Typo.body1">
-                    @Localizer["This action cannot be undone. Please type {0} to confirm the deletion.", WorkspaceAcronym]
-                </MudText>
-                <MudTextField @bind-Value="DeleteConfirmation" Variant="Variant.Text"></MudTextField>
-                @if (_error.Equals("_badConfirmation"))
-                {
-                    <MudAlert Severity="Severity.Error">
-                        <MudText Typo="Typo.body2">@Localizer["Incorrect workspace acronym."]</MudText>
-                    </MudAlert>
-                }
-            </MudItem>
-            <MudItem xs="6">
-                <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@Cancel">
-                    @Localizer["Cancel"]
-                </DHButton>
-            </MudItem>
-            <MudItem xs="6">
-@*                 <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@BackStep">
-                    @Localizer["Back"]
-                </DHButton> *@
-                <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
-                    @Localizer["Delete this resource."]
-                    <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
-                </DHButton>
-            </MudItem>
-        </MudGrid>
-    </MudStack>
-@* } *@
+            @if (_error.Equals("_emptyConfirmation"))
+            {
+                <MudAlert Severity="Severity.Error">
+                    <MudText Typo="Typo.body2">@Localizer["Please enter a workspace acronym."]</MudText>
+                </MudAlert>
+            }
+            else if (_error.Equals("_badConfirmation"))
+            {
+                <MudAlert Severity="Severity.Error">
+                    <MudText Typo="Typo.body2">@Localizer["Incorrect workspace acronym."]</MudText>
+                </MudAlert>
+            }
+        </MudItem>
+        <MudItem xs="6">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@Cancel">
+                @Localizer["Cancel"]
+            </DHButton>
+        </MudItem>
+        <MudItem xs="6">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
+                @Localizer["Delete this resource"]
+                <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+            </DHButton>
+        </MudItem>
+    </MudGrid>
+</MudStack>
 
 @code
 {
-    private int currentStep = 0;
-    private string _error = "";
-    private string _yahoo = ";";
-
     [Parameter]
     public string WorkspaceAcronym { get; set; }
 
-    private DateTime? DeletionDate { get; set; }
-    private TimeSpan? DeletionTime { get; set; }
+    private string Resource = "";
 
     private string DeleteConfirmation;
-
-    private string _deletionDate = "NO DATE";
-    private string _deletionTime = "NO TIME";
-
+    private string _error = "";
     private string _toolboxPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
 
-
-    // private void NextStep()
-    // {
-    //     if(currentStep < 2)
-    //     {
-    //         currentStep++;
-    //     }
-    // }
-    private async void Cancel()
+    protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
 
         await using var ctx = await _contextFactory.CreateDbContextAsync();
         var _resourceCheck = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith("azure-databricks"));
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString()));
+
+        if(_resourceCheck != null)
+        {
+            Resource = GetLabel(_resourceCheck.ResourceType.Substring(10));
+        }
+        else
+        {
+            Resource = "Error";
+        }
+
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async void Cancel()
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.SendingDeletion.ToString()));
         _resourceCheck.Status = ProjectResourceStatus.Exists.ToString();
 
         await ctx.SaveChangesAsync();
@@ -157,45 +91,13 @@ else if (currentStep == 8)
         NavigationManager.NavigateTo(_toolboxPage);
     }
 
-    // private async void Cancel()
-    // {
-    //     await using var ctx = await _contextFactory.CreateDbContextAsync();
-    //     var _resourceCheck = await ctx.Project_Resources2
-    //         .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
-    //     _resourceCheck.Status = "Exists";
-    // }
-
-
-    // private void BackStep()
-    // {
-    //     if (currentStep > 0)
-    //     {
-    //         currentStep--;
-    //     }
-    // }
-
-    // private void ConfirmationStep()
-    // {
-    //     _deletionDate = DeletionDate.HasValue ? DeletionDate.Value.ToString("MMMM dd, yyyy") : null;
-    //     _deletionTime = DeletionTime.HasValue ? DeletionTime.Value.ToString() : null;
-
-    //     if(_deletionDate == null || _deletionTime == null)
-    //     {
-    //         _error = "_noDateTime";
-    //     }
-    //     else if (DeletionDate < DateTime.Today || (DeletionDate == DateTime.Today && DeletionTime <= DateTime.Now.TimeOfDay))
-    //     {
-    //         _error = "_badDate";
-    //     }
-    //     else
-    //     {
-    //         NextStep();
-    //     }
-    // }
-
     private async void ConfirmDeletion()
     {
-        if(DeleteConfirmation == null || !DeleteConfirmation.Equals(WorkspaceAcronym))
+        if (DeleteConfirmation == null || DeleteConfirmation == "")
+        {
+            _error = "_emptyConfirmation";
+        }
+        else if(!DeleteConfirmation.Equals(WorkspaceAcronym))
         {
             _error = "_badConfirmation";
         }
@@ -203,8 +105,8 @@ else if (currentStep == 8)
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
             var _resourceCheck = await ctx.Project_Resources2
-                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith("azure-databricks")); //!
-            _resourceCheck.Status = ProjectResourceStatus.PendingDeletion.ToString();
+                .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString())); //!
+            _resourceCheck.Status = ProjectResourceStatus.SendingDeletion.ToString();
 
             await ctx.SaveChangesAsync();
             await InvokeAsync(StateHasChanged);
@@ -213,5 +115,17 @@ else if (currentStep == 8)
         }
     }
 
-
+    private string GetLabel(string tool)
+    {
+        return tool switch
+        {
+            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
+            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
+            TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
+            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
+            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
+            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
+            _ => tool
+        };
+    }
 }
