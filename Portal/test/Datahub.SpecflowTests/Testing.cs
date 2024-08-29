@@ -27,4 +27,7 @@ public static class Testing
     public const string ExistingTestBudget = $"/subscriptions/{{SUBSCRIPTION}}/resourceGroups/{ExistingTestRg}/providers/Microsoft.Consumption/budgets/{ExistingTestRg}-budget";
     public const decimal ExistingTestRgTotal = (decimal)0.03; // 3 cents as of August 27 2024
     public static readonly List<DateTime> Dates = new List<DateTime> { DateTime.UtcNow.AddDays(-2), DateTime.UtcNow.AddDays(-1), DateTime.UtcNow };
+    
+    public const string MockCosts = "costs-mock.json";
+    public const string MockTotals = "totals-mock.json";
 }

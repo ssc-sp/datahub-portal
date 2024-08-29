@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Azure.Storage.Blobs;
@@ -19,6 +20,8 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Domain.Exceptions;
 
+[assembly: InternalsVisibleTo("Datahub.SpecflowTests")]
+
 namespace Datahub.Functions;
 
 public class ProjectUsageScheduler(
@@ -30,6 +33,7 @@ public class ProjectUsageScheduler(
     IWorkspaceResourceGroupsManagementService rgMgmtService,
     IConfiguration config)
 {
+    public bool mock { get; set; } = false;
     private readonly ILogger<ProjectUsageScheduler> _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
     private readonly AzureConfig _azConfig = new(config);
     private const int WORKSPACE_UPDATE_LIMIT = 100;
@@ -77,7 +81,7 @@ public class ProjectUsageScheduler(
         return responseOk;
     }
 
-    private async Task RunScheduler(List<string>? acronyms = default, bool manualRollover = false)
+    internal async Task<(int, int)> RunScheduler(List<string>? acronyms = default, bool manualRollover = false)
     {
         // Arrange
         _logger.LogInformation("Running project usage scheduler");
@@ -88,7 +92,7 @@ public class ProjectUsageScheduler(
         if (!projects.Any())
         {
             _logger.LogInformation("No projects to update");
-            return;
+            return (0, 0);
         }
 
         _logger.LogInformation("Found {Count} projects to update", projects.Count);
@@ -132,9 +136,10 @@ public class ProjectUsageScheduler(
 
         _logger.LogInformation("Sent {CostMessages} cost update messages and {StorageMessages} storage update messages",
             costMessages, storageMessages);
+        return (costMessages, storageMessages);
     }
 
-    private async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage)
+    internal async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage)
     {
         var costUpdate = NeedsCostUpdate(usageMessage.ProjectAcronym);
         var storageUpdate = NeedsStorageUpdate(usageMessage.ProjectAcronym);
@@ -158,7 +163,7 @@ public class ProjectUsageScheduler(
         return (costUpdate, storageUpdate);
     }
 
-    private async Task<List<Datahub_Project>> GetProjects(List<string> acronyms, int limit)
+    internal async Task<List<Datahub_Project>> GetProjects(List<string> acronyms, int limit)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var projects = ctx.Projects
@@ -179,7 +184,7 @@ public class ProjectUsageScheduler(
         return projects;
     }
 
-    private async Task<(string, string)> PostToBlob(List<DailyServiceCost> costs, List<DailyServiceCost> totals)
+    internal async Task<(string, string)> PostToBlob(List<DailyServiceCost> costs, List<DailyServiceCost> totals)
     {
         var guid = Guid.NewGuid();
         var date = DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
@@ -197,7 +202,7 @@ public class ProjectUsageScheduler(
     }
 
 
-    private async Task<(List<DailyServiceCost>, List<DailyServiceCost>)> AggregateCosts(List<string> subIds)
+    internal async Task<(List<DailyServiceCost>, List<DailyServiceCost>)> AggregateCosts(List<string> subIds)
     {
         var allCosts = new List<DailyServiceCost>();
         var allTotals = new List<DailyServiceCost>();
@@ -221,13 +226,16 @@ public class ProjectUsageScheduler(
         return (allCosts, allTotals);
     }
 
-    private async Task<string> UploadToBlob(string key, string date, Guid guid, List<DailyServiceCost> list)
+    internal async Task<string> UploadToBlob(string key, string date, Guid guid, List<DailyServiceCost> list)
     {
         var fileName = $"{key}-{date}-{guid}.json";
-        var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient("costs");
-        var blobClient = containerClient.GetBlobClient(fileName);
-        await blobClient.UploadAsync(BinaryData.FromObjectAsJson(list));
+        if (!mock)
+        {
+            var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("costs");
+            var blobClient = containerClient.GetBlobClient(fileName);
+            await blobClient.UploadAsync(BinaryData.FromObjectAsJson(list));
+        }
         return fileName;
     }
 
