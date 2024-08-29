@@ -14,8 +14,9 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Application.Services;
-using Datahub.Application.Services.Budget;
+using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Projects;
+using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
 using Datahub.Functions.Services;
@@ -27,6 +28,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
 using Datahub.Core.Model.Context;
 using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Shared.Configuration;
 
 
@@ -91,6 +93,7 @@ var host = new HostBuilder()
         services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
         services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
         services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+        services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
         services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IEmailService, EmailService>();
         services.AddSingleton<IAlertRecordService, AlertRecordService>();

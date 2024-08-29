@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
-using Datahub.Application.Services.Budget;
+using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
@@ -38,7 +38,7 @@ namespace Datahub.SpecflowTests.Steps
         public void GivenAProjectUsageUpdateMessage()
         {
             var mockCosts = new List<DailyServiceCost>();
-            var message = new ProjectUsageUpdateMessage("TEST", "costs-mock.json", false);
+            var message = new ProjectUsageUpdateMessage("TEST", "costs-mock.json", "totals-mock.json", false);
             scenarioContext["message"] = message;
             scenarioContext["mockCosts"] = mockCosts;
         }
@@ -102,7 +102,7 @@ namespace Datahub.SpecflowTests.Steps
 
                     ctx.SaveChanges();
                 });
-            costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>())
+            costMgmt.UpdateWorkspaceCostsAsync(Arg.Any<string>(), Arg.Any<List<DailyServiceCost>>())
                 .Returns((costRollover, (decimal)10.0));
             var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
                 sendEndpointProvider, storageMgmt, config);
@@ -163,7 +163,7 @@ namespace Datahub.SpecflowTests.Steps
             var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
                 sendEndpointProvider, storageMgmt, config);
             var message = scenarioContext["message"] as ProjectUsageUpdateMessage;
-            var costs = await projectUsageUpdater.GetFromBlob(message.CostsBlobName);
+            var costs = await projectUsageUpdater.FromBlob(message.CostsBlobName);
             scenarioContext["costs"] = costs;
         }
 
