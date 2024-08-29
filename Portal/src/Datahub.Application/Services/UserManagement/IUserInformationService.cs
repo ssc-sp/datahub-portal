@@ -18,6 +18,8 @@ public interface IUserInformationService
 
     Task<PortalUser> GetPortalUserAsync(string userGraphId);
 
+    Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email);
+
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
 
