@@ -59,4 +59,5 @@ public static class SidebarIcons
     public const string Circle = "fa-solid fa-circle";
     public const string Show = "fa-light fa-eye";
     public const string Hide = "fa-light fa-eye-slash";
+    public const string Download = "fa-light fa-download";
 }

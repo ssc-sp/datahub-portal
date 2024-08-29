@@ -1,0 +1,69 @@
+﻿@using ApexCharts
+@using Datahub.Application.Services.Cost
+<ApexChart @ref="_dailyCostChart" TItem="DailyServiceCost" Title="@Title" Options="@_dailyCostChartOptions">
+    @foreach (var service in _distinctServices)
+    {
+        <ApexPointSeries
+            TItem="DailyServiceCost"
+            Name="@service"
+            Items="@DailyCosts.Where(c => c.Source == service)"
+            XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
+            YAggregate="@(e => e.Sum(c => c.Amount))"
+            SeriesType="SeriesType.Bar"/>
+    }
+</ApexChart>
+
+@code {
+    [Parameter] public List<DailyServiceCost> DailyCosts { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChart<DailyServiceCost> _dailyCostChart = new();
+    private ApexChartOptions<DailyServiceCost> _dailyCostChartOptions = new();
+    private List<string> _distinctServices => DailyCosts.Select(c => c.Source).Distinct().ToList();
+    private string _locale = "en-CA";
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? CultureService.English : CultureService.French;
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _dailyCostChart.UpdateSeriesAsync();
+        await _dailyCostChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _dailyCostChartOptions.Yaxis = new List<YAxis>();
+        _dailyCostChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+            DecimalsInFloat = 2,
+            Min = 0
+        });
+
+        _dailyCostChartOptions.Xaxis = new XAxis();
+        _dailyCostChartOptions.Chart = new Chart()
+        {
+            Stacked = true,
+            StackType = StackType.Normal,
+            Locales = Locales,
+            DefaultLocale = _locale
+        };
+
+        _dailyCostChartOptions.Xaxis.Type = XAxisType.Datetime;
+        _dailyCostChartOptions.Xaxis.Categories = DailyCosts.Select(c => c.Date.Date.ToString("yyyy-MM-dd")).Distinct().ToArray();
+        _dailyCostChartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return '$'+parseFloat(val).toFixed(2); }"
+            }
+        };
+    }
+
+
+}
