@@ -133,9 +133,11 @@ namespace Datahub.SpecflowTests.Steps
                     Source = "Service3"
                 },
             };
-            await sut.UpdateWorkspaceCostsAsync(acronym, costs);
+            var (rollOver, lastYearTotal) = await sut.UpdateWorkspaceCostsAsync(acronym, costs);
             scenarioContext.Set(existingCosts, "existingCosts");
             scenarioContext.Set(costs, "costs");
+            scenarioContext.Set(rollOver, "rollOver");
+            scenarioContext.Set(lastYearTotal, "actualLastYearTotal");
         }
 
 
@@ -442,6 +444,39 @@ namespace Datahub.SpecflowTests.Steps
             {
                 scenarioContext.Set(false, "success");
             }
+        }
+
+        [Given(@"a workspace with existing costs and credits that need a rollover")]
+        public async Task GivenAWorkspaceWithExistingCostsAndCreditsThatNeedARollover()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+            var costs = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).ToList();
+            var credits = ctx.Project_Credits.First(c => c.ProjectId == project.Project_ID);
+            var firstCost = costs.First();
+            firstCost.Date = DateTime.UtcNow.Date.AddYears(-1);
+            firstCost.CadCost = 100;
+            ctx.Project_Costs.Update(firstCost);
+            credits.LastUpdate = DateTime.UtcNow.AddYears(-1);
+            ctx.Project_Credits.Update(credits);
+            await ctx.SaveChangesAsync();
+            scenarioContext.Set((decimal)100.0, "lastYearTotal");
+        }
+
+        [Then(@"a rollover needed is returned")]
+        public void ThenARolloverNeededIsReturned()
+        {
+            var rollOver = scenarioContext.Get<bool>("rollOver");
+            rollOver.Should().BeTrue();
+        }
+
+        [Then(@"the correct amount of costs is given")]
+        public void ThenTheCorrectAmountOfCostsIsGiven()
+        {
+            var actualLastYearTotal = scenarioContext.Get<decimal>("actualLastYearTotal");
+            var lastYearTotal = scenarioContext.Get<decimal>("lastYearTotal");
+            actualLastYearTotal.Should().Be(lastYearTotal);
         }
     }
 }

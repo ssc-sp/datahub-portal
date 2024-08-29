@@ -466,14 +466,14 @@ this.ScenarioInitialize(scenarioInfo);
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="No refresh needed for matching totals")]
+        [Xunit.SkippableFactAttribute(DisplayName="Updating costs returns correct values when rollover is needed")]
         [Xunit.TraitAttribute("FeatureTitle", "WorkspaceCosts")]
-        [Xunit.TraitAttribute("Description", "No refresh needed for matching totals")]
-        public async System.Threading.Tasks.Task NoRefreshNeededForMatchingTotals()
+        [Xunit.TraitAttribute("Description", "Updating costs returns correct values when rollover is needed")]
+        public async System.Threading.Tasks.Task UpdatingCostsReturnsCorrectValuesWhenRolloverIsNeeded()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("No refresh needed for matching totals", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Updating costs returns correct values when rollover is needed", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 67
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -485,12 +485,46 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 68
- await testRunner.GivenAsync("a workspace with total costs that match Azure totals", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+ await testRunner.GivenAsync("a workspace with existing costs and credits that need a rollover", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 69
- await testRunner.WhenAsync("I verify if a refresh is needed", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+ await testRunner.WhenAsync("I update the costs for the workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 70
+ await testRunner.ThenAsync("a rollover needed is returned", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+#line 71
+ await testRunner.AndAsync("the correct amount of costs is given", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="No refresh needed for matching totals")]
+        [Xunit.TraitAttribute("FeatureTitle", "WorkspaceCosts")]
+        [Xunit.TraitAttribute("Description", "No refresh needed for matching totals")]
+        public async System.Threading.Tasks.Task NoRefreshNeededForMatchingTotals()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("No refresh needed for matching totals", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 73
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 74
+ await testRunner.GivenAsync("a workspace with total costs that match Azure totals", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 75
+ await testRunner.WhenAsync("I verify if a refresh is needed", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 76
  await testRunner.ThenAsync("no refresh should be needed", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -505,7 +539,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Refresh needed for mismatching totals", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 72
+#line 78
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -515,13 +549,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 73
+#line 79
  await testRunner.GivenAsync("a workspace with total costs that do not match Azure totals", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 74
+#line 80
  await testRunner.WhenAsync("I verify if a refresh is needed", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 75
+#line 81
  await testRunner.ThenAsync("a refresh should be needed", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -536,7 +570,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Refresh works properly", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 77
+#line 83
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -546,13 +580,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 78
+#line 84
  await testRunner.GivenAsync("a workspace with no existing costs or credits", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 79
+#line 85
  await testRunner.WhenAsync("I refresh the costs for the workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 80
+#line 86
  await testRunner.ThenAsync("there should be costs for the whole fiscal year and the credits should be updated" +
                         "", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
