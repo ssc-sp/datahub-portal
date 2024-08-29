@@ -59,26 +59,6 @@ public class MediaController : Controller
         return Redirect(sasUrl);
     }
 
-    [HttpGet("api/costs/download/{**acronym}")]
-    [Authorize]
-    public async Task<FileStreamResult> DownloadCosts(string acronym)
-    {
-        using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var project = ctx.Projects.First(c => c.Project_Acronym_CD == acronym);
-        var costs = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).ToList();
-        var csv = new StringBuilder();
-        csv.AppendLine("Date,Amount,Source");
-        foreach (var cost in costs)
-        {
-            csv.AppendLine($"{cost.Date},{cost.CadCost},{cost.ServiceName}");
-        }
-        var result = new FileStreamResult(new MemoryStream(UTF8Encoding.Default.GetBytes(csv.ToString())), "text/csv")
-        {
-            FileDownloadName = $"{acronym}-costs.csv"
-        };
-        return result;
-    }
-
     /// <summary>
     /// Redirect the video mp4 to the azure storage blob and return the video stream.
     /// </summary>

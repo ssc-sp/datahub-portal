@@ -1,5 +1,4 @@
 ﻿@using ApexCharts
-@using Datahub.Application.Services.Budget
 @using Datahub.Application.Services.Cost
 <ApexChart @ref="_monthlyCostsChart" TItem="MonthlyCost" Title="@Title" Options="_monthlyCostsChartOptions" Height="400">
     @foreach (var service in _distinctServices)

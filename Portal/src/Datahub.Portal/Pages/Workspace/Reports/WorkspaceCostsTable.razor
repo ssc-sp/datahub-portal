@@ -1,5 +1,5 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
 
 <MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true" St>
     <ToolBarContent>
@@ -43,6 +43,19 @@
         <MudTablePager PageSizeOptions="new[] { 10, 50, 100, int.MaxValue }"/>
     </PagerContent>
 </MudTable>
+<script>
+    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
+        const arrayBuffer = await contentStreamReference.arrayBuffer();
+        const blob = new Blob([arrayBuffer]);
+        const url = URL.createObjectURL(blob);
+        const anchorElement = document.createElement('a');
+        anchorElement.href = url;
+        anchorElement.download = fileName ?? '';
+        anchorElement.click();
+        anchorElement.remove();
+        URL.revokeObjectURL(url);
+    }
+</script>
 
 @code {
 
@@ -62,9 +75,26 @@
         Costs = projectCosts.Select(c => new CostDisplay { Cost = (decimal)c.CadCost, Date = c.Date.ToString("d"), Source = c.ServiceName }).ToList();
     }
 
-    private void HandleDownload()
+    private async Task HandleDownload()
     {
-       _navigationManager.NavigateTo($"/api/costs/download/{WorkspaceAcronym}", true);
+       var fileStream = GenerateCsvStream();
+       var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+       using var streamReference = new DotNetStreamReference(stream: fileStream);
+       await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+    }
+    
+    private Stream GenerateCsvStream()
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.WriteLine("Date,Source,Cost ($CAD)");
+        foreach (var cost in Costs)
+        {
+            writer.WriteLine($"{cost.Date},{cost.Source},{cost.Cost}");
+        }
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
     }
     
 
