@@ -590,6 +590,7 @@
   "Connect New Device": "Connecter un nouvel appareil",
   "Connection Failed": "Échec de la connexion",
   "Connection Info": "Informations de connexion",
+  "Connection info can only be displayed by the workspace lead.": "Les informations de connexion ne peuvent être affichées que par le responsable de l'espace de travail.",
   "Connection lost, please refresh this page": "Connexion perdue, veuillez actualiser cette page",
   "Connection refused, please try again later": "Connexion refusée, veuillez réessayer plus tard",
   "Connection to server...": "Connexion au serveur...",
