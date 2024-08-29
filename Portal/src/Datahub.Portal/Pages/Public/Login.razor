@@ -31,17 +31,35 @@
 
     private LoginModel loginModel = new LoginModel();
 
-    private void HandleLogin()
+    private async void HandleLogin()
     {
         var loginHint = loginModel.Email;
-        //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
-        if (string.IsNullOrWhiteSpace(redirectUri))
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
+        if (existingUser == null)
         {
-            redirectUri = _navigationManager.BaseUri;
+            _navigationManager.NavigateTo($"/register?email={loginHint}");
         }
+        else
+        {
+            if (existingUser.IsDeleted)
+            {
+                _navigationManager.NavigateTo("/restore");
+            }
 
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
-        _navigationManager.NavigateTo(url, true);
+            if (existingUser.IsLocked)
+            {
+                _navigationManager.NavigateTo("/locked");
+            }
+
+            //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
+            if (string.IsNullOrWhiteSpace(redirectUri))
+            {
+                redirectUri = _navigationManager.BaseUri;
+            }
+
+            var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
+            _navigationManager.NavigateTo(url, true);
+        }
     }
 
     protected override async Task OnInitializedAsync()
