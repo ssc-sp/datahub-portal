@@ -676,7 +676,6 @@ namespace Datahub.Infrastructure.Services.Helpers
             {
                 new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
                 new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
-                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, InfrastructureHealthCheckConstants.WorkspacesRequestGroup),
                 new(InfrastructureHealthResourceType.AzureFunction, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress)
             };
 
