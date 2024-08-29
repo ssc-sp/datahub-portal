@@ -85,6 +85,7 @@
 
 
 @code {
+    [Parameter][SupplyParameterFromQuery] public string Email { get; set; }
 
     private string _email;
     private string _emailFieldText { get; set; }
@@ -98,6 +99,10 @@
     protected override void OnInitialized()
     {
         _emailFieldText = Localizer["Government of Canada Email"];
+        if (!string.IsNullOrEmpty(Email))
+        {
+            _email = Email;
+        }
     }
 
     private string EmailValidation(string email)
