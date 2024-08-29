@@ -1,8 +1,8 @@
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
-using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Storage;
 using Datahub.Functions.Domain.Exceptions;
@@ -18,15 +18,16 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
+[assembly: InternalsVisibleTo("Datahub.SpecflowTests")]
+
 namespace Datahub.Functions;
 
 public class ProjectUsageUpdater(
     ILoggerFactory loggerFactory,
-    QueuePongService pongService,
     IWorkspaceCostManagementService workspaceCostMgmtService,
     IWorkspaceBudgetManagementService workspaceBudgetMgmtService,
-    ISendEndpointProvider sendEndpointProvider,
     IWorkspaceStorageManagementService workspaceStorageMgmtService,
+    ISendEndpointProvider sendEndpointProvider,
     IConfiguration config)
 {
     private readonly ILogger<ProjectUsageUpdater> _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
@@ -34,17 +35,31 @@ public class ProjectUsageUpdater(
 
 
     [Function("ProjectUsageUpdater")]
-    public async Task<bool> Run(
+    public async Task Run(
         [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName,
             Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {
-        var rolledOver = false;
-
         // deserialize message
         var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageUpdateMessage>();
+        await UpdateUsage(message, cancellationToken);
+    }
 
+    [Function("ProjectCapacityUsageUpdater")]
+    public async Task UpdateProjectCapacity(
+        [ServiceBusTrigger(QueueConstants.ProjectCapacityUpdateQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage serviceBusReceivedMessage,
+        CancellationToken cancellationToken)
+    {
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectCapacityUpdateMessage>();
+        await UpdateCapacity(message, cancellationToken);
+    }
+
+    internal async Task<bool> UpdateUsage(ProjectUsageUpdateMessage message, CancellationToken cancellationToken)
+    {
+        var rolledOver = false;
         var projectUsageUpdateMessageValidator = new ProjectUsageUpdateMessageValidator();
         var validationResult = await projectUsageUpdateMessageValidator.ValidateAsync(message, cancellationToken);
 
@@ -53,7 +68,7 @@ public class ProjectUsageUpdater(
             _logger.LogError("Validation failed: {Errors}", validationResult.Errors.ToString());
             throw new ValidationException(validationResult.Errors);
         }
-        
+
         // Costs blob download
         _logger.LogInformation("Downloading costs from blob {BlobName}...", message.CostsBlobName);
         var downloadCostsTimer = Stopwatch.StartNew();
@@ -120,27 +135,21 @@ public class ProjectUsageUpdater(
         return rolledOver;
     }
 
-    [Function("ProjectCapacityUsageUpdater")]
-    public async Task UpdateProjectCapacity(
-        [ServiceBusTrigger(QueueConstants.ProjectCapacityUpdateQueueName,
-            Connection = "DatahubServiceBus:ConnectionString")]
-        ServiceBusReceivedMessage serviceBusReceivedMessage,
-        CancellationToken cancellationToken)
+    internal async Task UpdateCapacity(ProjectCapacityUpdateMessage message, CancellationToken cancellationToken)
     {
-        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageUpdateMessage>();
-
         _logger.LogInformation("Getting storage capacity for: \'{MessageProjectAcronym}\'", message.ProjectAcronym);
         var storageTimer = Stopwatch.StartNew();
         var capacityUsed = await workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
         storageTimer.Stop();
-        _logger.LogInformation("Storage capacity for: \'{MessageProjectAcronym}\' updated in {Time}s", message.ProjectAcronym,
+        _logger.LogInformation("Storage capacity for: \'{MessageProjectAcronym}\' updated in {Time}s",
+            message.ProjectAcronym,
             storageTimer.Elapsed.TotalSeconds);
 
         _logger.LogInformation("Used storage capacity for: \'{MessageProjectAcronym}\' is {CapacityUsed}",
             message.ProjectAcronym, capacityUsed);
     }
 
-    public async Task<List<DailyServiceCost>> FromBlob(string fileName)
+    internal async Task<List<DailyServiceCost>> FromBlob(string fileName)
     {
         _logger.LogInformation("Downloading from blob {FileName}", fileName);
         var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
@@ -167,7 +176,7 @@ public class ProjectUsageUpdater(
         throw new BlobDownloadException($"Cannot download costs from blob {fileName}");
     }
 
-    private async Task<(bool, decimal)> UpdateWorkspaceCosts(List<DailyServiceCost> costs, string workspaceAcronym)
+    internal async Task<(bool, decimal)> UpdateWorkspaceCosts(List<DailyServiceCost> costs, string workspaceAcronym)
     {
         try
         {
@@ -182,11 +191,12 @@ public class ProjectUsageUpdater(
         }
     }
 
-    private async Task<bool> RefreshWorkspaceCosts(string workspaceAcronym, List<DailyServiceCost> totals)
+    internal async Task<bool> RefreshWorkspaceCosts(string workspaceAcronym, List<DailyServiceCost> totals)
     {
         try
         {
-            var refreshRequired = await workspaceCostMgmtService.VerifyAndRefreshWorkspaceCostsAsync(workspaceAcronym, totals);
+            var refreshRequired =
+                await workspaceCostMgmtService.VerifyAndRefreshWorkspaceCostsAsync(workspaceAcronym, totals);
             return refreshRequired;
         }
         catch (Exception e)
@@ -211,7 +221,7 @@ public class ProjectUsageUpdater(
     }
 */
 
-    private async Task Rollover(string workspaceAcronym, decimal spentAmount)
+    internal async Task Rollover(string workspaceAcronym, decimal spentAmount)
     {
         _logger.LogInformation($"Budget rollover initiated.");
         var currentBudget = await workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(workspaceAcronym);

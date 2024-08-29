@@ -14,7 +14,7 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
-        public Task<bool> VerifyAndRefreshWorkspaceCostsAsync(string workspaceAcronym, List<DailyServiceCost> azureTotals)
+        public Task<bool> VerifyAndRefreshWorkspaceCostsAsync(string workspaceAcronym, List<DailyServiceCost> azureTotals, bool executeRefresh = true)
         {
             throw new NotImplementedException();
         }

@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace Datahub.SpecflowTests.Features
+namespace Datahub.SpecflowTests.Features.Functions
 {
     using Reqnroll;
     using System;
@@ -19,14 +19,14 @@ namespace Datahub.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [Xunit.TraitAttribute("Category", "MockWorkspaceManagement")]
+    [Xunit.TraitAttribute("Category", "ProjectUsage")]
     public partial class ProjectUsageUpdaterFeature : object, Xunit.IClassFixture<ProjectUsageUpdaterFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private static global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
-                "MockWorkspaceManagement"};
+                "ProjectUsage"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -41,8 +41,8 @@ namespace Datahub.SpecflowTests.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "ProjectUsageUpdater", "\tTests for the ProjectUsageUpdater class, which includes simple storage, budget a" +
-                    "nd costs updating and also the more complicated rollover feature", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Functions", "ProjectUsageUpdater", "Tests for the ProjectUsageUpdater class, which includes simple storage, budget an" +
+                    "d costs updating and also the more complicated rollover feature", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -101,7 +101,7 @@ namespace Datahub.SpecflowTests.Features
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("When a project usage is updated and the update does not go into a new fiscal year" +
                     ", a rollover should not be triggered", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 5
-this.ScenarioInitialize(scenarioInfo);
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -111,19 +111,13 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 6
- await testRunner.GivenAsync("a project usage update message", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+        await testRunner.GivenAsync("a project usage update message for a workspace that doesn\'t to be rolled over", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 7
- await testRunner.AndAsync("an associated project credits record", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.WhenAsync("the project usage is updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 8
- await testRunner.AndAsync("the last update date is in the current fiscal year", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 9
- await testRunner.WhenAsync("the project usage is updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 10
- await testRunner.ThenAsync("the rollover should not be triggered", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+        await testRunner.ThenAsync("the rollover should not be triggered", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -140,8 +134,8 @@ this.ScenarioInitialize(scenarioInfo);
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("When a project usage is updated and the update goes into a new fiscal year, a rol" +
                     "lover should be triggered", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 12
-this.ScenarioInitialize(scenarioInfo);
+#line 10
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -150,41 +144,60 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
+#line 11
+        await testRunner.GivenAsync("a project usage update message for a workspace that needs to be rolled over", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 12
+        await testRunner.WhenAsync("the project usage is updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
 #line 13
- await testRunner.GivenAsync("a project usage update message", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 14
- await testRunner.AndAsync("an associated project credits record", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 15
- await testRunner.AndAsync("the last update date is in the previous fiscal year", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 16
- await testRunner.WhenAsync("the project usage is updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 17
- await testRunner.ThenAsync("the rollover should be triggered", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-#line 18
- await testRunner.AndAsync("the project credits should be updated accordingly", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.ThenAsync("the rollover should be triggered", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="When a project usage is updated and the update goes into a new fiscal year, but w" +
-            "e are unable to determine the correct costs, a rollover should not be triggered")]
+        [Xunit.SkippableFactAttribute(DisplayName="The blob download should work properly for a file that exists")]
         [Xunit.TraitAttribute("FeatureTitle", "ProjectUsageUpdater")]
-        [Xunit.TraitAttribute("Description", "When a project usage is updated and the update goes into a new fiscal year, but w" +
-            "e are unable to determine the correct costs, a rollover should not be triggered")]
-        public async System.Threading.Tasks.Task WhenAProjectUsageIsUpdatedAndTheUpdateGoesIntoANewFiscalYearButWeAreUnableToDetermineTheCorrectCostsARolloverShouldNotBeTriggered()
+        [Xunit.TraitAttribute("Description", "The blob download should work properly for a file that exists")]
+        public async System.Threading.Tasks.Task TheBlobDownloadShouldWorkProperlyForAFileThatExists()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("When a project usage is updated and the update goes into a new fiscal year, but w" +
-                    "e are unable to determine the correct costs, a rollover should not be triggered", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The blob download should work properly for a file that exists", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 15
+    this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 16
+        await testRunner.GivenAsync("an existing file in blob storage", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 17
+        await testRunner.WhenAsync("the file is downloaded and parsed", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 18
+        await testRunner.ThenAsync("the values should be as expected", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="The blob download should fail for a file that does not exist")]
+        [Xunit.TraitAttribute("FeatureTitle", "ProjectUsageUpdater")]
+        [Xunit.TraitAttribute("Description", "The blob download should fail for a file that does not exist")]
+        public async System.Threading.Tasks.Task TheBlobDownloadShouldFailForAFileThatDoesNotExist()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The blob download should fail for a file that does not exist", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 20
-this.ScenarioInitialize(scenarioInfo);
+    this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
             {
@@ -194,53 +207,13 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 21
- await testRunner.GivenAsync("a project usage update message", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+        await testRunner.GivenAsync("a non-existing file in blob storage", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 22
- await testRunner.AndAsync("an associated project credits record", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.WhenAsync("the file is downloaded and parsed", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 23
- await testRunner.AndAsync("the last update date is in the previous fiscal year", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 24
- await testRunner.AndAsync("the difference between budget spent and cost captured is too large", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
-#line hidden
-#line 25
- await testRunner.WhenAsync("the project usage is updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 26
- await testRunner.ThenAsync("the rollover should not be triggered", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
-#line hidden
-            }
-            await this.ScenarioCleanupAsync();
-        }
-        
-        [Xunit.SkippableFactAttribute(DisplayName="When a project usage is queued, the blob download should work properly")]
-        [Xunit.TraitAttribute("FeatureTitle", "ProjectUsageUpdater")]
-        [Xunit.TraitAttribute("Description", "When a project usage is queued, the blob download should work properly")]
-        public async System.Threading.Tasks.Task WhenAProjectUsageIsQueuedTheBlobDownloadShouldWorkProperly()
-        {
-            string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("When a project usage is queued, the blob download should work properly", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 28
-this.ScenarioInitialize(scenarioInfo);
-#line hidden
-            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
-            {
-                testRunner.SkipScenario();
-            }
-            else
-            {
-                await this.ScenarioStartAsync();
-#line 29
- await testRunner.GivenAsync("a project usage update message", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
-#line hidden
-#line 30
- await testRunner.WhenAsync("the subscription costs are downloaded", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
-#line hidden
-#line 31
- await testRunner.ThenAsync("the blob download should work properly", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+        await testRunner.ThenAsync("there should be an error", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

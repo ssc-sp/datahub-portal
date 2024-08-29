@@ -1,5 +1,4 @@
-﻿using Datahub.Application.Services.Budget;
-using MediatR;
+﻿using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
 
