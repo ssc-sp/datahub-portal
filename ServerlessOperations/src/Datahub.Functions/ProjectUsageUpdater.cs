@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Azure.Storage.Blobs;
-using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Storage;
 using Datahub.Functions.Domain.Exceptions;

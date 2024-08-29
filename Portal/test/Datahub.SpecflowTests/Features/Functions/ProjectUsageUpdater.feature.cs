@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace Datahub.SpecflowTests.Features
+namespace Datahub.SpecflowTests.Features.Functions
 {
     using Reqnroll;
     using System;
@@ -41,7 +41,7 @@ namespace Datahub.SpecflowTests.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "ProjectUsageUpdater", "\tTests for the ProjectUsageUpdater class, which includes simple storage, budget a" +
+            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Functions", "ProjectUsageUpdater", "\tTests for the ProjectUsageUpdater class, which includes simple storage, budget a" +
                     "nd costs updating and also the more complicated rollover feature", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }

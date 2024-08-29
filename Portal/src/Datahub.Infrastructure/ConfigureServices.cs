@@ -4,7 +4,6 @@ using Azure.ResourceManager;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
-using Datahub.Application.Services.Budget;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;

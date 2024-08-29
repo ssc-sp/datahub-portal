@@ -94,7 +94,7 @@ namespace Datahub.Infrastructure.Services.Cost
 
         /// <inheritdoc />
         public async Task<bool> VerifyAndRefreshWorkspaceCostsAsync(string workspaceAcronym,
-            List<DailyServiceCost> azureTotals)
+            List<DailyServiceCost> azureTotals, bool executeRefresh = true)
         {
             var workspaceRgs = await rgMgmtService.GetWorkspaceResourceGroupsAsync(workspaceAcronym);
             var workspaceCosts = azureTotals.FilterResourceGroups(workspaceRgs);
@@ -103,7 +103,8 @@ namespace Datahub.Infrastructure.Services.Cost
             using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projectCredits = await ctx.Project_Credits
                 .Include(c => c.Project)
-                .FirstAsync(c => c.Project.Project_Acronym_CD == workspaceAcronym);
+                .FirstOrDefaultAsync(c => c.Project.Project_Acronym_CD == workspaceAcronym);
+            if (projectCredits is null) return false;
             var workspaceDbTotal = (decimal)projectCredits.Current;
             var diff = Math.Abs(workspaceAzureTotal - workspaceDbTotal);
 
@@ -111,7 +112,8 @@ namespace Datahub.Infrastructure.Services.Cost
             {
                 logger.LogWarning("Workspace costs for {WorkspaceAcronym} do not match Azure costs (diff = ${Diff} > ${Threshold}). " +
                                   "Refreshing costs for workspace", workspaceAcronym, diff, REFRESH_THRESHOLD);
-                return await RefreshWorkspaceCostsAsync(workspaceAcronym);
+                if (executeRefresh) return await RefreshWorkspaceCostsAsync(workspaceAcronym);
+                return true;
             }
 
             return false;
@@ -136,6 +138,10 @@ namespace Datahub.Infrastructure.Services.Cost
             DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default)
         {
             ValidateDateRange(startDate, endDate);
+            if (!subscriptionId.Contains("/"))
+            {
+                subscriptionId = $"/subscriptions/{subscriptionId}";
+            }
             var queryResult = await QueryScopeCostsAsync(subscriptionId, startDate, endDate, granularity, rgNames);
             return queryResult;
         }
@@ -546,25 +552,6 @@ namespace Datahub.Infrastructure.Services.Cost
                 });
             });
             return lstDailyCosts.ToList();
-        }
-
-        /// <summary>
-        /// Small helper function to try find the index of a column in a list of columns. Returns null if the column
-        /// is not found.
-        /// </summary>
-        /// <param name="cols">List of the column names</param>
-        /// <param name="columnName">Column name to find the index of</param>
-        /// <returns>The index of the column or null if it did not find it</returns>
-        internal int? TryFindIndex(List<string> cols, string columnName)
-        {
-            try
-            {
-                return cols.FindIndex(c => c == columnName);
-            }
-            catch
-            {
-                return null;
-            }
         }
 
         /// <summary>

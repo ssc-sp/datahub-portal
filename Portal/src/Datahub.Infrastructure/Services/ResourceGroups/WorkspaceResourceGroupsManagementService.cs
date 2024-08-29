@@ -89,7 +89,7 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
         /// <inheritdoc />
         public async Task<List<string>> GetAllResourceGroupsAsync()
         {
-            logger.LogInformation("Getting all resource groups from ARM");
+            logger.LogInformation("Getting all resource groups");
             using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projects = ctx.Projects.Include(p => p.DatahubAzureSubscription).ToList();
             var rgNames = new List<string>();

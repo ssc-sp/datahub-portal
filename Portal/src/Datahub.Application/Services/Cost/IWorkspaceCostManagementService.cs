@@ -1,7 +1,6 @@
-﻿
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("Datahub.Infrastructure.UnitTests")]
+[assembly: InternalsVisibleTo("Datahub.SpecflowTests")]
 
 namespace Datahub.Application.Services.Cost
 {
@@ -24,15 +23,17 @@ namespace Datahub.Application.Services.Cost
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <returns>True if the refresh was successful, false otherwise</returns>
         public Task<bool> RefreshWorkspaceCostsAsync(string workspaceAcronym);
-        
+
         /// <summary>
         /// Verifies the totals for the given workspace acronym compared to the totals given.
         /// If they are different, it will refresh the costs for the workspace.
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym to verify</param>
         /// <param name="azureTotals">The totals by resource groups, given by Azure</param>
+        /// <param name="executeRefresh">Whether or not to execute the refresh if it is required</param>
         /// <returns>True if a refresh was done succesfully, false otherwise</returns>
-        public Task<bool> VerifyAndRefreshWorkspaceCostsAsync(string workspaceAcronym, List<DailyServiceCost> azureTotals);
+        public Task<bool> VerifyAndRefreshWorkspaceCostsAsync(string workspaceAcronym,
+            List<DailyServiceCost> azureTotals, bool executeRefresh = true);
 
         /// <summary>
         /// Checks if the costs for the given workspace acronym need to be updated.
@@ -53,7 +54,7 @@ namespace Datahub.Application.Services.Cost
         /// the queries to find them</param>
         /// <returns>A List containing all daily service costs</returns>
         public Task<List<DailyServiceCost>> QuerySubscriptionCostsAsync(string subscriptionId, DateTime startDate,
-            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default );
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default);
 
         /// <summary>
         /// Queries the given scopes for costs within the given date range. Daily granularity.
@@ -82,10 +83,9 @@ namespace Datahub.Application.Services.Cost
         public Task<List<DailyServiceCost>> QueryWorkspaceCostsAsync(string workspaceAcronym, DateTime startDate,
             DateTime endDate, QueryGranularity granularity);
 
-
         #endregion
     }
-    
+
     public enum QueryGranularity
     {
         Daily,
