@@ -123,13 +123,9 @@
 </MudStack>
 
 @code {
-    private string _yahoo = "T";
-
     [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _workspace;
-
-
 
     private readonly List<string> _toolList =
     [
@@ -208,7 +204,6 @@
         if (_resourceCheck != null)
         {
             _resourceCheck.Status = _toolCurrentDevelopmentStatusMap[tool].ToString();
-            _yahoo = _resourceCheck.Status;
         }
 
         await InvokeAsync(StateHasChanged);
