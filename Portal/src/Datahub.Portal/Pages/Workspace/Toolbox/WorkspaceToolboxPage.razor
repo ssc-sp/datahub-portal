@@ -1,17 +1,9 @@
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
-@using Datahub.Infrastructure.Extensions
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
-
-
-@using Datahub.Shared.Configuration
-@using MassTransit
-@using Microsoft.Extensions.Configuration
 @using Datahub.Application.Services.Notifications
-@using Datahub.Infrastructure.Queues.Messages
-
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
@@ -19,12 +11,8 @@
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
 @inject NavigationManager NavigationManager
-
 @inject IDatahubEmailService _emailService
-@inject IJSRuntime _jsRuntime
-@inject IConfiguration _configuration
 @inject IResourceMessagingService _resourceMessagingService
-@inject ISendEndpointProvider _sendEndpointProvider
 
 <MudStack>
     <MudText Typo="Typo.h2">
@@ -70,7 +58,7 @@
                             {
                                 case ProjectResourceStatus.Available:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
-                                        @Localizer["Add to Workspace"]
+                                        @Localizer["Add Tool to Workspace"]
                                         <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
@@ -83,30 +71,24 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ProjectResourceStatus.Exists:
-                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
-                                        @Localizer["Tool has been created"]
-                                        <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </DHButton>
-                                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
-                                        <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(async () => GoToResourceDeletionPage(tool))">
-                                        @Localizer["Remove from Workspace"]
-                                        <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </DHButton>
-                                    </DatahubAuthView>
+                                    <MudStack>
+                                        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                            @Localizer["Tool has been created"]
+                                            <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        </DHButton>
+                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+                                            <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(async () => GoToResourceDeletionPage(tool))">
+                                            @Localizer["Remove Tool from Workspace"]
+                                            <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        </DHButton>
+                                        </DatahubAuthView>
+                                    </MudStack>
                                     break;
-
-
-
                                 case ProjectResourceStatus.SendingDeletion:
-                                    <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(async () => await ReinstateToolToWorkspace(tool))">
-                                        @Localizer["Cancel deletion"]
-                                        <DHIcon Icon="@SidebarIcons.Stop" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </DHButton>
+                                    <SpinnerButton Variant="@Variant.Filled">
+                                        @Localizer["Deleting Tool..."]
+                                    </SpinnerButton>
                                     break;
-                                
-
-
-
                                 case ProjectResourceStatus.Disabled:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
@@ -196,8 +178,6 @@
             .Include(w => w.Resources)
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
-        //SetToolStatus();
-
         _metadataRequired = _workspace?.MetadataAdded != true;
         if (_metadataRequired)
         {
@@ -212,60 +192,10 @@
             foreach (var tool in _toolList)
             {
                 _toolCurrentDevelopmentStatusMap[tool] = GetToolStatus(tool);
-                //SetToolStatus(tool);
             }
-            ToolStatusDeletion();
+            // checking for deleted tools
+            ToolDeletion();
         }
-    }
-
-
-    public List<string> GetProjectAdminsEmails()
-    {
-        using var ctx = _contextFactory.CreateDbContext();
-
-        return ctx.Project_Users
-            .Where(a =>
-                a.Project.Project_Acronym_CD == WorkspaceAcronym
-                && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
-                    a.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
-                && !string.IsNullOrEmpty(a.PortalUser.Email))
-            .Select(f => f.PortalUser.Email)
-            .ToList();
-    }
-
-
-    private async Task SendDeletionNotificationEmail(string tool)
-    {
-        var subject = tool + " deleted from workspace " + WorkspaceAcronym;
-        var body = "An admin in your workspace (" + WorkspaceAcronym + ") has deleted the " + tool + " resource.";
-
-        //var contacts = GetProjectAdminsEmails();
-        var contacts = new List<string>() { "Siovan.Gecelovsky@ssc-spc.gc.ca", "siovangecelovsky@gmail.com" };
-
-        EmailRequestMessage notificationEmail = new()
-            {
-                To = contacts,
-                Subject = subject,
-                Body = body
-            };
-        if(notificationEmail is not null)
-        {
-            await _sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, notificationEmail);
-            //_snackbar.Add(Localizer["An email has been sent to all workspace admins to notify the deletion of this resource."], Severity.Success);
-        }
-    }
-
-    private async void GoToResourceDeletionPage(string tool)
-    {
-        await using var ctx = await _contextFactory.CreateDbContextAsync();
-        var _resourceCheck = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
-        _resourceCheck.Status = ProjectResourceStatus.PendingDeletion.ToString();
-
-        await ctx.SaveChangesAsync();
-        await InvokeAsync(StateHasChanged);
-
-        NavigationManager.NavigateTo(_resourceDeletionUrl);
     }
 
     private async void SetToolStatus(string tool)
@@ -281,25 +211,6 @@
             _yahoo = _resourceCheck.Status;
         }
 
-        await InvokeAsync(StateHasChanged);
-    }
-
-
-    private async void ToolStatusDeletion()
-    {
-        await using var ctx = await _contextFactory.CreateDbContextAsync();
-
-        foreach (var tool in _toolList)
-        {
-            var _resourceCheck = await ctx.Project_Resources2
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
-            if(_resourceCheck != null && _resourceCheck.Status == "SendingDeletion")
-            {
-                _toolCurrentDevelopmentStatusMap[tool] = GetStatus(_resourceCheck.Status);
-                await RemoveToolFromWorkspace(tool);
-            }
-        }
         await InvokeAsync(StateHasChanged);
     }
 
@@ -327,6 +238,24 @@
         }
 
         return ProjectResourceStatus.Error;
+    }
+
+    private async void ToolDeletion()
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+
+        foreach (var tool in _toolList)
+        {
+            var _resourceCheck = await ctx.Project_Resources2
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            if (_resourceCheck != null && _resourceCheck.Status == "SendingDeletion")
+            {
+                _toolCurrentDevelopmentStatusMap[tool] = GetStatus(_resourceCheck.Status);
+                await RemoveToolFromWorkspace(tool);
+            }
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddToolToWorkspace(string tool)
@@ -359,26 +288,9 @@
         }
     }
 
-    private async Task ReinstateToolToWorkspace(string tool)
-    {
-
-        await using var ctx = await _contextFactory.CreateDbContextAsync();
-        var _resourceCheck = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
-        _resourceCheck.Status = ProjectResourceStatus.Exists.ToString();
-
-        await ctx.SaveChangesAsync();
-
-
-        _snackbar.Add(Localizer["{0} successfully reinstated to your workspace", GetLabel(tool)], Severity.Success);
-        _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Exists;
-        await InvokeAsync(StateHasChanged);
-    }
-
     private async Task RemoveToolFromWorkspace(string tool)
     {
         _logger.LogInformation("Removing {Tool} from {WorkspaceAcronym}", GetLabel(tool), WorkspaceAcronym);
-        //_snackbar.Add(Localizer["{Tool} is being removed from your workspace", GetLabel(tool)], Severity.Error);
         _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.SendingDeletion;
         await InvokeAsync(StateHasChanged);
         try
@@ -391,22 +303,22 @@
                 .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
 
 
+            // adding deletion request to queue
             var userEmail = await _userInformationService.GetUserEmail();
             var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, requestingUserEmail: userEmail);
-            //await _resourceMessagingService.SendToTerraformDeleteResourceQueue(workspaceDefinition, _workspace.Project_ID, tool);
+            await _resourceMessagingService.SendToTerraformDeleteResourceQueue(workspaceDefinition, _workspace.Project_ID, tool);
 
             _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.SendingDeletion;
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Available;
             _snackbar.Add(Localizer["{0} successfully removed from your workspace", GetLabel(tool)], Severity.Success);
 
             _resourceCheck.Status = ProjectResourceStatus.Available.ToString();
-            
-            await SendDeletionNotificationEmail(tool);
+
+            await HandleSendEmail(tool);
 
             await ctx.SaveChangesAsync();
 
             await InvokeAsync(StateHasChanged);
-
         }
         catch (Exception e)
         {
@@ -416,6 +328,65 @@
         }
     }
 
+    private async void GoToResourceDeletionPage(string tool)
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        _resourceCheck.Status = ProjectResourceStatus.PendingDeletion.ToString();
+
+        await ctx.SaveChangesAsync();
+        await InvokeAsync(StateHasChanged);
+
+        NavigationManager.NavigateTo(_resourceDeletionUrl);
+    }
+
+
+
+    private async Task HandleSendEmail(string tool)
+    {
+        List<string> recipients = GetProjectAdminsEmails();
+        string subject = tool + " deleted from workspace " + WorkspaceAcronym;
+
+        string body = "An admin in your workspace (" + WorkspaceAcronym + ") has deleted the " + tool + " resource.";
+
+        await SendEmailAsync(async () =>
+        {
+            await _emailService.SendToRecipients("ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca", recipients, subject, body);
+        });
+    }
+
+    private async Task SendEmailAsync(Func<Task> action)
+    {
+        try
+        {
+            await action.Invoke();
+            _logger.LogInformation("Email sent");
+        }
+        catch
+        {
+            _logger.LogInformation("Failed to send the email");
+        }
+    }
+
+    public List<string> GetProjectAdminsEmails()
+    {
+        using var ctx = _contextFactory.CreateDbContext();
+
+        return ctx.Project_Users
+            .Where(a =>
+                a.Project.Project_Acronym_CD == WorkspaceAcronym
+                && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
+                    a.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+                && !string.IsNullOrEmpty(a.PortalUser.Email))
+            .Select(f => f.PortalUser.Email)
+            .ToList();
+    }
+
+
+    
+    
+    
     private string GetLabel(string tool)
     {
         return tool switch
@@ -465,42 +436,6 @@
             TerraformTemplate.AzureAPI => SidebarIcons.Api,
             _ => SidebarIcons.Default
         };
-    }
-
-
-
-    //=-----------------------------deprecated-----------------------------------------------------------------------------
-    private async Task HandleSendEmail()
-    {
-        List<string> recipients = new List<string> { "siovangecelovsky@gmail.com", "Siovan.Gecelovsky@ssc-spc.gc.ca" };
-        string _subject = "MIC CHECK";
-        var message = Localizer["Are you sure you want to send your email?"].ToString();
-        if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
-            return;
-
-        await SendEmailAsync(async () =>
-        {
-            //var email = await _userInformationService.GetUserEmail();
-            await _emailService.SendToRecipients(GetToAddress(), recipients, _subject, "resource_deletion.html");
-        });
-    }
-
-    private async Task SendEmailAsync(Func<Task> action)
-    {
-        try
-        {
-            await action.Invoke();
-            _snackbar.Add(Localizer["Email sent"], Severity.Success);
-        }
-        catch
-        {
-            _snackbar.Add(Localizer["Failed to send the email"], Severity.Warning);
-        }
-    }
-
-    private string GetToAddress()
-    {
-        return _configuration["EmailNotification:SenderAddress"] ?? "ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca";
     }
 
 }

@@ -10,13 +10,22 @@
 <MudStack Class="px-4">
     <MudGrid>
        <MudItem xs="12">
-            <MudText Typo="Typo.h4">
-                @Localizer["Are you sure you want to delete {0} from this workspace?", Resource]
-            </MudText>
-            <MudText Typo="Typo.body1">
-                @Localizer["This action cannot be undone. Upon deletion, all workspace admins will be notified via email. Please type {0} to confirm the deletion.", WorkspaceAcronym]
-            </MudText>
-            <MudTextField @bind-Value="DeleteConfirmation" Variant="Variant.Text"></MudTextField>
+           <MudStack>
+                <MudText Typo="Typo.h4">
+                    @Localizer["Are you sure you want to delete {0} from this workspace?", Resource]
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @Localizer["This action is permanent. Upon deletion, all workspace admins will be notified via email."]
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @Localizer["Please type {0} to confirm the deletion.", WorkspaceAcronym]
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="5">
+                        <MudTextField @bind-Value="DeleteConfirmation" Variant="Variant.Text"></MudTextField>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
             
             @if (_error.Equals("_emptyConfirmation"))
             {
@@ -31,14 +40,14 @@
                 </MudAlert>
             }
         </MudItem>
-        <MudItem xs="6">
-            <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@Cancel">
+        <MudItem xs="3">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@CancelDeletion">
                 @Localizer["Cancel"]
             </DHButton>
         </MudItem>
-        <MudItem xs="6">
+        <MudItem xs="3">
             <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
-                @Localizer["Delete this resource"]
+                @Localizer["Delete Resource"]
                 <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
             </DHButton>
         </MudItem>
@@ -78,7 +87,7 @@
 
     }
 
-    private async void Cancel()
+    private async void CancelDeletion()
     {
         await using var ctx = await _contextFactory.CreateDbContextAsync();
         var _resourceCheck = await ctx.Project_Resources2
