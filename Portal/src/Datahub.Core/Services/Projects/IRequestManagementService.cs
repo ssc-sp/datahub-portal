@@ -2,9 +2,9 @@
 using Datahub.Metadata.Model;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
-namespace Datahub.Core.Services.Projects;
+using Datahub.Shared.Entities;
 
-public record ProjectResourceFormParams(FieldDefinitions FieldDefinitions, MetadataProfile Profile);
+namespace Datahub.Core.Services.Projects;
 
 public interface IRequestManagementService
 {
@@ -15,7 +15,7 @@ public interface IRequestManagementService
     /// <param name="terraformTemplate">The Terraform template to use for the request.</param>
     /// <param name="requestingUser">The user requesting the Terraform request.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains a boolean indicating whether the Terraform request was handled successfully or not.</returns>
-    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, string terraformTemplate,
+    Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project project, TerraformTemplate terraformTemplate,
         PortalUser requestingUser);
 
     /// <summary>

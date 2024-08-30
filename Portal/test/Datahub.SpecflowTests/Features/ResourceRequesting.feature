@@ -11,7 +11,6 @@ Tests around the workspace resource requesting and its functionality for the use
 
     Examples:
       | resource_name      | number_of_messages |
-      | Default            | 1                  |
       | NewProjectTemplate | 1                  |
       | AzureAppService    | 1                  |
       | AzureDatabricks    | 1                  |

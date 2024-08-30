@@ -28,7 +28,7 @@ public class AzureVirtualMachineTemplateTests
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(module, workspace);
+            await _terraformService.CopyTemplateAsync(module.Name, workspace);
         });
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
@@ -47,7 +47,7 @@ public class AzureVirtualMachineTemplateTests
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
         
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
