@@ -48,7 +48,12 @@ public record CreateResourceData
     private CreateResourceData(string projectName, string acronym, string sector, string organization,
         string requestingUserEmail, double budgetAmount)
     {
-        Templates = new List<TerraformTemplate> { TerraformTemplate.Default };
+        Templates =
+        [
+            new TerraformTemplate(
+                TerraformTemplate.NormalizeTemplateName(TerraformTemplate.NewProjectTemplate),
+                TerraformTemplate.TemplateStatus.CreateRequested)
+        ];
         Workspace = new TerraformWorkspace()
         {
             Name = projectName,
