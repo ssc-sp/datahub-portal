@@ -21,11 +21,12 @@ public class TerraformTemplate(string name, string status)
         public const string Created = "Created";
         public const string DeleteRequested = "DeleteRequested";
         public const string Deleted = "Deleted";
+        public const string Unknown = "Unknown";
     }
 
-    public string Name { get; init; } = name;
+    public string Name { get; } = name;
 
-    public string Status { get; set; } = status ?? throw new ArgumentNullException(nameof(status));
+    public string Status { get; } = status ?? TemplateStatus.Unknown;
 
     public static string NormalizeTemplateName(string name)
     {
