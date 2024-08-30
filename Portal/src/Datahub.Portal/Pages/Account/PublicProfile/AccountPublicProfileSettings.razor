@@ -41,36 +41,36 @@
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+[Parameter]
+public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+[Parameter]
+public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
-    private async Task HandleImageSelected(string code, bool isProfilePicture)
-    {
-        ViewedUser.ProfilePictureUrl = isProfilePicture ? code : ViewedUser.ProfilePictureUrl;
-        ViewedUser.BannerPictureUrl = isProfilePicture ? ViewedUser.BannerPictureUrl : code;
+private async Task HandleImageSelected(string code, bool isProfilePicture)
+{
+ViewedUser.ProfilePictureUrl = isProfilePicture ? code : ViewedUser.ProfilePictureUrl;
+ViewedUser.BannerPictureUrl = isProfilePicture ? ViewedUser.BannerPictureUrl : code;
 
-        await OnViewedUserChanged.InvokeAsync(ViewedUser);
-    }
+await OnViewedUserChanged.InvokeAsync(ViewedUser);
+}
 
-    private async Task HandleHideAchievementsChanged()
-    {
-        ViewedUser.UserSettings.HideAchievements = !ViewedUser.UserSettings.HideAchievements;
-        await OnViewedUserChanged.InvokeAsync(ViewedUser);
-    }
-    
-    private async Task HandleHideAlertsChanged()
-    {
-        ViewedUser.UserSettings.HideAlerts = !ViewedUser.UserSettings.HideAlerts;
-        await OnViewedUserChanged.InvokeAsync(ViewedUser);
-    }
+private async Task HandleHideAchievementsChanged()
+{
+ViewedUser.UserSettings.HideAchievements = !ViewedUser.UserSettings.HideAchievements;
+await OnViewedUserChanged.InvokeAsync(ViewedUser);
+}
 
-    private async Task ClearAlerts()
-    {
-        ViewedUser.UserSettings.HiddenAlerts = null;
-        await OnViewedUserChanged.InvokeAsync(ViewedUser);
-    }
+private async Task HandleHideAlertsChanged()
+{
+ViewedUser.UserSettings.HideAlerts = !ViewedUser.UserSettings.HideAlerts;
+await OnViewedUserChanged.InvokeAsync(ViewedUser);
+}
+
+private async Task ClearAlerts()
+{
+ViewedUser.UserSettings.HiddenAlerts = null;
+await OnViewedUserChanged.InvokeAsync(ViewedUser);
+}
 
 }

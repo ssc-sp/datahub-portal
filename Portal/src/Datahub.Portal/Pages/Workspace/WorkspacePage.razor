@@ -18,8 +18,8 @@
 @using Datahub.Portal.Pages.Workspace.Healthcheck
 @using Datahub.Portal.Pages.Workspace.Users
 @using Datahub.Portal.Pages.Workspace.WebApp
+@using Datahub.Portal.Components.Sidebar
 
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<WorkspacePage> _logger
 
@@ -31,9 +31,9 @@
     @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
+<DHSidebarDrawer>
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
-</SectionContent>
+</DHSidebarDrawer>
 
 @{
     var containsKey = !string.IsNullOrWhiteSpace(Section)
