@@ -72,7 +72,8 @@ public class RequestManagementService : IRequestManagementService
         {
             ProjectId = project.Project_ID,
             RequestedById = requestingUser.Id,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name),
+            Status = requestedTemplate.Status,
         };
         
         await ctx.Project_Resources2.AddAsync(resource);
@@ -86,7 +87,7 @@ public class RequestManagementService : IRequestManagementService
     /// <param name="terraformTemplate">The Terraform template.</param>
     /// <param name="requestingUser">The user making the request.</param>
     /// <returns>True if the Terraform request was handled successfully; otherwise, false.</returns>
-    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, string terraformTemplate,
+    public async Task<bool> HandleTerraformRequestServiceAsync(Datahub_Project datahubProject, TerraformTemplate terraformTemplate,
         PortalUser requestingUser)
     {
         try
@@ -102,29 +103,21 @@ public class RequestManagementService : IRequestManagementService
             {
                 return false;
             }
-
-            var newTemplates = TerraformTemplate.LatestFromNameWithDependencies(terraformTemplate);
-            if (terraformTemplate != TerraformTemplate.VariableUpdate)
+            
+            
+            var dependencyTemplates = TerraformTemplate.GetDependenciesToCreate(terraformTemplate.Name);
+            if (terraformTemplate.Name != TerraformTemplate.VariableUpdate)
             {
-                foreach (var template in newTemplates)
+                await ProcessRequest(project, requestingUser, terraformTemplate);
+                foreach (var template in dependencyTemplates)
                 {
                     await ProcessRequest(project, requestingUser, template);
                 }
             }
 
-            var allTemplates = project.Resources
-                .Select(r => r.ResourceType)
-                .Select(s => s.Replace("terraform:", ""))
-                .Select(TerraformTemplate.LatestFromNameWithDependencies)
-                .SelectMany(t => t)
-                .Concat(newTemplates)
-                .DistinctBy(t => t.Name)
-                .ToList();
-
             var workspaceDefinition =
                 await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
-            workspaceDefinition.Templates = allTemplates;
 
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
