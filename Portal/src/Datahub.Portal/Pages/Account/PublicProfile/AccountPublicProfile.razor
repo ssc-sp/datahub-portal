@@ -67,15 +67,10 @@
     private string _userProjectGuid;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-    }
-    
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         if (_currentUser.GraphGuid != ViewedUser.GraphGuid)
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
