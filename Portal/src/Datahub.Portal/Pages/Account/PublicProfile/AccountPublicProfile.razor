@@ -6,14 +6,14 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 
-@if (_viewedPortalUser is null)
+@if (ViewedUser is null)
 {
     <DHLoadingInitializer Message="@Localizer["Initializing Profile..."]"/>
     return;
 }
 
 <MudStack>
-    <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+    <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(ViewedUser?.BannerPictureUrl)"
               Alt="@Localizer["User's background image"]"
               Class="rounded-lg mud-elevation-4"
               Style="width: 100%"
@@ -25,28 +25,28 @@
             @Localizer["Profile information"]
         </h2>
         <MudGrid>
-            <MudItem xs="12" md="@(_viewedPortalUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
+            <MudItem xs="12" md="@(ViewedUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
                 <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
                     <MudAvatar Style="width:120px; height: 120px">
-                        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
+                        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(ViewedUser?.ProfilePictureUrl)"
                                   Alt="@Localizer[""]"
                                   Height="120"
                                   Width="120"/>
                     </MudAvatar>
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.h2">
-                            <strong>@_viewedPortalUser?.DisplayName</strong>
+                            <strong>@ViewedUser?.DisplayName</strong>
                         </MudText>
-                        <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
+                        <MudText Typo="Typo.caption" Class="ml-2">@ViewedUser?.Email</MudText>
                     </MudStack>
                 </MudStack>
             </MudItem>
-            @if (!(_viewedPortalUser.UserSettings?.HideAchievements ?? true))
+            @if (!(ViewedUser.UserSettings?.HideAchievements ?? true))
             {
                 <MudItem xs="12" md="4">
                     <MudStack>
                         <MudStack Spacing="6">
-                            <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
+                            <ProfileAchievements ViewedUser="@ViewedUser"/>
                         </MudStack>
                         <MudLink Href="@_achievementsUrl">
                             @Localizer["View All Achievements"]
@@ -62,7 +62,8 @@
 @code {
 
     private PortalUser _currentUser;
-    private PortalUser _viewedPortalUser;
+    [Parameter] public PortalUser ViewedUser { get; set; }
+    [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
     private string _userProjectGuid;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
 
@@ -71,20 +72,17 @@
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
     }
-
+    
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-
-        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
-
-        if (_viewedPortalUser.GraphGuid != _currentUser.GraphGuid)
+        if (_currentUser.GraphGuid != ViewedUser.GraphGuid)
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
-
-        _userProjectGuid = _viewedPortalUser.GraphGuid;
+        _userProjectGuid = ViewedUser.GraphGuid;
         StateHasChanged();
     }
+
 
 }
