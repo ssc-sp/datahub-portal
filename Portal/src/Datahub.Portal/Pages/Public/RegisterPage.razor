@@ -1,9 +1,11 @@
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
 
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
 @inject NavigationManager _navigationManager
 
 @page "/register"
@@ -80,6 +82,7 @@
     private string _comment;
     private bool _success = true;
     private bool _failed = false;
+    private bool _wasDeleted = false;
     private bool _isRegistering;
     private string[] _errors = { };
     private MudForm _form;
@@ -115,6 +118,12 @@
         _isRegistering = true;
         StateHasChanged();
 
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
+        if (existingUser != null)
+        {
+            _wasDeleted = existingUser.IsDeleted;
+        }
+
         await (DisplayFailedMessage(20));
 
         _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
@@ -125,6 +134,10 @@
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
+            if (_wasDeleted)
+            {
+                await _userInformationService.HandleDeletedUserRegistration(_email, userId);
+            }
             _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
             _navigationManager.NavigateTo("/login");
         }
@@ -138,5 +151,4 @@
         _isRegistering = false;
         StateHasChanged();
     }
-
 }
