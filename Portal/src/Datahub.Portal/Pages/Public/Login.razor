@@ -38,8 +38,7 @@
 </MudStack>
 </EditForm>
 @code {
-
-    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
+    [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private LoginModel loginModel = new LoginModel();
 
@@ -47,17 +46,12 @@
     {
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
-        if (existingUser == null)
-        {
+        if (existingUser == null || existingUser.IsDeleted)
+    {
             _navigationManager.NavigateTo($"/register?email={loginHint}");
         }
         else
         {
-            if (existingUser.IsDeleted)
-            {
-                _navigationManager.NavigateTo("/restore");
-            }
-
             if (existingUser.IsLocked)
             {
                 _navigationManager.NavigateTo("/locked");

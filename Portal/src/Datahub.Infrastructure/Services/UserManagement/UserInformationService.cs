@@ -407,45 +407,25 @@ public class UserInformationService(
                     logger.LogError(e, "Error Loading User");
                     extendedPortalUser.IsDeleted = true;
                 }
+                return extendedPortalUser;
             }
-            return extendedPortalUser;
+            return null;
         }
     }
 
-    public async Task<(bool IsDeleted, bool IsLockedOut)> GetUserStatusAsync(PortalUser user)
+    public async Task HandleDeletedUserRegistration(string email, string graphId)
     {
-        try
+        // update portal user with new graph id
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
         {
-            PrepareAuthenticatedClient();
-            var graphUser = await graphServiceClient.Users[user.GraphGuid].GetAsync();
-
-            if (graphUser == null)
+            var portalUser = await ctx.PortalUsers.FirstOrDefaultAsync(p => p.Email == email);
+            if (portalUser != null)
             {
-                // User is deleted
-                return (IsDeleted: true, IsLockedOut: false);
+                portalUser.GraphGuid = graphId;
+                ctx.Update(portalUser);
             }
-
-            // Check if the user is locked out
-            bool isLockedOut = graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
-
-            return (IsDeleted: false, IsLockedOut: isLockedOut);
-        }
-        catch (ServiceException e)
-        {
-            if (e.InnerException is MsalUiRequiredException ||
-                e.InnerException is MicrosoftIdentityWebChallengeUserException)
-                throw;
-
-            logger.LogError(e, "Error Loading User");
-            return (IsDeleted: true, IsLockedOut: false); // Assume deleted if there's an error
-        }
-        catch (Exception e)
-        {
-            logger.LogError(e, "Error Loading User");
-            return (IsDeleted: true, IsLockedOut: false); // Assume deleted if there's an error
         }
     }
-
     public async Task RegisterAuthenticatedPortalUser()
     {
         var graphId = await GetUserIdString();

@@ -131,6 +131,10 @@ public class OfflineUserInformationService : IUserInformationService
         return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
     }
 
+    public async Task HandleDeletedUserRegistration(string email, string graphId)
+    {
+        return;
+    }
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
