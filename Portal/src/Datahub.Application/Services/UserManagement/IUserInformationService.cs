@@ -20,6 +20,8 @@ public interface IUserInformationService
 
     Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email);
 
+    Task HandleDeletedUserRegistration(string email, string graphId);
+
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
 
