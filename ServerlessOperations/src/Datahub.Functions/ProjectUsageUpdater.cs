@@ -187,7 +187,7 @@ public class ProjectUsageUpdater(
         catch (Exception e)
         {
             _logger.LogError("Could not update workspace costs {Error}", e.Message);
-            throw new WorkspaceCostUpdateException(e.Message);
+            throw new CostUpdateException(e.Message);
         }
     }
 
@@ -202,7 +202,7 @@ public class ProjectUsageUpdater(
         catch (Exception e)
         {
             _logger.LogError("Could not refresh workspace costs {Error}", e.Message);
-            throw new WorkspaceCostUpdateException(e.Message);
+            throw new CostRefreshException(e.Message);
         }
     }
 
@@ -228,7 +228,7 @@ public class ProjectUsageUpdater(
         if (currentBudget == 0)
         {
             _logger.LogError("Cannot rollover budget, budget is 0");
-            throw new WorkspaceRolloverException("Cannot rollover budget, budget is 0.");
+            throw new RolloverException("Cannot rollover budget, budget is 0.");
         }
 
         _logger.LogInformation("Spend captured by cost management: {SpentAmount}", spentAmount);
@@ -243,7 +243,7 @@ public class ProjectUsageUpdater(
         catch (Exception e)
         {
             _logger.LogError("Could not apply the budget rollover {Error}", e.Message);
-            throw new WorkspaceRolloverException(e.Message);
+            throw new RolloverException(e.Message);
         }
     }
 }

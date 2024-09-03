@@ -38,7 +38,8 @@ public static class ConfigureServices
         IConfiguration configuration)
     {
         //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
+        services.AddMediatR(cfg =>
+            cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
@@ -54,25 +55,8 @@ public static class ConfigureServices
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
 
-        services.AddAzureClients(
-            builder =>
-            {
-                builder.AddClient<ArmClient, ArmClientOptions>(options =>
-                {
-                    options.Diagnostics.IsLoggingEnabled = true;
-                    options.Retry.Mode = RetryMode.Exponential;
-                    options.Retry.MaxRetries = 5;
-                    options.Retry.Delay = TimeSpan.FromSeconds(2);
-                    var azureAdSection = configuration.GetSection("AzureAd");
-                    var tenantId = azureAdSection.GetValue<string>("TenantId");
-                    var clientId = azureAdSection.GetValue<string>("ClientId");
-                    var clientSecret = azureAdSection.GetValue<string>("ClientSecret");
-                    var subscriptionId = azureAdSection.GetValue<string>("SubscriptionId");
-                    var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
-                    var client = new ArmClient(creds, subscriptionId, options);
-                    return client;
-                });
-            });
+
+        services.AddAzureResourceManager(configuration);
         services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddTransient<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 
@@ -101,27 +85,52 @@ public static class ConfigureServices
                 x.UsingInMemory((context, cfg) =>
                 {
                     cfg.ConfigureEndpoints(context);
-                    cfg.ReceiveEndpoint("infrastructure-health-check", endpoint =>
-                    {
-                        endpoint.Consumer<HealthCheckConsumer>();
-                    });
-                    cfg.ReceiveEndpoint("infrastructure-health-check-results", endpoint =>
-                    {
-                        endpoint.Consumer<HealthCheckResultConsumer>();
-                    });
+                    cfg.ReceiveEndpoint("infrastructure-health-check",
+                        endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
+                    cfg.ReceiveEndpoint("infrastructure-health-check-results",
+                        endpoint => { endpoint.Consumer<HealthCheckResultConsumer>(); });
                 });
             }
             else
             {
                 x.UsingAzureServiceBus((context, cfg) =>
                 {
-                    cfg.Host(configuration["DatahubServiceBus:ConnectionString"], hc => hc.TransportType = Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpWebSockets);
+                    cfg.Host(configuration["DatahubServiceBus:ConnectionString"],
+                        hc => hc.TransportType = Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpWebSockets);
                     cfg.PrefetchCount = 1;
                     cfg.ConfigureEndpoints(context);
                 });
             }
         });
 
+        return services;
+    }
+
+    public static IServiceCollection AddAzureResourceManager(this IServiceCollection services,
+        IConfiguration configuration)
+    {
+        services.AddAzureClients(
+            builder =>
+            {
+                builder.AddClient<ArmClient, ArmClientOptions>(options =>
+                {
+                    options.Diagnostics.IsLoggingEnabled = true;
+                    options.Retry.Mode = RetryMode.Exponential;
+                    options.Retry.MaxRetries = 5;
+                    options.Retry.Delay = TimeSpan.FromSeconds(2);
+                    var tenantId = configuration.GetValue<string>("AzureAd:TenantId") ??
+                                   configuration.GetValue<string>("TENANT_ID");
+                    var clientId = configuration.GetValue<string>("AzureAd:ClientId") ??
+                                   configuration.GetValue<string>("FUNC_SP_CLIENT_ID");
+                    var clientSecret = configuration.GetValue<string>("AzureAd:ClientSecret") ??
+                                       configuration.GetValue<string>("FUNC_SP_CLIENT_SECRET");
+                    var subscriptionId = configuration.GetValue<string>("AzureAd:SubscriptionId") ??
+                                         configuration.GetValue<string>("SUBSCRIPTION_ID");
+                    var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
+                    var client = new ArmClient(creds, subscriptionId, options);
+                    return client;
+                });
+            });
         return services;
     }
 }

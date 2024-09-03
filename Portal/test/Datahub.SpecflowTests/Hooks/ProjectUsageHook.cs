@@ -46,13 +46,6 @@ namespace Datahub.SpecflowTests.Hooks
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
 
-            var credential = new ClientSecretCredential(datahubPortalConfiguration.AzureAd.TenantId,
-                datahubPortalConfiguration.AzureAd.ClientId, datahubPortalConfiguration.AzureAd.ClientSecret);
-            var armOptions = new ArmClientOptions
-            {
-                Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
-            };
-            var armClient = new ArmClient(credential, datahubPortalConfiguration.AzureAd.SubscriptionId, armOptions);
             var loggerFactory = new LoggerFactory();
 
             var workspaceCostsManagementService = Substitute.For<IWorkspaceCostManagementService>();
