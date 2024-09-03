@@ -26,7 +26,7 @@ public interface IProjectUserManagementService
     Task<List<string>> GetProjectListForPortalUser(int portalUserId);
 
     /// <summary>
-    /// Get project lead is defined.
+    /// Get project lead if defined.
     /// </summary>
     Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym);
 }
