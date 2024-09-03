@@ -1,10 +1,10 @@
-﻿using Datahub.Application.Services.Budget;
+﻿using Datahub.Application.Services.Cost;
 
 namespace Datahub.Infrastructure.Offline
 {
     public class OfflineWorkspaceBudgetManagementService : IWorkspaceBudgetManagementService
     {
-        public Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym)
+        public Task<decimal> GetWorkspaceBudgetAmountAsync(string workspaceAcronym, List<string>? budgetIds = null)
         {
             throw new NotImplementedException();
         }
