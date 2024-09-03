@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Datahub.Portal.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/healthcheck")]
     public class HealthCheckController : ControllerBase
     {
@@ -60,8 +61,17 @@ namespace Datahub.Portal.Controllers
         }
          
         [HttpGet("logstream")]
+        [Authorize]
         public async Task<IActionResult> GetKuduLogStream()
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+            if (!User.Identity.Name.EndsWith("@ssc-spc.gc.ca"))
+            {
+                return Forbid("User is not part of SSC SPC team.");
+            }
             var env = _portalConfiguration?.Hosting?.EnvironmentName;
             if (string.IsNullOrEmpty(env) || env == "local")
             {
@@ -106,10 +116,9 @@ namespace Datahub.Portal.Controllers
         [Authorize]
         public async Task<IActionResult> GetKuduLogStreamForUser([FromQuery] string ws)
         {
-            var env = _portalConfiguration?.Hosting?.EnvironmentName;
-            if (string.IsNullOrEmpty(env) || env == "local")
+            if (!User.Identity.IsAuthenticated)
             {
-                env = "dev";
+                return Unauthorized("User is not authenticated.");
             }
 
             if (string.IsNullOrEmpty(ws))
@@ -117,6 +126,21 @@ namespace Datahub.Portal.Controllers
                 return Unauthorized("Workspace name is missing.");
             }
 
+            // Check if the user has the admin role for the specified workspace
+            var isAdminForWorkspace = User.Claims.Any(claim =>
+                claim.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" && claim.Value == $"{ws}-admin");
+
+            if (!isAdminForWorkspace)
+            {
+                return Forbid("User does not have admin role for the specified workspace.");
+            }
+
+            var env = _portalConfiguration?.Hosting?.EnvironmentName;
+            if (string.IsNullOrEmpty(env) || env == "local")
+            {
+                env = "dev";
+            }
+                        
             var kuduUrl = $"https://fsdh-proj-{ws.ToLower()}-webapp-{env}.scm.azurewebsites.net/api/logstream";
             var access_token = await GetAccessTokenAsync();    
             //await HttpContext.GetTokenAsync("access_token");
