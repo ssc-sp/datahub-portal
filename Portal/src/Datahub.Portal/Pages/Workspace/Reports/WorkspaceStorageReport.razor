@@ -1,25 +1,27 @@
 ﻿@*ProjectStorageReport.razor*@
 
 @* @page "/w/{ProjectAcronym}/storage" *@
+@using Datahub.Core.Model.Projects
 @using ApexCharts
+@using Datahub.Portal.Pages.Workspace.Reports.Charts
 
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 
 @if (_averages != null)
 {
-    <MudText Typo="Typo.h3">@Localizer["Storage analysis"]</MudText>
-    <MudStack Style="height: 400px; width: 100%">
-        <ApexChart TItem="@DayAverage" Title="@Localizer["Storage daily average (over last 30 days)"]" Options="@_storageDailyChartOptions" Height="400">
-            <ApexPointSeries 
-                TItem="DayAverage"
-                Name="@Localizer["Average capacity (GB)"]"
-                Items="@_averages"
-                XValue="@(avg => avg.Date.ToString("yyyy-MM-dd"))"
-                YValue="@(avg => (decimal?)avg.Average/(1024*1024*1024))"
-                SeriesType="SeriesType.Line"
-                />
-        </ApexChart>
-    </MudStack>
+    <MudText Typo="Typo.h2">@Localizer["Storage analysis"]</MudText>
+    @if (_lastUpdate < DateTime.UtcNow.AddDays(-7))
+    {
+        <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
+            @Localizer["Storage data has not been updated in the last 7 days, please check back later for updated storage data."]
+        </MudAlert>
+    }
+
+    <CascadingValue Value="Locales">
+        <MudStack Style="height: 400px; width: 100%">
+            <DailyStorageLine Averages="_averages"/>
+        </MudStack>
+    </CascadingValue>
 }
 else
 {
@@ -29,29 +31,19 @@ else
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [CascadingParameter] public ChartLocale Locales { get; set; }
 
     private DateTime _lastUpdate { get; set; }
 
-    private List<DayAverage> _averages = default;
-    private ApexChartOptions<DayAverage> _storageDailyChartOptions { get; set; } = new();
+    private List<Project_Storage> _averages = default;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _averages = await GetLast30DaysAverages();
-        _storageDailyChartOptions.Yaxis = new List<YAxis>();
-        _storageDailyChartOptions.Yaxis.Add(new YAxis
-        {
-           Title = new AxisTitle
-           {
-               Text = Localizer["Average capacity (GB)"].ToString(),
-           },
-           DecimalsInFloat = 2,
-           Min = 0,
-        });
     }
 
-    private async Task<List<DayAverage>> GetLast30DaysAverages()
+    private async Task<List<Project_Storage>> GetLast30DaysAverages()
     {
         var minDate = DateTime.Now.AddDays(-30).Date;
 
@@ -60,22 +52,10 @@ else
             .Where(e => e.Project_Acronym_CD == WorkspaceAcronym)
             .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s).ToListAsync();
         var averages = project_averages.Where(e => e.Date >= minDate)
-            .Select(e => new DayAverage(e.Date, e.AverageCapacity)).ToList();
+            .ToList();
 
         _lastUpdate = project_averages.Max(e => e.Date);
         return averages;
     }
-
-    record DayAverage(DateTime Date, double Average);
-}
-    private DateTime ConvertToLocalTime(DateTime UTCTime)
-    {
-        TimeZone localZone = TimeZone.CurrentTimeZone;
-        return localZone.ToLocalTime(UTCTime);
-    }
-
-    static string FormatDay(int day) => $"{day.ToString("D2")}";
-
-    record DayAverage(int Day, double Average);
 
 }

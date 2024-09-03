@@ -12,6 +12,7 @@
 @using Align = MudBlazor.Align
 @using Datahub.Application.Services.Cost
 @using ApexCharts
+@using Datahub.Portal.Pages.Workspace.Reports.Charts
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IAzurePriceListService _azurePriceListService
@@ -29,231 +30,225 @@
 @if (!AreCreditsValid())
 {
     <MudStack>
-        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["Cost Analysis"]</MudText>
         <MudText Typo="Typo.body1">@Localizer["No cost data available, please check back later"]</MudText>
     </MudStack>
+    return;
 }
 
 <MudStack>
-    @if (_currentServiceCosts?.Count > 0)
-    {
-        <MudStack Row>
-            <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
-            <DatahubAuthView ProjectAcronym="@WorkspaceAcronym" AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin">
-                <MudSpacer/>
-                <DHButton StartIcon="@(_refreshing ? null : SidebarIcons.Restart)" Variant="Variant.Outlined" Color="Color.Dark" OnClick="HandleRefresh">
-                    @if (_refreshing)
+    <CascadingValue Value="@Locales">
+        @if (_currentPerService?.Count > 0)
+        {
+            <MudStack Row>
+                <MudText Typo="Typo.h2">@Localizer["Cost Analysis"]</MudText>
+                <DatahubAuthView ProjectAcronym="@WorkspaceAcronym" AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin">
+                    <MudSpacer/>
+                    <DHButton StartIcon="@(_refreshing ? "" : SidebarIcons.Restart)" Variant="Variant.Outlined" Color="Color.Dark" OnClick="HandleRefresh">
+                        @if (_refreshing)
+                        {
+                            <MudProgressCircular Indeterminate="true" Size="Size.Small"/>
+                        }
+                        else
+                        {
+                            @Localizer["Refresh"]
+                        }
+                    </DHButton>
+                </DatahubAuthView>
+            </MudStack>
+
+            @if (_lastUpdateValid)
+            {
+                <MudText Style="font-style: italic">
+                    @Localizer["Last updated {0} {1}", $"{ConvertToLocalTime(_projectCredits.LastUpdate!.Value):yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]
+                </MudText>
+            }
+
+            @if (!_validData)
+            {
+                <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
+                    @Localizer["Costing data has not been updated in the last 7 days, please check back later for updated costs."]
+                </MudAlert>
+            }
+
+            @if (_refreshing)
+            {
+                <MudGrid Justify="Justify.FlexStart" Spacing="10" Class="pt-2">
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.h6" Align="Align.Center">@Localizer["Refreshing your data. This may take some time..."]</MudText>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudStack>
+                            <MudSkeleton Height="30px" Width="100px" SkeletonType="SkeletonType.Text"/>
+                            <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="6">
+                        <MudStack>
+                            <MudSkeleton Height="30px" Width="80px" SkeletonType="SkeletonType.Text"/>
+                            <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
+                        </MudStack>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudStack>
+                            <MudSkeleton Height="30px" Width="200px" SkeletonType="SkeletonType.Text"/>
+                            <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+                return;
+            }
+
+            <MudStack Row>
+                <MudChip Label="true"
+                         Icon="@Icons.Material.Filled.AttachMoney"
+                         Color="@MonthChipColor"
+                         Variant="@Variant.Text"
+                         OnClick="@HandleShowMonth" T="string">
+                    @($"{CurrentCost:C} {Localizer["Total"]}")
+                </MudChip>
+                <MudChip Label="true"
+                         Icon="@Icons.Material.Filled.AttachMoney"
+                         Color="@YesterdayChipColor"
+                         Variant="@Variant.Text"
+                         OnClick="@HandleShowYesterday" T="string">
+                    @($"{YesterdayCost:C} {Localizer["Yesterday"]}")
+                </MudChip>
+            </MudStack>
+            <MudStack Row>
+                <MudStack Style="height: 100%; width: 100%">
+                    @if (_showingTotal)
                     {
-                        <MudProgressCircular Indeterminate="true" Size="Size.Small"/>
+                        <ServiceCostsDonut ServiceCosts="@_currentPerService" Title="@Localizer["Total costs"]"/>
                     }
                     else
                     {
-                        @Localizer["Refresh"]
+                        <ServiceCostsDonut ServiceCosts="@_yesterdayPerService" Title="@Localizer["Yesterday costs"]"/>
                     }
-                </DHButton>
-            </DatahubAuthView>
-        </MudStack>
-
-        @if (_lastUpdateValid)
-        {
-            <MudText Style="font-style: italic">
-                @Localizer["Last updated {0} {1}", $"{ConvertToLocalTime(_projectCredits.LastUpdate!.Value):yyyy-MM-dd HH:mm}", TimeZone.CurrentTimeZone.StandardName]
-            </MudText>
-        }
-
-        @if (!_validData)
-        {
-            <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
-                @Localizer["Costing data has not been updated in the last 7 days, please check back later for updated costs."]
-            </MudAlert>
-        }
-
-        @if (_refreshing)
-        {
-            <MudGrid Justify="Justify.FlexStart" Spacing="10" Class="pt-2">
-                <MudItem xs="12">
-                    <MudText Typo="Typo.h6" Align="Align.Center">@Localizer["Refreshing your data. This may take some time..."]</MudText>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudStack>
-                        <MudSkeleton Height="30px" Width="100px" SkeletonType="SkeletonType.Text"/>
-                        <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
-                    </MudStack>
-                </MudItem>
-                <MudItem xs="6">
-                    <MudStack>
-                        <MudSkeleton Height="30px" Width="80px" SkeletonType="SkeletonType.Text"/>
-                        <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
-                    </MudStack>
-                </MudItem>
-                <MudItem xs="12">
-                    <MudStack>
-                        <MudSkeleton Height="30px" Width="200px" SkeletonType="SkeletonType.Text"/>
-                        <MudSkeleton Height="310px" SkeletonType="SkeletonType.Rectangle"/>
-                    </MudStack>
-                </MudItem>
-            </MudGrid>
-            return;
-        }
-
-        <MudStack Row>
-            <MudChip Label="true"
-                     Icon="@Icons.Material.Filled.AttachMoney"
-                     Color="@MonthChipColor"
-                     Variant="@Variant.Text"
-                     OnClick="@HandleShowMonth" T="string">
-                @($"{CurrentCost:C} {Localizer["Total"]}")
-            </MudChip>
-            <MudChip Label="true"
-                     Icon="@Icons.Material.Filled.AttachMoney"
-                     Color="@YesterdayChipColor"
-                     Variant="@Variant.Text"
-                     OnClick="@HandleShowYesterday" T="string">
-                @($"{YesterdayCost:C} {Localizer["Yesterday"]}")
-            </MudChip>
-        </MudStack>
-        <MudStack Row>
-            <MudStack Style="height: 100%; width: 100%">
-                <ApexChart @ref="_serviceCostChart" TItem="@DailyServiceCost" Title="@Localizer["Cost per service"]" Options="@(_showingTotal ? _serviceTotalCostChartOptions : _serviceYesterdayCostChartOptions)">
-                    <ApexPointSeries
-                        TItem="DailyServiceCost"
-                        Name="@Localizer["Service cost"]"
-                        Items="@(_showingTotal ? _currentServiceCosts : _yesterdayServiceCosts)"
-                        XValue="@(c => c.Source)"
-                        YValue="@(c => decimal.Round((decimal)c.Amount, 2))"
-                        SeriesType="SeriesType.Donut"
-                        ShowDataLabels="true"/>
-                </ApexChart>
-            </MudStack>
-            @if (_projectCosts.Count > 0)
-            {
-                <MudStack Style="width: 100%; height: 100%">
-                    <ApexChart @ref="_dailyCostChart" TItem="Datahub_Project_Costs" Title="@Localizer["Daily cost (over last 30 days)"]" Options="@_dailyCostChartOptions">
-                        @foreach (var service in _projectCosts.Select(c => c.ServiceName).Distinct().ToList())
-                        {
-                            <ApexPointSeries
-                                TItem="Datahub_Project_Costs"
-                                Name="@service"
-                                Items="@(_projectCosts.Where(c => c.ServiceName == service && c.Date >= DateTime.UtcNow.Date.AddDays(-30)).OrderBy(c => c.Date).ToList())"
-                                XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
-                                YAggregate="@(e => e.Sum(c => (decimal)c.CadCost))"
-                                OrderBy="@(c => c.X)"
-                                SeriesType="SeriesType.Bar"/>
-                        }
-                    </ApexChart>
                 </MudStack>
-            }
-        </MudStack>
-    }
-    @if (_projectCosts.Count > 0)
-    {
-        <MudStack Row>
-            <MudStack Style="width: 100%; height: 400px">
-                <ApexChart @ref="@_accumulatedCostsChart" TItem="Datahub_Project_Costs" Title="@Localizer["Accumulated costs (this fiscal year)"]" Height="400" Options="_accumulatedCostsChartOptions">
-                    <ApexPointSeries
-                        TItem="Datahub_Project_Costs"
-                        Items="@(_projectCosts.Where(c => c.Date >= GetFiscalYearStart()).GroupBy(c => c.Date).Select(g => new Datahub_Project_Costs { Date = g.Key, CadCost = g.Sum(c => c.CadCost), ServiceName = "" }).ToList().OrderBy(c => c.Date))"
-                        Name="@Localizer["Accumulated costs"]"
-                        XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
-                        YAggregate="@(e => decimal.Round((decimal)_projectCosts.Where(c => c.Date <= e.Last().Date && c.Date >= GetFiscalYearStart()).Aggregate(0.0, (total, next) => total + next.CadCost), 2))"
-                        OrderBy="@(c => c.X)"
-                        SeriesType="SeriesType.Area"/>
-                </ApexChart>
+                @if (_projectCosts.Count > 0)
+                {
+                    <MudStack Style="width: 100%; height: 100%">
+                        <DailyCostsStackBar DailyCosts="@_last30DaysCosts" Title="@Localizer["Daily costs (last 30 days)"]"/>
+                    </MudStack>
+                }
             </MudStack>
-        </MudStack>
-    }
-    @if (_remainingBudget > 0 && _spendingEstimation != null)
-    {
-        <MudStack>
-            <MudText Typo="Typo.h3">@Localizer["Cost estimations"]</MudText>
+        }
+        @if (_projectCosts.Count > 0)
+        {
+            <MudStack Row>
+                <MudChip Label="true"
+                         Icon="@Icons.Material.Filled.AttachMoney"
+                         Color="@AccumulatedChipColor"
+                         Variant="@Variant.Text"
+                         OnClick="@HandleShowAccumulated" T="string">
+                    @(Localizer["Accumulated"])
+                </MudChip>
+                <MudChip Label="true"
+                         Icon="@Icons.Material.Filled.CalendarMonth"
+                         Color="@MonthlyChipColor"
+                         Variant="@Variant.Text"
+                         OnClick="@HandleShowMonthly" T="string">
+                    @(Localizer["Monthly"])
+                </MudChip>
+            </MudStack>
+            <MudStack Row Class="mb-6">
+                <MudStack Style="width: 100%; height: 400px">
+                    @if (_showingAccumulated)
+                    {
+                        <AccumulatedCostsArea Title="@Localizer["Accumulated costs"]" Costs="@_fiscalYearCosts"/>
+                    }
+                    else
+                    {
+                        <MonthlyCostsStackBar Title="@Localizer["Monthly costs"]" Costs="@_fiscalYearCosts"/>
+                    }
+                </MudStack>
+            </MudStack>
+            <WorkspaceCostsTable WorkspaceAcronym="@WorkspaceAcronym"/>
+        }
+        @if (_remainingBudget > 0 && _spendingEstimation != null)
+        {
             <MudStack>
-                <MudText>
-                    <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, _projectBudget))
-                </MudText>
+                <MudText Typo="Typo.h3">@Localizer["Cost estimations"]</MudText>
+                <MudStack>
+                    <MudText>
+                        <b>@Localizer["Project_Remaining_Credit_label"]</b> @(string.Format(Localizer["Project_Remaining_Credit_text"], _remainingBudget, _projectBudget))
+                    </MudText>
 
-                <MudText >
-                    <b>@Localizer["Storage Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Storage"], _remainingBudget, _storageEquivalentFormatted))
-                </MudText>
+                    <MudText >
+                        <b>@Localizer["Storage Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Storage"], _remainingBudget, _storageEquivalentFormatted))
+                    </MudText>
 
-                <MudStack Row>
-                    <MudStack>
-                        <MudText>
-                            <b>@Localizer["Compute Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Compute"], _remainingBudget))
-                        </MudText>
-                    </MudStack>
-                    <MudStack>
-                        <MudText>
-                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Small"], _spendingEstimation.ComputeSmall))
-                        </MudText>
-                        <MudText>
-                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Medium"], _spendingEstimation.ComputeMedium))
-                        </MudText>
-                        <MudText>
-                            @(string.Format(Localizer["Project_Remaining_Credit_Compute_Large"], _spendingEstimation.ComputeLarge))
-                        </MudText>
+                    <MudStack Row>
+                        <MudStack>
+                            <MudText>
+                                <b>@Localizer["Compute Equivalent:"]</b> @(string.Format(Localizer["Project_Remaining_Credit_Compute"], _remainingBudget))
+                            </MudText>
+                        </MudStack>
+                        <MudStack>
+                            <MudText>
+                                @(string.Format(Localizer["Project_Remaining_Credit_Compute_Small"], _spendingEstimation.ComputeSmall))
+                            </MudText>
+                            <MudText>
+                                @(string.Format(Localizer["Project_Remaining_Credit_Compute_Medium"], _spendingEstimation.ComputeMedium))
+                            </MudText>
+                            <MudText>
+                                @(string.Format(Localizer["Project_Remaining_Credit_Compute_Large"], _spendingEstimation.ComputeLarge))
+                            </MudText>
+                        </MudStack>
                     </MudStack>
                 </MudStack>
             </MudStack>
-        </MudStack>
-    }
+        }
+    </CascadingValue>
 </MudStack>
 
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
 
+    // Project data
     public decimal _projectBudget { get; set; }
     private Project_Credits _projectCredits { get; set; }
     private List<Datahub_Project_Costs> _projectCosts { get; set; } = new();
 
-    private List<DailyServiceCost> _currentDailyCosts { get; set; } = new();
-    private List<DailyServiceCost> _currentServiceCosts { get; set; } = new();
-    private List<DailyServiceCost> _yesterdayServiceCosts { get; set; } = new();
-    private List<AzureDailyCost> _currentDailyCostsOldModel { get; set; } = new();
-    private List<AzureServiceCost> _currentServiceCostsOldModel { get; set; } = new();
-    private List<AzureServiceCost> _yesterdayServiceCostsOldModel { get; set; } = new();
+    // Cost data
+    private List<DailyServiceCost> _allCosts { get; set; } = new();
+    private List<DailyServiceCost> _fiscalYearCosts { get; set; } = new();
+    private List<DailyServiceCost> _last30DaysCosts { get; set; } = new();
+    private List<DailyServiceCost> _currentPerDay { get; set; } = new();
+    private List<DailyServiceCost> _currentPerService { get; set; } = new();
+    private List<DailyServiceCost> _yesterdayPerService { get; set; } = new();
 
+    // UI state
+    private bool _showingTotal = true;
+    private bool _showingAccumulated = true;
+    private bool _lastUpdateValid => _projectCredits is not null && _projectCredits.LastUpdate is not null;
+    private bool _validData => _lastUpdateValid && _projectCredits.LastUpdate >= DateTime.UtcNow.AddDays(-7);
+    private bool _loading = true;
+    private bool _refreshing = false;
+
+    // Chip labels
+    private string SelectedTotalLabel => _showingTotal ? Localizer["Total"] : Localizer["Yesterday"];
+    private decimal SelectedTotalCost => _showingTotal ? CurrentCost : YesterdayCost;
     private decimal CurrentCost => Convert.ToDecimal(_projectCredits.Current);
     private decimal YesterdayCost => Convert.ToDecimal(_projectCredits.YesterdayCredits);
 
-    private bool _showingTotal = true;
-    private bool _lastUpdateValid => _projectCredits is not null && _projectCredits.LastUpdate is not null;
-    private bool _validData => _lastUpdateValid && _projectCredits.LastUpdate >= DateTime.UtcNow.AddDays(-7);
-    private string SelectedTotalLabel => _showingTotal ? Localizer["Total"] : Localizer["Yesterday"];
-    private decimal SelectedTotalCost => _showingTotal ? CurrentCost : YesterdayCost;
-    private MudBlazor.Color MonthChipColor => _showingTotal ? MudBlazor.Color.Primary : MudBlazor.Color.Default;
-    private MudBlazor.Color YesterdayChipColor => _showingTotal ? MudBlazor.Color.Default : MudBlazor.Color.Primary;
-    private ApexChartOptions<Datahub_Project_Costs> _dailyCostChartOptions { get; set; } = new();
-    private ApexChartOptions<DailyServiceCost> _serviceTotalCostChartOptions { get; set; } = new();
-    private ApexChartOptions<DailyServiceCost> _serviceYesterdayCostChartOptions { get; set; } = new();
-    private ApexChartOptions<Datahub_Project_Costs> _accumulatedCostsChartOptions { get; set; } = new();
-    private ApexChart<DailyServiceCost> _serviceCostChart { get; set; } = new();
-    private ApexChart<Datahub_Project_Costs> _dailyCostChart { get; set; } = new();
-    private ApexChart<Datahub_Project_Costs> _accumulatedCostsChart { get; set; } = new();
+    // Chip colors
+    private Color MonthChipColor => _showingTotal ? Color.Primary : Color.Default;
+    private Color YesterdayChipColor => _showingTotal ? Color.Default : Color.Primary;
+    private Color AccumulatedChipColor => _showingAccumulated ? Color.Primary : Color.Default;
+    private Color MonthlyChipColor => _showingAccumulated ? Color.Default : Color.Primary;
 
+    // Misc
     private decimal _remainingBudget;
     private SpendingEstimation _spendingEstimation;
     private string _storageEquivalentFormatted;
 
-    private bool _loading = true;
-    private bool _refreshing = false;
+    
+    
 
-    private List<ChartSeries> DailySeries => new()
-    {
-        new() { Name = Localizer["$CAD"], Data = _currentDailyCosts.Select(dc => (double)dc.Amount).ToArray() }
-    };
-
-    private string[] XAxisDailyLabels => _currentDailyCosts.Select(dc => FormatDay(dc.Date)).ToArray();
-    static string FormatDay(DateTime date) => $"{date.Day.ToString("D2")}";
-
-    private double[] ServiceCosts => _showingTotal ? GetMonthServiceCosts() : GetYesterdayServiceCosts();
-    private string[] ServiceLabels => _showingTotal ? GetMonthServiceLabels() : GetYesterdayServiceLabels();
-
-    private double[] GetMonthServiceCosts() => _currentServiceCosts.Select(sc => (double)sc.Amount).ToArray();
-    private string[] GetMonthServiceLabels() => _currentServiceCosts.Select(sc => $"{sc.Source} ({sc.Amount:C})").ToArray();
-
-    private double[] GetYesterdayServiceCosts() => _yesterdayServiceCosts.Select(sc => (double)sc.Amount).ToArray();
-    private string[] GetYesterdayServiceLabels() => _yesterdayServiceCosts.Select(sc => $"{sc.Source} ({sc.Amount:C})").ToArray();
 
     protected override async Task OnInitializedAsync()
     {
@@ -277,11 +272,7 @@
         }
 
         if (AreCreditsValid()) HydrateCosts();
-        DefineChartOptions();
-        await _dailyCostChart.UpdateSeriesAsync();
-        await _dailyCostChart.UpdateOptionsAsync(true, true, true);
-        await _accumulatedCostsChart.UpdateSeriesAsync();
-        await _accumulatedCostsChart.UpdateOptionsAsync(true, true, true);
+        StateHasChanged();
         _loading = false;
     }
 
@@ -302,96 +293,6 @@
         _projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).OrderBy(c => c.Date).ToList();
         _projectCredits = project.Credits;
         _projectBudget = project.Project_Budget ?? 0;
-    }
-
-    private void DefineChartOptions()
-    {
-        if (_projectCosts.Count > 0)
-        {
-            _dailyCostChartOptions.Yaxis = new List<YAxis>();
-            var last30Days = _projectCosts.Where(c => c.Date >= DateTime.UtcNow.Date.AddDays(-30)).ToList();
-            if (last30Days.Count > 0)
-            {
-                _dailyCostChartOptions.Yaxis.Add(new YAxis
-                {
-                    Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
-                    DecimalsInFloat = 2,
-                    Min = 0
-                });
-            }
-
-            _dailyCostChartOptions.Xaxis = new XAxis();
-            _dailyCostChartOptions.Chart = new Chart()
-            {
-                Stacked = true
-            };
-            _dailyCostChartOptions.Xaxis.Type = XAxisType.Datetime;
-            _dailyCostChartOptions.PlotOptions = new PlotOptions
-            {
-                Bar = new PlotOptionsBar
-                {
-                    ColumnWidth = "15",
-                },
-            };
-
-            _accumulatedCostsChartOptions.Yaxis = new List<YAxis>();
-            _accumulatedCostsChartOptions.Yaxis.Add(new YAxis
-            {
-                Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
-                DecimalsInFloat = 2
-            });
-            _accumulatedCostsChartOptions.Xaxis = new XAxis();
-            _accumulatedCostsChartOptions.Xaxis.Type = XAxisType.Datetime;
-        }
-
-        _serviceTotalCostChartOptions.PlotOptions = new PlotOptions
-        {
-            Pie = new PlotOptionsPie
-            {
-                Donut = new PlotOptionsDonut
-                {
-                    Labels = new DonutLabels
-                    {
-                        Total = new DonutLabelTotal
-                        {
-                            FontSize = "24px",
-                            Label = Localizer["Total"]
-                        }
-                    }
-                }
-            }
-        };
-        _serviceTotalCostChartOptions.Yaxis = new List<YAxis>();
-        _serviceTotalCostChartOptions.Yaxis.Add(new YAxis
-        {
-            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
-            DecimalsInFloat = 2,
-            Max = _currentServiceCosts.Max(c => c.Amount)
-        });
-        _serviceYesterdayCostChartOptions.PlotOptions = new PlotOptions
-        {
-            Pie = new PlotOptionsPie
-            {
-                Donut = new PlotOptionsDonut
-                {
-                    Labels = new DonutLabels
-                    {
-                        Total = new DonutLabelTotal
-                        {
-                            FontSize = "24px",
-                            Label = Localizer["Yesterday"]
-                        }
-                    }
-                }
-            }
-        };
-        _serviceYesterdayCostChartOptions.Yaxis = new List<YAxis>();
-        _serviceYesterdayCostChartOptions.Yaxis.Add(new YAxis
-        {
-            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
-            DecimalsInFloat = 2,
-            Max = _yesterdayServiceCosts.Max(c => c.Amount)
-        });
     }
 
     private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)
@@ -438,68 +339,73 @@
         return $"{rounded} TB";
     }
 
-    private List<double> GetCostsBeforeDate(DateTime date)
-    {
-        return _projectCosts.Where(c => c.Date <= date).Select(c => c.CadCost).ToList();
-    }
-
-    private DateTime GetFiscalYearStart()
-    {
-        var today = DateTime.UtcNow;
-        var fiscalYearStart = new DateTime(today.Year, 4, 1);
-        if (today.Month < 4) fiscalYearStart = fiscalYearStart.AddYears(-1);
-        return fiscalYearStart;
-    }
-
     private void HydrateCosts()
     {
-        try
-        {
-            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerDay);
-        }
-        catch (Exception e)
-        {
-            var dailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerService);
-            _currentDailyCosts = ConvertCosts(dailyCosts);
-        }
+        ParseProjectCredits();
+        ParseProjectCosts();
+    }
 
-        try
-        {
-            _currentServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
-        }
-        catch (Exception e)
-        {
-            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
-            _currentServiceCosts = ConvertCosts(serviceCosts);
-        }
+    private void ParseProjectCredits()
+    {
+        _currentPerDay = DeserializeCredits<AzureDailyCost>(_projectCredits.CurrentPerDay);
+        _currentPerService = DeserializeCredits<AzureServiceCost>(_projectCredits.CurrentPerService);
+        _yesterdayPerService = DeserializeCredits<AzureServiceCost>(_projectCredits.YesterdayPerService);
+    }
 
+    private void ParseProjectCosts()
+    {
+        _allCosts = ConvertCosts(_projectCosts);
+        _fiscalYearCosts = _allCosts.Where(c => c.Date >= CostManagementUtilities.CurrentFiscalYear.StartDate).ToList();
+        _last30DaysCosts = _allCosts.Where(c => c.Date >= DateTime.UtcNow.AddDays(-30)).ToList();
+    }
+
+    private List<DailyServiceCost> DeserializeCredits<T>(string json)
+    {
         try
         {
-            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.YesterdayPerService);
+            return JsonSerializer.Deserialize<List<DailyServiceCost>>(json);
         }
-        catch (Exception e)
+        catch
         {
-            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
-            _yesterdayServiceCosts = ConvertCosts(serviceCosts);
+            var costs = JsonSerializer.Deserialize<List<T>>(json);
+            return ConvertCosts(costs);
         }
     }
 
-    private List<DailyServiceCost> ConvertCosts(List<AzureServiceCost> costs)
+    private List<DailyServiceCost> ConvertCosts<T>(List<T> costs)
     {
-        return costs.Select(c => new DailyServiceCost
+        if (typeof(T) == typeof(AzureDailyCost))
         {
-            Amount = (decimal)c.Cost,
-            Source = c.Name
-        }).ToList();
-    }
+            var typedCosts = costs as List<AzureDailyCost>;
+            return typedCosts!.Select(c => new DailyServiceCost
+            {
+                Amount = (decimal)c.Cost,
+                Date = c.Date
+            }).ToList();
+        }
 
-    private List<DailyServiceCost> ConvertCosts(List<AzureDailyCost> costs)
-    {
-        return costs.Select(c => new DailyServiceCost
+        if (typeof(T) == typeof(AzureServiceCost))
         {
-            Amount = (decimal)c.Cost,
-            Date = c.Date
-        }).ToList();
+            var typedCosts = costs as List<AzureServiceCost>;
+            return typedCosts!.Select(c => new DailyServiceCost
+            {
+                Amount = (decimal)c.Cost,
+                Source = c.Name
+            }).ToList();
+        }
+
+        if (typeof(T) == typeof(Datahub_Project_Costs))
+        {
+            var typedCosts = costs as List<Datahub_Project_Costs>;
+            return typedCosts!.Select(c => new DailyServiceCost
+            {
+                Amount = (decimal)c.CadCost,
+                Date = c.Date,
+                Source = c.ServiceName
+            }).ToList();
+        }
+
+        throw new Exception("Invalid type");
     }
 
     private bool AreCreditsValid()
@@ -520,16 +426,24 @@
     private async Task HandleShowMonth()
     {
         _showingTotal = true;
-        await _serviceCostChart.UpdateSeriesAsync(true);
-        await _serviceCostChart.UpdateOptionsAsync(true, true, true);
         StateHasChanged();
     }
 
     private async Task HandleShowYesterday()
     {
         _showingTotal = false;
-        await _serviceCostChart.UpdateSeriesAsync(true);
-        await _serviceCostChart.UpdateOptionsAsync(true, true, true);
+        StateHasChanged();
+    }
+
+    private async Task HandleShowAccumulated()
+    {
+        _showingAccumulated = true;
+        StateHasChanged();
+    }
+
+    private async Task HandleShowMonthly()
+    {
+        _showingAccumulated = false;
         StateHasChanged();
     }
 
@@ -560,3 +474,4 @@
     record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
 
 }
+
