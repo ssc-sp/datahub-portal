@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Datahub.Portal.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/healthcheck")]
     public class HealthCheckController : ControllerBase
     {
