@@ -9,7 +9,7 @@
 
 @if (_averages != null)
 {
-    <MudText Typo="Typo.h3">@Localizer["Storage analysis"]</MudText>
+    <MudText Typo="Typo.h2">@Localizer["Storage analysis"]</MudText>
     @if (_lastUpdate < DateTime.UtcNow.AddDays(-7))
     {
         <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">

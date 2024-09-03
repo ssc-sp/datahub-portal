@@ -30,7 +30,7 @@
 @if (!AreCreditsValid())
 {
     <MudStack>
-        <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["Cost Analysis"]</MudText>
         <MudText Typo="Typo.body1">@Localizer["No cost data available, please check back later"]</MudText>
     </MudStack>
     return;
@@ -41,7 +41,7 @@
         @if (_currentPerService?.Count > 0)
         {
             <MudStack Row>
-                <MudText Typo="Typo.h3">@Localizer["Cost Analysis"]</MudText>
+                <MudText Typo="Typo.h2">@Localizer["Cost Analysis"]</MudText>
                 <DatahubAuthView ProjectAcronym="@WorkspaceAcronym" AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin">
                     <MudSpacer/>
                     <DHButton StartIcon="@(_refreshing ? "" : SidebarIcons.Restart)" Variant="Variant.Outlined" Color="Color.Dark" OnClick="HandleRefresh">

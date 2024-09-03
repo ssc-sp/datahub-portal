@@ -1,7 +1,7 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IJSRuntime _jsRuntime
 
-<MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true" St>
+<MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true">
     <ToolBarContent>
         <MudText Typo="Typo.h2">
             @Localizer["Your workspace's daily costs"]
@@ -13,19 +13,13 @@
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<CostDisplay, string>(x => x.Date))">
-                <strong>@Localizer["Date"]</strong>
-            </MudTableSortLabel>
+            <strong>@Localizer["Date"]</strong>
         </MudTh>
         <MudTd>
-            <MudTableSortLabel SortBy="@(new Func<CostDisplay, string>(x => x.Source))">
-                <strong>@Localizer["Source"]</strong>
-            </MudTableSortLabel>
+            <strong>@Localizer["Source"]</strong>
         </MudTd>
         <MudTd>
-            <MudTableSortLabel SortBy="@(new Func<CostDisplay, object>(x => x.Cost))">
-                <strong>@Localizer["Cost"]</strong>
-            </MudTableSortLabel>
+            <strong>@Localizer["Cost"]</strong>
         </MudTd>
     </HeaderContent>
     <RowTemplate>
@@ -77,12 +71,12 @@
 
     private async Task HandleDownload()
     {
-       var fileStream = GenerateCsvStream();
-       var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
-       using var streamReference = new DotNetStreamReference(stream: fileStream);
-       await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+        var fileStream = GenerateCsvStream();
+        var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+        using var streamReference = new DotNetStreamReference(stream: fileStream);
+        await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
     }
-    
+
     private Stream GenerateCsvStream()
     {
         var stream = new MemoryStream();
@@ -92,11 +86,12 @@
         {
             writer.WriteLine($"{cost.Date},{cost.Source},{cost.Cost}");
         }
+
         writer.Flush();
         stream.Position = 0;
         return stream;
     }
-    
+
 
     record CostDisplay
     {

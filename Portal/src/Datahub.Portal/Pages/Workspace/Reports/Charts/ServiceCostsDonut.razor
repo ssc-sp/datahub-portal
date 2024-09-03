@@ -1,16 +1,29 @@
 ﻿@using Datahub.Application.Services.Cost
 @using ApexCharts
 
-<ApexChart @ref="_serviceCostsChart" TItem="DailyServiceCost" Title="@Title" Options="@_serviceCostsChartOptions">
-    <ApexPointSeries
-        TItem="DailyServiceCost"
-        Name="@Localizer["Service cost"]"
-        Items="@ServiceCosts"
-        XValue="@(c => c.Source)"
-        YValue="@(c => decimal.Round(c.Amount, 2))"
-        SeriesType="SeriesType.Donut"
-        ShowDataLabels="true"/>
-</ApexChart>
+<span>
+    <h2 class="sr-only">
+        @Localizer["A donut chart showing the total costs for the workspace grouped by service for the current fiscal year. An accessible description is provided below the chart."]
+    </h2>
+    <ApexChart @ref="_serviceCostsChart" TItem="DailyServiceCost" Title="@Title" Options="@_serviceCostsChartOptions">
+        <ApexPointSeries
+            TItem="DailyServiceCost"
+            Name="@Localizer["Service cost"]"
+            Items="@ServiceCosts"
+            XValue="@(c => c.Source)"
+            YValue="@(c => decimal.Round(c.Amount, 2))"
+            SeriesType="SeriesType.Donut"
+            ShowDataLabels="true"/>
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Service costs for the workspace grouped by service for the current fiscal year. A detailed table is provided below the charts."]
+        @foreach (var serviceCost in ServiceCosts)
+        {
+            @Localizer["Service cost for {0} is ${1}", serviceCost.Source, decimal.Round(serviceCost.Amount, 2)]
+        }
+        @Localizer["Total costs is ${0}", decimal.Round(ServiceCosts.TotalAmount(), 2)]
+    </p>
+</span>
 
 @code {
     [Parameter] public List<DailyServiceCost> ServiceCosts { get; set; }
@@ -23,7 +36,7 @@
     {
         DefineOptions();
     }
-    
+
     public async Task Refresh()
     {
         await _serviceCostsChart.UpdateSeriesAsync();
@@ -32,6 +45,18 @@
 
     private void DefineOptions()
     {
+        _serviceCostsChartOptions.DataLabels = new()
+        {
+            Style = new()
+            {
+                Colors = ["#000"],
+                FontSize = "16px"
+            },
+            DropShadow = new ()
+            {
+                Enabled = false
+            }
+        };
         _serviceCostsChartOptions.PlotOptions = new PlotOptions
         {
             Pie = new PlotOptionsPie
