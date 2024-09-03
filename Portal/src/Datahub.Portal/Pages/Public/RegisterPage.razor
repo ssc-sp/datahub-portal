@@ -6,6 +6,7 @@
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
 @inject NavigationManager _navigationManager
 
 @page "/register"
@@ -137,6 +138,12 @@
             if (_wasDeleted)
             {
                 await _userInformationService.HandleDeletedUserRegistration(_email, userId);
+                var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
+                foreach(var projectAcronym in projectList)
+                {
+                    var projectLead = _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
+                    // send email
+                }
             }
             _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
             _navigationManager.NavigateTo("/login");
