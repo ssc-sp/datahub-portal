@@ -141,47 +141,63 @@ public class ProjectUsageScheduler(
 
     internal async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage)
     {
-        var costUpdate = NeedsCostUpdate(usageMessage.ProjectAcronym);
-        var storageUpdate = NeedsStorageUpdate(usageMessage.ProjectAcronym);
-
-        if (costUpdate)
+        try
         {
-            // send/post the message
-            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName,
-                usageMessage);
-        }
+            var costUpdate = NeedsCostUpdate(usageMessage.ProjectAcronym);
+            var storageUpdate = NeedsStorageUpdate(usageMessage.ProjectAcronym);
 
-        if (storageUpdate)
+            if (costUpdate)
+            {
+                // send/post the message
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageUpdateQueueName,
+                    usageMessage);
+            }
+
+            if (storageUpdate)
+            {
+                var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage);
+
+                // send/post the message,
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName,
+                    capacityMessage);
+            }
+
+            return (costUpdate, storageUpdate);
+        }
+        catch (Exception e)
         {
-            var capacityMessage = ConvertToCapacityUpdateMessage(usageMessage);
-
-            // send/post the message,
-            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectCapacityUpdateQueueName,
-                capacityMessage);
+            _logger.LogError(e, "Error while sending messages");
+            throw new MessageSchedulingException($"Error while sending messages: {e.Message}");
         }
-
-        return (costUpdate, storageUpdate);
     }
 
     internal async Task<List<Datahub_Project>> GetProjects(List<string> acronyms, int limit)
     {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var projects = ctx.Projects
-            .Include(p => p.DatahubAzureSubscription)
-            .Include(p => p.Credits).ToList();
-
-        if (acronyms.Any())
+        try
         {
-            // If any acronyms were given, we explicitly grab those projects
-            projects = projects.Where(p => acronyms.Contains(p.Project_Acronym_CD)).Take(limit).ToList();
-        }
-        else
-        {
-            // Otherwise, we grab the last 100 projects that were updated the longest ago
-            projects = projects.OrderBy(LastUpdate).Where(NeedsUpdate).Take(limit).ToList();
-        }
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var projects = ctx.Projects
+                .Include(p => p.DatahubAzureSubscription)
+                .Include(p => p.Credits).ToList();
 
-        return projects;
+            if (acronyms.Any())
+            {
+                // If any acronyms were given, we explicitly grab those projects
+                projects = projects.Where(p => acronyms.Contains(p.Project_Acronym_CD)).Take(limit).ToList();
+            }
+            else
+            {
+                // Otherwise, we grab the last 100 projects that were updated the longest ago
+                projects = projects.OrderBy(LastUpdate).Where(NeedsUpdate).Take(limit).ToList();
+            }
+
+            return projects;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while getting projects");
+            throw new ProjectFilteringException($"Error while getting projects: {e.Message}");
+        }
     }
 
     internal async Task<(string, string)> PostToBlob(List<DailyServiceCost> costs, List<DailyServiceCost> totals)
@@ -204,26 +220,34 @@ public class ProjectUsageScheduler(
 
     internal async Task<(List<DailyServiceCost>, List<DailyServiceCost>)> AggregateCosts(List<string> subIds)
     {
-        var allCosts = new List<DailyServiceCost>();
-        var allTotals = new List<DailyServiceCost>();
-        var startFiscalYear = CostManagementUtilities.CurrentFiscalYear.StartDate;
-
-        foreach (var subId in subIds)
+        try
         {
-            var rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(subId);
+            var allCosts = new List<DailyServiceCost>();
+            var allTotals = new List<DailyServiceCost>();
+            var startFiscalYear = CostManagementUtilities.CurrentFiscalYear.StartDate;
 
-            var costs = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId,
-                DateTime.UtcNow.Date.AddDays(-7),
-                DateTime.UtcNow.Date, QueryGranularity.Daily, rgNames);
+            foreach (var subId in subIds)
+            {
+                var rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(subId);
 
-            var totals = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId, startFiscalYear,
-                DateTime.UtcNow.Date, QueryGranularity.Total, rgNames);
+                var costs = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId,
+                    DateTime.UtcNow.Date.AddDays(-7),
+                    DateTime.UtcNow.Date, QueryGranularity.Daily, rgNames);
 
-            allCosts.AddRange(costs);
-            allTotals.AddRange(totals);
+                var totals = await workspaceCostMgmtService.QuerySubscriptionCostsAsync(subId, startFiscalYear,
+                    DateTime.UtcNow.Date, QueryGranularity.Total, rgNames);
+
+                allCosts.AddRange(costs);
+                allTotals.AddRange(totals);
+            }
+
+            return (allCosts, allTotals);
         }
-
-        return (allCosts, allTotals);
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while aggregating costs");
+            throw new CostQueryException($"Error while aggregating costs: {e.Message}");
+        }
     }
 
     internal async Task<string> UploadToBlob(string key, string date, Guid guid, List<DailyServiceCost> list)
@@ -236,6 +260,7 @@ public class ProjectUsageScheduler(
             var blobClient = containerClient.GetBlobClient(fileName);
             await blobClient.UploadAsync(BinaryData.FromObjectAsJson(list));
         }
+
         return fileName;
     }
 

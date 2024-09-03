@@ -19,6 +19,7 @@
 @inject NavigationManager _navigationManager
 @inject IWorkspaceCostManagementService _costMgmt
 @inject ISnackbar _snackbar
+@inject ILogger<WorkspaceCostingReport> _logger
 
 @if (_loading)
 {
@@ -260,7 +261,7 @@
             return;
         }
 
-        await FetchLocalData();
+        await FetchDatabaseData();
 
 
         _remainingBudget = _projectBudget - CurrentCost;
@@ -285,7 +286,7 @@
         return project;
     }
 
-    private async Task FetchLocalData()
+    private async Task FetchDatabaseData()
     {
         using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var project = await GetProject();
@@ -452,15 +453,17 @@
         var beforeUpdate = _projectCredits.LastUpdate;
 
         var success = await _costMgmt.RefreshWorkspaceCostsAsync(WorkspaceAcronym);
-        await FetchLocalData();
+        await FetchDatabaseData();
         var afterUpdate = _projectCredits.LastUpdate;
 
         if (success && beforeUpdate != afterUpdate)
         {
+            _logger.LogInformation("Successfully refreshed cost data for workspace {WorkspaceAcronym}", WorkspaceAcronym);
             _snackbar.Add(Localizer["Successfully refreshed cost data!"], Severity.Success);
         }
         else
         {
+            _logger.LogError("Error when refreshing cost data for workspace {WorkspaceAcronym}", WorkspaceAcronym);
             _snackbar.Add(Localizer["Error when refreshing cost data, please try again later."], Severity.Error);
         }
 

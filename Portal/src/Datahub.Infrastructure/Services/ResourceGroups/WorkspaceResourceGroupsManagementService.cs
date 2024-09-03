@@ -147,12 +147,12 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
                 }
             }
 
-            var projRgName = rgNames.FirstOrDefault(rg => rg.Contains("_" + PROJ_RG_KEY + "_"));
+            var projRgName = rgNames.FirstOrDefault(rg => rg.Contains($"_{PROJ_RG_KEY}_{workspaceAcronym}_"));
             if (projRgName != null)
             {
                 try
                 {
-                    var dbkRgName = project.GetDbkResourceGroupName(rgNames[0]);
+                    var dbkRgName = project.GetDbkResourceGroupName(projRgName);
                     rgNames.Add(dbkRgName);
                 }
                 catch
