@@ -32,14 +32,15 @@ public class TerraformOutputHandler(
 
     [Function("TerraformOutputHandler")]
     public async Task RunAsync(
-        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName, Connection = "DatahubServiceBus:ConnectionString")]
+        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage message)
     {
         _logger.LogInformation($"C# Queue trigger function started");
 
         // test for ping
         // if (await pongService.Pong(message.Body.ToString()))
-            // return;
+        // return;
 
         var output = await message.DeserializeAndUnwrapMessageAsync<Dictionary<string, TerraformOutputVariable>>();
 
@@ -132,6 +133,7 @@ public class TerraformOutputHandler(
             {
                 _logger.LogInformation("Semaphore is locked, waiting for release");
             }
+
             await semaphore.WaitAsync();
             using var transactionScope =
                 new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
@@ -325,6 +327,9 @@ public class TerraformOutputHandler(
         }
 
         var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        var resourceGroupName =
+            GetStatusMapping(outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value);
+
         if (project.Project_Phase != outputPhase)
         {
             project.Project_Phase = outputPhase;
@@ -344,10 +349,16 @@ public class TerraformOutputHandler(
             _logger.LogInformation("Workspace version not found in output variables");
         }
 
+        var jsonContent = new JsonObject
+        {
+            ["resource_group_name"] = resourceGroupName
+        };
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
 
         projectResource.CreatedAt = DateTime.UtcNow;
+        projectResource.JsonContent = jsonContent.ToString();
 
         await projectDbContext.SaveChangesAsync();
     }

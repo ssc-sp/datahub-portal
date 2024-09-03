@@ -1,5 +1,6 @@
 @using Datahub.Shared.Entities
 @using System.Text.Json
+@using Datahub.Application.Services.Cost
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -236,13 +237,13 @@
 
     private static decimal GetLastXDaysOfCosts(Project_Credits projectCredits, int days)
     {
-        if (projectCredits == null)
+        if (projectCredits == null || projectCredits.CurrentPerDay == null)
         {
             return 0;
         }
         
-        var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DatahubProjectCurrentPerDay>)) as List<DatahubProjectCurrentPerDay>;
-        var cost = currentPerDay?.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Cost) ?? 0;
+        var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DailyServiceCost>)) as List<DailyServiceCost>;
+        var cost = currentPerDay?.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Amount) ?? 0;
         
         return cost;
     }

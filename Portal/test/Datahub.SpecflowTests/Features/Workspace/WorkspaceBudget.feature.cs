@@ -10,7 +10,7 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
-namespace Datahub.SpecflowTests.Features
+namespace Datahub.SpecflowTests.Features.Workspace
 {
     using Reqnroll;
     using System;
@@ -19,14 +19,14 @@ namespace Datahub.SpecflowTests.Features
     
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
     [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [Xunit.TraitAttribute("Category", "WorkspaceManagement")]
+    [Xunit.TraitAttribute("Category", "WorkspaceBudget")]
     public partial class WorkspaceBudgetFeature : object, Xunit.IClassFixture<WorkspaceBudgetFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
         private static global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = new string[] {
-                "WorkspaceManagement"};
+                "WorkspaceBudget"};
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -41,7 +41,7 @@ namespace Datahub.SpecflowTests.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "WorkspaceBudget", "\tTests for the workspace budget management service", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features/Workspace", "WorkspaceBudget", "\tTests for the workspace budget management service", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -107,9 +107,7 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 6
- await testRunner.GivenAsync("a workspace with a budget identifier of \"/subscriptions/bc4bcb08-d617-49f4-b6af-6" +
-                        "9d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/b" +
-                        "udgets/fsdh-test-budget\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+ await testRunner.GivenAsync("a workspace with a budget", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 7
  await testRunner.AndAsync("the budget amount is $1000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
@@ -124,14 +122,14 @@ this.ScenarioInitialize(scenarioInfo);
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Setting a budget amount for a workspace should update the budget amount")]
+        [Xunit.SkippableFactAttribute(DisplayName="Querying budget amount for a non-existent workspace should return an error")]
         [Xunit.TraitAttribute("FeatureTitle", "WorkspaceBudget")]
-        [Xunit.TraitAttribute("Description", "Setting a budget amount for a workspace should update the budget amount")]
-        public async System.Threading.Tasks.Task SettingABudgetAmountForAWorkspaceShouldUpdateTheBudgetAmount()
+        [Xunit.TraitAttribute("Description", "Querying budget amount for a non-existent workspace should return an error")]
+        public async System.Threading.Tasks.Task QueryingBudgetAmountForANon_ExistentWorkspaceShouldReturnAnError()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Setting a budget amount for a workspace should update the budget amount", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Querying budget amount for a non-existent workspace should return an error", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 11
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -143,18 +141,78 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 12
- await testRunner.GivenAsync("a workspace with a budget identifier of \"/subscriptions/bc4bcb08-d617-49f4-b6af-6" +
-                        "9d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/b" +
-                        "udgets/fsdh-test-budget\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+ await testRunner.GivenAsync("a non-existent workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 13
- await testRunner.AndAsync("the budget amount is $1000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+ await testRunner.WhenAsync("the budget amount is queried", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 14
+ await testRunner.ThenAsync("the result should be an error", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Setting a budget amount for a workspace should update the budget amount")]
+        [Xunit.TraitAttribute("FeatureTitle", "WorkspaceBudget")]
+        [Xunit.TraitAttribute("Description", "Setting a budget amount for a workspace should update the budget amount")]
+        public async System.Threading.Tasks.Task SettingABudgetAmountForAWorkspaceShouldUpdateTheBudgetAmount()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Setting a budget amount for a workspace should update the budget amount", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 16
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 17
+ await testRunner.GivenAsync("a workspace with a budget", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 18
+ await testRunner.AndAsync("the budget amount is $1000", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 19
  await testRunner.WhenAsync("the budget amount is set to $500 for the workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 15
+#line 20
  await testRunner.ThenAsync("the result should be the expected amount", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Setting a budget amount for a non-existent workspace should return an error")]
+        [Xunit.TraitAttribute("FeatureTitle", "WorkspaceBudget")]
+        [Xunit.TraitAttribute("Description", "Setting a budget amount for a non-existent workspace should return an error")]
+        public async System.Threading.Tasks.Task SettingABudgetAmountForANon_ExistentWorkspaceShouldReturnAnError()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Setting a budget amount for a non-existent workspace should return an error", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 22
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 23
+ await testRunner.GivenAsync("a non-existent workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 24
+ await testRunner.WhenAsync("the budget amount is set", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 25
+ await testRunner.ThenAsync("the result should be an error", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -168,7 +226,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Querying budget spent for a workspace should return the right amount", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 17
+#line 27
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -178,19 +236,48 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 18
- await testRunner.GivenAsync("a workspace with a budget identifier of \"/subscriptions/bc4bcb08-d617-49f4-b6af-6" +
-                        "9d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/b" +
-                        "udgets/fsdh-test-budget\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line 28
+ await testRunner.GivenAsync("a workspace with a budget", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 19
+#line 29
  await testRunner.AndAsync("the budget spent is less than $10", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 20
+#line 30
  await testRunner.WhenAsync("the budget spent is queried for the workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 21
+#line 31
  await testRunner.ThenAsync("the result should be less than the expected amount", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Querying budget spent for a non-existent workspace should return an error")]
+        [Xunit.TraitAttribute("FeatureTitle", "WorkspaceBudget")]
+        [Xunit.TraitAttribute("Description", "Querying budget spent for a non-existent workspace should return an error")]
+        public async System.Threading.Tasks.Task QueryingBudgetSpentForANon_ExistentWorkspaceShouldReturnAnError()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Querying budget spent for a non-existent workspace should return an error", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 33
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 34
+ await testRunner.GivenAsync("a non-existent workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 35
+ await testRunner.WhenAsync("the budget spent is queried", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 36
+ await testRunner.ThenAsync("the result should be an error", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
@@ -204,7 +291,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Updating budget spent for a workspace should update the budget spent", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 23
+#line 38
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -214,19 +301,48 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 24
- await testRunner.GivenAsync("a workspace with a budget identifier of \"/subscriptions/bc4bcb08-d617-49f4-b6af-6" +
-                        "9d6f10c240b/resourceGroups/fsdh-static-test-rg/providers/Microsoft.Consumption/b" +
-                        "udgets/fsdh-test-budget\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line 39
+ await testRunner.GivenAsync("a workspace with a budget", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 25
+#line 40
  await testRunner.AndAsync("an existing project credit record", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 26
+#line 41
  await testRunner.WhenAsync("the budget is updated for that workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 27
+#line 42
  await testRunner.ThenAsync("project credit record should be updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Updating budget spent for a non-existent workspace should return an error")]
+        [Xunit.TraitAttribute("FeatureTitle", "WorkspaceBudget")]
+        [Xunit.TraitAttribute("Description", "Updating budget spent for a non-existent workspace should return an error")]
+        public async System.Threading.Tasks.Task UpdatingBudgetSpentForANon_ExistentWorkspaceShouldReturnAnError()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Updating budget spent for a non-existent workspace should return an error", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 44
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 45
+ await testRunner.GivenAsync("a non-existent workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 46
+ await testRunner.WhenAsync("the budget is updated", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 47
+ await testRunner.ThenAsync("the result should be an error", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();

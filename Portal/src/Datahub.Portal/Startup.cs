@@ -65,6 +65,7 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
+using Datahub.Application.Services.Cost;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
@@ -393,6 +394,10 @@ public class Startup
             services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
             services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
+
+            services.AddScoped<IWorkspaceCostManagementService, OfflineWorkspaceCostManagementService>();
+            
+            
         }
         services.AddScoped<IProjectCreationService, ProjectCreationService>();
 
