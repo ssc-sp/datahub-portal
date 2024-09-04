@@ -8,24 +8,16 @@
 @attribute [Route(PageRoutes.News_FR)]
 
 <PageTitle>
-    @Localizer["News - Federal Science DataHub"]
+    @Localizer["Announcements - Federal Science DataHub"]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar/>
-</SectionContent>
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-
-    <h1 id="maincontent" class="sr-only">
-        @Localizer["News page"]
-    </h1>
-
     <MudStack Spacing="6">
         <MudStack Row>
-            <MudText Typo="Typo.h2">@Localizer["News"]</MudText>
+            <DHMainContentTitle Title="@Localizer["Announcements"]" />
             <MudSpacer/>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-                <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/news/edit/new">@Localizer["Create a new Announcement"]</DHButton>
+                <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/announcements/edit/new">@Localizer["Create a new Announcement"]</DHButton>
             </DatahubAuthView>
         </MudStack>
 

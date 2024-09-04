@@ -6,10 +6,9 @@
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
 
-<h1 class="sr-only" id="maincontent">@Localizer["Customization page"]</h1>
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <MudText Typo="Typo.h4">@Localizer["Public Profile"]</MudText>
+        <DHMainContentTitle Title="@Localizer["Public profile"]"/>
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
@@ -42,11 +41,9 @@
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+    [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
@@ -61,7 +58,7 @@
         ViewedUser.UserSettings.HideAchievements = !ViewedUser.UserSettings.HideAchievements;
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
-    
+
     private async Task HandleHideAlertsChanged()
     {
         ViewedUser.UserSettings.HideAlerts = !ViewedUser.UserSettings.HideAlerts;

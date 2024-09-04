@@ -15,9 +15,7 @@
 @inject IResourceMessagingService _resourceMessagingService
 
 <MudStack>
-    <MudText Typo="Typo.h2">
-        @Localizer["Toolbox Catalogue"]
-    </MudText>
+    <DHMainContentTitle Title="@Localizer["Toolbox Catalogue"]" />
     <MudText>
         @Localizer["The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the 'Add to Workspace' button."]
     </MudText>
@@ -269,7 +267,8 @@
             await ctx.SaveChangesAsync();
 
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser);
+            var template = new TerraformTemplate(tool, TerraformTemplate.TemplateStatus.CreateRequested);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
             _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.PendingRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);

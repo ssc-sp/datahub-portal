@@ -44,6 +44,9 @@
             "allow_source_ip": "20.200.112.175,205.194.36.254",
             "resource_prefix": "$resourcePrefix",
             "resource_prefix_alphanumeric": "$resourcePrefixAlphanumeric",
+            "automation_account_uai_name": "overwritten-by-terraform",
+            "automation_account_uai_rg": "overwritten-by-terraform",
+            "automation_account_uai_sub": "overwritten-by-terraform",
             "common_tags": {
                 "Sector": "Science Program",
                 "Environment": "$Environment",

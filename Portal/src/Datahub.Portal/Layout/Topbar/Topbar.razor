@@ -4,6 +4,7 @@
 @inject NavigationManager _navManager
 
 <nav class="sr-only">
+    <h2>@Localizer["Screen reader navigation"]</h2>
     <ul>
         <li>
             <a href="@(_navManager.Uri + "#maincontent")">@Localizer["Skip to main content"]</a>
@@ -13,39 +14,60 @@
         </li>
     </ul>
 </nav>
-<MudImage Src="/img/canada-fip.svg" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; float:left!important;"/>
+
+<MudImage Src=@Localizer["/img/canada-fip.svg"] Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; margin-top: 20px; float:left!important;" />
+
 <MudText Typo="Typo.h2" Style="@_titleStyle">
     @Localizer["MainTitle"]
 </MudText>
-<MudStack Row Style="margin-right: auto; width: 40%" Justify="Justify.Center" role="group">
+<MudStack Row Style="margin-right: auto; width: 40%; margin-top: 20px" Justify="Justify.Center" role="group">
     <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
     <nav role="navigation">
         <ul style="list-style-type: none">
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home]>
-                    @Localizer["Home"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.News]>
-                    @Localizer["News"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Explore]>
-                    @Localizer["Explore"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.ResourceDefault]>
-                    @Localizer["Learn"]
-                </DHButton>
-            </li>
-            <li style="display: inline-block; margin-inline: 5px">
-                <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.Help]>
-                    @Localizer["Support"]
-                </DHButton>
-            </li>
+            <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Small">
+                        <MudText>@Localizer["Home"]</MudText>
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.News] Size="Size.Small">
+                        <MudText>@Localizer["Announcements"]</MudText>
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.ResourceDefault] Size="Size.Small">
+                        <MudText>@Localizer["Resources"]</MudText>
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.Help] Size="Size.Small">
+                        <MudText>@Localizer["Support"]</MudText>
+                    </DHButton>
+                </li>
+            </MudHidden>
+            <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.Home] Size="Size.Medium">
+                        <MudText>@Localizer["Home"]</MudText>
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[PageRoutes.News] Size="Size.Medium">
+                        <MudText>@Localizer["Announcements"]</MudText>
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.ResourceDefault] Size="Size.Medium">
+                        <MudText>@Localizer["Resources"]</MudText>
+                    </DHButton>
+                </li>
+                <li style="display: inline-block; margin-inline: 3px">
+                    <DHButton Variant="Variant.Text" Href=@Localizer[@PageRoutes.Help] Size="Size.Medium">
+                        <MudText>@Localizer["Support"]</MudText>
+                    </DHButton>
+                </li>
+            </MudHidden>
         </ul>
     </nav>
 </MudStack>
@@ -80,6 +102,8 @@
             .AddStyle("color", "var(--mud-palette-text-primary)")
             .AddStyle("font-size", "1.2rem")
             .AddStyle("margin-left", "3rem")
+            .AddStyle("margin-top", "20px")
+            .AddStyle("text-wrap", "nowrap")
             .Build();
     }
 

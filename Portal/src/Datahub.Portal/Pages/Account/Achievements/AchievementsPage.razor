@@ -6,9 +6,6 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
 
-<h1 id="maincontent" class="sr-only">
-    @Localizer["Achievements page"]
-</h1>
 @if (_viewedPortalUser is null)
 {
     <DHLoadingInitializer Message="@Localizer["Loading Achievements"]"/>
@@ -17,9 +14,7 @@
 
 <MudStack Spacing="6">
     <MudStack>
-        <MudText Typo="Typo.h3" Class="mb-4">
-            @Localizer["Achievements"]
-        </MudText>
+        <DHMainContentTitle Title="@Localizer["Achievements"]" />
 
         @foreach (var userAchievement in GetUserAchievements())
         {
