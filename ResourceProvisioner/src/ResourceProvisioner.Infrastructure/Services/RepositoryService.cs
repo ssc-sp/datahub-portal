@@ -476,8 +476,8 @@ public partial class RepositoryService : IRepositoryService
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
-            await _terraformService.ExtractVariables(template, terraformWorkspace);
+            await _terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
+            await _terraformService.ExtractVariables(template.Name, terraformWorkspace);
             switch (template.Name)
             {
                 case TerraformTemplate.NewProjectTemplate:

@@ -27,7 +27,7 @@ public class ContactUsTemplateTests
 
         var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
 
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
@@ -45,7 +45,7 @@ public class ContactUsTemplateTests
         var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
         
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
