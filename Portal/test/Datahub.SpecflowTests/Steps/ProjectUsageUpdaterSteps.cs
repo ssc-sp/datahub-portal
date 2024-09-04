@@ -1,23 +1,12 @@
-﻿using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using Azure.Core.Amqp;
-using Azure.Messaging.ServiceBus;
-using Datahub.Application.Services.Budget;
-using Datahub.Application.Services.Storage;
+﻿using Azure.Messaging.ServiceBus;
+using Datahub.Application.Services.Cost;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
 using Datahub.Functions;
+using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
+using Datahub.SpecflowTests.Hooks;
 using FluentAssertions;
-using MassTransit;
-using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-using NSubstitute;
 using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps
@@ -25,154 +14,127 @@ namespace Datahub.SpecflowTests.Steps
     [Binding]
     public class ProjectUsageUpdaterSteps(
         ScenarioContext scenarioContext,
-        ILoggerFactory loggerFactory,
-        ISendEndpointProvider sendEndpointProvider,
-        QueuePongService pongService,
-        IWorkspaceCostManagementService costMgmt,
-        IWorkspaceBudgetManagementService budgetMgmt,
-        IWorkspaceStorageManagementService storageMgmt,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IConfiguration config)
+        ProjectUsageUpdater sut,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
-        [Given(@"a project usage update message")]
+        [Given(@"a project usage update message for a workspace that doesn't to be rolled over")]
         public void GivenAProjectUsageUpdateMessage()
         {
-            var mockCosts = new List<DailyServiceCost>();
-            var message = new ProjectUsageUpdateMessage("TEST", "costs-mock.json", false);
-            scenarioContext["message"] = message;
-            scenarioContext["mockCosts"] = mockCosts;
+            var message = new ProjectUsageUpdateMessage(Testing.WorkspaceAcronym, Testing.MockCosts, Testing.MockTotals,
+                false);
+            scenarioContext.Set(message, "message");
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
-        [Given(@"an associated project credits record")]
-        public async Task GivenAnAssociatedProjectCreditsRecord()
+        [Given(@"the last update date is in the current fiscal year")]
+        public async Task GivenTheLastUpdateDateIsInTheCurrentFiscalYear()
         {
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var project = new Datahub_Project
-            {
-                Project_Name = "Test project",
-                Project_Acronym_CD = "TEST",
-            };
-            var credits = new Project_Credits
-            {
-                Project = project,
-                Current = 10.0,
-                LastUpdate = DateTime.UtcNow.Date.AddDays(-1),
-                BudgetCurrentSpent = 10.2,
-                CurrentPerDay = "",
-                CurrentPerService = "",
-                YesterdayPerService = "",
-                YesterdayCredits = 1.0,
-            };
-            ctx.Projects.Add(project);
-            ctx.Project_Credits.Add(credits);
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects.FirstAsync(p => p.Project_Acronym_CD == acronym);
+            var projectCredits = await ctx.Project_Credits.FirstAsync(p => p.ProjectId == project.Project_ID);
+            projectCredits.LastUpdate = DateTime.UtcNow.AddDays(-1);
+            ctx.Project_Credits.Update(projectCredits);
             await ctx.SaveChangesAsync();
         }
 
         [When(@"the project usage is updated")]
         public async Task WhenTheProjectUsageIsUpdated()
         {
-            var message = scenarioContext["message"] as ProjectUsageUpdateMessage;
-            var costRollover = scenarioContext["costRollover"] as bool? ?? false;
-            var costSpent = scenarioContext["costSpent"] as decimal? ?? 0;
-            var budgetSpent = scenarioContext["budgetSpent"] as decimal? ?? 0;
-
-            var messageEnvelope = new JsonObject
+            var message = scenarioContext.Get<ProjectUsageUpdateMessage>("message");
+            var ct = new CancellationToken();
+            try
             {
-                ["message"] = JsonSerializer.SerializeToNode(message)
-            };
-
-            var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
-                new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
-                {
-                    Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString())
-                })), new BinaryData("lockToken"u8.ToArray()));
-
-            budgetMgmt.UpdateWorkspaceBudgetSpentAsync(Arg.Any<string>()).Returns(budgetSpent);
-            budgetMgmt.GetWorkspaceBudgetAmountAsync(Arg.Any<string>()).Returns((decimal)100.0);
-            budgetMgmt.When(c => c.SetWorkspaceBudgetAmountAsync(Arg.Any<string>(), Arg.Any<decimal>(), true)).Do(
-                c =>
-                {
-                    using var ctx = dbContextFactory.CreateDbContext();
-                    var credits = ctx.Project_Credits.FirstOrDefault();
-                    if (credits != null)
-                    {
-                        credits.LastRollover = DateTime.UtcNow;
-                        ctx.Project_Credits.Update(credits);
-                    }
-
-                    ctx.SaveChanges();
-                });
-            costMgmt.UpdateWorkspaceCostAsync(Arg.Any<List<DailyServiceCost>>(), Arg.Any<string>())
-                .Returns((costRollover, (decimal)10.0));
-            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
-                sendEndpointProvider, storageMgmt, config);
-
-            var rolledOver = await projectUsageUpdater.Run(serviceBusReceivedMessage, CancellationToken.None);
-            scenarioContext["rolledOver"] = rolledOver;
-        }
-
-        [Given(@"the last update date is in the current fiscal year")]
-        public async Task WhenTheLastUpdateDateIsInTheCurrentFiscalYear()
-        {
-            scenarioContext["costSpent"] = (decimal)10.0;
-            scenarioContext["costRollover"] = false;
-            scenarioContext["budgetSpent"] = (decimal)10.0;
+                var rollOver = await sut.UpdateUsage(message, ct);
+                scenarioContext.Set(rollOver, "rollOver");
+                scenarioContext.Set(true, "success");
+            }
+            catch
+            {
+                scenarioContext.Set(false, "success");
+            }
         }
 
         [Then(@"the rollover should not be triggered")]
         public void ThenTheRolloverShouldNotBeTriggered()
         {
-            var rolledOver = scenarioContext["rolledOver"] as bool?;
-            rolledOver.Should().Be(false);
+            var rollOver = scenarioContext.Get<bool>("rollOver");
+            rollOver.Should().BeFalse();
         }
 
         [Given(@"the last update date is in the previous fiscal year")]
-        public async Task WhenTheLastUpdateDateIsInThePreviousFiscalYear()
+        public async Task GivenTheLastUpdateDateIsInThePreviousFiscalYear()
         {
-            scenarioContext["costSpent"] = (decimal)10.0;
-            scenarioContext["costRollover"] = true;
-            scenarioContext["budgetSpent"] = (decimal)10.0;
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects.FirstAsync(p => p.Project_Acronym_CD == acronym);
+            var projectCredits = await ctx.Project_Credits.FirstAsync(p => p.ProjectId == project.Project_ID);
+            projectCredits.LastUpdate = DateTime.UtcNow.AddYears(-1);
+            ctx.Project_Credits.Update(projectCredits);
+            await ctx.SaveChangesAsync();
         }
 
         [Then(@"the rollover should be triggered")]
         public void ThenTheRolloverShouldBeTriggered()
         {
-            var rolledOver = scenarioContext["rolledOver"] as bool?;
-            rolledOver.Should().Be(true);
+            var rollOver = scenarioContext.Get<bool>("rollOver");
+            rollOver.Should().BeTrue();
         }
 
-        [Then(@"the project credits should be updated accordingly")]
-        public async Task ThenTheProjectCreditsShouldBeUpdatedAccordingly()
+        [Given(@"a project usage update message for a workspace that needs to be rolled over")]
+        public void GivenAProjectUsageUpdateMessageForAWorkspaceThatNeedsToBeRolledOver()
         {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var credits = await ctx.Project_Credits.FirstOrDefaultAsync();
-            credits.LastRollover.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(60));
+            var message = new ProjectUsageUpdateMessage(Testing.WorkspaceAcronym2, Testing.MockCosts,
+                Testing.MockTotals,
+                false);
+            scenarioContext.Set(message, "message");
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
-        [Given(@"the difference between budget spent and cost captured is too large")]
-        public void GivenTheDifferenceBetweenBudgetSpentAndCostCapturedIsTooLarge()
+        [Given(@"an existing file in blob storage")]
+        public void GivenAnExistingFileInBlobStorage()
         {
-            scenarioContext["costSpent"] = (decimal)10.0;
-            scenarioContext["costRollover"] = true;
-            scenarioContext["budgetSpent"] = (decimal)20.0;
+            scenarioContext.Set(Testing.MockTotals, "fileName");
         }
 
-        [When(@"the subscription costs are downloaded")]
-        public async Task WhenTheSubscriptionCostsAreDownloaded()
+        [When(@"the file is downloaded and parsed")]
+        public async Task WhenTheFileIsDownloadedAndParsed()
         {
-            var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, pongService, costMgmt, budgetMgmt,
-                sendEndpointProvider, storageMgmt, config);
-            var message = scenarioContext["message"] as ProjectUsageUpdateMessage;
-            var costs = await projectUsageUpdater.GetFromBlob(message.CostsBlobName);
-            scenarioContext["costs"] = costs;
+            var fileName = scenarioContext.Get<string>("fileName");
+            try
+            {
+                var totals = await sut.FromBlob(fileName);
+                scenarioContext.Set(totals, "totals");
+                scenarioContext.Set(true, "success");
+            }
+            catch
+            {
+                scenarioContext.Set(false, "success");
+            }
         }
 
-        [Then(@"the blob download should work properly")]
-        public void ThenTheBlobDownloadShouldWorkProperly()
+        [Then(@"the values should be as expected")]
+        public void ThenTheValuesShouldBeAsExpected()
         {
-            var costs = scenarioContext["costs"] as List<DailyServiceCost>;
-            costs.Should().NotBeNull();
-            costs.Should().NotBeEmpty();
+            var totals = scenarioContext.Get<List<DailyServiceCost>>("totals");
+            totals.Should().NotBeNull();
+            totals.Should().HaveCount(2);
+            totals.All(c =>
+                c.Date == null && c.Amount != 0 && c.Source == string.Empty &&
+                !string.IsNullOrEmpty(c.ResourceGroupName));
+        }
+
+        [Given(@"a non-existing file in blob storage")]
+        public void GivenANonExistingFileInBlobStorage()
+        {
+            scenarioContext.Set("invalidfile", "fileName");
+        }
+
+        [Then(@"there should be an error")]
+        public void ThenThereShouldBeAnError()
+        {
+            var success = scenarioContext.Get<bool>("success");
+            success.Should().BeFalse();
         }
     }
 }
