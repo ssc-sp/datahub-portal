@@ -20,16 +20,10 @@ public class MediaController : Controller
         .Aggregate((a, b) => a + b);
 
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
-    private readonly ILogger<MediaController> _logger;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-
-    public MediaController(DatahubPortalConfiguration datahubPortalConfiguration, ILogger<MediaController> logger,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+    public MediaController(DatahubPortalConfiguration datahubPortalConfiguration)
     {
         _datahubPortalConfiguration = datahubPortalConfiguration;
-        _logger = logger;
-        _dbContextFactory = dbContextFactory;
     }
 
     /// <summary>

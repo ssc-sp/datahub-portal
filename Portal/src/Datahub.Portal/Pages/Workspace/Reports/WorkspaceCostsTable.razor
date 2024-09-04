@@ -1,6 +1,8 @@
 ﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IJSRuntime _jsRuntime
 
+@implements IAsyncDisposable
+
 <MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true">
     <ToolBarContent>
         <MudText Typo="Typo.h2">
@@ -37,24 +39,12 @@
         <MudTablePager PageSizeOptions="new[] { 10, 50, 100, int.MaxValue }"/>
     </PagerContent>
 </MudTable>
-<script>
-    window.downloadFileFromStream = async (fileName, contentStreamReference) => {
-        const arrayBuffer = await contentStreamReference.arrayBuffer();
-        const blob = new Blob([arrayBuffer]);
-        const url = URL.createObjectURL(blob);
-        const anchorElement = document.createElement('a');
-        anchorElement.href = url;
-        anchorElement.download = fileName ?? '';
-        anchorElement.click();
-        anchorElement.remove();
-        URL.revokeObjectURL(url);
-    }
-</script>
 
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
     private List<CostDisplay> Costs { get; set; } = new();
+    private IJSObjectReference _module;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -67,6 +57,7 @@
             .OrderByDescending(c => c.Date)
             .ToListAsync();
         Costs = projectCosts.Select(c => new CostDisplay { Cost = (decimal)c.CadCost, Date = c.Date.ToString("d"), Source = c.ServiceName }).ToList();
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
     }
 
     private async Task HandleDownload()
@@ -74,7 +65,7 @@
         var fileStream = GenerateCsvStream();
         var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
         using var streamReference = new DotNetStreamReference(stream: fileStream);
-        await _jsRuntime.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
     }
 
     private Stream GenerateCsvStream()
@@ -98,6 +89,11 @@
         public string Source { get; init; }
         public decimal Cost { get; init; }
         public string Date { get; init; }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null) await _module.DisposeAsync();
     }
 
 }
