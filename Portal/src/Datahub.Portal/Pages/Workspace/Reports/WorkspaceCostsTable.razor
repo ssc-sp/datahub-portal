@@ -1,0 +1,99 @@
+﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IJSRuntime _jsRuntime
+
+@implements IAsyncDisposable
+
+<MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true">
+    <ToolBarContent>
+        <MudText Typo="Typo.h2">
+            @Localizer["Your workspace's daily costs"]
+        </MudText>
+        <MudSpacer/>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">
+            @Localizer["Download to CSV"]
+        </DHButton>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>
+            <strong>@Localizer["Date"]</strong>
+        </MudTh>
+        <MudTd>
+            <strong>@Localizer["Source"]</strong>
+        </MudTd>
+        <MudTd>
+            <strong>@Localizer["Cost"]</strong>
+        </MudTd>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="@Localizer["Date"]">
+            @context.Date
+        </MudTd>
+        <MudTd DataLabel="@Localizer["Source"]">
+            @context.Source
+        </MudTd>
+        <MudTd DataLabel="@Localizer["Cost"]">
+            @(context.Cost < (decimal)0.01 ? $"< {(0.01).ToString("C")}" : context.Cost.ToString("C"))
+        </MudTd>
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager PageSizeOptions="new[] { 10, 50, 100, int.MaxValue }"/>
+    </PagerContent>
+</MudTable>
+
+@code {
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    private List<CostDisplay> Costs { get; set; } = new();
+    private IJSObjectReference _module;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        using var context = await _dbContextFactory.CreateDbContextAsync();
+        var project = await context.Projects
+            .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
+            .FirstAsync();
+        var projectCosts = await context.Project_Costs
+            .Where(c => c.Project_ID == project.Project_ID)
+            .OrderByDescending(c => c.Date)
+            .ToListAsync();
+        Costs = projectCosts.Select(c => new CostDisplay { Cost = (decimal)c.CadCost, Date = c.Date.ToString("d"), Source = c.ServiceName }).ToList();
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
+    }
+
+    private async Task HandleDownload()
+    {
+        var fileStream = GenerateCsvStream();
+        var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+        using var streamReference = new DotNetStreamReference(stream: fileStream);
+        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+    }
+
+    private Stream GenerateCsvStream()
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.WriteLine("Date,Source,Cost ($CAD)");
+        foreach (var cost in Costs)
+        {
+            writer.WriteLine($"{cost.Date},{cost.Source},{cost.Cost}");
+        }
+
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+    }
+
+
+    record CostDisplay
+    {
+        public string Source { get; init; }
+        public decimal Cost { get; init; }
+        public string Date { get; init; }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module != null) await _module.DisposeAsync();
+    }
+
+}
