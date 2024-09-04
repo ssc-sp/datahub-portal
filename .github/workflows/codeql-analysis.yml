@@ -7,6 +7,10 @@ on:
     branches: [main]
   workflow_dispatch:  # Allows manual triggering
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   trivy-scan:
     name: Trivy Vulnerability Scan
