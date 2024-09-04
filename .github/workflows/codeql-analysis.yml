@@ -1,26 +1,38 @@
-name: Code Scanning - CodeQL
+name: Code Scanning
 
 on:
   pull_request:
     branches: [main, develop]
   push:
     branches: [main]
-  workflow_dispatch: 
+  workflow_dispatch:  # Allows manual triggering
 
 jobs:
-  codeql:
-    name: Analyze (CodeQL)
+  trivy-scan:
+    name: Trivy Vulnerability Scan
     runs-on: ubuntu-latest
 
     steps:
+      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
-          
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+      # Step 2: Install Trivy
+      - name: Install Trivy
+        run: |
+          sudo apt-get update
+          sudo apt-get install wget -y
+          wget https://github.com/aquasecurity/trivy/releases/download/v0.41.0/trivy_0.41.0_Linux-64bit.deb
+          sudo dpkg -i trivy_0.41.0_Linux-64bit.deb
 
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+      # Step 3: Run Trivy scan and output to SARIF format
+      - name: Run Trivy Scan
+        run: |
+          mkdir -p trivy-results
+          trivy fs --format sarif --output trivy-results/trivy.sarif .
+
+      # Step 4: Upload SARIF file to GitHub Code Scanning
+      - name: Upload SARIF to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: trivy-results/trivy.sarif
