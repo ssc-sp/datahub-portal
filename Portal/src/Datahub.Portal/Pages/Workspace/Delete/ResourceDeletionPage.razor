@@ -1,0 +1,140 @@
+﻿@namespace Datahub.Portal.Pages.Workspace.Delete
+
+@using Datahub.Core.Model.Projects
+@using Datahub.Shared.Entities
+
+@inject NavigationManager NavigationManager
+@inject ISnackbar _snackbar
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+
+<MudStack Class="px-4">
+    <MudGrid>
+       <MudItem xs="12">
+           <MudStack>
+                <MudText Typo="Typo.h4">
+                    @Localizer["Are you sure you want to delete {0} from this workspace?", Resource]
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @Localizer["This action is permanent. Upon deletion, all workspace admins will be notified via email."]
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @Localizer["Please type {0} to confirm the deletion.", WorkspaceAcronym]
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="5">
+                        <MudTextField @bind-Value="DeleteConfirmation" Variant="Variant.Text"></MudTextField>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+            
+            @if (_error.Equals("_emptyConfirmation"))
+            {
+                <MudAlert Severity="Severity.Error">
+                    <MudText Typo="Typo.body2">@Localizer["Please enter a workspace acronym."]</MudText>
+                </MudAlert>
+            }
+            else if (_error.Equals("_badConfirmation"))
+            {
+                <MudAlert Severity="Severity.Error">
+                    <MudText Typo="Typo.body2">@Localizer["Incorrect workspace acronym."]</MudText>
+                </MudAlert>
+            }
+        </MudItem>
+        <MudItem xs="3">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@CancelDeletion">
+                @Localizer["Cancel"]
+            </DHButton>
+        </MudItem>
+        <MudItem xs="3">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
+                @Localizer["Delete Resource"]
+                <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+            </DHButton>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code
+{
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private string Resource = "";
+
+    private string DeleteConfirmation;
+    private string _error = "";
+    private string _toolboxPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString()));
+
+        if(_resourceCheck != null)
+        {
+            Resource = GetLabel(_resourceCheck.ResourceType.Substring(10));
+        }
+        else
+        {
+            Resource = "Error";
+        }
+
+        await InvokeAsync(StateHasChanged);
+
+    }
+
+    private async void CancelDeletion()
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.SendingDeletion.ToString()));
+        _resourceCheck.Status = ProjectResourceStatus.Exists.ToString();
+
+        await ctx.SaveChangesAsync();
+        await InvokeAsync(StateHasChanged);
+
+        NavigationManager.NavigateTo(_toolboxPage);
+    }
+
+    private async void ConfirmDeletion()
+    {
+        if (DeleteConfirmation == null || DeleteConfirmation == "")
+        {
+            _error = "_emptyConfirmation";
+        }
+        else if(!DeleteConfirmation.Equals(WorkspaceAcronym))
+        {
+            _error = "_badConfirmation";
+        }
+        else
+        {
+            await using var ctx = await _contextFactory.CreateDbContextAsync();
+            var _resourceCheck = await ctx.Project_Resources2
+                .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString())); //!
+            _resourceCheck.Status = ProjectResourceStatus.SendingDeletion.ToString();
+
+            await ctx.SaveChangesAsync();
+            await InvokeAsync(StateHasChanged);
+
+            NavigationManager.NavigateTo(_toolboxPage);
+        }
+    }
+
+    private string GetLabel(string tool)
+    {
+        return tool switch
+        {
+            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
+            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
+            TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
+            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
+            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
+            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
+            _ => tool
+        };
+    }
+}
