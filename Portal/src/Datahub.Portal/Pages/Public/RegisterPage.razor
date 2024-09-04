@@ -1,12 +1,22 @@
+@using System
+@using System.Collections.Generic
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Infrastructure.Extensions
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Shared.Configuration;
+@using Datahub.Core.Templates
+@using BlazorTemplater
+@using MassTransit;
 
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
 @inject IProjectUserManagementService _projectUserManagementService
+@inject ISendEndpointProvider _sendEndpointProvider
 @inject NavigationManager _navigationManager
 
 @page "/register"
@@ -142,7 +152,14 @@
                 foreach(var projectAcronym in projectList)
                 {
                     var projectLead = _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
-                    // send email
+                    if (projectLead?.Result != null)
+                    {
+                        await NotifyWorkspaceAdmin(projectLead.Result?.PortalUser, projectAcronym, existingUser.DisplayName);
+                    }
+                    else
+                    {
+                        _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
+                    }
                 }
             }
             _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
@@ -157,5 +174,35 @@
 
         _isRegistering = false;
         StateHasChanged();
+    }
+
+    private async Task NotifyWorkspaceAdmin(PortalUser workspaceLead, string projectAcronym, string userName)
+    {
+        var templater = new Templater();
+
+        var parameters = new Dictionary<string, object>
+        {
+            { "WorkspaceAcronym", projectAcronym},
+            { "LeadName", workspaceLead.DisplayName },
+            { "UserName", userName }
+        };
+
+        string emailBody = templater.RenderComponent<UserReactivation>(parameters);
+        var request = new EmailRequestMessage
+        {            
+            To = new List<string> { workspaceLead.Email },
+            Subject = "FSDH Account Reactivation Notification",
+            Body = emailBody
+        };
+
+        try
+        {
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.EmailNotificationQueueName, request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Sending email notification to workspace lead {leadName} failed for user {userName}. Error: {ex}", workspaceLead.DisplayName, userName, ex.Message);
+        }
     }
 }
