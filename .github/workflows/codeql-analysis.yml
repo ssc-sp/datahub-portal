@@ -5,7 +5,9 @@ on:
     branches: [main, develop]
   push:
     branches: [main]
-  workflow_dispatch:  # Allows manual triggering
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:  
 
 permissions:
   contents: read
@@ -17,7 +19,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout the repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
