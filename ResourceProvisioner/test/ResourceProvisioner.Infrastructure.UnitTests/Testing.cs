@@ -35,10 +35,7 @@ public class Testing
     internal const string RequestingUserEmail = "unittest@user.com";
     internal const string RequestingAdminUser = "Unit Test Admin User";
 
-    internal static readonly TerraformTemplate TestTemplate = new()
-    {
-        Name = "TestModule",
-    };
+    internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformTemplate.TemplateStatus.CreateRequested);
 
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
@@ -128,19 +125,17 @@ public class Testing
         {
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         }
-        catch (IOException ex)
+        catch (IOException)
         {
             await Task.Delay(1000);
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         }
 
-        var module = new TerraformTemplate
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
+        var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
+            TerraformTemplate.TemplateStatus.CreateRequested);
 
-        await _terraformService.CopyTemplateAsync(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
@@ -158,7 +153,7 @@ public class Testing
         return new CreateResourceRunCommand
         {
             Templates = terraformTemplates
-                .Select(s => new TerraformTemplate { Name = s })
+                .Select(s => new TerraformTemplate(s, TerraformTemplate.TemplateStatus.CreateRequested))
                 .ToList(),
             Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, version),
             RequestingUserEmail = RequestingUser,
@@ -224,9 +219,6 @@ public class Testing
 
     internal static TerraformTemplate GenerateTerraformTemplate(string template)
     {
-        return new TerraformTemplate
-        {
-            Name = template,
-        };
+        return new TerraformTemplate(template, TerraformTemplate.TemplateStatus.CreateRequested);
     }
 }

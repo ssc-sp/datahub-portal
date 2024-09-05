@@ -24,9 +24,13 @@
         DatabaseName="@_databaseName"
         Username="@_username"
         Password="@_password"
-        Port="@_port"
-        />
-    <DHButton style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</DHButton>
+        Port="@_port" />
+
+    <MudText Typo="Typo.caption">@Localizer["Connection info can only be displayed by the workspace lead."]</MudText>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+        <DHButton style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</DHButton>
+        <DatabaseAdminSetupInfo />
+    </DatahubAuthView>
 
     <MudText Typo="Typo.h2">
         @Localizer["Connection Info"]

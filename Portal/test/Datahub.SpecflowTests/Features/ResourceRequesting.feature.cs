@@ -91,7 +91,6 @@ namespace Datahub.SpecflowTests.Features
         [Xunit.TraitAttribute("FeatureTitle", "Resource Requesting")]
         [Xunit.TraitAttribute("Description", "Request a resource to be provisioned for a workspace")]
         [Xunit.TraitAttribute("Category", "queue")]
-        [Xunit.InlineDataAttribute("Default", "1", new string[0])]
         [Xunit.InlineDataAttribute("NewProjectTemplate", "1", new string[0])]
         [Xunit.InlineDataAttribute("AzureAppService", "1", new string[0])]
         [Xunit.InlineDataAttribute("AzureDatabricks", "1", new string[0])]
@@ -157,7 +156,7 @@ namespace Datahub.SpecflowTests.Features
             argumentsOfScenario.Add("resource_name", resource_Name);
             argumentsOfScenario.Add("number_of_messages", number_Of_Messages);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Request to run an update resource for a workspace", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 22
+#line 21
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -167,19 +166,19 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 23
+#line 22
         await testRunner.GivenAsync(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 24
+#line 23
         await testRunner.AndAsync("a current user", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 25
+#line 24
         await testRunner.WhenAsync(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 26
+#line 25
         await testRunner.ThenAsync(string.Format("there should not be a workspace {0} resource created", resource_Name), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 27
+#line 26
         await testRunner.AndAsync(string.Format("there should be {0} messages in resource messaging queue", number_Of_Messages), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -205,7 +204,7 @@ namespace Datahub.SpecflowTests.Features
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("resource_name", resource_Name);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Request to run an unreleased workspace resource", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 34
+#line 33
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -215,19 +214,19 @@ namespace Datahub.SpecflowTests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 35
+#line 34
         await testRunner.GivenAsync(string.Format("a workspace without a {0} resource", resource_Name), ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 36
+#line 35
         await testRunner.AndAsync("a current user", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 37
+#line 36
         await testRunner.WhenAsync(string.Format("a current user requests to run a {0} for a workspace", resource_Name), ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 38
+#line 37
         await testRunner.ThenAsync(string.Format("there should not be a workspace {0} resource created", resource_Name), ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 39
+#line 38
         await testRunner.AndAsync("there should be 0 messages in resource messaging queue", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
