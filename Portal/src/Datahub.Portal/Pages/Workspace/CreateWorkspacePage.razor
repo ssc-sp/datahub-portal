@@ -1,4 +1,5 @@
 ﻿@using Datahub.Application.Services
+@using Datahub.Portal.Components.Forms
 @inject IProjectCreationService _projectCreationService
 @inject NavigationManager _navigationManager
 @inject DatahubPortalConfiguration _portalConfiguration
@@ -10,7 +11,7 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
-        <DHMainContentTitle Title="@Localizer["Create a new Workspace"]" />
+        <DHMainContentTitle Title="@Localizer["Create a new Workspace"]"/>
         <MudText>
             @Localizer["Please complete the following information to create a new workspace"]
         </MudText>
@@ -22,7 +23,7 @@
                           RequiredError="@Localizer["Workspace Title is required"]"
                           HelperText="@Localizer["Enter a descriptive title for the workspace"]"
                           DebounceInterval="500"
-                          OnDebounceIntervalElapsed="UpdateProjectAcronym" />
+                          OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
 
             <MudTextField T="string"
                           @bind-Value="_projectAcronym"
@@ -37,7 +38,7 @@
                           @ref="_acronymField"
                           alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
                           Required
-                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))" />
+                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))"/>
 
             <MudSelect T="string"
                        Label="@Localizer["(Optional) Which features are of interest to you?"]"
@@ -67,7 +68,7 @@
                                  ValueChanged=@ToggleCreateRepo
                                  Disabled="!_githubIntegration"
                                  T="bool"
-                                 Label=@Localizer["Create Repository"] />
+                                 Label=@Localizer["Create Repository"]/>
                 </MudStack>
             }
 
@@ -85,12 +86,15 @@
             <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
                 @if (_isCreating)
                 {
-                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
+                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
                 }
                 @Localizer["Create Workspace"]
             </MudButton>
         </MudElement>
     </MudStack>
+    <MudDivider/>
+    <DHForm/>
+
 </DatahubAuthView>
 
 @code {
@@ -117,6 +121,7 @@
             _errorMessage = Localizer["Workspace Title is required to generate an acronym"];
             return;
         }
+
         _projectAcronym = await _projectCreationService.GenerateProjectAcronymAsync(_projectTitle);
         _success = true;
         _acronymField?.ResetValidation();
@@ -140,10 +145,10 @@
     }
 
     private readonly Converter<string> _converter = new()
-        {
-            SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
-            GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
-        };
+    {
+        SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
+        GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
+    };
 
     private async Task UpdateProjectAcronym()
     {
@@ -192,5 +197,5 @@
     }
 
 
-    #nullable disable
+#nullable disable
 }
