@@ -69,6 +69,9 @@ public class OmniUser
 
 public class Variables
 {
+    public string automation_account_uai_name { get; set; }
+    public string automation_account_uai_rg { get; set; }
+    public string automation_account_uai_sub { get; set; }
     public string az_subscription_id { get; set; }
     public string az_tenant_id { get; set; }
     public string budget_amount { get; set; }
@@ -76,6 +79,7 @@ public class Variables
     public string environment_classification { get; set; }
     public string environment_name { get; set; }
     public string az_location { get; set; }
+    public string allow_source_ip { get; set; }
     public string resource_prefix { get; set; }
     public string resource_prefix_alphanumeric { get; set; }
     public string storage_suffix { get; set; } = "terraformbackend";

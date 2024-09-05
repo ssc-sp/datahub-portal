@@ -1,0 +1,21 @@
+﻿<MudText Typo="Typo.h2">@Localizer["Add Users to Database"]</MudText>
+<MudText Typo="Typo.body1">
+    @Localizer["The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace."]
+</MudText>
+<MudStack>
+    <DHButton OnClick="OnExpandCollapseClick" Variant="Variant.Filled" Color="Color.Primary" style="width: fit-content;">@(_expanded ? Localizer["Hide Instructions"] : Localizer["Show Instructions"])</DHButton>
+    <MudCollapse Expanded="_expanded">
+        <EmbeddedWiki PageNameEn="/UserGuide/Database/Postgres-Add-User.md"
+                  PageNameFr="/fr/UserGuide/Database/Postgres-Ajouter-Utilisateur.md"
+                  Substitutions="new List<(string, string)>()" />
+    </MudCollapse>
+</MudStack>
+
+@code {
+    private bool _expanded = false;
+
+    private void OnExpandCollapseClick()
+    {
+        _expanded = !_expanded;
+    }
+}

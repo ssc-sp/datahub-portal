@@ -1,11 +1,25 @@
+using Datahub.Core;
 using MudBlazor;
+using MudBlazor.Utilities;
 
 namespace Datahub.Portal.Layout;
 
 public abstract class DatahubTheme
 {
+
+    public const string SideBarContentName = "side-bar";
+    public static readonly string SideBorderStyle = new StyleBuilder()
+        .AddStyle("border-color", "var(--mud-palette-divider)")
+        .AddStyle("border-width", "1px")
+        .AddStyle("border-style", "none solid none none")
+        .Build();
+    
     public static readonly MudTheme DefaultTheme = new()
     {
+        LayoutProperties =
+        {
+            AppbarHeight = "80px"
+        },
         Typography =
         {
             Default =

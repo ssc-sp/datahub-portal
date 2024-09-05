@@ -8,15 +8,15 @@ public static class PageRoutes
     public const string Explore_FR = "/explorer";
     public const string Home = "/home";
     public const string Home_FR = "/accueil";
-    public const string News = "/news";
-    public const string News_FR = "/nouvelles";
+    public const string News = "/announcements";
+    public const string News_FR = "/annonces";
 
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
     public const string WorkspaceSubSection = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}/{{SubSection}}";
 
-    public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/webapp-ext";
+    public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/app-ext";
 
     public const string AccountPrefix = "account";
     public const string AccountPrefix_FR = "compte";
@@ -39,14 +39,11 @@ public static class PageRoutes
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
     public const string Tool_FR = $"/{ToolPrefix_FR}/{{Section}}";
     
-    public const string WebAppDefault = $"/{IReverseProxyConfigService.WebAppPrefix}/";
-    public const string WebApp = $"/{WorkspacePrefix}/{IReverseProxyConfigService.WebAppPrefix}/{{Section}}";
-
     public const string Logout = "/signout-oidc";
     public const string TermsAndConditions = "/terms-and-conditions";
     public const string TermsAndConditions_FR = "/conditions-generales";
 
-    public const string Help = "/help";
+    public const string Help = "/support";
     public const string Help_FR = "/assistance";
   
     public const string CreateWorkspace = "/create-workspace";

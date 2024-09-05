@@ -78,5 +78,7 @@ public enum InfrastructureHealthResourceType
     AzureStorageQueue,
     AzureWebApp,
     AzureFunction,
-    AsureServiceBus
+    AsureServiceBus,
+    WorkspaceSync,
+    DatabricksSync
 }

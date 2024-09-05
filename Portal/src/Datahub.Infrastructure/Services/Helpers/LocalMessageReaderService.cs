@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
 using Datahub.Infrastructure.Queues.Messages;
@@ -76,6 +77,7 @@ public class LocalMessageReaderService : BackgroundService
             var portalConfiguration = scope.ServiceProvider.GetRequiredService<DatahubPortalConfiguration>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>(); 
             var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>(); 
+            var resourceMessagingService = scope.ServiceProvider.GetRequiredService<IResourceMessagingService>();
             var devopsConfig = configuration
                 .GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
                 .Get<AzureDevOpsConfiguration>();
@@ -85,7 +87,7 @@ public class LocalMessageReaderService : BackgroundService
             var sendEndpointProvider = scope.ServiceProvider.GetRequiredService<ISendEndpointProvider>();
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, configuration, 
-                httpClientFactory, _loggerFactory, sendEndpointProvider, portalConfiguration);
+                httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration);
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
             InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);

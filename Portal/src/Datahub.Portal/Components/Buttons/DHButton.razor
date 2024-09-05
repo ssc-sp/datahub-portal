@@ -1,8 +1,7 @@
-﻿
-<MudButton HtmlTag="@HtmlTag" @ref="@Button" 
-           ClickPropagation="@ClickPropagation" 
-           Disabled="@Disabled" 
-           EndIcon="@EndIcon" 
+﻿<MudButton HtmlTag="@HtmlTag" @ref="@Button"
+           ClickPropagation="@ClickPropagation"
+           Disabled="@Disabled"
+           EndIcon="@EndIcon"
            StartIcon="@StartIcon"
            ButtonType="@ButtonType"
            Href="@Href"
@@ -22,7 +21,7 @@
            Tag="@Tag"
            UserAttributes="@UserAttributes"
            OnClick="@OnClick">
-    @ChildContent
+        @ChildContent
 </MudButton>
 
 @code {
@@ -57,7 +56,9 @@
     [Parameter] public string Class { get; set; } = null;
     [Parameter] public string Style { get; set; } = null;
     [Parameter] public object Tag { get; set; } = null;
-    [Parameter] public Dictionary<string, object> UserAttributes { get; set; } = null;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> UserAttributes { get; set; } = null;
 
     // EventCallbacks
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }

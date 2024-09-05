@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
+using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
@@ -33,8 +34,8 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         public const string FSDHFunctionPrefix = "fsdh-func-dotnet";
 
-        public const string WorkspaceKeyCheck = "project-cmk";
-        public const string CoreKeyCheck = "datahubportal-client-id";
+        public const string WorkspaceKeyVaultCheckKeyName = "project-cmk";
+        public const string CoreKeyVaultCheckSecretName = "datahubportal-client-id";
 
         public const string TerraformAzureDatabricksResourceType = "terraform:azure-databricks";
 
@@ -54,6 +55,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
         ISendEndpointProvider sendEndpointProvider,
+        IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
@@ -129,24 +131,25 @@ namespace Datahub.Infrastructure.Services.Helpers
                 Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, DevopsClientId);
                 Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, DevopsClientSecret);
 
-                var client =
-                    new SecretClient(GetAzureKeyVaultUrl(request),
-                        new DefaultAzureCredential()); // Authenticates with Azure AD and creates a SecretClient object for the specified key vault
+                var kvUrl = GetAzureKeyVaultUrl(request);
+                var credential = new DefaultAzureCredential();
 
-                KeyVaultSecret secret;
+                var secretClient = new SecretClient(kvUrl, credential);
+                var keyClient = new KeyClient(kvUrl, credential);
+
                 if (request.Group == InfrastructureHealthCheckConstants.CoreRequestGroup) // Key check for core
                 {
-                    secret = await client.GetSecretAsync(InfrastructureHealthCheckConstants.CoreKeyCheck);
+                    var _ = await secretClient.GetSecretAsync(InfrastructureHealthCheckConstants.CoreKeyVaultCheckSecretName);
                 }
                 else // Key check for workspaces (to verify)
                 {
-                    secret = await client.GetSecretAsync(InfrastructureHealthCheckConstants.WorkspaceKeyCheck);
+                    var _ = await keyClient.GetKeyAsync(InfrastructureHealthCheckConstants.WorkspaceKeyVaultCheckKeyName);
                 }
 
                 try
                 {
-                    // Iterate through the keys in the key vault and check if they are expired
-                    await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
+                    // Iterate through the secrets in the key vault and check if they are expired
+                    await foreach (var secretProperties in secretClient.GetPropertiesOfSecretsAsync())
                     {
                         if (secretProperties.ExpiresOn < DateTime.UtcNow)
                         {
@@ -159,10 +162,27 @@ namespace Datahub.Infrastructure.Services.Helpers
                     errors.Add("Unable to retrieve the secrets from the key vault." + ex.GetType().ToString());
                     errors.Add($"Details: {ex.Message}");
                 }
+
+                try
+                {
+                    // Iterate through the keys in the key vault and check if they are expired
+                    await foreach (var keyProperties in keyClient.GetPropertiesOfKeysAsync())
+                    {
+                        if (keyProperties.ExpiresOn < DateTime.UtcNow)
+                        {
+                            errors.Add($"The key {keyProperties.Name} has expired.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add("Unable to retrieve the keys from the key vault." + ex.GetType().ToString());
+                    errors.Add($"Details: {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
-                errors.Add("Unable to connect and retrieve a secret. " + ex.GetType().ToString());
+                errors.Add("Unable to connect and retrieve a key or secret. " + ex.GetType().ToString());
                 errors.Add($"Details: {ex.Message}");
             }
 
@@ -206,6 +226,23 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
 
             return new(status, errors);
+        }
+
+        public async Task<IntermediateHealthCheckResult?> TriggerWorkspaceSync(InfrastructureHealthCheckMessage request)
+        {
+            try
+            {
+                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(request.Name);
+                await resourceMessagingService.SendToUserQueue(workspaceDefinition);
+
+                logger.LogInformation("Triggered workspace sync");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error while setting up workspace sync for {request.Name}");
+                return new(InfrastructureHealthStatus.Unhealthy, [$"Error running workspace sync: {ex.Message}"]);
+            }
         }
 
         /// <summary>
@@ -575,28 +612,37 @@ namespace Datahub.Infrastructure.Services.Helpers
                 InfrastructureHealthResourceType.AsureServiceBus => await CheckAzureServiceBusQueue(request),
                 InfrastructureHealthResourceType.AzureWebApp => await CheckWebApp(request),
                 InfrastructureHealthResourceType.AzureFunction => await CheckAzureFunctions(request),
+                InfrastructureHealthResourceType.WorkspaceSync => await TriggerWorkspaceSync(request),
+                InfrastructureHealthResourceType.DatabricksSync => await TriggerWorkspaceSync(request),
                 _ => throw new InvalidOperationException()
             };
 
-            // if status is unhealthy or degraded but no errors are listed, there is some unknown problem
-            var details = intermediateResult.Errors.Count == 0 ?
-                (IsUnhealthyStatus(intermediateResult.Status) ? "Please investigate." : default) :
-                string.Join("; ", intermediateResult.Errors);
-
-            var result = new InfrastructureHealthCheck()
+            if (intermediateResult != null)
             {
-                Group = request.Group,
-                Name = GenerateHealthCheckName(request),
-                ResourceType = request.Type,
-                Status = intermediateResult.Status,
-                HealthCheckTimeUtc = DateTime.UtcNow,
-                Details = details,
-            };
+                // if status is unhealthy or degraded but no errors are listed, there is some unknown problem
+                var details = intermediateResult.Errors.Count == 0 ?
+                    (IsUnhealthyStatus(intermediateResult.Status) ? "Please investigate." : default) :
+                    string.Join("; ", intermediateResult.Errors);
 
-            await StoreHealthCheck(result);
-            await StoreHealthCheckRun(result);
+                var result = new InfrastructureHealthCheck()
+                {
+                    Group = request.Group,
+                    Name = GenerateHealthCheckName(request),
+                    ResourceType = request.Type,
+                    Status = intermediateResult.Status,
+                    HealthCheckTimeUtc = DateTime.UtcNow,
+                    Details = details,
+                };
 
-            return new(result, intermediateResult.Errors);
+                await StoreHealthCheck(result);
+                await StoreHealthCheckRun(result);
+
+                return new(result, intermediateResult.Errors);
+            }
+            else
+            {
+                return new(default, []);
+            }
         }
 
         public async Task<IEnumerable<InfrastructureHealthCheckResponse>> ProcessHealthCheckRequest(InfrastructureHealthCheckMessage request)
@@ -630,7 +676,6 @@ namespace Datahub.Infrastructure.Services.Helpers
             {
                 new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
                 new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
-                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, InfrastructureHealthCheckConstants.WorkspacesRequestGroup),
                 new(InfrastructureHealthResourceType.AzureFunction, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress)
             };
 
@@ -645,7 +690,8 @@ namespace Datahub.Infrastructure.Services.Helpers
                 new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
                 new(InfrastructureHealthResourceType.AzureStorageAccount, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
                 new(InfrastructureHealthResourceType.AzureDatabricks, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureWebApp, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)
+                new(InfrastructureHealthResourceType.AzureWebApp, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
+                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)
             });
 
             string[] queuesToCheck =
@@ -736,7 +782,7 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         public BugReportMessage? CreateBugReportMessage(InfrastructureHealthCheck result)
         {
-            if (IsUnhealthyStatus(result.Status))
+            if (result is not null && IsUnhealthyStatus(result.Status))
             {
                 return new BugReportMessage(
                     UserName: InfrastructureHealthCheckConstants.BugReportUsername,
@@ -765,5 +811,5 @@ namespace Datahub.Infrastructure.Services.Helpers
     }
 
     public record IntermediateHealthCheckResult(InfrastructureHealthStatus Status, List<string> Errors);
-    public record InfrastructureHealthCheckResponse(InfrastructureHealthCheck Check, List<string>? Errors);
+    public record InfrastructureHealthCheckResponse(InfrastructureHealthCheck? Check, List<string>? Errors);
 }

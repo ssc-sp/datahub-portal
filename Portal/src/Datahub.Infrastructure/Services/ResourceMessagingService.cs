@@ -96,8 +96,7 @@ public class ResourceMessagingService(
         var workspace = project.ToResourceWorkspace(users);
         var templates = project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate)
-            .Select(r => r.ResourceType)
-            .Select(TerraformTemplate.GetTemplateByName)
+            .Select(r => r.ToTerraformTemplate())
             .ToList();
 
         return new WorkspaceDefinition

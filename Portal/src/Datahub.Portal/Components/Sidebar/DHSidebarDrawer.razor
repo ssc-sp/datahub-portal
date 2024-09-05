@@ -1,0 +1,18 @@
+<SectionContent SectionName="@DatahubTheme.SideBarContentName">
+    <MudDrawer
+        Width="320px"
+        Variant="DrawerVariant.Persistent"
+        Open
+        Overlay="false"
+        Style="@DatahubTheme.SideBorderStyle"
+        Elevation="0"
+        ClipMode="DrawerClipMode.Always" Breakpoint="Breakpoint.Always">
+        <MudDrawerContainer>
+            @ChildContent
+        </MudDrawerContainer>
+    </MudDrawer>
+</SectionContent>
+
+@code {
+    [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
+}

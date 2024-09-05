@@ -22,10 +22,8 @@
     return;
 }
 <MudStack>
-    <MudStack Row="true">
-        <MudText Typo="Typo.h2">
-            @Localizer["Web Application"]
-        </MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <DHMainContentTitle Title="@Localizer["Web Application"]" />
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
@@ -234,8 +232,7 @@
             <MudText Typo="Typo.body1" Class="mt-4">
                 @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
             </MudText>
-        </MudPaper>
-    }
+        </MudPaper>    }
 </MudStack>
 
 

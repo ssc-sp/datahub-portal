@@ -39,6 +39,7 @@ public class WorkspaceSubscriptionHook
 
         var configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables()
+            .AddUserSecrets<Hooks>()
             .AddJsonFile("appsettings.test.json", optional: true)
             .Build();
 

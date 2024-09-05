@@ -101,13 +101,14 @@
     public struct SectionViews
     {
         public const string Dashboard = "dashboard";
-        public const string Delete = "delete";
-        public const string Storage = "storage";
+
+        public const string Delete = "d";
+        public const string Storage = "s";
         public const string Publishing = "publishing";
         public const string Databricks = "databricks";
         public const string Repositories = "repositories";
-        public const string WebApp = "webapp";
-        public const string SqlDatabase = "sqldatabase";
+        public const string WebApp = "app";
+        public const string SqlDatabase = "db";
         public const string ArcGis = "arcgis";
         public const string Toolbox = "toolbox";
         public const string Users = "users";
@@ -119,11 +120,8 @@
 
         // exclude databricks, arcgis, and sudo since the translations are the same.
         public const string Dashboard_FR = "tableau-de-bord";
-        public const string Storage_FR = "stockage";
         public const string Publishing_FR = "publication";
         public const string Repositories_FR = "depots";
-        public const string WebApp_FR = "application-web";
-        public const string SqlDatabase_FR = "base-de-donnees-sql";
         public const string Toolbox_FR = "boite-a-outils";
         public const string Users_FR = "utilisateurs";
         public const string Metadata_FR = "metadonnees";
@@ -192,10 +190,7 @@
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
 
             SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,
-            SectionViews.Storage_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Publishing_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
-            SectionViews.WebApp_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
-            SectionViews.SqlDatabase_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Repositories_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
             SectionViews.Toolbox_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,

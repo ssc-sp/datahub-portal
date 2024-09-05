@@ -8,23 +8,12 @@
 
 @page "/terms-and-conditions"
 @page "/conditions-generales"
+@layout PublicTopbarLayout
 
 <PageTitle>@Localizer["Terms and Conditions - Federal Science DataHub"]</PageTitle>
 
-<h1 id="maincontent" class="sr-only">
-    @Localizer["Terms and conditions page"]
-</h1>
-
-<MudButton HtmlTag="a" Href="/home">
-    @Localizer["Back to DataHub"]
-</MudButton> |
-<LanguageToggle />
-
-<MudContainer Class="my-16" MaxWidth="MaxWidth.Medium">
-
-    <MudText Typo="Typo.h2" Class="mb-8" Align="Align.Center">
-        @Localizer["Terms and Conditions"]
-    </MudText>
+<MudContainer Class="my-20" MaxWidth="MaxWidth.Medium">
+    <DHMainContentTitle Title="@Localizer["Terms and Conditions"]" />
     <DHMarkdown Content="@_markdownContent" LinkRewriter="@RewriteLink"/>
 </MudContainer>
 

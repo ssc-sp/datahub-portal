@@ -28,10 +28,7 @@ public class CreateResourceRunTests
         {
             Templates = new List<TerraformTemplate>
             {
-                new()
-                {
-                    Name = "azure-storage-blob",
-                }
+                new("azure-storage-blob", TerraformTemplate.TemplateStatus.CreateRequested),
             },
             Workspace = new TerraformWorkspace
             {

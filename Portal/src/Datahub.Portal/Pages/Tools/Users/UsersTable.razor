@@ -106,10 +106,10 @@
     private string GetUserStatus(string email)
     {
         var status = "";
-        if (LockedUsers.Contains(email) && !LockedUsers.IsNullOrEmpty())
+        if (LockedUsers.Contains(email) && !LockedUsers.Any())
         {
             status = "locked";
-        } else if (!AllUsers.Contains(email) && !AllUsers.IsNullOrEmpty())
+        } else if (!AllUsers.Contains(email) && !AllUsers.Any())
         {
             status = "missing";
         }
@@ -122,8 +122,12 @@
             return true;
         if (userWorkspaces.User.DisplayName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (userWorkspaces.User.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
+        // Check that userWorkspaces.User.Email is not null
+        if (userWorkspaces.User.Email != null)
+        {
+            if (userWorkspaces.User.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
         return userWorkspaces.Workspaces.Any(x => x.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) || 
                userWorkspaces.Workspaces.Any(x => x.ProjectName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
     }

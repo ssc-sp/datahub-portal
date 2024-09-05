@@ -1,6 +1,7 @@
 ﻿@using Datahub.Core.Services.Docs
 @using Datahub.Markdown.Model
 @using Datahub.Portal.Components.Resources
+@using Datahub.Portal.Components.Sidebar
 
 @inject DocumentationService _docService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -23,9 +24,6 @@
     @Localizer["Resources - Federal Science DataHub"]
 </PageTitle>
 
-<h1 id="maincontent" class="sr-only">
-    @Localizer["Resources page"]
-</h1>
 
 @if (PageIsLoading)
 {
@@ -33,20 +31,21 @@
 }
 else
 {
-    <MudGrid Class="px-4">
+    <DHMainContentTitle Title="@Localizer["Learning resources and documentation"]"/>
+    <MudGrid>
         <MudItem>
             @if (ShowPreviewCards)
             {
                 @if (_docIsLoading || _currentDoc is null)
                 {
-                    <MudContainer MaxWidth="MaxWidth.Small">
+                    <MudContainer>
                         <DHLoadingInitializer Message="@Localizer["Initializing documentation..."]"/>
                     </MudContainer>
                 }
                 else if (_currentDoc.IsRoot)
                 {
-                    <MudStack Class="ma-6">
-                        <MudText Typo="Typo.h2">@Localizer["Most Popular Resources"]</MudText>
+                    <MudStack Class="my-6">
+                        <MudText Typo="Typo.h2">@Localizer["Popular Resources"]</MudText>
                         <MudText Typo="Typo.body1">
                             @Localizer["Below you will find a comprehensive list of the most popular resources on the Datahub. If you are looking for something specific, you can also browse the full list of resources on the navigation sidebar."]
                         </MudText>
@@ -68,14 +67,14 @@ else
 
     <ResourcesAdminView/>
 
-    <SectionContent SectionName="side-bar">
+    <DHSidebarDrawer>
         <LearnSidebar currentCategory="@_currentCategory"
                       currentMarkdownCategory="@_currentMarkdownCategory"
                       hiddenNavGroups="@_hiddenNavGroups"
                       BuildResourceLink="@BuildResourceLink"
                       UpdateCategory="@UpdateCategory"
                       PageIsLoading="@PageIsLoading"/>
-    </SectionContent>
+    </DHSidebarDrawer>
 }
 
 @code {
