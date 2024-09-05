@@ -75,3 +75,17 @@ public static class ProjectResourceConstants
         SERVICE_TYPE_STORAGE
     };
 }
+
+public enum ProjectResourceStatus
+{
+    Available,
+    SendingRequest,
+    PendingRequest,
+    Disabled,
+    SendingDeletion,
+    PendingDeletion,
+    UnderDevelopment,
+    Exists,
+    MetadataRequired,
+    Error
+}
