@@ -71,7 +71,7 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ProjectResourceStatus.Exists:
-                                    <MudStack>
+                                    <MudStack>`
                                         <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                             @Localizer["Tool has been created"]
                                             <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
@@ -137,18 +137,18 @@
     TerraformTemplate.AzureAPI
     ];
 
-    private enum AvailabilityStatus
-    {
-        Available,
-        // SendingRequest,
-        // PendingRequest,
-        // Disabled,
-        // PendingDeletion,
-        UnderDevelopment,
-        // Exists,
-        MetadataRequired
-        // Error
-    }
+    // private enum AvailabilityStatus
+    // {
+    //     Available,
+    //     // SendingRequest,
+    //     // PendingRequest,
+    //     // Disabled,
+    //     // PendingDeletion,
+    //     UnderDevelopment,
+    //     // Exists,
+    //     MetadataRequired
+    //     // Error
+    // }
 
     private readonly Dictionary<string, ProjectResourceStatus> _toolCurrentDevelopmentStatusMap = new()
     {
