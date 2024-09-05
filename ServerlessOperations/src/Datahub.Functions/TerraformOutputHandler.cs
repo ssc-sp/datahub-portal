@@ -32,14 +32,15 @@ public class TerraformOutputHandler(
 
     [Function("TerraformOutputHandler")]
     public async Task RunAsync(
-        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName, Connection = "DatahubServiceBus:ConnectionString")]
+        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage message)
     {
         _logger.LogInformation($"C# Queue trigger function started");
 
         // test for ping
         // if (await pongService.Pong(message.Body.ToString()))
-            // return;
+        // return;
 
         var output = await message.DeserializeAndUnwrapMessageAsync<Dictionary<string, TerraformOutputVariable>>();
 
@@ -114,8 +115,7 @@ public class TerraformOutputHandler(
         var workspaceDefinition =
             await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                 TerraformOutputHandlerName);
-        await resourceMessagingService.SendToUserQueue(workspaceDefinition,
-            config.StorageQueueConnection, config.UserRunRequestQueueName);
+        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
         _logger.LogInformation(
             "Processing complete for user updates to external permissions for project {ProjectAcronym}",
             projectAcronym.Value);
@@ -132,6 +132,7 @@ public class TerraformOutputHandler(
             {
                 _logger.LogInformation("Semaphore is locked, waiting for release");
             }
+
             await semaphore.WaitAsync();
             using var transactionScope =
                 new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
