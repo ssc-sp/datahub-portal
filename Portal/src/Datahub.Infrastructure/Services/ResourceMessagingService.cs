@@ -18,50 +18,12 @@ public class ResourceMessagingService(
     ISendEndpointProvider sendEndpointProvider)
     : IResourceMessagingService
 {
-    public async Task SendToTerraformQueue(WorkspaceDefinition project)
+    public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
     {
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, project);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, workspaceDefinition);
     }
 
-    public async Task SendToTerraformDeleteQueue(WorkspaceDefinition project, int projectId)
-    {
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceDeleteRequestQueueName, project);
-
-        // Update Deleted_DT on the project
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var projectToDeleted = await ctx.Projects
-            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
-        if (projectToDeleted != null)
-        {
-            projectToDeleted.Deleted_DT = DateTime.UtcNow;
-            ctx.Projects.Update(projectToDeleted);
-            await ctx.SaveChangesAsync();
-        }
-    }
-
-    public async Task SendToTerraformDeleteResourceQueue(WorkspaceDefinition project, int projectId, string tool)
-    {
-        // deleting resources from toolbox
-
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceDeleteRequestQueueName, project);
-        
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
-        var projectChanged = await ctx.Projects
-            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
-
-        var resourceToDeleted = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
-
-        if (resourceToDeleted != null && projectChanged != null)
-        {
-            resourceToDeleted.UpdatedAt = DateTime.UtcNow;
-            projectChanged.Resources.Remove(resourceToDeleted);
-            await ctx.SaveChangesAsync();
-        }
-    }
-
-    public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null)
+    public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition)
     {
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition);
     }

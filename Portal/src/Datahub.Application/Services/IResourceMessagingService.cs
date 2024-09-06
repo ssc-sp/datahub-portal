@@ -6,12 +6,7 @@ public interface IResourceMessagingService
 {
     public Task SendToTerraformQueue(WorkspaceDefinition project);
     
-    public Task SendToTerraformDeleteQueue(WorkspaceDefinition project, int projectId);
-
-    public Task SendToTerraformDeleteResourceQueue(WorkspaceDefinition project, int projectId, string tool);
-
-
-    public Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null);
+    public Task SendToUserQueue(WorkspaceDefinition workspaceDefinition);
     
     public Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = null);
 }
