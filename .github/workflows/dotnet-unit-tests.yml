@@ -1,34 +1,37 @@
-name: .NET Unit Tests
+name: build and test
 
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
   push:
-    branches:
-      - main
-      - develop
-  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+    paths:
+    - '**.cs'
+    - '**.csproj'
+
+env:
+  DOTNET_VERSION: '6.0.401' # The .NET SDK version to use
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest
+
+    name: build-and-test-${{matrix.os}}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macOS-latest]
 
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    - name: Setup .NET
+    - uses: actions/checkout@v3
+    - name: Setup .NET Core
       uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: '6.0.x' 
+        dotnet-version: ${{ env.DOTNET_VERSION }}
 
-    - name: Restore dependencies
+    - name: Install dependencies
       run: dotnet restore
-
-    - name: Build the solution
-      run: dotnet build --no-restore --configuration Release
-
-    - name: Run unit tests
-      run: dotnet test --no-build --verbosity normal --configuration Release
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+    
+    - name: Test
+      run: dotnet test --no-restore --verbosity normal
