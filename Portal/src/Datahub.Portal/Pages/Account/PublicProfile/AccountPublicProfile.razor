@@ -22,7 +22,7 @@
               ObjectPosition="ObjectPosition.Center"/>
     <div role="group">
         <h2 class="sr-only">
-            @Localizer["Profile information"]
+            @Localizer["Profile of"] @ViewedUser?.DisplayName
         </h2>
         <MudGrid>
             <MudItem xs="12" md="@(ViewedUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
