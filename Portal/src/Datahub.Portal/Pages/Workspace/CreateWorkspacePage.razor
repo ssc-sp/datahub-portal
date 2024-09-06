@@ -10,91 +10,21 @@
 <PageTitle>@Localizer["Create a Workspace - Federal Science DataHub"]</PageTitle>
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <MudStack Spacing="6">
-        <DHMainContentTitle Title="@Localizer["Create a new Workspace"]"/>
-        <MudText>
-            @Localizer["Please complete the following information to create a new workspace"]
-        </MudText>
-
-        <MudForm Class="mb-4" @bind-IsValid="@_success">
-            <MudTextField T="string"
-                          @bind-Value="_projectTitle"
-                          Label="@Localizer["Workspace Title"]" Required
-                          RequiredError="@Localizer["Workspace Title is required"]"
-                          HelperText="@Localizer["Enter a descriptive title for the workspace"]"
-                          DebounceInterval="500"
-                          OnDebounceIntervalElapsed="UpdateProjectAcronym"/>
-
-            <MudTextField T="string"
-                          @bind-Value="_projectAcronym"
-                          Label="@Localizer["Workspace Acronym"]"
-                          AdornmentIcon="fa-light fa-arrows-rotate"
-                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]"
-                          Adornment="Adornment.End"
-                          OnAdornmentClick="GenerateAcronym"
-                          AdornmentAriaLabel="@Localizer["Generate Acronym"]"
-                          RequiredError="@Localizer["Workspace Acronym is required"]"
-                          Converter="_converter"
-                          @ref="_acronymField"
-                          alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
-                          Required
-                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))"/>
-
-            <MudSelect T="string"
-                       Label="@Localizer["(Optional) Which features are of interest to you?"]"
-                       MultiSelection="true"
-                       HelperText="@Localizer["Please select all that apply"]"
-                       AnchorOrigin="Origin.BottomLeft"
-                       TransformOrigin="Origin.TopLeft"
-                       @bind-Value="@_interestedFeatures">
-                <MudSelectItem T="string" Value="@("Storage")">@Localizer["Storage"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Analytics")">@Localizer["Analytics"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
-            </MudSelect>
-
-            @if (_portalConfiguration.Github.Enabled)
-            {
-                <MudStack Row Class="mt-4">
-                    <MudButton Href="https://github.com/apps/datahub-workspaces"
-                               OnClick="HandleIntegrateWithGit"
-                               Target="_blank"
-                               Variant="Variant.Filled"
-                               EndIcon="@Icons.Custom.Brands.GitHub"
-                               Color="Color.Primary">
-                        @Localizer["Link GitHub"]
-                    </MudButton>
-                    <MudCheckBox Value=@_createRepository
-                                 ValueChanged=@ToggleCreateRepo
-                                 Disabled="!_githubIntegration"
-                                 T="bool"
-                                 Label=@Localizer["Create Repository"]/>
-                </MudStack>
-            }
-
-            @if (_errorMessage is not null)
-            {
-                <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
-                    @_errorMessage
-                </MudAlert>
-            }
-        </MudForm>
-        <MudElement Class="pb-4">
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
-                @Localizer["Cancel"]
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
-                @if (_isCreating)
-                {
-                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
-                }
-                @Localizer["Create Workspace"]
-            </MudButton>
-        </MudElement>
-    </MudStack>
-    <MudDivider/>
-    <DHForm/>
-
+    <DHForm>
+        <DHInput Type="text" Required="true" Label="@Localizer["Workspace title"]" Description="@Localizer["Display title for your workspace."]" Hint="@Localizer["Cannot be changed in the future."]" Placeholder="@Localizer["My new workspace"]"/>
+        <DHInput Type="text" Required="true" Label="@Localizer["Workspace acronym"]" Description="@Localizer["A unique alphanumeric acronym to identify the workspace. Click the generate button to generate an acronym based on the title."]" Hint="@Localizer["Cannot be changed in the future"]" Placeholder="" EndButton="@Localizer["Generate"]"/>
+        <DHInput Type="select-multiple" Required="false" Label="@Localizer["Which features are of interest to you? (optional)"]" Description="@Localizer["Select all that apply."]" Hint="">
+            <option value="Storage">@Localizer["Storage"]</option>
+            <option value="Analytics">@Localizer["Analytics"]</option>
+            <option value="Collaboration">@Localizer["Collaboration"]</option>
+            <option value="Other">@Localizer["Other"]</option>
+        </DHInput>
+        <MudStack Row>
+            <DHButton HtmlTag="button" type="button" Color="Color.Error" Size="Size.Large" Variant="Variant.Outlined">@Localizer["Cancel"]</DHButton>
+            <DHButton HtmlTag="button" type="button" Color="Color.Dark" Size="Size.Large" Variant="Variant.Outlined">@Localizer["Reset"]</DHButton>
+            <DHButton HtmlTag="button" type="submit" Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">@Localizer["Submit"]</DHButton>
+        </MudStack>
+    </DHForm>
 </DatahubAuthView>
 
 @code {
