@@ -8,7 +8,7 @@
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <DHMainContentTitle Title="@Localizer["Public profile"]" />
+        <DHMainContentTitle Title="@Localizer["Public profile"]"/>
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
@@ -41,11 +41,9 @@
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+    [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
@@ -60,7 +58,7 @@
         ViewedUser.UserSettings.HideAchievements = !ViewedUser.UserSettings.HideAchievements;
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
-    
+
     private async Task HandleHideAlertsChanged()
     {
         ViewedUser.UserSettings.HideAlerts = !ViewedUser.UserSettings.HideAlerts;

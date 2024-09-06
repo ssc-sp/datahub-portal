@@ -30,12 +30,7 @@ public class NewProjectTemplateTests
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.NewProjectTemplate);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
@@ -76,19 +71,14 @@ public class NewProjectTemplateTests
 
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{module.Name}.auto.tfvars.json");
+            $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables =
@@ -154,21 +144,16 @@ public class NewProjectTemplateTests
         
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{module.Name}.auto.tfvars.json");
+            $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables =
@@ -218,13 +203,8 @@ subscription_id = ""{{az_subscription_id}}""
             .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
             .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -244,13 +224,8 @@ subscription_id = ""{{az_subscription_id}}""
             Version = "latest"
         };
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         
         // Write a fake backend config before extracting
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),

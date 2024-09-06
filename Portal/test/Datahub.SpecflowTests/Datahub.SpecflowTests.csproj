@@ -35,4 +35,8 @@
     <ItemGroup>
         <Content Include="Features\**\*.feature" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Features\Reregistration\" />
+    </ItemGroup>
 </Project>

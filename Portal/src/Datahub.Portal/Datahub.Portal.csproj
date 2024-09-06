@@ -14,6 +14,7 @@
 		<PackageReference Include="Azure.Identity" Version="1.12.0" />
 		<PackageReference Include="Azure.ResourceManager.AppService" Version="1.0.*" />
 		<PackageReference Include="Azure.ResourceManager.PostgreSql" Version="1.1.*" />
+		<PackageReference Include="Blazor-ApexCharts" Version="3.4.0" />
 		<PackageReference Include="DocumentFormat.OpenXml" Version="3.0.2" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.7" />
 		<PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="8.0.7" />
@@ -36,6 +37,10 @@
 		<PackageReference Include="Octokit" Version="12.0.0" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="8.0.0" />
 		<PackageReference Include="MudBlazor" Version="7.0.0" />
+		<PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.23.1" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.*" />
+		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.3.*" />
+		<PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.3.*" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
 	</ItemGroup>
 	<ItemGroup>

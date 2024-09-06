@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
+using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
@@ -33,8 +34,8 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         public const string FSDHFunctionPrefix = "fsdh-func-dotnet";
 
-        public const string WorkspaceKeyCheck = "project-cmk";
-        public const string CoreKeyCheck = "datahubportal-client-id";
+        public const string WorkspaceKeyVaultCheckKeyName = "project-cmk";
+        public const string CoreKeyVaultCheckSecretName = "datahubportal-client-id";
 
         public const string TerraformAzureDatabricksResourceType = "terraform:azure-databricks";
 
@@ -69,6 +70,44 @@ namespace Datahub.Infrastructure.Services.Helpers
             ClientSecret = DevopsClientSecret,
             TenantId = AzureTenantId
         };
+
+        public static List<InfrastructureHealthResourceType> CoreHealthChecks { get; } =
+        [
+            InfrastructureHealthResourceType.AzureSqlDatabase,
+            InfrastructureHealthResourceType.AzureKeyVault,
+            InfrastructureHealthResourceType.AzureFunction
+        ];
+
+        public static List<InfrastructureHealthResourceType> WorkspaceHealthChecks { get; } =
+        [
+            InfrastructureHealthResourceType.AzureSqlDatabase,
+            InfrastructureHealthResourceType.AzureStorageAccount,
+            InfrastructureHealthResourceType.AzureWebApp,
+            InfrastructureHealthResourceType.WorkspaceSync,
+            InfrastructureHealthResourceType.AzureKeyVault
+        ];
+
+        public static List<string> ServiceBusQueueHealthChecks { get; } =
+        [
+            QueueConstants.PongQueueName,
+            QueueConstants.BugReportQueueName,
+            QueueConstants.EmailNotificationQueueName,
+            QueueConstants.InfrastructureHealthCheckQueueName,
+            QueueConstants.InfrastructureHealthCheckResultsQueueName,
+            QueueConstants.ProjectCapacityUpdateQueueName,
+            QueueConstants.ProjectInactivityNotificationQueueName,
+            QueueConstants.ProjectUsageNotificationQueueName,
+            QueueConstants.ProjectUsageUpdateQueueName,
+            QueueConstants.UserInactivityNotification,
+            QueueConstants.TerraformOutputHandlerQueueName,
+            QueueConstants.WorkspaceAppServiceConfigurationQueueName,
+            QueueConstants.DatabricksSyncOutputQueueName,
+            QueueConstants.KeyvaultSyncOutputQueueName,
+            QueueConstants.StorageSyncOutputQueueName,
+            QueueConstants.ResourceRunRequestQueueName,
+            QueueConstants.UserRunRequestQueueName,
+            QueueConstants.ProjectInactiveQueueName
+        ];
 
         /// <summary>
         /// Function that checks the health of an Azure SQL Database.
@@ -130,24 +169,25 @@ namespace Datahub.Infrastructure.Services.Helpers
                 Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, DevopsClientId);
                 Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, DevopsClientSecret);
 
-                var client =
-                    new SecretClient(GetAzureKeyVaultUrl(request),
-                        new DefaultAzureCredential()); // Authenticates with Azure AD and creates a SecretClient object for the specified key vault
+                var kvUrl = GetAzureKeyVaultUrl(request);
+                var credential = new DefaultAzureCredential();
 
-                KeyVaultSecret secret;
+                var secretClient = new SecretClient(kvUrl, credential);
+                var keyClient = new KeyClient(kvUrl, credential);
+
                 if (request.Group == InfrastructureHealthCheckConstants.CoreRequestGroup) // Key check for core
                 {
-                    secret = await client.GetSecretAsync(InfrastructureHealthCheckConstants.CoreKeyCheck);
+                    var _ = await secretClient.GetSecretAsync(InfrastructureHealthCheckConstants.CoreKeyVaultCheckSecretName);
                 }
                 else // Key check for workspaces (to verify)
                 {
-                    secret = await client.GetSecretAsync(InfrastructureHealthCheckConstants.WorkspaceKeyCheck);
+                    var _ = await keyClient.GetKeyAsync(InfrastructureHealthCheckConstants.WorkspaceKeyVaultCheckKeyName);
                 }
 
                 try
                 {
-                    // Iterate through the keys in the key vault and check if they are expired
-                    await foreach (var secretProperties in client.GetPropertiesOfSecretsAsync())
+                    // Iterate through the secrets in the key vault and check if they are expired
+                    await foreach (var secretProperties in secretClient.GetPropertiesOfSecretsAsync())
                     {
                         if (secretProperties.ExpiresOn < DateTime.UtcNow)
                         {
@@ -160,10 +200,27 @@ namespace Datahub.Infrastructure.Services.Helpers
                     errors.Add("Unable to retrieve the secrets from the key vault." + ex.GetType().ToString());
                     errors.Add($"Details: {ex.Message}");
                 }
+
+                try
+                {
+                    // Iterate through the keys in the key vault and check if they are expired
+                    await foreach (var keyProperties in keyClient.GetPropertiesOfKeysAsync())
+                    {
+                        if (keyProperties.ExpiresOn < DateTime.UtcNow)
+                        {
+                            errors.Add($"The key {keyProperties.Name} has expired.");
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    errors.Add("Unable to retrieve the keys from the key vault." + ex.GetType().ToString());
+                    errors.Add($"Details: {ex.Message}");
+                }
             }
             catch (Exception ex)
             {
-                errors.Add("Unable to connect and retrieve a secret. " + ex.GetType().ToString());
+                errors.Add("Unable to connect and retrieve a key or secret. " + ex.GetType().ToString());
                 errors.Add($"Details: {ex.Message}");
             }
 
@@ -660,13 +717,11 @@ namespace Datahub.Infrastructure.Services.Helpers
                 "http://localhost:7071" :
                 DefaultFunctionUrl;
 
-            var coreChecks = new List<InfrastructureHealthCheckMessage>()
+            var coreChecks = CoreHealthChecks.Select(c => c switch
             {
-                new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
-                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
-                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, InfrastructureHealthCheckConstants.WorkspacesRequestGroup),
-                new(InfrastructureHealthResourceType.AzureFunction, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress)
-            };
+                InfrastructureHealthResourceType.AzureFunction => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress),
+                _ => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup)
+            });
 
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
@@ -674,26 +729,14 @@ namespace Datahub.Infrastructure.Services.Helpers
             var projects = await ctx.Projects
                 .AsNoTracking()
                 .ToListAsync();
-            var workspaceChecks = projects.SelectMany(p => new List<InfrastructureHealthCheckMessage>()
-            {
-                new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureStorageAccount, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureDatabricks, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureWebApp, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)
-            });
+            var workspaceChecks = projects
+                .SelectMany(p => WorkspaceHealthChecks
+                    .Select(c => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)));
 
-            string[] queuesToCheck =
-            [
-                "bug-report", "delete-run-request", "email-notification", "infrastructure-health-check-results", 
-                "keyvault-sync-output", "pong-queue", "project-capacity-update", "project-inactivity-notification", 
-                "project-usage-notification", "project-usage-update", "resource-delete-request", "resource-run-request", 
-                "storage-capacity", "storage-sync-output", "terraform-output", "terraform-output-handler", 
-                "user-inactivity-notification", "user-run-request", "workspace-app-service-configuration"
-            ];
-            var queueChecks = queuesToCheck.SelectMany(q => new List<InfrastructureHealthCheckMessage>()
+            var queueChecks = ServiceBusQueueHealthChecks.SelectMany(q => new List<InfrastructureHealthCheckMessage>()
             {
-                new(InfrastructureHealthResourceType.AzureStorageQueue, InfrastructureHealthCheckConstants.MainQueueRequestGroup, q),
-                new(InfrastructureHealthResourceType.AzureStorageQueue, InfrastructureHealthCheckConstants.PoisonQueueSuffix, q)
+                new(InfrastructureHealthResourceType.AsureServiceBus, InfrastructureHealthCheckConstants.MainQueueRequestGroup, q),
+                new(InfrastructureHealthResourceType.AsureServiceBus, InfrastructureHealthCheckConstants.PoisonQueueRequestGroup, q)
             });
 
             var allChecks = coreChecks.Concat(workspaceChecks).Concat(queueChecks);

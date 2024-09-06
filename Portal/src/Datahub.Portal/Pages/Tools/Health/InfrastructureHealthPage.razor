@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Health
 @using System.Text.Json
+@using Datahub.Infrastructure.Services.Helpers
 @using Microsoft.Graph;
 @using Microsoft.Identity.Web;
 @using Microsoft.Extensions.Caching.Memory
@@ -207,21 +208,9 @@ else
 
     private List<InfrastructureHealthCheck> _infrastructureHealthData = new ();
 
-    private List<InfrastructureHealthResourceType> _coreChecks = new List<InfrastructureHealthResourceType>
-	{
-		InfrastructureHealthResourceType.AzureSqlDatabase,
-		InfrastructureHealthResourceType.AzureKeyVault,
-        InfrastructureHealthResourceType.AsureServiceBus,
-		InfrastructureHealthResourceType.AzureFunction,
-	};
-    private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
-    {
-        InfrastructureHealthResourceType.AzureSqlDatabase,
-        // InfrastructureHealthResourceType.AzureDatabricks,
-        InfrastructureHealthResourceType.AzureStorageAccount,
-        InfrastructureHealthResourceType.AzureWebApp,
-        InfrastructureHealthResourceType.WorkspaceSync,
-    };
+    private List<InfrastructureHealthResourceType> _coreChecks = HealthCheckHelper.CoreHealthChecks;
+
+    private List<InfrastructureHealthResourceType> _workspaceChecks = HealthCheckHelper.WorkspaceHealthChecks;
 
     public bool isLoading { get; set; } = false;
     public bool hasQueues { get; set; } = false;
@@ -322,14 +311,7 @@ else
                 .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
                 .ToList();
 
-        string[] queues = new string[]
-        {
-            "resource-delete-request", "email-notification", "pong-queue", "project-capacity-update",
-            "project-inactivity-notification", "project-usage-notification",
-            "project-usage-update", "resource-run-request", "storage-sync-output", "terraform-output-handler",
-            "user-inactivity-notification", "user-run-request","keyvault-sync-output",
-            "workspace-app-service-configuration","bug-report","infrastructure-health-check-results"
-        };
+        var queues = HealthCheckHelper.ServiceBusQueueHealthChecks;
         _queueInfrastructureHealth = _infrastructureHealthChecks
                 .Where(h => (h.ResourceType == InfrastructureHealthResourceType.AsureServiceBus))
                 .Where(h => (queues.Contains(h.Name)))

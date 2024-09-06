@@ -33,18 +33,7 @@
     <MudAppBar Elevation="0" Style="@_topBorderStyle">
         <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>
     </MudAppBar>
-    <MudDrawer
-        Width="320px"
-        Variant="DrawerVariant.Persistent"
-        Open
-        Overlay="false"
-        Style="@_sideBorderStyle"
-        Elevation="0"
-        ClipMode="DrawerClipMode.Always" Breakpoint="Breakpoint.Always">
-        <MudDrawerContainer>
-            <SectionOutlet SectionName="side-bar"/>
-        </MudDrawerContainer>
-    </MudDrawer>
+    <SectionOutlet SectionName="@DatahubTheme.SideBarContentName"/>
     <MudMainContent>
         <EnvironmentTopBar/>
         <ErrorBoundary @ref="_errorBoundary">
