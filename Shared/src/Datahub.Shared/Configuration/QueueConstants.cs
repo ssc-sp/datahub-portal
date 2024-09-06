@@ -18,6 +18,11 @@ public static class QueueConstants
     public const string TerraformOutputHandlerQueueName = "terraform-output-handler";
     public const string WorkspaceAppServiceConfigurationQueueName = "workspace-app-service-configuration";
 
+    // Synchronization output queues
+    public const string DatabricksSyncOutputQueueName = "databricks-sync-output";
+    public const string KeyvaultSyncOutputQueueName = "keyvault-sync-output";
+    public const string StorageSyncOutputQueueName = "storage-sync-output";
+
     // Resource Provisioner Queues
     public const string ResourceRunRequestQueueName = "resource-run-request";
     public const string UserRunRequestQueueName = "user-run-request";

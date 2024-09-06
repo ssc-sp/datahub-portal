@@ -326,6 +326,9 @@ public class TerraformOutputHandler(
         }
 
         var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        var resourceGroupName =
+            GetStatusMapping(outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value);
+
         if (project.Project_Phase != outputPhase)
         {
             project.Project_Phase = outputPhase;
@@ -345,10 +348,16 @@ public class TerraformOutputHandler(
             _logger.LogInformation("Workspace version not found in output variables");
         }
 
+        var jsonContent = new JsonObject
+        {
+            ["resource_group_name"] = resourceGroupName
+        };
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
 
         projectResource.CreatedAt = DateTime.UtcNow;
+        projectResource.JsonContent = jsonContent.ToString();
 
         await projectDbContext.SaveChangesAsync();
     }
