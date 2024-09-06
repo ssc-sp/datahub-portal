@@ -169,7 +169,7 @@ public class EmailNotificationService : IEmailNotificationService
         if (isHtml)
         {
             sb.Append("<hr />");
-            sb.Append("<b>Original Recipients:</b>");
+            sb.Append("<strong>Original Recipients:</strong>");
             sb.Append("<ul>");
             foreach (var recipient in recipients)
             {
