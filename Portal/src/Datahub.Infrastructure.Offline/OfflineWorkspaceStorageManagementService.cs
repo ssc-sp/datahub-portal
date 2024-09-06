@@ -13,5 +13,10 @@ namespace Datahub.Infrastructure.Offline
         {
             throw new NotImplementedException();
         }
+
+        public bool CheckUpdateNeeded(string workspaceAcronym)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
