@@ -115,8 +115,7 @@ public class TerraformOutputHandler(
         var workspaceDefinition =
             await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                 TerraformOutputHandlerName);
-        await resourceMessagingService.SendToUserQueue(workspaceDefinition,
-            config.StorageQueueConnection, config.UserRunRequestQueueName);
+        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
         _logger.LogInformation(
             "Processing complete for user updates to external permissions for project {ProjectAcronym}",
             projectAcronym.Value);

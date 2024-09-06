@@ -26,7 +26,6 @@ namespace Datahub.Functions
         QueuePongService pongService,
         ISendEndpointProvider sendEndpointProvider,
         IProjectInactivityNotificationService projectInactivityNotificationService,
-        IResourceMessagingService resourceMessagingService,
         EmailValidator emailValidator,
         IDateProvider dateProvider,
         AzureConfig config,
@@ -43,11 +42,12 @@ namespace Datahub.Functions
         {
             // test for ping
             // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-                // return;
+            // return;
 
             // deserialize message
 
-            var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectInactivityNotificationMessage>();
+            var message = await serviceBusReceivedMessage
+                .DeserializeAndUnwrapMessageAsync<ProjectInactivityNotificationMessage>();
 
             // verify message 
             if (message is null)
@@ -55,7 +55,7 @@ namespace Datahub.Functions
                 throw new Exception($"Invalid queue message:\n{serviceBusReceivedMessage.Body.ToString()}");
             }
 
-            using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
+            await using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
             var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId)
@@ -67,7 +67,7 @@ namespace Datahub.Functions
             var daysUntilDeletion = dateProvider.ProjectDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
             var hasCostRecovery = project.HasCostRecovery;
-            (var contacts, var acronym) = await GetProjectDetails(message.ProjectId, ct);
+            var (contacts, acronym) = await GetProjectDetails(message.ProjectId, ct);
 
             // check if project to be notified
             var email = await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow,
@@ -76,7 +76,8 @@ namespace Datahub.Functions
             // if email is not null, send email
             if (email != null)
             {
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, email, ct);
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                    email, ct);
 
                 // add notification to db
                 var sentTo = string.Join(",", contacts);
@@ -85,13 +86,14 @@ namespace Datahub.Functions
             }
 
             // check if project to be deleted
-            var workspaceDefinition = await CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow,
-                hasCostRecovery, acronym);
+            var projectToBeDeleted = CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow, hasCostRecovery);
 
             // if project to be deleted, send to terraform delete queue
-            if (workspaceDefinition != null)
+            if (projectToBeDeleted)
             {
-                await resourceMessagingService.SendToTerraformDeleteQueue(workspaceDefinition, project.Project_ID);
+                var projectInactiveMessage = new ProjectInactiveMessage(acronym);
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectInactiveQueueName, projectInactiveMessage,
+                    ct);
             }
         }
 
@@ -109,18 +111,15 @@ namespace Datahub.Functions
             return null;
         }
 
-        public async Task<WorkspaceDefinition?> CheckIfProjectToBeDeleted(int daysSinceLastLogin,
-            DateTime? operationalWindow, bool hasCostRecovery, string acronym)
+        public bool CheckIfProjectToBeDeleted(int daysSinceLastLogin,
+            DateTime? operationalWindow, bool hasCostRecovery)
         {
-            // check if we are past operational window or that it is null and that the project has no cost recovery and that we are at or are past the deletion day
-            if ((operationalWindow == null || operationalWindow < dateProvider.Today) &&
-                daysSinceLastLogin >= dateProvider.ProjectDeletionDay() &&
-                !hasCostRecovery)
-            {
-                return await resourceMessagingService.GetWorkspaceDefinition(acronym);
-            }
-
-            return null;
+            // check if we are past operational window or that it is null
+            // and that the project has no cost recovery
+            // and that we are at or are past the deletion day
+            return (operationalWindow == null || operationalWindow < dateProvider.Today) &&
+                   daysSinceLastLogin >= dateProvider.ProjectDeletionDay() &&
+                   !hasCostRecovery;
         }
 
         private async Task<(List<string>, string)> GetProjectDetails(int projectId, CancellationToken cancellationToken)
