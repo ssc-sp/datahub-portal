@@ -106,7 +106,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             QueueConstants.StorageSyncOutputQueueName,
             QueueConstants.ResourceRunRequestQueueName,
             QueueConstants.UserRunRequestQueueName,
-            QueueConstants.ResourceDeleteRequestQueueName
+            QueueConstants.ProjectInactiveQueueName
         ];
 
         /// <summary>

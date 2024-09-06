@@ -10,6 +10,7 @@ public static class QueueConstants
     public const string InfrastructureHealthCheckQueueName = "infrastructure-health-check";
     public const string InfrastructureHealthCheckResultsQueueName = "infrastructure-health-check-results";
     public const string ProjectCapacityUpdateQueueName = "project-capacity-update";
+    public const string ProjectInactiveQueueName = "project-inactive";
     public const string ProjectInactivityNotificationQueueName = "project-inactivity-notification";
     public const string ProjectUsageNotificationQueueName = "project-usage-notification";
     public const string ProjectUsageUpdateQueueName = "project-usage-update";
@@ -25,5 +26,4 @@ public static class QueueConstants
     // Resource Provisioner Queues
     public const string ResourceRunRequestQueueName = "resource-run-request";
     public const string UserRunRequestQueueName = "user-run-request";
-    public const string ResourceDeleteRequestQueueName = "resource-delete-request";
 }
