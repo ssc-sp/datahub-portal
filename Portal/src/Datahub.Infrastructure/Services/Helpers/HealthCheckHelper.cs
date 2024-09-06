@@ -541,7 +541,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
             catch (Exception ex)
             {
-                errors.Add($"Error while checking Azure Service Bus Queue {request.Name}: {ex.Message.Replace(",", ".")}");
+                errors.Add($"Error while checking Azure Service Bus Queue {queueName}: {ex.Message.Replace(",", ".")}");
             }
 
             if (errors.Count > 0)
@@ -632,7 +632,6 @@ namespace Datahub.Infrastructure.Services.Helpers
         private static string GenerateHealthCheckName(InfrastructureHealthCheckMessage request) => request.Type switch
         {
             InfrastructureHealthResourceType.AzureStorageQueue => GetRequestQueueName(request),
-            //InfrastructureHealthResourceType.AsureServiceBus => GetRequestQueueName(request),
             _ => request.Name
         };
 
