@@ -93,7 +93,7 @@ namespace Datahub.SpecflowTests.Hooks
                 new()
                 {
                     Project_Name = Testing.WorkspaceName2,
-                    Project_Acronym_CD = Testing.ExistingWorkspaceAcronym,
+                    Project_Acronym_CD = Testing.WorkspaceAcronym2,
                     DatahubAzureSubscription = sub
                 }
             };
@@ -103,7 +103,7 @@ namespace Datahub.SpecflowTests.Hooks
             context.SaveChanges();
 
             var project1 = projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
-            var project2 = projects.First(p => p.Project_Acronym_CD == Testing.ExistingWorkspaceAcronym);
+            var project2 = projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym2);
             var resourceTypes = new List<string>
             {
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
@@ -116,7 +116,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }

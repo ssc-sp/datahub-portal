@@ -71,14 +71,14 @@ namespace Datahub.SpecflowTests.Steps
                     Amount = 10,
                     Date = Testing.Dates.First(),
                     Source = Testing.ServiceNames.First(),
-                    ResourceGroupName = Testing.ExistingTestRg
+                    ResourceGroupName = Testing.ResourceGroupName1
                 },
                 new()
                 {
                     Amount = 20,
                     Date = Testing.Dates.First(),
                     Source = Testing.ServiceNames.Last(),
-                    ResourceGroupName = Testing.ExistingTestRg
+                    ResourceGroupName = Testing.ResourceGroupName1
                 }
             };
             scenarioContext.Set(costs, "costs");

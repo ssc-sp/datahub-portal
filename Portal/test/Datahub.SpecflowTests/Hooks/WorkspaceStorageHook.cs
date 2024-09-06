@@ -56,29 +56,29 @@ namespace Datahub.SpecflowTests.Hooks
 
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym)
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym2)
-                .Returns(new List<string> { Testing.ExistingTestRg2 });
+                .Returns(new List<string> { Testing.ResourceGroupName2 });
             workspaceRgManagementService
                 .GetAllSubscriptionResourceGroupsAsync( datahubPortalConfiguration.AzureAd.SubscriptionId )
-                .Returns(new List<string> { Testing.ExistingTestRg, Testing.ExistingTestRg2 });
+                .Returns(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 });
             workspaceRgManagementService
                 .GetAllResourceGroupsAsync()
-                .Returns(new List<string> { Testing.ExistingTestRg, Testing.ExistingTestRg2 });
+                .Returns(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym)
                 .Returns(new List<ResourceIdentifier>
                 {
                     new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg}")
+                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ResourceGroupName1}")
                 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym2)
                 .Returns(new List<ResourceIdentifier>
                 {
                     new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg2}")
+                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ResourceGroupName2}")
                 });
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
@@ -142,7 +142,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }

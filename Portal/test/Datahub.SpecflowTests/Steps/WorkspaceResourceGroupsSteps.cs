@@ -19,7 +19,7 @@ namespace Datahub.SpecflowTests.Steps
         public async Task GivenAWorkspaceWithANewProjectTemplate()
         {
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(Testing.ExistingTestRg, "expectedResourceGroup");
+            scenarioContext.Set(Testing.ResourceGroupName1, "expectedResourceGroup");
             await SetSubToAzureSub(Testing.WorkspaceAcronym);
         }
 
@@ -52,7 +52,7 @@ namespace Datahub.SpecflowTests.Steps
         public async Task GivenAWorkspaceWithAnEmptyNewProjectTemplateAndABlobStorage()
         {
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(Testing.ExistingTestRg, "expectedResourceGroup");
+            scenarioContext.Set(Testing.ResourceGroupName1, "expectedResourceGroup");
             using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
             var newProjectTemplate = ctx.Project_Resources2.First(p =>
@@ -79,9 +79,9 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a workspace with RG not stored in DB")]
         public async Task GivenAWorkspaceWithRgNotStoredInDb()
         {
-            scenarioContext.Set(Testing.ExistingWorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(Testing.ExistingTestRg2, "expectedResourceGroup");
-            await SetSubToAzureSub(Testing.ExistingWorkspaceAcronym);
+            scenarioContext.Set(Testing.WorkspaceAcronym2, "workspaceAcronym");
+            scenarioContext.Set(Testing.ResourceGroupName2, "expectedResourceGroup");
+            await SetSubToAzureSub(Testing.WorkspaceAcronym2);
         }
 
         [Given(@"an invalid workspace")]
@@ -102,7 +102,7 @@ namespace Datahub.SpecflowTests.Steps
         {
             var subId = datahubPortalConfiguration.AzureAd.SubscriptionId;
             scenarioContext.Set(subId, "subscriptionId");
-            scenarioContext.Set(Testing.ExistingTestRg2, "expectedResourceGroup");
+            scenarioContext.Set(Testing.ResourceGroupName2, "expectedResourceGroup");
         }
 
         [When(@"the subscription resource groups are requested")]
@@ -131,8 +131,8 @@ namespace Datahub.SpecflowTests.Steps
         public async Task GivenAListOfProjectsWithResourceGroups()
         {
             await SetSubToAzureSub(Testing.WorkspaceAcronym);
-            await SetSubToAzureSub(Testing.ExistingWorkspaceAcronym);
-            scenarioContext.Set(new List<string> { Testing.ExistingTestRg, Testing.ExistingTestRg2 }, "expectedResourceGroups");
+            await SetSubToAzureSub(Testing.WorkspaceAcronym2);
+            scenarioContext.Set(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 }, "expectedResourceGroups");
         }
         
         
