@@ -42,12 +42,12 @@
 
     private LoginModel loginModel = new LoginModel();
 
-    private async void HandleLogin()
+    internal async void HandleLogin()
     {
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
         if (existingUser == null || existingUser.IsDeleted)
-    {
+        {
             _navigationManager.NavigateTo($"/register?email={loginHint}");
         }
         else
@@ -55,6 +55,7 @@
             if (existingUser.IsLocked)
             {
                 _navigationManager.NavigateTo("/locked");
+                return;
             }
 
             //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
