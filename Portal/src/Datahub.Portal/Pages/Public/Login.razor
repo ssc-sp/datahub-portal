@@ -6,17 +6,44 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 
+<style>
+    .custom-email-field {
+        padding: 4px; /* Adjust padding as needed */
+        width: 100%; /* Make the field take full width of its container */
+        max-width: none; /* Remove any max-width constraint */
+        box-sizing: border-box; /* Ensure padding is included in the width */
+    }
+
+    .custom-email-field:focus {
+        border-color: #007bff;
+        outline: none;
+    }
+    .flex-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+    }
+
+    .flex-item {
+        width: 100%;
+        max-width: 400px; 
+        text-align: center;
+    }
+</style>
+
 <EditForm Model="@loginModel">
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
 <MudStack Class="my-16 py-16">
     <MudStack AlignItems="AlignItems.Center" Class="mt-4">
-        <MudText Typo="Typo.h2" Class="text-center">@Localizer["Please login to continue"]</MudText>
-            <div class="form-group">
-                <label asp-for="Email">Email address</label>
-                <InputText id="Email" style="border: black 1px solid; border-radius: 4px;" @bind-Value="loginModel.Email" class="form-control" />
-            </div>
+        <div class="flex-container">
+            <MudText Typo="Typo.h2" Class="text-center flex-item">@Localizer["Please login to continue"]</MudText>
+            <MudStack Class="form-group flex-item" AlignItems="AlignItems.Center">
+                <MudTextField T="string" Label="@Localizer["Email address"]" @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="custom-email-field my-2" />
+            </MudStack>
+        </div>
         <MudButton HtmlTag="a" Class="mx-auto px-16 my-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
         <MudText Typo="Typo.body1">
             @Localizer["Don't have an account?"]
