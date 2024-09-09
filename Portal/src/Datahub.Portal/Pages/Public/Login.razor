@@ -45,7 +45,7 @@
                 </strong>
                 <div class="form-group">
                     <MudStack Class="form-group flex-item" AlignItems="AlignItems.Center">
-                        <MudTextField T="string" Label="@Localizer["Email address"]" @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="custom-email-field my-2" />
+                        <MudTextField T="string" id="Email" Label="@Localizer["Email address"]" @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="custom-email-field my-2" />
                     </MudStack>
                 </div>
                 <MudButton Class="mx-4 px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
