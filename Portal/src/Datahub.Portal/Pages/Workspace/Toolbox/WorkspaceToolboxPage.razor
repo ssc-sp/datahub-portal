@@ -1,13 +1,18 @@
+@using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
+@using Datahub.Application.Services.Notifications
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
+@inject NavigationManager NavigationManager
+@inject IDatahubEmailService _emailService
+@inject IResourceMessagingService _resourceMessagingService
 
 <MudStack>
     <DHMainContentTitle Title="@Localizer["Toolbox Catalogue"]" />
@@ -17,7 +22,7 @@
 
     <MudDivider Class="my-6"/>
     <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-        @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
+        @Localizer["The \"Add to Workspace\" button will show the state of your tool request after being clicked."]
     </MudAlert>
 
     @if (_metadataRequired)
@@ -49,39 +54,52 @@
                         <MudStack Row>
                             @switch (_toolCurrentDevelopmentStatusMap[tool])
                             {
-                                case ToolStatus.Available:
+                                case ProjectResourceStatus.Available:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
-                                        @Localizer["Add to Workspace"]
+                                        @Localizer["Add Tool to Workspace"]
                                         <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.SendingRequest:
+                                case ProjectResourceStatus.SendingRequest:
                                     <SpinnerButton Variant="@Variant.Filled">
                                         @Localizer["Sending Request..."]
                                     </SpinnerButton>
                                     break;
-                                case ToolStatus.PendingRequest:
+                                case ProjectResourceStatus.PendingRequest:
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
-                                case ToolStatus.Exists:
-                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
-                                        @Localizer["Tool has been created"]
-                                        <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
-                                    </DHButton>
+                                case ProjectResourceStatus.Exists:
+                                    <MudStack>`
+                                        <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                            @Localizer["Tool has been created"]
+                                            <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        </DHButton>
+                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+                                            <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(async () => GoToResourceDeletionPage(tool))">
+                                            @Localizer["Remove Tool from Workspace"]
+                                            <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        </DHButton>
+                                        </DatahubAuthView>
+                                    </MudStack>
                                     break;
-                                case ToolStatus.Disabled:
+                                case ProjectResourceStatus.SendingDeletion:
+                                    <SpinnerButton Variant="@Variant.Filled">
+                                        @Localizer["Deleting Tool..."]
+                                    </SpinnerButton>
+                                    break;
+                                case ProjectResourceStatus.Disabled:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
                                         <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.UnderDevelopment:
+                                case ProjectResourceStatus.UnderDevelopment:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Under Development"]
                                         <DHIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;" />
                                     </DHButton>
                                     break;
-                                case ToolStatus.MetadataRequired:
+                                case ProjectResourceStatus.MetadataRequired:
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Metadata Required"]
                                         <DHIcon Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;" />
@@ -103,7 +121,6 @@
 </MudStack>
 
 @code {
-
     [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _workspace;
@@ -111,37 +128,39 @@
     private readonly List<string> _toolList =
     [
         TerraformTemplate.AzureDatabricks,
-        TerraformTemplate.AzureStorageBlob,
-        TerraformTemplate.AzureAppService,
-        TerraformTemplate.AzurePostgres,
-        TerraformTemplate.AzureArcGis,
-        TerraformTemplate.AzureAPI
+    TerraformTemplate.AzureStorageBlob,
+    TerraformTemplate.AzureAppService,
+    TerraformTemplate.AzurePostgres,
+    TerraformTemplate.AzureArcGis,
+    TerraformTemplate.AzureAPI
     ];
 
-    private enum ToolStatus
-    {
-        Available,
-        SendingRequest,
-        PendingRequest,
-        Disabled,
-        UnderDevelopment,
-        Exists,
-        MetadataRequired,
-        Error
-    }
+    // private enum AvailabilityStatus
+    // {
+    //     Available,
+    //     // SendingRequest,
+    //     // PendingRequest,
+    //     // Disabled,
+    //     // PendingDeletion,
+    //     UnderDevelopment,
+    //     // Exists,
+    //     MetadataRequired
+    //     // Error
+    // }
 
-    private readonly Dictionary<string, ToolStatus> _toolCurrentDevelopmentStatusMap = new()
+    private readonly Dictionary<string, ProjectResourceStatus> _toolCurrentDevelopmentStatusMap = new()
     {
-        { TerraformTemplate.AzureDatabricks, ToolStatus.Available },
-        { TerraformTemplate.AzureStorageBlob, ToolStatus.Available },
-        { TerraformTemplate.AzureAppService, ToolStatus.Available },
-        { TerraformTemplate.AzurePostgres, ToolStatus.Available },
-        { TerraformTemplate.AzureArcGis, ToolStatus.UnderDevelopment },
-        { TerraformTemplate.AzureAPI, ToolStatus.UnderDevelopment }
+        { TerraformTemplate.AzureDatabricks, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzureStorageBlob, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzureAppService, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzurePostgres, ProjectResourceStatus.Available },
+        { TerraformTemplate.AzureArcGis, ProjectResourceStatus.UnderDevelopment },
+        { TerraformTemplate.AzureAPI, ProjectResourceStatus.UnderDevelopment }
     };
 
     private bool _metadataRequired = true;
     private string _metadataUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Metadata}";
+    private string _resourceDeletionUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Delete}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -158,7 +177,7 @@
         {
             foreach (var (tool, _) in _toolCurrentDevelopmentStatusMap)
             {
-                _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.MetadataRequired;
+                _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.MetadataRequired;
             }
         }
         else
@@ -168,12 +187,29 @@
             {
                 _toolCurrentDevelopmentStatusMap[tool] = GetToolStatus(tool);
             }
+            // checking for deleted tools
+            ToolDeletion();
         }
     }
 
-    private ToolStatus GetToolStatus(string tool)
+    private async void SetToolStatus(string tool)
     {
-        if (_toolCurrentDevelopmentStatusMap[tool] != ToolStatus.Available)
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .AsNoTracking()
+            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+
+        if (_resourceCheck != null)
+        {
+            _resourceCheck.Status = _toolCurrentDevelopmentStatusMap[tool].ToString();
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private ProjectResourceStatus GetToolStatus(string tool)
+    {
+        if (_toolCurrentDevelopmentStatusMap[tool] != ProjectResourceStatus.Available)
         {
             return _toolCurrentDevelopmentStatusMap[tool];
         }
@@ -181,46 +217,170 @@
         var toolResource = _workspace.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(tool));
         if (toolResource == null)
         {
-            return ToolStatus.Available;
+            return ProjectResourceStatus.Available;
         }
 
         if (toolResource.CreatedAt == null)
         {
-            return ToolStatus.PendingRequest;
+            return ProjectResourceStatus.PendingRequest;
         }
 
         if (toolResource.CreatedAt < DateTime.UtcNow)
         {
-            return ToolStatus.Exists;
+            return ProjectResourceStatus.Exists;
         }
 
-        return ToolStatus.Error;
+        return ProjectResourceStatus.Error;
+    }
+
+    private async void ToolDeletion()
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+
+        foreach (var tool in _toolList)
+        {
+            var _resourceCheck = await ctx.Project_Resources2
+                .AsNoTracking()
+                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            if (_resourceCheck != null && _resourceCheck.Status == "SendingDeletion")
+            {
+                _toolCurrentDevelopmentStatusMap[tool] = GetStatus(_resourceCheck.Status);
+                await RemoveToolFromWorkspace(tool);
+            }
+        }
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddToolToWorkspace(string tool)
     {
         _logger.LogInformation("Adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-        _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.SendingRequest;
+        _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.SendingRequest;
         await InvokeAsync(StateHasChanged);
 
         try
         {
+            await using var ctx = await _contextFactory.CreateDbContextAsync();
+            var _resourceCheck = await ctx.Project_Resources2
+                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            _resourceCheck.Status = ProjectResourceStatus.PendingRequest.ToString();
+
+            await ctx.SaveChangesAsync();
+
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             var template = new TerraformTemplate(tool, TerraformTemplate.TemplateStatus.CreateRequested);
             await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.PendingRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
-            _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.Error;
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Error;
             _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(tool)], Severity.Error);
         }
     }
 
+    private async Task RemoveToolFromWorkspace(string tool)
+    {
+        _logger.LogInformation("Removing {Tool} from {WorkspaceAcronym}", GetLabel(tool), WorkspaceAcronym);
+        _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.SendingDeletion;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+
+            await using var ctx = await _contextFactory.CreateDbContextAsync();
+            var _resourceCheck = await ctx.Project_Resources2
+                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+
+
+            // adding deletion request to queue
+            var userEmail = await _userInformationService.GetUserEmail();
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, requestingUserEmail: userEmail);
+            //await _resourceMessagingService.SendToTerraformDeleteResourceQueue(workspaceDefinition, _workspace.Project_ID, tool);
+
+            _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Available;
+            _snackbar.Add(Localizer["{0} successfully removed from your workspace", GetLabel(tool)], Severity.Success);
+
+            _resourceCheck.Status = ProjectResourceStatus.Available.ToString();
+
+            await HandleSendEmail(tool);
+
+            await ctx.SaveChangesAsync();
+
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error removing tool {Tool} from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
+            _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Error;
+            _snackbar.Add(Localizer["Error removing {0} from your workspace", GetLabel(tool)], Severity.Error);
+        }
+    }
+
+    private async void GoToResourceDeletionPage(string tool)
+    {
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        var _resourceCheck = await ctx.Project_Resources2
+            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        _resourceCheck.Status = ProjectResourceStatus.PendingDeletion.ToString();
+
+        await ctx.SaveChangesAsync();
+        await InvokeAsync(StateHasChanged);
+
+        NavigationManager.NavigateTo(_resourceDeletionUrl);
+    }
+
+
+
+    private async Task HandleSendEmail(string tool)
+    {
+        List<string> recipients = GetProjectAdminsEmails();
+        string subject = tool + " deleted from workspace " + WorkspaceAcronym;
+
+        string body = "An admin in your workspace (" + WorkspaceAcronym + ") has deleted the " + tool + " resource.";
+
+        await SendEmailAsync(async () =>
+        {
+            await _emailService.SendToRecipients("ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca", recipients, subject, body);
+        });
+    }
+
+    private async Task SendEmailAsync(Func<Task> action)
+    {
+        try
+        {
+            await action.Invoke();
+            _logger.LogInformation("Email sent");
+        }
+        catch
+        {
+            _logger.LogInformation("Failed to send the email");
+        }
+    }
+
+    public List<string> GetProjectAdminsEmails()
+    {
+        using var ctx = _contextFactory.CreateDbContext();
+
+        return ctx.Project_Users
+            .Where(a =>
+                a.Project.Project_Acronym_CD == WorkspaceAcronym
+                && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
+                    a.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+                && !string.IsNullOrEmpty(a.PortalUser.Email))
+            .Select(f => f.PortalUser.Email)
+            .ToList();
+    }
+
+
+    
+    
+    
     private string GetLabel(string tool)
     {
         return tool switch
@@ -232,6 +392,15 @@
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
             TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
             _ => tool
+        };
+    }
+
+    private ProjectResourceStatus GetStatus(string toolStatus)
+    {
+        return toolStatus switch
+        {
+            "SendingDeletion" => ProjectResourceStatus.SendingDeletion,
+            _ => ProjectResourceStatus.Error
         };
     }
 
