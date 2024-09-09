@@ -147,7 +147,7 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
                 }
             }
 
-            var projRgName = rgNames.FirstOrDefault(rg => rg.Contains($"_{PROJ_RG_KEY}_{workspaceAcronym}_"));
+            var projRgName = rgNames.FirstOrDefault(rg => rg.Contains($"_{PROJ_RG_KEY}_{workspaceAcronym}_", StringComparison.InvariantCultureIgnoreCase));
             if (projRgName != null)
             {
                 try

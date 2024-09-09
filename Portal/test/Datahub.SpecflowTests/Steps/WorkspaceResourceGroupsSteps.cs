@@ -1,6 +1,8 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.ResourceGroups;
+using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -168,6 +170,31 @@ namespace Datahub.SpecflowTests.Steps
             var expectedResourceGroups = scenarioContext.Get<List<string>>("expectedResourceGroups");
 
             resourceGroups.Should().BeEquivalentTo(expectedResourceGroups);
+        }
+
+        [Given(@"a workspace with a new-project-template and a databricks")]
+        public async Task GivenAWorkspaceWithANewProjectTemplateAndADatabricks()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+            var mockRg = $"fsdh_proj_{Testing.WorkspaceAcronym}_test_rg";
+            var newProjectTemplate = ctx.Project_Resources2.First(p =>
+                p.ProjectId == project.Project_ID && p.ResourceType ==
+                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+            newProjectTemplate.JsonContent = $"{{\"resource_group_name\": \"{mockRg}\"}}";
+            ctx.Project_Resources2.Update(newProjectTemplate);
+            var databricks = new Project_Resources2
+            {
+                ProjectId = project.Project_ID,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                JsonContent = "{}",
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)
+            };
+            ctx.Project_Resources2.Add(databricks);
+            await ctx.SaveChangesAsync();
+            var dbkRg = project.GetDbkResourceGroupName(mockRg);
+            scenarioContext.Set(new List<string> {mockRg, dbkRg}, "expectedResourceGroups");
         }
     }
 }

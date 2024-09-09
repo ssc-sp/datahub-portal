@@ -122,17 +122,17 @@ this.ScenarioInitialize(scenarioInfo);
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="Getting the resource group of a workspace with RG stored in blob-storage should r" +
-            "eturn the correct value and should assign the RG to the new-project-template")]
+        [Xunit.SkippableFactAttribute(DisplayName="Getting the resource groups of a workspace with RG stored in new-project-template" +
+            " and databricks should return the correct values")]
         [Xunit.TraitAttribute("FeatureTitle", "WorkspaceResourceGroups")]
-        [Xunit.TraitAttribute("Description", "Getting the resource group of a workspace with RG stored in blob-storage should r" +
-            "eturn the correct value and should assign the RG to the new-project-template")]
-        public async System.Threading.Tasks.Task GettingTheResourceGroupOfAWorkspaceWithRGStoredInBlob_StorageShouldReturnTheCorrectValueAndShouldAssignTheRGToTheNew_Project_Template()
+        [Xunit.TraitAttribute("Description", "Getting the resource groups of a workspace with RG stored in new-project-template" +
+            " and databricks should return the correct values")]
+        public async System.Threading.Tasks.Task GettingTheResourceGroupsOfAWorkspaceWithRGStoredInNew_Project_TemplateAndDatabricksShouldReturnTheCorrectValues()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource group of a workspace with RG stored in blob-storage should r" +
-                    "eturn the correct value and should assign the RG to the new-project-template", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource groups of a workspace with RG stored in new-project-template" +
+                    " and databricks should return the correct values", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 10
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -144,15 +144,49 @@ this.ScenarioInitialize(scenarioInfo);
             {
                 await this.ScenarioStartAsync();
 #line 11
-    await testRunner.GivenAsync("a workspace with an empty new-project-template and a blob-storage", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+    await testRunner.GivenAsync("a workspace with a new-project-template and a databricks", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 12
     await testRunner.WhenAsync("the resource group is requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 13
+    await testRunner.ThenAsync("the result should be the expected resource groups", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+#line hidden
+            }
+            await this.ScenarioCleanupAsync();
+        }
+        
+        [Xunit.SkippableFactAttribute(DisplayName="Getting the resource group of a workspace with RG stored in blob-storage should r" +
+            "eturn the correct value and should assign the RG to the new-project-template")]
+        [Xunit.TraitAttribute("FeatureTitle", "WorkspaceResourceGroups")]
+        [Xunit.TraitAttribute("Description", "Getting the resource group of a workspace with RG stored in blob-storage should r" +
+            "eturn the correct value and should assign the RG to the new-project-template")]
+        public async System.Threading.Tasks.Task GettingTheResourceGroupOfAWorkspaceWithRGStoredInBlob_StorageShouldReturnTheCorrectValueAndShouldAssignTheRGToTheNew_Project_Template()
+        {
+            string[] tagsOfScenario = ((string[])(null));
+            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource group of a workspace with RG stored in blob-storage should r" +
+                    "eturn the correct value and should assign the RG to the new-project-template", null, tagsOfScenario, argumentsOfScenario, featureTags);
+#line 15
+this.ScenarioInitialize(scenarioInfo);
+#line hidden
+            if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
+            {
+                testRunner.SkipScenario();
+            }
+            else
+            {
+                await this.ScenarioStartAsync();
+#line 16
+    await testRunner.GivenAsync("a workspace with an empty new-project-template and a blob-storage", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
+#line hidden
+#line 17
+    await testRunner.WhenAsync("the resource group is requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+#line hidden
+#line 18
     await testRunner.ThenAsync("the result should be the expected resource group", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 14
+#line 19
     await testRunner.AndAsync("the new-project-template should be assigned the resource group", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -173,7 +207,7 @@ this.ScenarioInitialize(scenarioInfo);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource group of a workspace with RG stored nowhere should return th" +
                     "e correct value, make a query to ARM and assign the RG to the new-project-templa" +
                     "te", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 16
+#line 21
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -183,16 +217,16 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 17
+#line 22
     await testRunner.GivenAsync("a workspace with RG not stored in DB", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 18
+#line 23
     await testRunner.WhenAsync("the resource group is requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 19
+#line 24
     await testRunner.ThenAsync("the result should be the expected resource group", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 20
+#line 25
     await testRunner.AndAsync("the new-project-template should be assigned the resource group", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -207,7 +241,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource group of an invalid workspace should throw an exception", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 22
+#line 27
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -217,13 +251,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 23
+#line 28
     await testRunner.GivenAsync("an invalid workspace", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 24
+#line 29
     await testRunner.WhenAsync("the resource group is requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 25
+#line 30
     await testRunner.ThenAsync("an exception should be thrown", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -238,7 +272,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource groups of a subscription should return the correct values", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 27
+#line 32
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -248,13 +282,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 28
+#line 33
     await testRunner.GivenAsync("a subscription with resource groups", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 29
+#line 34
     await testRunner.WhenAsync("the subscription resource groups are requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 30
+#line 35
     await testRunner.ThenAsync("the result should be the expected resource group", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -269,7 +303,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting the resource groups of an invalid subscription should throw an exception", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 32
+#line 37
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -279,13 +313,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 33
+#line 38
     await testRunner.GivenAsync("an invalid subscription", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 34
+#line 39
     await testRunner.WhenAsync("the subscription resource groups are requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 35
+#line 40
     await testRunner.ThenAsync("an exception should be thrown", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
@@ -300,7 +334,7 @@ this.ScenarioInitialize(scenarioInfo);
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("Getting all the resource groups should work properly", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 37
+#line 42
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -310,13 +344,13 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 await this.ScenarioStartAsync();
-#line 38
+#line 43
     await testRunner.GivenAsync("a list of projects with resource groups", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 39
+#line 44
     await testRunner.WhenAsync("all the resource groups are requested", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 40
+#line 45
     await testRunner.ThenAsync("the result should be the expected resource groups", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
             }
