@@ -41,7 +41,7 @@
         <div class="flex-container">
             <MudText Typo="Typo.h2" Class="text-center flex-item">@Localizer["Please login to continue"]</MudText>
             <MudStack Class="form-group flex-item" AlignItems="AlignItems.Center">
-                <MudTextField T="string" Label="@Localizer["Email address"]" @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="custom-email-field my-2" />
+                    <MudTextField id="Email" T="string" Label="@Localizer["Email address"]" @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="custom-email-field my-2" />
             </MudStack>
         </div>
         <MudButton HtmlTag="a" Class="mx-auto px-16 my-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
