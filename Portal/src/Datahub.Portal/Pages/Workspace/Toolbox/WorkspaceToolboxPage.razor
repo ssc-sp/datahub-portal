@@ -300,7 +300,7 @@
             // adding deletion request to queue
             var userEmail = await _userInformationService.GetUserEmail();
             var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, requestingUserEmail: userEmail);
-            await _resourceMessagingService.SendToTerraformDeleteResourceQueue(workspaceDefinition, _workspace.Project_ID, tool);
+            //await _resourceMessagingService.SendToTerraformDeleteResourceQueue(workspaceDefinition, _workspace.Project_ID, tool);
 
             _logger.LogInformation("Tool {Tool} successfully removed from workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
             _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.Available;
