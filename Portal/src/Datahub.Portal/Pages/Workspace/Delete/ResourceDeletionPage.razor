@@ -91,7 +91,7 @@
     {
         await using var ctx = await _contextFactory.CreateDbContextAsync();
         var _resourceCheck = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.SendingDeletion.ToString()));
+            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString()));
         _resourceCheck.Status = ProjectResourceStatus.Exists.ToString();
 
         await ctx.SaveChangesAsync();

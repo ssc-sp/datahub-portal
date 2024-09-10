@@ -13,6 +13,7 @@
 @inject NavigationManager NavigationManager
 @inject IDatahubEmailService _emailService
 @inject IResourceMessagingService _resourceMessagingService
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 <MudStack>
     <DHMainContentTitle Title="@Localizer["Toolbox Catalogue"]" />
@@ -69,7 +70,7 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ProjectResourceStatus.Exists:
-                                    <MudStack>`
+                                    <MudStack>
                                         <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                             @Localizer["Tool has been created"]
                                             <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
@@ -194,10 +195,9 @@
 
     private async void SetToolStatus(string tool)
     {
+        var resourceType = TerraformTemplate.GetTerraformServiceType(tool);
         await using var ctx = await _contextFactory.CreateDbContextAsync();
-        var _resourceCheck = await ctx.Project_Resources2
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        var _resourceCheck = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceType == resourceType);
 
         if (_resourceCheck != null)
         {
@@ -239,9 +239,8 @@
 
         foreach (var tool in _toolList)
         {
-            var _resourceCheck = await ctx.Project_Resources2
-                .AsNoTracking()
-                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            var resourceType = TerraformTemplate.GetTerraformServiceType(tool);
+            var _resourceCheck = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceType == resourceType);
             if (_resourceCheck != null && _resourceCheck.Status == "SendingDeletion")
             {
                 _toolCurrentDevelopmentStatusMap[tool] = GetStatus(_resourceCheck.Status);
@@ -259,9 +258,9 @@
 
         try
         {
+            var resourceType = TerraformTemplate.GetTerraformServiceType(tool);
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            var _resourceCheck = await ctx.Project_Resources2
-                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            var _resourceCheck = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceType == resourceType);
             _resourceCheck.Status = ProjectResourceStatus.PendingRequest.ToString();
 
             await ctx.SaveChangesAsync();
@@ -292,9 +291,9 @@
 
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
+            var resourceType = TerraformTemplate.GetTerraformServiceType(tool);
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            var _resourceCheck = await ctx.Project_Resources2
-                .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+            var _resourceCheck = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceType == resourceType);
 
 
             // adding deletion request to queue
@@ -324,9 +323,9 @@
 
     private async void GoToResourceDeletionPage(string tool)
     {
+        var resourceType = TerraformTemplate.GetTerraformServiceType(tool);
         await using var ctx = await _contextFactory.CreateDbContextAsync();
-        var _resourceCheck = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.ResourceType.EndsWith(tool));
+        var _resourceCheck = await ctx.Project_Resources2.FirstOrDefaultAsync(r => r.ResourceType == resourceType);
         _resourceCheck.Status = ProjectResourceStatus.PendingDeletion.ToString();
 
         await ctx.SaveChangesAsync();
@@ -346,7 +345,7 @@
 
         await SendEmailAsync(async () =>
         {
-            await _emailService.SendToRecipients("ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca", recipients, subject, body);
+            await _emailService.SendToRecipients(_datahubPortalConfiguration.EmailNotification.SenderAddress, recipients, subject, body);
         });
     }
 
