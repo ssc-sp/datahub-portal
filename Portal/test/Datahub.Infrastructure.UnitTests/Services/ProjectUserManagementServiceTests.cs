@@ -34,6 +34,7 @@ public class ProjectUserManagementServiceTests
     private Mock<IUserEnrollmentService> _mockUserEnrollmentService = null!;
     private IServiceAuthManager _serviceAuthManager = null!;
     private Mock<IDatahubAuditingService> _mockDatahubAuditingService = null!;
+    private Mock<IResourceMessagingService> _resourceMessagingServiceMock = new Mock<IResourceMessagingService>();
 
     private readonly string[] _testUserIds = TEST_USER_IDS;
 
@@ -941,6 +942,7 @@ public class ProjectUserManagementServiceTests
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object,
             _mockRequestManagementService.Object,
+            _resourceMessagingServiceMock.Object,
             _mockUserEnrollmentService.Object,
             _mockDatahubAuditingService.Object);
 
