@@ -42,6 +42,7 @@ namespace Datahub.Tests
         private readonly Mock<IDatahubAuditingService> _auditingServiceMock;
         private readonly Mock<IUserInformationService> _userInformationMock;
         private readonly Mock<IProjectUserManagementService> _projectUserManagementServiceMock;
+        private readonly Mock<IResourceMessagingService> _resourceMessagingServiceMock;
         private readonly Mock<IUserEnrollmentService> _userEnrollmentServiceMock;
         private readonly Mock<IUserSettingsService> _userSettingsMock;
         private readonly Mock<CultureService> _cultureServiceMock;
@@ -76,6 +77,7 @@ namespace Datahub.Tests
             _snackBarMock = new Mock<ISnackbar>();
             _portalUserTelemetryServiceMock = new Mock<IPortalUserTelemetryService>();
             _projectUserManagementServiceMock = new Mock<IProjectUserManagementService>();
+            _resourceMessagingServiceMock = new Mock<IResourceMessagingService>();
             _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
 
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
@@ -91,6 +93,8 @@ namespace Datahub.Tests
             _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test", "test"));
             _projectUserManagementServiceMock.Setup(x => x.GetProjectListForPortalUser(It.IsAny<int>()))
                 .ReturnsAsync(new List<string>(workSpaces));
+            _projectUserManagementServiceMock.Setup(x => x.RunWorkspaceSync(It.IsAny<string>()))
+                .ReturnsAsync(true);
 
             _hostingMock.EnvironmentName.Returns("Hosting:PortalUnitTestingEnvironment");
 
@@ -285,6 +289,9 @@ namespace Datahub.Tests
 
             // Verify that GetProjectListForPortalUser was called
             _projectUserManagementServiceMock.Verify(x => x.GetProjectListForPortalUser(It.IsAny<int>()), Times.Once);
+
+            // Verify that RunWorkspaceSync was  called
+            _projectUserManagementServiceMock.Verify(x => x.RunWorkspaceSync(It.IsAny<string>()), Times.Exactly(2));
 
             // verify redirect to login
             Assert.Equal("/login", _navigationManagerMock.LastUri);

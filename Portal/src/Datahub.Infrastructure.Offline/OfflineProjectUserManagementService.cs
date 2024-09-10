@@ -62,4 +62,9 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
 
         return admin?.FirstOrDefault();
     }
+
+    public async Task<bool> RunWorkspaceSync(string projectAcronym)
+    {
+        return false; // cannot run sync while offline
+    }
 }
