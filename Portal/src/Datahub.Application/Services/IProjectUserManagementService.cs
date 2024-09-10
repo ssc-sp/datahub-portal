@@ -29,4 +29,11 @@ public interface IProjectUserManagementService
     /// Get project lead if defined.
     /// </summary>
     Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym);
+
+    /// <summary>
+    /// Adds a message on the service bus to run a workspace sync
+    /// </summary>
+    /// <param name="projectAcronym"></param>
+    /// <returns></returns>
+    Task<bool> RunWorkspaceSync(string projectAcronym);
 }

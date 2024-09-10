@@ -21,6 +21,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly IDatahubAuditingService _datahubAuditingService;
+    private readonly IResourceMessagingService _resourceMessagingService;
 
     public ProjectUserManagementService(
         ILogger<ProjectUserManagementService> logger,
@@ -28,6 +29,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         IUserInformationService userInformationService,
         IMSGraphService msGraphService,
         IRequestManagementService requestManagementService,
+        IResourceMessagingService resourceMessagingService,
         IUserEnrollmentService userEnrollmentService,
         IDatahubAuditingService datahubAuditingService)
     {
@@ -38,6 +40,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _contextFactory = contextFactory;
         _userEnrollmentService = userEnrollmentService;
         _datahubAuditingService = datahubAuditingService;
+        _resourceMessagingService = resourceMessagingService;
     }
 
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
@@ -233,5 +236,22 @@ public class ProjectUserManagementService : IProjectUserManagementService
         var admin = users?.Where(u => RoleConstants.GetRoleConstants(u.Role) == RoleConstants.WORKSPACE_LEAD_SUFFIX);
 
         return admin?.FirstOrDefault();
+    }
+
+    public async Task<bool> RunWorkspaceSync(string projectAcronym)
+    {
+        try
+        {
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(projectAcronym);
+            await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
+
+            _logger.LogInformation($"Triggered workspace sync for {projectAcronym}" );
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error triggerring workspace sync for {projectAcronym}");
+            return false;
+        }
     }
 }
