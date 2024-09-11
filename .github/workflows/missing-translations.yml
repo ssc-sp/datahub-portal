@@ -57,7 +57,10 @@ jobs:
 
           # Extract Localizer keys from the file (matching the regex)
           keys=$(grep -Po '(?<=Localizer\["|@Localizer\[")([^"]+)(?="\])' "$file")
-
+          echo "Extracted keys from file $file:"
+          echo "$keys"
+          
+          
           # Iterate over each found key and check for its presence in the English and French JSON objects
           for key in $keys; do
             echo "Checking translation for key: $key"
