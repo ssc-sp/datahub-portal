@@ -1,0 +1,85 @@
+name: Check Portal Localizer Pattern and Missing Translations
+
+on:
+  pull_request:
+    branches:
+      - devel
+      - main
+    paths:
+      - 'Portal/**'
+  push:
+    branches:
+      - devel
+      - main
+    paths:
+      - 'Portal/**'
+  workflow_dispatch:  
+
+jobs:
+  check-files:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Install jq (for JSON processing)
+      run: sudo apt-get install jq
+
+    - name: Find and search for Localizer pattern in .cs and .razor files
+      run: |
+
+        # Load the English and French JSON files into variables
+        english_json=$(cat Portal/src/Datahub.Portal/i18n/localization.json | jq -r '.')
+        french_json=$(cat Portal/src/Datahub.Portal/i18n/localization.fr.json | jq -r '.')
+
+        # Create an array to hold file paths with matching Localizer patterns
+        matching_files=()
+
+        # Define the regex pattern to match @Localizer[""] or Localizer[""]
+        pattern='@Localizer\["|Localizer\["'
+
+        # Find all .cs and .razor files and search for the Localizer pattern
+        while IFS= read -r file; do
+          # Search for the regex pattern in the file
+          if grep -qP "$pattern" "$file"; then
+            echo "Pattern found in file: $file"
+            matching_files+=("$file")
+          fi
+        done < <(find Portal -type f \( -name "*.cs" -o -name "*.razor" \))
+
+        # Now, we will search for missing translations in the matched files
+        error_found=0  # Variable to track if an error is found
+
+        # Iterate over the files with Localizer patterns
+        for file in "${matching_files[@]}"; do
+          echo "Checking translations in file: $file"
+
+          # Extract Localizer keys from the file (matching the regex)
+          keys=$(grep -Po '(?<=Localizer\["|@Localizer\[")([^"]+)(?="\])' "$file")
+
+          # Iterate over each found key and check for its presence in the English and French JSON objects
+          for key in $keys; do
+            echo "Checking translation for key: $key"
+
+            # Check if the key exists in both English and French JSON files
+            if ! echo "$english_json" | jq -e --arg key "$key" '.[$key]' > /dev/null; then
+              echo "Error: Missing English translation for key '$key' in file '$file'"
+              error_found=1
+            fi
+
+            if ! echo "$french_json" | jq -e --arg key "$key" '.[$key]' > /dev/null; then
+              echo "Error: Missing French translation for key '$key' in file '$file'"
+              error_found=1
+            fi
+          done
+        done
+
+        # If any error is found, exit with an error code; otherwise, exit cleanly
+        if [ "$error_found" -eq 1 ]; then
+          echo "Missing translations detected!"
+          exit 1
+        else
+          echo "All translations found!"
+          exit 0
+        fi
