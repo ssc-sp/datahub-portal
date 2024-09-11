@@ -14,7 +14,7 @@ on:
     paths:
       - 'Portal/src/Datahub.Portal/**'
   workflow_dispatch:  
-  
+
 jobs:
   check-translations:
     runs-on: ubuntu-latest
@@ -42,13 +42,16 @@ jobs:
         pattern='@Localizer\["|Localizer\["'
 
         # Find all .cs and .razor files and search for the Localizer pattern
-        while IFS= read -r file; do
-            # Search for the regex pattern in the file
-            if grep -qP "$pattern" "$file"; then
-                echo "Pattern found in file: $file"
-                matching_files+=("$file")
-            fi
-        done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
+          while IFS= read -r file; do
+              # Extract the relative path (strip the target_path)
+              relative_file="${file#$target_path/}"
+
+              # Search for the regex pattern in the file
+              if grep -qP "$pattern" "$file"; then
+                  echo "Pattern found in file: $relative_file"
+                  matching_files+=("$file")
+              fi
+          done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
 
         # Now, we will search for missing translations in the matched files
         error_found=0  # Variable to track if an error is found
