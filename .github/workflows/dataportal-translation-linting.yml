@@ -64,7 +64,7 @@ jobs:
             echo "Checking translations in file: $relative_file"
 
             # Extract Localizer keys from the file (line-delimited)
-            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[")[^"]+(?="\](?:,.*)?\))' "$file" | sort | uniq)
+            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\])' "$file" | sort | uniq)
             
             # Process each key line by line
             while IFS= read -r key; do
