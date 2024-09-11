@@ -39,7 +39,7 @@ jobs:
         matching_files=()
 
         # Define the regex pattern to match @Localizer[""] or Localizer[""]
-        pattern='@Localizer\["|Localizer\["'
+        pattern='@Localizer\["([^"]+)"(?:,.*)?\]'
 
         # Find all .cs and .razor files and search for the Localizer pattern
           while IFS= read -r file; do
@@ -64,7 +64,7 @@ jobs:
             echo "Checking translations in file: $relative_file"
 
             # Extract Localizer keys from the file (line-delimited)
-            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\])' "$file" | sort | uniq)
+            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[")[^"]+(?="\](?:,.*)?\))' "$file" | sort | uniq)
             
             # Process each key line by line
             while IFS= read -r key; do
