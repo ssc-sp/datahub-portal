@@ -13,7 +13,8 @@ on:
       - main
     paths:
       - 'Portal/src/Datahub.Portal/**'
-
+  workflow_dispatch:  
+  
 jobs:
   check-translations:
     runs-on: ubuntu-latest
