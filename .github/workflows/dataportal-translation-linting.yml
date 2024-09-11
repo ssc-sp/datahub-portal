@@ -1,4 +1,4 @@
-name: Check Missing Translations
+name: Missing Translation Scan
 
 on:
   pull_request:
@@ -25,7 +25,7 @@ jobs:
     - name: Install jq (for JSON processing)
       run: sudo apt-get install -y jq
 
-    - name: Check for missing translations
+    - name: Check for missing Data Portal translations
       run: |
         target_path="Portal/src/Datahub.Portal"
 
