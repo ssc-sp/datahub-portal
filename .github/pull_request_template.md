@@ -22,7 +22,6 @@
 ## Checklist
 <!-- Ensure the following tasks are complete -->
 
-- [ ] I have run `Datahub.MissingTranslations` and verified there are no missing translations
 - [ ] Code follows dotnet coding standards
 - [ ] Documentation updated (if necessary)
 - [ ] Tests added/updated (if necessary)
