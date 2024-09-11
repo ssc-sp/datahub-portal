@@ -39,7 +39,7 @@ jobs:
         matching_files=()
 
         # Define the regex pattern to match @Localizer[""] or Localizer[""]
-        pattern='@Localizer\["([^"]+)"(?:,.*)?\]'
+        pattern='@Localizer\["|Localizer\["'
 
         # Find all .cs and .razor files and search for the Localizer pattern
           while IFS= read -r file; do
