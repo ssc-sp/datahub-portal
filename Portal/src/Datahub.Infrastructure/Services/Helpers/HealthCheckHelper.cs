@@ -508,12 +508,19 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             var serviceBusConnectionString = configuration[InfrastructureHealthCheckConstants.DatahubServiceBusConnectionStringConfigKey];
 
-            string queueName = GetRequestQueueName(request);
+            var queueName = request.Name;
+            var isDeadLetter = request.Group == InfrastructureHealthCheckConstants.PoisonQueueRequestGroup;
 
             try
             {
                 ServiceBusClient serviceBusClient = new(serviceBusConnectionString);
-                ServiceBusReceiver receiver = serviceBusClient.CreateReceiver(queueName);
+
+                ServiceBusReceiverOptions options = new()
+                {
+                    SubQueue = isDeadLetter ? SubQueue.DeadLetter : SubQueue.None
+                };
+
+                ServiceBusReceiver receiver = serviceBusClient.CreateReceiver(queueName, options);
 
                 if (receiver is null)
                 {
@@ -523,7 +530,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 {
                     // attempt to read message to check if queue exists; receiver is created with no errors for non-existing queue
                     ServiceBusReceivedMessage message = await receiver.PeekMessageAsync();
-                    if (message != null && request.Group == InfrastructureHealthCheckConstants.PoisonQueueRequestGroup)
+                    if (message != null && isDeadLetter)
                     {
                         if (string.IsNullOrEmpty(message.DeadLetterReason))
                         {
@@ -534,7 +541,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
             catch (Exception ex)
             {
-                errors.Add($"Error while checking Azure Service Bus Queue: {ex.Message.Replace(",", ".")}");
+                errors.Add($"Error while checking Azure Service Bus Queue {queueName}: {ex.Message.Replace(",", ".")}");
             }
 
             if (errors.Count > 0)
@@ -625,7 +632,6 @@ namespace Datahub.Infrastructure.Services.Helpers
         private static string GenerateHealthCheckName(InfrastructureHealthCheckMessage request) => request.Type switch
         {
             InfrastructureHealthResourceType.AzureStorageQueue => GetRequestQueueName(request),
-            InfrastructureHealthResourceType.AsureServiceBus => GetRequestQueueName(request),
             _ => request.Name
         };
 

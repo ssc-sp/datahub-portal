@@ -29,7 +29,10 @@ else
         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
             <MudStack>
                 <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Project.ProjectName</MudText>
-                <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Project.ProjectDescription</MudText>
+                @if (!string.IsNullOrWhiteSpace(Project.ProjectDescription))
+                {
+                    <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Project.ProjectDescription</MudText>
+                }
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
