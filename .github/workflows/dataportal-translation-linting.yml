@@ -1,4 +1,4 @@
-name: Missing Translation Scan
+name: Check Missing Translations
 
 on:
   pull_request:
@@ -13,8 +13,7 @@ on:
       - main
     paths:
       - 'Portal/src/Datahub.Portal/**'
-  workflow_dispatch:  
-  
+
 jobs:
   check-translations:
     runs-on: ubuntu-latest
@@ -26,8 +25,9 @@ jobs:
     - name: Install jq (for JSON processing)
       run: sudo apt-get install -y jq
 
-    - name: Check for missing Data Portal translations
+    - name: Check for missing translations
       run: |
+        # Define the path to focus on (Portal/src/Datahub.Portal)
         target_path="Portal/src/Datahub.Portal"
 
         # Load the English and French JSON files into variables
@@ -49,12 +49,17 @@ jobs:
             fi
         done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
 
+        # Now, we will search for missing translations in the matched files
         error_found=0  # Variable to track if an error is found
 
         # Iterate over the files with Localizer patterns
         for file in "${matching_files[@]}"; do
-            echo "Checking translations in file: $file"
+            # Extract the relative path (strip the target_path)
+            relative_file="${file#$target_path/}"
 
+            echo "Checking translations in file: $relative_file"
+
+            # Extract Localizer keys from the file (line-delimited)
             keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\])' "$file" | sort | uniq)
             
             # Process each key line by line
@@ -64,13 +69,13 @@ jobs:
 
                 # Check if the key exists in the English JSON file
                 if ! echo "$english_json" | jq -e --arg key "$key" '.[$key]' > /dev/null; then
-                    echo "Error: Missing English translation for key '$shortened_key' in file '$file'"
+                    echo "Error: Missing English translation for key '$shortened_key' in file '$relative_file'"
                     error_found=1
                 fi
 
                 # Check if the key exists in the French JSON file
                 if ! echo "$french_json" | jq -e --arg key "$key" '.[$key]' > /dev/null; then
-                    echo "Error: Missing French translation for key '$shortened_key' in file '$file'"
+                    echo "Error: Missing French translation for key '$shortened_key' in file '$relative_file'"
                     error_found=1
                 fi
             done <<< "$keys"
@@ -83,3 +88,4 @@ jobs:
         else
             echo "All translations found!"
             exit 0
+        fi
