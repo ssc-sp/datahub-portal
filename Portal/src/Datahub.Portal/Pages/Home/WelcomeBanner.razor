@@ -16,7 +16,7 @@
 
 @if (_isLoading)
 {
-    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Width="100%" Height="@(AnnouncementCarousel.CarouselHeight + "px")" />
+    <DHLoadingInitializer />
 }
 else if (_previews.Count == 0)
 {
@@ -26,7 +26,7 @@ else if (_previews.Count == 0)
 }
 else
 {
-    <AnnouncementCarousel Previews="_previews" BackgroundUrl="@_userBackgroundUrl" />
+   <AnnouncementCarousel Previews="_previews" BackgroundUrl="@_userBackgroundUrl" />
 }
 
 

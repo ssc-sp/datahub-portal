@@ -22,14 +22,12 @@
     return;
 }
 <MudStack>
-    <MudStack Row="true">
-        <MudText Typo="Typo.h2">
-            @Localizer["Web Application"]
-        </MudText>
+    <MudStack Row="true" AlignItems="AlignItems.Center">
+        <DHMainContentTitle Title="@Localizer["Web Application"]" />
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
+                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])" />
             </MudStack>
         }
         <MudSpacer/>
@@ -104,24 +102,24 @@
     </MudAlert>
     @if (_isProvisioned)
     {
-        <MudSwitch
-            T=@bool
-            Checked=@_isUrlRewritingEnabled
-            Color=@Color.Primary
-            Label=@Localizer["Enable URL Rewriting"]
-            CheckedChanged=@HandleToggleUrlRewriting
-            Disabled=@_isSaving/>
+        <MudSwitch 
+            T=@bool 
+            Value=@_isUrlRewritingEnabled 
+            Color=@Color.Primary 
+            Label=@Localizer["Enable URL Rewriting"] 
+            ValueChanged=@HandleToggleUrlRewriting
+            Disabled=@_isSaving />
     }
 
     @if (_isProvisioned && _isConfigured)
     {
-        <WorkspaceWebAppInfoTable
+        <WorkspaceWebAppInfoTable 
             @ref=@_webappInfoTable
-            WebAppHost="@_webAppHost"
-            WebAppId="@_webAppId"
-            Framework="@_webAppFramework"
-            GitRepo="@_webAppRepo"
-            ComposePath="@_webAppCompose"
+            WebAppHost="@_webAppHost" 
+            WebAppId="@_webAppId" 
+            Framework="@_webAppFramework" 
+            GitRepo="@_webAppRepo" 
+            ComposePath="@_webAppCompose" 
             WorkspaceAcronym="@WorkspaceAcronym"/>
     }
     else if (_isProvisioned)
@@ -234,8 +232,7 @@
             <MudText Typo="Typo.body1" Class="mt-4">
                 @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
             </MudText>
-        </MudPaper>
-    }
+        </MudPaper>    }
 </MudStack>
 
 

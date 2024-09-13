@@ -47,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
 	ProjectSection(SolutionItems) = preProject
-		Portal\template.appsettings.json = Portal\template.appsettings.json
+		Portal\template.settings.json = Portal\template.settings.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"
@@ -146,6 +146,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{12002871-163E-49CD-93DE-FBED9F5573E1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions.UnitTests", "ServerlessOperations\test\Datahub.Functions.UnitTests\Datahub.Functions.UnitTests.csproj", "{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Functions.Domain", "ServerlessOperations\src\Datahub.Functions.Domain\Datahub.Functions.Domain.csproj", "{DB462B58-CFC4-4AEE-920E-AA308F14029C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -290,6 +292,10 @@ Global
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -339,6 +345,7 @@ Global
 		{C26C43E3-D518-4E62-9FB5-A537E16AF543} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 		{12002871-163E-49CD-93DE-FBED9F5573E1} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True

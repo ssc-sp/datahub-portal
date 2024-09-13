@@ -23,23 +23,8 @@ public class ResourceMessagingService(
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, project);
     }
 
-    public async Task SendToTerraformDeleteQueue(WorkspaceDefinition project, int projectId)
-    {
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceDeleteRequestQueueName, project);
-        
-        // Update Deleted_DT on the project
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var projectToDeleted = await ctx.Projects
-            .FirstOrDefaultAsync(p => p.Project_ID == projectId);
-        if (projectToDeleted != null)
-        {
-            projectToDeleted.Deleted_DT = DateTime.UtcNow;
-            ctx.Projects.Update(projectToDeleted);
-            await ctx.SaveChangesAsync();
-        }
-    }
 
-    public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition, string? connectionString = null, string? queueName = null)
+    public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition)
     {
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition);
     }
@@ -74,8 +59,7 @@ public class ResourceMessagingService(
         var workspace = project.ToResourceWorkspace(users);
         var templates = project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate)
-            .Select(r => r.ResourceType)
-            .Select(TerraformTemplate.GetTemplateByName)
+            .Select(r => r.ToTerraformTemplate())
             .ToList();
 
         return new WorkspaceDefinition

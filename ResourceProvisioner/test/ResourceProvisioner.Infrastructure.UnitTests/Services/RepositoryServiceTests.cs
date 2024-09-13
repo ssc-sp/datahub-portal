@@ -328,7 +328,7 @@ public class RepositoryServiceTests
         var mockTerraformService = new Mock<ITerraformService>();
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
-                It.IsAny<TerraformTemplate>(),
+                It.IsAny<string>(),
                 It.IsAny<TerraformWorkspace>()))
             .Returns(() =>
             {
@@ -341,7 +341,7 @@ public class RepositoryServiceTests
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<TerraformTemplate>(), It.IsAny<TerraformWorkspace>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<TerraformWorkspace>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }

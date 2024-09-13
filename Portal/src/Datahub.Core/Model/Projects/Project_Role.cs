@@ -39,28 +39,28 @@ public class Project_Role
             {
                 Id = (int)RoleNames.Remove,
                 Name = "Remove User",
-                Description = "Revoke the user's access to the project's private resources"
+                Description = "Revoke the user's access to the workspace"
             },
             new()
             {
                 Id = (int)RoleNames.WorkspaceLead,
                 Name = "Workspace Lead",
                 Description =
-                    "Head of the business unit and bears business responsibility for successful implementation and availability"
+                    "Head of the workspace and bears business responsibility for success of the workspace"
             },
             new()
             {
                 Id = (int)RoleNames.Admin,
                 Name = "Admin",
                 Description =
-                    "Management authority within the project with direct supervision over the project resources and deliverables"
+                    "Management authority within the workspace with direct supervision over the cloud resourcing and users"
             },
             new()
             {
                 Id = (int)RoleNames.Collaborator,
                 Name = "Collaborator",
                 Description =
-                    "Responsible for contributing to the overall project objectives and deliverables to ensure success"
+                    "Responsible for contributing to the overall workspace objectives and deliverables"
             },
             new()
             {

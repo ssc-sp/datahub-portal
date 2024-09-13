@@ -34,10 +34,7 @@ public class CreateResourceRunValidationTests
             },
             Templates = new List<TerraformTemplate>()
             {
-                new()
-                {
-                    Name = anyString,
-                }
+                new(TerraformTemplate.NewProjectTemplate, TerraformTemplate.TemplateStatus.CreateRequested)
             }
         };
         var validator = new CreateResourceRunCommandValidator();

@@ -1,17 +1,13 @@
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
-@using Datahub.Core.Model.Achievements
 @using Datahub.Core.Services.Projects
 @using Datahub.Portal.Pages.Account
-@using Datahub.Core.Model.Projects
 @using Datahub.Shared.Entities
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDatahubAuditingService _auditingService
 
-@inject IUserInformationService _userInfoService
 @inject IUserInformationService _userInformationService
-@inject IProjectUserManagementService _projectUserManagementService
 @inject IRequestManagementService _requestManagementService
 @inject ISnackbar _snackbar
 
@@ -23,9 +19,7 @@
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <MudText Typo="Typo.h4">
-            @Localizer["Workspace Settings"]
-        </MudText>
+        <DHMainContentTitle Title="@Localizer["Workspace Settings"]" />
         <MudDivider/>
     </MudStack>
 
@@ -137,7 +131,8 @@
             await context.TrackSaveChangesAsync(_auditingService);
 
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, TerraformTemplate.AzurePostgres, currentUser);
+            var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformTemplate.TemplateStatus.CreateRequested);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(project, template, currentUser);
 
             _snackbar.Add(Localizer["Changes saved"], Severity.Info);
             _isChanged = false;

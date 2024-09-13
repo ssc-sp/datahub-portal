@@ -1,0 +1,118 @@
+﻿@using Datahub.Application.Services.Cost
+@using ApexCharts
+
+<span>
+    <h2 class="sr-only">
+        @Localizer["A donut chart showing the total costs for the workspace grouped by service for the current fiscal year. An accessible description is provided below the chart."]
+    </h2>
+    <ApexChart @ref="_serviceCostsChart" TItem="DailyServiceCost" Title="@Title" Options="@_serviceCostsChartOptions">
+        <ApexPointSeries
+            TItem="DailyServiceCost"
+            Name="@Localizer["Service cost"]"
+            Items="@ServiceCosts"
+            XValue="@(c => c.Source)"
+            YValue="@(c => decimal.Round(c.Amount, 2))"
+            SeriesType="SeriesType.Donut"
+            ShowDataLabels="true"/>
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Service costs for the workspace grouped by service for the current fiscal year. A detailed table is provided below the charts."]
+        @foreach (var serviceCost in ServiceCosts)
+        {
+            @Localizer["Service cost for {0} is ${1}", serviceCost.Source, decimal.Round(serviceCost.Amount, 2)]
+        }
+        @Localizer["Total costs is ${0}", decimal.Round(ServiceCosts.TotalAmount(), 2)]
+    </p>
+</span>
+
+@code {
+    [Parameter] public List<DailyServiceCost> ServiceCosts { get; set; }
+    [Parameter] public string Title { get; set; }
+
+    private ApexChart<DailyServiceCost> _serviceCostsChart = new();
+    private ApexChartOptions<DailyServiceCost> _serviceCostsChartOptions = new();
+
+    protected override void OnParametersSet()
+    {
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _serviceCostsChart.UpdateSeriesAsync();
+        await _serviceCostsChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _serviceCostsChartOptions.DataLabels = new()
+        {
+            Style = new()
+            {
+                Colors = ["#000"],
+                FontSize = "16px"
+            },
+            DropShadow = new ()
+            {
+                Enabled = false
+            }
+        };
+        _serviceCostsChartOptions.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                Donut = new PlotOptionsDonut
+                {
+                    Labels = new DonutLabels
+                    {
+                        Total = new DonutLabelTotal
+                        {
+                            FontSize = "24px",
+                            Label = Localizer["Total"],
+                            Color = "#000",
+                            Formatter = "function(val) {" +
+                                        "var arr = val.globals.seriesTotals;" +
+                                        "var sum = arr.reduce(function(a, b) { return a + b}, 0);" +
+                                        "return '$'+sum.toFixed(2);" +
+                                        "}"
+                        },
+                        Value = new DonutLabelValue
+                        {
+                            FontSize = "24px",
+                            Color = "#000",
+                            Formatter = "function(val) {" +
+                                        "return '$'+val;" +
+                                        "}"
+                        },
+                        Name = new DonutLabelName
+                        {
+                            Color = "#000"
+                        }
+                    },
+                    Size = "70%",
+                },
+                DataLabels = new PieDataLabels
+                {
+                    MinAngleToShowLabel = 3
+                }
+            }
+        };
+        _serviceCostsChartOptions.Tooltip = new Tooltip
+        {
+            FillSeriesColor = false,
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return '$'+val; }"
+            },
+            Theme = Mode.Light,
+        };
+        _serviceCostsChartOptions.Yaxis = new List<YAxis>();
+        _serviceCostsChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+            DecimalsInFloat = 2,
+            Max = ServiceCosts.Max(c => c.Amount)
+        });
+    }
+
+}

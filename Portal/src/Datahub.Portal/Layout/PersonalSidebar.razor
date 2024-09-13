@@ -18,124 +18,67 @@
     return;
 }
 
-<MudStack Class="px-4 mt-6">
+<MudStack Class="px-4 mt-6" id="nav">
     <MudStack Class="ml-2">
         <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
     </MudStack>
     <MudStack Spacing="2">
-        @{
-            var userRoles = GetWorkspaces();
-        }
-        <MudStack Row AlignItems="AlignItems.Center">
-            <MudText Class="ml-2">
-                <b>
-                    @Localizer["My workspaces"]
-                </b>
-            </MudText>
-            <MudSpacer/>
-            @if (userRoles.Any())
-            {
-                <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" OnClick="@ShowProjectDialog" Disabled="@_canNotCreateWorkspace">
-                    <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
-                    @Localizer["New"]
-                </DHButton>
-            }
-        </MudStack>
-
-        @if (userRoles.Any())
-        {
-            <MudNavMenu Color="Color.Primary">
-                @foreach (var userRole in userRoles)
-                {
-                    <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                            <MudText Style="@_workspaceLinkStyle">
-                                @userRole.Project.ProjectName
-                            </MudText>
-                        </MudStack>
-                    </MudNavLink>
-                }
-                @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
-                {
-                    <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
-                        @Localizer["Show more"]
-                    </MudLink>
-                }
-            </MudNavMenu>
-        } 
-        else
-        {
-            <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" OnClick="@ShowProjectDialog">
-                <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;" />
-                @Localizer["Create new"]
-                <MudSpacer/>
-            </DHButton>
-        }
-    </MudStack>
-
-    <MudStack Spacing="2">
-        <MudText Class="ml-2">
-            <b>
-                @Localizer["Recent activity"]
-            </b>
-        </MudText>
-        <MudNavMenu Color="Color.Primary">
-            @foreach (var recentActivity in _recentLinks)
-            {
-                <MudNavLink Href="@GetSectionViewUrl(recentActivity)">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
-                        <MudText Style="@_workspaceLinkStyle">
-                            @GetLabel(recentActivity)
-                        </MudText>
-                    </MudStack>
-                </MudNavLink>
-            }
-        </MudNavMenu>
-    </MudStack>
-
-    <MudStack Spacing="2">
-        <MudText Class="ml-2">
-            <b>
+        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
+            <strong>
                 @Localizer["My account"]
-            </b>
+            </strong>
         </MudText>
-        <MudNavMenu Color="Color.Primary">
-            @foreach (var sectionView in _accountItems)
-            {
-                <MudNavLink Href="@GetSectionViewUrl(PageRoutes.AccountPrefix, sectionView)" Match="NavLinkMatch.All">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
-                        <MudText Style="@_workspaceLinkStyle">
-                            @GetLabel(sectionView)
-                        </MudText>
-                    </MudStack>
-                </MudNavLink>
-            }
+        <MudNavMenu Color="Color.Primary" role="navigation">
+            <ul>
+                @foreach (var sectionView in _accountItems)
+                {
+                    <li>
+                        <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                <MudText Style="@_workspaceLinkStyle">
+                                    @GetLabel(sectionView)
+                                </MudText>
+                            </MudStack>
+                        </MudNavLink>
+                    </li>
+                }
+            </ul>
         </MudNavMenu>
     </MudStack>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
         <MudStack Spacing="2">
-            <MudText Class="ml-2">
-                <b>
+            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
+                <strong>
                     @Localizer["Datahub Admin"]
-                </b>
+                </strong>
             </MudText>
-            <MudNavMenu Color="Color.Primary">
-                @foreach (var sectionView in _datahubAdminItems)
-                {
-                    <MudNavLink Href="@GetSectionViewUrl(PageRoutes.ToolPrefix, sectionView)" Match="NavLinkMatch.All">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
-                            <MudText Style="@_workspaceLinkStyle">
-                                @GetLabel(sectionView)
-                            </MudText>
-                        </MudStack>
-                    </MudNavLink>
-                }
+            <MudNavMenu Color="Color.Primary" role="navigation">
+                <ul>
+                    @foreach (var sectionView in _datahubAdminItems)
+                    {
+                        <li>
+                            <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                <MudStack Row AlignItems="AlignItems.Center">
+                                    <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                    <MudText Style="@_workspaceLinkStyle">
+                                        @GetLabel(sectionView)
+                                    </MudText>
+                                </MudStack>
+                            </MudNavLink>
+                        </li>
+                    }
+                </ul>
             </MudNavMenu>
         </MudStack>
+    </DatahubAuthView>
+
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+        <MudSwitch T="bool"
+                   Color="Color.Primary"
+                   Value="@_isViewAsAdmin"
+                   ValueChanged="@ToggleAdminMode"
+                   Label="@Localizer["Admin Access Enabled"]"/>
     </DatahubAuthView>
 </MudStack>
 
@@ -161,19 +104,31 @@
 
     public struct SectionViews
     {
-        public const string Profile = "public";
-        public const string Customization = "customization";
+        public const string Profile = "";
         public const string Appearance = "appearance";
+        public const string Customization = "customization";
         public const string Notifications = "notifications";
         public const string Achievements = "achievements";
+        public const string Profile_FR = "";
+        public const string Appearance_FR = "apparence";
+        public const string Customization_FR = "personnalisation";
+        public const string Notifications_FR = "notifications";
+        public const string Achievements_FR = "realisations";
 
         public const string Diagnostics = "diagnostics";
+        public const string Diagnostics_FR = "diagnostiques";
         public const string Statistics = "statistics";
+        public const string Statistics_FR = "statistiques";
         public const string HealthCheck = "healthcheck";
+        public const string HealthCheck_FR = "verification-sante";
         public const string Users = "users";
+        public const string Users_FR = "utilisateurs";
         public const string Email = "email";
+        public const string Email_FR = "courriel";
         public const string SupportRequests = "support-requests";
+        public const string SupportRequests_FR = "demandes-assistance";
         public const string AzureSubscriptions = "azure-subscriptions";
+        public const string AzureSubscriptions_FR = "abonnements-azure";
     }
 
 
@@ -298,17 +253,6 @@
         };
     }
 
-    private async Task ShowProjectDialog()
-    {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await _dialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
-        var dialogResult = await dialog.Result;
-        if (!dialogResult.Canceled)
-        {
-            _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{dialogResult.Data}", true);
-        }
-    }
-
     private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
     {
         return recentActivity.userRecentLink.LinkType switch
@@ -349,4 +293,10 @@
         };
     }
 
+    private async Task ToggleAdminMode()
+    {
+        _isViewAsAdmin = !_isViewAsAdmin;
+        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
+        _navigationManager.NavigateTo(_navigationManager.Uri, true);
+    }
 }

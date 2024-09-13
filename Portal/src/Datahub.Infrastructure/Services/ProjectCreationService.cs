@@ -160,7 +160,8 @@ public class ProjectCreationService(
         {
             ProjectId = project.Project_ID,
             RequestedById = currentPortalUser.Id,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
+            Status = TerraformTemplate.TemplateStatus.CreateRequested
         };
 
         await context.Project_Resources2.AddAsync(newResource);

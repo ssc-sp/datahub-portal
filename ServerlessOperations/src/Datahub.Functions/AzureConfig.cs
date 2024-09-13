@@ -59,7 +59,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string ServicePrincipalGroupID => _config["SP_GROUP_ID"] ?? "";
     public string KeyVaultName => _config["KEY_VAULT_NAME"] ?? "";
     
-    public string MediaStorageConnectionString => _config["MediaStorageConnectionString"] ?? "";
+    public string MediaStorageConnectionString => _config["Media:StorageConnectionString"] ?? "";
 
     /// <summary>
     /// Timespan between alerts for infrastructure health checks. This uses TimeSpan format. 

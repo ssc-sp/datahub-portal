@@ -1,0 +1,196 @@
+﻿@using Datahub.Application.Services
+@inject IProjectCreationService _projectCreationService
+@inject NavigationManager _navigationManager
+@inject DatahubPortalConfiguration _portalConfiguration
+
+@attribute [Route(PageRoutes.CreateWorkspace)]
+@attribute [Route(PageRoutes.CreateWorkspace_FR)]
+
+<PageTitle>@Localizer["Create a Workspace - Federal Science DataHub"]</PageTitle>
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+    <MudStack Spacing="6">
+        <DHMainContentTitle Title="@Localizer["Create a new Workspace"]" />
+        <MudText>
+            @Localizer["Please complete the following information to create a new workspace"]
+        </MudText>
+
+        <MudForm Class="mb-4" @bind-IsValid="@_success">
+            <MudTextField T="string"
+                          @bind-Value="_projectTitle"
+                          Label="@Localizer["Workspace Title"]" Required
+                          RequiredError="@Localizer["Workspace Title is required"]"
+                          HelperText="@Localizer["Enter a descriptive title for the workspace"]"
+                          DebounceInterval="500"
+                          OnDebounceIntervalElapsed="UpdateProjectAcronym" />
+
+            <MudTextField T="string"
+                          @bind-Value="_projectAcronym"
+                          Label="@Localizer["Workspace Acronym"]"
+                          AdornmentIcon="fa-light fa-arrows-rotate"
+                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]"
+                          Adornment="Adornment.End"
+                          OnAdornmentClick="GenerateAcronym"
+                          AdornmentAriaLabel="@Localizer["Generate Acronym"]"
+                          RequiredError="@Localizer["Workspace Acronym is required"]"
+                          Converter="_converter"
+                          @ref="_acronymField"
+                          alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
+                          Required
+                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))" />
+
+            <MudSelect T="string"
+                       Label="@Localizer["(Optional) Which features are of interest to you?"]"
+                       MultiSelection="true"
+                       HelperText="@Localizer["Please select all that apply"]"
+                       AnchorOrigin="Origin.BottomLeft"
+                       TransformOrigin="Origin.TopLeft"
+                       @bind-Value="@_interestedFeatures">
+                <MudSelectItem T="string" Value="@("Storage")">@Localizer["Storage"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Analytics")">@Localizer["Analytics"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
+            </MudSelect>
+
+            @if (_portalConfiguration.Github.Enabled)
+            {
+                <MudStack Row Class="mt-4">
+                    <MudButton Href="https://github.com/apps/datahub-workspaces"
+                               OnClick="HandleIntegrateWithGit"
+                               Target="_blank"
+                               Variant="Variant.Filled"
+                               EndIcon="@Icons.Custom.Brands.GitHub"
+                               Color="Color.Primary">
+                        @Localizer["Link GitHub"]
+                    </MudButton>
+                    <MudCheckBox Value=@_createRepository
+                                 ValueChanged=@ToggleCreateRepo
+                                 Disabled="!_githubIntegration"
+                                 T="bool"
+                                 Label=@Localizer["Create Repository"] />
+                </MudStack>
+            }
+
+            @if (_errorMessage is not null)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
+                    @_errorMessage
+                </MudAlert>
+            }
+        </MudForm>
+        <MudElement Class="pb-4">
+            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
+                @Localizer["Cancel"]
+            </MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
+                @if (_isCreating)
+                {
+                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
+                }
+                @Localizer["Create Workspace"]
+            </MudButton>
+        </MudElement>
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+    public bool ShowCancel { get; set; } = true;
+
+#nullable enable
+    private const int MaxAcronymLength = 7;
+    private string? _errorMessage;
+    private string _projectTitle = string.Empty;
+    private string _projectAcronym = string.Empty;
+    private string _interestedFeatures = string.Empty;
+    private MudTextField<string>? _acronymField;
+
+    private bool _success;
+    private bool _isCreating;
+
+    private bool _githubIntegration;
+    private bool _createRepository;
+
+    private async Task GenerateAcronym()
+    {
+        if (string.IsNullOrWhiteSpace(_projectTitle))
+        {
+            _errorMessage = Localizer["Workspace Title is required to generate an acronym"];
+            return;
+        }
+        _projectAcronym = await _projectCreationService.GenerateProjectAcronymAsync(_projectTitle);
+        _success = true;
+        _acronymField?.ResetValidation();
+    }
+
+    private void CloseAlert()
+    {
+        _errorMessage = null;
+    }
+
+    private async Task<string?> ValidateAcronym(string acronym)
+    {
+        if (await _projectCreationService.AcronymExists(acronym))
+            return Localizer["Workspace Acronym already exists"];
+
+        // check it is alphanumeric
+        if (!acronym.All(char.IsLetterOrDigit))
+            return Localizer["Acronym must be alphanumeric"];
+
+        return (acronym.Length > MaxAcronymLength ? Localizer["Acronym must be {0} characters or less", MaxAcronymLength] : null)!;
+    }
+
+    private readonly Converter<string> _converter = new()
+        {
+            SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
+            GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
+        };
+
+    private async Task UpdateProjectAcronym()
+    {
+        if (string.IsNullOrWhiteSpace(_projectTitle)) return;
+        _projectAcronym = await _projectCreationService.GenerateProjectAcronymAsync(_projectTitle);
+    }
+
+    private async Task CreateProject()
+    {
+        _success = string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym)); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
+
+        if (_success)
+        {
+            if (_isCreating)
+                return;
+            _isCreating = true;
+            //update Button
+            StateHasChanged();
+            await Task.Delay(1);
+            // TODO: Get Organization name?
+
+            var isAdded = await _projectCreationService.CreateProjectAsync(_projectTitle, _projectAcronym, "Unspecified");
+            _isCreating = false;
+            if (isAdded)
+            {
+                await _projectCreationService.SaveProjectCreationDetailsAsync(_projectAcronym, _interestedFeatures);
+                //MudDialog.Close(DialogResult.Ok(_projectAcronym));
+                _navigationManager.NavigateTo(PageRoutes.Home);
+            }
+            else
+            {
+                _errorMessage = Localizer["An error occurred while creating the workspace"];
+                StateHasChanged();
+            }
+        }
+    }
+
+    private void HandleIntegrateWithGit()
+    {
+        _githubIntegration = true;
+    }
+
+    private void ToggleCreateRepo(bool value)
+    {
+        _createRepository = value;
+    }
+
+
+    #nullable disable
+}
