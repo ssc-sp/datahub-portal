@@ -21,37 +21,62 @@
 }
 
 <MudStack>
-    @if (ShowTitle)
+    @if (_adminProjects.Any())
     {
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["My Workspaces"]</MudText>
+        @if (ShowTitle)
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Administer"]</MudText>
+        }
+        <div role="group">
+            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+                @foreach (var project in _adminProjects)
+                {
+                    <li>
+                        <ProjectPreviewCard Project="@project"/>
+                    </li>
+                }
+            </ul>
+        </div>
     }
-    <MudGrid>
-        @foreach (var project in _userRoles.Select(userRole => userRole.Project))
-        {
-            <MudItem xs="6" sm="@SmSize">
-                <ProjectPreviewCard Project="@project"/>
-            </MudItem>
-        }
-        @if (_isCurrentUser)
-        {
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-                <Authorized>
-                    <MudItem xs="6" sm="@SmSize">
-                        <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="999"/>
-                    </MudItem>
 
-                </Authorized>
-                <NotAuthorized>
-                    @if (_numberOfRemainingWorkspaces > 0)
-                    {
-                        <MudItem xs="6" sm="@SmSize">
-                            <ProjectPreviewCard OnCreateWorkspace="ShowProjectDialog" NumberOfRemainingWorkspaces="@_numberOfRemainingWorkspaces"/>
-                        </MudItem>
-                    }
-                </NotAuthorized>
-            </DatahubAuthView>
+    @if (_collaboratedProjects.Any())
+    {
+        @if (ShowTitle)
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Collaborate In"]</MudText>
         }
-    </MudGrid>
+        <div role="group">
+            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+                @foreach (var project in _collaboratedProjects)
+                {
+                    <li>
+                        <ProjectPreviewCard Project="@project"/>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
+    
+    @if (_guestProjects.Any())
+    {
+        @if (ShowTitle)
+        {
+            <MudDivider Class="my-4" />
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
+        }
+        <div role="group">
+            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+                @foreach (var project in _guestProjects)
+                {
+                    <li>
+                        <ProjectPreviewCard Project="@project"/>
+                    </li>
+                }
+            </ul>
+        </div>
+    }
 </MudStack>
 
 @code {
@@ -68,6 +93,10 @@
 
     private List<Datahub_Project_User> _userRoles;
     private int _numberOfRemainingWorkspaces;
+
+    private List<Datahub_Project> _adminProjects;
+    private List<Datahub_Project> _collaboratedProjects;
+    private List<Datahub_Project> _guestProjects;
 
     private string _chipStyle = new StyleBuilder()
         .AddStyle("margin-left", "0")
@@ -92,17 +121,15 @@
             .ToListAsync();
 
         _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
+
+        _adminProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead || u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).ToList();
+        _collaboratedProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).ToList();
+        _guestProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).ToList();
     }
 
     private async Task ShowProjectDialog()
     {
-        var options = new DialogOptions { CloseOnEscapeKey = true };
-        var dialog = await DialogService.ShowAsync<CreateProjectDialog>(Localizer["Create a new Workspace"], options);
-        var dialogResult = await dialog.Result;
-        if (!dialogResult.Canceled)
-        {
-            NavigationManager.NavigateTo($"{_datahubPortalConfiguration.ProjectUrlSegment}/{dialogResult.Data}", true);
-        }
+        NavigationManager.NavigateTo(Localizer[PageRoutes.CreateWorkspace]);
     }
 
 }

@@ -30,14 +30,14 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public async Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task CopyTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
+        if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return;
         }
 
-        var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
+        var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, templateName);
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
 
         _logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
@@ -45,7 +45,7 @@ public class TerraformService : ITerraformService
 
         if (!Directory.Exists(projectPath))
         {
-            if (template.Name == TerraformTemplate.NewProjectTemplate)
+            if (templateName == TerraformTemplate.NewProjectTemplate)
             {
                 _logger.LogInformation("Creating new project directory {ProjectPath}", projectPath);
                 Directory.CreateDirectory(projectPath);
@@ -76,15 +76,15 @@ public class TerraformService : ITerraformService
         }
     }
 
-    public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task ExtractVariables(string templateName, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
+        if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return;
         }
 
-        var missingVariables = FindMissingVariables(template, terraformWorkspace);
-        await WriteVariablesFile(template, terraformWorkspace, missingVariables);
+        var missingVariables = FindMissingVariables(templateName, terraformWorkspace);
+        await WriteVariablesFile(templateName, terraformWorkspace, missingVariables);
     }
 
     public async Task ExtractBackendConfig(string workspaceAcronym)
@@ -146,7 +146,7 @@ public class TerraformService : ITerraformService
         {
             try
             {
-                var template = TerraformTemplate.GetTemplateByName(variableName);
+                var template = TerraformTemplate.NormalizeTemplateName(variableName);
                 await ExtractVariables(template, terraformWorkspace);
             }
             catch (ArgumentException)
@@ -156,11 +156,11 @@ public class TerraformService : ITerraformService
         }
     }
 
-    private Dictionary<string, (string, bool)> FindMissingVariables(TerraformTemplate template,
+    private Dictionary<string, (string, bool)> FindMissingVariables(string templateName,
         TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        var templatePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
+        var templatePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, templateName);
 
         var existingVariables = FindExistingVariables(projectPath);
         var requiredTemplateVariables = GetRequiredTemplateVariables(templatePath);
@@ -181,11 +181,11 @@ public class TerraformService : ITerraformService
         return existingVariables;
     }
 
-    private async Task WriteVariablesFile(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
+    private async Task WriteVariablesFile(string templateName, TerraformWorkspace terraformWorkspace,
         Dictionary<string, (string Value, bool isRequired)> missingVariables)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        var variablesFilePath = Path.Join(projectPath, $"{template.Name}.auto.tfvars.json");
+        var variablesFilePath = Path.Join(projectPath, $"{templateName}.auto.tfvars.json");
 
         if (File.Exists(variablesFilePath))
         {

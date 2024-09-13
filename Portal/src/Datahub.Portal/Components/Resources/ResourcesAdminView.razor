@@ -40,10 +40,10 @@
                         <MudText Typo="@Typo.h5">@Localizer["Error(s)"]</MudText>
                         @if (_formattedErrorList?.Count > 0)
                         {
-                            <MudList>
+                            <MudList T="string">
                                 @foreach (var e in _formattedErrorList)
                                 {
-                                    <MudListItem>@e</MudListItem>
+                                    <MudListItem T="string">@e</MudListItem>
                                 }
                             </MudList>
                         }

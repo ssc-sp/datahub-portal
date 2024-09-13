@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Model.Achievements;
+using Datahub.Shared.Entities;
 using Newtonsoft.Json;
 
 namespace Datahub.Core.Model.Projects;
@@ -10,6 +11,11 @@ public class Project_Resources2
     [Key]
     public Guid ResourceId { get; set; } = Guid.NewGuid();
 
+    /// <summary>
+    /// Gets or sets the type of the resource.
+    ///
+    /// Prefixed with "terraform:resource_name".
+    /// </summary>
     [Required]
     [StringLength(200)]
     public string ResourceType { get; set; }
@@ -37,6 +43,15 @@ public class Project_Resources2
     public PortalUser UpdatedBy { get; set; }
 
     public string InputJsonContent { get; set; } = "{}";
+
+    /// <summary>
+    /// Converts the current instance of Project_Resource to a TerraformTemplate object.
+    /// </summary>
+    /// <returns>A new instance of TerraformTemplate with the ResourceType and Status properties set.</returns>
+    public TerraformTemplate ToTerraformTemplate()
+    {
+        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status);
+    }
 }
 
 public static class ProjectResourceConstants

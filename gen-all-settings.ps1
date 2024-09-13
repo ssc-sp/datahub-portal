@@ -17,10 +17,13 @@ foreach ($env in $Environment) {
     # Portal
     Write-Host "`n** Exporting Portal settings in $env`n"
     if (-not $SkipAppSettings) {
-        Export-Settings -ProjectFolder "./Portal/src/Datahub.Portal" -SourceFile "./Portal/template.appsettings.json" -Target AppSettings -Environment $env
+        Export-Settings -ProjectFolder "./Portal/src/Datahub.Portal" -SourceFile "./Portal/template.settings.json" -Target AppSettings -Environment $env -TargetFile "appsettings.json"
+    }
+    if (-not $SkipTests) {
+        Export-Settings -ProjectFolder "./Portal/test/Datahub.SpecflowTests" -SourceFile "./Portal/template.settings.json" -Target AppSettings -Environment dev -TargetFile "appsettings.test.json"
     }
     if (-not $SkipTerraform) {
-        Export-Settings -SourceFile "./Portal/template.appsettings.json" -Target Terraform -Environment $env -TfFile "terraform/env/$env/portal-settings-$env.tf"
+        Export-Settings -SourceFile "./Portal/template.settings.json" -Target Terraform -Environment $env -TfFile "terraform/env/$env/portal-settings-$env.tf"
     }
 
     # Dotnet Function

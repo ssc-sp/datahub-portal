@@ -1,0 +1,290 @@
+@*WorkspaceHealthPage.razor*@
+@namespace Datahub.Portal.Pages.Workspace.Healthcheck
+
+@* @page "/w/{ProjectAcronym}/healthcheck" *@
+
+@using Datahub.Application.Services.Metadata;
+@using Datahub.Application.Services.UserManagement;
+@using Datahub.Core.Services.Projects;
+@using Datahub.Core.Model;
+@using Datahub.Core.Model.Health;
+@using Datahub.Core.Model.Projects;
+@using Datahub.Infrastructure.Extensions;
+@using Datahub.Infrastructure.Queues.Messages;
+@using Datahub.Infrastructure.Services.Security;
+@using Datahub.Infrastructure.Services.Azure;
+@using Datahub.Portal.Services;
+@using Datahub.Shared;
+@using Datahub.Shared.Configuration;
+@using Datahub.Shared.Entities;
+@using Microsoft.Azure.Management.Fluent
+@using Microsoft.Azure.Management.ResourceManager.Fluent
+@using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication
+@using Microsoft.Azure.Management.Graph.RBAC.Fluent
+@using Microsoft.Azure.Management.Graph.RBAC.Fluent.Models
+@using Microsoft.Graph;
+@using Microsoft.AspNetCore.Authentication;
+@using Microsoft.AspNetCore.Authorization;
+@using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+@using Microsoft.Identity.Client;
+@using Microsoft.Identity.Web;
+@using Microsoft.Extensions.Caching.Memory;
+@using Microsoft.Rest;
+@using MassTransit;
+@using System.IdentityModel.Tokens.Jwt;
+ 
+@inject IDbContextFactory<DatahubProjectDBContext> DbFactory
+@inject IDialogService DialogService
+@inject ILogger<WorkspaceHealthcheckPage> Logger
+@inject IServiceAuthManager _serviceAuthManager
+@inject IUserInformationService _userInformationService
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject ISendEndpointProvider _sendEndpointProvider
+@inject ITokenAcquisition _tokenAcquisition
+@inject IHttpClientFactory _httpClientFactory
+@inject IHttpContextAccessor _httpContextAccessor
+@inject IMemoryCache Cache
+@inject NavigationManager NavigationManager
+
+<MudPaper Class="py-4 px-6">
+    <MudStack>
+        <DHMainContentTitle>
+            <MudText Typo="Typo.h1">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Health Check"]</MudText>
+        </DHMainContentTitle>
+    </MudStack>
+    <MudStack>
+        <MudText Typo="Typo.body1">
+            @Localizer["View the health of the infrastructure that supports the workspace."]
+        </MudText>
+        <MudTable Items="_statusList" Hover Dense>
+            <HeaderContent>
+                <MudTh>@Localizer["Resource"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Updated"]</MudTh>
+                <MudTh>@Localizer["Run Check"]</MudTh>
+            </HeaderContent>
+            <RowTemplate Context="context">
+                <MudTd>@context.ResourceType</MudTd>
+                <MudTd>
+                    <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
+                        <MudChip T="string" Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
+                            @Localizer[HealthCheckHelperService.GetStatusText(context)]
+                        </MudChip>
+                    </MudTooltip>
+                </MudTd>
+                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                <MudTd>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                              OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
+                              Size="Size.Small">
+                        @Localizer["Run"]
+                    </DHButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudStack>
+    <iframe id="logStreamIframe" src="@($"/api/healthcheck/webapplogstream?ws={WorkspaceAcronym}")" width="100%" height="500px">
+        <!-- Fallback content for browsers that do not support iframes -->
+        Your browser does not support iframes.
+    </iframe>
+</MudPaper>
+
+@code {
+
+    private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
+    {
+        InfrastructureHealthResourceType.AzureSqlDatabase,
+        InfrastructureHealthResourceType.AzureDatabricks,
+        InfrastructureHealthResourceType.AzureStorageAccount,
+        InfrastructureHealthResourceType.AzureWebApp,
+    };
+
+    private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
+    private DatahubProjectDBContext _projectDbContext;
+    private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
+
+    private const string cacheKey = "InfrastructureHealthChecks";
+    private Timer _timer;
+    public string _userToken;
+    public string _userID;
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        var user = await _userInformationService.GetCurrentGraphUserAsync();
+
+        _projectDbContext = DbFactory.CreateDbContext();
+
+        var hasWebApp = LoadDataForTables();
+        var needReload = false;
+        if (hasWebApp)
+        {
+            needReload = await CheckRoleToResource();
+        }
+        _timer = new System.Threading.Timer(e =>
+        {
+            InvokeAsync(() =>
+            {
+                LoadDataForTables();
+                StateHasChanged();
+            });
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
+
+        if (needReload)
+        {
+            var reloadTimer = new System.Threading.Timer(_ =>
+            {
+                InvokeAsync(() =>
+                {
+                    NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
+                });
+            }, null, TimeSpan.FromSeconds(3), Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    private async Task<string> GetSystemAccessTokenAsync()
+    {
+        var config = new AzureDevOpsConfiguration
+            {
+                TenantId = _portalConfiguration.AzureAd.TenantId,
+                ClientId = _portalConfiguration.AzureAd.InfraClientId,
+                ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret
+            };
+
+        var cancellationToken = CancellationToken.None;
+        var audience = "https://management.azure.com/";
+        var url = $"https://login.microsoftonline.com/{config.TenantId}/oauth2/token";
+        var content = new FormUrlEncodedContent(new Dictionary<string, string>
+            {
+                { "grant_type", "client_credentials" },
+                { "client_id", config.ClientId },
+                { "client_secret", config.ClientSecret },
+                { "scope", $"{audience}.default" },
+                { "resource", audience }
+            });
+        using var _httpClient = _httpClientFactory.CreateClient();
+        var tokenResponse = await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
+        return tokenResponse?.access_token;
+    }
+    private async Task<bool> CheckRoleToResource()
+    {
+        try
+        {
+            var env = _portalConfiguration?.Hosting?.EnvironmentName;
+            if (string.IsNullOrEmpty(env) || env == "local")
+            {
+                env = "dev";
+            }
+            var tenantId = _portalConfiguration.AzureAd.TenantId;
+            var subscriptionId = _portalConfiguration.AzureAd.SubscriptionId;
+            var resourceGroup = $"fsdh_proj_{WorkspaceAcronym.ToLower()}_{env}_rg";
+            var webAppName = $"fsdh-proj-{WorkspaceAcronym.ToLower()}-webapp-{env}";
+
+            var token = await _tokenAcquisition.GetAccessTokenForAppAsync("https://management.azure.com/.default");
+            var handler = new JwtSecurityTokenHandler();
+            var jwtToken = handler.ReadJwtToken(token);
+            var oidClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "oid")?.Value;
+
+            if (string.IsNullOrEmpty(oidClaim))
+            {
+                throw new InvalidOperationException("Could not find oid claim in the token.");
+            }
+
+            var credentials = new TokenCredentials(token);
+            var azure = Azure.Configure()
+                .Authenticate(new AzureCredentials(credentials, credentials, tenantId, AzureEnvironment.AzureGlobalCloud))
+                .WithDefaultSubscription();
+            var scope = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/{webAppName}";
+
+            var roleDefinition = azure.AccessManagement.RoleDefinitions
+                .ListByScope(scope)
+                .FirstOrDefault(r => r.RoleName == "Contributor");
+
+            if (roleDefinition != null)
+            {
+                // Check if the role assignment already exists
+                var existingAssignments = azure.AccessManagement.RoleAssignments
+                    .ListByScope(scope)
+                    .Where(ra => ra.PrincipalId == oidClaim && ra.RoleDefinitionId == roleDefinition.Id);
+
+                if (!existingAssignments.Any())
+                {
+                    await AssignRole(tenantId, subscriptionId, resourceGroup, webAppName, oidClaim, roleDefinition.Id);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle exceptions
+            Console.WriteLine($"Error assigning role: {ex.Message}");
+        }
+        return false;
+    }
+
+    private async Task AssignRole(string tenantId, string subscriptionId, string resourceGroup, string webAppName, string oidClaim, string roleDefinitionId)
+    {
+        var accessToken = await GetSystemAccessTokenAsync();
+        var credentials = new TokenCredentials(accessToken);
+        var azure = Azure.Configure()
+               .Authenticate(new AzureCredentials(credentials, credentials, tenantId, AzureEnvironment.AzureGlobalCloud))
+               .WithDefaultSubscription();
+        var roleAssignment = azure.AccessManagement.RoleAssignments
+                                .Define(Guid.NewGuid().ToString())
+                                .ForObjectId(oidClaim)
+                                .WithRoleDefinition(roleDefinitionId)
+                                .WithScope($"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/{webAppName}")
+                                .Create();
+    }
+
+    private bool LoadDataForTables()
+    {
+        _infrastructureHealthChecks = Cache.Get<List<InfrastructureHealthCheck>>(cacheKey);
+        var project = _projectDbContext.Projects.AsNoTracking().Include(p => p.Resources).Where(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        var res = _infrastructureHealthChecks
+            .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
+            .Where(h => (h.Name.Contains(WorkspaceAcronym)))
+            .GroupBy(h => h.ResourceType)
+            .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
+            .ToList();
+
+        _statusList.Clear();
+        foreach (var output in res)
+        {
+            _statusList.Add(output);
+        }
+        var webAppCount = _infrastructureHealthChecks
+            .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
+            .Where(h => (h.Name.Contains(WorkspaceAcronym)))
+            .Where(h => h.ResourceType == InfrastructureHealthResourceType.AzureWebApp).Count();
+        return webAppCount > 0;
+    }
+
+    private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
+    {
+        var request = new InfrastructureHealthCheckMessage(
+            type,
+            group,
+            name
+        );
+
+        try
+        {
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.InfrastructureHealthCheckQueueName, request);
+        }
+        catch (Exception ex)
+        {
+            await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
+        }
+    }
+
+}

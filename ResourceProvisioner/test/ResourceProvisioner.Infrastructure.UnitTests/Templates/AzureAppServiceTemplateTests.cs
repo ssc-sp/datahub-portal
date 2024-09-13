@@ -31,14 +31,9 @@ public class AzureAppServiceTemplateTests
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new TerraformTemplate
-        {
-            Name = TerraformTemplate.AzureAppService,
-        };
-
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(module, workspace);
+            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, workspace);
         });
     }
 
@@ -50,7 +45,7 @@ public class AzureAppServiceTemplateTests
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
 
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
         await _repositoryService.FetchModuleRepository();
 
@@ -93,8 +88,8 @@ public class AzureAppServiceTemplateTests
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
-        await _terraformService.CopyTemplateAsync(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, workspace);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -110,7 +105,7 @@ public class AzureAppServiceTemplateTests
             Assert.Multiple(() =>
             {
                 Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()), $"Expected variable {key} does not match actual value");
             });
         }
     }
@@ -125,11 +120,11 @@ public class AzureAppServiceTemplateTests
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
 
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
-        await _terraformService.ExtractVariables(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, workspace);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -154,7 +149,7 @@ public class AzureAppServiceTemplateTests
     {
         return new JsonObject
         {
-            [TerraformVariables.AllowSourceIp] = "",
+            [TerraformVariables.AllowSourceIp] = _resourceProvisionerConfiguration.Terraform.Variables.allow_source_ip,
         };
     }
 }

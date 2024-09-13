@@ -5,22 +5,19 @@
 @inject IAnnouncementService _announcementService
 
 @attribute [Route(PageRoutes.News)]
+@attribute [Route(PageRoutes.News_FR)]
 
 <PageTitle>
-    @Localizer["SSC Datahub - News"]
+    @Localizer["Announcements - Federal Science DataHub"]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar />
-</SectionContent>
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    
     <MudStack Spacing="6">
         <MudStack Row>
-            <MudText Typo="Typo.h2">@Localizer["DataHub News"]</MudText>
+            <DHMainContentTitle Title="@Localizer["Announcements"]" />
             <MudSpacer/>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-                <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/news/edit/new">@Localizer["Create a new Announcement"]</DHButton>
+                <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/announcements/edit/new">@Localizer["Create a new Announcement"]</DHButton>
             </DatahubAuthView>
         </MudStack>
 
@@ -39,7 +36,7 @@
         else
         {
             <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center">
-                <DHIcon Icon="@Icons.Material.Outlined.Deck" Size="Size.Large" Class="mt-16 mb-4" />
+                <DHIcon Icon="@Icons.Material.Outlined.Deck" Size="Size.Large" Class="mt-16 mb-4"/>
                 <MudText Typo="Typo.h3">@Localizer["No announcements yet!"]</MudText>
             </MudStack>
         }

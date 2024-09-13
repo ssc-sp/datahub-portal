@@ -2,7 +2,7 @@
 @inject IDialogService DialogService
 @typeparam T
 
-<MudTable ServerData="@(new Func<TableState, Task<TableData<T>>>(ServerReload))"
+<MudTable ServerData="@(new Func<TableState,CancellationToken,Task<TableData<T>>>(ServerReload))"
           Dense="true"
           Hover="true"
           Striped="true"
@@ -112,7 +112,7 @@
     }
 
 
-    private async Task<TableData<T>> ServerReload(TableState state)
+    private async Task<TableData<T>> ServerReload(TableState state, CancellationToken ct)
     {
 
         IEnumerable<T> data = DataSet;

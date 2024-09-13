@@ -1,13 +1,21 @@
-using Askmethat.Aspnet.JsonLocalizer.Extensions;
+using AspNetCore.Localizer.Json.Extensions;
+using AspNetCore.Localizer.Json.JsonOptions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
 using Datahub.Application;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Metadata;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Publishing;
+using Datahub.Application.Services.ReverseProxy;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.WebApp;
 using Datahub.CatalogSearch;
-using Datahub.Core;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Data;
@@ -20,17 +28,28 @@ using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Core.Services.Wiki;
 using Datahub.Infrastructure;
+using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Achievements;
+using Datahub.Infrastructure.Services.Api;
 using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Metadata;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Infrastructure.Services.Projects;
+using Datahub.Infrastructure.Services.Publishing;
+using Datahub.Infrastructure.Services.ReverseProxy;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.WebApp;
 using Datahub.Metadata.Model;
-using Datahub.Portal.Middleware;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
 using Datahub.Portal.Services.Notification;
 using Datahub.Portal.Services.Offline;
 using Microsoft.ApplicationInsights.Extensibility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
@@ -46,32 +65,10 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Datahub.Infrastructure.Offline;
-using Datahub.Application.Configuration;
-using Datahub.Application.Services.Metadata;
-using Datahub.Application.Services.Notification;
-using Datahub.Application.Services.Security;
-using Datahub.Application.Services.UserManagement;
-using Datahub.Application.Services.WebApp;
-using Datahub.Infrastructure.Services.Api;
-using Datahub.Infrastructure.Services.Metadata;
-using Datahub.Infrastructure.Services.Notification;
+using Datahub.Application.Services.Cost;
 using Tewr.Blazor.FileReader;
-using Yarp.ReverseProxy.Transforms;
 using Yarp.ReverseProxy.Configuration;
-using Datahub.Infrastructure.Services.Security;
-using Datahub.Application.Services.Publishing;
-using Datahub.Infrastructure.Services.Achievements;
-using Datahub.Infrastructure.Services.Publishing;
-using Datahub.Infrastructure.Services.Storage;
-using Datahub.Infrastructure.Services.UserManagement;
-using Datahub.Infrastructure.Services.ReverseProxy;
-using Datahub.Infrastructure.Services.WebApp;
-using Microsoft.Extensions.Azure;
-using Datahub.Core.Model.Context;
+using Yarp.ReverseProxy.Transforms;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -79,10 +76,9 @@ namespace Datahub.Portal;
 
 public class Startup
 {
-    public Startup(IConfiguration configuration, IWebHostEnvironment env)
+    public Startup(IConfiguration configuration)
     {
         Configuration = configuration;
-        _currentEnvironment = env;
     }
 
     private readonly IConfiguration Configuration;
@@ -123,6 +119,7 @@ public class Startup
 
         // use this method to setup the authentication and authorization
         services.AddAuthenticationServices(Configuration);
+        services.AddAuthorization();
 
         services.AddRazorPages()
             .AddMicrosoftIdentityUI();
@@ -220,25 +217,6 @@ public class Startup
         }
 
         services.AddMiniProfiler().AddEntityFramework();
-
-        if (ReverseProxyEnabled())
-        {
-            services.AddTelemetryConsumer<YarpTelemetryConsumer>();
-            services.AddReverseProxy()
-                    .AddTransforms(builderContext =>
-                    {
-                        builderContext.AddXForwarded(ForwardedTransformActions.Append);
-                        builderContext.AddRequestTransform(async transformContext =>
-                        {
-                            // passing the logged user to the proxied app
-                            var loggedUser = transformContext.HttpContext?.User?.Identity?.Name ?? "";
-                            transformContext.ProxyRequest.Headers.Add(GetUserHeaderName(), loggedUser);
-                            // add the role
-                            transformContext.ProxyRequest.Headers.Add("role", transformContext.HttpContext.GetWorkspaceRole());
-                            await Task.CompletedTask;
-                        });
-                    });            
-        }
     }
 
     private bool ReverseProxyEnabled()
@@ -247,9 +225,7 @@ public class Startup
         Configuration.Bind(datahubConfiguration);
         
         return datahubConfiguration.ReverseProxy.Enabled;
-    }
-
-    private string GetUserHeaderName() => Configuration.GetValue<string>("ReverseProxy:UserHeaderName") ?? "dh-user";
+    }  
 
     static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     {
@@ -314,8 +290,6 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseMiddleware<WorkspaceAppMiddleware>();
-
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapRazorPages();
@@ -349,7 +323,7 @@ public class Startup
             options.ResourcesPath = "i18n";
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
-            options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+            options.LocalizationMode = LocalizationMode.I18n;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
@@ -420,6 +394,10 @@ public class Startup
             services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
             services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
+
+            services.AddScoped<IWorkspaceCostManagementService, OfflineWorkspaceCostManagementService>();
+            
+            
         }
         services.AddScoped<IProjectCreationService, ProjectCreationService>();
 
@@ -439,6 +417,7 @@ public class Startup
 
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
+        services.AddScoped<HealthCheckHelperService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();
