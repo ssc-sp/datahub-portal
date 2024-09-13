@@ -38,7 +38,10 @@
                     <MudText Typo="Typo.body1" Style="font-family: Consolas,sans-serif;">
                         Project ID: @_project.Project_ID [@(_project.Version ?? Localizer["v0.0.0"])]
                     </MudText>
-                    <MudButton Variant="Variant.Text" OnClick="@HandlePostToServiceBus">@Localizer["Post definition to Service Bus"]</MudButton>
+                    <MudStack Row>
+                        <MudButton Variant="Variant.Text" OnClick="@HandlePostToServiceBus">@Localizer["Post definition to Service Bus"]</MudButton>
+                        <MudButton Variant="Variant.Text" OnClick="@HandleWorkspaceUpgrade">@Localizer["Upgrade Workspace to Latest"]</MudButton>
+                    </MudStack>
                 </MudStack>
             </MudStack>
             <MudStack>
@@ -189,13 +192,25 @@
         }
     }
 
-    private async Task HandlePostToServiceBus(MouseEventArgs obj)
+    private async Task HandlePostToServiceBus()
     {
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
         await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-        
+
         _snackbar.Add(Localizer["Definition sent to Service Bus"], Severity.Success);
+    }
+    
+    private async Task HandleWorkspaceUpgrade()
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+
+        workspaceDefinition.Workspace.Version = TerraformWorkspace.DefaultVersion;
+        
+        await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+
+        _snackbar.Add(Localizer["Upgrade request sent to Service Bus"], Severity.Success);
     }
 
 }
