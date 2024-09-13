@@ -41,7 +41,7 @@ public class TerraformTemplate(string name, string status)
             NewProjectTemplate => NewProjectTemplate,
             AzureStorageBlob => AzureStorageBlob,
             AzureDatabricks => AzureDatabricks,
-            AzureAppService => AzureDatabricks,
+            AzureAppService => AzureAppService,
             AzurePostgres => AzurePostgres,
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
