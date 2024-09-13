@@ -444,6 +444,9 @@ public partial class RepositoryService : IRepositoryService
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         await ValidateWorkspaceVersion(terraformWorkspace);
+        
+        // Execute each module but make sure the `new-project-template` module is first
+        modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
 
         foreach (var module in modules)
         {
