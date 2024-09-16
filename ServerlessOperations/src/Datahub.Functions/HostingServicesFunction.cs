@@ -5,14 +5,16 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions;
 
-public class HostingServicesFunction(ILogger<HostingServicesFunction> logger)
+public class HostingServicesFunction(ILoggerFactory loggerFactory)
 {
+    private readonly ILogger _logger = loggerFactory.CreateLogger<HostingServicesFunction>();
+    
     [Function("HostingServicesFunction")]
     public async Task<IActionResult> RunAsync(
         [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] 
         HttpRequestData req)
     {
-        logger.LogInformation("C# HTTP trigger function processed a request.");
+        _logger.LogInformation("C# HTTP trigger function processed a request.");
 
         try
         {
@@ -21,7 +23,7 @@ public class HostingServicesFunction(ILogger<HostingServicesFunction> logger)
         }
         catch (Exception e)
         {
-            logger.LogError(e, $"Error processing request: {e.Message},\n Trace: {e.StackTrace}");
+            _logger.LogError(e, $"Error processing request: {e.Message},\n Trace: {e.StackTrace}");
             return new OkObjectResult("Successfully connected, error echoing");
         }
     }
