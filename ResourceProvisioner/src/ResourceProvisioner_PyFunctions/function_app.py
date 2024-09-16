@@ -3,6 +3,8 @@ import logging
 import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
+import lib.ssl_utils as ssl_utils
+import requests
 import azure.servicebus as servicebus
 import os
 import json
@@ -64,7 +66,7 @@ def queue_sync_workspace_users_function(msg: func.ServiceBusMessage):
     """
     message_envelope = json.loads(msg.get_body().decode('utf-8'))
     workspace_definition = message_envelope['message']
-    workspace_definition = keys_upper(workspace_definition)
+    workspace_definition = keys_upper(workspace_definition)    
     new_sync_workspace(workspace_definition)
     return None
 
@@ -86,6 +88,7 @@ def send_exception_to_service_bus(exception_message):
         BugReportType="Synchronizing workspace error",
         Description=exception_message
     )
+    ssl_utils.configure_ca_root_certs()    
     with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
         with client.get_queue_sender(queue_name) as sender:
             mass_transit_msg = MassTransitMessage(bug_report, client.fully_qualified_namespace, queue_name, MassTransitMessage.TYPE_BUG_REPORT)
@@ -96,6 +99,7 @@ def send_exception_to_service_bus(exception_message):
 
 def send_healthcheck_to_service_bus(message):
     try:
+        ssl_utils.configure_ca_root_certs()    
         asb_connection_str, queue_name, check_results_queue_name = get_config()
         with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
             with client.get_queue_sender(check_results_queue_name) as sender:
@@ -130,6 +134,7 @@ def keys_upper(dictionary):
     return res
    
 def new_sync_workspace(workspace_definition):
+    ssl_utils.configure_ca_root_certs()    
     sync_mappings = get_sync_func_mappings()
     logging.info("Got template mappings")
 
@@ -180,6 +185,8 @@ def sync_databricks_workspace_users_function(workspace_definition):
     environment_name = os.environ["DataHub_ENVNAME"]   
     subscription_id = os.environ["AzureSubscriptionId"]
 
+    ssl_utils.configure_ca_root_certs()    
+
     workspace_client = dtb_utils.get_workspace_client(databricksHost)
 
     # Cleanup users in workspace that aren't in AAD Graph
@@ -202,6 +209,7 @@ def sync_keyvault_workspace_users_function(workspace_definition):
         None
 
     """
+    ssl_utils.configure_ca_root_certs()    
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]   
     subscription_id = os.environ["AzureSubscriptionId"]
@@ -225,6 +233,8 @@ def sync_storage_workspace_users_function(workspace_definition):
         None
  
     """
+    # ensure that SSL is properly configured
+    ssl_utils.configure_ca_root_certs()
     # get environment name from environment variables
     environment_name = os.environ["DataHub_ENVNAME"]   
     subscription_id = os.environ["AzureSubscriptionId"]
@@ -236,4 +246,3 @@ def sync_storage_workspace_users_function(workspace_definition):
     # Cleanup users in workspace that aren't in AAD Graph
     #remove_deleted_users_in_workspace(workspace_client)
     #synchronize_workspace_users(workspace_definition, workspace_client) 
-
