@@ -22,21 +22,27 @@
 
 @if (_project is null)
 {
-    <DHLoadingInitializer />
+    <DHLoadingInitializer/>
     return;
 }
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
     <Authorized>
         <MudStack>
-            <DHMainContentTitle Title="@Localizer["Super User Page"]" />
+            <DHMainContentTitle Title="@Localizer["Super User Page"]"/>
             <MudStack>
                 <MudText Typo="Typo.h2">
-                    @Localizer["Workspace Version"]
+                    @Localizer["Workspace Details"]
                 </MudText>
-                <MudText Typo="Typo.body2" Style="font-size: 0.7rem; font-family: Consolas,sans-serif;">
-                    Project ID: @_project.Project_ID [@(_project.Version ?? Localizer["v0.0.0"])]
-                </MudText>
+                <MudStack Row Justify="Justify.SpaceBetween">
+                    <MudText Typo="Typo.body1" Style="font-family: Consolas,sans-serif;">
+                        Project ID: @_project.Project_ID [@(_project.Version ?? Localizer["v0.0.0"])]
+                    </MudText>
+                    <MudStack Row>
+                        <MudButton Variant="Variant.Text" OnClick="@HandlePostToServiceBus">@Localizer["Post definition to Service Bus"]</MudButton>
+                        <MudButton Variant="Variant.Text" OnClick="@HandleWorkspaceUpgrade">@Localizer["Upgrade Workspace to Latest"]</MudButton>
+                    </MudStack>
+                </MudStack>
             </MudStack>
             <MudStack>
                 <MudText Typo="Typo.h2">
@@ -60,7 +66,7 @@
                         <MudPaper Outlined Class="pt-4 px-6 pb-6">
                             <MudStack Style="height: 150px;">
                                 <MudStack Row AlignItems="AlignItems.Center">
-                                    <DHIcon Icon="@SidebarIcons.Api" Class="mr-2" />
+                                    <DHIcon Icon="@SidebarIcons.Api" Class="mr-2"/>
                                     <MudText Typo="Typo.h3">
                                         @Localizer["Databricks Admin"]
                                     </MudText>
@@ -68,12 +74,12 @@
                                 <MudText>
                                     @Localizer["Click here to add yourself to Databricks workspace admin group via REST API"]
                                 </MudText>
-                                <MudSpacer />
+                                <MudSpacer/>
                                 <MudStack Row>
                                     <DHButton Variant="@Variant.Filled" Color="@Color.Primary"
-                                               OnClick="@(async () => await AddToDatabricksAdmins())">
+                                              OnClick="@(async () => await AddToDatabricksAdmins())">
                                         @Localizer["Databricks Admin"]
-                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
                                     </DHButton>
                                 </MudStack>
                             </MudStack>
@@ -102,8 +108,7 @@
     private string _workspaceDefinitionMarkdown;
     private string _expectedTerraformOutput;
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
 
     private static readonly string[] DatabricksScopes =
     {
@@ -134,7 +139,7 @@
             .Include(p => p.Resources)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _expectedTerraformOutput =  $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
+        _expectedTerraformOutput = $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
     }
 
     private static string RewriteLink(string link)
@@ -154,13 +159,13 @@
 
     private async Task AddToDatabricksAdmins()
     {
-
         var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym);
         if (string.IsNullOrEmpty(dataBricksUrl))
         {
             _snackbar.Add(Localizer["Your workspace does not have Databricks"], Severity.Error);
             return;
         }
+
         await InvokeAsync(StateHasChanged);
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
@@ -186,4 +191,26 @@
             _logger.LogError(e, "Error adding user {DisplayName} as admin to workspace {WorkspaceAcronym}", currentUser.DisplayName, WorkspaceAcronym);
         }
     }
+
+    private async Task HandlePostToServiceBus()
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+        await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+
+        _snackbar.Add(Localizer["Definition sent to Service Bus"], Severity.Success);
+    }
+    
+    private async Task HandleWorkspaceUpgrade()
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+
+        workspaceDefinition.Workspace.Version = TerraformWorkspace.DefaultVersion;
+        
+        await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+
+        _snackbar.Add(Localizer["Upgrade request sent to Service Bus"], Severity.Success);
+    }
+
 }
