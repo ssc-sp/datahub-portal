@@ -50,7 +50,7 @@ namespace Datahub.Portal.Pages.Help
             Id = (string)workItemDetails["id"];
             Title = (string)workItemDetails["fields"]["System.Title"];
             var description = (string)workItemDetails["fields"]["System.Description"];
-            description = description.Split("<strong>Description:</strong> ")[1].Split("<br>")[0];
+            description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
             Description = TrimDescription(description);
             State = (string)workItemDetails["fields"]["System.State"];
             Message = userView == true ? GetUserHelpStatusMessage(State) : State;
@@ -63,7 +63,7 @@ namespace Datahub.Portal.Pages.Help
             Id = workItem.Id.ToString();
             Title = workItem.Fields["System.Title"].ToString();
             var description = workItem.Fields["System.Description"].ToString();
-            description = description.Split("<strong>Description:</strong> ")[1].Split("<br>")[0];
+            description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
             Description = TrimDescription(description);
             State = workItem.Fields["System.State"].ToString();
             Message = userView == true ? GetUserHelpStatusMessage(State) : State;
