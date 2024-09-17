@@ -20,16 +20,16 @@
                 <MudImage Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg" Alt="@Localizer["Workspace Avatar"]"></MudImage>
             </MudAvatar>
             @* <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/> *@
-            <MudText Typo="Typo.h6" Style="@_workspaceTitleStyle">
+            <MudText Typo="Typo.h2" Style="@_workspaceTitleStyle">
                 @_project?.ProjectName
             </MudText>
         </MudStack>
     </MudStack>
     <MudStack Spacing="2">
         <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-            <b>
+            <strong>
                 @Localizer["Workspace Tools"]
-            </b>
+            </strong>
         </MudText>
         <MudNavMenu Color="Color.Primary">
             <ul>
@@ -57,9 +57,9 @@
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
         <MudStack Spacing="2">
             <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem;">
-                <b>
+                <strong>
                     @Localizer["Administration"]
-                </b>
+                </strong>
             </MudText>
             <MudNavMenu Color="Color.Primary">
                 <ul>
@@ -94,6 +94,7 @@
         .AddStyle("white-space", "nowrap")
         .AddStyle("overflow", "hidden")
         .AddStyle("text-overflow", "ellipsis")
+        .AddStyle("font-size", "1rem")
         .Build();
 
     private string _path => $"w/{WorkspaceAcronym}";

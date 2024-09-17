@@ -204,7 +204,7 @@ namespace Datahub.Functions
 
             var title = $"{bug.Topics} in {bug.Workspaces}";
             var description =
-                $"<b>Issue submitted by:</b> {bug.UserName}<br /><b>Contact email:</b> {bug.UserEmail}<br /><b>Organization:</b> {bug.UserOrganization}<br /><b>Preferred Language:</b> {bug.PreferredLanguage} <br /><b>Time Zone:</b> {bug.Timezone}<br /><br /><b>Topics:</b> {bug.Topics}<br /><b>Workspace:</b> {bug.Workspaces}<br /><b>Description:</b> {bug.Description}<br /><br /><b>Portal Language:</b> {bug.PortalLanguage}<br /><b>Active URL:</b> {bug.URL}<br /><b>User Agent:</b> {bug.UserAgent}<br /><b>Resolution:</b> {bug.Resolution}<br /><b>Local Storage:</b><br />{bug.LocalStorage}";
+                $"<strong>Issue submitted by:</strong> {bug.UserName}<br /><strong>Contact email:</strong> {bug.UserEmail}<br /><strong>Organization:</strong> {bug.UserOrganization}<br /><strong>Preferred Language:</strong> {bug.PreferredLanguage} <br /><strong>Time Zone:</strong> {bug.Timezone}<br /><br /><strong>Topics:</strong> {bug.Topics}<br /><strong>Workspace:</strong> {bug.Workspaces}<br /><strong>Description:</strong> {bug.Description}<br /><br /><strong>Portal Language:</strong> {bug.PortalLanguage}<br /><strong>Active URL:</strong> {bug.URL}<br /><strong>User Agent:</strong> {bug.UserAgent}<br /><strong>Resolution:</strong> {bug.Resolution}<br /><strong>Local Storage:</strong><br />{bug.LocalStorage}";
 
             // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
             var body = new JsonPatchDocument

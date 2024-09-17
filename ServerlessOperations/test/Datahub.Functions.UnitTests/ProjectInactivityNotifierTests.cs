@@ -50,7 +50,7 @@ public class ProjectInactivityNotifierTests
         _emailValidator = new EmailValidator();
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
         _sut = new ProjectInactivityNotifier(_loggerFactory, _dbContextFactory, _pongService, _iSendEndpointProvider,
-            _projectInactivityNotificationService, _resourceMessagingService, _emailValidator, _dateProvider, _azConfig, _emailService);
+            _projectInactivityNotificationService, _emailValidator, _dateProvider, _azConfig, _emailService);
     }
 
     [Test]
@@ -126,7 +126,7 @@ public class ProjectInactivityNotifierTests
     [Test]
     [TestCase(20, 30)]
     [TestCase(0, 1)]
-    public async Task CheckIfProjectToBeDeleted_IsNotOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
+    public void CheckIfProjectToBeDeleted_IsNotOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
         _dateProvider.ProjectDeletionDay().Returns(deletionDay);
@@ -134,17 +134,17 @@ public class ProjectInactivityNotifierTests
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false, "");
+        var result = _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false);
         
         // Assert
-        result.Should().BeNull();
+        result.Should().BeFalse();
     }
     
     [Test]
     [TestCase(30, 30)]
     [TestCase(0, 0)]
     [TestCase(40, 30)]
-    public async Task CheckIfProjectToBeDeleted_IsOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
+    public void CheckIfProjectToBeDeleted_IsOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
         _dateProvider.ProjectDeletionDay().Returns(deletionDay);
@@ -152,16 +152,16 @@ public class ProjectInactivityNotifierTests
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false, "");
+        var result = _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false);
         
         // Assert
-        result.Should().BeOfType<WorkspaceDefinition>();
+        result.Should().BeTrue();
     }
 
     [Test]
     [TestCase("2025-01-01", "2020-01-01")]
     [TestCase("2020-01-01", "2020-01-01")]
-    public async Task CheckIfProjectToBeDeleted_InOperationalWindow(DateTime operationalWindow, DateTime today)
+    public void CheckIfProjectToBeDeleted_InOperationalWindow(DateTime operationalWindow, DateTime today)
     {
         // Arrange
         _dateProvider.Today.Returns(today);
@@ -169,13 +169,13 @@ public class ProjectInactivityNotifierTests
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _sut.CheckIfProjectToBeDeleted(10, operationalWindow, false, "");
+        var result = _sut.CheckIfProjectToBeDeleted(10, operationalWindow, false);
 
-        result.Should().BeNull();
+        result.Should().BeFalse();
     }
     
     [Test]
-    public async Task CheckIfProjectToBeDeleted_HasCostRecovery()
+    public void CheckIfProjectToBeDeleted_HasCostRecovery()
     {
         // Arrange
         _dateProvider.Today.Returns(DateTime.Today);
@@ -183,10 +183,10 @@ public class ProjectInactivityNotifierTests
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
         
         // Act
-        var result = await _sut.CheckIfProjectToBeDeleted(10, null, true, "");
+        var result = _sut.CheckIfProjectToBeDeleted(10, null, true);
         
         // Assert
-        result.Should().BeNull();
+        result.Should().BeFalse();
     }
 
     [Test]

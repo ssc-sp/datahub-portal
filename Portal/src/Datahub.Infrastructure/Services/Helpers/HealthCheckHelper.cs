@@ -71,6 +71,44 @@ namespace Datahub.Infrastructure.Services.Helpers
             TenantId = AzureTenantId
         };
 
+        public static List<InfrastructureHealthResourceType> CoreHealthChecks { get; } =
+        [
+            InfrastructureHealthResourceType.AzureSqlDatabase,
+            InfrastructureHealthResourceType.AzureKeyVault,
+            InfrastructureHealthResourceType.AzureFunction
+        ];
+
+        public static List<InfrastructureHealthResourceType> WorkspaceHealthChecks { get; } =
+        [
+            InfrastructureHealthResourceType.AzureSqlDatabase,
+            InfrastructureHealthResourceType.AzureStorageAccount,
+            InfrastructureHealthResourceType.AzureWebApp,
+            InfrastructureHealthResourceType.WorkspaceSync,
+            InfrastructureHealthResourceType.AzureKeyVault
+        ];
+
+        public static List<string> ServiceBusQueueHealthChecks { get; } =
+        [
+            QueueConstants.PongQueueName,
+            QueueConstants.BugReportQueueName,
+            QueueConstants.EmailNotificationQueueName,
+            QueueConstants.InfrastructureHealthCheckQueueName,
+            QueueConstants.InfrastructureHealthCheckResultsQueueName,
+            QueueConstants.ProjectCapacityUpdateQueueName,
+            QueueConstants.ProjectInactivityNotificationQueueName,
+            QueueConstants.ProjectUsageNotificationQueueName,
+            QueueConstants.ProjectUsageUpdateQueueName,
+            QueueConstants.UserInactivityNotification,
+            QueueConstants.TerraformOutputHandlerQueueName,
+            QueueConstants.WorkspaceAppServiceConfigurationQueueName,
+            QueueConstants.DatabricksSyncOutputQueueName,
+            QueueConstants.KeyvaultSyncOutputQueueName,
+            QueueConstants.StorageSyncOutputQueueName,
+            QueueConstants.ResourceRunRequestQueueName,
+            QueueConstants.UserRunRequestQueueName,
+            QueueConstants.ProjectInactiveQueueName
+        ];
+
         /// <summary>
         /// Function that checks the health of an Azure SQL Database.
         /// </summary>
@@ -470,12 +508,19 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             var serviceBusConnectionString = configuration[InfrastructureHealthCheckConstants.DatahubServiceBusConnectionStringConfigKey];
 
-            string queueName = GetRequestQueueName(request);
+            var queueName = request.Name;
+            var isDeadLetter = request.Group == InfrastructureHealthCheckConstants.PoisonQueueRequestGroup;
 
             try
             {
                 ServiceBusClient serviceBusClient = new(serviceBusConnectionString);
-                ServiceBusReceiver receiver = serviceBusClient.CreateReceiver(queueName);
+
+                ServiceBusReceiverOptions options = new()
+                {
+                    SubQueue = isDeadLetter ? SubQueue.DeadLetter : SubQueue.None
+                };
+
+                ServiceBusReceiver receiver = serviceBusClient.CreateReceiver(queueName, options);
 
                 if (receiver is null)
                 {
@@ -485,7 +530,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 {
                     // attempt to read message to check if queue exists; receiver is created with no errors for non-existing queue
                     ServiceBusReceivedMessage message = await receiver.PeekMessageAsync();
-                    if (message != null && request.Group == InfrastructureHealthCheckConstants.PoisonQueueRequestGroup)
+                    if (message != null && isDeadLetter)
                     {
                         if (string.IsNullOrEmpty(message.DeadLetterReason))
                         {
@@ -496,7 +541,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
             catch (Exception ex)
             {
-                errors.Add($"Error while checking Azure Service Bus Queue: {ex.Message.Replace(",", ".")}");
+                errors.Add($"Error while checking Azure Service Bus Queue {queueName}: {ex.Message.Replace(",", ".")}");
             }
 
             if (errors.Count > 0)
@@ -587,7 +632,6 @@ namespace Datahub.Infrastructure.Services.Helpers
         private static string GenerateHealthCheckName(InfrastructureHealthCheckMessage request) => request.Type switch
         {
             InfrastructureHealthResourceType.AzureStorageQueue => GetRequestQueueName(request),
-            InfrastructureHealthResourceType.AsureServiceBus => GetRequestQueueName(request),
             _ => request.Name
         };
 
@@ -672,12 +716,11 @@ namespace Datahub.Infrastructure.Services.Helpers
                 "http://localhost:7071" :
                 DefaultFunctionUrl;
 
-            var coreChecks = new List<InfrastructureHealthCheckMessage>()
+            var coreChecks = CoreHealthChecks.Select(c => c switch
             {
-                new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
-                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup),
-                new(InfrastructureHealthResourceType.AzureFunction, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress)
-            };
+                InfrastructureHealthResourceType.AzureFunction => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.CoreRequestGroup, functionAppAddress),
+                _ => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup)
+            });
 
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
@@ -685,27 +728,14 @@ namespace Datahub.Infrastructure.Services.Helpers
             var projects = await ctx.Projects
                 .AsNoTracking()
                 .ToListAsync();
-            var workspaceChecks = projects.SelectMany(p => new List<InfrastructureHealthCheckMessage>()
-            {
-                new(InfrastructureHealthResourceType.AzureSqlDatabase, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureStorageAccount, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureDatabricks, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureWebApp, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD),
-                new(InfrastructureHealthResourceType.AzureKeyVault, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)
-            });
+            var workspaceChecks = projects
+                .SelectMany(p => WorkspaceHealthChecks
+                    .Select(c => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)));
 
-            string[] queuesToCheck =
-            [
-                "bug-report", "delete-run-request", "email-notification", "infrastructure-health-check-results", 
-                "keyvault-sync-output", "pong-queue", "project-capacity-update", "project-inactivity-notification", 
-                "project-usage-notification", "project-usage-update", "resource-delete-request", "resource-run-request", 
-                "storage-capacity", "storage-sync-output", "terraform-output", "terraform-output-handler", 
-                "user-inactivity-notification", "user-run-request", "workspace-app-service-configuration"
-            ];
-            var queueChecks = queuesToCheck.SelectMany(q => new List<InfrastructureHealthCheckMessage>()
+            var queueChecks = ServiceBusQueueHealthChecks.SelectMany(q => new List<InfrastructureHealthCheckMessage>()
             {
-                new(InfrastructureHealthResourceType.AzureStorageQueue, InfrastructureHealthCheckConstants.MainQueueRequestGroup, q),
-                new(InfrastructureHealthResourceType.AzureStorageQueue, InfrastructureHealthCheckConstants.PoisonQueueSuffix, q)
+                new(InfrastructureHealthResourceType.AsureServiceBus, InfrastructureHealthCheckConstants.MainQueueRequestGroup, q),
+                new(InfrastructureHealthResourceType.AsureServiceBus, InfrastructureHealthCheckConstants.PoisonQueueRequestGroup, q)
             });
 
             var allChecks = coreChecks.Concat(workspaceChecks).Concat(queueChecks);
