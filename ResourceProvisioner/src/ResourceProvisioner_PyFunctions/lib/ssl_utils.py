@@ -13,8 +13,9 @@ def configure_ca_root_certs():
     # Set the CA root certificates for the requests module
     # check if the SSL_CERT_FILE environment variable is set
     if 'SSL_CERT_FILE' in os.environ:   
-        print('SSL_CERT_FILE environment variable is set. Setting the CA root certificates for the requests module.')
-        logging.info('SSL_CERT_FILE environment variable is set. Setting the CA root certificates for the requests module.')    
-        requests.utils.DEFAULT_CA_BUNDLE_PATH = os.environ['SSL_CERT_FILE']
-        requests.adapters.DEFAULT_CA_BUNDLE_PATH = os.environ['SSL_CERT_FILE']
+        cert_file = os.environ['SSL_CERT_FILE']
+        print(f'SSL_CERT_FILE environment variable is set to {cert_file}. Setting the CA root certificates for the requests module.')
+        logging.info(f'SSL_CERT_FILE environment variable is set to {cert_file}. Setting the CA root certificates for the requests module.')    
+        requests.utils.DEFAULT_CA_BUNDLE_PATH = cert_file
+        requests.adapters.DEFAULT_CA_BUNDLE_PATH = cert_file
     #os.path.join(os.environ['AzureWebJobsScriptRoot'], 'lib', 'cacert.pem')
