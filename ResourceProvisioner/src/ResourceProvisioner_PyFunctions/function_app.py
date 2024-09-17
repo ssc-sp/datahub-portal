@@ -14,6 +14,7 @@ from lib.queue_utils import MassTransitMessage
 #from azure.servicebus import ServiceBusClient, ServiceBusMessage
 
 ERROR_DETAILS_JOINER = "; "
+PYTHON_WORKSPACE_SYNC_ERROR_CODE = 7023
 
 app = func.FunctionApp()
 
@@ -87,7 +88,7 @@ def send_exception_to_service_bus(exception_message):
         UserAgent="",
         Resolution="",
         LocalStorage="",
-        BugReportType="Synchronizing workspace error",
+        BugReportType=PYTHON_WORKSPACE_SYNC_ERROR_CODE,
         Description=exception_message
     )
     with servicebus.ServiceBusClient.from_connection_string(asb_connection_str, transport_type=servicebus.TransportType.AmqpOverWebsocket) as client:
