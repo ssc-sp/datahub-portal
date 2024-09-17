@@ -11,9 +11,10 @@ def configure_ca_root_certs():
 
     """
     # Set the CA root certificates for the requests module
-    # check if the SSL_CERT_FILE environment variable is set
+    # check if the SSL_CERT_FILE environment variable is sets
     if 'SSL_CERT_FILE' in os.environ:   
         cert_file = os.environ['SSL_CERT_FILE']
+        os.environ['REQUESTS_CA_BUNDLE'] = cert_file
         print(f'SSL_CERT_FILE environment variable is set to {cert_file}. Setting the CA root certificates for the requests module.')
         logging.info(f'SSL_CERT_FILE environment variable is set to {cert_file}. Setting the CA root certificates for the requests module.')    
         requests.utils.DEFAULT_CA_BUNDLE_PATH = cert_file
