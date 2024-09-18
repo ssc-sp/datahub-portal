@@ -127,6 +127,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             //else
             //{
                 userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
+                userToUpdate.IsDataSteward = projectUserUpdateCommand.IsDataSteward;
                 context.Update(userToUpdate);
             //}
         }

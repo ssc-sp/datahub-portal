@@ -32,6 +32,7 @@ public class Datahub_Project_User
     [Obsolete("Use Role reference instead")]
     public bool IsAdmin { get; set; }
 
+    public bool IsDataSteward { get; set; }
     [Obsolete("Use PortalUser reference instead")]
     [StringLength(200)]
     public string User_ID { get; set; }
