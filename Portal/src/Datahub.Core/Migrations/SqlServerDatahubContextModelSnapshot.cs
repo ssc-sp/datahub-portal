@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1931,25 +1931,25 @@ namespace Datahub.Core.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Revoke the user's access to the project's private resources",
+                            Description = "Revoke the user's access to the workspace",
                             Name = "Remove User"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Head of the business unit and bears business responsibility for successful implementation and availability",
+                            Description = "Head of the workspace and bears business responsibility for success of the workspace",
                             Name = "Workspace Lead"
                         },
                         new
                         {
                             Id = 3,
-                            Description = "Management authority within the project with direct supervision over the project resources and deliverables",
+                            Description = "Management authority within the workspace with direct supervision over the cloud resourcing and users",
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 4,
-                            Description = "Responsible for contributing to the overall project objectives and deliverables to ensure success",
+                            Description = "Responsible for contributing to the overall workspace objectives and deliverables",
                             Name = "Collaborator"
                         },
                         new
