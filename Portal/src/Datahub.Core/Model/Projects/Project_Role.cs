@@ -64,13 +64,6 @@ public class Project_Role
             },
             new()
             {
-                Id = (int)RoleNames.DataSteward,
-                Name = "Data Steward",
-                Description =
-                    "Responsible for controlling the quality of data and ensuring data policies are followed"
-            },
-            new()
-            {
                 Id = (int)RoleNames.Guest,
                 Name = "Guest",
                 Description =
@@ -85,7 +78,6 @@ public class Project_Role
         WorkspaceLead = 2,
         Admin = 3,
         Collaborator = 4,
-        Guest = 5,
-        DataSteward = 6
+        Guest = 5
     }
 }
