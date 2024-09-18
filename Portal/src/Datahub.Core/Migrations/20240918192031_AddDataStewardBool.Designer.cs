@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    [Migration("20240918191041_AddDataStewardBool")]
+    [Migration("20240918192031_AddDataStewardBool")]
     partial class AddDataStewardBool
     {
         /// <inheritdoc />
@@ -1712,6 +1712,9 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDataApprover")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDataSteward")
                         .HasColumnType("bit");
 
                     b.Property<int?>("PortalUserId")

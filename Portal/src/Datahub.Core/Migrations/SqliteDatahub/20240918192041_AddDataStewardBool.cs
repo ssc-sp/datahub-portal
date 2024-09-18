@@ -10,6 +10,13 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<bool>(
+                name: "IsDataSteward",
+                table: "Project_Users",
+                type: "INTEGER",
+                nullable: false,
+                defaultValue: false);
+
             migrationBuilder.UpdateData(
                 table: "Project_Roles",
                 keyColumn: "Id",
@@ -42,6 +49,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "IsDataSteward",
+                table: "Project_Users");
+
             migrationBuilder.UpdateData(
                 table: "Project_Roles",
                 keyColumn: "Id",

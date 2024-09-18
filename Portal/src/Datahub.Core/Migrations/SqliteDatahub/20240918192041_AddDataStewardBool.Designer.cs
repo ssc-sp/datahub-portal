@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    [Migration("20240918191048_AddDataStewardBool")]
+    [Migration("20240918192041_AddDataStewardBool")]
     partial class AddDataStewardBool
     {
         /// <inheritdoc />
@@ -1655,6 +1655,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("INTEGER");
 
                     b.Property<bool>("IsDataApprover")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDataSteward")
                         .HasColumnType("INTEGER");
 
                     b.Property<int?>("PortalUserId")
