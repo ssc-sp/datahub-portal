@@ -1654,6 +1654,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<bool>("IsDataApprover")
                         .HasColumnType("INTEGER");
 
+                    b.Property<bool>("IsDataSteward")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int?>("PortalUserId")
                         .HasColumnType("INTEGER");
 

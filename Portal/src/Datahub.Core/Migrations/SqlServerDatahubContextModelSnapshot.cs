@@ -1711,6 +1711,9 @@ namespace Datahub.Core.Migrations
                     b.Property<bool>("IsDataApprover")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDataSteward")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("PortalUserId")
                         .HasColumnType("int");
 
