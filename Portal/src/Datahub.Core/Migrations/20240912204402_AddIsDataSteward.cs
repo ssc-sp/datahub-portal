@@ -15,12 +15,6 @@ namespace Datahub.Core.Migrations
                 name: "IsDataSteward",
                 table: "Project_Users",
                 nullable: true);
-
-            // add new role
-            migrationBuilder.InsertData(
-                table: "Project_Roles",
-                columns: new[] { "Id", "Description", "Name" },
-                values: new object[] { 6, "Responsible for controlling the quality of data and ensuring data policies are followed", "Data Steward" });
         }
 
         /// <inheritdoc />
@@ -30,12 +24,6 @@ namespace Datahub.Core.Migrations
             migrationBuilder.DropColumn(
                 name: "IsDataSteward",
                 table: "Project_Users");
-
-            // remove role
-            migrationBuilder.DeleteData(
-                table: "Project_Roles",
-                keyColumn: "Id",
-                keyValue: 6);
         }
     }
 }
