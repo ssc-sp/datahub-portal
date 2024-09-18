@@ -124,6 +124,12 @@
                                  Style="@_tabStyle"
                                  OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Collaborator))"
                                  Disabled="@(_contributorCount == 0)"/>
+                    <MudTabPanel Text="@Localizer["DataStewards"]"
+                                 BadgeData="@_dataStewardCount"
+                                 BadgeColor="Color.Transparent"
+                                 Style="@_tabStyle"
+                                 OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.DataSteward))"
+                                 Disabled="@(_dataStewardCount == 0)" />
                     <MudTabPanel Text="@Localizer["Guests"]"
                                  BadgeData="@_guestCount"
                                  BadgeColor="Color.Transparent"
@@ -213,6 +219,7 @@
     private int _workspaceLeadCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.WorkspaceLead) ?? 0;
     private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
     private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
+    private int _dataStewardCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.DataSteward) ?? 0;
     private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
     private int _allCount => _projectUsers?.Count ?? 0;
 
