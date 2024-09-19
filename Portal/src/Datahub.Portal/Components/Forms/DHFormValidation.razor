@@ -1,0 +1,14 @@
+﻿@if (ChildContent != null)
+{
+    <strong id=@_errorId class="label label-danger">
+        <span class="prefix">@Localizer["Error: "]</span>
+        @ChildContent
+    </strong>
+}
+
+@code {
+    [CascadingParameter] public string Id { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    private string _errorId => Id + "-error";
+}
+

@@ -1,0 +1,38 @@
+﻿<div class="form-group">
+    <label id="@_helpId" for="@Id" class=@(Required ? "required" : "")>
+        <span class="field-name">
+            <strong>@Title</strong>
+        </span>
+        @if (Required)
+        {
+            <strong class="required" aria-hidden="true"> @Localizer["(required)"]</strong>
+        }
+        @if (!string.IsNullOrEmpty(Description))
+        {
+            <p>
+                @Description
+            </p>
+        }
+        <DHFormValidation>
+            <ValidationMessage For="@(() => EditContext.Model)"></ValidationMessage>
+        </DHFormValidation>
+    </label>
+    <CascadingValue Value="Id">
+        <CascadingValue Value="Required">
+            @ChildContent
+        </CascadingValue>
+    </CascadingValue>
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Description { get; set; }
+    [Parameter] public string Hint { get; set; }
+    [Parameter] public string Id { get; set; }
+    [Parameter] public object For { get; set; }
+    [Parameter] public bool Required { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [CascadingParameter] public EditContext EditContext { get; set; }
+    public string _helpId => Id + "-help";
+    public string _errorId => Id + "-error";
+}

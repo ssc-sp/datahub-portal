@@ -1,53 +1,37 @@
-﻿<div class="form-group">
-    <label for="@_id" class=@(Required ? "required" : "")>
-        <span class="field-name">
-            @Label
-        </span>
-        @if (Required)
-        {
-            <strong class="required">@Localizer[" (required)"]</strong>
-        }
-    </label>
-    @if (!string.IsNullOrEmpty(Description))
-    {
-        <p id="@_helpId">
-            @Description
-        </p>
-    }
-    @switch (Type)
-    {
-        case "select-multiple":
-            <select multiple class="form-control" id="@_id" aria-describedby="@_helpId" style="width: 400px;">
-                @ChildContent
-            </select>
-            break;
-        case "select":
-            <select class="form-control" id="@_id" aria-describedby="@_helpId" style="width: 400px">
-                @ChildContent
-            </select>
-            break;
-        default:
-            <div class="input-group">
-                <input type="@Type" class="form-control" id="@_id" aria-describedby="@_helpId" placeholder="@Placeholder" style="width: 400px"/>
-                @if (!string.IsNullOrEmpty(EndButton))
-                {
-                    <span class="input-group-btn">
-                        <button type="button" class="btn btn-default">@EndButton</button>
-                    </span>
-                }
-            </div>
-            break;
-    }
-    @if (!string.IsNullOrEmpty(Hint))
-    {
-        <small id="@_hintId" class="form-text text-muted">
-            @Hint
-        </small>
-    }
-</div>
+﻿@switch (Type)
+{
+    case DHInputType.Select:
+        @ChildContent
+        break;
+    case DHInputType.TextButton:
+        <div class="input-group">
+            @ChildContent
+            <span class="input-group-btn">
+                <button type="button" class="btn btn-default" onclick="@EndButtonAction">@EndButton</button>
+            </span>
+        </div>
+        break;
+    case DHInputType.Text:
+        @ChildContent
+        break;
+}
+@if (!string.IsNullOrEmpty(Hint))
+{
+    <small id="@_hintId" class="form-text text-muted">
+        @Hint
+    </small>
+}
 
 
 @code {
-
+    [CascadingParameter] public string Id { get; set; }
+    [Parameter] public string Hint { get; set; }
+    [Parameter] public DHInputType Type { get; set; }
+    [CascadingParameter] public bool Required { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? EndButton { get; set; }
+    [Parameter] public Action? EndButtonAction { get; set; }
+    private string _hintId => $"{Id}-hint";
+    private string _helpId => $"{Id}-help";
 }
 

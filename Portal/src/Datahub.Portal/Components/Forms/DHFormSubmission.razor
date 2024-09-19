@@ -1,0 +1,22 @@
+﻿@typeparam TModel
+<MudStack Row>
+    @if (!string.IsNullOrEmpty(CancelLabel))
+    {
+        <button type="button" class="btn btn-default">@CancelLabel</button>
+    }
+    @if (!string.IsNullOrEmpty(ResetLabel))
+    {
+        <button type="button" class="btn btn-default" @onclick="@ClearForm">@ResetLabel</button>
+    }
+    <button type="submit" class="btn btn-primary">
+        @(SubmitLabel ?? Localizer["Submit"])
+    </button>
+</MudStack>
+
+@code {
+    [Parameter] public string CancelLabel { get; set; }
+    [Parameter] public string SubmitLabel { get; set; }
+    [Parameter] public string ResetLabel { get; set; }
+    [Parameter] public TModel Model { get; set; }
+    private void ClearForm() => Model = default;
+}

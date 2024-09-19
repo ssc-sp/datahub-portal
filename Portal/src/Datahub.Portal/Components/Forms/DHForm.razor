@@ -1,16 +1,26 @@
-﻿<div class="wb-frmvld">
-    <form action="@Action" method="@Method" id="@Id" >
-        @ChildContent
-    </form>
-</div>
+﻿@typeparam TModel
+<MudPaper Square="false" Elevation="0" Outlined="true" Class="pa-6">
+    <div class="wb-frmvld">
+        <EditForm Model="@Model">
+            <h2>@Title</h2>
+            <ValidationSummary/>
+            @if (Description != null)
+            {
+                <p>@Description</p>
+            }
+            @ChildContent
+        </EditForm>
+    </div>
+</MudPaper>
 
 @code {
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
-    [Parameter]
-    public string Id { get; set; }
-    [Parameter]
-    public string Action { get; set; }
-    [Parameter]
-    public string Method { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public string Id { get; set; }
+    [Parameter] public TModel Model { get; set; }
+
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Description { get; set; }
+    public List<DHInput> Fields { get; set; } = new List<DHInput>();
+    public List<DHInput> Actions { get; set; } = new List<DHInput>();
+
 }
