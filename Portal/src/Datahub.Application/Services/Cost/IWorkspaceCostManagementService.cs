@@ -102,10 +102,15 @@ namespace Datahub.Application.Services.Cost
         public string ResourceGroupName { get; set; } = String.Empty;
         public DateTime Date { get; set; }
 
-        public bool Equals(DailyServiceCost other)
+        public override bool Equals(object? obj)
         {
-            return Amount == other.Amount && Source == other.Source && ResourceGroupName == other.ResourceGroupName &&
-                   Date.Equals(other.Date);
+            var other = obj as DailyServiceCost;
+            return Amount.Equals(other!.Amount) && Source.Equals(other.Source) && ResourceGroupName.Equals(other.ResourceGroupName) && Date.Equals(other.Date);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Amount, Source, ResourceGroupName, Date);
         }
     }
 
