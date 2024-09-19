@@ -27,7 +27,7 @@ namespace Datahub.Functions
         // TODO: enable configuration of these toggles
         private bool _postToTeams = true;
         private bool _sendEmailNotification = true;
-        private bool _postToDevops = false;
+        private bool _postToDevops = true;
 
         [Function("BugReport")]
         public async Task Run(
