@@ -75,5 +75,10 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
 
         builder.Property(e => e.CBRID)
             .IsRequired();
+
+        builder.HasOne(e => e.Datahub_Project)
+            .WithOne(l => l.GCHostingWorkspaceDetails)
+            .HasForeignKey<GCHostingWorkspaceDetails>(l => l.Id)
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

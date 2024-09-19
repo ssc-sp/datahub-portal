@@ -1,4 +1,6 @@
-﻿namespace Datahub.Core.Model.Onboarding;
+﻿using Datahub.Core.Model.Projects;
+
+namespace Datahub.Core.Model.Onboarding;
 
 public class GCHostingWorkspaceDetails
 {
@@ -116,4 +118,9 @@ public class GCHostingWorkspaceDetails
     /// Gets or sets the CBR ID.
     /// </summary>
     public string CBRID { get; set; }
+
+    /// <summary>
+    /// Gets or sets the project that the workspace is associated with.
+    /// </summary>
+    public Datahub_Project Datahub_Project { get; set; }
 }
