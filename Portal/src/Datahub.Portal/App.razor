@@ -1,5 +1,5 @@
 ﻿@inject IJSRuntime _jsRuntime
-@inject ILocalStorageService _localStorage
+@inject NavigationManager _navManager
 
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
@@ -50,14 +50,20 @@
         if (firstRender)
         {
             var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
-            var language = await _localStorage.GetItemAsStringAsync("language");
+            var language = await CultureService.GetLanguageFromLocalStorageAsync();
             if (string.IsNullOrEmpty(language))
             {
-                language = "en-CA";
-                await _localStorage.SetItemAsStringAsync("language", language);
+                var currentUrl = new Uri(_navManager.Uri).GetComponents(
+                    UriComponents.PathAndQuery,
+                    UriFormat.Unescaped);
+                var query = $"?redirectUrl={Uri.EscapeDataString(currentUrl)}";
+                _navManager.NavigateTo($"/language-langue{query}");
+            }
+            else
+            {
+                await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
             }
 
-            await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
         }
     }
 

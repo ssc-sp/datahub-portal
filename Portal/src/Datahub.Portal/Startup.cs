@@ -176,7 +176,7 @@ public class Startup
         services.AddSingleton<IWikiService, WikiService>();
         services.AddSingleton<DocumentationService>();
 
-        services.AddSingleton<ICultureService, UserCultureService>();
+        services.AddScoped<ICultureService, UserCultureService>();
 
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddSingleton<AzureManagementService>();
