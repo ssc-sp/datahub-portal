@@ -21,5 +21,7 @@ namespace Datahub.Application.Services.UserManagement
 
         ValueTask<string?> GetLanguageFromLocalStorageAsync();
         Task SetLanguageInLocalStorageAsync(string language);
+
+        void OverrideCurrentCulture(string cultureName);
     }
 }

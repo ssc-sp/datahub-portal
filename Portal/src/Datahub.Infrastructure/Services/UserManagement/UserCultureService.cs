@@ -18,6 +18,13 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return language;
         }
 
+        public void OverrideCurrentCulture(string cultureName)
+        {
+            var newCulture = CultureInfo.GetCultureInfo(cultureName);
+            Thread.CurrentThread.CurrentCulture = newCulture;
+            Thread.CurrentThread.CurrentUICulture = newCulture;
+        }
+
         public async Task SetLanguageInLocalStorageAsync(string language)
         {
             await _localStorageService.SetItemAsStringAsync(LANGUAGE_LOCALSTORAGE_KEY, language);

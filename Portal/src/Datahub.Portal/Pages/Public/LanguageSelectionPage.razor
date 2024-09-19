@@ -20,11 +20,11 @@
                 </MudStack>
                 <MudSpacer />
                 <MudStack Row>
-                    <MudLink Href="@PageRoutes.TermsAndConditions" Typo="Typo.body1">
+                    <MudLink Href=@EnglishTermsUrl Target="_blank" Typo="Typo.body1">
                         Terms and conditions
                     </MudLink>
                     <MudDivider Vertical />
-                    <MudLink Href="@PageRoutes.TermsAndConditions_FR" Typo="Typo.body1">
+                    <MudLink Href=@FrenchTermsUrl Target="_blank" Typo="Typo.body1">
                         Avis
                     </MudLink>
                     <MudSpacer />
@@ -39,6 +39,9 @@
 
     [SupplyParameterFromQuery(Name = "redirectUrl")]
     public string RedirectUrl { get; set; }
+
+    private string EnglishTermsUrl => $"{PageRoutes.TermsAndConditions}?culture={CultureService.CanadaEnglish}";
+    private string FrenchTermsUrl => $"{PageRoutes.TermsAndConditions_FR}?culture={CultureService.CanadaFrench}";
 
     private async Task SetLanguage(string language)
     {

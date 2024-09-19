@@ -41,16 +41,31 @@
 
 @code {
 
+    [SupplyParameterFromQuery(Name = "culture")]
+    public string CultureOverride { get; set; }
+
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
     Random random = new Random();
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(CultureOverride))
+        {
+            CultureService.OverrideCurrentCulture(CultureOverride);
+        }
+
+        base.OnInitialized();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
-            var language = await CultureService.GetLanguageFromLocalStorageAsync();
+
+            var language = CultureOverride ?? await CultureService.GetLanguageFromLocalStorageAsync();
+
             if (string.IsNullOrEmpty(language))
             {
                 var currentUrl = new Uri(_navManager.Uri).GetComponents(
