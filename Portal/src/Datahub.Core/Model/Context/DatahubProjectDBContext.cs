@@ -111,6 +111,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<TbsOpenGovSubmission> TbsOpenGovSubmissions { get; set; }
 
     /// <summary>
+    /// Gets or sets the table for storing the GC hosting info
+    /// </summary>
+    public DbSet<GCHostingWorkspaceDetails> GCHostingWorkspaceDetails { get; set; }
+
+    /// <summary>
     /// Gets or sets the table for storing the Azure subscriptions
     /// </summary>
     public DbSet<DatahubAzureSubscription> AzureSubscriptions { get; set; }
