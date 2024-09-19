@@ -1,7 +1,12 @@
 ﻿namespace Datahub.Core.Model.Onboarding;
 
-public class GCHostingTable
+public class GCHostingWorkspaceDetails
 {
+    /// <summary>
+    /// Gets or sets the id of the workspace.
+    /// </summary>
+    public int Id { get; set; }
+
     /// <summary>
     ///  Gets or sets the first name of the workspace lead.
     /// </summary>
@@ -18,24 +23,24 @@ public class GCHostingTable
     public string DepartmentName { get; set; }
 
     /// <summary>
-    /// Gets or sets the email of the workspace lead.
+    /// Gets or sets the government email of the workspace lead.
     /// </summary>
-    public string GovEmail { get; set; }
+    public string LeadEmail { get; set; }
 
     /// <summary>
     /// Gets or sets the first name of the financial authority.
     /// </summary>
-    public string FinAuthFirstName { get; set; }
+    public string FinancialAuthorityFirstName { get; set; }
 
     /// <summary>
     /// Gets or sets the last name of the financial authority.
     /// </summary>
-    public string FinAuthLastName { get; set; }
+    public string FinancialAuthorityLastName { get; set; }
 
     /// <summary>
     /// Gets or sets the cost centre of the financial authority.
     /// </summary>
-    public string FinAuthCostCentre { get; set; }
+    public string FinancialAuthorityCostCentre { get; set; }
 
     /// <summary>
     /// Gets or sets the workspace title.
