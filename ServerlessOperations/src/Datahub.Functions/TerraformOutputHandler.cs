@@ -92,13 +92,6 @@ public class TerraformOutputHandler(
             return;
         }
 
-        if (!output.ContainsKey(TerraformVariables.OutputAzureDatabricksWorkspaceUrl)
-            || string.IsNullOrWhiteSpace(output[TerraformVariables.OutputAzureDatabricksWorkspaceUrl].Value))
-        {
-            _logger.LogInformation("Azure Databricks workspace url is null or empty, skipping post terraform triggers");
-            return;
-        }
-
         // handle external user permissions
         var projectAcronym = output[TerraformVariables.OutputProjectAcronym];
         var project = await projectDbContext.Projects
@@ -325,13 +318,13 @@ public class TerraformOutputHandler(
             throw new Exception($"Project not found for acronym {projectAcronym.Value}");
         }
 
-        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        var resourceGroupStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
         var resourceGroupName =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value);
 
-        if (project.Project_Phase != outputPhase)
+        if (project.Project_Phase != resourceGroupStatus)
         {
-            project.Project_Phase = outputPhase;
+            project.Project_Phase = resourceGroupStatus;
         }
 
         // check if there's a workspace version variable
@@ -358,6 +351,7 @@ public class TerraformOutputHandler(
 
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
+        projectResource.Status = resourceGroupStatus;
 
         await projectDbContext.SaveChangesAsync();
     }

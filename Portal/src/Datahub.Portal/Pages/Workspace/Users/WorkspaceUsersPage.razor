@@ -227,6 +227,7 @@
 
     private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
+    private Datahub_Project_User _currentlySelected;
 
     private string _modifiedCellStyle;
 
@@ -272,14 +273,20 @@
 
     private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
     {
+        if (_currentlySelected == null) _currentlySelected = new Datahub_Project_User
+            {
+                IsDataSteward = projectUser.IsDataSteward,
+                RoleId = projectUser.RoleId
+            };
         // check if the user is already in the list of users to be updated
         var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
         if (existingUser != null)
         {
             existingUser.NewRoleId = newRoleId;
-            if (existingUser.ProjectUser.IsDataSteward == projectUser.IsDataSteward && existingUser.ProjectUser.RoleId == projectUser.RoleId)
+            if (existingUser.ProjectUser.IsDataSteward == _currentlySelected.IsDataSteward && existingUser.ProjectUser.RoleId == _currentlySelected.RoleId)
             {
                 _usersToUpdate.Remove(existingUser);
+                _currentlySelected = null;
             }
         }
         else
@@ -312,15 +319,21 @@
 
     private void ChangeDataStewardFlag(Datahub_Project_User projectUser, bool newValue)
     {
+        if (_currentlySelected == null) _currentlySelected = new Datahub_Project_User
+            {
+                IsDataSteward = projectUser.IsDataSteward,
+                RoleId = projectUser.RoleId
+            };
         projectUser.IsDataSteward = newValue;
         int _currentRole = (int)projectUser.RoleId;
         var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
         if (existingUser != null)
         {
             existingUser.ProjectUser.IsDataSteward = projectUser.IsDataSteward;
-            if (existingUser.ProjectUser.IsDataSteward == projectUser.IsDataSteward && existingUser.ProjectUser.RoleId == projectUser.RoleId)
+            if (existingUser.ProjectUser.IsDataSteward == _currentlySelected.IsDataSteward && existingUser.ProjectUser.RoleId == _currentlySelected.RoleId)
             {
                 _usersToUpdate.Remove(existingUser);
+                _currentlySelected = null;
             }
         }
         else

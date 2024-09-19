@@ -14,6 +14,7 @@ public class Datahub_Project_User
     public int? RoleId { get; set; }
     public int Project_ID { get; set; }
     public DateTime? Approved_DT { get; set; }
+    public bool IsDataSteward { get; set; }
 
     #region Navigation Properties
     public Datahub_Project Project { get; set; }
@@ -32,7 +33,6 @@ public class Datahub_Project_User
     [Obsolete("Use Role reference instead")]
     public bool IsAdmin { get; set; }
 
-    public bool IsDataSteward { get; set; }
     [Obsolete("Use PortalUser reference instead")]
     [StringLength(200)]
     public string User_ID { get; set; }
