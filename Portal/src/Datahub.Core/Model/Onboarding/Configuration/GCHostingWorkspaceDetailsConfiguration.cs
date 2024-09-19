@@ -16,70 +16,54 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
             .ValueGeneratedOnAdd();
 
         builder.Property(e => e.LeadFirstName)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.LeadLastName)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.DepartmentName)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.LeadEmail)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.FinancialAuthorityFirstName)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.FinancialAuthorityLastName)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.FinancialAuthorityCostCentre)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.WorkspaceTitle)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.WorkspaceDescription)
-            .IsRequired()
-            .HasMaxLength(512);
+            .IsRequired();
 
         builder.Property(e => e.WorkspaceIdentifier)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.Keywords)
-            .IsRequired()
-            .HasMaxLength(128);
+            .IsRequired();
 
         builder.Property(e => e.AreaOfScience)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.RetentionPeriodYears)
             .IsRequired();
 
         builder.Property(e => e.SecurityClassification)
-            .IsRequired()
-            .HasMaxLength(64);
-
-        builder.Property(e => e.GeneratesInfoBusinessValue)
             .IsRequired();
 
+        builder.Property(e => e.GeneratesInfoBusinessValue);
+
         builder.Property(e => e.ProjectTitle)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
 
         builder.Property(e => e.ProjectDescription)
-            .IsRequired()
-            .HasMaxLength(512);
+            .IsRequired();
 
         builder.Property(e => e.ProjectStartDate)
             .IsRequired();
@@ -87,12 +71,9 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
         builder.Property(e => e.ProjectEndDate)
             .IsRequired();
 
-        builder.Property(e => e.CBRName)
-            .IsRequired()
-            .HasMaxLength(64);
+        builder.Property(e => e.CBRName);
 
         builder.Property(e => e.CBRID)
-            .IsRequired()
-            .HasMaxLength(64);
+            .IsRequired();
     }
 }
