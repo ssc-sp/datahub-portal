@@ -277,7 +277,7 @@
         if (existingUser != null)
         {
             existingUser.NewRoleId = newRoleId;
-            if (existingUser.NewRoleId == existingUser.ProjectUser.Role.Id)
+            if (existingUser.ProjectUser.IsDataSteward == projectUser.IsDataSteward && existingUser.ProjectUser.RoleId == projectUser.RoleId)
             {
                 _usersToUpdate.Remove(existingUser);
             }
@@ -318,7 +318,7 @@
         if (existingUser != null)
         {
             existingUser.ProjectUser.IsDataSteward = projectUser.IsDataSteward;
-            if (existingUser.ProjectUser.IsDataSteward == projectUser.IsDataSteward)
+            if (existingUser.ProjectUser.IsDataSteward == projectUser.IsDataSteward && existingUser.ProjectUser.RoleId == projectUser.RoleId)
             {
                 _usersToUpdate.Remove(existingUser);
             }
