@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
@@ -356,6 +357,11 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
         return "On Hold";
     }
+
+    /// <summary>
+    /// Gets or sets the GCHostingWorkspaceDetails for the project.
+    /// </summary>
+    public GCHostingWorkspaceDetails GCHostingWorkspaceDetails { get; set; }
 
     /// <summary>
     /// Converts a Datahub_Project object to a TerraformWorkspace object.
