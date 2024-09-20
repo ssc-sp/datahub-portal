@@ -1,5 +1,6 @@
 ﻿@inject IJSRuntime _jsRuntime
 @inject NavigationManager _navManager
+@inject IUserSettingsService _userSettingsService
 
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
@@ -65,6 +66,16 @@
             var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
 
             var language = CultureOverride ?? await CultureService.GetLanguageFromLocalStorageAsync();
+
+            if (string.IsNullOrEmpty(language))
+            {
+                language = await _userSettingsService.GetUserLanguage();
+
+                if (!string.IsNullOrEmpty(language))
+                {
+                    await CultureService.SetLanguageInLocalStorageAsync(language);
+                }
+            }
 
             if (string.IsNullOrEmpty(language))
             {
