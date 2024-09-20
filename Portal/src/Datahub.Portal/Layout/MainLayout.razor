@@ -106,11 +106,7 @@ else
 
         if (firstRender)
         {
-            var language = await _userSettingsService.GetUserLanguage();
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                await PersistUserLanguage();
-            }
+            await UpdateUserLanguageSetting();
 
             _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             if (!_isUserValid)
@@ -142,13 +138,14 @@ else
         }
     }
 
-    private async Task PersistUserLanguage()
+    private async Task UpdateUserLanguageSetting()
     {
-        var language = await CultureService.GetLanguageFromLocalStorageAsync();
-
-        if (!string.IsNullOrEmpty(language))
+        var userLanguageSetting = await _userSettingsService.GetUserLanguage();
+        var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
+        
+        if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
         {
-            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
         }
     }
 }
