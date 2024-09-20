@@ -7,6 +7,11 @@ public class GCHostingWorkspaceDetails
     /// <summary>
     /// Gets or sets the id of the workspace.
     /// </summary>
+    public string GcHostingId { get; set; }
+
+    /// <summary>
+    /// Gets or sets the id of the workspace.
+    /// </summary>
     public int Id { get; set; }
 
     /// <summary>
