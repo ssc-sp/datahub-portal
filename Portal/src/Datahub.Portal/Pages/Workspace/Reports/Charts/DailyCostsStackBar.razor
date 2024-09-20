@@ -48,7 +48,7 @@
 
     protected override void OnParametersSet()
     {
-        _locale = CultureService.IsEnglish ? CultureService.English : CultureService.French;
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
         DefineOptions();
     }
 
