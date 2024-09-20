@@ -542,7 +542,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Client_Engagements", (string)null);
+                    b.ToTable("Client_Engagements");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.ExternalPowerBiReport", b =>
@@ -580,7 +580,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("ExternalPowerBiReport_ID");
 
-                    b.ToTable("ExternalPowerBiReports", (string)null);
+                    b.ToTable("ExternalPowerBiReports");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataPublishFile", b =>
@@ -624,7 +624,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("SubmissionId");
 
-                    b.ToTable("OpenDataPublishFiles", (string)null);
+                    b.ToTable("OpenDataPublishFiles");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
@@ -669,7 +669,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("OpenDataSubmissions", (string)null);
+                    b.ToTable("OpenDataSubmissions");
 
                     b.UseTptMappingStrategy();
                 });
@@ -718,7 +718,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("SectorAndBranchS_ID");
 
-                    b.ToTable("Organization_Levels", (string)null);
+                    b.ToTable("Organization_Levels");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PBI_License_Request", b =>
@@ -762,7 +762,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("Project_ID")
                         .IsUnique();
 
-                    b.ToTable("PowerBI_License_Requests", (string)null);
+                    b.ToTable("PowerBI_License_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PBI_User_License_Request", b =>
@@ -790,7 +790,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("RequestID");
 
-                    b.ToTable("PowerBI_License_User_Requests", (string)null);
+                    b.ToTable("PowerBI_License_User_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PowerBi_DataSet", b =>
@@ -809,7 +809,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Workspace_Id");
 
-                    b.ToTable("PowerBi_DataSets", (string)null);
+                    b.ToTable("PowerBi_DataSets");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PowerBi_Report", b =>
@@ -831,7 +831,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Workspace_Id");
 
-                    b.ToTable("PowerBi_Reports", (string)null);
+                    b.ToTable("PowerBi_Reports");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PowerBi_Workspace", b =>
@@ -853,7 +853,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_Id");
 
-                    b.ToTable("PowerBi_Workspaces", (string)null);
+                    b.ToTable("PowerBi_Workspaces");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.PublicDataFile", b =>
@@ -902,7 +902,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("PublicDataFiles", (string)null);
+                    b.ToTable("PublicDataFiles");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.SharedDataFile", b =>
@@ -963,7 +963,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("SharedDataFiles", (string)null);
+                    b.ToTable("SharedDataFiles");
 
                     b.UseTptMappingStrategy();
                 });
@@ -1040,7 +1040,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("Notification_ID");
 
-                    b.ToTable("SystemNotifications", (string)null);
+                    b.ToTable("SystemNotifications");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm", b =>
@@ -1066,7 +1066,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("WebForms", (string)null);
+                    b.ToTable("WebForms");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm_DBCodes", b =>
@@ -1086,7 +1086,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("DBCode");
 
-                    b.ToTable("DBCodes", (string)null);
+                    b.ToTable("DBCodes");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm_Field", b =>
@@ -1145,7 +1145,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("WebForm_ID");
 
-                    b.ToTable("Fields", (string)null);
+                    b.ToTable("Fields");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Documentation.DocumentationResource", b =>
@@ -1228,7 +1228,103 @@ namespace Datahub.Core.Migrations
 
                     b.HasAlternateKey("TypeName", "Id");
 
-                    b.ToTable("MiscStoredObjects", (string)null);
+                    b.ToTable("MiscStoredObjects");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<string>("AreaOfScience")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CBRID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CBRName")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FinancialAuthorityCostCentre")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FinancialAuthorityFirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FinancialAuthorityLastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("GcHostingId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("GeneratesInfoBusinessValue")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Keywords")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LeadEmail")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LeadFirstName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LeadLastName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProjectDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("ProjectEndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ProjectStartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ProjectTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("RetentionPeriodYears")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SecurityClassification")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkspaceDescription")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkspaceIdentifier")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("WorkspaceTitle")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.OnboardingApp", b =>
@@ -1313,7 +1409,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("Application_ID");
 
-                    b.ToTable("OnboardingApps", (string)null);
+                    b.ToTable("OnboardingApps");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
@@ -1599,7 +1695,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("ProjectApiUser_ID");
 
-                    b.ToTable("Project_ApiUsers", (string)null);
+                    b.ToTable("Project_ApiUsers");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectComment", b =>
@@ -1640,7 +1736,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Comments", (string)null);
+                    b.ToTable("Project_Comments");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
@@ -1672,7 +1768,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID", "Date");
 
-                    b.ToTable("Project_Costs", (string)null);
+                    b.ToTable("Project_Costs");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Pipeline_Lnk", b =>
@@ -1685,7 +1781,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("Project_ID", "Process_Nm");
 
-                    b.ToTable("Project_Pipeline_Links", (string)null);
+                    b.ToTable("Project_Pipeline_Links");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User", b =>
@@ -1782,7 +1878,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Users_Requests", (string)null);
+                    b.ToTable("Project_Users_Requests");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1905,7 +2001,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Project_Resources2", (string)null);
+                    b.ToTable("Project_Resources2");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Role", b =>
@@ -2025,7 +2121,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("ProjectId")
                         .IsUnique();
 
-                    b.ToTable("Project_Whitelists", (string)null);
+                    b.ToTable("Project_Whitelists");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Repositories.ProjectRepository", b =>
@@ -2266,7 +2362,7 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTime?>("OpenGovPublicationDate")
                         .HasColumnType("datetime2");
 
-                    b.ToTable("TbsOpenGovSubmissions", (string)null);
+                    b.ToTable("TbsOpenGovSubmissions");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -2297,7 +2393,7 @@ namespace Datahub.Core.Migrations
                     b.Property<int>("UploadStatus_CD")
                         .HasColumnType("int");
 
-                    b.ToTable("OpenDataSharedFile", (string)null);
+                    b.ToTable("OpenDataSharedFile");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -2475,6 +2571,17 @@ namespace Datahub.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("WebForm");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
+                        .WithOne("GCHostingWorkspaceDetails")
+                        .HasForeignKey("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
@@ -2770,6 +2877,8 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Credits");
+
+                    b.Navigation("GCHostingWorkspaceDetails");
 
                     b.Navigation("PBI_License_Request");
 
