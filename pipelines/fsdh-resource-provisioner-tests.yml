@@ -2,14 +2,16 @@ trigger: none
 pr: none
 
 steps:
-
-  - task: PowerShell@2
+  # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
+  - task: AzurePowerShell@5
     displayName: 'Run gen-all-settings.ps1 to configure environment variables'
     inputs:
-      targetType: 'filePath'
-      filePath: './gen-all-settings.ps1'
-      arguments: '-Environment dev'  # Pass any required arguments to the script
-      workingDirectory: $(System.DefaultWorkingDirectory)
+      #azureSubscription: '<Your-Azure-Subscription>'  # Specify your Azure subscription if login is required
+      ScriptType: 'FilePath'  # Run the script using FilePath
+      ScriptPath: './gen-all-settings.ps1'  # Path to your script
+      ScriptArguments: '-Environment dev'  # Arguments to pass to your script, if needed
+      azurePowerShellVersion: 'LatestVersion'  # Use the latest version of Azure PowerShell modules
+
   
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 8.0.x'
