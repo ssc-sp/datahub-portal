@@ -9,7 +9,7 @@ steps:
       azureSubscription: 'fsdh-az-service-connection'
       ScriptType: 'FilePath'  # Run the script using FilePath
       ScriptPath: './gen-all-settings.ps1'  # Path to your script
-      ScriptArguments: '-Environment dev -SkipTests $true'  
+      ScriptArguments: '-Environment dev'  
       azurePowerShellVersion: 'LatestVersion'  
 
   
