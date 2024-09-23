@@ -6,7 +6,7 @@ steps:
   - task: AzurePowerShell@5
     displayName: 'Run gen-all-settings.ps1 to configure environment variables'
     inputs:
-      #azureSubscription: '<Your-Azure-Subscription>'  # Specify your Azure subscription if login is required
+      azureSubscription: 'fsdh-az-service-connection'
       ScriptType: 'FilePath'  # Run the script using FilePath
       ScriptPath: './gen-all-settings.ps1'  # Path to your script
       ScriptArguments: '-Environment dev'  # Arguments to pass to your script, if needed
