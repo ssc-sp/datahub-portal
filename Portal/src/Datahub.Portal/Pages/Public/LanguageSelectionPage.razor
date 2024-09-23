@@ -8,7 +8,7 @@
 <PageTitle>Federal Science DataHub / DataHub scientifique fédéral</PageTitle>
 
 
-<MudContainer MaxWidth=@MaxWidth.ExtraSmall >
+<MudContainer MaxWidth=@MaxWidth.Small >
     <MudStack>
         <MudSpacer />
         <MudPaper Class="pa-10 mt-20" >
@@ -16,20 +16,28 @@
                 <MudImage Src="/img/canada-fip.svg" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem" />
                 <MudSpacer />
                 <MudStack Row>
-                    <MudButton Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
-                    <MudButton Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>Français</MudButton>
+                    <MudSpacer />
+                    <MudStack>
+                        <MudText Align=@Align.Right Typo=@Typo.h3>Federal Science DataHub</MudText>
+                        <MudButton Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
+                    </MudStack>
+                    <MudStack>
+                        <MudText Align=@Align.Left Typo=@Typo.h3>DataHub scientifique fédéral</MudText>
+                        <MudButton Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>Français</MudButton>
+                    </MudStack>
+                    <MudSpacer />
                 </MudStack>
                 <MudSpacer />
                 <MudStack Row>
-                    <MudLink Href=@EnglishTermsUrl Target="_blank" Typo="Typo.body1">
+                    <MudLink Href=@EnglishTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
                         Terms and conditions
                     </MudLink>
                     <MudDivider Vertical />
-                    <MudLink Href=@FrenchTermsUrl Target="_blank" Typo="Typo.body1">
+                    <MudLink Href=@FrenchTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
                         Avis
                     </MudLink>
                     <MudSpacer />
-                    <MudImage Src="/img/fip_mark.png" Alt="Canada" Style="max-height: 1rem" />
+                    <MudImage Src="/img/fip_mark.png" Alt="Canada" Style="max-height: 1.5rem" />
                 </MudStack>
             </MudStack>
         </MudPaper>
