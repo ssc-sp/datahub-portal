@@ -4,6 +4,7 @@
 
 @inject IDatahubCatalogSearch _datahubCatalogSearch
 @inject IJSRuntime _jsRuntime
+@inject ICultureService CultureService
 
 <MudElement Style="@($"max-width: {_maxWidth}; flex-grow: 1;")" aria-label=@Localizer["search"]>
     <MudTextField T="string"

@@ -1,6 +1,7 @@
 ﻿@inject IJSRuntime _jsRuntime
 @inject NavigationManager _navManager
 @inject IUserSettingsService _userSettingsService
+@inject ICultureService CultureService
 
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">

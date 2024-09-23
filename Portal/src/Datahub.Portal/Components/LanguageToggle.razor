@@ -6,6 +6,7 @@
 @inject IPortalUserTelemetryService _telemetryService
 @inject NavigationManager NavManager
 @inject IJSRuntime _jsRuntime
+@inject ICultureService CultureService
 
 <DHButton OnClick="() => ChangeLanguage(Language)" Size="@Size" @attributes="@InputAttributes">
     <MudText>

@@ -2,6 +2,8 @@
 @using Datahub.Application.Services.Cost
 @using Datahub.Core.Model.Projects
 
+@inject ICultureService CultureService
+
 <span>
     <h2 class="sr-only">
         @Localizer["A chart showing the accumulated costs for the workspace over time. An accessible description is provided below the chart."]
