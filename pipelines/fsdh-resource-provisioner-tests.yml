@@ -9,8 +9,8 @@ steps:
       azureSubscription: 'fsdh-az-service-connection'
       ScriptType: 'FilePath'  # Run the script using FilePath
       ScriptPath: './gen-all-settings.ps1'  # Path to your script
-      ScriptArguments: '-Environment dev'  # Arguments to pass to your script, if needed
-      azurePowerShellVersion: 'LatestVersion'  # Use the latest version of Azure PowerShell modules
+      ScriptArguments: '-Environment dev -SkipTests $true'  
+      azurePowerShellVersion: 'LatestVersion'  
 
   
   - task: UseDotNet@2
