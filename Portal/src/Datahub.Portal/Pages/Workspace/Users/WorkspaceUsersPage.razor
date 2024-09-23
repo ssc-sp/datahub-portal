@@ -149,6 +149,7 @@
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>@Localizer["Role"]</MudTh>
+            <MudTh>@Localizer["Data Steward"]</MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.Approved_DT))">
                     @Localizer["Added to Workspace"]
@@ -181,6 +182,11 @@
                         <MudText>@Localizer[rowContext.Role.Name]</MudText>
                     </NotAuthorized>
                 </DatahubAuthView>
+            </MudTd>
+            <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
+                <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
+                    Value="rowContext.IsDataSteward"
+                    ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 @if (rowContext.Approved_DT != null)
@@ -221,6 +227,7 @@
 
     private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
+    private List<Datahub_Project_User> _currentlySelected = new();
 
     private string _modifiedCellStyle;
 
@@ -266,23 +273,34 @@
 
     private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
     {
-        // check if the user is already in the list of users to be updated
         var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
         if (existingUser != null)
         {
             existingUser.NewRoleId = newRoleId;
-            if (existingUser.NewRoleId == existingUser.ProjectUser.Role.Id)
+            var selectedUser = _currentlySelected.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
+            if (selectedUser != null)
+            {
+                selectedUser.RoleId = newRoleId;
+            }
+            if (NothingChanged())
             {
                 _usersToUpdate.Remove(existingUser);
+                _currentlySelected.RemoveAll(x => x.PortalUserId == projectUser.PortalUserId);
             }
         }
         else
         {
             _usersToUpdate.Add(new ProjectUserUpdateCommand()
-            {
-                ProjectUser = projectUser,
-                NewRoleId = newRoleId
-            });
+                {
+                    ProjectUser = projectUser,
+                    NewRoleId = newRoleId
+                });
+            _currentlySelected.Add(new Datahub_Project_User()
+                {
+                    PortalUserId = projectUser.PortalUserId,
+                    IsDataSteward = projectUser.IsDataSteward,
+                    RoleId = newRoleId
+                });
         }
 
         StateHasChanged();
@@ -302,6 +320,56 @@
     private bool IsModified(Datahub_Project_User projectUser)
     {
         return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+    }
+
+    private void ChangeDataStewardFlag(Datahub_Project_User projectUser, bool newValue)
+    {
+        projectUser.IsDataSteward = newValue;
+        var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+        if (existingUser != null)
+        {
+            existingUser.ProjectUser.IsDataSteward = projectUser.IsDataSteward;
+            var selectedUser = _currentlySelected.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
+            if (selectedUser != null)
+            {
+                selectedUser.IsDataSteward = projectUser.IsDataSteward;
+            }
+            if (NothingChanged())
+            {
+                _usersToUpdate.Remove(existingUser);
+                _currentlySelected.RemoveAll(x => x.PortalUserId == projectUser.PortalUserId);
+            }
+        }
+        else
+        {
+            _usersToUpdate.Add(new ProjectUserUpdateCommand()
+                {
+                    ProjectUser = projectUser,
+                    IsDataSteward = newValue,
+                    NewRoleId = (int)projectUser.RoleId
+                });
+            _currentlySelected.Add(new Datahub_Project_User()
+                {
+                    PortalUserId = projectUser.PortalUserId,
+                    IsDataSteward = projectUser.IsDataSteward,
+                    RoleId = projectUser.RoleId
+                });
+        }
+
+        StateHasChanged();
+    }
+
+    private bool NothingChanged()
+    {
+        foreach (var user in _currentlySelected)
+        {
+            var original = _projectUsers.FirstOrDefault(x => x.PortalUserId == user.PortalUserId);
+            if (original == null || original.IsDataSteward != user.IsDataSteward || original.RoleId != user.RoleId)
+            {
+                return false;
+            }
+        }
+        return true;
     }
 
     private async Task OpenDialog()
