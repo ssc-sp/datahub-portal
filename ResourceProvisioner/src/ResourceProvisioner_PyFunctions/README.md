@@ -91,3 +91,26 @@ flowchart
     CheckDef -->|user in definition| End
     Remove --> End
 ```
+
+## Custom SSL Validation
+
+`validate_ssl.py` is a small test to validate the `ssl_utils` which configures a global `REQUESTS_CA_BUNDLE`
+
+- Create a virtual environment
+```bash
+python -v venv venv
+```
+- Activate the virtual environment
+```bash
+venv\scripts\activate
+```
+
+- Install requests
+```bash
+pip install requests
+```
+
+- Execute the python test
+```bash
+python validate_ssl.py
+```
