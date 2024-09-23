@@ -1521,6 +1521,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasMaxLength(400)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("PreventAutoDelete")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Project_Acronym_CD")
                         .IsRequired()
                         .HasMaxLength(10)

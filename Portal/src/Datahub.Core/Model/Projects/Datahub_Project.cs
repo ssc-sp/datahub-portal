@@ -287,6 +287,11 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<ProjectCloudStorage> CloudStorages { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether the project should be prevented from auto-deletion.
+    /// </summary>
+    public bool PreventAutoDelete { get; set; } = false;
+
     [AeFormIgnore]
     [NotMapped]
     public string ProjectName
