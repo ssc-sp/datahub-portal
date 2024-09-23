@@ -14,7 +14,7 @@
 @inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
 @inject IDialogService _dialogService
-
+@inject ICultureService CultureService
 
 
 <PageTitle>@Localizer["Federal Science DataHub"]</PageTitle>
@@ -84,7 +84,7 @@ else
                 _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
                 return;
             }
-            
+
             _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
             await _auditingService.TrackEvent("Login");
@@ -94,23 +94,19 @@ else
             _consentHandler.HandleException(ex);
         }
 
-    // register and or update authenticated portal user
+        // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
-        
+
         _isLoaded = true;
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
 
         if (firstRender)
         {
-            var language = await _userSettingsService.GetUserLanguage();
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                await PromptForLanguage();
-            }
+            await UpdateUserLanguageSetting();
 
             _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             if (!_isUserValid)
@@ -120,7 +116,7 @@ else
             StateHasChanged();
         }
     }
-    
+
     private async Task PromptForTermsAndConditions()
     {
         var options = new DialogOptions
@@ -142,22 +138,14 @@ else
         }
     }
 
-    private async Task PromptForLanguage()
+    private async Task UpdateUserLanguageSetting()
     {
-        var options = new DialogOptions
+        var userLanguageSetting = await _userSettingsService.GetUserLanguage();
+        var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
+        
+        if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
         {
-            CloseOnEscapeKey = false,
-            BackdropClick = false,
-        };
-
-        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
-        var languageDialogResult = await languageDialog.Result;
-        if (!languageDialogResult.Canceled)
-        {
-            var selectedLanguage = languageDialogResult.Data.ToString();
-            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
-            await _userSettingsService.RegisterUserLanguage(language);
-            await _userSettingsService.SetLanguage(language);
+            await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
         }
     }
 }
