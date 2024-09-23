@@ -1,8 +1,16 @@
 trigger: none
 pr: none
 
-
 steps:
+
+  - task: PowerShell@2
+    displayName: 'Run gen-all-settings.ps1 to configure environment variables'
+    inputs:
+      targetType: 'filePath'
+      filePath: './gen-all-settings.ps1'
+      arguments: '-Environment dev'  # Pass any required arguments to the script
+      workingDirectory: $(System.DefaultWorkingDirectory)
+  
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 8.0.x'
     inputs:
