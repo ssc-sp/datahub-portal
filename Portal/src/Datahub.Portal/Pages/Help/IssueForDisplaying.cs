@@ -49,7 +49,7 @@ namespace Datahub.Portal.Pages.Help
         {
             Id = (string)workItemDetails["id"];
             Title = (string)workItemDetails["fields"]["System.Title"];
-            Description = (string)workItemDetails["fields"]["System.Description"];
+            Description = CreateUserDescription((string)workItemDetails["fields"]["System.Description"]);
             State = (string)workItemDetails["fields"]["System.State"];
             Message = userView == true ? GetUserHelpStatusMessage(State) : State;
             SubmittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
