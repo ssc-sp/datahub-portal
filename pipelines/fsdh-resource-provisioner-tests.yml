@@ -1,3 +1,7 @@
+trigger: none
+pr: none
+
+
 steps:
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 8.0.x'
