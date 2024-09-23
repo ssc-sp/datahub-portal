@@ -40,22 +40,6 @@ namespace Datahub.Portal.Pages.Help
         /// </summary>
         public string ChangedDate { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the IssueForDisplaying class.
-        /// </summary>
-        /// <param name="workItemDetails">The JObject containing the work item details.</param>
-        /// <param name="userView">A flag indicating whether the user view is enabled or not.</param>
-        public IssueForDisplaying(JObject workItemDetails, bool userView = true)
-        {
-            Id = (string)workItemDetails["id"];
-            Title = (string)workItemDetails["fields"]["System.Title"];
-            Description = CreateUserDescription((string)workItemDetails["fields"]["System.Description"]);
-            State = (string)workItemDetails["fields"]["System.State"];
-            Message = userView == true ? GetUserHelpStatusMessage(State) : State;
-            SubmittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
-            ChangedDate = (string)workItemDetails["fields"]["System.ChangedDate"]; ;
-        }
-
         public IssueForDisplaying(WorkItem workItem, bool userView = true)
         {
             Id = workItem.Id.ToString();

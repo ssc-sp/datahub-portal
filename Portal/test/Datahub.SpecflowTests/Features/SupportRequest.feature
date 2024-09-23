@@ -12,3 +12,11 @@ Scenario: Submit a support request
 	Then I should receive a confirmation message that my request has been submitted
 	And the support team should receive an email with my request
 	And the support request should be added to Azure DevOps
+
+Scenario: Handle old support requests that use <b> tags in issue parsing
+	Given I have an old support request with <b> tags in the description
+	Then it should parse the description properly
+
+Scenario: Handle new support requests that use <strong> tags in issue parsing   
+	Given I create a new workitem that uses <strong> tags in the description    
+	Then it should parse the description properly
