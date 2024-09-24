@@ -20,7 +20,11 @@
         <PackageReference Include="Reqnroll" Version="2.0.3" />
         <PackageReference Include="Reqnroll.xUnit" Version="2.0.3" />
         <PackageReference Include="xunit" Version="2.8.1" />
-        <PackageReference Include="coverlet.collector" Version="6.0.2">
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="coverlet.collector" Version="6.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -34,18 +38,5 @@
 
     <ItemGroup>
         <Content Include="Features\**\*.feature" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Compile Remove="Features\Reregistration\**" />
-      <Content Remove="Features\Reregistration\**" />
-      <EmbeddedResource Remove="Features\Reregistration\**" />
-      <None Remove="Features\Reregistration\**" />
-      <ReqnrollFeatureFiles Remove="Features\Reregistration\**" />
-      <ReqnrollObsoleteCodeBehindFiles Remove="Features\Reregistration\**" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ReqnrollFeatureFiles Remove="features\reverseproxyroles\AdminRole.feature" />
     </ItemGroup>
 </Project>
