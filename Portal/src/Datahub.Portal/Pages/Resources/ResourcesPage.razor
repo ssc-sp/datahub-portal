@@ -5,11 +5,11 @@
 
 @inject DocumentationService _docService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject CultureService _cultureService
 @inject NavigationManager _navManager
 @inject DocumentationService _documentationService
 @inject ILocalStorageService _localStorage
 @inject ILogger<ResourcesPage> _logger
+@inject ICultureService CultureService
 
 @layout PortalContainerLayout
 
@@ -145,7 +145,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        _resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+        _resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, CultureService.Culture);
         _currentCategory = _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)).First();
         _tabList = _resourceRoot.Children.Where(d => !_hiddenNavGroups.Contains(d.Id)).ToList();
         _tabIndex = Math.Min(_tabList.Count, TabIndex ?? 0);
@@ -169,7 +169,7 @@ else
     protected override async Task OnParametersSetAsync()
     {
         _docIsLoading = true;
-        _currentDoc = string.IsNullOrEmpty(PageName) ? _resourceRoot : _docService.LoadPage(PageName, _cultureService.IsFrench);
+        _currentDoc = string.IsNullOrEmpty(PageName) ? _resourceRoot : _docService.LoadPage(PageName, CultureService.IsFrench);
 
         if (_currentDoc is not null)
         {

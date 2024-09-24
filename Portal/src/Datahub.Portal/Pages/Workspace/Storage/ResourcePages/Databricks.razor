@@ -3,8 +3,8 @@
 @using Datahub.Core.Storage
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 
-@inject CultureService _cultureService
 @inject IConfiguration _configuration
+@inject ICultureService CultureService
 
 <MudStack>
     @*<SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" ContainerToken />*@
@@ -57,6 +57,6 @@
     
     private string GetPageName()
     {
-        return _configuration[$"WikiPageTitles:DatabricksStorageAccess:{_cultureService.Culture}"];
+        return _configuration[$"WikiPageTitles:DatabricksStorageAccess:{CultureService.Culture}"];
     }
 }
