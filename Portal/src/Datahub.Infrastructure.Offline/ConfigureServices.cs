@@ -27,7 +27,7 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
     {
         portalConfiguration ??= new DatahubPortalConfiguration();
-        services.AddSingleton<CultureService>();
+        services.AddScoped<ICultureService, OfflineUserCultureService>();
         services.AddDatahubLocalization(portalConfiguration);
         
         services.AddScoped<IMetadataBrokerService, OfflineMetadataBrokerService>();
