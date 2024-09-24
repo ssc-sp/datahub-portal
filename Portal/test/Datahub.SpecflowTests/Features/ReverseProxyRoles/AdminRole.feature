@@ -7,6 +7,6 @@ Validate ContextRequestHeaderTransform when user has Datahub Admin role
         Then the status should be <status_code>
 
     Examples:
-      | dhadmin | status code |
-      | true    | 403         |
-      | false   | 404         |
+      | dhadmin | status_code |
+      | true    | 0         |
+      | false   | 403           |

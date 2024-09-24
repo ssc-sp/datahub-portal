@@ -12,19 +12,20 @@ using FluentAssertions;
 namespace Datahub.SpecflowTests.Steps
 {
     [Binding]
-    public class ApplyDatahubAdminRoleForProxyAccessStepDefinitions(ScenarioContext scenarioContext)
+    public class AdminRoleStepDefinitions(ScenarioContext scenarioContext)
     {
-        [Given("a user context with admin role {string}")]
+        [Given("a user context with admin role (.*)")]
         public void GivenAUserContextWithARoleOfTrue(string isDhAdmin)
         {
+            // assume user is part of RD2 and is trying to access RD1   
             var httpContextSubstitute = Substitute.For<HttpContext>();
-            var workspace = bool.Parse(isDhAdmin) ? RoleConstants.DATAHUB_ADMIN_PROJECT: "RD1";
+            var workspace = bool.Parse(isDhAdmin) ? RoleConstants.DATAHUB_ADMIN_PROJECT: "RD2";
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.Role, workspace + RoleConstants.COLLABORATOR_SUFFIX)
             };
             httpContextSubstitute.User.Returns(new ClaimsPrincipal(new ClaimsIdentity(claims)));
-            var logger = Substitute.For<ILogger<ContextRequestHeaderTransform>>();
+            var logger = Substitute.For<ILogger>();
             var contextTransform = new ContextRequestHeaderTransform("RD1", logger);
             scenarioContext["contextTransform"] = contextTransform;
             scenarioContext["httpContext"] = httpContextSubstitute;

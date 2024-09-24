@@ -34,6 +34,6 @@ public static class HttpRequestTools
 
     public static bool IsDatahubAdmin(this HttpContext context)
     {
-        return GetWorkspaceRole(context, RoleConstants.DATAHUB_ADMIN_PROJECT) == RoleConstants.ADMIN_ROLE;
+        return GetWorkspaceRole(context, RoleConstants.DATAHUB_ADMIN_PROJECT) != null;
     }
 }
