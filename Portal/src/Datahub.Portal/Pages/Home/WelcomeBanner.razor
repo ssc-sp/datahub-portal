@@ -11,8 +11,8 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IAnnouncementService _announcementService
-@inject CultureService _cultureService
 @inject IJSRuntime _jsRuntime
+@inject ICultureService CultureService
 
 @if (_isLoading)
 {
@@ -43,7 +43,7 @@ else
     {
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
         _userBackgroundUrl = _datahubPortalConfiguration.Media.GetAchievementImageUrl(portalUser.BannerPictureUrl);
-        _previews = await _announcementService.GetActivePreviews(_cultureService.IsFrench);
+        _previews = await _announcementService.GetActivePreviews(CultureService.IsFrench);
         _isLoading = false;
         StateHasChanged();
     }

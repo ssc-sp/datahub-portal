@@ -1,10 +1,10 @@
 @using Datahub.Core.Components.Common
 @using Datahub.Markdown
 
-@inject CultureService _cultureService
 @inject ILogger<TermsAndConditionsPage> _logger
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IHttpClientFactory _httpClientFactory
+@inject ICultureService CultureService
 
 @page "/terms-and-conditions"
 @page "/conditions-generales"
@@ -31,7 +31,7 @@
 
     private async Task<string> GetTermsAndConditionsMarkdownContent()
     {
-        var fullUrl = _cultureService.IsEnglish ? _datahubPortalConfiguration.TermsAndConditionsUrl.En : _datahubPortalConfiguration.TermsAndConditionsUrl.Fr;
+        var fullUrl = CultureService.IsEnglish ? _datahubPortalConfiguration.TermsAndConditionsUrl.En : _datahubPortalConfiguration.TermsAndConditionsUrl.Fr;
 
         var client = _httpClientFactory.CreateClient();
         try
