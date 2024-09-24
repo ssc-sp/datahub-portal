@@ -37,6 +37,15 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Reregistration\" />
+      <Compile Remove="Features\Reregistration\**" />
+      <Content Remove="Features\Reregistration\**" />
+      <EmbeddedResource Remove="Features\Reregistration\**" />
+      <None Remove="Features\Reregistration\**" />
+      <ReqnrollFeatureFiles Remove="Features\Reregistration\**" />
+      <ReqnrollObsoleteCodeBehindFiles Remove="Features\Reregistration\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ReqnrollFeatureFiles Remove="features\reverseproxyroles\AdminRole.feature" />
     </ItemGroup>
 </Project>
