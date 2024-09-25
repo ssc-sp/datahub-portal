@@ -419,4 +419,4 @@ function ConvertFrom-HashTable {
     return $result
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString,Read-VaultSecret
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString
