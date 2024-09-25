@@ -335,16 +335,15 @@ function Read-SecureString {
 
     try {
         # Convert SecureString to plain text , linux safe
-        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
-        
-        return [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+        return [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($BSTR)
     }
     catch {
         Write-Error "An error occurred while converting the SecureString: $_"
         throw  # Re-throw the exception if you want it to propagate further
     }
     finally {
-        if ($bstr) {
+        if ($BSTR) {
             # Ensure the allocated memory is freed even if there's an error
             [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
         }
