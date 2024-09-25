@@ -250,7 +250,7 @@ function Export-Settings(
         #take the tf output file without extension
         $varName = [System.IO.Path]::GetFileNameWithoutExtension($TfFile) -replace "-", "_"
         $aspEnv = if ($Environment -eq "dev") { "Development" } else { $Environment}
-$header = @"
+        $header = @"
 variable "$varName" {
     description = "Generated settings from $SourceFile"
     type        = map(string)
