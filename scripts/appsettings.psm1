@@ -202,15 +202,9 @@ function Export-Settings(
                 $key = $entry.Name
                 Write-Host "Setting user secret $key"
                 $secretValue = Read-AllSecrets $entry.Value
-                dotnet user-secrets set $key $secretValue
+                dotnet user-secrets set $key $secretValue | Out-Null
             }
-            # Write-Host "Setting user secrets from sensitive values" 
-            # foreach ($entry in $sensitiveEntries)
-            # {
-            #     $key = $entry.Name
-                
-            #     dotnet user-secrets set $key $secretValue
-            # }
+
         } catch {
             Write-Error "Error setting user secrets"
         } finally {
