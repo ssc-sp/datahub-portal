@@ -6,10 +6,11 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Infrastructure.Extensions
 @using Datahub.Infrastructure.Queues.Messages
-@using Datahub.Shared.Configuration;
+@using Datahub.Shared.Configuration
 @using Datahub.Core.Templates
 @using BlazorTemplater
-@using MassTransit;
+@using MassTransit
+@using Newtonsoft.Json
 
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
@@ -196,19 +197,18 @@
     {
         var templater = new Templater();
 
-        var parameters = new Dictionary<string, object>
+        var parameters = new Dictionary<string, string>
         {
             { "WorkspaceAcronym", projectAcronym},
             { "LeadName", workspaceLead.DisplayName },
             { "UserName", userName }
         };
-
-        string emailBody = templater.RenderComponent<UserReactivation>(parameters);
+         
         var request = new EmailRequestMessage
-        {            
-            To = new List<string> { workspaceLead.Email },
-            Subject = "FSDH Account Reactivation Notification",
-            Body = emailBody
+            {
+                To = new List<string> { workspaceLead.Email },
+                Subject = "FSDH Account Reactivation Notification",
+                Body = JsonConvert.SerializeObject(parameters)
         };
 
         try
