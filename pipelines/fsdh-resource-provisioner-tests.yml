@@ -1,6 +1,3 @@
-trigger: none
-pr: none
-
 steps:
   # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
   - task: AzurePowerShell@5
@@ -12,7 +9,6 @@ steps:
       ScriptArguments: '-Environment dev'  
       azurePowerShellVersion: 'LatestVersion'  
 
-  
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 8.0.x'
     inputs:
