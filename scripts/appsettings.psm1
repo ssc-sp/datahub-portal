@@ -162,7 +162,6 @@ function Export-Settings(
                 $key = $entry.Name
                 Write-Host "Setting user secret $key"
                 $secretValue = Read-AllSecrets $entry.Value
-
                 dotnet user-secrets set $key $secretValue | Out-Null
             }
 
