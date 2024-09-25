@@ -347,8 +347,8 @@ function Read-SecureString($secureString)
 function Read-VaultSecret($vault, $secretId)
 {
     try {
-        $secureSecret = (Get-AzKeyVaultSecret -VaultName $vault -Name $secretId).SecretValue
-        return [string]($secureSecret)  # Ensure it's explicitly cast to string
+        $KVSecretValue = (Get-AzKeyVaultSecret -VaultName $vault -Name $secretId).Value
+        return [string]($KVSecretValue)  # Ensure it's explicitly cast to string
 	} catch {
 		Write-Error "Error reading secret $secretId from vault $vault - do you have read access in $vault policies?"
 		return
