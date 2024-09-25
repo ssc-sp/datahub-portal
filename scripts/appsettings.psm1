@@ -338,17 +338,36 @@ function Read-AllSecrets($value)
     return $value
 }
 
-function Read-SecureString($secureString)
-{
-    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
-    return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
+function Read-SecureString {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Security.SecureString]$SecureString
+    )
+
+    try {
+        # Convert SecureString to plain text , linux safe
+        $bstr = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+        
+        return [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+    }
+    catch {
+        Write-Error "An error occurred while converting the SecureString: $_"
+        throw  # Re-throw the exception if you want it to propagate further
+    }
+    finally {
+        if ($bstr) {
+            # Ensure the allocated memory is freed even if there's an error
+            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+        }
+    }
 }
+
+
 
 function Read-VaultSecret($vault, $secretId)
 {
     try {
-        $KVSecretValue = Get-AzKeyVaultSecret -VaultName $vault -Name $secretId -AsPlainText
-        return [string]($KVSecretValue)  # Ensure it's explicitly cast to string
+        return Read-SecureString((Get-AzKeyVaultSecret -VaultName $vault -Name $secretId).SecretValue)
 	} catch {
 		Write-Error "Error reading secret $secretId from vault $vault - do you have read access in $vault policies?"
 		return
@@ -412,4 +431,4 @@ function ConvertFrom-HashTable {
     return $result
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString,Read-VaultSecret
