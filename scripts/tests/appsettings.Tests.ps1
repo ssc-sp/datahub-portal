@@ -4,6 +4,7 @@
 BeforeAll {
     # Import the module to be tested
     Import-Module "$PSScriptRoot/../appsettings.psm1" -Force
+
 }
 
 Describe "Read-SecureString Function Tests" {
@@ -27,3 +28,5 @@ Describe "Read-SecureString Function Tests" {
         { Read-SecureString -secureString $null } | Should -Throw
     }
 }
+
+
