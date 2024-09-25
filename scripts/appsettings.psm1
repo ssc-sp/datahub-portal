@@ -164,8 +164,8 @@ function Export-Settings(
                 $secretValue = Read-AllSecrets $entry.Value
 
                 Write-Host "BAINER: $secretValue"
-                Write-Host "BAINER: Length $(secretValue.Length)"
-                
+                Write-Host "BAINER: Length $($secretValue.Length)"
+
                 dotnet user-secrets set $key $secretValue
             }
 
@@ -260,15 +260,17 @@ function Export-Settings(
         #take the tf output file without extension
         $varName = [System.IO.Path]::GetFileNameWithoutExtension($TfFile) -replace "-", "_"
         $aspEnv = if ($Environment -eq "dev") { "Development" } else { $Environment}
-        $header = @"
-        variable "$varName" {
-            description = "Generated settings from $SourceFile"
-            type        = map(string)
-            default     = {
-            "ASPNETCORE_DETAILEDERRORS"                        = "false"
-            "ASPNETCORE_ENVIRONMENT"                           = "$aspEnv"
-            "WEBSITE_RUN_FROM_PACKAGE"                         = var.app_deploy_as_package    
-        "@          
+
+$header = @"
+variable "$varName" {
+    description = "Generated settings from $SourceFile"
+    type        = map(string)
+    default     = {
+        "ASPNETCORE_DETAILEDERRORS"                        = "false"
+        "ASPNETCORE_ENVIRONMENT"                           = "$aspEnv"
+        "WEBSITE_RUN_FROM_PACKAGE"                         = var.app_deploy_as_package    
+"@
+
         $footer = "    }`n}"
         $tfOutput = ""
         
