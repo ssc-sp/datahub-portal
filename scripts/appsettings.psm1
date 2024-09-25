@@ -163,10 +163,10 @@ function Export-Settings(
                 Write-Host "Setting user secret $key"
                 $secretValue = Read-AllSecrets $entry.Value
 
-                Write-Host "BAINER: $secretValue"
+                #Write-Host "BAINER: $secretValue"
                 Write-Host "BAINER: Length $($secretValue.Length)"
 
-                dotnet user-secrets set $key $secretValue
+                dotnet user-secrets set $key $secretValue | Out-Null
             }
 
         } catch {
