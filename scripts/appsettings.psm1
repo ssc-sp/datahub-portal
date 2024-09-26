@@ -340,27 +340,40 @@ function Read-SecureString {
     }
     catch {
         Write-Error "An error occurred while converting the SecureString: $_"
-        throw  # Re-throw the exception if you want it to propagate further
     }
     finally {
         if ($BSTR) {
             # Ensure the allocated memory is freed even if there's an error
-            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
         }
     }
 }
 
 
 
-function Read-VaultSecret($vault, $secretId)
-{
+function Read-VaultSecret {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$vault,
+
+        [Parameter(Mandatory = $true)]
+        [string]$secretId
+    )
+
     try {
-        return Read-SecureString((Get-AzKeyVaultSecret -VaultName $vault -Name $secretId).SecretValue)
-	} catch {
-		Write-Error "Error reading secret $secretId from vault $vault - do you have read access in $vault policies?"
-		return
+        $secret = Get-AzKeyVaultSecret -VaultName $vault -Name $secretId
+
+        if (-not $secret.SecretValue) {
+            throw "The secret value retrieved from the vault is null or empty."
+        }
+
+        return Read-SecureString($secret.SecretValue)
+    }
+    catch {
+        Write-Error "Error reading secret $secretId from vault $vault - $_"
     }
 }
+
 
 function ConvertTo-HashTable {
     param(
@@ -419,4 +432,4 @@ function ConvertFrom-HashTable {
     return $result
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret
