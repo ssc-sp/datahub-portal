@@ -28,7 +28,7 @@ namespace Datahub.Portal.Components
                 .MaximumLength(200)
                 .WithMessage("Key cannot be longer than 200 characters");
             RuleFor(x => x.Key)
-                .Matches(@"^[a-zA-Z_]+$").WithMessage("Key can only contain letters and underscores");
+                .Matches(@"^[a-zA-Z0-9_]+$").WithMessage("Key can only contain letters, numbers and underscores");
 
             RuleFor(x => x.Value)
                 .NotEmpty()
