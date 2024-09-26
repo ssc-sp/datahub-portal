@@ -4,12 +4,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.SpecflowTests;
 
-public class SpecFlowDbContextFactory(DbContextOptions<SqlServerDatahubContext> options)
+public class SpecFlowDbContextFactory(DbContextOptions<DatahubProjectDBContext> options)
     : IDbContextFactory<DatahubProjectDBContext>
 {
     public DatahubProjectDBContext CreateDbContext()
     {
-        return new SqlServerDatahubContext(options);
+        return new DatahubProjectDBContext(options);
     }
 
     public Task<DatahubProjectDBContext> CreateDbContextAsync(CancellationToken cancellationToken = default)
