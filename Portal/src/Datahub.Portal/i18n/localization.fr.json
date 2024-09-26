@@ -2882,5 +2882,14 @@
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés."
+  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
+  "Changes to workspace have been saved": "Changes to workspace have been saved",
+  "Queued Terraform update for workspace changes": "Queued Terraform update for workspace changes",
+  "Prevent auto-delete": "Prevent auto-delete",
+  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget",
+  "Workspace Details": "Workspace Details",
+  "Post definition to Service Bus": "Post definition to Service Bus",
+  "Upgrade Workspace to Latest": "Upgrade Workspace to Latest",
+  "Definition sent to Service Bus": "Definition sent to Service Bus",
+  "Upgrade request sent to Service Bus": "Upgrade request sent to Service Bus"
 }
