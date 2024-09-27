@@ -22,16 +22,23 @@
 - [ ] The code is adequately documented (such as in-code comments or dev documentation)
 - [ ] The code does not contain duplicate code that could be abstracted
 
+### Localization
+
+- [ ] New user-facing text has been added to `localization.json` and `localization.fr.json`, or no new user-facing text has been added
+- [ ] One of the following is true:
+  - [ ] New page routes are added to `url_paths.json`, `url_paths.fr.json`, and `LanguageToggle.razor`
+  - [ ] New page routes convey the same meaning in English and French and are not translated.
+  - [ ] No new page routes are added.
+- [ ] Updated functionality has been tested in both English and French, if applicable
+
 ### Tests
 
 - [ ] New code behaves as expected and achieves its intended purpose
 - [ ] Existing functionality behaves as expected and has been tested
-- [ ] The code has been tested in both English and French, if applicable
 - [ ] The PR includes adequate unit tests to cover code changes
 - [ ] The PR does not break existing tests
 
 ### Additional Requirements
 
 - [ ] The code does not introduce any security vulnerabilities
-- [ ] The PR includes updated localization files or makes no changes that impact localization
 - [ ] The PR follows accessibility requirements or makes no changes that impact accessibility
