@@ -2883,13 +2883,13 @@
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
   "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés.",
-  "Changes to workspace have been saved": "Changes to workspace have been saved",
-  "Queued Terraform update for workspace changes": "Queued Terraform update for workspace changes",
-  "Prevent auto-delete": "Prevent auto-delete",
-  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget",
-  "Workspace Details": "Workspace Details",
-  "Post definition to Service Bus": "Post definition to Service Bus",
-  "Upgrade Workspace to Latest": "Upgrade Workspace to Latest",
-  "Definition sent to Service Bus": "Definition sent to Service Bus",
-  "Upgrade request sent to Service Bus": "Upgrade request sent to Service Bus"
+  "Changes to workspace have been saved": "Les modifications apportées à l'espace de travail ont été enregistrées",
+  "Queued Terraform update for workspace changes": "Mise à jour Terraform enfiler pour les modifications de l'espace de travail",
+  "Prevent auto-delete": "Empêcher la suppression automatique",
+  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
+  "Workspace Details": "Détails de l'espace de travail",
+  "Post definition to Service Bus": "Enfiler la définition sur le Service Bus",
+  "Upgrade Workspace to Latest": "Mettre à jour l'espace de travail à la dernière version",
+  "Definition sent to Service Bus": "Définition envoyée au Service Bus",
+  "Upgrade request sent to Service Bus": "Demande de mise à jour envoyée au Service Bus"
 }
