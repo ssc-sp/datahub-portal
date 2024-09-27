@@ -20,3 +20,8 @@ Feature: Workspace Settings Page
         When the workspace settings page changes are saved
         Then the workspace should not trigger a terraform run
         And the audit track data event should not be logged
+        
+    Scenario: The workspace settings page should show a save changes button if there are changes
+        Given a workspace settings page
+        When the prevent auto delete is toggled
+        Then the workspace settings page should show a save changes button

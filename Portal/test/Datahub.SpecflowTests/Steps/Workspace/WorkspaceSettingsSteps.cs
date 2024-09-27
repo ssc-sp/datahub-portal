@@ -174,4 +174,13 @@ public class WorkspaceSettingsSteps(
                 Arg.Any<AuditChangeType>(),
                 Arg.Any<bool>());
     }
+
+    [Then(@"the workspace settings page should show a save changes button")]
+    public void ThenTheWorkspaceSettingsPageShouldShowASaveChangesButton()
+    {
+        var workspaceSettingsPage =
+            scenarioContext["workspaceSettingsPage"] as IRenderedComponent<WorkspaceSettingsPage>;
+        workspaceSettingsPage!.Render();
+        workspaceSettingsPage!.Find(".mud-button-label").TextContent.Should().Be("Save Changes");
+    }
 }
