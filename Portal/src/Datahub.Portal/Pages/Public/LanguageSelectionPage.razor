@@ -13,9 +13,9 @@
         <MudSpacer/>
         <MudPaper Class="pa-10 mt-20">
             <MudStack>
-                <div class="sr-only">
+                <span class="sr-only" translate="no">
                     <DHMainContentTitle Title="Federal Science DataHub - Language Selection / DataHub scientifique fédéral - Sélection de la langue"/>
-                </div>
+                </span>
                 <MudImage Src="/img/canada-fip.svg" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem"/>
                 <MudSpacer/>
                 <MudStack Row>
@@ -26,21 +26,26 @@
                     </MudStack>
                     <MudStack lang="fr">
                         <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">DataHub scientifique fédéral</MudText>
-                        <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>Français</MudButton>
+                        <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>
+                            Français
+                        </MudButton>
                     </MudStack>
                     <MudSpacer/>
                 </MudStack>
                 <MudSpacer/>
                 <MudStack Row>
-                    <MudLink Href=@EnglishTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
+                    <MudLink lang="en" Href=@EnglishTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
                         Terms and conditions
                     </MudLink>
                     <MudDivider Vertical/>
-                    <MudLink Href=@FrenchTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
+                    <MudLink lang="fr" Href=@FrenchTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
                         Avis
                     </MudLink>
                     <MudSpacer/>
-                    <MudImage Src="/img/fip_mark.png" Alt="Canada" Style="max-height: 1.5rem"/>
+                    <p>
+                        <MudImage Src="/img/fip_mark.png" Alt="Symbol of the Government of Canada" Style="max-height: 1.5rem"/>
+                        <span lang="fr" class="sr-only">Symbole du gouvernement du Canada</span>
+                    </p>
                 </MudStack>
             </MudStack>
         </MudPaper>
