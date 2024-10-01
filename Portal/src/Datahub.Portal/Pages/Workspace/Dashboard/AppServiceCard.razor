@@ -22,16 +22,16 @@
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@SidebarIcons.External"
-                    Style="text-decoration: underline">
+                    Underline>
                     @Localizer["Navigate to Web App"]
                 </DHButton>
             </MudElement>
             <MudElement HtmlTag="div">
                 <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
-                    Color="Color.Primary"
-                    Variant="@Variant.Text"
-                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
-                    Style="text-decoration: underline">
+                          Color="Color.Primary"
+                          Variant="@Variant.Text"
+                          EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+                          Underline>
                     @Localizer["View Web App configuration"]
                 </DHButton>
             </MudElement>
