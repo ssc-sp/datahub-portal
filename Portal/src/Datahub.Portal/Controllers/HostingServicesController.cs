@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Datahub.Portal.Controllers;
 
 [ApiController]
-    [Authorize]
+[Authorize]
 public class HostingServicesController : ControllerBase
 {
     /// <summary>
