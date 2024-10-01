@@ -33,7 +33,8 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    private async Task<IActionResult> ProcessRequest(HttpRequest request)
+    [NonAction]
+    public async Task<IActionResult> ProcessRequest(HttpRequest request)
     {
         try
         {
