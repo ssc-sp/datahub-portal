@@ -195,8 +195,6 @@
 
     private async Task NotifyWorkspaceAdmin(PortalUser workspaceLead, string projectAcronym, string userName)
     {
-        var templater = new Templater();
-
         var parameters = new Dictionary<string, string>
         {
             { "WorkspaceAcronym", projectAcronym},
