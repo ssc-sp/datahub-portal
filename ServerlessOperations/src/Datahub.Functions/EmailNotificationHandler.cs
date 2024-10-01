@@ -4,16 +4,10 @@ using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using MimeKit;
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Datahub.Functions.Extensions;
 using Datahub.Shared.Configuration;
 using Datahub.Functions.Services;
-using BlazorTemplater;
-using Datahub.Core.Model.Achievements;
-using Datahub.Core.Templates;
-using static Org.BouncyCastle.Math.EC.ECCurve;
-using Datahub.Core.Data.Databricks;
 using Newtonsoft.Json;
 
 namespace Datahub.Functions;
@@ -21,19 +15,16 @@ namespace Datahub.Functions;
 public class EmailNotificationHandler
 {
     private readonly ILogger _logger;
-    private readonly AzureConfig _config;
-    private readonly QueuePongService _pongService;
+    private readonly AzureConfig _config; 
     private readonly IEmailService _emailService;
 
     public EmailNotificationHandler(
         ILoggerFactory loggerFactory, 
-        AzureConfig config, 
-        QueuePongService pongService,
+        AzureConfig config,  
         IEmailService emailService)
     {
         _logger = loggerFactory.CreateLogger<EmailNotificationHandler>();
-        _config = config;
-        _pongService = pongService;
+        _config = config; 
         _emailService = emailService;
     }
 
