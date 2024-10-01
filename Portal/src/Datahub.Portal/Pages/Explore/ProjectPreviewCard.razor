@@ -15,7 +15,7 @@
                 <ProjectPreviewCardIconDetails
                     NumberOfWorkspacesRemaining="@NumberOfRemainingWorkspaces"/>
                 <MudElement>
-                    <DHButton Style="text-wrap: nowrap; text-decoration: underline" EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@PageRoutes.CreateWorkspace">
+                    <DHButton NoWrap Underline EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@PageRoutes.CreateWorkspace">
                         @Localizer["Create workspace"]
                     </DHButton>
                 </MudElement>
@@ -41,7 +41,7 @@ else
                     NumberOfFiles="0"/>
                 <MudElement>
                     <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
-                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")" Style="text-wrap: nowrap; text-decoration: underline">
+                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")" NoWrap Underline>
                         @Localizer["Open workspace"]
                     </DHButton>
                 </MudElement>
