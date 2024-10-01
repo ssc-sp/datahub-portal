@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 namespace Datahub.Portal.Controllers;
 
 [ApiController]
+    [Authorize]
 public class HostingServicesController : ControllerBase
 {
     /// <summary>
@@ -11,7 +12,6 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <returns>The IActionResult representing the response.</returns>
     [HttpPost("api/auth-echo")]
-    [Authorize]
     public async Task<IActionResult> PostAuth()
     {
         try
