@@ -45,7 +45,7 @@ jobs:
           fi
         done
 
-    - name: Loop through and configure repository settings
+    - name: Create or update rulesets
       env:
         GH_TOKEN: ${{ steps.create_token.outputs.token }}
       run: |
