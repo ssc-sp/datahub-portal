@@ -57,7 +57,8 @@
           "do_not_enforce_on_create": false,
           "required_status_checks": [
             {
-              "context": "code"
+              "context": "ssc-sp.datahub-portal",
+              "integration_id": 9426
             }
           ]
         }
@@ -75,4 +76,3 @@
       }
     ]
   }
-  
