@@ -1,0 +1,76 @@
+name: Configure Branch Protection Rulesets
+
+on:
+  push:
+    paths:
+      - '.github/workflows/branch-rulesets/*.json'
+  schedule:
+    - cron: '0 6 * * *'  # Run at 6 AM daily
+  workflow_dispatch:
+
+jobs:
+  configure_ruleset:
+    if: ${{ github.ref_name == github.event.repository.default_branch }}
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Convert App token
+      id: create_token 
+      uses: getsentry/action-github-app-token@v3.0.0
+      with:
+        app_id: ${{ vars.ORG_REPO_ADMIN_APP_ID }}
+        private_key: ${{ secrets.ORG_REPO_ADMIN_APP_KEY }}
+
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
+    - name: Set up GitHub CLI
+      run: gh auth login --with-token <<< "${{ steps.create_token.outputs.token }}"
+
+    - name: Remove unmatched rulesets
+      env:
+        GH_TOKEN: ${{ steps.create_token.outputs.token }}
+      run: |
+        # List all rulesets that currently exist on GitHub and handle them line by line
+        gh api "repos/${{ github.repository }}/rulesets" --jq '.[].name' | while IFS= read -r ruleset_name; do
+          # List all ruleset names defined in .json files and check if the ruleset is configured
+          if ! grep -q "\"name\": \"$ruleset_name\"" .github/workflows/branch-rulesets/*.json; then
+            echo "Deleting unmatched ruleset: $ruleset_name"
+            ruleset_id=$(gh api "repos/${{ github.repository }}/rulesets" --jq ".[] | select(.name == \"$ruleset_name\") | .id")
+            gh api "repos/${{ github.repository }}/rulesets/$ruleset_id" \
+              --method DELETE \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --header "Authorization: token $GH_TOKEN" || { echo "Failed to delete ruleset: $ruleset_name"; exit 1; }
+          fi
+        done
+
+    - name: Create or update rulesets
+      env:
+        GH_TOKEN: ${{ steps.create_token.outputs.token }}
+      run: |
+        for file in .github/workflows/branch-rulesets/*.json; do
+          # Extracting a unique identifier for the ruleset from the file
+          ruleset_name=$(jq -r '.name' "$file")
+          
+          # Check if the ruleset already exists
+          existing_ruleset_id=$(gh api "repos/${{ github.repository }}/rulesets" --jq ".[] | select(.name == \"$ruleset_name\") | .id")
+
+          if [ -n "$existing_ruleset_id" ]; then
+            # Ruleset exists, update it with PUT
+            echo "Updating ruleset \"$ruleset_name\" with ID $existing_ruleset_id"
+            gh api "repos/${{ github.repository }}/rulesets/$existing_ruleset_id" \
+              --method PUT \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --input "$file" || exit 1
+          else
+            # Ruleset doesn't exist, create it with POST
+            echo "Creating new ruleset \"$ruleset_name\""
+            gh api "repos/${{ github.repository }}/rulesets" \
+              --method POST \
+              -H "Accept: application/vnd.github+json" \
+              -H "X-GitHub-Api-Version: 2022-11-28" \
+              --input "$file" || exit 1
+          fi
+        done
