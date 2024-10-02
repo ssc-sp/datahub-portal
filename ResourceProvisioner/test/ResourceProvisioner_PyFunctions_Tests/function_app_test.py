@@ -3,6 +3,7 @@ import unittest
 from unittest.mock import MagicMock
 import azure.functions as func
 import json
+import fsdh_utils
 # importing sys
 import sys
 from pathlib import Path
@@ -131,8 +132,7 @@ class TestResourceProvisioner(unittest.TestCase):
      
         # Call the function.
         app.sync_keyvault_workspace_users_function(json_workspace)
-             
-        #self.assertEqual(response.get_body(), b"Hello, Azure Functions!")
+
 
     def test_storage_sync(self):
         # Arrange
@@ -142,7 +142,7 @@ class TestResourceProvisioner(unittest.TestCase):
         # Call the function.
         app.sync_storage_workspace_users_function(json_workspace)
              
-        #self.assertEqual(response.get_body(), b"Hello, Azure Functions!")
+        #self.assertEqual(response.get_body(), b"Hello, Azure Functions!")       
 
 if __name__ == '__main__':
     unittest.main()
