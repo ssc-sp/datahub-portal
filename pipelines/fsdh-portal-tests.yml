@@ -8,8 +8,6 @@ steps:
       ScriptPath: './gen-all-settings.ps1'  # Path to your script
       ScriptArguments: '-Environment dev'
       azurePowerShellVersion: 'LatestVersion'
-      ScriptArguments: '-Environment dev'  
-      azurePowerShellVersion: 'LatestVersion'
       
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 8.0.x'
