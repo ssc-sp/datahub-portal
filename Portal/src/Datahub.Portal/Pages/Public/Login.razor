@@ -8,10 +8,9 @@
 
 <style>
     .custom-email-field {
-        padding: 4px; /* Adjust padding as needed */
-        width: 100%; /* Make the field take full width of its container */
-        max-width: none; /* Remove any max-width constraint */
-        box-sizing: border-box; /* Ensure padding is included in the width */
+        width: 100%;
+        max-width: none;
+        box-sizing: border-box;
     }
 
     .custom-email-field:focus {
@@ -38,7 +37,7 @@
 
 <MudStack Class="my-8 py-8">
     <MudStack AlignItems="AlignItems.Start" Class="mt-4">
-        <p>
+        <p style="width:100%">
             <MudText Typo="Typo.body1" Class="text-center">
                 <strong>
                     @Localizer["Please login to continue"]:
@@ -48,7 +47,7 @@
                         <MudTextField T="string" id="Email" Label="@Localizer["Email address"]" @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="custom-email-field my-2" />
                     </MudStack>
                 </div>
-                <MudButton Class="mx-4 px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
+                <MudButton Class="px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
                     <MudText>
                         @Localizer["Login"]
                     </MudText>
