@@ -45,7 +45,7 @@ namespace Datahub.Tests
         private readonly Mock<IResourceMessagingService> _resourceMessagingServiceMock;
         private readonly Mock<IUserEnrollmentService> _userEnrollmentServiceMock;
         private readonly Mock<IUserSettingsService> _userSettingsMock;
-        private readonly Mock<CultureService> _cultureServiceMock;
+        private readonly Mock<ICultureService> _cultureServiceMock;
         private readonly Mock<IMetadataBrokerService> _metadataBrokerServiceMock;
         private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
         private readonly Mock<IJSRuntime> _jsRuntimeMock;
@@ -66,7 +66,7 @@ namespace Datahub.Tests
             _userInformationMock = new Mock<IUserInformationService>();
             _userEnrollmentServiceMock = new Mock<IUserEnrollmentService>();
             _userSettingsMock = new Mock<IUserSettingsService>();
-            _cultureServiceMock = new Mock<CultureService>();
+            _cultureServiceMock = new Mock<ICultureService>();
             _metadataBrokerServiceMock = new Mock<IMetadataBrokerService>();
             _httpContextAccessorMock = new Mock<IHttpContextAccessor>() { CallBase = true };
             _jsRuntimeMock = new Mock<IJSRuntime>();
