@@ -1,0 +1,43 @@
+﻿@page "/user-reactivation"
+@using BlazorTemplater
+
+<h3>FSDH Account Reactivation Notification</h3>
+
+<p>Dear @LeadName,</p>
+<p>
+    We would like to inform you that @UserName in your workspace @WorkspaceAcronym
+    has successfully reactivated their account and regained access.
+</p>
+<p>
+Please note, this is a system-generated notification and does not require a reply.</p>
+<p>
+Thank you,<br/>
+The Federal Science DataHub team
+</p>
+
+<hr/>
+<h3>Notification de réactivation du compte FSDH</h3>
+
+<p>Cher @LeadName,</p>
+<p>
+    Nous vous informons que @UserName dans votre espace de travail @WorkspaceAcronym 
+    a réactivé leur compte avec succès et a regagné l'accès.
+</p>
+<p>
+    Veuillez noter que cette notification est générée par le système et qu'il n'est pas nécessaire d'y répondre.
+</p>
+<p>
+    Nous vous en remercions,<br />
+    L'équipe du DataHub scientifique fédéral
+</p>
+
+@code {
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+    [Parameter]
+    public string LeadName { get; set; }
+    [Parameter]
+    public string UserName { get; set; }
+
+}

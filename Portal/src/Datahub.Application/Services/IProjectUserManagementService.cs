@@ -19,4 +19,21 @@ public interface IProjectUserManagementService
     /// Gets all users in a project.
     /// </summary>
     Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym);
+
+    /// <summary>
+    /// Get list of projects where user has any role assigned.
+    /// </summary>
+    Task<List<string>> GetProjectListForPortalUser(int portalUserId);
+
+    /// <summary>
+    /// Get project lead if defined.
+    /// </summary>
+    Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym);
+
+    /// <summary>
+    /// Adds a message on the service bus to run a workspace sync
+    /// </summary>
+    /// <param name="projectAcronym"></param>
+    /// <returns></returns>
+    Task<bool> RunWorkspaceSync(string projectAcronym);
 }
