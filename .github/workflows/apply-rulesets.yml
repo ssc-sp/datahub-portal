@@ -18,8 +18,8 @@ jobs:
       id: create_token 
       uses: getsentry/action-github-app-token@v3.0.0
       with:
-        app_id: ${{ vars.FSDH_REPO_ADMIN_APP_ID }}
-        private_key: ${{ secrets.FSDH_REPO_ADMIN_APP_KEY }}
+        app_id: ${{ vars.ORG_REPO_ADMIN_APP_ID }}
+        private_key: ${{ secrets.ORG_REPO_ADMIN_APP_KEY }}
 
     - name: Checkout the repository
       uses: actions/checkout@v4
