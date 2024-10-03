@@ -14,7 +14,6 @@ pr:
       - 'Portal/**'
       - 'ServerlessOperations/**'
       - 'ResourceProvisioner/**'
-  batch: True
 resources:
   repositories:
   - repository: self
