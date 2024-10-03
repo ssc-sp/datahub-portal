@@ -18,17 +18,22 @@ public static class HttpRequestTools
                           .ToHashSet();
 
         if (roles.Contains(RoleConstants.ADMIN_SUFFIX))
-            return "admin";
+            return RoleConstants.ADMIN_ROLE;
 
-        if (roles.Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX))
-            return "lead";
+        if (roles.Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX))            
+            return RoleConstants.WORKSPACE_LEAD_ROLE;
 
         if (roles.Contains(RoleConstants.COLLABORATOR_SUFFIX))
-            return "collaborator";
+            return RoleConstants.COLLABORATOR_ROLE;
 
         if (roles.Contains(RoleConstants.GUEST_SUFFIX))
-            return "guest";
+            return RoleConstants.GUEST_ROLE;
 
         return null;
+    }
+
+    public static bool IsDatahubAdmin(this HttpContext context)
+    {
+        return GetWorkspaceRole(context, RoleConstants.DATAHUB_ADMIN_PROJECT) != null;
     }
 }
