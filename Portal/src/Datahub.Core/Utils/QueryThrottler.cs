@@ -7,9 +7,9 @@
 public class QueryThrottler<T>
     where T : IComparable<T>
 {
-    private readonly TimeSpan delay;
-    private readonly Func<T, Task> callback;
-    private T query;
+    private readonly TimeSpan _delay;
+    private readonly Func<T, Task> _callback;
+    private T _query;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryThrottler{T}"/> class.
@@ -19,8 +19,8 @@ public class QueryThrottler<T>
     /// <param name="callback">Callback lambda</param>
     public QueryThrottler(TimeSpan delay, Func<T, Task> callback)
     {
-        this.delay = delay;
-        this.callback = callback;
+        _delay = delay;
+        _callback = callback;
     }
 
     /// <summary>
@@ -36,18 +36,18 @@ public class QueryThrottler<T>
             {
                 lock (this)
                 {
-                    this.query = query;
+                    this._query = query;
                 }
 
-                Thread.Sleep(delay);
+                Thread.Sleep(_delay);
 
                 lock (this)
                 {
-                    if (!query.Equals(this.query))
+                    if (!query.Equals(this._query))
                         return;
                 }
 
-                _ = callback.Invoke(query);
+                _ = _callback.Invoke(query);
             }
         });
     }
