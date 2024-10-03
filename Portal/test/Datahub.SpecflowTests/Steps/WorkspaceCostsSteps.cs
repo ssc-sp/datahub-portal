@@ -20,6 +20,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a workspace with known costs")]
         public void GivenAWorkspaceWithKnownCosts()
         {
+
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
