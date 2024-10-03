@@ -1,9 +1,23 @@
+@using System
+@using System.Collections.Generic
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Infrastructure.Extensions
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Shared.Configuration
+@using Datahub.Core.Templates
+@using BlazorTemplater
+@using MassTransit
+@using Newtonsoft.Json
 
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
+@inject ISendEndpointProvider _sendEndpointProvider
 @inject NavigationManager _navigationManager
 
 @page "/register"
@@ -85,12 +99,14 @@
 
 
 @code {
+    [Parameter][SupplyParameterFromQuery] public string Email { get; set; }
 
     private string _email;
     private string _emailFieldText { get; set; }
     private string _comment;
     private bool _success = true;
     private bool _failed = false;
+    private bool _wasDeleted = false;
     private bool _isRegistering;
     private string[] _errors = { };
     private MudForm _form;
@@ -98,6 +114,10 @@
     protected override void OnInitialized()
     {
         _emailFieldText = Localizer["Government of Canada Email"];
+        if (!string.IsNullOrEmpty(Email))
+        {
+            _email = Email;
+        }
     }
 
     private string EmailValidation(string email)
@@ -111,16 +131,22 @@
     private async Task DisplayFailedMessage(int time = 15)
     {
         _failed = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
         await Task.Delay(time * 1000);
         _failed = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private async Task HandleValidSubmit()
+    internal async Task HandleValidSubmit()
     {
         _isRegistering = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
+
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
+        if (existingUser != null)
+        {
+            _wasDeleted = existingUser.IsDeleted;
+        }
 
         await (DisplayFailedMessage(20));
 
@@ -132,6 +158,27 @@
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
+            if (_wasDeleted)
+            {
+                await _userInformationService.HandleDeletedUserRegistration(_email, userId);
+                var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
+                if (projectList != null && projectList.Count>0)
+                {
+                    foreach (var projectAcronym in projectList)
+                    {
+                        var projectLead = _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
+                        if (projectLead?.Result != null)
+                        {
+                            await NotifyWorkspaceAdmin(projectLead.Result?.PortalUser, projectAcronym, existingUser.DisplayName);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
+                        }
+                        await _projectUserManagementService.RunWorkspaceSync(projectAcronym);
+                    }
+                }
+            }
             _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
             _navigationManager.NavigateTo("/login");
         }
@@ -143,7 +190,33 @@
         }
 
         _isRegistering = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
+    private async Task NotifyWorkspaceAdmin(PortalUser workspaceLead, string projectAcronym, string userName)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            { "WorkspaceAcronym", projectAcronym},
+            { "LeadName", workspaceLead.DisplayName },
+            { "UserName", userName }
+        };
+         
+        var request = new EmailRequestMessage
+            {
+                To = new List<string> { workspaceLead.Email },
+                Subject = "FSDH Account Reactivation Notification",
+                Body = JsonConvert.SerializeObject(parameters)
+        };
+
+        try
+        {
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.EmailNotificationQueueName, request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Sending email notification to workspace lead {leadName} failed for user {userName}. Error: {ex}", workspaceLead.DisplayName, userName, ex.Message);
+        }
+    }
 }
