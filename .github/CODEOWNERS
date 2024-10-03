@@ -1,3 +1,5 @@
+/.github/CODEOWNERS @KingBain
+
 *       @ErikApption @Sean-Stilwell @davidreneuw @yjmrobert
 
 *.md    @deb-h576
