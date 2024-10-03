@@ -45,8 +45,8 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
-        <DHMainContentTitle Title="@Localizer["Support"]" />
-        <ul class="my-4" style="display: flex; align-items: flex-start; gap: 25px">
+        <DHMainContentTitle Title="@Localizer["Support"]"/>
+        <ul class="my-4" style="display: flex; align-items: flex-start; gap: 25px; flex-wrap: wrap">
             <li class="d-flex flex-1">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
                     <MudText Typo="Typo.h2" Class="py-3">@Localizer["FSDH Support Request"]</MudText>
@@ -121,7 +121,7 @@
                             </MudPaper>
                         }
                         <MudGrid Class="pt-3">
-                            <MudItem xs="6" align="@Align.Start" class="pb-2">
+                            <MudItem xs="6" align="@Align.Start" Class="pb-2">
                                 @if (_currentStep == Steps.Start)
                                 {
                                     <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
@@ -143,7 +143,7 @@
                             </MudItem>
                         </MudGrid>
                     </MudForm>
-                        </MudPaper>
+                </MudPaper>
             </li>
             <li class="d-flex flex-1">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
@@ -152,9 +152,9 @@
                         <MudText Typo="Typo.body1">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
                         <MudItem xs="6" Class="py-3">
                             <DHButton Href="/resources"
-                                       Variant="Variant.Text"
-                                       Color="Color.Primary"
-                                       Style="text-decoration: underline"
+                                      Variant="Variant.Text"
+                                      Color="Color.Primary"
+                                      Underline
                                       EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                                 @Localizer["View resources"]
                             </DHButton>
