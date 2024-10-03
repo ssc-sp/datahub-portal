@@ -157,8 +157,8 @@ else
     {
         try
         {
-            var lastCommitGit = await _documentationService.GetLastRepoCommitTS();
-            await _localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
+            var lastCommitGit = await _documentationService.LastRepoCommitTs();
+            await _localStorage.SetItemAsync(DocumentationService.CommitApiUrl, lastCommitGit);
         }
         catch (Exception ex)
         {
@@ -189,7 +189,7 @@ else
         }
         else if (!string.IsNullOrEmpty(_currentDoc.MarkdownPage))
         {
-            _currentMarkdownCategory = _docService.GetParent(_currentDoc);
+            _currentMarkdownCategory = _docService.Parent(_currentDoc);
         }
     }
 
