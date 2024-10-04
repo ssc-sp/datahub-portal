@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
@@ -87,7 +88,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [Column(TypeName = "decimal(18,2)")]
     [AeFormCategory("Initiative Information")]
-    public decimal? Project_Budget { get; set; }
+    public decimal? Project_Budget { get; set; } = 0;
 
     [AeFormCategory("Initiative Information")]
     public string Project_Admin { get; set; }
@@ -258,7 +259,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     public DateTime? OperationalWindow { get; set; }
 
+#pragma warning disable SX1309
     private bool hasCostRecovery;
+#pragma warning restore SX1309
     [AeFormIgnore]
     public bool HasCostRecovery
     {
@@ -285,6 +288,11 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public string GitRepo_URL { get; set; }
 
     public List<ProjectCloudStorage> CloudStorages { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the project should be prevented from auto-deletion.
+    /// </summary>
+    public bool PreventAutoDelete { get; set; } = false;
 
     [AeFormIgnore]
     [NotMapped]
@@ -356,6 +364,11 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
         return "On Hold";
     }
+
+    /// <summary>
+    /// Gets or sets the GCHostingWorkspaceDetails for the project.
+    /// </summary>
+    public GCHostingWorkspaceDetails GCHostingWorkspaceDetails { get; set; }
 
     /// <summary>
     /// Converts a Datahub_Project object to a TerraformWorkspace object.

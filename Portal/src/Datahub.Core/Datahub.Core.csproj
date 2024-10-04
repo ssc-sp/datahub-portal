@@ -31,7 +31,7 @@
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 
-		<PackageReference Include="Azure.Identity" Version="1.12.*" />
+		<PackageReference Include="Azure.Identity" Version="1.12.1.0" />
 		<PackageReference Include="AspNetCore.Localizer.Json" Version="0.1.*" />
 
 		<PackageReference Include="Azure.Monitor.Query" Version="1.3.*" />

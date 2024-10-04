@@ -1,9 +1,9 @@
 ﻿@using Datahub.Core.Services.Wiki
 @using Datahub.Markdown.Model
 @inject IWikiService _resourcesService
-@inject CultureService _cultureService
 @inject NavigationManager _navManager
 @inject TimeZoneService _timezoneService;
+@inject ICultureService CultureService
 
 @implements IDisposable
 
@@ -258,7 +258,7 @@ display: -webkit-box";
     private async Task<string> FormatErrorMessage(TimeStampedStatus error)
     {
         var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
-        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        var localDatetime = await _timezoneService.LocalDateTime(timestampUtc);
         return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
     }
 
@@ -273,7 +273,7 @@ display: -webkit-box";
 
     protected override async Task OnInitializedAsync()
     {
-        var isFrench = _cultureService.IsFrench;
+        var isFrench = CultureService.IsFrench;
 
         _resourceRoot = await _resourcesService.LoadLanguageRoot(isFrench);
 

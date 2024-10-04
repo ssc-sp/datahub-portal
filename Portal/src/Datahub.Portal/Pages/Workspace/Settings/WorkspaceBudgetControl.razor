@@ -1,0 +1,23 @@
+@using Datahub.Portal.Pages.Account
+
+<SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget."]">
+    <MudElement Style="max-width: 300px; display: block">
+        <MudTextField T="decimal" Format="F2" Disabled="false" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnValueChanged"/>
+    </MudElement>
+</SettingsField>
+
+@code {
+
+    [Parameter] public decimal InitialValue { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<decimal> OnValueChanged { get; set; }
+
+    private decimal _budget;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _budget = InitialValue;
+    }
+
+}

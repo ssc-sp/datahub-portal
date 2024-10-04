@@ -4,12 +4,16 @@
 # Variable 'target_os' was defined in the Variables tab
 # Variable 'version.MajorMinor' was defined in the Variables tab
 # Variable 'version.Revision' was defined in the Variables tab
-trigger:
+pr:
   branches:
     include:
-    - develop
-    - proof-of-concept
-  batch: True
+      - develop
+      - proof-of-concept
+  paths:
+    include:
+      - 'Portal/**'
+      - 'ServerlessOperations/**'
+      - 'ResourceProvisioner/**'
 resources:
   repositories:
   - repository: self
@@ -258,10 +262,10 @@ jobs:
   steps:
   - template: fsdh-portal-tests.yml
     
-#- job: ResourceProvisioner_Testing_job
-#  displayName: Agent job - Resource Provisioner Testing
-#  dependsOn: Job_2
-#  pool:
-#      vmImage: ubuntu-latest
-#  steps:
-#    - template: fsdh-resource-provisioner-tests.yml
+- job: ResourceProvisioner_Testing_job
+  displayName: Agent job - Resource Provisioner Testing
+  dependsOn: Job_2
+  pool:
+      vmImage: ubuntu-latest
+  steps:
+    - template: fsdh-resource-provisioner-tests.yml
