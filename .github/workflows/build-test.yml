@@ -173,3 +173,15 @@ jobs:
           git tag $versionNumber --force
           git push origin $versionNumber --force
           echo "Tagged with $versionNumber"
+
+  portal_testing:
+    name: Portal Testing Job
+    needs: build_portal
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Portal Tests
+        uses: ./.github/actions/fsdh-portal-tests.yml  # Call the composite action
+        with:
+          build_artifact: portal-build  # Pass input to the composite action
+          buildConfiguration: 'Release'
+          environment: 'dev'
