@@ -74,7 +74,8 @@ jobs:
         run: dotnet build Portal/src/Datahub.Portal/*.csproj --configuration ${{ env.BuildConfiguration }}
 
       - name: Publish Artifact - datahub-portal
-        run: dotnet publish Portal/src/Datahub.Portal/*.csproj -o ${{ github.workspace }}/output/portal -r ${{ env.target_os }} --self-contained true
+        run: dotnet publish Portal/src/Datahub.Portal/*.csproj -o ${{ github.workspace }}/output/portal -r linux-x64 --self-contained
+        
 
       - name: Upload Artifact - datahub-portal
         uses: actions/upload-artifact@v3
