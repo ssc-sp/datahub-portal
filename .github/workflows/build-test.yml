@@ -179,9 +179,12 @@ jobs:
     needs: build_portal
     runs-on: ubuntu-latest
     steps:
-      - name: Run Portal Tests
-        uses: ./.github/actions/fsdh-portal-tests  # Call the composite action
-        with:
-          build_artifact: portal-build  # Pass input to the composite action
-          buildConfiguration: 'Release'
-          environment: 'dev'
+    - name: Checkout repository
+      uses: actions/checkout@v2  # Ensure the repo is checked out
+
+    - name: Run Portal Tests
+      uses: .github/actions/fsdh-portal-tests  # Call the composite action
+      with:
+        build_artifact: portal-build  # Pass input to the composite action
+        buildConfiguration: 'Release'
+        environment: 'dev'
