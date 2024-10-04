@@ -32,6 +32,7 @@ public class ProjectUserManagementServiceTests
     // ReSharper disable once InconsistentNaming
     private Mock<IMSGraphService> _mockIMSGraphService = null!;
     private Mock<IRequestManagementService> _mockRequestManagementService = null!;
+    private Mock<IResourceMessagingService> _mockResourceManagementService = null!;
     private Mock<IUserEnrollmentService> _mockUserEnrollmentService = null!;
     private IServiceAuthManager _serviceAuthManager = null!;
     private Mock<IDatahubAuditingService> _mockDatahubAuditingService = null!;
@@ -942,6 +943,7 @@ public class ProjectUserManagementServiceTests
             _mockUserInformationService.Object,
             _mockIMSGraphService.Object,
             _mockRequestManagementService.Object,
+            _mockResourceManagementService.Object,
             _mockUserEnrollmentService.Object,
             _mockDatahubAuditingService.Object);
 

@@ -131,6 +131,10 @@ public class OfflineUserInformationService : IUserInformationService
         return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
     }
 
+    public async Task HandleDeletedUserRegistration(string email, string graphId)
+    {
+        return;
+    }
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
@@ -147,7 +151,17 @@ public class OfflineUserInformationService : IUserInformationService
         
         return randomUser!;
     }
+    public async Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
 
+        var user = await context.PortalUsers.FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower())!;
+        if (user != null)
+        {
+            return new ExtendedPortalUser(user);
+        }
+        return null;
+    }
     public Task<bool> IsUserWithoutInitiatives()
     {
         return Task.FromResult(false);
