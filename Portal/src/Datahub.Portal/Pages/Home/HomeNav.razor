@@ -10,9 +10,9 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
-<MudText Typo="Typo.h2">@Localizer["Quick Links"]</MudText>
+<MudText Typo="Typo.h2">@Localizer["Quick links"]</MudText>
 <div role="group">
-    <ul style="display: grid; grid-template-columns: repeat(@(_recentLinks.Count == 0 ? 2 : 3), 1fr); list-style-type: none; gap: 25px">
+    <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
         @if (_recentLinks.Count != 0)
         {
             <li class="flex-1 d-flex">
@@ -24,7 +24,7 @@
                             {
                                 <li>
                                     <MudLink Href="@GetSectionViewUrl(recentActivity)" Style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark" />
+                                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
                                         @GetLabel(recentActivity)
                                     </MudLink>
                                 </li>
@@ -36,28 +36,36 @@
         }
         <li class="flex-1 d-flex">
             <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
+                <MudStack Justify="Justify.SpaceBetween">
                     <MudStack>
-                        <MudText Typo="Typo.h3">@Localizer["Create a new Workspace"]</MudText>
+                        <MudText Typo="Typo.h3">@Localizer["Create a new workspace"]</MudText>
                         <MudText Typo="Typo.body1">@Localizer["You can create a new workspace to start working on your project"]</MudText>
+                    </MudStack>
+                    <MudStack Spacing="1">
                         <MudElement>
-                            <DHButton Class="my-3" EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.CreateWorkspace]">
-                                @Localizer["Create Workspace"]
+                            <DHButton Class="my-3" Underline NoWrap EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@Localizer[PageRoutes.CreateWorkspace]">
+                                @Localizer["Create workspace"]
                             </DHButton>
                         </MudElement>
                     </MudStack>
+                </MudStack>
             </MudPaper>
         </li>
         <li class="flex-1 d-flex">
             <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
+                <MudStack Justify="Justify.SpaceBetween">
                     <MudStack>
                         <MudText Typo="Typo.h3">@Localizer["Explore workspaces and users"]</MudText>
                         <MudText Typo="Typo.body1">@Localizer["You can explore existing projects and users on the platform using the Explore page"]</MudText>
+                    </MudStack>
+                    <MudStack Spacing="1">
                         <MudElement>
-                        <DHButton Class="my-3" EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Explore]">
+                            <DHButton Class="my-3" Underline EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@Localizer[PageRoutes.Explore]">
                                 @Localizer["Explore"]
                             </DHButton>
                         </MudElement>
                     </MudStack>
+                </MudStack>
             </MudPaper>
         </li>
     </ul>
@@ -127,4 +135,5 @@
             _ => recentActivity.datahubProject.ProjectName
         };
     }
+
 }
