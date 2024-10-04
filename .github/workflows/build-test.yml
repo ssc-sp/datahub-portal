@@ -180,7 +180,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Run Portal Tests
-        uses: ./.github/actions/fsdh-portal-tests.yml  # Call the composite action
+        uses: ./.github/actions/fsdh-portal-tests  # Call the composite action
         with:
           build_artifact: portal-build  # Pass input to the composite action
           buildConfiguration: 'Release'
