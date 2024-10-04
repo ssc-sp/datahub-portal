@@ -88,7 +88,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [Column(TypeName = "decimal(18,2)")]
     [AeFormCategory("Initiative Information")]
-    public decimal? Project_Budget { get; set; }
+    public decimal? Project_Budget { get; set; } = 0;
 
     [AeFormCategory("Initiative Information")]
     public string Project_Admin { get; set; }
@@ -259,7 +259,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormIgnore]
     public DateTime? OperationalWindow { get; set; }
 
+#pragma warning disable SX1309
     private bool hasCostRecovery;
+#pragma warning restore SX1309
     [AeFormIgnore]
     public bool HasCostRecovery
     {
