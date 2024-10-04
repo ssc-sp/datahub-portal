@@ -1,111 +1,249 @@
+using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Datahub.Application.Services.Budget;
+using Azure.Messaging.ServiceBus;
+using Azure.Storage.Blobs;
+using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Storage;
+using Datahub.Functions.Domain.Exceptions;
+using Datahub.Functions.Extensions;
+using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using MediatR;
+using Datahub.Shared.Configuration;
+using FluentValidation;
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+
+[assembly: InternalsVisibleTo("Datahub.SpecflowTests")]
 
 namespace Datahub.Functions;
 
-public class ProjectUsageUpdater
+public class ProjectUsageUpdater(
+    ILoggerFactory loggerFactory,
+    IWorkspaceCostManagementService workspaceCostMgmtService,
+    IWorkspaceBudgetManagementService workspaceBudgetMgmtService,
+    IWorkspaceStorageManagementService workspaceStorageMgmtService,
+    ISendEndpointProvider sendEndpointProvider,
+    IConfiguration config)
 {
-    private readonly ILogger<ProjectUsageUpdater> _logger;
-    private readonly IMediator _mediator;
-    private readonly QueuePongService _pongService;
-    private readonly IWorkspaceCostManagementService _workspaceCostMgmtService;
-    private readonly IWorkspaceBudgetManagementService _workspaceBudgetMgmtService;
-    private readonly IWorkspaceStorageManagementService _workspaceStorageMgmtService;
-    
+    private readonly ILogger<ProjectUsageUpdater> _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
+    private readonly AzureConfig _azConfig = new(config);
 
-    public ProjectUsageUpdater(ILoggerFactory loggerFactory, IMediator mediator, QueuePongService pongService, IWorkspaceCostManagementService workspaceCostMgmtService, IWorkspaceBudgetManagementService workspaceBudgetMgmtService, IWorkspaceStorageManagementService workspaceStorageMgmtService)
-    {
-        _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
-        _mediator = mediator;
-        _pongService = pongService;
-        _workspaceCostMgmtService = workspaceCostMgmtService;
-        _workspaceBudgetMgmtService = workspaceBudgetMgmtService;
-        _workspaceStorageMgmtService = workspaceStorageMgmtService;
-    }
 
     [Function("ProjectUsageUpdater")]
-    public async Task<bool> Run([QueueTrigger("%QueueProjectUsageUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem, 
+    public async Task Run(
+        [ServiceBusTrigger(QueueConstants.ProjectUsageUpdateQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage serviceBusReceivedMessage,
         CancellationToken cancellationToken)
     {
-        var rolledOver = false;
-        // test for ping
-        if (await _pongService.Pong(queueItem))
-            return false;
-
         // deserialize message
-        var message = DeserializeQueueMessage(queueItem);
-
-        _logger.LogInformation("Querying cost management...");
-        var (costRollover, spentAmount) =
-            await _workspaceCostMgmtService.UpdateWorkspaceCostAsync(message.SubscriptionCosts, message.ProjectAcronym);
-        _logger.LogInformation("Querying budget...");
-        var budgetSpentAmount = await _workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(message.ProjectAcronym);
-
-        // The query to cost checks if the last update was outside of the current fiscal year, if so that means we are in a new fiscal year
-        // The query to budget checks if the amount spent captured by the budget is less than previously. If so, that means the budget was renewed.
-        if (message.ForceRollover || costRollover)
-        {
-            _logger.LogInformation($"Budget rollover initiated.");
-            var currentBudget = await _workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(message.ProjectAcronym);
-            _logger.LogInformation($"Spend captured by cost management: {spentAmount}");
-            _logger.LogInformation($"Spend captured by budget : {budgetSpentAmount}");
-            
-            // Checking if the two captured costs are within 5% of each other to ensure that the rollover is valid
-            var relativeDifference = (budgetSpentAmount - spentAmount) / budgetSpentAmount;
-            if ( relativeDifference <= (decimal)0.05)
-            {
-                _logger.LogInformation($"Executing rollover for {message.ProjectAcronym}");
-                await _workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(message.ProjectAcronym,
-                    currentBudget - budgetSpentAmount, true);
-                rolledOver = true;
-                // Generate fiscal year report here?
-            }
-            else
-            {
-                _logger.LogWarning($"Aborted rollover due to large difference between captured spend and captured costs ({relativeDifference:P})");
-            }
-        }
-
-        // queue the usage notification message
-        await _mediator.Send(new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
-        return rolledOver;
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageUpdateMessage>();
+        await UpdateUsage(message, cancellationToken);
     }
 
     [Function("ProjectCapacityUsageUpdater")]
-    public async Task UpdateProjectCapacity([QueueTrigger("%QueueProjectCapacityUpdate%", Connection = "DatahubStorageConnectionString")] string queueItem,
-    CancellationToken cancellationToken)
+    public async Task UpdateProjectCapacity(
+        [ServiceBusTrigger(QueueConstants.ProjectCapacityUpdateQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage serviceBusReceivedMessage,
+        CancellationToken cancellationToken)
     {
-        // test for ping
-        if (await _pongService.Pong(queueItem))
-            return;
-
-        // deserialize message
-        var message = DeserializeQueueMessage(queueItem);
-
-        // update the capacity
-        _logger.LogInformation("Querying storage capacity...");
-        var capacityUsed = await _workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
-
-        // log capacity found
-        _logger.LogInformation($"Used storage capacity for: '{message.ProjectAcronym}' is {capacityUsed}.");
+        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectCapacityUpdateMessage>();
+        await UpdateCapacity(message, cancellationToken);
     }
 
-    static ProjectUsageUpdateMessage DeserializeQueueMessage(string text)
+    internal async Task<bool> UpdateUsage(ProjectUsageUpdateMessage message, CancellationToken cancellationToken)
     {
-        var message = JsonSerializer.Deserialize<ProjectUsageUpdateMessage>(text);
-        
-        // verify message 
-        if (message is null || string.IsNullOrEmpty(message.ProjectAcronym) )
+        var rolledOver = false;
+        var projectUsageUpdateMessageValidator = new ProjectUsageUpdateMessageValidator();
+        var validationResult = await projectUsageUpdateMessageValidator.ValidateAsync(message, cancellationToken);
+
+        if (!validationResult.IsValid)
         {
-            throw new Exception($"Invalid queue message:\n{text}");
+            _logger.LogError("Validation failed: {Errors}", validationResult.Errors.ToString());
+            throw new ValidationException(validationResult.Errors);
         }
 
-        return message;
+        // Costs blob download
+        _logger.LogInformation("Downloading costs from blob {BlobName}...", message.CostsBlobName);
+        var downloadCostsTimer = Stopwatch.StartNew();
+        var costs = await FromBlob(message.CostsBlobName);
+        downloadCostsTimer.Stop();
+        _logger.LogInformation("Downloaded costs from blob {BlobName} in {Time}s. There are {CostsCount} entries",
+            message.CostsBlobName, downloadCostsTimer.Elapsed.TotalSeconds, costs.Count);
+
+        // Totals blob download
+        _logger.LogInformation("Downloading totals from blob {BlobName}...", message.CostsBlobName);
+        var downloadTotalsTimer = Stopwatch.StartNew();
+        var totals = await FromBlob(message.TotalsBlobName);
+        downloadTotalsTimer.Stop();
+        _logger.LogInformation("Downloaded totals from blob {BlobName} in {Time}s. There are {TotalsCount} entries",
+            message.TotalsBlobName, downloadTotalsTimer.Elapsed.TotalSeconds, totals.Count);
+
+        // Use the costs to update workspace costs
+        _logger.LogInformation("Updating workspace {Acronym} costs with given costs...", message.ProjectAcronym);
+        var updateTimer = Stopwatch.StartNew();
+        var (costRollover, spentAmount) = await UpdateWorkspaceCosts(costs, message.ProjectAcronym);
+        updateTimer.Stop();
+        _logger.LogInformation("Successfully updated {Acronym} costs. Time taken: {Time}s{Rollover}",
+            message.ProjectAcronym, updateTimer.Elapsed.TotalSeconds,
+            costRollover ? $". Budget rollover initiated for a reduction of ${spentAmount}" : String.Empty);
+
+        // Use the totals to verify if a workspace requires a full refresh
+        _logger.LogInformation("Verifying if workspace {Acronym} requires a full refresh...", message.ProjectAcronym);
+        var refreshTimer = Stopwatch.StartNew();
+        var refreshDone = await RefreshWorkspaceCosts(message.ProjectAcronym, totals);
+        refreshTimer.Stop();
+        if (refreshDone)
+        {
+            _logger.LogWarning("Workspace {Acronym} required a full refresh. Time taken: {Time}s",
+                message.ProjectAcronym, refreshTimer.Elapsed.TotalSeconds);
+        }
+        else
+        {
+            _logger.LogInformation("Workspace {Acronym} did not require a full refresh. Time taken: {Time}s",
+                message.ProjectAcronym, refreshTimer.Elapsed.TotalSeconds);
+        }
+
+
+        /* DEPRECATED
+        // Also updates the budget spent amounts.
+        _logger.LogInformation("Querying budget...");
+        var budgetSpentAmount = await UpdateWorkspaceBudgetSpent(message.ProjectAcronym);
+        _logger.LogInformation("Successfully updated budget.");
+        */
+
+        // Check if the cost rollover is necessary
+        if (message.ForceRollover || costRollover)
+        {
+            _logger.LogInformation("Rollover starting for {Acronym}...", message.ProjectAcronym);
+            var rolloverTimer = Stopwatch.StartNew();
+            await Rollover(message.ProjectAcronym, spentAmount);
+            rolloverTimer.Stop();
+            _logger.LogInformation("Rollover completed for {Acronym} in {Time}s", message.ProjectAcronym,
+                rolloverTimer.Elapsed.TotalSeconds);
+            rolledOver = true;
+        }
+
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName,
+            new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        return rolledOver;
+    }
+
+    internal async Task UpdateCapacity(ProjectCapacityUpdateMessage message, CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Getting storage capacity for: \'{MessageProjectAcronym}\'", message.ProjectAcronym);
+        var storageTimer = Stopwatch.StartNew();
+        var capacityUsed = await workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
+        storageTimer.Stop();
+        _logger.LogInformation("Storage capacity for: \'{MessageProjectAcronym}\' updated in {Time}s",
+            message.ProjectAcronym,
+            storageTimer.Elapsed.TotalSeconds);
+
+        _logger.LogInformation("Used storage capacity for: \'{MessageProjectAcronym}\' is {CapacityUsed}",
+            message.ProjectAcronym, capacityUsed);
+    }
+
+    internal async Task<List<DailyServiceCost>> FromBlob(string fileName)
+    {
+        _logger.LogInformation("Downloading from blob {FileName}", fileName);
+        var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
+        var containerClient = blobServiceClient.GetBlobContainerClient("costs");
+        var blobClient = containerClient.GetBlobClient(fileName);
+        var response = await blobClient.DownloadContentAsync();
+        if (response.HasValue)
+        {
+            _logger.LogInformation("Downloaded costs from blob {FileName}", fileName);
+
+            _logger.LogInformation("Parsing costs from blob {FileName}", fileName);
+            var content = response.Value.Content.ToString();
+            var costs = JsonSerializer.Deserialize<List<DailyServiceCost>>(content);
+            if (costs is null)
+            {
+                _logger.LogError("Cannot parse costs from blob {FileName}", fileName);
+                throw new BlobDownloadException($"Cannot parse costs from blob {fileName}");
+            }
+
+            return costs;
+        }
+
+        _logger.LogError("Cannot download costs from blob {FileName}", fileName);
+        throw new BlobDownloadException($"Cannot download costs from blob {fileName}");
+    }
+
+    internal async Task<(bool, decimal)> UpdateWorkspaceCosts(List<DailyServiceCost> costs, string workspaceAcronym)
+    {
+        try
+        {
+            var (costRollover, spentAmount) =
+                await workspaceCostMgmtService.UpdateWorkspaceCostsAsync(workspaceAcronym, costs);
+            return (costRollover, spentAmount);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Could not update workspace costs {Error}", e.Message);
+            throw new CostUpdateException(e.Message);
+        }
+    }
+
+    internal async Task<bool> RefreshWorkspaceCosts(string workspaceAcronym, List<DailyServiceCost> totals)
+    {
+        try
+        {
+            var refreshRequired =
+                await workspaceCostMgmtService.VerifyAndRefreshWorkspaceCostsAsync(workspaceAcronym, totals);
+            return refreshRequired;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Could not refresh workspace costs {Error}", e.Message);
+            throw new CostRefreshException(e.Message);
+        }
+    }
+
+/*
+    private async Task<decimal> UpdateWorkspaceBudgetSpent(string projectAcronym)
+    {
+        try
+        {
+            var spentAmount = await workspaceBudgetMgmtService.UpdateWorkspaceBudgetSpentAsync(projectAcronym);
+            return spentAmount;
+        }
+        catch (Exception e)
+        {
+            throw new WorkspaceBudgetUpdateException(e.Message);
+        }
+    }
+*/
+
+    internal async Task Rollover(string workspaceAcronym, decimal spentAmount)
+    {
+        _logger.LogInformation($"Budget rollover initiated.");
+        var currentBudget = await workspaceBudgetMgmtService.GetWorkspaceBudgetAmountAsync(workspaceAcronym);
+        if (currentBudget == 0)
+        {
+            _logger.LogError("Cannot rollover budget, budget is 0");
+            throw new RolloverException("Cannot rollover budget, budget is 0.");
+        }
+
+        _logger.LogInformation("Spend captured by cost management: {SpentAmount}", spentAmount);
+
+        try
+        {
+            _logger.LogInformation("Executing rollover for {WorkspaceAcronym}", workspaceAcronym);
+            await workspaceBudgetMgmtService.SetWorkspaceBudgetAmountAsync(workspaceAcronym,
+                currentBudget - spentAmount, true);
+            _logger.LogInformation($"Budget rollover completed.");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Could not apply the budget rollover {Error}", e.Message);
+            throw new RolloverException(e.Message);
+        }
     }
 }

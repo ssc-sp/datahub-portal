@@ -22,11 +22,10 @@
     "SmtpPort": "587",
     "SmtpUsername": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-smtp-username)"
   },
-  "MassTransit": {
-    "AzureServiceBus": {
-      "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=azbus-connection)"
-    }
+  "DatahubServiceBus": {
+    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
   },
+  "MediaStorageConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-media-storage-connection-string)",
   "FUNC_SP_CLIENT_ID": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-id)",
   "FUNC_SP_CLIENT_SECRET": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-secret)",
   "FUNCTIONS_EXTENSION_VERSION": "~4",
@@ -36,12 +35,6 @@
   "PORTAL_URL": "https://fsdh-portal-app-$Environment.azurewebsites.net/",
   "ProjectUsageCRON": "0 0 * * * *",
   "ProjectUsageNotificationPercents": "25,50,75,100",
-  "QueueEmailNotification": "email-notification",
-  "QueueProjectCapacityUpdate": "project-capacity-update",
-  "QueueProjectInactivityNotification": "project-inactivity-notification",
-  "QueueProjectUsageNotification": "project-usage-notification",
-  "QueueProjectUsageUpdate": "project-usage-update",
-  "QueueUserInactivityNotification": "user-inactivity-notification",
   "SUBSCRIPTION_ID": "$subscriptionId",
   "TENANT_ID": "$tenantId",
   "WEBSITE_ENABLE_SYNC_UPDATE_SITE": "true",

@@ -13,8 +13,8 @@
 
 <MudTable Striped Items="@UserWorkspaces" Filter="new Func<UserWorkspaces,bool>(FilterUserWorkspaces)">
 <ToolBarContent>
-    <MudTextField @bind-Value="_searchString" Placeholder="Search by User or Workspace" Adornment="Adornment.Start"
-                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    <MudTextField @bind-Value="_searchString" Placeholder=@Localizer["Search by User or Workspace"] Adornment="Adornment.Start"
+                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Label="@Localizer["Search"]"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
@@ -22,11 +22,14 @@
                 @Localizer["User"]
             </MudTableSortLabel>
         </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => GetUserStatus(x.User.Email))">
-                @Localizer["Status"]
-            </MudTableSortLabel>
-        </MudTh>
+        @if (!HideInfo)
+        {
+            <MudTh>
+                <MudTableSortLabel SortBy="new Func<UserWorkspaces, object>(x => GetUserStatus(x.User.Email))">
+                    @Localizer["Status"]
+                </MudTableSortLabel>
+            </MudTh>
+        }
         <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
@@ -37,21 +40,24 @@
             <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
             <MudText Typo="Typo.body2">@context.User.Email</MudText>
         </MudTd>
-        <MudTd DataLabel="Status">
-            @switch(GetUserStatus(@context.User.Email))
-            {
-                case "locked":
-                    <MudIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"]/>
-                    break;
-                case "missing":
-                    <MudIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"]/>
-                    break;
-                case "":
-                    break;                        
-            }
-        </MudTd>
+        @if (!HideInfo)
+        {
+            <MudTd DataLabel="Status">
+                @switch(GetUserStatus(@context.User.Email))
+                {
+                    case "locked":
+                        <DHIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"] />
+                        break;
+                    case "missing":
+                        <DHIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"] />
+                        break;
+                    case "":
+                        break;                        
+                }
+            </MudTd>
+        }
         <MudTd DataLabel="Workspaces">
-            <ul style="list-style: outside;">
+            <ul style="">
                 @foreach(var workspace in context.Workspaces)
                 {
                     <li>
@@ -71,6 +77,9 @@
 @code {
     [Parameter]
     public ICollection<UserWorkspaces> UserWorkspaces { get; set; }
+
+    [Parameter]
+    public bool HideInfo { get; set; }
 
     private string _searchString;
 
@@ -97,10 +106,10 @@
     private string GetUserStatus(string email)
     {
         var status = "";
-        if (LockedUsers.Contains(email) && !LockedUsers.IsNullOrEmpty())
+        if (LockedUsers.Contains(email) && !LockedUsers.Any())
         {
             status = "locked";
-        } else if (!AllUsers.Contains(email) && !AllUsers.IsNullOrEmpty())
+        } else if (!AllUsers.Contains(email) && !AllUsers.Any())
         {
             status = "missing";
         }
@@ -113,8 +122,12 @@
             return true;
         if (userWorkspaces.User.DisplayName.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
-        if (userWorkspaces.User.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
-            return true;
+        // Check that userWorkspaces.User.Email is not null
+        if (userWorkspaces.User.Email != null)
+        {
+            if (userWorkspaces.User.Email.Contains(_searchString, StringComparison.OrdinalIgnoreCase))
+                return true;
+        }
         return userWorkspaces.Workspaces.Any(x => x.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase)) || 
                userWorkspaces.Workspaces.Any(x => x.ProjectName.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
     }

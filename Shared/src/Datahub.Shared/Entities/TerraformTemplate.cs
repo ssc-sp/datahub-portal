@@ -1,6 +1,6 @@
 namespace Datahub.Shared.Entities;
 
-public class TerraformTemplate
+public class TerraformTemplate(string name, string status)
 {
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
@@ -15,18 +15,20 @@ public class TerraformTemplate
     public const string AzureArcGis = "azure-arcgis";
     public const string AzureAPI = "azure-api";
 
-    public string Name { get; set; }
-    public static TerraformTemplate Default => LatestFromName(NewProjectTemplate);
-
-    public static TerraformTemplate LatestFromName(string name)
+    public record struct TemplateStatus
     {
-        return new TerraformTemplate()
-        {
-            Name = name,
-        };
+        public const string CreateRequested = "CreateRequested";
+        public const string Created = "Created";
+        public const string DeleteRequested = "DeleteRequested";
+        public const string Deleted = "Deleted";
+        public const string Unknown = "Unknown";
     }
 
-    public static TerraformTemplate GetTemplateByName(string name)
+    public string Name { get; } = name;
+
+    public string Status { get; } = status ?? TemplateStatus.Unknown;
+
+    public static string NormalizeTemplateName(string name)
     {
         var templateName = name.ToLower();
         if (templateName.StartsWith("terraform:"))
@@ -36,45 +38,31 @@ public class TerraformTemplate
 
         return templateName switch
         {
-            NewProjectTemplate => LatestFromName(NewProjectTemplate),
-            AzureStorageBlob => LatestFromName(AzureStorageBlob),
-            AzureDatabricks => LatestFromName(AzureDatabricks),
-            AzureAppService => LatestFromName(AzureDatabricks),
-            AzurePostgres => LatestFromName(AzurePostgres),
+            NewProjectTemplate => NewProjectTemplate,
+            AzureStorageBlob => AzureStorageBlob,
+            AzureDatabricks => AzureDatabricks,
+            AzureAppService => AzureAppService,
+            AzurePostgres => AzurePostgres,
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
 
-    public static List<TerraformTemplate> LatestFromNameWithDependencies(string name)
+    public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
         return name switch
         {
-            NewProjectTemplate =>
-            [
-                LatestFromName(NewProjectTemplate)
-            ],
-            AzureStorageBlob =>
-            [
-                LatestFromName(AzureStorageBlob)
-            ],
+            NewProjectTemplate => [],
+            AzureStorageBlob => [],
             AzureDatabricks =>
             [
-                LatestFromName(AzureStorageBlob),
-                LatestFromName(AzureDatabricks)
+                new TerraformTemplate(AzureStorageBlob, TemplateStatus.CreateRequested),
             ],
             AzureAppService =>
             [
-                LatestFromName(AzureStorageBlob),
-                LatestFromName(AzureAppService)
+                new TerraformTemplate(AzureStorageBlob, TemplateStatus.CreateRequested),
             ],
-            AzurePostgres =>
-            [
-                LatestFromName(AzurePostgres)
-            ],
-            VariableUpdate =>
-            [
-                LatestFromName(VariableUpdate)
-            ],
+            AzurePostgres => [],
+            VariableUpdate => [],
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }

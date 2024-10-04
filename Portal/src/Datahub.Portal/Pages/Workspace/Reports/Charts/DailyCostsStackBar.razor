@@ -1,0 +1,96 @@
+﻿@using ApexCharts
+@using Datahub.Application.Services.Cost
+
+@inject ICultureService CultureService
+
+
+<span>
+    <h2 class="sr-only">
+        @Localizer["A bar chart showing the daily costs for the workspace grouped by source. An accessible description is provided below the chart."]
+    </h2>
+    <ApexChart @ref="_dailyCostChart" TItem="DailyServiceCost" Title="@Title" Options="@_dailyCostChartOptions">
+        @foreach (var service in _distinctServices)
+        {
+            <ApexPointSeries
+                TItem="DailyServiceCost"
+                Name="@service"
+                Items="@DailyCosts.Where(c => c.Source == service)"
+                XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
+                YAggregate="@(e => e.Sum(c => c.Amount))"
+                SeriesType="SeriesType.Bar"/>
+        }
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Daily costs for the workspace grouped by source. A detailed table is provided below the charts."]
+    </p>
+    <table class="sr-only" title="@Localizer["Daily costs for the workspace grouped by source"]">
+        <tr>
+            <th>@Localizer["Date"]</th>
+            <th>@Localizer["Source"]</th>
+            <th>@Localizer["Amount ($CAD)"]</th>
+        </tr>
+        @foreach (var dailyCost in DailyCosts)
+        {
+            <tr>
+                <td>@dailyCost.Date.Date.ToString("yyyy-MM-dd")</td>
+                <td>@dailyCost.Source</td>
+                <td>@(decimal.Round(dailyCost.Amount, 2))</td>
+            </tr>
+        }
+    </table>
+</span>
+
+@code {
+    [Parameter] public List<DailyServiceCost> DailyCosts { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChart<DailyServiceCost> _dailyCostChart = new();
+    private ApexChartOptions<DailyServiceCost> _dailyCostChartOptions = new();
+    private List<string> _distinctServices => DailyCosts.Select(c => c.Source).Distinct().ToList();
+    private string _locale = "en-CA";
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _dailyCostChart.UpdateSeriesAsync();
+        await _dailyCostChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _dailyCostChartOptions.Yaxis = new List<YAxis>();
+        _dailyCostChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+            DecimalsInFloat = 2,
+            Min = 0
+        });
+
+        _dailyCostChartOptions.Xaxis = new XAxis();
+        _dailyCostChartOptions.Chart = new Chart()
+        {
+            Stacked = true,
+            StackType = StackType.Normal,
+            Locales = Locales,
+            DefaultLocale = _locale
+        };
+
+        _dailyCostChartOptions.Xaxis.Type = XAxisType.Datetime;
+        _dailyCostChartOptions.Xaxis.Categories = DailyCosts.Select(c => c.Date.Date.ToString("yyyy-MM-dd")).Distinct().ToArray();
+        _dailyCostChartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return '$'+parseFloat(val).toFixed(2); }"
+            }
+        };
+    }
+
+
+}

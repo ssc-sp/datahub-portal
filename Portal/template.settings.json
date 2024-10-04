@@ -1,0 +1,94 @@
+{
+  "CultureSettings": {
+    "Default": "en-CA",
+    "SupportedCultures": "fr-CA|en-CA",
+    "TrackTranslations": false
+  },
+  "LandingBgFolder": "ssc",
+  "LandingBgImgCount": 2,
+  "Title": "Federal Science DataHub",
+  "DataHubModules": "",
+  "DataProjects": {
+    "PowerBI": false,
+    "PublicSharing": false,
+    "WebForms": false,
+    "Databricks": true,
+    "SQLServer": false,
+    "PostgreSQL": true,
+    "Costing": false,
+    "Storage": true
+  },
+  "DatahubServiceBus": {
+    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
+  },
+  "Achievements": {
+    "Enabled": true,
+    "LocalAchievementsOnly": false
+  },
+  "Media": {
+    "StorageConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-media-storage-connection-string)"
+  },
+  "ConnectionStrings": {
+    "datahub_mssql_project": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-projectdb);Persist Security Info=False;$sqlCreds;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
+    "datahub_mssql_metadata": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Database=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=dh-portal-metadatadb);$sqlCreds;Encrypt=True;Trusted_Connection=False;"
+  },
+  "AzureAd": {
+    "Domain": "$domain",
+    "TenantId": "$tenantId",
+    "ClientSecret": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-secret)",
+    "SubscriptionId": "$subscriptionId",
+    "InfraClientId": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=devops-client-id)",
+    "Instance": "https://login.microsoftonline.com/",
+    "InfraClientSecret": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=devops-client-secret)",
+    "AppIDURL": "https://fsdh-portal-app-$Environment.azurewebsites.net/",
+    "ClientId": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahubportal-client-id)"
+  },
+  "Graph": {
+    "BaseUrl": "https://graph.microsoft.com/v1.0",
+    "Scopes": "user.read"
+  },
+  "DetailedErrors": true,
+  "Logging": {
+    "LogLevel": {
+      "Default": "Warning",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    },
+    "ApplicationInsights": {
+      "LogLevel": {
+        "Default": "Warning",
+        "DataHub": "Information",
+        "Microsoft": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information"
+      }
+    }
+  },
+  "Hosting": {
+    "Profile": "ssc"
+  },
+  "EmailNotification": {
+    "SmtpUsername": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-smtp-username)",
+    "SmtpHost": "email-smtp.ca-central-1.amazonaws.com",
+    "AppDomain": "https://fsdh-portal-app-$Environment.azurewebsites.net/",
+    "SmtpPort": "587",
+    "SenderName": "FSDH DEV",
+    "SmtpPassword": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-smtp-password)",
+    "DevTestMode": "false",
+    "SenderAddress": "ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca"
+  },
+  "Azure:SignalR:StickyServerMode": "Required",
+  "AllowedHosts": "*",
+  "ReverseProxy": {
+    "Enabled": true,
+    "MatchPath": "/webapp"
+  },
+  "DeepL": {
+    "UseFreeApi": false,
+    "AuthKey": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=deepl-authkey)"
+  },
+  "ApplicationInsights": {
+    "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=appinsights-connection)"
+  },
+  "DatahubGraphInviteFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-create-graph-user-url)",
+  "DatahubGraphUsersStatusFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-status-graph-user-url)"
+}

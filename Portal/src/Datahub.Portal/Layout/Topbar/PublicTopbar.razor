@@ -1,0 +1,27 @@
+﻿@using MudBlazor.Utilities
+@inject NavigationManager _navManager
+
+<nav class="sr-only">
+    <h2>@Localizer["Screen reader navigation"]</h2>
+    <ul>
+        <li>
+            <a href="@(_navManager.Uri + "#maincontent")">@Localizer["Skip to main content"]</a>
+        </li>
+    </ul>
+</nav>
+<MudImage Src="/img/canada-fip.svg" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; float:left!important;"/>
+<MudText Typo="Typo.h2" Style="@_titleStyle">
+    @Localizer["MainTitle"]
+</MudText>
+<MudSpacer/>
+<MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+<LanguageToggle/>
+@code {
+
+    private string _titleStyle = new StyleBuilder()
+        .AddStyle("color", "var(--mud-palette-text-primary)")
+        .AddStyle("font-size", "1.2rem")
+        .AddStyle("margin-left", "3rem")
+        .Build();
+
+}

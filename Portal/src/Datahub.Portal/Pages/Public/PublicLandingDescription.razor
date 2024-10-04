@@ -1,47 +1,32 @@
 @using MudBlazor.Utilities
 @using Datahub.Core.Components.Common
 
-<MudButton Style="position: absolute; top: 0.5rem; right:  0.5rem;">
-    <LanguageToggle />
-</MudButton>
 <MudGrid Style="@_backgroundStyle" Spacing="0">
     <MudItem xs="0" sm="2" md="4" lg="5" xl="7"/>
-    <MudItem xs="12" sm="10" md="8" lg="7" xl="5" Style="display: flex;">
-        <MudPaper Class="py-16 px-16" Square>
-            <MudStack Justify="Justify.SpaceBetween" Style="height: 100%;">
+    <MudItem xs="12" sm="10" md="8" lg="7" xl="5" Style="display: flex; width: auto">
+        <MudPaper Class="pt-16 mt-10 px-16" Square MinWidth="100%">
+            <MudStack Style="height: 100%">
                 <MudStack>
-                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
-                        <MudImage Src="/_content/Datahub.Core/img/datahub-logo-v2.png" Height="32" Width="32"></MudImage>
-                        <MudText Typo="Typo.h1">
-                            @Localizer["Federal Science DataHub"]
-                        </MudText>
-                    </MudStack>
-                    <MudText Typo="Typo.h2" Align="Align.Center">
+                    <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+                    <MudText Typo="Typo.body1">
                         @Localizer["Welcome to the Government of Canada's digital hub for science data solutions."]
-                    </MudText>
-                    <MudText Align="Align.Center" Typo="Typo.caption">
-                        @Localizer["Hosted by SSC (Proof-of-Concept Phase 2)"]
                     </MudText>
                 </MudStack>
                 <MudStack>
                     <MudText>@Localizer["Register here to escape the silos. On the Federal Science DataHub you can:"]</MudText>
                     <MudElement HtmlTag="ul" Style="list-style: circle; margin-left: 32px;">
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Access fit-for-purpose, scalable storage for GC science data"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Access fit-for-purpose, scalable storage for GC science data"]</MudText>
                         </MudElement>
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Easily share your data with your GC colleagues"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Easily share your data with your GC colleagues"]</MudText>
                         </MudElement>
                         <MudElement HtmlTag="li">
-                            <MudText Typo="Typo.body2">@Localizer["Perform analytics and collaborate with your GC science partners in an interactive environment"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["Perform analytics and collaborate with your GC science partners in an interactive environment"]</MudText>
                         </MudElement>
                     </MudElement>
                 </MudStack>
-                <MudGrid Spacing="0" Justify="Justify.Center">
-                    <MudItem xs="12" md="10">
-                        @ChildContent
-                    </MudItem>
-                </MudGrid>
+                    @ChildContent
             </MudStack>
         </MudPaper>
     </MudItem>
@@ -53,7 +38,7 @@
     [Parameter] public RenderFragment ChildContent { get; set; }
 
     private string _backgroundStyle;
-    
+
     protected override void OnInitialized()
     {
         base.OnInitialized();
@@ -65,4 +50,6 @@
             .AddStyle("min-height", "100vh")
             .Build();
     }
+    
+
 }

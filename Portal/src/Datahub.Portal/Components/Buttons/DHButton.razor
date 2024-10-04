@@ -1,0 +1,78 @@
+﻿@using MudBlazor.Utilities
+<MudButton HtmlTag="@HtmlTag" @ref="@Button"
+           ClickPropagation="@ClickPropagation"
+           Disabled="@Disabled"
+           EndIcon="@EndIcon"
+           StartIcon="@StartIcon"
+           ButtonType="@ButtonType"
+           Href="@Href"
+           Rel="@Rel"
+           Target="@Target"
+           Color="@Color"
+           DropShadow="@(!DisableElevation)"
+           Ripple="@(!DisableRipple)"
+           FullWidth="@FullWidth"
+           IconClass="@IconClass"
+           IconColor="@IconColor"
+           IconSize="@IconSize"
+           Size="@Size"
+           Variant="@Variant"
+           Class="@Class"
+           Style="@_style"
+           Tag="@Tag"
+           UserAttributes="@UserAttributes"
+           OnClick="@OnClick">
+    <MudText>
+        @ChildContent
+    </MudText>
+</MudButton>
+
+@code {
+    public MudButton Button { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // Behavior
+    [Parameter] public bool ClickPropagation { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public string EndIcon { get; set; } = null;
+    [Parameter] public string StartIcon { get; set; } = null;
+
+    // Click action
+    [Parameter] public ButtonType ButtonType { get; set; } = ButtonType.Button;
+    [Parameter] public string Href { get; set; } = null;
+    [Parameter] public string Rel { get; set; } = null;
+    [Parameter] public string Target { get; set; } = null;
+    [Parameter] public string HtmlTag { get; set; } = "a";
+
+    // Appearance
+    [Parameter] public Color Color { get; set; } = Color.Default;
+    [Parameter] public bool DisableElevation { get; set; } = false;
+    [Parameter] public bool DisableRipple { get; set; } = false;
+    [Parameter] public bool FullWidth { get; set; } = false;
+    [Parameter] public string IconClass { get; set; } = null;
+    [Parameter] public Color IconColor { get; set; } = Color.Inherit;
+    [Parameter] public Size? IconSize { get; set; } = null;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    [Parameter] public bool Underline { get; set; } = false;
+    [Parameter] public bool NoWrap { get; set; } = false;
+
+    // Common
+    [Parameter] public string Class { get; set; } = null;
+    [Parameter] public string Style { get; set; } = null;
+    private string _style => new StyleBuilder()
+        .AddStyle("text-decoration", Underline ? "underline" : null)
+        .AddStyle("text-wrap", NoWrap ? "nowrap" : null)
+        .AddStyle(Style)
+        .Build();
+    [Parameter] public object Tag { get; set; } = null;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> UserAttributes { get; set; } = null;
+
+    // EventCallbacks
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    // Methods
+    public ValueTask FocusAsync() => Button.FocusAsync();
+}

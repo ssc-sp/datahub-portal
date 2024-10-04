@@ -12,6 +12,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Annotations\AnnotationTools.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clients\AzureDevOpsClient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\AzureDevOpsConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Configuration\QueueConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\AppServiceConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOrganization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOutputVariable.cs" />

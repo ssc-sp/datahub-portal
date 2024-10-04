@@ -1,86 +1,79 @@
-﻿using System.Linq.Dynamic.Core;
-using System.Text.Json;
+﻿using System.Text.Json;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
-using MediatR;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Functions
 {
-	public class UserInactivityNotifier
+    public class UserInactivityNotifier(
+        ILoggerFactory loggerFactory,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        IDateProvider dateProvider,
+        AzureConfig config,
+        QueuePongService pongService,
+        EmailValidator emailValidator,
+        IUserInactivityNotificationService userInactivityNotificationService,
+        ISendEndpointProvider sendEndpointProvider,
+        IEmailService emailService)
     {
-        private readonly IMediator _mediator;
-        private readonly ILogger<UserInactivityNotifier> _logger;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        private readonly IUserInactivityNotificationService _userInactivityNotificationService;
-        private readonly IEmailService _emailService;
-        private readonly IDateProvider _dateProvider;
-        private readonly AzureConfig _config;
-
-        private readonly QueuePongService _pongService;
-        private readonly EmailValidator _emailValidator;
-
-        public UserInactivityNotifier(IMediator mediator, ILoggerFactory loggerFactory,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, IDateProvider dateProvider, AzureConfig config,
-            QueuePongService pongService, EmailValidator emailValidator, IUserInactivityNotificationService userInactivityNotificationService, IEmailService emailService)
-        {
-            _mediator = mediator;
-            _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
-            _dbContextFactory = dbContextFactory;
-            _dateProvider = dateProvider;
-            _config = config;
-            _pongService = pongService;
-            _emailValidator = emailValidator;
-            _userInactivityNotificationService = userInactivityNotificationService;
-            _emailService = emailService;
-        }
+        private readonly ILogger<UserInactivityNotifier> _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
 
         [Function("UserInactivityNotifier")]
         public async Task Run(
-            [QueueTrigger("%QueueUserInactivityNotification%", Connection = "DatahubStorageConnectionString")]
-            string queueItem, CancellationToken ct)
+            [ServiceBusTrigger(QueueConstants.UserInactivityNotification,
+                Connection = "DatahubServiceBus:ConnectionString")]
+            ServiceBusReceivedMessage serviceBusReceivedMessage,
+            CancellationToken ct)
         {
             // test for ping
-            if (await _pongService.Pong(queueItem))
-                return;
+            // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
+            // return;
 
             // deserialize message
-            var message = DeserializeQueueMessage(queueItem);
+            var message = await serviceBusReceivedMessage
+                .DeserializeAndUnwrapMessageAsync<UserInactivityNotificationMessage>();
 
             // verify message 
             if (message is null)
             {
-                throw new Exception($"Invalid queue message:\n{queueItem}");
+                throw new Exception($"Invalid queue message:\n{serviceBusReceivedMessage.Body}");
             }
 
-            using var ctx = await _dbContextFactory.CreateDbContextAsync(ct);
+            using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
             var user = await ctx.PortalUsers.AsNoTracking().Where(x => x.Id == message.UserId).FirstOrDefaultAsync(ct);
 
             var lastLoginDate = user.LastLoginDateTime ?? user.FirstLoginDateTime;
-            var daysSinceLastLogin = (_dateProvider.Today - lastLoginDate)?.Days;
-            var daysUntilLocked = _dateProvider.UserInactivityLockedDay() - daysSinceLastLogin;
-            var daysUntilDeleted = _dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin;
+            var daysSinceLastLogin = (dateProvider.Today - lastLoginDate)?.Days;
+            var daysUntilLocked = dateProvider.UserInactivityLockedDay() - daysSinceLastLogin;
+            var daysUntilDeleted = dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin;
 
-            if (lastLoginDate != null && _emailValidator.IsValidEmail(user.Email))
+            if (lastLoginDate != null && emailValidator.IsValidEmail(user.Email))
             {
                 var email = await CheckIfUserToBeNotified(daysSinceLastLogin!.Value, daysUntilLocked!.Value,
                     daysUntilDeleted!.Value, user.Email);
 
                 if (email != null)
                 {
-                    await _mediator.Send(email, ct);
-                    
+                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                        email, ct);
+
                     // send notification to db
-                    await _userInactivityNotificationService.AddInactivityNotification(user.Id, _dateProvider.Today,
+                    await userInactivityNotificationService.AddInactivityNotification(user.Id, dateProvider.Today,
                         daysUntilLocked!.Value, daysUntilDeleted!.Value, ct);
                 }
             }
@@ -89,12 +82,12 @@ namespace Datahub.Functions
         public async Task<EmailRequestMessage?> CheckIfUserToBeNotified(int daysSinceLastLogin, int daysUntilLocked,
             int daysUntilDeleted, string email)
         {
-            if (_dateProvider.UserInactivityNotificationDays().Contains(daysUntilLocked))
+            if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilLocked))
             {
                 return GetLockedEmailRequestMessage(daysSinceLastLogin, daysUntilLocked, email);
             }
 
-            if (_dateProvider.UserInactivityNotificationDays().Contains(daysUntilDeleted))
+            if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilDeleted))
             {
                 return GetDeletedEmailRequestMessage(daysSinceLastLogin, daysUntilDeleted, email);
             }
@@ -126,17 +119,13 @@ namespace Datahub.Functions
 
             List<string> bcc = new() { GetNotificationCCAddress() };
 
-            return _emailService.BuildEmail($"{reason}_alert.html", new List<string>() { email }, bcc, bodyArgs, subjectArgs);
+            return emailService.BuildEmail($"{reason}_alert.html", new List<string>() { email }, bcc, bodyArgs,
+                subjectArgs);
         }
 
         private string GetNotificationCCAddress()
         {
-            return _config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
-        }
-
-        static UserInactivityNotificationMessage? DeserializeQueueMessage(string queueItem)
-        {
-            return JsonSerializer.Deserialize<UserInactivityNotificationMessage>(queueItem);
+            return config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
         }
     }
 }

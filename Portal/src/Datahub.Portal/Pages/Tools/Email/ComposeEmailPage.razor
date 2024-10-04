@@ -13,7 +13,7 @@
 <MudStack Class="mb-4">
     @*title*@
     <MudStack Row Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h1">@Localizer["DataHub Email"]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["DataHub Email"]</MudText>
         <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@NavigateBack"></MudIconButton>
     </MudStack>
 
@@ -23,21 +23,21 @@
             <MudSelect T="RecipientType" @bind-Value="_recipientType" Label="To:" Variant="Variant.Outlined">
                 <MudSelectItem Value="RecipientType.All">
                     <MudStack Row Spacing="3">
-                        <MudIcon Icon="@Icons.Material.Filled.People"/>
+                        <DHIcon Icon="@Icons.Material.Filled.People" />
                         <MudText>@Localizer["Everybody"]</MudText>
                     </MudStack>
                 </MudSelectItem>
 
                 <MudSelectItem Value="RecipientType.Projects">
                     <MudStack Row Spacing="3">
-                        <MudIcon Icon="@Icons.Material.Filled.Groups"/>
+                        <DHIcon Icon="@Icons.Material.Filled.Groups" />
                         <MudText>@Localizer["Workspaces"]</MudText>
                     </MudStack>
                 </MudSelectItem>
 
                 <MudSelectItem Value="RecipientType.Addresses">
                     <MudStack Row Spacing="3">
-                        <MudIcon Icon="@Icons.Material.Filled.AlternateEmail"/>
+                        <DHIcon Icon="@Icons.Material.Filled.AlternateEmail" />
                         <MudText>@Localizer["Emails"]</MudText>
                     </MudStack>
                 </MudSelectItem>
@@ -94,20 +94,20 @@
 
     @*buttons*@
     <MudStack Row Justify="Justify.FlexStart">
-        <MudButton Variant="Variant.Filled"
+        <DHButton Variant="Variant.Filled"
                    EndIcon="@Icons.Material.Filled.Send"
                    Color="Color.Warning"
                    Disabled="@IsPreviewDisabled()"
                    OnClick="@HandleEmailYourself">
             @Localizer["Send Preview to yourself"]
-        </MudButton>
-        <MudButton Variant="Variant.Filled"
+        </DHButton>
+        <DHButton Variant="Variant.Filled"
                    EndIcon="@Icons.Material.Filled.Send"
                    Color="Color.Primary"
                    Disabled="@IsSendDisabled()"
                    OnClick="@HandleSendEmail">
             @Localizer["Send"]
-        </MudButton>
+        </DHButton>
     </MudStack>
 </MudStack>
 

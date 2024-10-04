@@ -19,10 +19,10 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudList Clickable="true" Dense="false" DisableGutters="false">
+        <MudList T="string" ReadOnly="false" Dense="false" Gutters="true">
             @foreach (var funct in _functions)
             {
-                <MudListItem Text=@funct.Name
+                <MudListItem T="string" Text=@funct.Name
                          Icon=@GetFunctionIcon(funct)
                          IconColor=@GetFunctionColor(funct)
                          OnClick="() => HandleClickFunction(funct)" />

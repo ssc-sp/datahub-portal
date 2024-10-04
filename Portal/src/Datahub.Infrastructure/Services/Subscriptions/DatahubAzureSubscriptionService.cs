@@ -4,6 +4,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Subscriptions;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Subscriptions;
 using Microsoft.EntityFrameworkCore;
@@ -145,7 +146,7 @@ public class DatahubAzureSubscriptionService(
         var subscriptionStrategy = new DatahubSubscriptionStrategy(portalConfiguration);
         return subscriptionStrategy.NumberOfWorkspacesRemaining(workspacesUsingSubscription);
 
-        return IDatahubAzureSubscriptionService.MaxNumberOfWorkspaces - workspacesUsingSubscription.Count;
+        //return IDatahubAzureSubscriptionService.MaxNumberOfWorkspaces - workspacesUsingSubscription.Count;
     }
 
     /// <summary>

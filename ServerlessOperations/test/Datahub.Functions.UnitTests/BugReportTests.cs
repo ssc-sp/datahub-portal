@@ -1,6 +1,7 @@
 ﻿using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using FluentAssertions;
+using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -21,14 +22,26 @@ public class BugReportTests
     private AzureConfig _azureConfig;
     private IEmailService _emailService;
     private BugReportMessage _bugReportMessage;
+    private ISendEndpointProvider _iSendEndpointProvider;
+    private IAlertRecordService _alertRecordService;
 
     [SetUp]
     public void SetUp()
     {
+        _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _logger = _loggerFactory.CreateLogger<BugReport>();
+        
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        var httpClient = new HttpClient();
+
+        
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
+
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _mediator);
+        _alertRecordService = new AlertRecordService(_azureConfig);
+        
+        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",
@@ -69,10 +82,10 @@ public class BugReportTests
 
     [Test]
     [Ignore("Need to fix")]
-    public async Task CreateIssue_WithValidInputs_ReturnsIssueObject()
+    public void CreateIssue_WithValidInputs_ReturnsIssueObject()
     {
         // Act
-        var result = await _bugReport.CreateIssue(_bugReportMessage);
+        var result = _bugReport.CreateIssue(_bugReportMessage);
 
         // Assert
         result.Should().NotBeNull();

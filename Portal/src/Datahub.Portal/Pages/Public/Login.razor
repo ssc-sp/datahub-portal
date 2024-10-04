@@ -1,31 +1,39 @@
 @page "/login"
+@page "/connexion"
 @using Datahub.Application.Services.UserManagement
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 
-<PageTitle>@Localizer["DataHub | Login"]</PageTitle>
+<PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
-<PublicLandingDescription>
-    <MudStack AlignItems="AlignItems.Center" Class="mb-16 pb-16">
-        <MudText Typo="Typo.h4" Class="text-center">@Localizer["Welcome to DataHub"]</MudText>
-        <MudText Typo="Typo.h6" Class="text-center">@Localizer["Please login to continue"]</MudText>
-        <MudStack AlignItems="AlignItems.Center" Class="mt-4">
-            <MudButton Class="mx-auto" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
-        </MudStack>
-        <MudText Typo="Typo.body2" Class="mt-8">
-            @Localizer["Don't have an account?"]
-            <MudLink Href="/register" Typo="Typo.body2">@Localizer["Register instead"]</MudLink>
-        </MudText>
+<MudStack Class="my-8 py-8">
+    <MudStack AlignItems="AlignItems.Start" Class="mt-4">
+        <p>
+            <MudText Typo="Typo.body1" Class="text-center">
+                <strong>
+                    @Localizer["Please login to continue"]:
+                </strong>
+                <MudButton Class="mx-4 px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
+                    <MudText>
+                        @Localizer["Login"]
+                    </MudText>
+                </MudButton>
+            </MudText>
+        </p>
+        <p>
+            <MudText Typo="Typo.body1">
+                @Localizer["Don't have an account?"]
+                <MudLink Href="/register" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
+            </MudText>
+        </p>
     </MudStack>
-</PublicLandingDescription>
+</MudStack>
 
 @code {
 
-    [Parameter]
-    [SupplyParameterFromQuery]
-    public string redirectUri { get; set; }
+    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private void HandleLogin()
     {
@@ -34,6 +42,7 @@
         {
             redirectUri = _navigationManager.BaseUri;
         }
+
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
@@ -52,4 +61,5 @@
             HandleLogin();
         }
     }
+
 }

@@ -1,43 +1,42 @@
-﻿using System.Text.Json;
-using Azure.Core;
+﻿using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Monitor;
 using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Storage;
+using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
-using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
-using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
-    public class WorkspaceStorageManagementService : IWorkspaceStorageManagementService
+    public class WorkspaceStorageManagementService(
+        ArmClient armClient,
+        ILogger<WorkspaceStorageManagementService> logger,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        IWorkspaceResourceGroupsManagementService rgMgmtService)
+        : IWorkspaceStorageManagementService
     {
-        private readonly ArmClient _armClient;
-        private readonly ILogger<WorkspaceStorageManagementService> _logger;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+        #region Implementations
 
-        public WorkspaceStorageManagementService(ArmClient armClient, ILogger<WorkspaceStorageManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
-        {
-            _armClient = armClient;
-            _logger = logger;
-            _dbContextFactory = dbContextFactory;
-        }
-
+        /// <inheritdoc />
         public async Task<double> GetStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
         {
+            logger.LogInformation("Getting storage capacity for workspace {WorkspaceAcronym}", workspaceAcronym);
             if (storageAccountIds is null)
             {
                 storageAccountIds = await GetStorageAccountIds(workspaceAcronym);
             }
 
+            logger.LogInformation("Storage account ids: {Join}", string.Join(", ", storageAccountIds));
+
             var today = DateTime.UtcNow;
             var dateFormat = "yyyy-MM-ddTHH:00:00.000Z";
             var fromDate = today.AddDays(-1).ToString(dateFormat);
             var toDate = today.ToString(dateFormat);
-            
+
             var totalCapacity = 0.0;
 
             storageAccountIds.ForEach(id =>
@@ -49,158 +48,121 @@ namespace Datahub.Infrastructure.Services.Storage
                 option.Timespan = $"{fromDate}/{toDate}";
                 option.Metricnamespace = "Microsoft.Storage/storageAccounts";
                 option.ValidateDimensions = false;
-                var metrics = _armClient.GetMonitorMetrics(storageId, option).ToList();
+                logger.LogInformation("Getting metrics for storage account with id {Id}", id);
+                var metrics = armClient.GetMonitorMetrics(storageId, option).ToList();
                 var timeseries = metrics[0].Timeseries.ToList()[0];
-                var timeseriesData = timeseries.Data.ToList().Last();
+                var timeseriesData = timeseries.Data.ToList().Last(x => x.Average != null);
                 var average = timeseriesData.Average;
                 if (average is null)
                 {
-                    _logger.LogError($"Could not parse data from storage account with id {id}");
+                    logger.LogError("Could not parse data from storage account with id {Id}", id);
                     throw new Exception($"Could not parse data from storage account with id {id}");
                 }
 
-                totalCapacity += average!.Value;
+                logger.LogInformation("Storage account with id {Id} has capacity {Average}", id, average);
+
+                totalCapacity += average.Value;
             });
-            
+            logger.LogInformation("Total capacity for workspace {WorkspaceAcronym} is {TotalCapacity}",
+                workspaceAcronym, totalCapacity);
+
             return totalCapacity;
         }
 
+        /// <inheritdoc />
         public async Task<double> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
         {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
             var date = DateTime.UtcNow.Date;
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             if (project is null)
             {
-                _logger.LogError($"Project with acronym {workspaceAcronym} not found");
+                logger.LogError("Project with acronym {WorkspaceAcronym} not found", workspaceAcronym);
                 throw new Exception($"Project with acronym {workspaceAcronym} not found");
             }
-            
-            var projectAverage = await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(p => p.ProjectId == project.Project_ID && p.Date == date);
+
+            var projectAverage =
+                await ctx.Project_Storage_Avgs.FirstOrDefaultAsync(p =>
+                    p.ProjectId == project.Project_ID && p.Date == date.Date);
             if (projectAverage is null)
             {
+                logger.LogInformation("Creating new project storage average for today");
                 projectAverage = new Project_Storage { ProjectId = project.Project_ID };
                 ctx.Project_Storage_Avgs.Add(projectAverage);
                 await ctx.SaveChangesAsync();
             }
-            
+
             var capacity = await GetStorageCapacity(workspaceAcronym, storageAccountIds);
             projectAverage.AverageCapacity = capacity;
             projectAverage.Date = date;
             projectAverage.CloudProvider = "azure";
+            logger.LogInformation("Updating storage capacity for workspace {WorkspaceAcronym} to {Capacity}",
+                workspaceAcronym, capacity);
             ctx.Project_Storage_Avgs.Update(projectAverage);
             await ctx.SaveChangesAsync();
             return capacity;
         }
 
-        internal async Task<StorageAccountResource> GetAzureStorageAccountResource(string storageId)
+        /// <inheritdoc />
+        public bool CheckUpdateNeeded(string workspaceAcronym)
         {
-            var id = new ResourceIdentifier(storageId);
-            var storageAccount = _armClient.GetStorageAccountResource(id);
-            if (storageAccount == null)
-            {
-                _logger.LogError($"Storage account with id {storageId} not found");
-                throw new Exception($"Storage account with id {storageId} not found");
-            }
-
-            var response = await storageAccount.GetAsync();
-
-            if (response.Value == null)
-            {
-                _logger.LogError($"Storage account with id {storageId} not found");
-                throw new Exception($"Storage account with id {storageId} not found");
-            }
-
-            return response.Value;
+            using var ctx = dbContextFactory.CreateDbContext();
+            var date = DateTime.UtcNow.Date;
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == workspaceAcronym);
+            var projectAverage = ctx.Project_Storage_Avgs.FirstOrDefault(p =>
+                p.ProjectId == project.Project_ID && p.Date == date.Date);
+            if (projectAverage is null) return true;
+            return false;
         }
 
+        #endregion
+
+        #region Internal Methods
+
+        /// <summary>
+        /// Gets the storage account resource ids for a workspace
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym to search for</param>
+        /// <returns>A list of resource identifiers, representing the storage accounts belonging to this workspace</returns>
         internal async Task<List<string>> GetStorageAccountIds(string workspaceAcronym)
         {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var projectResources = ctx.Project_Resources2.Include(p => p.Project)
-                .Where(p => p.Project.Project_Acronym_CD == workspaceAcronym).ToList();
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-            var rgNames = await GetResourceGroupNames(workspaceAcronym);
+            var rgIds = await rgMgmtService.GetWorkspaceResourceGroupsIdentifiersAsync(workspaceAcronym);
             var storageIds = new List<string>();
-            
-            rgNames.ForEach(async rg =>
-            {
-                var rgId = $"/subscriptions/{_armClient.GetDefaultSubscription().Id.SubscriptionId}/resourceGroups/{rg}";
-                var resourceId = new ResourceIdentifier(rgId);
-                var resourceGroup = _armClient.GetResourceGroupResource(resourceId);
-                if (resourceGroup == null)
-                {
-                    _logger.LogError($"Resource group with id {rgId} not found");
-                    throw new Exception($"Resource group with id {rgId} not found");
-                }
-                var response = await resourceGroup.GetAsync();
-                if (response.Value == null)
-                {
-                    _logger.LogError($"Resource group with id {rgId} not found");
-                    throw new Exception($"Resource group with id {rgId} not found");
-                }
 
-                var storageAccounts = response.Value.GetStorageAccounts().ToList();
-                
-                storageAccounts.ForEach(sa =>
+            foreach (var rgId in rgIds)
+            {
+                try
                 {
-                    storageIds.Add(sa.Id);
-                });
-            });
-            
+                    var resourceGroup = armClient.GetResourceGroupResource(rgId);
+                    if (resourceGroup == null)
+                    {
+                        logger.LogError("Resource group with id {RgId} not found", rgId);
+                        throw new Exception($"Resource group with id {rgId} not found");
+                    }
+
+                    var response = await resourceGroup.GetAsync();
+                    if (response.Value == null)
+                    {
+                        logger.LogError("Resource group with id {RgId} not found", rgId);
+                        throw new Exception($"Resource group with id {rgId} not found");
+                    }
+
+                    var storageAccounts = response.Value.GetStorageAccounts().ToList();
+
+
+                    storageAccounts.ForEach(sa => { storageIds.Add(sa.Id.ToString()); });
+                }
+                catch (Exception e)
+                {
+                    logger.LogWarning("Skipping resource group with id {RgId}: {Message}", rgId, e.Message);
+                }
+            }
+
             return storageIds;
         }
-        
-        internal async Task<List<string>> GetResourceGroupNames(string workspaceAcronym)
-        {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-            var blobStorageType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-            var dbkType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-
-            var resources = ctx.Project_Resources2.Include(r => r.Project)
-                .Where(r => r.Project.Project_Acronym_CD == workspaceAcronym);
-
-            var rgNames = new List<string>();
-            var dbkIds = new HashSet<int>();
-
-            await resources.ForEachAsync(r =>
-            {
-                if (r.ResourceType == dbkType)
-                {
-                    dbkIds.Add(r.ProjectId);
-                }
-            });
-
-            await resources.ForEachAsync(r =>
-            {
-                if (r.ResourceType == blobStorageType)
-                {
-                    rgNames.Add(ParseResourceGroup(r.JsonContent));
-                    if (dbkIds.Contains(r.ProjectId))
-                    {
-                        rgNames.Add(ParseDbkResourceGroup(r.JsonContent));
-                        dbkIds.Remove(r.ProjectId);
-                    }
-                }
-            });
-
-            return rgNames;
-        }
-
-        internal string ParseResourceGroup(string jsonContent)
-        {
-            var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
-            return content?.resource_group_name;
-        }
-        
-        internal string ParseDbkResourceGroup(string jsonContent)
-        {
-            var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
-            var dbk = content.resource_group_name.Split("_").Select((s, idx) => idx == 1 ? "dbk" : s);
-            var dbkRg = string.Join("-", dbk);
-            return dbkRg;
-        }
-        internal record RgNameObject(string resource_group_name);
+        #endregion
     }
 }

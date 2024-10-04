@@ -1,0 +1,85 @@
+﻿@using ApexCharts
+@using Datahub.Application.Services.Cost
+@using Datahub.Core.Model.Projects
+
+@inject ICultureService CultureService
+
+<span>
+    <h2 class="sr-only">
+        @Localizer["A chart showing the accumulated costs for the workspace over time. An accessible description is provided below the chart."]
+    </h2>
+    <ApexChart @ref="@_accumulatedCostsChart" TItem="DailyServiceCost" Title="@Title" Height="400" Options="_accumulatedCostsChartOptions">
+        <ApexPointSeries
+            TItem="DailyServiceCost"
+            Items="@(Costs.GroupBy(c => c.Date).Select(g => new DailyServiceCost { Date = g.Key, Amount = g.Sum(c => c.Amount), Source = "" }).ToList())"
+            Name="@Localizer["Accumulated costs"]"
+            XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
+            YAggregate="@(e => decimal.Round((decimal)Costs.Where(c => c.Date <= e.Last().Date).Aggregate((decimal)0.0, (total, next) => total + next.Amount), 2))"
+            OrderBy="@(c => c.X)"
+            SeriesType="SeriesType.Area"/>
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Accumulated costs for the workspace over time. A detailed table is provided below the charts."]
+    </p>
+    <table class="sr-only">
+        <tr>
+            <th>@Localizer["Date"]</th>
+            <th>@Localizer["Amount ($CAD)"]</th>
+        </tr>
+        @foreach (var cost in Costs)
+        {
+            <tr>
+                <td>@cost.Date.Date.ToString("yyyy-MM-dd")</td>
+                <td>@(decimal.Round(cost.Amount, 2))</td>
+            </tr>
+        }
+    </table>
+</span>
+
+@code {
+    [Parameter] public List<DailyServiceCost> Costs { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChart<DailyServiceCost> _accumulatedCostsChart = new();
+    private ApexChartOptions<DailyServiceCost> _accumulatedCostsChartOptions = new();
+    private string _locale = "en-CA";
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _accumulatedCostsChart.UpdateSeriesAsync();
+        await _accumulatedCostsChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _accumulatedCostsChartOptions.Chart = new Chart
+        {
+            Locales = Locales,
+            DefaultLocale = _locale
+        };
+
+        _accumulatedCostsChartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return '$'+parseFloat(val).toFixed(2); }"
+            }
+        };
+        _accumulatedCostsChartOptions.Yaxis = new List<YAxis>();
+        _accumulatedCostsChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Amount ($CAD)"].ToString() },
+            DecimalsInFloat = 2
+        });
+        _accumulatedCostsChartOptions.Xaxis = new XAxis();
+        _accumulatedCostsChartOptions.Xaxis.Type = XAxisType.Datetime;
+    }
+
+}

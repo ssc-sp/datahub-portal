@@ -8,14 +8,14 @@
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <MudText Typo="Typo.h4">@Localizer["Public Profile"]</MudText>
+        <DHMainContentTitle Title="@Localizer["Public profile"]"/>
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
-        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName"/>
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName" Label="@Localizer["Display name"]"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
-        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email"/>
+        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email" Label="@Localizer["Email"]"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
         <ImageSelectionView
@@ -31,21 +31,19 @@
     </SettingsField>
     <MudDivider/>
     <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
-        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Checked="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleHideAchievementsChanged"/>
+        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Value="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAchievementsChanged"/>
     </SettingsField>
     <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
-        <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Checked="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="Color.Dark" CheckedChanged="HandleHideAlertsChanged"/>
-        <MudButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</MudButton>
+        <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Value="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAlertsChanged"/>
+        <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
     </SettingsField>
 </MudStack>
 
 @code {
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
+    [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
     private async Task HandleImageSelected(string code, bool isProfilePicture)
     {
@@ -60,7 +58,7 @@
         ViewedUser.UserSettings.HideAchievements = !ViewedUser.UserSettings.HideAchievements;
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
     }
-    
+
     private async Task HandleHideAlertsChanged()
     {
         ViewedUser.UserSettings.HideAlerts = !ViewedUser.UserSettings.HideAlerts;

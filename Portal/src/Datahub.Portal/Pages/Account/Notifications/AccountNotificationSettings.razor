@@ -7,19 +7,19 @@
 
 <MudStack Spacing="8" Class="mb-16">
     <MudStack>
-        <MudText Typo="Typo.h4">@Localizer["Email Notifications"]</MudText>
+        <DHMainContentTitle Title="@Localizer["Email Notifications"]" />
         <MudDivider/>
     </MudStack>
     <SettingsField Label="@Localizer["Email preferences"]" Description="@Localizer["Choose your preferred frequency of communications from the DataHub team"]">
-        <MudRadioGroup T="int" SelectedOption="1">
+        <MudRadioGroup T="int" Value="1">
             <MudStack Spacing="0">
-                <MudRadio Option="1" Color="Color.Primary">
+                <MudRadio Value="1" Color="Color.Primary">
                     @Localizer["I want to receive all notifications"]
                 </MudRadio>
-                <MudRadio Option="2" Disabled>
+                <MudRadio Value="2" Disabled>
                     @Localizer["I want to receive only important notifications"]
                 </MudRadio>
-                <MudRadio Option="3" Disabled>
+                <MudRadio Value="3" Disabled>
                     @Localizer["I want to receive only critical notifications"]
                 </MudRadio>
             </MudStack>

@@ -5,22 +5,24 @@
 @using Datahub.Portal.Pages.Account.Notifications
 @using Datahub.Portal.Pages.Account.PublicProfile
 @using Datahub.Portal.Pages.Home
+@using Datahub.Portal.Components.Sidebar
 
 @inherits ViewUserBase<AccountPage>
 
 @inject ISnackbar _snackbar
 
-@attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.AccountDefault)]
+@attribute [Route(PageRoutes.AccountDefault_FR)]
 @attribute [Route(PageRoutes.Account)]
+@attribute [Route(PageRoutes.Account_FR)]
 
 <PageTitle>
-    @Localizer["SSC Datahub {0}", _title]
+    @Localizer["{0} - Federal Science DataHub", _title]
 </PageTitle>
 
-<SectionContent SectionName="side-bar">
+<DHSidebarDrawer>
     <PersonalSidebar/>
-</SectionContent>
+</DHSidebarDrawer>
 
 @if (_viewedPortalUser is null)
 {
@@ -45,22 +47,15 @@ else
         { "ViewedUser", _viewedPortalUser }
     };
 
-    if (containsKey)
-    {
-        <MudGrid>
-            <MudItem xs="12">
-                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
-            </MudItem>
-            <MudItem xs="12" sm="8">
-                <DynamicComponent Type="@_sectionComponents[Section]" Parameters="@parameters"/>
-            </MudItem>
-        </MudGrid>
-    }
-    else
-    {
-        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
-        <HomePage/>
-    }
+    var sectionKey = containsKey ? Section : PersonalSidebar.SectionViews.Profile;
+    <MudGrid Justify="Justify.Center">
+        <MudItem xs="8" sm="12">
+            <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+        </MudItem>
+        <MudItem xs="8" sm="12" >
+            <DynamicComponent Type="@_sectionComponents[sectionKey]" Parameters="@parameters"/>
+        </MudItem>
+    </MudGrid>
 }
 
 @code {
@@ -70,8 +65,8 @@ else
     private PortalUser _viewedPortalUser;
 
     private string _title => _viewedPortalUser?.DisplayName != null
-        ? $"- {_viewedPortalUser.DisplayName}"
-        : "- Home";
+        ? $"{_viewedPortalUser.DisplayName}"
+        : Localizer["Home"];
 
 
     protected override async Task OnParametersSetAsync()
@@ -84,10 +79,14 @@ else
 
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
+        { PersonalSidebar.SectionViews.Profile, typeof(AccountPublicProfile) },
         { PersonalSidebar.SectionViews.Customization, typeof(AccountPublicProfileSettings) },
         { PersonalSidebar.SectionViews.Appearance, typeof(AccountAppearanceSettings) },
         { PersonalSidebar.SectionViews.Notifications, typeof(AccountNotificationSettings) },
         { PersonalSidebar.SectionViews.Achievements, typeof(AchievementsPage) },
+        { PersonalSidebar.SectionViews.Appearance_FR, typeof(AccountAppearanceSettings) },
+        // Notifications is the same in English and French - Including it causes a duplicate key error
+        { PersonalSidebar.SectionViews.Achievements_FR, typeof(AchievementsPage) },
     };
 
     private async Task HandleViewedUserChanged(PortalUser updatedUser)
@@ -107,4 +106,3 @@ else
     }
 
 }
-

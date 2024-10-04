@@ -6,6 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Datahub.Core.Model.Datahub;
 using Xunit;
+using Datahub.Core.Model.Context;
+using NSubstitute;
 
 namespace Datahub.Tests;
 
@@ -15,7 +17,7 @@ public class AdminServiceTests
 
     public AdminServiceTests()
     {
-        var ctx = new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>()
+        var ctx = new SqlServerDatahubContext(new DbContextOptionsBuilder<SqlServerDatahubContext>()
             .UseInMemoryDatabase("InMemoryTest")
             .Options);
         var mockDbFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();

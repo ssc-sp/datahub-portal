@@ -1,0 +1,71 @@
+﻿@using Datahub.Core.Model.Projects
+@using ApexCharts
+
+@inject ICultureService CultureService
+
+<span>
+    <h2 class="sr-only">
+        @Localizer["Daily storage average for your workspace over the last 30 days. An accessible description is provided below the chart."]
+    </h2>
+    <ApexChart TItem="@Project_Storage" Title="@Localizer["Storage daily average (over last 30 days)"]" Options="@_storageDailyChartOptions" Height="400">
+        <ApexPointSeries
+            TItem="@Project_Storage"
+            Name="@Localizer["Average capacity (GB)"]"
+            Items="@Averages"
+            XValue="@(avg => avg.Date.ToString("yyyy-MM-dd"))"
+            YValue="@(avg => (decimal)avg.AverageCapacity / (1024 * 1024 * 1024))"
+            SeriesType="SeriesType.Line"/>
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Daily storage average for your workspace over the last 30 days. A detailed table is provided below the charts."]
+        @foreach (var avg in Averages)
+        {
+            @Localizer["Average capacity for {0} is {1} GB", avg.Date.ToString("yyyy-MM-dd"), (decimal)avg.AverageCapacity / (1024 * 1024 * 1024)]
+        }
+    </p>
+</span>
+
+@code {
+    [Parameter] public List<Project_Storage> Averages { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChart<Project_Storage> _storageDailyChart = new();
+    private ApexChartOptions<Project_Storage> _storageDailyChartOptions = new();
+    private string _locale = "en-CA";
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _storageDailyChart.UpdateSeriesAsync();
+        await _storageDailyChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _storageDailyChartOptions.Chart = new Chart
+        {
+            Locales = Locales,
+            DefaultLocale = _locale,
+        };
+        _storageDailyChartOptions.Yaxis = new List<YAxis>();
+        _storageDailyChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle
+            {
+                Text = Localizer["Average capacity (GB)"].ToString(),
+            },
+            DecimalsInFloat = 2,
+            Min = 0,
+        });
+        _storageDailyChartOptions.Xaxis = new XAxis
+        {
+            Type = XAxisType.Datetime,
+        };
+    }
+
+}

@@ -1,0 +1,122 @@
+﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Portal.Components.Sidebar
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject NavigationManager _navigationManager
+@inject IReverseProxyConfigService _reverseProxyConfigService
+
+@attribute [Route(PageRoutes.WorkspaceWebAppShare)]
+
+<PageTitle>
+    @Localizer["SSC Datahub - Workspace - {0}", WorkspaceAcronymParam ?? ""]
+</PageTitle>
+
+<DHSidebarDrawer>
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
+</DHSidebarDrawer>
+
+<MudItem xs="12" sm="12">
+
+    <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronymParam"/>
+    @if (!isAvailable)
+    {
+        <MudText>
+            @Localizer["This web application is not provisioned yet. Please come back soon."]
+        </MudText>
+    }
+    else
+    {
+        <MudStack Row="true">
+            <MudText Typo="Typo.h3">
+                @Localizer["Web Application hosted by FSDH"]
+            </MudText>
+            @if (isDisclaimerAccepted)
+            {
+                <MudButton Href="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Filled" Color="Color.Primary">@Localizer["Open in new window"]</MudButton>
+            }
+        </MudStack>
+    }
+</MudItem>
+@if (isDisclaimerAccepted)
+{
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronymParam">
+        <Authorized>
+            <MudGrid Class="mt-4">
+
+                @if (isAvailable)
+                {
+                    <MudItem xs="12">
+                        <iframe src="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" style="height: 70vh; border: none;" title="@Localizer["Web Application hosted by FSDH"]" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
+                    </MudItem>
+                }
+
+            </MudGrid>
+        </Authorized>
+        <NotAuthorized>
+            <NotAuthorizedMessage/>
+        </NotAuthorized>
+    </DatahubAuthView>
+}
+else
+{
+    <MudStack Class="mt-8">
+        <MudText>
+            @Localizer["The following web application has been uploaded by a user onto this data platform using their own code. Please be aware that the content and functionality of this application are entirely controlled by the user who uploaded it, and the platform provider takes no responsibility for its content, accuracy, or performance."]
+        </MudText>
+        <MudText>
+            @Localizer["It is the sole responsibility of the user and the content creator to ensure that any material or information included in the web application complies with applicable laws, regulations, and ethical standards. The platform provider does not endorse, guarantee, or warrant the suitability, completeness, or security of the uploaded application."]
+        </MudText>
+        <MudText>
+            @Localizer["By accessing and using this web application, you acknowledge that the platform provider assumes no liability for any damages, losses, or injuries incurred as a result of its use or reliance on the content provided by the user. Users are advised to exercise caution and perform due diligence when interacting with the application and its content."]
+        </MudText>
+        <MudText>
+            @Localizer["Please note that any questions or concerns regarding the content or functionality of the web application should be directed to the user who uploaded it, as the platform provider does not assume responsibility for its maintenance or support."]
+        </MudText>
+        <MudText>
+            @Localizer["By continuing to utilize this web application, you are indicating your understanding and acceptance of this disclaimer."]
+        </MudText>
+        <DHButton Class="mt-8" OnClick="ApproveWebAppTC" Variant="Variant.Filled">
+            @Localizer["Accept Web Application Terms"]
+        </DHButton>
+    </MudStack>
+}
+
+
+@code {
+
+    [Parameter] public string WorkspaceAcronymParam { get; set; }
+
+    private bool isAvailable = false;
+
+    private bool isDisclaimerAccepted = false;
+
+    [SupplyParameterFromQuery(Name = "d")] public string DisclaimerAccepted { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .Include(x => x.Resources)
+            .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronymParam);
+        var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
+        isAvailable = workspace is not null && !(string.IsNullOrWhiteSpace(appConfiguration?.Framework) && string.IsNullOrWhiteSpace(appConfiguration?.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration?.ComposePath));
+        if (DisclaimerAccepted == "1")
+        {
+            isDisclaimerAccepted = true;
+        }
+
+        StateHasChanged();
+    }
+
+    private async Task ApproveWebAppTC()
+    {
+        // Construct the new URL with the d=1 query parameter
+        var newUrl = $"{_navigationManager.Uri.Split('?')[0]}?d=1";
+
+        // Redirect the user to the same page with d=1
+        _navigationManager.NavigateTo(newUrl);
+        isDisclaimerAccepted = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

@@ -1,0 +1,29 @@
+﻿@using MudBlazor.Utilities
+@inherits LayoutComponentBase
+
+@attribute [AllowAnonymous]
+
+<MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+<MudPopoverProvider/>
+
+<MudLayout>
+    <MudAppBar Elevation="0" Style="@_topBorderStyle">
+        <PublicTopbar/>
+    </MudAppBar>
+    <MudContainer >
+        @Body
+    </MudContainer>
+    <DHFooter/>
+</MudLayout>
+
+@code {
+
+    private readonly string _topBorderStyle = new StyleBuilder()
+        .AddStyle("border-color", "var(--mud-palette-divider)")
+        .AddStyle("border-width", "1px")
+        .AddStyle("border-style", "none none solid none")
+        .Build();
+
+}

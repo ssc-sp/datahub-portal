@@ -1,4 +1,9 @@
-﻿<Router AppAssembly="@typeof(Program).Assembly">
+﻿@inject IJSRuntime _jsRuntime
+@inject NavigationManager _navManager
+@inject IUserSettingsService _userSettingsService
+@inject ICultureService CultureService
+
+<Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
         <CascadingAuthenticationState>
             @if (routeData?.PageType.Namespace?.StartsWith(PublicPageNamespace) ?? false)
@@ -15,14 +20,11 @@
         <CascadingAuthenticationState>
             <LayoutView Layout="@typeof(PortalLayout)">
                 <MudContainer>
-                    <SectionContent SectionName="side-bar">
-                        <PersonalSidebar/>
-                    </SectionContent>
-                    <MudText Typo="Typo.h1" Class="py-3">@Localizer["404-Page-error"]</MudText>
+                    <MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of DataHub."]</MudText>
                     <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="/home" Class="py-3">@Localizer["Back to DataHub"]</MudButton>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to DataHub"]</DHButton>
                     <br/>
                     @if (random.Next(0, 2) == 0)
                     {
@@ -41,7 +43,56 @@
 
 @code {
 
+    [SupplyParameterFromQuery(Name = "culture")]
+    public string CultureOverride { get; set; }
+
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
     Random random = new Random();
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(CultureOverride))
+        {
+            CultureService.OverrideCurrentCulture(CultureOverride);
+        }
+
+        base.OnInitialized();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
+
+            var language = CultureOverride ?? await CultureService.GetLanguageFromLocalStorageAsync();
+
+            if (string.IsNullOrEmpty(language))
+            {
+                language = await _userSettingsService.GetUserLanguage();
+
+                if (!string.IsNullOrEmpty(language))
+                {
+                    await CultureService.SetLanguageInLocalStorageAsync(language);
+                }
+            }
+
+            if (string.IsNullOrEmpty(language))
+            {
+                var currentUrl = new Uri(_navManager.Uri).GetComponents(
+                    UriComponents.PathAndQuery,
+                    UriFormat.Unescaped);
+                var query = $"?redirectUrl={Uri.EscapeDataString(currentUrl)}";
+                _navManager.NavigateTo($"/language-langue{query}");
+            }
+            else
+            {
+                await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
+            }
+
+        }
+    }
+
+
 }

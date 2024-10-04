@@ -1,9 +1,9 @@
 ﻿@using Datahub.Core.Services.Wiki
 @using Datahub.Markdown.Model
 @inject IWikiService _resourcesService
-@inject CultureService _cultureService
 @inject NavigationManager _navManager
 @inject TimeZoneService _timezoneService;
+@inject ICultureService CultureService
 
 @implements IDisposable
 
@@ -50,7 +50,7 @@ else
                             <MudCard>
                                 <MudCardHeader>
                                     <CardHeaderAvatar>
-                                        <MudIcon Icon=@Icons.Material.Filled.MenuBook />
+                                        <DHIcon Icon=@Icons.Material.Filled.MenuBook />
                                     </CardHeaderAvatar>
                                     <CardHeaderContent>
                                         <MudText Typo=@Typo.h5>@card.Title</MudText>
@@ -106,7 +106,7 @@ else
             <MudCard>
                 <MudCardHeader>
                     <CardHeaderAvatar>
-                        <MudIcon Icon=@Icons.Material.Filled.AdminPanelSettings />
+                        <DHIcon Icon=@Icons.Material.Filled.AdminPanelSettings />
                     </CardHeaderAvatar>
                     <CardHeaderContent>
                         @Localizer["Administration"]
@@ -136,10 +136,10 @@ else
                             <MudText Typo=@Typo.h5>Error(s)</MudText>
                             @if (_formattedErrorList?.Count > 0)
                             {
-                                <MudList>
+                                <MudList T="string">
                                     @foreach (var e in _formattedErrorList)
                                     {
-                                        <MudListItem>@e</MudListItem>
+                                        <MudListItem T="string">@e</MudListItem>
                                     }
                                 </MudList>
                             }
@@ -258,7 +258,7 @@ display: -webkit-box";
     private async Task<string> FormatErrorMessage(TimeStampedStatus error)
     {
         var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
-        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        var localDatetime = await _timezoneService.LocalDateTime(timestampUtc);
         return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
     }
 
@@ -273,7 +273,7 @@ display: -webkit-box";
 
     protected override async Task OnInitializedAsync()
     {
-        var isFrench = _cultureService.IsFrench;
+        var isFrench = CultureService.IsFrench;
 
         _resourceRoot = await _resourcesService.LoadLanguageRoot(isFrench);
 

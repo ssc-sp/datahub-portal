@@ -1,12 +1,106 @@
+@using ApexCharts
+@using Color = MudBlazor.Color
 <MudStack>
-    <MudText Typo="Typo.h2">@Localizer["Workspace Reports"]</MudText>
-    
-    <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym" />
-    <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym" />
+    <DHMainContentTitle Title="@Localizer["Workspace Reports"]" />
+
+    <CascadingValue Value="Locales">
+        <MudTabs Elevation="2" ApplyEffectsToContainer="true" PanelClass="pa-6" Style="margin-bottom: 100px" Rounded="true" SliderColor="Color.Primary" Outlined="true">
+            <MudTabPanel Text="@Localizer["Costing"]">
+                <WorkspaceCostingReport WorkspaceAcronym="@WorkspaceAcronym"/>
+            </MudTabPanel>
+            <MudTabPanel Text="@Localizer["Storage"]">
+                <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
+            </MudTabPanel>
+
+            @* <MudTabPanel Text="@Localizer["Reports"]"> *@
+            @*     <WorkspaceReportsTable WorkspaceAcronym="@WorkspaceAcronym"/> *@
+            @* </MudTabPanel> *@
+        </MudTabs>
+    </CascadingValue>
+
 </MudStack>
 
 @code {
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
-    
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
+    public List<ChartLocale> Locales => new()
+    {
+        EnglishLocale,
+        FrenchLocale
+    };
+
+    public ChartLocale FrenchLocale => new()
+    {
+        Name = "fr",
+        Options = new LocaleOptions
+        {
+            Months = new List<string>
+            {
+                "janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"
+            },
+            ShortMonths = new List<string>
+            {
+                "janv", "févr", "mars", "avr", "mai", "juin", "juil", "août", "sept", "oct", "nov", "déc"
+            },
+            Days = new List<string>()
+            {
+                "dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"
+            },
+            ShortDays = new List<string>()
+            {
+                "dim", "lun", "mar", "mer", "jeu", "ven", "sam"
+            },
+            Toolbar = new LocaleToolbar()
+            {
+                Menu = "Menu",
+                Selection = "Sélection",
+                SelectionZoom = "Sélection Zoom",
+                ZoomIn = "Zoom avant",
+                ZoomOut = "Zoom arrière",
+                Pan = "Déplacer",
+                Reset = "Réinitialiser",
+                ExportToCSV = "Exporter en CSV",
+                ExportToPNG = "Exporter en PNG",
+                ExportToSVG = "Exporter en SVG"
+            }
+        }
+    };
+
+    public ChartLocale EnglishLocale => new()
+    {
+        Name = "en",
+        Options = new LocaleOptions
+        {
+            Months = new List<string>
+            {
+                "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"
+            },
+            ShortMonths = new List<string>
+            {
+                "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+            },
+            Days = new List<string>()
+            {
+                "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+            },
+            ShortDays = new List<string>()
+            {
+                "Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"
+            },
+            Toolbar = new LocaleToolbar()
+            {
+                Menu = "Menu",
+                Selection = "Selection",
+                SelectionZoom = "Selection Zoom",
+                ZoomIn = "Zoom In",
+                ZoomOut = "Zoom Out",
+                Pan = "Pan",
+                Reset = "Reset",
+                ExportToCSV = "Export to CSV",
+                ExportToPNG = "Export to PNG",
+                ExportToSVG = "Export to SVG"
+            }
+        }
+    };
+
 }

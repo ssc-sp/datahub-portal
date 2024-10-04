@@ -31,7 +31,7 @@ public class VariableUpdateTests
         var files = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories);
         var fileDates = files.ToDictionary(file => file, File.GetLastWriteTime);
 
-        await _terraformService.ExtractVariables(template, terraformWorkspace);
+        await _terraformService.ExtractVariables(template.Name, terraformWorkspace);
 
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
@@ -59,7 +59,7 @@ public class VariableUpdateTests
         var files = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories);
         var fileDates = files.ToDictionary(file => file, File.GetLastWriteTime);
 
-        await _terraformService.CopyTemplateAsync(template, terraformWorkspace);
+        await _terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
 
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);

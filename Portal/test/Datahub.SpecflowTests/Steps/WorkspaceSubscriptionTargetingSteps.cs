@@ -1,5 +1,6 @@
 using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
@@ -13,7 +14,6 @@ namespace Datahub.SpecflowTests.Steps;
 [Binding]
 public sealed class WorkspaceSubscriptionTargetingSteps(
     IResourceMessagingService resourceMessagingService,
-    IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     IProjectCreationService projectCreationService,
     ScenarioContext scenarioContext)
@@ -40,17 +40,7 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         await ctx.SaveChangesAsync();
     }
 
-    [When(@"the workspace definition is requested")]
-    public async Task WhenTheWorkspaceDefinitionIsRequested()
-    {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var workspace = await ctx.Projects
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
-        
-        var workspaceDefinition =  await resourceMessagingService.GetWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
-        scenarioContext["workspaceDefinition"] = workspaceDefinition;
-    }
+
 
 
     [Then(@"the subscription id is included in the workspace definition")]

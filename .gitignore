@@ -60,3 +60,7 @@ Portal/src/Datahub.Core/Utils/Certs/gc1.pem
 /appservice.json
 /Portal/src/Datahub.Portal/template.appsettings.sand.json
 /ServerlessOperations/src/Datahub.Functions/settings.dev.json
+Portal/src/Datahub.Portal/MessageFolder/
+ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/venv/*
+/Portal/utils/JsonTranslator/Properties/launchSettings.json
+/Portal/src/Datahub.Portal/MissingTranslations-default..json

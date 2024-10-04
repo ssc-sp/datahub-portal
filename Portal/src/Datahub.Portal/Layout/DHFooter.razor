@@ -1,0 +1,21 @@
+﻿<MudContainer role="footer">
+
+    <MudDivider Class="mt-12 pb-4"/>
+    <h2 class="sr-only">@Localizer["About this site"]</h2>
+    <MudGrid Class="pb-4">
+        <MudItem xs="12" sm="10" Class="align-content-center">
+            <DHButton Underline Href="@Localizer[PageRoutes.TermsAndConditions]" Target="_blank">
+                <MudText>@Localizer["Terms and Conditions"]</MudText>
+            </DHButton>
+            @* <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+                |<MudButton Href="@PageRoutes.Help">@Localizer["Support"]</MudButton>
+            </DatahubAuthView> *@
+        </MudItem>
+        <MudItem xs="12" sm="2" Class="align-content-center">
+            <MudImage Src="/img/fip_mark.png" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;"/>
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+@code {
+}

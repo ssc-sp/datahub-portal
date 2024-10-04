@@ -4,7 +4,7 @@ using MudBlazor;
 
 namespace Datahub.Core.Services;
 
-public class UIControlsService
+public class UiControlsService
 {
     public RenderFragment CurrentRightSidebarRenderFragment { get; set; }
     public RenderFragment CurrentModalRenderFragment { get; set; }
@@ -14,12 +14,12 @@ public class UIControlsService
     public event Action OnModalChange;
     public event Action OnErrorModalShow;
 
-    private IDialogService dialogService;
-    private IDialogReference dialogReference = null;
+    private IDialogService _dialogService;
+    private IDialogReference _dialogReference = null;
 
-    public UIControlsService(IDialogService dialogService)
+    public UiControlsService(IDialogService dialogService)
     {
-        this.dialogService = dialogService;
+        _dialogService = dialogService;
     }
 
     private void NotifyRightSidebarChange() => OnRightSidebarChange?.Invoke();
@@ -57,15 +57,15 @@ public class UIControlsService
             FullWidth = true,
             CloseButton = true,
             CloseOnEscapeKey = true,
-            DisableBackdropClick = true
+            BackdropClick = false
         };
 
-        dialogReference = dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
+        _dialogReference = _dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
     }
 
     public void HideDialog()
     {
-        dialogReference?.Close();
-        dialogReference = default;
+        _dialogReference?.Close();
+        _dialogReference = default;
     }
 }

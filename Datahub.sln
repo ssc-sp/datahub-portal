@@ -10,6 +10,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		COPYRIGHT.md = COPYRIGHT.md
 		dh-portal.ps1 = dh-portal.ps1
 		dotnet-upgrade.ps1 = dotnet-upgrade.ps1
+		gen-all-settings.ps1 = gen-all-settings.ps1
 		global.json = global.json
 		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
@@ -46,7 +47,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ResourceProvisioner.Functio
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Portal", "Portal", "{BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}"
 	ProjectSection(SolutionItems) = preProject
-		Portal\template.appsettings.json = Portal\template.appsettings.json
+		Portal\template.settings.json = Portal\template.settings.json
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}"
@@ -88,6 +89,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "infra", "infra", "{F3058DB1
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C709D8-8A40-45E3-BB40-2549AFECE6E6}"
 	ProjectSection(SolutionItems) = preProject
+		scripts\appsettings.psm1 = scripts\appsettings.psm1
 		bleach.ps1 = bleach.ps1
 		scripts\ConfigureAZCert.ps1 = scripts\ConfigureAZCert.ps1
 		scripts\find-translations.ps1 = scripts\find-translations.ps1
@@ -145,20 +147,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{12002871-1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions.UnitTests", "ServerlessOperations\test\Datahub.Functions.UnitTests\Datahub.Functions.UnitTests.csproj", "{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Functions.Domain", "ServerlessOperations\src\Datahub.Functions.Domain\Datahub.Functions.Domain.csproj", "{DB462B58-CFC4-4AEE-920E-AA308F14029C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E94EF665-2394-4C18-82F2-9150D0801CDE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E94EF665-2394-4C18-82F2-9150D0801CDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E94EF665-2394-4C18-82F2-9150D0801CDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -288,17 +284,25 @@ Global
 		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543}.Release|Any CPU.Build.0 = Release|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{12002871-163E-49CD-93DE-FBED9F5573E1} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
 		{48CAB0F7-CFCC-443B-B71D-E015878CE5B7} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
 		{40919C7D-5119-4821-9E51-96141E058E04} = {A3E0CF47-6B1D-41C1-B1A4-B4A92985E05F}
-		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
-		{8620F501-1D36-439E-9BF0-3BBEFB84DC56} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
-		{C26C43E3-D518-4E62-9FB5-A537E16AF543} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 		{E94EF665-2394-4C18-82F2-9150D0801CDE} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{EAADD301-947A-41AB-8036-BBB6B960C4FF} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{E73E776F-8787-40D3-B1EC-D97E29069945} = {40919C7D-5119-4821-9E51-96141E058E04}
@@ -337,6 +341,11 @@ Global
 		{D84C8789-E77F-438A-A0B6-7DB1695B9C17} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{212B26FF-4BBB-489C-B6EF-DDDC0D3ABE6B} = {40919C7D-5119-4821-9E51-96141E058E04}
 		{94807A1E-AC4C-4C56-90D4-9D8889EA2FCA} = {73AC16BF-F514-4081-8C74-63C6399260E0}
+		{8620F501-1D36-439E-9BF0-3BBEFB84DC56} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
+		{C26C43E3-D518-4E62-9FB5-A537E16AF543} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
+		{12002871-163E-49CD-93DE-FBED9F5573E1} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
+		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
+		{DB462B58-CFC4-4AEE-920E-AA308F14029C} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True

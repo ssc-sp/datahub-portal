@@ -1,9 +1,9 @@
 using Azure;
 using Azure.ResourceManager.Resources;
-using BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services;
@@ -14,6 +14,7 @@ using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.Extensions;
 using Reqnroll;
+using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -26,6 +27,7 @@ public class DatahubAzureSubscriptionHook
     {
         var configuration = new ConfigurationBuilder()
             .AddEnvironmentVariables()
+            .AddUserSecrets<Hooks>()
             .AddJsonFile("appsettings.test.json", optional: true)
             .Build();
         

@@ -1,17 +1,28 @@
-﻿<MudText Typo="Typo.h2" Class="mt-6">
+﻿@using Datahub.Application.Services.ReverseProxy
+@inject IReverseProxyConfigService ReverseProxyConfigService
+
+<MudText Typo="Typo.h2" Class="mt-6">
     @Localizer["Web Application Information"]
 </MudText>
 <MudSimpleTable Dense Hover Striped Outlined>
     <thead>
     <tr>
-        <th><b>@Localizer["Property"]</b></th>
-        <th><b>@Localizer["Value"]</b></th>
+        <th><strong>@Localizer["Property"]</strong></th>
+        <th><strong>@Localizer["Value"]</strong></th>
     </tr>
     </thead>
     <tbody>
     <tr>
         <td>
-            @Localizer["Proxy URL"]
+            @Localizer["Share link"]
+        </td>
+        <td>
+            <MudLink Href="@shareLink" Target="_blank">@shareLink</MudLink>
+        </td>
+    </tr>
+    <tr>
+        <td>
+            @Localizer["Proxy URL for development"]
         </td>
         <td>
             <MudLink Href="@_url" Target="_blank" >@_url</MudLink>
@@ -53,7 +64,6 @@
 </MudSimpleTable>
 
 @code {
-
     [Parameter] public string WebAppHost { get; set; }
 
     [Parameter] public string WebAppId { get; set; }
@@ -65,12 +75,19 @@
     [Parameter] public string ComposePath { get; set; }
     [Parameter] public string WorkspaceAcronym { get; set; }
 
+    private string shareLink = null!;
+
     private string _url;
-    
+
     protected override void OnParametersSet()
     {
-        _url = $"/{PageRoutes.WebAppPrefix}/{WorkspaceAcronym}/";
+        RefreshUrl();
+        shareLink = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
     }
 
+    public void RefreshUrl()
+    {
+        _url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
+    }
 
 }

@@ -1,0 +1,63 @@
+@using Datahub.Core
+@using MudBlazor.Utilities
+
+<h2 class="sr-only">
+    @Localizer["Environment information"]
+</h2>
+<p style="@_styles">
+    @EnvironmentLabel()
+</p>
+
+@code {
+
+    private string _styles = null!;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        _styles = new StyleBuilder()
+            .AddStyle("height", "20px")
+            .AddStyle("width", "100%")
+            .AddStyle("background-color", EnvironmentColor())
+            .AddStyle("position", "fixed")
+            .AddStyle("top", "0px")
+            .AddStyle("left", "0px")
+            .AddStyle("z-index", "1400")
+            .AddStyle("text-align", "center")
+            .AddStyle("font-size", "12px")
+            .AddStyle("color", "white")
+            .AddStyle("font-weight", "bold")
+            .AddStyle("font-family", "Consolas, monospace")
+            .Build();
+    }
+
+    private string EnvironmentLabel()
+    {
+        return DevTools.TopBarEnvironment() switch
+        {
+            DevTools.TopBarEnvironments.Development => Localizer["Development | Unclassified"],
+            DevTools.TopBarEnvironments.Integration => Localizer["Integration | Unclassified"],
+            DevTools.TopBarEnvironments.ProofOfConcept => Localizer["Non-Production | Unclassified"],
+            DevTools.TopBarEnvironments.Production => Localizer["Production | Unclassified"],
+            DevTools.TopBarEnvironments.QualityControl => Localizer["Quality Control | Unclassified"],
+            DevTools.TopBarEnvironments.ProductionProtected => Localizer["Production | Protected B"],
+            _ => "Unknown Environment"
+        };
+    }
+
+    private string EnvironmentColor()
+    {
+        return DevTools.TopBarEnvironment() switch
+        {
+            DevTools.TopBarEnvironments.Development => "#0071EB",
+            DevTools.TopBarEnvironments.Integration => "#CC6A00",
+            DevTools.TopBarEnvironments.ProofOfConcept => "#594ae2",
+            DevTools.TopBarEnvironments.Production => "#00602F",
+            DevTools.TopBarEnvironments.QualityControl => "#6A008A",
+            DevTools.TopBarEnvironments.ProductionProtected => "#B8291C",
+            _ => "#000"
+        };
+    }
+
+}

@@ -1,30 +1,32 @@
-
 @using Datahub.Application.Services.Metadata
 @using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Tools.Users
+@using Datahub.Core.Model.Achievements
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IMetadataBrokerService _metadataBrokerService
 
 @attribute [Route(PageRoutes.Explore)]
+@attribute [Route(PageRoutes.Explore_FR)]
 
 <PageTitle>
-    @Localizer["SSC Datahub - Explore"]
+    @Localizer["Explore - Federal Science DataHub"]
 </PageTitle>
-
-<SectionContent SectionName="side-bar">
-    <PersonalSidebar/>
-</SectionContent>
 
 @if (!_allProjects.Any())
 {
     <DHLoadingInitializer/>
     return;
 }
+
+
+
 <MudStack>
+    <DHMainContentTitle Title="@Localizer["Explore workspaces and users"]" />
     @if (_featuredProjects.Any())
     {
-        <MudText Typo="Typo.h1">@Localizer["Featured Workspaces"]</MudText>
+        <MudText Typo="Typo.h2">@Localizer["Featured Workspaces"]</MudText>
         <MudText Typo="Typo.body1">
             @Localizer["Featured workspaces are a selection of workspaces that are currently being promoted by the Datahub team. You can view these projects' shared content to see what they are working on."]
         </MudText>
@@ -37,12 +39,12 @@
             }
         </MudGrid>
     }
-    <MudText Typo="Typo.h1" Class="mt-6 mb-3">@Localizer["All Workspaces"]</MudText>
+    <MudText Typo="Typo.h2" Class="mt-6 mb-3">@Localizer["All Workspaces"]</MudText>
     <MudTable Striped Items="_filteredProjects" Class="mb-12" Filter="new Func<Datahub_Project, bool>(ProjectFilter)">
         <ToolBarContent>
             <MudTextField T="string" Placeholder="@Localizer["Search"]" DebounceInterval="500"
                           @bind-Value="_projectSearchFilter" Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true">
+                          AdornmentIcon="@Icons.Material.Filled.Search" Clearable="true" Label="@Localizer["Search"]">
             </MudTextField>
             <MudSpacer/>
         </ToolBarContent>
@@ -65,6 +67,7 @@
 
             <MudTh>
                 @*placeholder for the actions colum*@
+                <span class="sr-only">@Localizer["Open workspace page"]</span>
             </MudTh>
         </HeaderContent>
         <RowTemplate>
@@ -82,29 +85,35 @@
             </MudTd>
 
             <MudTd DataLabel="ProjectButton">
-                <MudButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
-                           Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
+                <DHButton EndIcon="@UserWorkspaceOpenIcon" Variant="Variant.Text" Color="Color.Primary"
+                          Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Project_Acronym_CD}")">
                     @Localizer["Open Workspace"]
-                </MudButton>
+                </DHButton>
             </MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"/>
         </PagerContent>
     </MudTable>
+    <MudText Typo="Typo.h2" Class="mt-6 mb-3">@Localizer["All Users"]</MudText>
+    <UsersTable UserWorkspaces="_userWorkspaces" HideInfo="true" @ref="_usersTable"/>
 </MudStack>
 
 @code {
 
-        private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
+    private const string UserWorkspaceOpenIcon = Icons.Material.Filled.KeyboardDoubleArrowRight;
 
     private List<Datahub_Project> _allProjects = new();
     private List<Datahub_Project> _filteredProjects = new();
     private List<Datahub_Project> _featuredProjects = new();
-        private const int FeaturedProjectsCount = 3;
+    private const int FeaturedProjectsCount = 3;
 
     private string _projectSearchFilter = string.Empty;
     private readonly Dictionary<string, string> _departments = new();
+
+    private UsersTable _usersTable;
+    private List<UserWorkspaces> _userWorkspaces;
+    private List<PortalUser> _portalUsers;
 
     protected override async Task OnInitializedAsync()
     {
@@ -116,7 +125,7 @@
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             .Include(p => p.Users)
             .Include(p => p.Repositories)
-    // .Include(p => p.SharedFiles)
+            // .Include(p => p.SharedFiles)
             .ToListAsync();
 
         _filteredProjects = _allProjects;
@@ -124,6 +133,16 @@
             .Where(p => p.Is_Featured)
             .Take(FeaturedProjectsCount)
             .ToList();
+
+        _portalUsers = await context.PortalUsers.ToListAsync();
+
+        _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
+        {
+            User = u,
+            Workspaces = context.Project_Users.Include(pu => pu.Project)
+                .Where(pu => pu.PortalUser.GraphGuid == u.GraphGuid)
+                .Select(pu => pu.Project).ToList(),
+        }).ToList();
 
         await LoadMetadata();
     }

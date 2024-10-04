@@ -1,13 +1,13 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Infrastructure.Queues.MessageHandlers;
 
-public class ProjectCapacityUpdateSender : QueueMessageSender<ProjectCapacityUpdateMessage>
+public class ProjectCapacityUpdateSender(ISendEndpointProvider sendEndpointProvider)
+    : QueueMessageSender<ProjectCapacityUpdateMessage>(sendEndpointProvider)
 {
-    public ProjectCapacityUpdateSender(IConfiguration configuration) : base(configuration)
-    {
-    }
 
-    protected override string ConfigPathOrQueueName => "QueueProjectCapacityUpdate";
+    protected override string ConfigPathOrQueueName => QueueConstants.ProjectCapacityUpdateQueueName;
 }

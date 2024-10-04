@@ -4,7 +4,6 @@
 @implements IDisposable
 @inject ILogger<DHBreadcrumbs> _logger
 @inject IMSGraphService _mSGraphService
-@inject CultureService _cultureService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 @if (_isResourcePage)
@@ -12,7 +11,7 @@
     return;
 }
 
-<div class="reader-only" id="breadcrumb"><h3>@Localizer["Breadcrumb"]</h3></div>
+<div class="sr-only" id="breadcrumb"><h3>@Localizer["Breadcrumb"]</h3></div>
 <MudBreadcrumbs Items="@_items" Separator=">" Class="mb-8 ml-n4">
     <ItemTemplate Context="item">
         @if (!item.Disabled)
@@ -20,7 +19,7 @@
             <MudLink Href="@item.Href" Typo="Typo.body1">
                 @if (item.Icon != null)
                 {
-                    <MudIcon Icon="@item.Icon" Class="mr-2"/>
+                    <DHIcon Icon="@item.Icon" Class="mr-2" />
                 }
                 @item.Text
             </MudLink>
@@ -30,7 +29,7 @@
             <MudText Typo="Typo.body1">
                 @if (item.Icon != null)
                 {
-                    <MudIcon Icon="@item.Icon" Class="mr-2"/>
+                    <DHIcon Icon="@item.Icon" Class="mr-2" />
                 }
                 @item.Text
             </MudText>

@@ -1,338 +1,482 @@
 ﻿using System.Text.Json;
-using Datahub.Application.Services.Budget;
-using Datahub.Core.Model.Datahub;
+using Datahub.Application.Configuration;
+using Datahub.Application.Services.Cost;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using FluentAssertions;
+using MassTransit.Transports;
 using Microsoft.EntityFrameworkCore;
 using Reqnroll;
 
 namespace Datahub.SpecflowTests.Steps
 {
     [Binding]
-    public sealed class WorkspaceCostsSteps(ScenarioContext _scenarioContext, IWorkspaceCostManagementService _sut, IDbContextFactory<DatahubProjectDBContext> _dbContextFactory)
+    public sealed class WorkspaceCostsSteps(
+        ScenarioContext scenarioContext,
+        IWorkspaceCostManagementService sut,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        DatahubPortalConfiguration datahubPortalConfiguration)
     {
-        [Given(@"a workspace with a subscription cost of at most (.*)")]
-        public void GivenAWorkspaceWithASubscriptionCostOfAtMost(int subCosts)
+        [Given(@"a workspace with known costs")]
+        public void GivenAWorkspaceWithKnownCosts()
         {
-            _scenarioContext["subscriptionCost"] = subCosts;
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
-        [When(@"the subscription cost is mock queried")]
-        public async Task WhenTheSubscriptionCostIsMockQueried()
-        {
-            var startDate = DateTime.UtcNow.Date.AddDays(-1);
-            var endDate = DateTime.UtcNow.Date;
-            var actualAmount = await _sut.QuerySubscriptionCosts(null, startDate, endDate, mock: true);
-            if (actualAmount is null)
-            {
-                _scenarioContext["actualAmount"] = new List<DailyServiceCost> { };
-            }
-            else
-            {
-                _scenarioContext["actualAmount"] = actualAmount;
-            }
-        }
 
-        [Then(@"the result should not exceed the expected value")]
-        public void ThenTheResultShouldBeAtMost()
+        [When(@"I query the daily costs for the workspace")]
+        public async Task WhenIQueryTheDailyCostsForTheWorkspace()
         {
-            var actualAmount = _scenarioContext["actualAmount"] as List<DailyServiceCost>;
-            var subscriptionCost = _scenarioContext["subscriptionCost"] as int? ?? 0;
-            var sum = actualAmount.Sum(c => c.Amount);
-            sum.Should().BeGreaterThan(0);
-            sum.Should().BeLessThanOrEqualTo(subscriptionCost);
-        }
-
-        [When(@"the subscription cost is mock queried with an invalid date range")]
-        public async Task WhenTheSubscriptionCostIsMockQueriedWithAnInvalidDateRange()
-        {
-            var startDate = new DateTime(2023, 1, 1);
-            var endDate = new DateTime(2022, 1, 1);
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
             try
             {
-                await _sut.QuerySubscriptionCosts(null, startDate, endDate);
+                var costs = await sut.QueryWorkspaceCostsAsync(acronym, Testing.Dates.First(),
+                    Testing.Dates.Last(), QueryGranularity.Daily);
+                scenarioContext.Set(costs, "costs");
+                scenarioContext.Set(true, "success");
             }
             catch
             {
-                _scenarioContext["exception1Thrown"] = true;
+                scenarioContext.Set(false, "success");
             }
+        }
 
-            startDate = new DateTime(2021, 1, 1);
-            endDate = new DateTime(2024, 1, 1);
+        [Then(@"I should receive the correct daily costs")]
+        public void ThenIShouldReceiveTheCorrectDailyCosts()
+        {
+            var costs = scenarioContext.Get<List<DailyServiceCost>>("costs");
+            var timeDiff = (int)Math.Round((Testing.Dates.Last() - Testing.Dates.First()).TotalDays);
+            costs.Should().NotBeNull();
+            costs.Count.Should().BeGreaterOrEqualTo(timeDiff);
+            costs.Should().AllSatisfy(c =>
+            {
+                var b = c.Amount > 0 && c.Amount < 10 && c.ResourceGroupName == Testing.ExistingTestRg &&
+                        c.Date >= Testing.Dates.First() && c.Date <= Testing.Dates.Last();
+            });
+        }
+
+        [Given(@"a subscription with known costs")]
+        public void GivenASubscriptionWithKnownCosts()
+        {
+            scenarioContext.Set(datahubPortalConfiguration.AzureAd.SubscriptionId, "subscriptionId");
+        }
+
+        [When(@"I query the daily costs for the subscription")]
+        public async Task WhenIQueryTheDailyCostsForTheSubscription()
+        {
+            var subscriptionId = scenarioContext.Get<string>("subscriptionId");
+            var costs = await sut.QuerySubscriptionCostsAsync(subscriptionId, Testing.Dates.First(),
+                Testing.Dates.Last(), QueryGranularity.Daily);
+            scenarioContext.Set(costs, "costs");
+        }
+
+        [When(@"I query the total costs for the workspace")]
+        public async Task WhenIQueryTheTotalCostsForTheWorkspace()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var costs = await sut.QueryWorkspaceCostsAsync(acronym, Testing.Dates.First(), Testing.Dates.Last(),
+                QueryGranularity.Total);
+            scenarioContext.Set(costs, "totals");
+        }
+
+        [Then(@"I should receive the correct total costs")]
+        public void ThenIShouldReceiveTheCorrectTotalCosts()
+        {
+            var totals = scenarioContext.Get<List<DailyServiceCost>>("totals");
+            totals.Should().NotBeNull();
+            totals.Count.Should().Be(1);
+            totals.TotalAmount().Should().BeApproximately(Testing.ExistingTestRgTotal, (decimal)0.4);
+            totals.Should().AllSatisfy(c =>
+            {
+                var b = c.ResourceGroupName == Testing.ExistingTestRg;
+            });
+        }
+
+        [When(@"I query the total costs for the subscription")]
+        public async Task WhenIQueryTheTotalCostsForTheSubscription()
+        {
+            var subscriptionId = scenarioContext.Get<string>("subscriptionId");
+            var costs = await sut.QuerySubscriptionCostsAsync(subscriptionId, Testing.Dates.First(),
+                Testing.Dates.Last(), QueryGranularity.Total);
+            scenarioContext.Set(costs, "totals");
+        }
+
+        [Given(@"a workspace with existing costs and credits")]
+        public void GivenAWorkspaceWithExistingCostsAndCredits()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+        }
+
+        [When(@"I update the costs for the workspace")]
+        public async Task WhenIUpdateTheCostsForTheWorkspace()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.FirstOrDefault(p => p.Project_Acronym_CD == acronym);
+            var existingCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var costs = new List<DailyServiceCost>
+            {
+                new()
+                {
+                    Amount = 1, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ExistingTestRg,
+                    Source = "Service1"
+                },
+                new()
+                {
+                    Amount = 2, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ExistingTestRg,
+                    Source = "Service2"
+                },
+                new()
+                {
+                    Amount = 3, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ExistingTestRg,
+                    Source = "Service3"
+                },
+            };
+            var (rollOver, lastYearTotal) = await sut.UpdateWorkspaceCostsAsync(acronym, costs);
+            scenarioContext.Set(existingCosts, "existingCosts");
+            scenarioContext.Set(costs, "costs");
+            scenarioContext.Set(rollOver, "rollOver");
+            scenarioContext.Set(lastYearTotal, "actualLastYearTotal");
+        }
+
+
+        [Then(@"the costs and credits records should reflect the new costs")]
+        public async Task ThenTheCostsAndCreditsRecordsShouldReflectTheNewCosts()
+        {
+            var costs = scenarioContext.Get<List<DailyServiceCost>>("costs");
+            var existingCosts = scenarioContext.Get<List<DailyServiceCost>>("existingCosts");
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var projectCredits = ctx.Project_Credits.FirstOrDefault(c => c.ProjectId == project.Project_ID);
+            projectCosts.Count.Should().Be(costs.Count + existingCosts.Count);
+            projectCosts.Should().AllSatisfy(c =>
+            {
+                var existingInExisting = existingCosts.FirstOrDefault(n =>
+                    n.Date == c.Date && n.Source == c.Source && n.Amount == c.Amount);
+                var existingInNew =
+                    costs.FirstOrDefault(n => n.Date == c.Date && n.Source == c.Source && n.Amount == c.Amount);
+                var b = (existingInNew != null || existingInExisting != null);
+            });
+            projectCredits.Should().NotBeNull();
+            projectCredits!.Current.Should().Be((double)projectCosts.TotalAmount());
+            projectCredits.CurrentPerDay.Should().Be(JsonSerializer.Serialize(projectCosts.GroupByDate()));
+            projectCredits.CurrentPerService.Should().Be(JsonSerializer.Serialize(projectCosts.GroupBySource()));
+            projectCredits.YesterdayCredits.Should()
+                .Be((double)projectCosts.FilterDateRange(DateTime.UtcNow.Date.AddDays(-1)).TotalAmount());
+            projectCredits.YesterdayPerService.Should()
+                .Be(JsonSerializer.Serialize(projectCosts.FilterDateRange(DateTime.UtcNow.Date.AddDays(-1))
+                    .GroupBySource()));
+            projectCredits.LastUpdate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromMinutes(1));
+        }
+
+        [Given(@"a workspace with no existing costs or credits")]
+        public void GivenAWorkspaceWithNoExistingCostsOrCredits()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym2, "workspaceAcronym");
+        }
+
+        [When(@"I update the costs with existing cost but different enough values")]
+        public async Task WhenIUpdateTheCostsWithExistingCostButDifferentEnoughValues()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var existingCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var existingCost = existingCosts.First();
+            var newCosts = new List<DailyServiceCost>
+            {
+                new DailyServiceCost
+                {
+                    Amount = existingCost.Amount * 10,
+                    Date = existingCost.Date,
+                    ResourceGroupName = Testing.ExistingTestRg,
+                    Source = existingCost.Source
+                }
+            };
+            await sut.UpdateWorkspaceCostsAsync(acronym, newCosts);
+            scenarioContext.Set(existingCosts, "existingCosts");
+            scenarioContext.Set(newCosts, "updatedCosts");
+        }
+
+        [Then(@"the relevant cost should be updated")]
+        public void ThenTheRelevantCostShouldBeUpdated()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var existingCosts = scenarioContext.Get<List<DailyServiceCost>>("existingCosts");
+            var existingCost = existingCosts.First();
+            var updatedCosts = scenarioContext.Get<List<DailyServiceCost>>("updatedCosts");
+            var updatedCost = updatedCosts.First();
+            using var ctx = dbContextFactory.CreateDbContext();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var costInQuestion =
+                projectCosts.First(c => c.Date == existingCost.Date && c.Source == existingCost.Source);
+            costInQuestion.Amount.Should().Be(updatedCost.Amount);
+            projectCosts.Count.Should().Be(existingCosts.Count);
+
+            scenarioContext.Set(projectCosts, "costs");
+            scenarioContext.Set(new List<DailyServiceCost>(), "existingCosts");
+        }
+
+        [When(@"I update the costs with existing cost but similar values")]
+        public async Task WhenIUpdateTheCostsWithExistingCostButSimilarValues()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var existingCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var existingCost = existingCosts.First();
+            var newCosts = new List<DailyServiceCost>
+            {
+                new DailyServiceCost
+                {
+                    Amount = existingCost.Amount + (decimal)0.05,
+                    Date = existingCost.Date,
+                    ResourceGroupName = Testing.ExistingTestRg,
+                    Source = existingCost.Source
+                }
+            };
+            await sut.UpdateWorkspaceCostsAsync(acronym, newCosts);
+            scenarioContext.Set(existingCosts, "existingCosts");
+            scenarioContext.Set(newCosts, "updatedCosts");
+        }
+
+        [Then(@"the relevant cost should not be updated")]
+        public async Task ThenTheRelevantCostShouldNotBeUpdated()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var existingCosts = scenarioContext.Get<List<DailyServiceCost>>("existingCosts");
+            var existingCost = existingCosts.First();
+            var updatedCosts = scenarioContext.Get<List<DailyServiceCost>>("updatedCosts");
+            var updatedCost = updatedCosts.First();
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var costInQuestion =
+                projectCosts.First(c => c.Date == existingCost.Date && c.Source == existingCost.Source);
+            costInQuestion.Amount.Should().Be(existingCost.Amount);
+            projectCosts.Count.Should().Be(existingCosts.Count);
+
+            scenarioContext.Set(projectCosts, "costs");
+            scenarioContext.Set(new List<DailyServiceCost>(), "existingCosts");
+        }
+
+        [Given(@"a workspace with total costs that match Azure totals")]
+        public void GivenAWorkspaceWithTotalCostsThatMatchAzureTotals()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            scenarioContext.Set(0, "variance");
+        }
+
+        [When(@"I verify if a refresh is needed")]
+        public async Task WhenIVerifyIfARefreshIsNeeded()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var variance = scenarioContext.Get<int>("variance");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var costs = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var totals = new List<DailyServiceCost>
+            {
+                new()
+                {
+                    Amount = costs.TotalAmount() + variance,
+                    ResourceGroupName = Testing.ExistingTestRg
+                }
+            };
+            var refreshNeeded = await sut.VerifyAndRefreshWorkspaceCostsAsync(acronym, totals, executeRefresh: false);
+            scenarioContext.Set(refreshNeeded, "refreshNeeded");
+        }
+
+        [Then(@"no refresh should be needed")]
+        public void ThenNoRefreshShouldBeNeeded()
+        {
+            var refreshNeeded = scenarioContext.Get<bool>("refreshNeeded");
+            refreshNeeded.Should().BeFalse();
+        }
+
+        [Given(@"a workspace with total costs that do not match Azure totals")]
+        public void GivenAWorkspaceWithTotalCostsThatDoNotMatchAzureTotals()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            scenarioContext.Set(1000, "variance");
+        }
+
+        [Then(@"a refresh should be needed")]
+        public void ThenARefreshShouldBeNeeded()
+        {
+            scenarioContext.Get<bool>("refreshNeeded").Should().BeTrue();
+        }
+
+        [When(@"I refresh the costs for the workspace")]
+        public async Task WhenIRefreshTheCostsForTheWorkspace()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var refreshed = await sut.RefreshWorkspaceCostsAsync(acronym);
+            scenarioContext.Set(refreshed, "refreshed");
+        }
+
+        [Then(@"there should be costs for the whole fiscal year and the credits should be updated")]
+        public void ThenThereShouldBeCostsForTheWholeFiscalYearAndTheCreditsShouldBeUpdated()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var refreshed = scenarioContext.Get<bool>("refreshed");
+            using var ctx = dbContextFactory.CreateDbContext();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            refreshed.Should().BeTrue();
+            projectCosts.Should().AllSatisfy(c =>
+            {
+                var b = c.Date > CostManagementUtilities.CurrentFiscalYear.StartDate &&
+                        c.Date < CostManagementUtilities.CurrentFiscalYear.EndDate;
+            });
+            projectCosts.Any(c => c.Date < Testing.Dates.First()).Should().BeTrue();
+            projectCosts.TotalAmount().Should().BeApproximately(Testing.ExistingTestRgTotal, (decimal)0.04);
+            var projectCredits = ctx.Project_Credits.FirstOrDefault(c => c.ProjectId == project.Project_ID);
+            projectCredits.Should().NotBeNull();
+            projectCredits!.Current.Should().BeApproximately((double)Testing.ExistingTestRgTotal, 0.04);
+        }
+
+        [Given(@"a non-existent workspace acronym")]
+        public void GivenANonExistentWorkspaceAcronym()
+        {
+            scenarioContext.Set(Testing.InvalidWorkspaceAcronym, "workspaceAcronym");
+        }
+
+        [Then(@"I should receive an error")]
+        public void ThenIShouldReceiveAnError()
+        {
+            scenarioContext.Get<bool>("success").Should().BeFalse();
+        }
+
+        [When(@"I query the costs for the workspace with an invalid date range")]
+        public async Task WhenIQueryTheCostsForTheWorkspaceWithAnInvalidDateRange()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
             try
             {
-                await _sut.QuerySubscriptionCosts(null, startDate, endDate);
+                await sut.QueryWorkspaceCostsAsync(acronym, Testing.Dates.Last(),
+                    Testing.Dates.First(), QueryGranularity.Daily);
+                scenarioContext.Set(true, "success");
             }
             catch
             {
-                _scenarioContext["exception2Thrown"] = true;
+                scenarioContext.Set(false, "success");
+            }
+
+            try
+            {
+                await sut.QueryWorkspaceCostsAsync(acronym, DateTime.MinValue,
+                    DateTime.MaxValue, QueryGranularity.Daily);
+                scenarioContext.Set(true, "success");
+            }
+            catch
+            {
+                scenarioContext.Set(false, "success");
             }
         }
 
-        [Then(@"an error should be returned")]
-        public void ThenAnErrorShouldBeReturned()
+        [When(@"I update the costs with no new costs")]
+        public async Task WhenIUpdateTheCostsWithNoNewCosts()
         {
-            var exception1Thrown = _scenarioContext["exception1Thrown"] as bool? ?? false;
-            var exception2Thrown = _scenarioContext["exception2Thrown"] as bool? ?? false;
-            exception1Thrown.Should().BeTrue();
-            exception2Thrown.Should().BeTrue();
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var existingCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var existingCredits = ctx.Project_Credits.FirstOrDefault(c => c.ProjectId == project.Project_ID);
+            await sut.UpdateWorkspaceCostsAsync(acronym, new List<DailyServiceCost>());
+            scenarioContext.Set(existingCosts, "existingCosts");
+            scenarioContext.Set(existingCredits, "existingCredits");
         }
 
-        [Given(@"a list of mock costs")]
-        public void GivenAListOfMockCosts()
+        [Then(@"the costs and credits records should not change")]
+        public async Task ThenTheCostsAndCreditsRecordsShouldNotChange()
         {
-            var mockCosts = _scenarioContext["mockCosts"];
-            var type = mockCosts is List<DailyServiceCost>;
-            type.Should().BeTrue();
-        }
-
-        [When(@"the costs are grouped by source")]
-        public void WhenTheCostsAreGroupedBySource()
-        {
-            var mockCosts = _scenarioContext["mockCosts"] as List<DailyServiceCost>;
-            var groupedCosts = _sut.GroupBySource(mockCosts);
-            _scenarioContext["groupedCosts"] = groupedCosts;
-        }
-
-        [Then(@"the result should have the expected count and total of source costs")]
-        public void ThenTheResultShouldHaveTheExpectedCountOfSourceCosts()
-        {
-            var groupedCosts = _scenarioContext["groupedCosts"] as List<DailyServiceCost>;
-            var dbSource = _scenarioContext["dbSource"] as string;
-            var storageSource = _scenarioContext["storageSource"] as string;
-
-            var dbCosts = groupedCosts.FirstOrDefault(c => c.Source == dbSource);
-            var storageCosts = groupedCosts.FirstOrDefault(c => c.Source == storageSource);
-
-            groupedCosts.Should().NotBeNull();
-            groupedCosts.Count.Should().Be(2);
-            dbCosts.Should().NotBeNull();
-            dbCosts.Amount.Should().Be(4);
-            storageCosts.Should().NotBeNull();
-            storageCosts.Amount.Should().Be(2);
-        }
-
-        [When(@"the costs are grouped by date")]
-        public void WhenTheCostsAreGroupedByDate()
-        {
-            var mockCosts = _scenarioContext["mockCosts"] as List<DailyServiceCost>;
-            var groupedCosts = _sut.GroupByDate(mockCosts);
-            _scenarioContext["groupedCosts"] = groupedCosts;
-        }
-
-        [Then(@"the result should have the expected count and total of daily costs")]
-        public void ThenTheResultShouldHaveTheExpectedCountOfDailyCosts()
-        {
-            var groupedCosts = _scenarioContext["groupedCosts"] as List<DailyServiceCost>;
-            var date1 = _scenarioContext["date1"] as DateTime? ?? DateTime.MinValue;
-            var date2 = _scenarioContext["date2"] as DateTime? ?? DateTime.MinValue;
-
-            var date1Costs = groupedCosts.FirstOrDefault(c => c.Date == date1);
-            var date2Costs = groupedCosts.FirstOrDefault(c => c.Date == date2);
-
-            groupedCosts.Should().NotBeNull();
-            groupedCosts.Count.Should().Be(2);
-            date1Costs.Should().NotBeNull();
-            date1Costs.Amount.Should().Be(3);
-            date2Costs.Should().NotBeNull();
-            date2Costs.Amount.Should().Be(3);
-        }
-
-        [When(@"the costs are filtered by the current fiscal year")]
-        public void WhenTheCostsAreFilteredByTheCurrentFiscalYear()
-        {
-            var mockCosts = _scenarioContext["mockCosts"] as List<DailyServiceCost>;
-            var filteredCosts = _sut.FilterCurrentFiscalYear(mockCosts);
-            _scenarioContext["filteredCosts"] = filteredCosts;
-        }
-
-        [Then(@"the result should have the expected count and total of fiscal year costs")]
-        public void ThenTheResultShouldHaveTheExpectedCountOfFiscalYearCosts()
-        {
-            var filteredCosts = _scenarioContext["filteredCosts"] as List<DailyServiceCost>;
-            filteredCosts.Should().NotBeNull();
-            filteredCosts.Count.Should().Be(2);
-        }
-
-        [When(@"the costs are filtered by the last fiscal year")]
-        public void WhenTheCostsAreFilteredByTheLastFiscalYear()
-        {
-            var mockCosts = _scenarioContext["mockCosts"] as List<DailyServiceCost>;
-            var filteredCosts = _sut.FilterLastFiscalYear(mockCosts);
-            _scenarioContext["filteredCosts"] = filteredCosts;
-        }
-
-        [Then(@"the result should have the expected count and total of last fiscal year costs")]
-        public void ThenTheResultShouldHaveTheExpectedCountOfLastFiscalYearCosts()
-        {
-            var filteredCosts = _scenarioContext["filteredCosts"] as List<DailyServiceCost>;
-            filteredCosts.Should().NotBeNull();
-            filteredCosts.Count.Should().Be(1);
-        }
-
-        [When(@"the costs are filtered by a specific date range")]
-        public void WhenTheCostsAreFilteredByASpecificDateRange()
-        {
-            var mockCosts = _scenarioContext["mockCosts"] as List<DailyServiceCost>;
-            var date1 = _scenarioContext["date1"] as DateTime? ?? DateTime.MinValue;
-            var date2 = _scenarioContext["date2"] as DateTime? ?? DateTime.MinValue;
-            var startDate = date1.AddDays(-10);
-            var endDate = date1.AddDays(10); 
-            var filteredCosts1 = _sut.FilterDateRange(mockCosts, startDate, endDate);
-            _scenarioContext["filteredCosts1"] = filteredCosts1;
-
-            var singleDate = date1;
-            var filteredCosts2 = _sut.FilterDateRange(mockCosts, singleDate);
-            _scenarioContext["filteredCosts2"] = filteredCosts2;
-            
-            var invalidStartDate = date1.AddDays(10);
-            var invalidEndDate = date1.AddDays(20);
-            var filteredCosts3 = _sut.FilterDateRange(mockCosts, invalidStartDate, invalidEndDate);
-            _scenarioContext["filteredCosts3"] = filteredCosts3;
-        }
-
-        [Then(@"the result should have the expected count and total of costs in the date range")]
-        public void ThenTheResultShouldHaveTheExpectedCountOfCostsInTheDateRange()
-        {
-            var filteredCosts1 = _scenarioContext["filteredCosts1"] as List<DailyServiceCost>;
-            filteredCosts1.Should().NotBeNull();
-            filteredCosts1.Count.Should().Be(2);
-            
-            var filteredCosts2 = _scenarioContext["filteredCosts2"] as List<DailyServiceCost>;
-            filteredCosts2.Should().NotBeNull();
-            filteredCosts2.Count.Should().Be(2);
-            
-            var filteredCosts3 = _scenarioContext["filteredCosts3"] as List<DailyServiceCost>;
-            filteredCosts3.Should().NotBeNull();
-            filteredCosts3.Count.Should().Be(0);
-        }
-
-        [When(@"the costs are filtered by a specific workspace")]
-        public async Task WhenTheCostsAreFilteredByASpecificWorkspace()
-        {
-            var mockCosts = _scenarioContext["mockCosts"] as List<DailyServiceCost>;
-            var workspaceAcronym = "test";
-            var rgNames = new List<string>
+            var existingCosts = scenarioContext.Get<List<DailyServiceCost>>("existingCosts");
+            var existingCredits = scenarioContext.Get<Project_Credits>("existingCredits");
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
+            var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
+                new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
+            var projectCredits = ctx.Project_Credits.FirstOrDefault(c => c.ProjectId == project.Project_ID);
+            projectCosts.Count.Should().Be(existingCosts.Count);
+            projectCosts.Should().AllSatisfy(c =>
             {
-                _scenarioContext["resourceGroup1"] as string
-            };
-            var filteredCosts = await _sut.FilterWorkspaceCosts(mockCosts, workspaceAcronym, rgNames);
-            _scenarioContext["filteredCosts"] = filteredCosts;
+                var existingInExisting = existingCosts.FirstOrDefault(n =>
+                    n.Date == c.Date && n.Source == c.Source && n.Amount == c.Amount);
+                var b = existingInExisting != null;
+            });
+            projectCredits.Should().NotBeNull();
+            projectCredits!.Current.Should().Be(existingCredits.Current);
+            projectCredits.CurrentPerDay.Should().Be(existingCredits.CurrentPerDay);
+            projectCredits.CurrentPerService.Should().Be(existingCredits.CurrentPerService);
+            projectCredits.YesterdayCredits.Should().Be(existingCredits.YesterdayCredits);
+            projectCredits.YesterdayPerService.Should().Be(existingCredits.YesterdayPerService);
         }
 
-        [Then(@"the result should have the expected count and total of costs in the workspace")]
-        public void ThenTheResultShouldHaveTheExpectedCountOfCostsInTheWorkspace()
+        [When(@"I update the costs for the non-existent workspace")]
+        public async Task WhenIUpdateTheCostsForTheNonExistentWorkspace()
         {
-            var filteredCosts = _scenarioContext["filteredCosts"] as List<DailyServiceCost>;
-            filteredCosts.Should().NotBeNull();
-            filteredCosts.Count.Should().Be(2);
-        }
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
 
-        [Given(@"a workspace, with populated costs and credits")]
-        public async Task GivenAWorkspaceWithPopulatedCostsAndCredits()
-        {
-            var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var dbSource = _scenarioContext["dbSource"] as string;
-            var storageSource = _scenarioContext["storageSource"] as string;
-            
-            var credits = new Project_Credits
+            try
             {
-                ProjectId = 1,
-                Current = 10.0,
-                LastUpdate = DateTime.UtcNow.Date.AddDays(-1),
-                BudgetCurrentSpent = 10.2,
-                CurrentPerDay = "",
-                CurrentPerService = "",
-                YesterdayPerService = "",
-                YesterdayCredits = 1.0,
-            };
-            
-            var project = new Datahub_Project
-            {
-                Project_Name = "Test Project",
-                Project_Acronym_CD = "TEST",
-                Project_ID = 1
-            };
-
-            var costs = new List<Datahub_Project_Costs>
-            {
-                new()
+                var testCosts = new List<DailyServiceCost>
                 {
-                    ServiceName = dbSource,
-                    Date = DateTime.UtcNow.Date.AddDays(-3),
-                    Project_ID = 1,
-                    CloudProvider = "azure",
-                    CadCost = 1.5
-                },
-                new()
-                {
-                    ServiceName = storageSource,
-                    Date = DateTime.UtcNow.Date.AddDays(-3),
-                    Project_ID = 1,
-                    CloudProvider = "azure",
-                    CadCost = 2.5
-                },
-                new()
-                {
-                    ServiceName = dbSource,
-                    Date = DateTime.UtcNow.Date.AddDays(-2),
-                    Project_ID = 1,
-                    CloudProvider = "azure",
-                    CadCost = 3.5
-                },
-            };
+                    new() { Amount = 1, Date = Testing.Dates.First(), Source = Testing.ServiceNames.First() }
+                };
+                await sut.UpdateWorkspaceCostsAsync(acronym, testCosts);
+                scenarioContext.Set(true, "success");
+            }
+            catch
+            {
+                scenarioContext.Set(false, "success");
+            }
+        }
 
-            await ctx.Projects.AddAsync(project);
-            await ctx.Project_Credits.AddAsync(credits);
-            await ctx.Project_Costs.AddRangeAsync(costs);
+        [Given(@"a workspace with existing costs and credits that need a rollover")]
+        public async Task GivenAWorkspaceWithExistingCostsAndCreditsThatNeedARollover()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+            var costs = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).ToList();
+            var credits = ctx.Project_Credits.First(c => c.ProjectId == project.Project_ID);
+            var firstCost = costs.First();
+            firstCost.Date = DateTime.UtcNow.Date.AddYears(-1);
+            firstCost.CadCost = 100;
+            ctx.Project_Costs.Update(firstCost);
+            credits.LastUpdate = DateTime.UtcNow.AddYears(-1);
+            ctx.Project_Credits.Update(credits);
             await ctx.SaveChangesAsync();
+            scenarioContext.Set((decimal)100.0, "lastYearTotal");
         }
 
-        [When(@"the costs are updated")]
-        public async Task WhenTheCostsAreUpdated()
+        [Then(@"a rollover needed is returned")]
+        public void ThenARolloverNeededIsReturned()
         {
-            var updateMockCosts = _scenarioContext["updateMockCosts"] as List<DailyServiceCost>;
-            var workspaceAcronym = "TEST";
-            var rgNames = new List<string>
-            {
-                _scenarioContext["resourceGroup1"] as string
-            };
-            var (rollover, lastFiscalYearCosts) = await _sut.UpdateWorkspaceCostAsync(updateMockCosts, workspaceAcronym, rgNames);
-            _scenarioContext["rollover"] = rollover;
-            _scenarioContext["lastFiscalYearCosts"] = lastFiscalYearCosts;
+            var rollOver = scenarioContext.Get<bool>("rollOver");
+            rollOver.Should().BeTrue();
         }
 
-        [Then(@"the costs table and credits table should be updated accordingly and correctly")]
-        public async Task ThenTheCostsTableAndCreditsTableShouldBeUpdatedAccordinglyAndCorrectly()
+        [Then(@"the correct amount of costs is given")]
+        public void ThenTheCorrectAmountOfCostsIsGiven()
         {
-            var rollover = _scenarioContext["rollover"] as bool? ?? false;
-            var lastFiscalYearCosts = _scenarioContext["lastFiscalYearCosts"] as decimal? ?? 0;
-            var dbSource = _scenarioContext["dbSource"] as string;
-            var storageSource = _scenarioContext["storageSource"] as string;
-            
-            rollover.Should().BeFalse();
-            lastFiscalYearCosts.Should().Be(0);
-            
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == "TEST");
-            var credits = await ctx.Project_Credits.FirstOrDefaultAsync(c => c.ProjectId == project.Project_ID);
-            var costs = await ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).ToListAsync();
-            var creditsCurrentPerDay = JsonSerializer.Deserialize<List<DailyServiceCost>>(credits.CurrentPerDay);
-            var creditsCurrentPerService = JsonSerializer.Deserialize<List<DailyServiceCost>>(credits.CurrentPerService);
-            var creditsYesterdayPerService = JsonSerializer.Deserialize<List<DailyServiceCost>>(credits.YesterdayPerService);
-            
-            credits.LastUpdate.Should().BeAfter(DateTime.UtcNow.Date.AddDays(-1));
-            credits.Current.Should().Be(13.5);
-            credits.YesterdayCredits.Should().Be(3.0);
-            creditsCurrentPerDay.Count.Should().Be(4);
-            creditsCurrentPerDay.Sum(c => c.Amount).Should().Be((decimal)13.5);
-            creditsCurrentPerDay.All(c => c.Source == "Day").Should().BeTrue();
-            creditsCurrentPerService.Count.Should().Be(2);
-            creditsCurrentPerService.Sum(c => c.Amount).Should().Be((decimal)13.5);
-            creditsCurrentPerService.All(c => c.Source == dbSource || c.Source == storageSource).Should().BeTrue();
-            creditsYesterdayPerService.Count.Should().Be(1);
-            creditsYesterdayPerService.Sum(c => c.Amount).Should().Be((decimal)3.0);
-            creditsYesterdayPerService.All(c => c.Source == dbSource).Should().BeTrue();
+            var actualLastYearTotal = scenarioContext.Get<decimal>("actualLastYearTotal");
+            var lastYearTotal = scenarioContext.Get<decimal>("lastYearTotal");
+            actualLastYearTotal.Should().Be(lastYearTotal);
         }
     }
 }

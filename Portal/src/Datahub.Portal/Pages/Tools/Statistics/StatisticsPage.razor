@@ -1,11 +1,12 @@
 @using Datahub.Shared.Entities
 @using System.Text.Json
+@using Datahub.Application.Services.Cost
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudStack>
-    <MudText Typo="Typo.h1">DataHub Statistics</MudText>
+    <MudText Typo="Typo.h2">DataHub Statistics</MudText>
     <MudText>This page shows statistics about the DataHub.</MudText>
 
     <MudTable Items="@_statsRows" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info">
@@ -66,9 +67,9 @@
                 @context.Collaborators?.Count
             </MudTd>
             <MudTd>
-                <MudButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
+                <DHButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
                     @(context.ShowUserDetails ? "Hide" : "Show") User details
-                </MudButton>
+                </DHButton>
             </MudTd>
             <MudTd DataLabel="Budget">
                 <MudTooltip Text="@($"{context.BudgetSpent.ToString("C", CultureInfo.CurrentCulture)} / {context.BudgetLimit.ToString("C", CultureInfo.CurrentCulture)}")">
@@ -81,21 +82,21 @@
             <MudTd DataLabel="Metadata">
                 @if (context.MetadataComplete)
                 {
-                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success"/>
+                    <DHIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
                 }
                 else
                 {
-                    <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning"/>
+                    <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning" />
                 }
             </MudTd>
             <MudTd DataLabel="Storage">
                 @switch (context.StorageStatus)
                 {
                     case DatahubProjectStatsRow.ResourceStatus.Complete:
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success"/>
+                        <DHIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.Requested:
-                        <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning"/>
+                        <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.None:
                         break;
@@ -107,10 +108,10 @@
                 @switch (context.DatabricksStatus)
                 {
                     case DatahubProjectStatsRow.ResourceStatus.Complete:
-                        <MudIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success"/>
+                        <DHIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.Requested:
-                        <MudIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning"/>
+                        <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning" />
                         break;
                     case DatahubProjectStatsRow.ResourceStatus.None:
                         break;
@@ -236,13 +237,13 @@
 
     private static decimal GetLastXDaysOfCosts(Project_Credits projectCredits, int days)
     {
-        if (projectCredits == null)
+        if (projectCredits == null || projectCredits.CurrentPerDay == null)
         {
             return 0;
         }
         
-        var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DatahubProjectCurrentPerDay>)) as List<DatahubProjectCurrentPerDay>;
-        var cost = currentPerDay?.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Cost) ?? 0;
+        var currentPerDay = JsonSerializer.Deserialize(projectCredits.CurrentPerDay, typeof(List<DailyServiceCost>)) as List<DailyServiceCost>;
+        var cost = currentPerDay?.Where(c => c.Date > DateTime.Now.AddDays(-days)).Sum(c => c.Amount) ?? 0;
         
         return cost;
     }

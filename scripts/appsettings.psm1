@@ -59,6 +59,7 @@ function Export-Settings(
     $domain = "163oxygen.onmicrosoft.com"
 
     if ($null -eq $context) {
+        Write-OutPut "Opening Azure session"
         connect-azaccount -Domain $domain
     } else {
         Write-Output "User $($context.Account.Id) is signed in."
@@ -67,6 +68,7 @@ function Export-Settings(
     Write-Output "Fetching secrets from keyvault"
 
     $resourcePrefix = "fsdh"
+    $resourcePrefixAlphanumeric = $resourcePrefix -replace "[^a-zA-Z0-9]", ""
     $azureDevOpsOrganization = "DataSolutionsDonnees"
     $azureDevOpsProject = "FSDH%20SSC"
     $vaultName = "fsdh-static-test-akv"
@@ -144,19 +146,13 @@ function Export-Settings(
 
     $nonAkvJson = $unflattenedObject | ConvertTo-Json -Depth 100
 
-    if ($Target -eq "AppSettings" -or $Target -eq "Function") {
+    if ($Target -eq "AppSettings") {
         #Write-Host "Target file is $tgtFile $($null -eq $TargetFile) - TargetFile is $TargetFile - fname = $([System.IO.Path]::GetFileName($tgtFile))"        
         $fName = if ($TargetFile) { $TargetFile } else { [System.IO.Path]::GetFileName($tgtFile) }
         $tgtFile = Join-Path $ProjectFolder $fName
         Write-Output "Writing json object to $tgtFile"
         Write-Host "Processing Sensitive entries"
-        if ($Target -eq "Function")
-        {   
-            $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $nonAkvJson `n}"
-            $functionSettings | Out-File -FilePath $tgtFile
-        } else {
-            $nonAkvJson | Out-File -FilePath $tgtFile
-        }
+        $nonAkvJson | Out-File -FilePath $tgtFile
         Push-Location
         Set-Location $ProjectFolder
         try {       
@@ -166,15 +162,9 @@ function Export-Settings(
                 $key = $entry.Name
                 Write-Host "Setting user secret $key"
                 $secretValue = Read-AllSecrets $entry.Value
-                dotnet user-secrets set $key $secretValue
+                dotnet user-secrets set $key $secretValue | Out-Null
             }
-            # Write-Host "Setting user secrets from sensitive values" 
-            # foreach ($entry in $sensitiveEntries)
-            # {
-            #     $key = $entry.Name
-                
-            #     dotnet user-secrets set $key $secretValue
-            # }
+
         } catch {
             Write-Error "Error setting user secrets"
         } finally {
@@ -182,9 +172,48 @@ function Export-Settings(
         }
 
         Write-Output "Done"
+	} elseif ($Target -eq "Function") {
+        $fName = if ($TargetFile) { $TargetFile } else { [System.IO.Path]::GetFileName($tgtFile) }
+        $tgtFile = Join-Path $ProjectFolder $fName
+        Write-Output "Writing json object to $tgtFile"
+
+		Write-Output "Configuring function settings"
+
+        $functionValues = @{}
+		foreach ($entry in $otherEntries)
+		{
+			$key = $entry.Name
+	        $envKey = $key -replace ":", "__"
+            Write-Output "Setting function variable $envKey"
+            $functionValues[$envKey] = $entry.Value
+		}
+
+        $valuesJson = $functionValues | ConvertTo-Json -Depth 100        
+        $functionSettings = "{`n  `"IsEncrypted`": false,`n  `"Values`":   $valuesJson `n}"
+        $functionSettings | Out-File -FilePath $tgtFile
+
+        Push-Location
+        Set-Location $ProjectFolder
+        try {       
+            Write-Host "Setting user secrets from keyvault values" 
+            foreach ($entry in $akvEntries)
+            {
+                $key = $entry.Name
+                Write-Host "Setting user secret $key"
+                $secretValue = Read-AllSecrets $entry.Value
+                dotnet user-secrets set $key $secretValue | Out-Null
+            }
+
+        } catch {
+            Write-Error "Error setting user secrets"
+        } finally {
+            Pop-Location
+        }
+
+
+		Write-Output "Done"	        
 	} elseif ($Target -eq "Environment") {
-		Write-Output "Configuring environment variables"
-		$nonAkvJson | Out-File -FilePath $tgtFile
+		Write-Output "Configuring environment variables"		
 		foreach ($entry in $akvEntries)
 		{
 			$key = $entry.Name
@@ -229,7 +258,8 @@ variable "$varName" {
       "ASPNETCORE_DETAILEDERRORS"                        = "false"
       "ASPNETCORE_ENVIRONMENT"                           = "$aspEnv"
       "WEBSITE_RUN_FROM_PACKAGE"                         = var.app_deploy_as_package    
-"@          
+"@
+
         $footer = "    }`n}"
         $tfOutput = ""
         
@@ -297,21 +327,53 @@ function Read-AllSecrets($value)
     return $value
 }
 
-function Read-SecureString($secureString)
-{
-    $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureString)
-    return [System.Runtime.InteropServices.Marshal]::PtrToStringAuto($BSTR)
-}
+function Read-SecureString {
+    param (
+        [Parameter(Mandatory = $true)]
+        [System.Security.SecureString]$SecureString
+    )
 
-function Read-VaultSecret($vault, $secretId)
-{
     try {
-        return Read-SecureString((Get-AzKeyVaultSecret -VaultName $vault -Name $secretId).SecretValue)
-	} catch {
-		Write-Error "Error reading secret $secretId from vault $vault - do you have read access in $vault policies?"
-		return
+        # Convert SecureString to plain text , linux safe
+        $BSTR = [System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($SecureString)
+        return [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR($BSTR)
+    }
+    catch {
+        Write-Error "An error occurred while converting the SecureString: $_"
+    }
+    finally {
+        if ($BSTR) {
+            # Ensure the allocated memory is freed even if there's an error
+            [System.Runtime.InteropServices.Marshal]::ZeroFreeBSTR($BSTR)
+        }
     }
 }
+
+
+
+function Read-VaultSecret {
+    param (
+        [Parameter(Mandatory = $true)]
+        [string]$vault,
+
+        [Parameter(Mandatory = $true)]
+        [string]$secretId
+    )
+
+    try {
+        $secret = Get-AzKeyVaultSecret -VaultName $vault -Name $secretId
+
+        if (-not $secret.SecretValue) {
+            throw "The secret value retrieved from the vault is null or empty."
+        }
+
+        return Read-SecureString($secret.SecretValue)
+    }
+    catch {
+        Write-Error "Error reading secret $secretId from vault $vault - $_"
+    }
+}
+
 
 function ConvertTo-HashTable {
     param(
@@ -370,4 +432,4 @@ function ConvertFrom-HashTable {
     return $result
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret

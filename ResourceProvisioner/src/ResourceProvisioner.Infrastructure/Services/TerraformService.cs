@@ -16,7 +16,7 @@ public class TerraformService : ITerraformService
 {
     public const string TerraformVersionToken = "{{version}}";
     public const string TerraformBranchToken = "{{branch}}";
-    
+
     private readonly ILogger<TerraformService> _logger;
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
@@ -30,14 +30,14 @@ public class TerraformService : ITerraformService
         _configuration = configuration;
     }
 
-    public async Task CopyTemplateAsync(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task CopyTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
+        if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return;
         }
 
-        var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
+        var templateSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, templateName);
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
 
         _logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
@@ -45,7 +45,7 @@ public class TerraformService : ITerraformService
 
         if (!Directory.Exists(projectPath))
         {
-            if (template.Name == TerraformTemplate.NewProjectTemplate)
+            if (templateName == TerraformTemplate.NewProjectTemplate)
             {
                 _logger.LogInformation("Creating new project directory {ProjectPath}", projectPath);
                 Directory.CreateDirectory(projectPath);
@@ -70,20 +70,21 @@ public class TerraformService : ITerraformService
 
             var fileContent = await File.ReadAllTextAsync(file);
             fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
-            fileContent = fileContent.Replace(TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
+            fileContent = fileContent.Replace(TerraformBranchToken,
+                $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }
 
-    public async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    public async Task ExtractVariables(string templateName, TerraformWorkspace terraformWorkspace)
     {
-        if (template.Name is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
+        if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return;
         }
 
-        var missingVariables = FindMissingVariables(template, terraformWorkspace);
-        await WriteVariablesFile(template, terraformWorkspace, missingVariables);
+        var missingVariables = FindMissingVariables(templateName, terraformWorkspace);
+        await WriteVariablesFile(templateName, terraformWorkspace, missingVariables);
     }
 
     public async Task ExtractBackendConfig(string workspaceAcronym)
@@ -111,6 +112,10 @@ public class TerraformService : ITerraformService
             {
                 TerraformVariables.BackendKeyName,
                 ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendKeyName)
+            },
+            {
+                TerraformVariables.BackendSubscriptionIdName,
+                ComputeBackendConfigValue(workspaceAcronym, TerraformVariables.BackendSubscriptionIdName)
             }
         };
 
@@ -141,7 +146,7 @@ public class TerraformService : ITerraformService
         {
             try
             {
-                var template = TerraformTemplate.GetTemplateByName(variableName);
+                var template = TerraformTemplate.NormalizeTemplateName(variableName);
                 await ExtractVariables(template, terraformWorkspace);
             }
             catch (ArgumentException)
@@ -151,11 +156,11 @@ public class TerraformService : ITerraformService
         }
     }
 
-    private Dictionary<string, (string, bool)> FindMissingVariables(TerraformTemplate template,
+    private Dictionary<string, (string, bool)> FindMissingVariables(string templateName,
         TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        var templatePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, template.Name);
+        var templatePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, templateName);
 
         var existingVariables = FindExistingVariables(projectPath);
         var requiredTemplateVariables = GetRequiredTemplateVariables(templatePath);
@@ -171,15 +176,16 @@ public class TerraformService : ITerraformService
         var files = Directory.GetFiles(projectPath, "*.auto.tfvars.json", SearchOption.TopDirectoryOnly);
         var existingVariables = files.Select(file => JsonSerializer.Deserialize<JsonElement>(File.ReadAllText(file)))
             .SelectMany(jsonNode => jsonNode.EnumerateObject())
-            .ToDictionary(jsonProperty => jsonProperty.Name, jsonProperty => (jsonProperty.Value.ValueKind.ToString(), true));
+            .ToDictionary(jsonProperty => jsonProperty.Name,
+                jsonProperty => (jsonProperty.Value.ValueKind.ToString(), true));
         return existingVariables;
     }
 
-    private async Task WriteVariablesFile(TerraformTemplate template, TerraformWorkspace terraformWorkspace,
+    private async Task WriteVariablesFile(string templateName, TerraformWorkspace terraformWorkspace,
         Dictionary<string, (string Value, bool isRequired)> missingVariables)
     {
         var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        var variablesFilePath = Path.Join(projectPath, $"{template.Name}.auto.tfvars.json");
+        var variablesFilePath = Path.Join(projectPath, $"{templateName}.auto.tfvars.json");
 
         if (File.Exists(variablesFilePath))
         {
@@ -203,11 +209,12 @@ public class TerraformService : ITerraformService
             await File.WriteAllTextAsync(variablesFilePath,
                 JsonSerializer.Serialize(missingVariables
                     .Select(missingVariable => (
-                        missingVariable.Key, 
-                        ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value, missingVariable.Value.isRequired)))
+                        missingVariable.Key,
+                        ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value,
+                            missingVariable.Value.isRequired)))
                     .Where(mv => mv.Item2 != null)
                     .ToDictionary(mv => mv.Key, mv => mv.Item2))
-                );
+            );
         }
     }
 
@@ -235,13 +242,13 @@ public class TerraformService : ITerraformService
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
-            
+
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,
-            _ => isRequired 
+            _ => isRequired
                 ? throw new MissingTerraformVariableException(
-                $"Missing variable {variableName}:<{variableType}> in configuration")
+                    $"Missing variable {variableName}:<{variableType}> in configuration")
                 : null
         })!;
     }
@@ -286,19 +293,18 @@ public class TerraformService : ITerraformService
 
     private string ComputeBackendConfigValue(string workspaceName, string variableName)
     {
-        string rpa = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric;
-        string env = _resourceProvisionerConfiguration.Terraform.Variables.environment_name;
-        string suffix = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix;
         return variableName switch
         {
             TerraformVariables.BackendResourceGroupName => _resourceProvisionerConfiguration.Terraform.Backend
                 .ResourceGroupName,
             TerraformVariables.BackendStorageAccountName =>
-                $"{rpa}{env}{suffix}",
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}{_resourceProvisionerConfiguration.Terraform.Variables.storage_suffix}",
             TerraformVariables.BackendContainerName =>
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
             TerraformVariables.BackendKeyName =>
                 $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
+            TerraformVariables.BackendSubscriptionIdName =>
+                $"{_resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id}",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
         };

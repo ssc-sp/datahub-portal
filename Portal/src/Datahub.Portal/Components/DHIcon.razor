@@ -1,0 +1,34 @@
+
+<MudIcon
+    Icon="@Icon"
+    Title="@Title"
+    Color="@Color"
+    Size="@Size" 
+    Style="@Style"
+    Tag="@Tag"
+    Class="@Class"
+    ViewBox="@ViewBox"
+    aria-hidden="@AriaHidden"
+    focusable="@Focusable"
+    role="img"/>
+
+@code {
+    // General
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string ViewBox { get; set; } = "0 0 24 24";
+
+    // Behaviour
+    [Parameter] public string AriaHidden { get; set; } = "true";
+    [Parameter] public string Focusable { get; set; } = "false";
+
+    // Appearance
+    [Parameter] public Color Color { get; set; } = Color.Inherit;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
+
+    // Common
+    [Parameter] public string Class { get; set; } = null;
+    [Parameter] public string Style { get; set; } = null;
+    [Parameter] public object Tag { get; set; } = null;
+    [Parameter] public Dictionary<string, object> UserAttributes { get; set; } = null;
+}

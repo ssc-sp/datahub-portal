@@ -13,6 +13,7 @@
 @using Datahub.Application.Services.Security
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web;
+@using Datahub.Core.Components;
 
 @inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -27,7 +28,7 @@
 @* @page "/w/{ProjectAcronymParam}/storage" *@
 
 <!--suppress CssUnresolvedCustomProperty -->
-<DHPageTitle PageTitleKey="@_projectName"/>
+<DHPageTitle PageTitleKey="@_title"/>
 
 @if (!containersLoaded)
 {
@@ -37,7 +38,7 @@
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h1">@Localizer["{0} Storage Explorer", WorkspaceAcronym]</MudText>
+        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
     </MudStack>
     <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
@@ -104,6 +105,7 @@
     private Datahub_Project _project;
     private int? _projectId;
     private string _projectName;
+    private string _title;
 
     private List<CloudStorageContainer> _cloudContainers = new();
     private CloudStorageContainer _selectedContainer;
@@ -126,6 +128,8 @@
             .FirstOrDefaultAsync();
 
         _projectName = _project?.ProjectName;
+        var acronym = _project?.Project_Acronym_CD;
+        _title = $"{acronym} - {Localizer["Storage"]}";
         _projectId = _project?.Project_ID;
         containersLoaded = false;
         try

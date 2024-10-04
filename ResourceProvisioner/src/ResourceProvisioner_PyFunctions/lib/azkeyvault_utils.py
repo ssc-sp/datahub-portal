@@ -57,11 +57,23 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
     # iterate through definition_json['Workspace']['Acronym']
     for user in (user for user in definition_json['Workspace']['Users'] if user['Role'] != 'Removed'):
         user_id = user['ObjectId']
+        # Define the access policy
+        permissions = ["list","get"]
+        if (user['Role'] == 'Admin' or user['Role'] == 'Owner'):
+            permissions = ["list","get","delete","set"]        
         # check if user exists in access policies
         user_exists = False
+        valid_permissions = False
+        existing_policy = None
+        access_policy = AccessPolicyEntry(tenant_id=tenant_id, object_id=user_id, 
+                                        permissions={'secrets': permissions})
+                
         for policy in vault.properties.access_policies:
             if policy.object_id == user_id:
                 user_exists = True
+                existing_policy = policy
+                if (set(policy.permissions.secrets) == set(permissions)):
+                    valid_permissions = True
                 break
         # if user does not exist, add user to access policies
         if not user_exists:
@@ -71,16 +83,15 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
             #print(f"User {user} has permissions: {policy.permissions}")
             #print(policy)        
             # enable secret list,get,delete,set,update permissions for user
-            # Define the access policy
-            permissions = ["list","get"]
-            if user['Role'] == 'Admin':
-                permissions = ["list","get","delete","set"]
-            access_policy = AccessPolicyEntry(tenant_id=tenant_id, object_id=user_id, 
-                                            permissions={'secrets': permissions})
+            current_policies.append(access_policy)
+        elif not valid_permissions:
+            print(f"updating permissions for user {user_id} in access policies")
+            # update permissions for user
+            current_policies.remove(existing_policy)
             current_policies.append(access_policy)
                             
         else:
-            print(f"user {user['ObjectId']} already exists in access policies")
+            print(f"user {user['ObjectId']} already exists in access policies - permissions are valid: {valid_permissions}")
     # collect all the object ids
     #object_ids = [policy.object_id for policy in vault.properties.access_policies]
     #output = asyncio.run(collect_ms_graph_properties(clients,object_ids))

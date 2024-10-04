@@ -1,18 +1,14 @@
 ﻿using System.Globalization;
-using System.Net.Http.Headers;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
-using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CostManagement;
 using Azure.ResourceManager.CostManagement.Models;
-using Datahub.Application.Services.Budget;
-using Datahub.Core.Model.Datahub;
+using Datahub.Application.Services.Cost;
+using Datahub.Application.Services.ResourceGroups;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
-using Datahub.Infrastructure.Services.Azure;
-using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -20,260 +16,372 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services.Cost
 {
-    public class WorkspaceCostManagementService : IWorkspaceCostManagementService
+    public class WorkspaceCostManagementService(
+        ArmClient armClient,
+        ILogger<WorkspaceCostManagementService> logger,
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+        IWorkspaceResourceGroupsManagementService rgMgmtService)
+        : IWorkspaceCostManagementService
     {
-        private ArmClient _armClient;
-        private readonly ILogger<WorkspaceCostManagementService> _logger;
-        private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-
         private const string COST_COLUMN = "Cost";
         private const string SERVICE_NAME_COLUMN = "ServiceName";
         private const string USAGE_DATE_COLUMN = "UsageDate";
         private const string RESOURCE_GROUP_NAME_COLUMN = "ResourceGroupName";
+        private const string AZURE_IDENTIFIER = "azure";
+        private const decimal DIFFERENCE_THRESHOLD = (decimal)0.1;
+        private const decimal REFRESH_THRESHOLD = 5;
+        private static readonly TimeSpan UPDATE_THRESHOLD = TimeSpan.FromHours(2);
 
-        public WorkspaceCostManagementService(ArmClient armClient,
-            ILogger<WorkspaceCostManagementService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+        #region Implementations
+
+        /// <inheritdoc />
+        public async Task<(bool, decimal)> UpdateWorkspaceCostsAsync(string workspaceAcronym,
+            List<DailyServiceCost> azureCosts)
         {
-            _logger = logger;
-            _dbContextFactory = dbContextFactory;
-            _armClient = armClient;
-        }
-
-        /// <summary>   
-        /// Updates the Project_Costs and Project_Credits for the given workspace acronym.
-        /// </summary>
-        /// <param name="subCosts">The costs at the subscription level</param>
-        /// <param name="workspaceAcronym">The workspace acronym</param>
-        /// <param name="rgNames">Optional list of resource groups to filter by instead of workspace acronym, for testing purposes</param>
-        /// <returns>(bool, decimal), a tuple representing whether a rollover is needed according to this update and the amount of costs captured in the last fiscal year</returns>
-        public async Task<(bool, decimal)> UpdateWorkspaceCostAsync(List<DailyServiceCost> subCosts,
-            string workspaceAcronym, List<string>? rgNames = null)
-        {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
-            if (project is null)
-            {
-                _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
-                return (false, 0);
-            }
-
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects.FirstAsync(p => p.Project_Acronym_CD == workspaceAcronym);
+            var rgNames = await rgMgmtService.GetWorkspaceResourceGroupsAsync(workspaceAcronym);
             // Get the costs for the workspace both from the query and the database
             // The costs from the query are the costs from the last several days
             // The costs from the database are all costs existing for a workspace
-            var queryWorkspaceCosts = rgNames is null ? await FilterWorkspaceCosts(subCosts, workspaceAcronym) : await FilterWorkspaceCosts(subCosts, workspaceAcronym, rgNames);
+            var azureWorkspaceCosts = azureCosts.FilterResourceGroups(rgNames);
 
-            // We get the dates from the query and exclude today
-            var dates = queryWorkspaceCosts.Select(c => c.Date).Distinct().ToList();
-            dates = dates.Where(d => d >= DateTime.UtcNow.Date.AddDays(-7) && !d.Equals(DateTime.UtcNow.Date)).ToList();
-
-            // For each of these dates (at most 7 days), we verify that the database contains the costs for that day
-            // to ensure resilience against query failures
-            // We add these costs to the database if they do not exist
-            foreach (var date in dates)
+            if (azureWorkspaceCosts.Count == 0)
             {
-                var projectCost = await ctx.Project_Costs.FirstOrDefaultAsync(c => c.Date == date);
-                if (projectCost is not null)
-                {
-                    continue;
-                }
-
-                var thatDateQueryCosts = FilterDateRange(queryWorkspaceCosts, date);
-                var thatDateByService = GroupBySource(thatDateQueryCosts);
-                thatDateByService.ForEach(c =>
-                {
-                    var cost = new Datahub_Project_Costs()
-                    {
-                        CadCost = (double)c.Amount,
-                        CloudProvider = "azure",
-                        Date = c.Date,
-                        Project_ID = project.Project_ID,
-                        ServiceName = c.Source
-                    };
-                    ctx.Project_Costs.Add(cost);
-                });
+                logger.LogWarning(
+                    "Could not find costs for project with acronym {WorkspaceAcronym}. " +
+                    "This could be due to the workspace not having any associated cloud infrastructure, or that the costs " +
+                    "are too small to be considered significant",
+                    workspaceAcronym);
             }
 
-            await ctx.SaveChangesAsync();
+            logger.LogInformation("Found {Count} costs for project with acronym {WorkspaceAcronym}",
+                azureWorkspaceCosts.Count, workspaceAcronym);
 
-            // At this point, the costs in the database (Project_Costs) include all times excluding today.
-            // To get the totals for the current fiscal year (Project_Credits), we just take the costs in the database in the current fiscal year
-            // and we add the costs from today from the query
-            var queryWorkspaceTodayCosts = FilterDateRange(queryWorkspaceCosts, DateTime.UtcNow.Date);
+            // Backfill the costs in the database for the days that are not present. This will exclude today
+            logger.LogInformation("Backfilling costs for project with acronym {WorkspaceAcronym}", workspaceAcronym);
+            await BackFillWorkspaceCosts(project.Project_Acronym_CD, azureWorkspaceCosts);
+            logger.LogInformation("Backfilled costs for project with acronym {WorkspaceAcronym}", workspaceAcronym);
+
+            // Update the Project_Credits entry for the workspace
+            logger.LogInformation("Updating credits for project with acronym {WorkspaceAcronym}", workspaceAcronym);
+            var (rolloverNeeded, workspaceLastFYTotal) =
+                await UpdateWorkspaceCredits(project.Project_Acronym_CD, azureWorkspaceCosts);
+            logger.LogInformation("Updated credits for project with acronym {WorkspaceAcronym}", workspaceAcronym);
+
+            // Return whether a rollover is needed and the total costs incurred in the last fiscal year (the last full FY)
+            return (rolloverNeeded, workspaceLastFYTotal);
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> RefreshWorkspaceCostsAsync(string workspaceAcronym)
+        {
+            var currentFiscalYear = CostManagementUtilities.CurrentFiscalYear;
+            var costs = await QueryWorkspaceCostsAsync(workspaceAcronym, currentFiscalYear.StartDate,
+                DateTime.UtcNow.Date, QueryGranularity.Daily);
+
+            try
+            {
+                await UpdateWorkspaceCostsAsync(workspaceAcronym, costs);
+            }
+            catch
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc />
+        public async Task<bool> VerifyAndRefreshWorkspaceCostsAsync(string workspaceAcronym,
+            List<DailyServiceCost> azureTotals, bool executeRefresh = true)
+        {
+            var workspaceRgs = await rgMgmtService.GetWorkspaceResourceGroupsAsync(workspaceAcronym);
+            var workspaceCosts = azureTotals.FilterResourceGroups(workspaceRgs);
+            var workspaceAzureTotal = workspaceCosts.TotalAmount();
+
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var projectCredits = await ctx.Project_Credits
+                .Include(c => c.Project)
+                .FirstOrDefaultAsync(c => c.Project.Project_Acronym_CD == workspaceAcronym);
+            if (projectCredits is null) return false;
+            var workspaceDbTotal = (decimal)projectCredits.Current;
+            var diff = Math.Abs(workspaceAzureTotal - workspaceDbTotal);
+
+            if (diff > REFRESH_THRESHOLD)
+            {
+                logger.LogWarning("Workspace costs for {WorkspaceAcronym} do not match Azure costs (diff = ${Diff} > ${Threshold}). " +
+                                  "Refreshing costs for workspace", workspaceAcronym, diff, REFRESH_THRESHOLD);
+                if (executeRefresh) return await RefreshWorkspaceCostsAsync(workspaceAcronym);
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <inheritdoc />
+        public bool CheckUpdateNeeded(string workspaceAcronym)
+        {
+            using var ctx = dbContextFactory.CreateDbContext();
+            var credits = ctx.Project_Credits
+                .Include(c => c.Project)
+                .FirstOrDefault(c => c.Project.Project_Acronym_CD == workspaceAcronym);
+            if (credits is null) return true;
+            if (credits.LastUpdate is null) return true;
+            if (DateTime.UtcNow - credits.LastUpdate > UPDATE_THRESHOLD) return true;
+            return false;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<DailyServiceCost>> QuerySubscriptionCostsAsync(string subscriptionId,
+            DateTime startDate,
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default)
+        {
+            ValidateDateRange(startDate, endDate);
+            if (!subscriptionId.Contains("/"))
+            {
+                subscriptionId = $"/subscriptions/{subscriptionId}";
+            }
+            var queryResult = await QueryScopeCostsAsync(subscriptionId, startDate, endDate, granularity, rgNames);
+            return queryResult;
+        }
+
+        /// <inheritdoc />
+        public async Task<List<DailyServiceCost>> QueryScopeCostsAsync(string scopeId, DateTime startDate,
+            DateTime endDate, QueryGranularity granularity, List<string>? rgNames = default)
+        {
+            ValidateDateRange(startDate, endDate);
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var scope = new ResourceIdentifier(scopeId);
+
+            if (scope is null)
+            {
+                logger.LogError("Could not find scope with id {ScopeId}", scopeId);
+                throw new Exception($"Could not find scope with id {scopeId}");
+            }
+
+            if (rgNames is null)
+            {
+                switch (scope.ResourceType.Type)
+                {
+                    case "subscriptions":
+                        logger.LogInformation("Getting all subscription workspace resource groups for query filtering");
+                        rgNames = await rgMgmtService.GetAllSubscriptionResourceGroupsAsync(scope.SubscriptionId!);
+                        break;
+                    case "resourceGroups":
+                        logger.LogInformation("Using provided resource group for query filtering");
+                        rgNames = new List<string> { scope.ResourceGroupName! };
+                        break;
+                    default:
+                        logger.LogInformation("Getting all workspace resource groups for query filtering");
+                        rgNames = await rgMgmtService.GetAllResourceGroupsAsync();
+                        break;
+                }
+            }
+
+            var queryResults = new List<QueryResult>();
+            string nextLink;
+            var lastDate = startDate;
+            do
+            {
+                var query = BuildQueryDefinition(rgNames, lastDate, endDate, granularity);
+                var response = await armClient.UsageQueryAsync(scope, query);
+
+                if (!response.HasValue)
+                {
+                    throw new Exception($"Could not get cost data for scope {scopeId}");
+                }
+
+                var result = response.Value;
+                queryResults.Add(result);
+                lastDate = granularity == QueryGranularity.Daily ? GetLastDate(result) : endDate;
+                nextLink = result.NextLink;
+            } while (!string.IsNullOrEmpty(nextLink));
+
+            return ParseQueryResult(queryResults);
+        }
+
+        /// <inheritdoc />
+        public async Task<List<DailyServiceCost>> QueryWorkspaceCostsAsync(string workspaceAcronym, DateTime startDate,
+            DateTime endDate, QueryGranularity granularity)
+        {
+            ValidateDateRange(startDate, endDate);
+            var rgIds = await rgMgmtService.GetWorkspaceResourceGroupsIdentifiersAsync(workspaceAcronym);
+
+            var workspaceCosts = new List<DailyServiceCost>();
+            foreach (var rgId in rgIds)
+            {
+                var rgCosts = await QueryScopeCostsAsync(rgId.ToString(), startDate, DateTime.UtcNow,
+                    granularity);
+
+                workspaceCosts.AddRange(rgCosts);
+            }
+
+            return workspaceCosts;
+        }
+
+        #endregion
+
+        #region Internal Methods
+
+        /// <summary>
+        /// Backfills the costs for a workspace in the database with the given Azure costs. This will add new costs
+        /// if they do not exist, update costs if they are different enough from the Azure data, and skip if the costs
+        /// are the same.
+        /// </summary>
+        /// <param name="projectAcronym">The project acronym to backfill for</param>
+        /// <param name="azureWorkspaceCosts">The Azure workspace costs</param>
+        internal async Task BackFillWorkspaceCosts(string projectAcronym, List<DailyServiceCost> azureWorkspaceCosts)
+        {
+            var dates = azureWorkspaceCosts.DistinctDates();
+            dates = dates.Where(d => !d.Date.Equals(DateTime.UtcNow.Date))
+                .ToList();
+            logger.LogInformation("Days to check: {Join}", string.Join(", ", dates));
+
+            var (entriesAdded, entriesUpdated, entriesSkipped) = (0, 0, 0);
+            foreach (var date in dates)
+            {
+                var costsForDate = azureWorkspaceCosts.FilterDateRange(date);
+                var (added, updated, skipped) = await AddOrUpdateDailyCosts(projectAcronym, costsForDate, date);
+                entriesAdded += added;
+                entriesUpdated += updated;
+                entriesSkipped += skipped;
+            }
+
+            logger.LogInformation(
+                "SUMMARY: Added {EntriesAdded}, updated {EntriesUpdated} and verified/skipped {EntriesSkipped} cost records for workspace with acronym {WorkspaceAcronym}",
+                entriesAdded, entriesUpdated, entriesSkipped, projectAcronym);
+            if (entriesUpdated > 0)
+            {
+                logger.LogWarning(
+                    "Some costs were updated. This implies past records were incorrect and have been updated with new Azure data. Please verify that the costs are correct in the database for workspace with acronym {WorkspaceAcronym}",
+                    projectAcronym);
+            }
+        }
+
+        /// <summary>
+        /// This method adds or updates the daily costs for a project in the database given a specific date.
+        /// It will add a new record if the service does not exist for the given date, update the record if the cost is
+        /// different enough from the Azure data, and skip if the cost is the same.
+        /// </summary>
+        /// <param name="projectAcronym">The project acronym of the project to work on</param>
+        /// <param name="azureWorkspaceDayCosts">The Azure workspace costs for the day given</param>
+        /// <param name="date">The date to add or update costs for</param>
+        /// <returns>A tuple of (entries added, entries updated, entries skipped).</returns>
+        internal async Task<(int, int, int)> AddOrUpdateDailyCosts(string projectAcronym,
+            List<DailyServiceCost> azureWorkspaceDayCosts, DateTime date)
+        {
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            logger.LogInformation("Checking for missing costs for date {Date}", date);
+
+            var project = await ctx.Projects.AsNoTracking().FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
+
+            var databaseCosts = ctx.Project_Costs
+                .Where(c => c.Project_ID == project.Project_ID && c.Date == date.Date)
+                .ToList();
+
+            var services = azureWorkspaceDayCosts.DistinctSources();
+            var (entriesAdded, entriesUpdated, entriesSkipped) = (0, 0, 0);
+
+            // For each service that we have Azure data of, we check if it is in the database and if records match. If not, we add/update.
+            services.ForEach(s =>
+            {
+                var existing = databaseCosts.FirstOrDefault(c => c.ServiceName == s);
+                if (existing is null)
+                {
+                    var amount = (double)azureWorkspaceDayCosts.FilterSource(s).TotalAmount();
+                    // Adding
+                    var cost = new Datahub_Project_Costs()
+                    {
+                        CadCost = amount,
+                        CloudProvider = AZURE_IDENTIFIER,
+                        Date = date,
+                        Project_ID = project.Project_ID,
+                        ServiceName = s
+                    };
+                    ctx.Project_Costs.Add(cost);
+                    entriesAdded++;
+                    logger.LogInformation(
+                        "Added cost for service {ServiceName} on date {Date} for an amount of ${Amount}", s,
+                        date.ToString("d"),
+                        amount);
+                }
+                else
+                {
+                    // Verifying/Updating
+                    var diff = Math.Abs((decimal)existing.CadCost -
+                                        azureWorkspaceDayCosts.FilterSource(s).TotalAmount());
+                    if (diff > DIFFERENCE_THRESHOLD)
+                    {
+                        logger.LogWarning(
+                            "Existing cost for service {ServiceName} on date {Date} in {Acronym} was verified to be" +
+                            " incorrect in database (diff = {Diff} > {Threshold}). Updating with most up to date Azure data",
+                            s, date, project.Project_Acronym_CD, diff, DIFFERENCE_THRESHOLD);
+                        existing.CadCost = (double)azureWorkspaceDayCosts.FilterSource(s).TotalAmount();
+                        ctx.Project_Costs.Update(existing);
+                        entriesUpdated++;
+                        logger.LogInformation("Updated cost for service {ServiceName} on date {Date}", s, date);
+                    }
+                    else
+                    {
+                        entriesSkipped++;
+                    }
+                }
+            });
+            await ctx.SaveChangesAsync();
+            return (entriesAdded, entriesUpdated, entriesSkipped);
+        }
+
+        /// <summary>
+        /// Updates the Project_Credits entry for the given workspace acronym with the given Azure costs.
+        /// </summary>
+        /// <param name="workspaceAcronym">The workspace acronym to update the credits for</param>
+        /// <param name="azureWorkspaceCosts">The Azure costs to use. These costs MUST contain records for today</param>
+        /// <returns>A tuple of (is a rollover needed, how much would the rollover be for if it was needed)</returns>
+        internal async Task<(bool, decimal)> UpdateWorkspaceCredits(string workspaceAcronym,
+            List<DailyServiceCost> azureWorkspaceCosts)
+        {
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects.AsNoTracking().FirstAsync(p => p.Project_Acronym_CD == workspaceAcronym);
+
+            // We grab certain filterings and groupings of the costs for the workspace
+            var queryWorkspaceTodayCosts = azureWorkspaceCosts.FilterDateRange(DateTime.UtcNow.Date);
             var dbWorkspaceCosts = await GetWorkspaceCosts(workspaceAcronym);
-            var dbWorkspaceCurrentFYCosts = FilterCurrentFiscalYear(dbWorkspaceCosts);
+            var dbWorkspaceCurrentFYCosts = dbWorkspaceCosts.FilterCurrentFiscalYear();
             var workspaceCurrentFYCosts = dbWorkspaceCurrentFYCosts.Concat(queryWorkspaceTodayCosts).ToList();
-            var workspaceYesterdayCosts = FilterDateRange(dbWorkspaceCosts, DateTime.UtcNow.Date.AddDays(-1));
-            var workspaceLastFYCosts = FilterLastFiscalYear(dbWorkspaceCosts);
+            var workspaceYesterdayCosts = dbWorkspaceCosts.FilterDateRange(DateTime.UtcNow.Date.AddDays(-1));
+            var workspaceLastFYCosts = dbWorkspaceCosts.FilterLastFiscalYear();
 
             // Create the Project_Credits entry if it does not exist (in the case of a new workspace)
+            logger.LogInformation("Updating credits for project with acronym {WorkspaceAcronym}", workspaceAcronym);
             var projectCredits = await ctx.Project_Credits.FirstOrDefaultAsync(c => c.ProjectId == project.Project_ID);
             if (projectCredits is null)
             {
+                logger.LogInformation("Creating new Project_Credits entry");
                 projectCredits = new Project_Credits()
                 {
                     ProjectId = project.Project_ID
                 };
                 ctx.Project_Credits.Add(projectCredits);
+                await ctx.SaveChangesAsync();
             }
 
             // Get the last update time to check if a rollover is needed and the total costs incurred in the last fiscal year
-            var beforeUpdate = projectCredits.LastUpdate ?? DateTime.UtcNow;
-            var lastRollover = projectCredits.LastRollover ?? DateTime.UtcNow;
-            var workspaceLastFYTotal = workspaceLastFYCosts.Sum(c => c.Amount);
+            var beforeUpdate = projectCredits.LastUpdate;
+            var lastRollover = projectCredits.LastRollover;
+            var workspaceLastFYTotal = workspaceLastFYCosts.TotalAmount();
 
             // Update the Project_Credits entry
-            projectCredits.Current = (double)workspaceCurrentFYCosts.Sum(c => c.Amount);
-            projectCredits.YesterdayCredits = (double)workspaceYesterdayCosts.Sum(c => c.Amount);
-            projectCredits.CurrentPerDay = JsonSerializer.Serialize(GroupByDate(workspaceCurrentFYCosts));
-            projectCredits.CurrentPerService = JsonSerializer.Serialize(GroupBySource(workspaceCurrentFYCosts));
-            projectCredits.YesterdayPerService = JsonSerializer.Serialize(GroupBySource(workspaceYesterdayCosts));
+            projectCredits.Current = (double)workspaceCurrentFYCosts.TotalAmount();
+            projectCredits.YesterdayCredits = (double)workspaceYesterdayCosts.TotalAmount();
+            projectCredits.CurrentPerDay = JsonSerializer.Serialize(workspaceCurrentFYCosts.GroupByDate());
+            projectCredits.CurrentPerService = JsonSerializer.Serialize(workspaceCurrentFYCosts.GroupBySource());
+            projectCredits.YesterdayPerService = JsonSerializer.Serialize(workspaceYesterdayCosts.GroupBySource());
             projectCredits.LastUpdate = DateTime.UtcNow;
             ctx.Project_Credits.Update(projectCredits);
 
             await ctx.SaveChangesAsync();
-
-            // Return whether a rollover is needed and the total costs incurred in the last fiscal year (the last full FY)
             return (RolloverNeeded(beforeUpdate, lastRollover), workspaceLastFYTotal);
-        }
-
-        /// <summary>
-        /// Queries the costs for the given subscription id within the given date range. The date range cannot be more than a year.
-        /// </summary>
-        /// <param name="subscriptionId">The id of the subscription to query for, should be like "subscription/...", set to null to use default ID</param>
-        /// <param name="startDate">The start date of the query</param>
-        /// <param name="endDate">The end date of the query</param>
-        /// <param name="mock">Boolean to mock the query if needed</param>
-        /// <returns>A List containing all daily service costs. A daily service cost is a cost caused by one service during one day.</returns>
-        public async Task<List<DailyServiceCost>?> QuerySubscriptionCosts(string? subscriptionId, DateTime startDate,
-            DateTime endDate, bool mock = false)
-        {
-            if (startDate > endDate)
-            {
-                _logger.LogError("Start date is after end date");
-                throw new Exception("Start date is after end date");
-            }
-
-            if (endDate - startDate > TimeSpan.FromDays(365))
-            {
-                _logger.LogError("Querying more than a year of data is not allowed");
-                throw new Exception("Querying more than a year of data is not allowed.");
-            }
-            
-            if (subscriptionId is null)
-            {
-                subscriptionId = _armClient.GetDefaultSubscription().Id;
-            }
-
-            var queryResult = await QueryScopeCosts(subscriptionId, startDate, endDate, mock);
-            return queryResult;
-        }
-
-        /// <summary>
-        /// Groups the costs given by source. By executing this, you lose date information
-        /// </summary>
-        /// <param name="costs">The costs to group</param>
-        /// <returns>The grouped costs</returns>
-        public List<DailyServiceCost> GroupBySource(List<DailyServiceCost> costs)
-        {
-            return costs.GroupBy(c => c.Source).Select(g => new DailyServiceCost()
-            {
-                Amount = g.Sum(c => c.Amount),
-                Source = g.Key,
-                Date = g.Min(c => c.Date)
-            }).ToList();
-        }
-
-        /// <summary>
-        /// Groups the costs given by date. By executing this, you lose source information
-        /// </summary>
-        /// <param name="costs">The costs to group</param>
-        /// <returns>The grouped costs</returns>
-        public List<DailyServiceCost> GroupByDate(List<DailyServiceCost> costs)
-        {
-            return costs.GroupBy(c => c.Date).Select(g => new DailyServiceCost()
-            {
-                Amount = g.Sum(c => c.Amount),
-                Source = "Day",
-                Date = g.Key
-            }).ToList();
-        }
-
-        /// <summary>
-        /// Filters the given costs to be only within the current fiscal year
-        /// </summary>
-        /// <param name="costs">The costs to filter</param>
-        /// <returns>The filtered costs, which are all in the current fiscal year</returns>
-        public List<DailyServiceCost> FilterCurrentFiscalYear(List<DailyServiceCost> costs)
-        {
-            var (startDate, endDate) = GetCurrentFiscalYear();
-
-            return FilterDateRange(costs, startDate, endDate);
-        }
-
-        /// <summary>
-        /// Filters the given costs to be only within the last fiscal year
-        /// </summary>
-        /// <param name="costs">The costs to filter</param>
-        /// <returns>The filtered costs, which are all in the last fiscal year</returns>
-        public List<DailyServiceCost> FilterLastFiscalYear(List<DailyServiceCost> costs)
-        {
-            var (startDate, endDate) = GetCurrentFiscalYear();
-
-            return FilterDateRange(costs, startDate.AddYears(-1), endDate.AddYears(-1));
-        }
-
-        /// <summary>
-        /// Filters the given costs to be only within a date range
-        /// </summary>
-        /// <param name="costs">The costs to filter</param>
-        /// <param name="startDate">The start of the date range</param>
-        /// <param name="endDate">The end of the date range</param>
-        /// <returns>The filtered costs, which should be between the dates provided, inclusively</returns>
-        public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime startDate,
-            DateTime endDate)
-        {
-            return costs.Where(c => (c.Date >= startDate && c.Date <= endDate)).ToList();
-        }
-
-        /// <summary>
-        /// Filters the given costs to be only from a given date
-        /// </summary>
-        /// <param name="costs">The costs to filter</param>
-        /// <param name="date">The date of interest</param>
-        /// <returns>The filtered costs, which should be only from the given date</returns>
-        public List<DailyServiceCost> FilterDateRange(List<DailyServiceCost> costs, DateTime date)
-        {
-            return costs.Where(c => c.Date == date).ToList();
-        }
-
-        /// <summary>
-        /// Filters the costs for the given workspace acronym from the given list of subscription level costs
-        /// </summary>
-        /// <param name="subCosts">Costs at the subscription level</param>
-        /// <param name="workspaceAcronym">Workspace acronym</param>
-        /// <param name="rgNames">Optional list of resource group names to filter with</param>
-        /// <returns>List of daily service costs for the workspace. A daily service cost is a cost caused by one service during one day.</returns>
-        public async Task<List<DailyServiceCost>> FilterWorkspaceCosts(List<DailyServiceCost> subCosts,
-            string workspaceAcronym, List<string>? rgNames = null)
-        {
-            if (rgNames is null)
-            {
-                rgNames = await GetResourceGroupNames(workspaceAcronym);
-            }
-
-            var workspaceCosts = new List<DailyServiceCost>();
-
-            subCosts.ForEach(c =>
-            {
-                if (rgNames.Contains(c.ResourceGroupName))
-                {
-                    workspaceCosts.Add(c);
-                }
-            });
-
-            workspaceCosts.OrderBy(c => c.Date);
-
-            return workspaceCosts;
         }
 
         /// <summary>
@@ -284,177 +392,111 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <exception cref="Exception">Exceptions are thrown whenever the project is not found or it has no costs</exception>
         internal async Task<List<DailyServiceCost>> GetWorkspaceCosts(string workspaceAcronym)
         {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
-            if (project is null)
-            {
-                _logger.LogError($"Could not find project with acronym {workspaceAcronym}");
-                throw new Exception($"Could not find project with acronym {workspaceAcronym}");
-            }
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = await ctx.Projects.FirstAsync(p => p.Project_Acronym_CD == workspaceAcronym);
 
             var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).ToList();
-            if (projectCosts.Count == 0)
-            {
-                _logger.LogError($"Could not find costs for project with acronym {workspaceAcronym}");
-                throw new Exception($"Could not find costs for project with acronym {workspaceAcronym}");
-            }
 
             var workspaceCosts = ParseProjectCosts(projectCosts);
             return workspaceCosts;
         }
 
         /// <summary>
-        /// Queries the given scopes for costs within the given date range. Daily granularity.
+        /// Builds the query definition for the azure cost management query. If it can determine the current environment
+        /// it is in, it will filter the query to only include that environment. Otherwise it will include all environments.
         /// </summary>
-        /// <param name="scopeId">The id of the scope. e.g. /subscription/<...> </param>
-        /// <param name="startDate">The start date</param>
-        /// <param name="endDate">The end date</param>
-        /// <param name="mock">Boolean to perform a "mock" request</param>
-        /// <returns>Returns the result of the query or null if the query was throttled.</returns>
-        /// <exception cref="Exception">Throws exception if the query was incorrect</exception>
-        internal async Task<List<DailyServiceCost>?> QueryScopeCosts(string scopeId, DateTime startDate,
-            DateTime endDate, bool mock = false)
+        /// <param name="resourceGroups">The list of resource groups to filter the query for</param>
+        /// <param name="startDate">The start date of the query</param>
+        /// <param name="endDate">The end date of the query</param>
+        /// <param name="granularity">The granularity of the query</param>
+        /// <returns></returns>
+        internal QueryDefinition BuildQueryDefinition(List<string> resourceGroups, DateTime startDate, DateTime endDate,
+            QueryGranularity granularity)
         {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var scope = new ResourceIdentifier(scopeId);
-            var dataset = new QueryDataset();
-            var queryTimePeriod = new QueryTimePeriod(startDate, endDate);
-            var filter1 = new QueryFilter();
-
-            var allAcronyms = new List<string> { "DIE1", "DIE2" };
-            if (!mock)
+            switch (granularity)
             {
-                allAcronyms = ctx.Projects.AsNoTracking().Select(p => p.Project_Acronym_CD.ToUpper()).ToList();
+                case QueryGranularity.Daily:
+                    return BuildGranularQueryDefinition(resourceGroups, startDate, endDate);
+                case QueryGranularity.Total:
+                    return BuildTotalsQueryDefinition(resourceGroups, startDate, endDate);
+                default:
+                    return BuildTotalsQueryDefinition(resourceGroups, startDate, endDate);
             }
-
-            filter1.Tags = new QueryComparisonExpression("project_cd", QueryOperatorType.In, allAcronyms);
-            dataset.Filter = filter1;
-
-            dataset.Granularity = GranularityType.Daily;
-
-            dataset.Grouping.Add(new QueryGrouping(QueryColumnType.Dimension, "ServiceName"));
-            dataset.Grouping.Add(new QueryGrouping(QueryColumnType.Dimension, "ResourceGroupName"));
-
-            dataset.Aggregation.Add("Cost", new QueryAggregation("Cost", FunctionType.Sum));
-
-            var query = new QueryDefinition(ExportType.ActualCost, TimeframeType.Custom, dataset);
-            query.TimePeriod = queryTimePeriod;
-
-            Response<QueryResult> response = null;
-            QueryResult result = null;
-            var queryResults = new List<QueryResult> { };
-
-            try
-            {
-                response = await _armClient.UsageQueryAsync(scope, query);
-
-                if (!response.HasValue)
-                {
-                    _logger.LogError($"Could not get cost data for scope {scopeId}");
-                    throw new Exception($"Could not get cost data for scope {scopeId}");
-                }
-
-                result = response!.Value;
-                queryResults.Add(result);
-
-                // Support for pagination
-                while (!string.IsNullOrWhiteSpace(result.NextLink))
-                {
-                    var maxDate = GetLastDate(result);
-
-                    // Make the new time period of the query include the last date of the previous query to ensure
-                    // that we get all the data and that that date was not cut in half. Duplicates will be handled later
-                    // in the parsing.
-                    queryTimePeriod = new QueryTimePeriod(maxDate, endDate);
-                    query.TimePeriod = queryTimePeriod;
-
-                    response = await _armClient.UsageQueryAsync(scope, query);
-
-                    if (!response.HasValue)
-                    {
-                        _logger.LogError($"Could not get cost data for scope {scopeId}");
-                        throw new Exception($"Could not get cost data for scope {scopeId}");
-                    }
-
-                    result = response!.Value;
-                    queryResults.Add(result);
-                }
-            }
-            catch (RequestFailedException e)
-            {
-                _logger.LogError(e, $"Could not get cost data for scope {scopeId}");
-                if (e.Status == 429)
-                {
-                    return null;
-                }
-                throw new Exception($"Could not get cost data for scope {scopeId}");
-            }
-
-            return ParseQueryResult(queryResults);
         }
 
         /// <summary>
-        /// Gets the resource group names for the given workspace acronym
+        /// Creates the query definition for the azure cost management query. If it can determine the current environment
+        /// it is in, it will filter the query to only include that environment. Otherwise it will include all environments.
         /// </summary>
-        /// <param name="workspaceAcronym">The workspace acronym</param>
-        /// <returns>List of the resource group names</returns>
-        internal async Task<List<string>> GetResourceGroupNames(string workspaceAcronym)
+        /// <param name="resourceGroups">A list of resourceGroups to filter the query to</param>
+        /// <param name="startDate">Start date of the query</param>
+        /// <param name="endDate">End date of the query</param>
+        /// <returns>The QueryDefinition object necessary for the usage query</returns>
+        internal QueryDefinition BuildGranularQueryDefinition(List<string> resourceGroups, DateTime startDate,
+            DateTime endDate)
         {
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-
-            var blobStorageType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
-            var dbkType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
-
-            var resources = ctx.Project_Resources2.Include(r => r.Project)
-                .Where(r => r.Project.Project_Acronym_CD == workspaceAcronym);
-
-            var rgNames = new List<string>();
-            var dbkIds = new HashSet<int>();
-
-            await resources.ForEachAsync(r =>
+            var dataset = new QueryDataset
             {
-                if (r.ResourceType == dbkType)
+                Filter = new QueryFilter
                 {
-                    dbkIds.Add(r.ProjectId);
+                    Dimensions = new QueryComparisonExpression(RESOURCE_GROUP_NAME_COLUMN, QueryOperatorType.In,
+                        resourceGroups)
+                },
+                Granularity = GranularityType.Daily,
+                Grouping =
+                {
+                    new QueryGrouping(QueryColumnType.Dimension, SERVICE_NAME_COLUMN),
+                    new QueryGrouping(QueryColumnType.Dimension, RESOURCE_GROUP_NAME_COLUMN)
+                },
+                Aggregation =
+                {
+                    { COST_COLUMN, new QueryAggregation(COST_COLUMN, FunctionType.Sum) }
                 }
-            });
+            };
 
-            await resources.ForEachAsync(r =>
+            var query = new QueryDefinition(ExportType.ActualCost, TimeframeType.Custom, dataset)
             {
-                if (r.ResourceType == blobStorageType)
-                {
-                    rgNames.Add(ParseResourceGroup(r.JsonContent));
-                    if (dbkIds.Contains(r.ProjectId))
-                    {
-                        rgNames.Add(ParseDbkResourceGroup(r.JsonContent));
-                        dbkIds.Remove(r.ProjectId);
-                    }
-                }
-            });
+                TimePeriod = new QueryTimePeriod(startDate, endDate)
+            };
 
-            return rgNames;
+            return query;
         }
 
         /// <summary>
-        /// Gets the current fiscal year
+        /// Creates the query definition for the azure cost management query. If it can determine the current environment
+        /// it is in, it will filter the query to only include that environment. Otherwise it will include all environments.
+        /// This query is for the total costs only per resource group.
         /// </summary>
-        /// <returns>Tuple of (startDate, endDate) representing the current fiscal year</returns>
-        internal (DateTime startDate, DateTime endDate) GetCurrentFiscalYear()
+        /// <param name="resourceGroups">A list of all resource groups to filter the query to</param>
+        /// <param name="startDate">Start date of the query</param>
+        /// <param name="endDate">End date of the query</param>
+        /// <returns>The QueryDefinition object necessary for the usage query</returns>
+        internal QueryDefinition BuildTotalsQueryDefinition(List<string> resourceGroups, DateTime startDate,
+            DateTime endDate)
         {
-            var today = DateTime.UtcNow.Date;
-
-            var startYear = today.Year;
-            var endYear = today.Year + 1;
-
-            if (today.Month < 4)
+            var dataset = new QueryDataset
             {
-                startYear = today.Year - 1;
-                endYear = today.Year;
-            }
+                Filter = new QueryFilter
+                {
+                    Dimensions = new QueryComparisonExpression(RESOURCE_GROUP_NAME_COLUMN, QueryOperatorType.In,
+                        resourceGroups)
+                },
+                Grouping =
+                {
+                    new QueryGrouping(QueryColumnType.Dimension, RESOURCE_GROUP_NAME_COLUMN)
+                },
+                Aggregation =
+                {
+                    { COST_COLUMN, new QueryAggregation(COST_COLUMN, FunctionType.Sum) }
+                }
+            };
 
-            var startDate = new DateTime(startYear, 4, 1);
-            var endDate = new DateTime(endYear, 3, 31);
-            return (startDate, endDate);
+            var query = new QueryDefinition(ExportType.ActualCost, TimeframeType.Custom, dataset)
+            {
+                TimePeriod = new QueryTimePeriod(startDate, endDate)
+            };
+
+            return query;
         }
 
         /// <summary>
@@ -463,34 +505,10 @@ namespace Datahub.Infrastructure.Services.Cost
         /// <param name="lastUpdate">The datetime of the last update</param>
         /// <param name="lastRollover">The datetime of the last rollover</param>
         /// <returns>true if the last update is outside the current fiscal year, false otherwise</returns>
-        internal bool RolloverNeeded(DateTime lastUpdate, DateTime lastRollover)
+        internal bool RolloverNeeded(DateTime? lastUpdate, DateTime? lastRollover)
         {
-            var (currFiscalYearStart, _) = GetCurrentFiscalYear();
-            return (lastUpdate < currFiscalYearStart && lastRollover < currFiscalYearStart);
-        }
-
-        /// <summary>
-        /// Gets the databricks resource group name from the json content of the blob storage resource
-        /// </summary>
-        /// <param name="jsonContent">Project_Resource.JsonContent of the blob storage resource of a workspace</param>
-        /// <returns>The databricks managed resource group name</returns>
-        internal string ParseDbkResourceGroup(string jsonContent)
-        {
-            var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
-            var dbk = content.resource_group_name.Split("_").Select((s, idx) => idx == 1 ? "dbk" : s);
-            var dbkRg = string.Join("-", dbk);
-            return dbkRg;
-        }
-
-        /// <summary>
-        /// Gets the resource group name from the json content of the blob storage resource
-        /// </summary>
-        /// <param name="jsonContent">Project_Resource.JsonContent of the blob storage resource of a workspace</param>
-        /// <returns>The resource group name of the workspace</returns>
-        internal string ParseResourceGroup(string jsonContent)
-        {
-            var content = JsonSerializer.Deserialize<RgNameObject>(jsonContent);
-            return content?.resource_group_name;
+            var (currFiscalYearStart, _) = CostManagementUtilities.CurrentFiscalYear;
+            return lastUpdate < currFiscalYearStart && lastRollover is null || lastRollover < currFiscalYearStart;
         }
 
         /// <summary>
@@ -504,19 +522,32 @@ namespace Datahub.Infrastructure.Services.Cost
 
             queryResults.ForEach(queryResult =>
             {
-                var cols = queryResult.Columns.ToList().Select(c => c.Name).ToList();
+                var cols = queryResult.Columns.Select(c => c.Name).ToList();
+
+                var costColumn = cols.FindIndex(c => c == COST_COLUMN);
+                var serviceColumn = cols.FindIndex(c => c == SERVICE_NAME_COLUMN);
+                var dateColumn = cols.FindIndex(c => c == USAGE_DATE_COLUMN);
+                var rgColumn = cols.FindIndex(c => c == RESOURCE_GROUP_NAME_COLUMN);
+
                 CultureInfo provider = CultureInfo.InvariantCulture;
 
                 queryResult.Rows.ToList().ForEach(r =>
                 {
-                    lstDailyCosts.Add(new DailyServiceCost()
+                    lstDailyCosts.Add(new DailyServiceCost
                     {
-                        Amount = decimal.Parse(r[cols.FindIndex(c => c == COST_COLUMN)].ToString()),
-                        Source = r[cols.FindIndex(c => c == SERVICE_NAME_COLUMN)].ToString(),
-                        Date = DateTime.ParseExact(r[cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(),
-                            "yyyyMMdd",
-                            provider),
-                        ResourceGroupName = r[cols.FindIndex(c => c == RESOURCE_GROUP_NAME_COLUMN)].ToString()
+                        Amount = costColumn < 0 ? 0 : decimal.Parse(r[costColumn].ToString(), CultureInfo.InvariantCulture),
+                        Source = serviceColumn < 0
+                            ? String.Empty
+                            : r[serviceColumn].ToString().Replace("\"", ""),
+                        Date = dateColumn < 0
+                            ? DateTime.MinValue
+                            : DateTime.ParseExact(r[dateColumn].ToString(),
+                                "yyyyMMdd",
+                                provider),
+                        ResourceGroupName = rgColumn < 0
+                            ? String.Empty
+                            : r[rgColumn].ToString()
+                                .Replace("\"", "")
                     });
                 });
             });
@@ -559,11 +590,33 @@ namespace Datahub.Infrastructure.Services.Cost
                 r[cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(),
                 "yyyyMMdd",
                 provider));
-            var maxDate = DateTime.ParseExact(max[cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(), "yyyyMMdd",
+            var maxDate = DateTime.ParseExact(max![cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(), "yyyyMMdd",
                 provider);
             return maxDate;
         }
 
-        internal record RgNameObject(string resource_group_name);
+        /// <summary>
+        /// Small helper to validate date ranges. Throws an exception if the start date is after the end date or if the
+        /// date range is more than a year.
+        /// </summary>
+        /// <param name="startDate">The start date of the range</param>
+        /// <param name="endDate">The end date of the range</param>
+        /// <exception cref="Exception">Will throw if the start is after the end or if the range is larger than a year</exception>
+        internal void ValidateDateRange(DateTime startDate, DateTime endDate)
+        {
+            if (startDate > endDate)
+            {
+                logger.LogError("Start date is after end date");
+                throw new Exception("Start date is after end date");
+            }
+
+            if (endDate - startDate > TimeSpan.FromDays(365))
+            {
+                logger.LogError("Querying more than a year of data is not allowed");
+                throw new Exception("Querying more than a year of data is not allowed.");
+            }
+        }
+
+        #endregion
     }
 }

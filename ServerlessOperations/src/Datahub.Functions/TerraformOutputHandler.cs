@@ -1,13 +1,18 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Transactions;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Core.Enums;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared;
+using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using Lucene.Net.Analysis.Hunspell;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -15,44 +20,29 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions;
 
-public class TerraformOutputHandler
+public class TerraformOutputHandler(
+    ILoggerFactory loggerFactory,
+    DatahubProjectDBContext projectDbContext,
+    QueuePongService pongService,
+    IResourceMessagingService resourceMessagingService,
+    AzureConfig config)
 {
-    private readonly DatahubProjectDBContext _projectDbContext;
-    private readonly ILogger _logger;
-    private readonly QueuePongService _pongService;
-    private readonly IResourceMessagingService _resourceMessagingService;
-    private readonly AzureConfig _config;
+    private readonly ILogger _logger = loggerFactory.CreateLogger("TerraformOutputHandler");
     private const string TerraformOutputHandlerName = "terraform-output-handler";
-
-    public TerraformOutputHandler(ILoggerFactory loggerFactory, DatahubProjectDBContext projectDbContext,
-        QueuePongService pongService, IResourceMessagingService resourceMessagingService, AzureConfig config)
-    {
-        _projectDbContext = projectDbContext;
-        _logger = loggerFactory.CreateLogger("TerraformOutputHandler");
-        _pongService = pongService;
-        _resourceMessagingService = resourceMessagingService;
-        _config = config;
-    }
 
     [Function("TerraformOutputHandler")]
     public async Task RunAsync(
-        [QueueTrigger("terraform-output", Connection = "DatahubStorageConnectionString")]
-        string myQueueItem,
-        FunctionContext context)
+        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage message)
     {
         _logger.LogInformation($"C# Queue trigger function started");
 
         // test for ping
-        if (await _pongService.Pong(myQueueItem))
-            return;
+        // if (await pongService.Pong(message.Body.ToString()))
+        // return;
 
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
-
-        var output =
-            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(myQueueItem, deserializeOptions);
+        var output = await message.DeserializeAndUnwrapMessageAsync<Dictionary<string, TerraformOutputVariable>>();
 
         _logger.LogInformation("C# Queue trigger function processing: {OutputCount} items", output?.Count);
 
@@ -102,16 +92,9 @@ public class TerraformOutputHandler
             return;
         }
 
-        if (!output.ContainsKey(TerraformVariables.OutputAzureDatabricksWorkspaceUrl)
-            || string.IsNullOrWhiteSpace(output[TerraformVariables.OutputAzureDatabricksWorkspaceUrl].Value))
-        {
-            _logger.LogInformation("Azure Databricks workspace url is null or empty, skipping post terraform triggers");
-            return;
-        }
-
         // handle external user permissions
         var projectAcronym = output[TerraformVariables.OutputProjectAcronym];
-        var project = await _projectDbContext.Projects
+        var project = await projectDbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
 
         if (project is null)
@@ -123,20 +106,27 @@ public class TerraformOutputHandler
         _logger.LogInformation("Processing user updates to external permissions for project {ProjectAcronym}",
             projectAcronym.Value);
         var workspaceDefinition =
-            await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
+            await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                 TerraformOutputHandlerName);
-        await _resourceMessagingService.SendToUserQueue(workspaceDefinition,
-            _config.StorageQueueConnection, _config.UserRunRequestQueueName);
+        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
         _logger.LogInformation(
             "Processing complete for user updates to external permissions for project {ProjectAcronym}",
             projectAcronym.Value);
     }
+
+    private static SemaphoreSlim semaphore = new(1, 1);
 
     private async Task ProcessTerraformOutputVariables(
         IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         try
         {
+            if (semaphore.CurrentCount == 0)
+            {
+                _logger.LogInformation("Semaphore is locked, waiting for release");
+            }
+
+            await semaphore.WaitAsync();
             using var transactionScope =
                 new TransactionScope(TransactionScopeOption.Required, TransactionScopeAsyncFlowOption.Enabled);
             await ProcessWorkspaceStatus(outputVariables);
@@ -150,6 +140,10 @@ public class TerraformOutputHandler
         {
             _logger.LogError(e, "Error processing output variables");
             throw;
+        }
+        finally
+        {
+            semaphore.Release();
         }
     }
 
@@ -176,7 +170,7 @@ public class TerraformOutputHandler
         var appServiceId = outputVariables[TerraformVariables.OutputAzureAppServiceId];
         var appServiceHostName = outputVariables[TerraformVariables.OutputAzureAppServiceHostName];
         var appServiceRg = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
-        
+
         var jsonContent = new JsonObject
         {
             ["app_service_id"] = appServiceId.Value,
@@ -190,7 +184,7 @@ public class TerraformOutputHandler
         projectResource.Project.WebApp_URL = appServiceHostName.Value;
         projectResource.Project.WebAppEnabled = true;
 
-        await _projectDbContext.SaveChangesAsync();
+        await projectDbContext.SaveChangesAsync();
     }
 
     internal async Task ProcessAzureDatabricks(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
@@ -225,7 +219,7 @@ public class TerraformOutputHandler
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
 
-        await _projectDbContext.SaveChangesAsync();
+        await projectDbContext.SaveChangesAsync();
     }
 
 
@@ -268,7 +262,7 @@ public class TerraformOutputHandler
         projectResource.JsonContent = jsonContent.ToString();
         projectResource.InputJsonContent = inputJsonContent.ToString();
 
-        await _projectDbContext.SaveChangesAsync();
+        await projectDbContext.SaveChangesAsync();
     }
 
     internal async Task ProcessAzurePostgres(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
@@ -309,13 +303,13 @@ public class TerraformOutputHandler
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
 
-        await _projectDbContext.SaveChangesAsync();
+        await projectDbContext.SaveChangesAsync();
     }
 
     internal async Task ProcessWorkspaceStatus(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
     {
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
-        var project = await _projectDbContext.Projects
+        var project = await projectDbContext.Projects
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
 
         if (project == null)
@@ -324,10 +318,13 @@ public class TerraformOutputHandler
             throw new Exception($"Project not found for acronym {projectAcronym.Value}");
         }
 
-        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
-        if (project.Project_Phase != outputPhase)
+        var resourceGroupStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        var resourceGroupName =
+            GetStatusMapping(outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value);
+
+        if (project.Project_Phase != resourceGroupStatus)
         {
-            project.Project_Phase = outputPhase;
+            project.Project_Phase = resourceGroupStatus;
         }
 
         // check if there's a workspace version variable
@@ -344,12 +341,19 @@ public class TerraformOutputHandler
             _logger.LogInformation("Workspace version not found in output variables");
         }
 
+        var jsonContent = new JsonObject
+        {
+            ["resource_group_name"] = resourceGroupName
+        };
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
 
         projectResource.CreatedAt = DateTime.UtcNow;
+        projectResource.JsonContent = jsonContent.ToString();
+        projectResource.Status = resourceGroupStatus;
 
-        await _projectDbContext.SaveChangesAsync();
+        await projectDbContext.SaveChangesAsync();
     }
 
     private static string GetStatusMapping(string value)
@@ -369,7 +373,7 @@ public class TerraformOutputHandler
     {
         var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
 
-        var project = await _projectDbContext.Projects
+        var project = await projectDbContext.Projects
             .Include(p => p.Resources)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
 

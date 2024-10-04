@@ -30,12 +30,7 @@ public class NewProjectTemplateTests
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.NewProjectTemplate);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
@@ -74,18 +69,54 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedVariables = new JsonObject
+        var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
+
+
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
+            $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
+        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
+
+        var actualVariables =
+            JsonSerializer.Deserialize<JsonObject>(
+                await File.ReadAllTextAsync(expectedVariablesFilename));
+
+        
+        foreach (var (key, value) in actualVariables!)
         {
-            ["az_subscription_id"] = _configuration["Terraform:Variables:az_subscription_id"],
-            ["az_tenant_id"] = _configuration["Terraform:Variables:az_tenant_id"],
-            ["datahub_app_sp_oid"] = _configuration["Terraform:Variables:datahub_app_sp_oid"],
-            ["environment_classification"] = _configuration["Terraform:Variables:environment_classification"],
-            ["environment_name"] = _configuration["Terraform:Variables:environment_name"],
-            ["az_location"] = _configuration["Terraform:Variables:az_location"],
-            ["resource_prefix"] = _configuration["Terraform:Variables:resource_prefix"],
-            ["resource_prefix_alphanumeric"] = _configuration["Terraform:Variables:resource_prefix_alphanumeric"],
-            ["storage_suffix"] = _configuration["Terraform:Variables:storage_suffix"],
-            ["project_cd"] = "ShouldExtractNewProjectTemplateVariables",
+            Assert.Multiple(() =>
+            {
+                Assert.That(expectedVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
+                Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
+            });
+        }
+        foreach (var (key, value) in expectedVariables)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
+            });
+        }
+        Assert.That(actualVariables, Has.Count.EqualTo(expectedVariables.Count));
+    }
+
+    private static JsonObject GenerateExpectedVariablesJsonObject(string workspaceAcronym)
+    {
+        return new JsonObject
+        {
+            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
+            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
+            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
+            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
+            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
+            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
+            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
+            ["project_cd"] = workspaceAcronym,
             ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
             ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
             ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
@@ -95,35 +126,10 @@ public class NewProjectTemplateTests
                 ["Environment"] = _configuration["Terraform:Variables:common_tags:Environment"],
                 ["Sector"] = _configuration["Terraform:Variables:common_tags:Sector"],
             },
+            ["automation_account_uai_name"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_name,
+            ["automation_account_uai_rg"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_rg,
+            ["automation_account_uai_sub"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_sub,
         };
-
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
-
-
-        await _terraformService.ExtractVariables(module, workspace);
-
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{module.Name}.auto.tfvars.json");
-        Assert.That(File.Exists(expectedVariablesFilename), Is.True);
-
-        var actualVariables =
-            JsonSerializer.Deserialize<JsonObject>(
-                await File.ReadAllTextAsync(expectedVariablesFilename));
-
-        foreach (var (key, value) in actualVariables!)
-        {
-            Assert.Multiple(() =>
-            {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
-                Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
-            });
-        }
     }
 
     [Test]
@@ -135,50 +141,26 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedVariables = new JsonObject
-        {
-            ["az_subscription_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id,
-            ["az_tenant_id"] = _resourceProvisionerConfiguration.Terraform.Variables.az_tenant_id,
-            ["datahub_app_sp_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.datahub_app_sp_oid,
-            ["environment_classification"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_classification,
-            ["environment_name"] = _resourceProvisionerConfiguration.Terraform.Variables.environment_name,
-            ["az_location"] = _resourceProvisionerConfiguration.Terraform.Variables.az_location,
-            ["resource_prefix"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix,
-            ["resource_prefix_alphanumeric"] = _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric,
-            ["resource_suffix"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix,
-            ["budget_amount"] = _resourceProvisionerConfiguration.Terraform.Variables.budget_amount,
-            ["storage_size_limit_tb"] = _resourceProvisionerConfiguration.Terraform.Variables.storage_size_limit_tb,
-            ["aad_admin_group_oid"] = _resourceProvisionerConfiguration.Terraform.Variables.aad_admin_group_oid,
-            ["project_cd"] = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates",
-            ["common_tags"] = new JsonObject
-            {
-                ["ClientOrganization"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.ClientOrganization,
-                ["Environment"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Environment,
-                ["Sector"] = _resourceProvisionerConfiguration.Terraform.Variables.common_tags.Sector,
-            },
-        };
-
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
+        
+        var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
-        await _terraformService.ExtractVariables(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
-        await _terraformService.ExtractVariables(module, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{module.Name}.auto.tfvars.json");
+            $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables =
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
 
+        
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -187,6 +169,15 @@ public class NewProjectTemplateTests
                 Assert.That(expectedVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
+        foreach (var (key, value) in expectedVariables)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Missing variable {key}");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
+            });
+        }
+        Assert.That(actualVariables, Has.Count.EqualTo(expectedVariables.Count));
     }
 
     [Test]
@@ -198,23 +189,22 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-core-test-rg""
-storage_account_name = ""{{prefix_alphanumeric}}testterraformbackend""
+        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
+storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
 container_name = ""{{prefix}}-project-states""
 key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
+subscription_id = ""{{az_subscription_id}}""
 ";
         
         expectedConfiguration = expectedConfiguration
             .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
-            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric);
-
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
+            .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
+            .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
+            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
+            .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -234,13 +224,8 @@ key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
             Version = "latest"
         };
 
-        var module = new TerraformTemplate()
-        {
-            Name = TerraformTemplate.NewProjectTemplate,
-        };
-
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _terraformService.CopyTemplateAsync(module, workspace);
+        await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         
         // Write a fake backend config before extracting
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),

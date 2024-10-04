@@ -1,6 +1,5 @@
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Data.Databricks
-@using Datahub.Portal.Pages.Project.DataProject
 @using Microsoft.Identity.Web
 @using Microsoft.Rest
 
@@ -23,8 +22,8 @@
                 </MudAlert>
             </NotAuthorized>
         </DatahubAuthView>
-        
-        <MudText Typo="Typo.h2">@Localizer["Workspace Repositories"]</MudText>
+
+        <DHMainContentTitle Title="@Localizer["Workspace Repositories"]" />
         <MudText>@Localizer["This section lets you share inside Datahub your Git repositories that have been linked inside Databricks."]</MudText>
         <MudText>
             @Localizer["If you wish to learn more about Databricks and Git integration, "]
@@ -45,7 +44,7 @@
                     <MudItem xs="12" sm="8">
                         <MudPaper Elevation="0" Class="border-dashed py-12 px-4" Outlined>
                             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center">
-                                <MudIcon Icon="@Icons.Material.Outlined.Cloud" Size="Size.Large"/>
+                                <DHIcon Icon="@Icons.Material.Outlined.Cloud" Size="Size.Large" />
                                 <MudText Align="Align.Center">@Localizer["No linked repositories found in Databricks workspace"]</MudText>
                             </MudStack>
                         </MudPaper>

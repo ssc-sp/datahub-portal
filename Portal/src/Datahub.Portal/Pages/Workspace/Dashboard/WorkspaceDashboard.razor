@@ -1,7 +1,6 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
 @using Datahub.Shared.Entities
-@using Datahub.Portal.Pages.Project.DataProject
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Portal.Pages.Workspace.Repositories
 
@@ -27,9 +26,12 @@
     <MudItem xs="12" sm="8">
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
             <Authorized>
-                <MudGrid>
-                    @if (_resources.Any())
-                    {
+                @if (_resources.Any())
+                {
+                    <h2 class="sr-only">
+                        @Localizer["Workspace tools"]
+                    </h2>
+                    <ul style="display:grid;gap: 25px">
                         @foreach (var resource in _resources)
                         {
                             var found = _cardComponents.ContainsKey(resource.ResourceType);
@@ -40,35 +42,37 @@
                                     { "ProjectResource", resource },
                                     { "WorkspaceAcronym", WorkspaceAcronym }
                                 };
-                                <MudItem>
-                                    <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
-                                </MudItem>
+                                <li>
+                                    <MudItem>
+                                        <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
+                                    </MudItem>
+                                </li>
                             }
                             else
                             {
                                 _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
                             }
                         }
-                    }
-                    else
-                    {
-                        <MudItem>
-                            <MudStack Justify="Justify.Center">
-                                <MudText >
-                                    @Localizer["It looks like you don't have any workspace tools yet."]
-                                </MudText>
-                                <MudText >
-                                    @Localizer["You can request workspace tools from the 'Toolbox' tab."]
-                                </MudText>
-                                <MudElement HtmlTag="div">
-                                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Href="@_toolboxLink">
-                                        @Localizer["View Toolbox"]
-                                    </MudButton>
-                                </MudElement>
-                            </MudStack>
-                        </MudItem>
-                    }
-                </MudGrid>
+                    </ul>
+                }
+                else
+                {
+                    <MudItem>
+                        <MudStack Justify="Justify.Center">
+                            <MudText >
+                                @Localizer["It looks like you don't have any workspace tools yet."]
+                            </MudText>
+                            <MudText >
+                                @Localizer["You can request workspace tools from the 'Toolbox' tab."]
+                            </MudText>
+                            <MudElement HtmlTag="div">
+                                <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@_toolboxLink">
+                                    @Localizer["View Toolbox"]
+                                </DHButton>
+                            </MudElement>
+                        </MudStack>
+                    </MudItem>
+                }
             </Authorized>
             <NotAuthorized>
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
@@ -111,7 +115,7 @@
         { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks), typeof(DatabricksCard) },
         { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob), typeof(StorageCard) },
         { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres), typeof(PostgreSQLCard) },
-        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService), typeof(AppServiceCard)}
+        { TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService), typeof(AppServiceCard) }
     };
 
     private List<ProjectRepository> _projectRepositories = new();

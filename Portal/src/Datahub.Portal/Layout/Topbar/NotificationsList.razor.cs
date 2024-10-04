@@ -9,7 +9,7 @@ public partial class NotificationsList
     private async Task<string> GetLocalTime(SystemNotification notification)
     {
         var timestampUtc = DateTime.SpecifyKind(notification.Generated_TS, DateTimeKind.Utc);
-        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        var localDatetime = await _timezoneService.LocalDateTime(timestampUtc);
         return localDatetime.ToString("yyyy-MM-dd HH:mm:ss");
     }
     

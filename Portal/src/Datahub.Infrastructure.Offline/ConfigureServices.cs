@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Text;
-using Askmethat.Aspnet.JsonLocalizer.Extensions;
+using AspNetCore.Localizer.Json.Extensions;
+using AspNetCore.Localizer.Json.JsonOptions;
 using Blazored.LocalStorage;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
@@ -26,7 +27,7 @@ public static class ConfigureServices
     public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
     {
         portalConfiguration ??= new DatahubPortalConfiguration();
-        services.AddSingleton<CultureService>();
+        services.AddScoped<ICultureService, OfflineUserCultureService>();
         services.AddDatahubLocalization(portalConfiguration);
         
         services.AddScoped<IMetadataBrokerService, OfflineMetadataBrokerService>();
@@ -62,7 +63,7 @@ public static class ConfigureServices
             options.AdditionalResourcePaths = portalConfiguration.CultureSettings.AdditionalResourcePaths;
             options.UseBaseName = false;
             options.IsAbsolutePath = true;
-            options.LocalizationMode = Askmethat.Aspnet.JsonLocalizer.JsonOptions.LocalizationMode.I18n;
+            options.LocalizationMode = LocalizationMode.I18n;
             options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
             options.FileEncoding = Encoding.GetEncoding("UTF-8");
             options.SupportedCultureInfos = supportedCultures;

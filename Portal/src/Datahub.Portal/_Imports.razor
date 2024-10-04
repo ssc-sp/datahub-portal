@@ -21,15 +21,14 @@
 @using Tewr.Blazor.FileReader
 @using Microsoft.Extensions.Hosting
 
-
-@using Askmethat.Aspnet.JsonLocalizer.Localizer
-
 @using Datahub.Application.Configuration
 @using Datahub.Application.Services.Achievements
 @using Datahub.Application.Services.Security
+@using Datahub.Application.Services.UserManagement
 
 
 @using Datahub.Core.Data
+@using Datahub.Core.Model.Context
 @using Datahub.Core.Services
 @using Datahub.Core.Components
 @using Datahub.Core.Components.Skeleton
@@ -71,4 +70,3 @@
 @using PSC.Blazor.Components.MarkdownEditor.EventsArgs
 
 @inject IStringLocalizer Localizer
-@inject CultureService CultureService

@@ -14,13 +14,24 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Projects;
+using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
 using Datahub.Functions.Services;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
+using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
 using Microsoft.Extensions.Azure;
+using Datahub.Core.Model.Context;
+using Datahub.Infrastructure;
+using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Infrastructure.Services.ResourceGroups;
+using Datahub.Shared.Configuration;
+
 
 var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
@@ -45,45 +56,39 @@ var host = new HostBuilder()
             services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
         }
 
-        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
-
         services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
             Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
                 .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
                 .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)));
 
+        // TODO: implement this in a better way (unified between function and portal apps)
+        var devopsConfig = config?.GetSection("AzureDevOpsConfiguration")?.Get<AzureDevOpsConfiguration>();
+        if (devopsConfig != null)
+        {
+            services.AddSingleton(devopsConfig);
+        }
+
         services.AddSingleton<AzureConfig>();
         services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
         services.AddSingleton<AzureManagementService>();
-        services.AddAzureClients(
-            builder =>
-            {
-                builder.AddClient<ArmClient, ArmClientOptions>(options =>
-                {
-                    options.Diagnostics.IsLoggingEnabled = true;
-                    options.Retry.Mode = RetryMode.Exponential;
-                    options.Retry.MaxRetries = 5;
-                    options.Retry.Delay = TimeSpan.FromSeconds(2);
-                    var tenantId = config.GetValue<string>("TENANT_ID");
-                    var clientId = config.GetValue<string>("FUNC_SP_CLIENT_ID");
-                    var clientSecret = config.GetValue<string>("FUNC_SP_CLIENT_SECRET");
-                    var subscriptionId = config.GetValue<string>("SUBSCRIPTION_ID");
-                    var creds = new ClientSecretCredential(tenantId, clientId, clientSecret);
-                    var client = new ArmClient(creds, subscriptionId, options);
-                    return client;
-                });
-            }
-            );
+        services.AddAzureResourceManager(config);
         services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+        services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
+        services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+        services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
+        services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
         services.AddSingleton<IEmailService, EmailService>();
+        services.AddSingleton<IAlertRecordService, AlertRecordService>();
         services.AddScoped<ProjectUsageService>();
         services.AddScoped<QueuePongService>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
+        services.AddScoped<HealthCheckHelper>();
         services.AddDatahubConfigurationFromFunctionFormat(config);
        
 

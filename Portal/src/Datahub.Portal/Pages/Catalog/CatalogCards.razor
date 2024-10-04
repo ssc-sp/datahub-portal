@@ -5,7 +5,7 @@
 @using Datahub.Core.Model.Datahub
 @using Datahub.Core
 @using Datahub.Core.Model.Projects
-@inject UIControlsService uiControlService
+@inject UiControlsService uiControlService
 @inject NavigationManager NavigationManager
 
 @if (CatalogResult is null)
@@ -45,7 +45,7 @@ else
             
             <div style="@($"--security-text-color: {_securityClassColor}")" class="securityclass">
                 <i class="@($"fad fa-{_projectIcon}")"></i>
-                <p><b>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)]</b></p>
+                <p><strong>@Localizer["DISCOVERY-LABELS.DATA SENSITIVITY"]: @Localizer[SecurityClassification.GetSecurityClassification(CatalogResult.ClassificationType)]</strong></p>
             </div>            
 
             @if (!string.IsNullOrEmpty(_allFieldValues["name"]))
@@ -81,22 +81,22 @@ else
             <AeTypography Variant="p no-margin">@GetDescription()</AeTypography>
         </div>
         <div class="details-left">
-            <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><b>@Localizer["Subject"]: </b>@GetLabel("subject")</AeTypography></div>
-            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Data Type"]: </b>@Localizer[$"DISCOVERY-DATA-TYPES.{CatalogResult.DataType}"]</AeTypography>
+            <div title="@GetDivTitleSubject()"><AeTypography Variant="p no-margin"><strong>@Localizer["Subject"]: </strong>@GetLabel("subject")</AeTypography></div>
+            <AeTypography Variant="p no-margin"><strong>@Localizer["DISCOVERY-LABELS.Data Type"]: </strong>@Localizer[$"DISCOVERY-DATA-TYPES.{CatalogResult.DataType}"]</AeTypography>
             @if (!string.IsNullOrWhiteSpace(_fileType))
             {
-                <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.File Format"]: </b>@_fileType</AeTypography>
+                <AeTypography Variant="p no-margin"><strong>@Localizer["DISCOVERY-LABELS.File Format"]: </strong>@_fileType</AeTypography>
             }
-            <AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Contact Information"]: </b>@CatalogResult.Contact</AeTypography>
+            <AeTypography Variant="p no-margin"><strong>@Localizer["DISCOVERY-LABELS.Contact Information"]: </strong>@CatalogResult.Contact</AeTypography>
             @if (Project is not null)
             {
-                <AeTypography Variant="p no-margin"><b>@Localizer["Location"]: </b><DHLink DataProject="@(Project.Project_Acronym_CD)">@Project.ProjectName</DHLink></AeTypography>
+                <AeTypography Variant="p no-margin"><strong>@Localizer["Location"]: </strong><DHLink DataProject="@(Project.Project_Acronym_CD)">@Project.ProjectName</DHLink></AeTypography>
             }   
         </div>
         <div class="details-right">
-            <AeTypography Variant="p no-margin"><b>@Localizer["Sector"]: </b>@(MapSector?.Invoke(CatalogResult, IsFrench) ?? "")</AeTypography>
-            <AeTypography Variant="p no-margin"><b>@Localizer["Branch"]: </b>@(MapBranch?.Invoke(CatalogResult, IsFrench) ?? "")</AeTypography>
-            <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><b>@Localizer["DISCOVERY-LABELS.Collection Type"]: </b>@GetLabel("collection")</AeTypography></div>
+            <AeTypography Variant="p no-margin"><strong>@Localizer["Sector"]: </strong>@(MapSector?.Invoke(CatalogResult, IsFrench) ?? "")</AeTypography>
+            <AeTypography Variant="p no-margin"><strong>@Localizer["Branch"]: </strong>@(MapBranch?.Invoke(CatalogResult, IsFrench) ?? "")</AeTypography>
+            <div title="@GetFieldDefinitions("collection")"><AeTypography Variant="p no-margin"><strong>@Localizer["DISCOVERY-LABELS.Collection Type"]: </strong>@GetLabel("collection")</AeTypography></div>
         </div>
         <div class="bottom-row">
             <div class="key-words">

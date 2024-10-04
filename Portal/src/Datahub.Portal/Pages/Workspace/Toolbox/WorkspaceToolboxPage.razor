@@ -10,18 +10,19 @@
 @inject ISnackbar _snackbar
 
 <MudStack>
-    <MudText Typo="Typo.h2">
-        @Localizer["Toolbox Catalogue"]
-    </MudText>
+    <DHMainContentTitle Title="@Localizer["Toolbox Catalogue"]" />
     <MudText>
         @Localizer["The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the 'Add to Workspace' button."]
     </MudText>
 
     <MudDivider Class="my-6"/>
+    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+        @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
+    </MudAlert>
 
     @if (_metadataRequired)
     {
-        <MudAlert Severity="Severity.Warning" Class="mb-6">
+        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
             @Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"].
             <MudLink Href="@_metadataUrl">
                 @Localizer["Click here to edit the metadata."]
@@ -36,7 +37,7 @@
                 <MudPaper Outlined Class="pt-4 px-6 pb-6">
                     <MudStack Style="height: 280px;">
                         <MudStack Row AlignItems="AlignItems.Center">
-                            <MudIcon Icon="@GetIcon(tool)" Class="mr-2"/>
+                            <DHIcon Icon="@GetIcon(tool)" Class="mr-2" />
                             <MudText Typo="Typo.h3">
                                 @GetLabel(tool)
                             </MudText>
@@ -49,10 +50,10 @@
                             @switch (_toolCurrentDevelopmentStatusMap[tool])
                             {
                                 case ToolStatus.Available:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@(async () => await AddToolToWorkspace(tool))">
                                         @Localizer["Add to Workspace"]
-                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                        <DHIcon Icon="@SidebarIcons.CreateNew" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                                 case ToolStatus.SendingRequest:
                                     <SpinnerButton Variant="@Variant.Filled">
@@ -63,34 +64,34 @@
                                     <ToolBeingProvisionedButton Variant="@Variant.Filled"/>
                                     break;
                                 case ToolStatus.Exists:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Tool has been created"]
-                                        <MudIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                        <DHIcon Icon="fa-light fa-check-to-slot" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                                 case ToolStatus.Disabled:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Not Enabled"]
-                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                                 case ToolStatus.UnderDevelopment:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Under Development"]
-                                        <MudIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                        <DHIcon Icon="fa-light fa-space-station-moon-construction" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                                 case ToolStatus.MetadataRequired:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Metadata Required"]
-                                        <MudIcon Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                        <DHIcon Icon="@SidebarIcons.Metadata" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                                 default:
-                                    <MudButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
+                                    <DHButton Variant="@Variant.Filled" Color="@Color.Primary" Disabled>
                                         @Localizer["Unknown"]
-                                        <MudIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                    </MudButton>
+                                        <DHIcon Icon="fa-light fa-layer-plus" Class="ml-2" Style="font-size: 0.8rem;" />
+                                    </DHButton>
                                     break;
                             }
                         </MudStack>
@@ -205,7 +206,8 @@
         try
         {
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, tool, currentUser);
+            var template = new TerraformTemplate(tool, TerraformTemplate.TemplateStatus.CreateRequested);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
             _toolCurrentDevelopmentStatusMap[tool] = ToolStatus.PendingRequest;
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(tool)], Severity.Success);

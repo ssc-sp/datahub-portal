@@ -1,58 +1,59 @@
 ﻿@*ProjectStorageReport.razor*@
 
 @* @page "/w/{ProjectAcronym}/storage" *@
+@using Datahub.Core.Model.Projects
+@using ApexCharts
+@using Datahub.Portal.Pages.Workspace.Reports.Charts
 
 @inject IDbContextFactory<DatahubProjectDBContext> dbContextFactory
 
 @if (_averages != null)
 {
-    <MudDivider Class="my-6" />
-    <MudText Typo="Typo.h3">@Localizer["Storage daily average (over last 30 days)"]</MudText>
-    <div>
-        <MudChart ChartType="ChartType.Bar"
-                  ChartSeries="@DailySeries"
-                  XAxisLabels="@XAxisDailyLabels"
-                  Width="100%"
-                  Height="350px" />
-    </div>
+    <MudText Typo="Typo.h2">@Localizer["Storage analysis"]</MudText>
+    @if (_lastUpdate < DateTime.UtcNow.AddDays(-7))
+    {
+        <MudAlert Variant="Variant.Outlined" Severity="Severity.Warning" Style="color: #000">
+            @Localizer["Storage data has not been updated in the last 7 days, please check back later for updated storage data."]
+        </MudAlert>
+    }
+
+    <MudStack Style="height: 400px; width: 100%">
+        <DailyStorageLine Averages="_averages"/>
+    </MudStack>
+}
+else
+{
+    <MudAlert Severity="Severity.Info">@Localizer["No data available"]</MudAlert>
 }
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [CascadingParameter] public ChartLocale Locales { get; set; }
 
-    private List<DayAverage> _averages = default;
+    private DateTime _lastUpdate { get; set; }
 
-    private List<ChartSeries> DailySeries => new()
-    {
-        new() { Name = Localizer["Average (GB)"], Data = _averages.Select(e => e.Average / (1024 * 1024 * 1024)).ToArray() }
-    };
-
-    private string[] XAxisDailyLabels => _averages.Select(e => FormatDay(e.Day)).ToArray();
+    private List<Project_Storage> _averages = default;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _averages = await GetLast30DaysAverages();        
+        _averages = await GetLast30DaysAverages();
     }
 
-    private async Task<List<DayAverage>> GetLast30DaysAverages()
+    private async Task<List<Project_Storage>> GetLast30DaysAverages()
     {
         var minDate = DateTime.Now.AddDays(-30).Date;
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var averages = await ctx.Projects
+        var project_averages = await ctx.Projects
             .Where(e => e.Project_Acronym_CD == WorkspaceAcronym)
-            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s)
-            .Where(e => e.Date >= minDate)
-            .Select(e => new DayAverage(e.Date.Day, e.AverageCapacity))
-            .ToListAsync();
+            .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s).ToListAsync();
+        var averages = project_averages.Where(e => e.Date >= minDate)
+            .ToList();
 
+        _lastUpdate = project_averages.Max(e => e.Date);
         return averages;
     }
 
-    static string FormatDay(int day) => $"{day.ToString("D2")}";
-
-    record DayAverage(int Day, double Average);
 }
