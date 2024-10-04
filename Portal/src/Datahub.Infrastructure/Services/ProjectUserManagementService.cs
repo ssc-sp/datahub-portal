@@ -218,14 +218,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
     public async Task<List<string>> GetProjectListForPortalUser(int portalUserId)
     {
-        using (var context = await _contextFactory.CreateDbContextAsync())
-        {
-            var projectAcronyms = await (from p in context.Projects
-                                         join pu in context.Project_Users on p.Project_ID equals pu.Project_ID
-                                         where pu.PortalUserId == portalUserId
-                                         select p.Project_Acronym_CD).ToListAsync();
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        var projectAcronyms = await context.Project_Users
+            .Include(pu => pu.Project)
+            .Where(pu => pu.PortalUserId == portalUserId)
+            .Select(pu => pu.Project.Project_Acronym_CD)
+            .ToListAsync();
 
-            return projectAcronyms;
+        return projectAcronyms;
         }
     }
 
