@@ -1,21 +1,12 @@
 name: Build and Test Workflow
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - proof-of-concept
-    paths:
-      - 'Portal/**'
-      - 'ServerlessOperations/**'
-      - 'ResourceProvisioner/**'
   workflow_dispatch:
 
 # Set global environment variables for the whole workflow
 env:
   BuildConfiguration: Release  # Set the build configuration globally for all jobs
   target_os: linux-x64
-
 
 jobs:
   prepare:
@@ -49,7 +40,7 @@ jobs:
   build_portal:
     name: Build Portal App
     runs-on: ubuntu-latest
-    needs: prepare
+    needs: prepare  # This job runs after prepare
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -87,7 +78,7 @@ jobs:
   build_function_app:
     name: Build Function App
     runs-on: ubuntu-latest
-    needs: prepare
+    needs: prepare  # This job runs after prepare
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -110,7 +101,7 @@ jobs:
   build_resource_provisioner:
     name: Build Resource Provisioner Function
     runs-on: ubuntu-latest
-    needs: prepare
+    needs: prepare  # This job runs after prepare
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -133,6 +124,7 @@ jobs:
   build_python:
     name: Build Python User Provisioner Function
     runs-on: ubuntu-latest
+    needs: prepare  # Ensure this runs after "prepare"
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -155,10 +147,22 @@ jobs:
           name: user-provisioner
           path: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
 
+  portal_testing:
+    name: Portal Testing Job
+    needs: build_portal  # This runs after build_portal
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run Portal Tests
+        uses: ./.github/actions/fsdh-portal-tests
+        with:
+          build_artifact: portal-build
+          buildConfiguration: 'Release'
+          environment: 'dev'
+
   post_build:
     name: Post-Build Tasks
+    needs: [portal_testing, build_function_app, build_resource_provisioner, build_python]  # Ensure this runs after all jobs
     runs-on: ubuntu-latest
-    needs: [prepare, build_portal, build_function_app]
     steps:
       - name: Checkout repository with credentials
         uses: actions/checkout@v2
@@ -173,18 +177,3 @@ jobs:
           git tag $versionNumber --force
           git push origin $versionNumber --force
           echo "Tagged with $versionNumber"
-
-  portal_testing:
-    name: Portal Testing Job
-    needs: build_portal
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2  # Ensure the repo is checked out
-
-    - name: Run Portal Tests
-      uses: ./.github/actions/fsdh-portal-tests  # Call the composite action
-      with:
-        build_artifact: portal-build  # Pass input to the composite action
-        buildConfiguration: 'Release'
-        environment: 'dev'
