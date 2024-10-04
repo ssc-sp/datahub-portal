@@ -1,0 +1,168 @@
+name: Build and Test Workflow
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - proof-of-concept
+    paths:
+      - 'Portal/**'
+      - 'ServerlessOperations/**'
+      - 'ResourceProvisioner/**'
+  workflow_dispatch:
+
+jobs:
+  prepare:
+    name: Prepare Environment
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Setup .NET Core 8.0.x
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Setup Node.js 16.x
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Set build number
+        shell: pwsh
+        run: |
+          $dateCode = (Get-Date -Format 'yyyyMMdd')
+          $buildName = "${{ env.version.MajorMinor }}.${{ env.version.Revision }}_$dateCode"
+          echo "Setting the build name to $buildName"
+          echo "##vso[build.updatebuildnumber]$buildName"
+
+  build_portal:
+    name: Build Portal App
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Copy appsettings
+        shell: pwsh
+        run: |
+          cd Portal/src
+          $files = Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue | Where { $_.FullName -notlike "*\Debug\*" }
+          foreach ($file in $files) {
+            $fileRendered = $file.FullName.Trim("-tmpl")
+            echo "Processing file: $file -> $fileRendered"
+            Copy-Item $file.FullName -Force -Destination $fileRendered
+          }
+          cd Datahub.Portal
+          mv appsettings.Development.json appsettings.dev.json
+          mv appsettings.json-tmpl-spdatahub appsettings.json
+
+      - name: .NET Build
+        run: dotnet build Portal/src/Datahub.Portal/*.csproj --configuration ${{ env.BuildConfiguration }}
+
+      - name: Publish Artifact - datahub-portal
+        run: dotnet publish Portal/src/Datahub.Portal/*.csproj -o ${{ github.workspace }}/output/portal -r ${{ env.target_os }} --self-contained true
+
+      - name: Upload Artifact - datahub-portal
+        uses: actions/upload-artifact@v3
+        with:
+          name: datahub-portal
+          path: ${{ github.workspace }}/output/portal
+
+  build_function_app:
+    name: Build Function App
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: .NET Build
+        run: dotnet build ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj --configuration ${{ env.BuildConfiguration }}
+
+      - name: Publish Artifact - datahub-function
+        run: dotnet publish ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj -o ${{ github.workspace }}/output/serverless -r ${{ env.target_os }} --self-contained true
+
+      - name: Upload Artifact - datahub-function
+        uses: actions/upload-artifact@v3
+        with:
+          name: datahub-function
+          path: ${{ github.workspace }}/output/serverless
+
+  build_resource_provisioner:
+    name: Build Resource Provisioner Function
+    runs-on: ubuntu-latest
+    needs: prepare
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: .NET Build
+        run: dotnet build ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj --configuration ${{ env.BuildConfiguration }}
+
+      - name: Publish Artifact - resource-provisioner-function
+        run: dotnet publish ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj -o ${{ github.workspace }}/output/resourceprovisioner -r ${{ env.target_os }} --self-contained true
+
+      - name: Upload Artifact - resource-provisioner-function
+        uses: actions/upload-artifact@v3
+        with:
+          name: resource-provisioner-function
+          path: ${{ github.workspace }}/output/resourceprovisioner
+
+  build_python:
+    name: Build Python User Provisioner Function
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          lfs: true
+          fetch-depth: 0
+
+      - name: Setup Python 3.11
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.11'
+
+      - name: Install Python Dependencies
+        run: pip install -r ./requirements.txt
+        working-directory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+
+      - name: Upload Artifact - user-provisioner
+        uses: actions/upload-artifact@v3
+        with:
+          name: user-provisioner
+          path: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+
+  post_build:
+    name: Post-Build Tasks
+    runs-on: ubuntu-latest
+    needs: [prepare, build_portal, build_function_app]
+    steps:
+      - name: Checkout repository with credentials
+        uses: actions/checkout@v2
+        with:
+          persist-credentials: true
+
+      - name: PowerShell Script - Git Tag
+        shell: pwsh
+        run: |
+          git config --global user.name "GitHub Actions"
+          $versionNumber = "${{ github.run_number }}"
+          git tag $versionNumber --force
+          git push origin $versionNumber --force
+          echo "Tagged with $versionNumber"
