@@ -11,6 +11,11 @@ on:
       - 'ResourceProvisioner/**'
   workflow_dispatch:
 
+# Set global environment variables for the whole workflow
+env:
+  BuildConfiguration: Release  # Set the build configuration globally for all jobs
+
+
 jobs:
   prepare:
     name: Prepare Environment
