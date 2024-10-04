@@ -25,10 +25,6 @@
         "parameters": {}
       },
       {
-        "type": "required_signatures",
-        "parameters": {}
-      },
-      {
         "type": "pull_request",
         "parameters": {
           "required_approving_review_count": 1,
