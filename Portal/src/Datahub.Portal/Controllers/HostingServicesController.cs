@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Authorization;
 namespace Datahub.Portal.Controllers;
 
 [ApiController]
-[Authorize]
 public class HostingServicesController : ControllerBase
 {
     /// <summary>
     /// Handles the authenticated HTTP POST request to the "api/auth-echo" endpoint.
     /// </summary>
     /// <returns>The IActionResult representing the response.</returns>
-    [HttpPost("api/auth-echo")]
+    [Route("api/auth-echo")]
+    [Authorize]
     public async Task<IActionResult> PostAuth()
     {
         return await ProcessRequest(Request);
@@ -21,7 +21,7 @@ public class HostingServicesController : ControllerBase
     /// Handles the anonymous HTTP POST request to the "api/anon-echo" endpoint.
     /// </summary>
     /// <returns></returns>
-    [HttpPost("api/anon-echo")]
+    [Route("api/anon-echo")]
     [AllowAnonymous]
     public async Task<IActionResult> PostAnon()
     {
