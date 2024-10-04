@@ -183,7 +183,7 @@ jobs:
       uses: actions/checkout@v2  # Ensure the repo is checked out
 
     - name: Run Portal Tests
-      uses: .github/actions/fsdh-portal-tests  # Call the composite action
+      uses: ./.github/actions/fsdh-portal-tests  # Call the composite action
       with:
         build_artifact: portal-build  # Pass input to the composite action
         buildConfiguration: 'Release'
