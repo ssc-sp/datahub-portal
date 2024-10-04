@@ -20,16 +20,6 @@ runs:
     - name: Checkout repository
       uses: actions/checkout@v2
 
-    # Step 1: Run gen-all-settings.ps1 using Azure PowerShell
-    #- name: Run gen-all-settings.ps1 to configure environment variables
-    #  uses: azure/powershell@v1
-    #  with:
-    #    azPSVersion: 'latest'
-    #    inlineScript: |
-    #      ./gen-all-settings.ps1 -Environment ${{ inputs.environment }}
-    #  env:
-    #    AZURE_SUBSCRIPTION: ${{ inputs.azureSubscription }}
-
     # Step 2: Install .NET SDK 8.0.x
     - name: Setup .NET Core sdk 8.0.x
       uses: actions/setup-dotnet@v3
@@ -40,26 +30,31 @@ runs:
     # Step 3: Datahub Function Unit Tests
     - name: Datahub Function Unit Tests
       run: dotnet test Portal/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj --configuration ${{ inputs.buildConfiguration }} --collect:"XPlat Code Coverage"
+      shell: bash
       continue-on-error: true  # Mimics condition: succeededOrFailed()
 
     # Step 4: Datahub Infrastructure Unit Tests
     - name: Datahub Infrastructure Unit Tests
       run: dotnet test Portal/test/Datahub.Infrastructure.UnitTests/Datahub.Infrastructure.UnitTests.csproj --configuration ${{ inputs.buildConfiguration }} --collect:"XPlat Code Coverage"
+      shell: bash
       continue-on-error: true
 
     # Step 5: Datahub Specflow Tests
     - name: Datahub Specflow Tests
       run: dotnet test Portal/test/Datahub.SpecflowTests/Datahub.SpecflowTests.csproj --configuration ${{ inputs.buildConfiguration }} --collect:"XPlat Code Coverage"
+      shell: bash
       continue-on-error: true
 
     # Step 6: Datahub Specs Tests
     - name: Datahub Specs Tests
       run: dotnet test Portal/test/Datahub.Specs/Datahub.Specs.csproj --configuration ${{ inputs.buildConfiguration }} --collect:"XPlat Code Coverage"
+      shell: bash
       continue-on-error: true
 
     # Step 7: Datahub Unit Tests
     - name: Datahub Unit Tests
       run: dotnet test Portal/test/Datahub.Tests/Datahub.Tests.csproj --configuration ${{ inputs.buildConfiguration }} --collect:"XPlat Code Coverage"
+      shell: bash
       continue-on-error: true
 
     # Step 8: Create code coverage report
@@ -67,6 +62,7 @@ runs:
       run: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
         reportgenerator -reports:${{ github.workspace }}/**/coverage.cobertura.xml -targetdir:${{ github.workspace }}/Portal/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+      shell: bash
 
     # Step 9: Upload Code Coverage Report as Artifact
     - name: Upload Code Coverage Report
