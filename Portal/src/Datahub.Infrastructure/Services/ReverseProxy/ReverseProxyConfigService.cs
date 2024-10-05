@@ -44,9 +44,9 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
     public string BuildWebAppURL(string acronym)
     {
-        return _config.ReverseProxy.WebAppPrefix + "/" + acronym;
+        return _config.ReverseProxy.WebAppPrefix + "/" + acronym + "/";
     }
-    
+
     public string WebAppPrefix => _config.ReverseProxy.WebAppPrefix;
 
     public List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects()
