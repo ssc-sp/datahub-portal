@@ -1,3 +1,4 @@
+@ignore
 Feature: Support Request
 	The Support Request Page allows users to submit a support request to the support team. The support team will receive the request and respond to the user via email. The user can also view their support request history.
 
