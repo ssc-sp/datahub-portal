@@ -1,4 +1,5 @@
 using Datahub.Application.Services;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
@@ -66,7 +67,7 @@ public partial class WorkspaceSettingsPage
     internal async Task RunTerraformUpdate()
     {
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformTemplate.TemplateStatus.CreateRequested);
+        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested);
         
         await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
         _snackbar.Add(Localizer["Queued Terraform update for workspace changes"], Severity.Info);

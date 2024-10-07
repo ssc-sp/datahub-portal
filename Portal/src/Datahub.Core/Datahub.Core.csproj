@@ -25,6 +25,22 @@
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
 		<None Include="Components\DialogModalFrame.razor" />
+		<None Remove="Styles\elemental-theme\typography\_typography.scss" />
+		<None Remove="Styles\elemental-theme\tabs\_tabs.scss" />
+		<None Remove="Styles\elemental-theme\tabs\_index.scss" />
+		<None Remove="Styles\elemental-theme\modal\_modal.scss" />
+		<None Remove="Styles\elemental-theme\layout\_layoutV2.scss" />
+		<None Remove="Styles\elemental-theme\input\_search-wrapper.scss" />
+		<None Remove="Styles\elemental-theme\input\_input.scss" />
+		<None Remove="Styles\elemental-theme\input\_input-wrapper.scss" />
+		<None Remove="Styles\elemental-theme\common\_utils.scss" />
+		<None Remove="Styles\elemental-theme\common\_scrollbar.scss" />
+		<None Remove="Styles\elemental-theme\common\_media-mixins.scss" />
+		<None Remove="Styles\elemental-theme\common\_index.scss" />
+		<None Remove="Styles\elemental-theme\common\_constants.scss" />
+		<None Remove="Styles\elemental-theme\common\_colors.scss" />
+		<None Remove="Styles\elemental-theme\_theme.scss" />
+		<None Remove="Styles\elemental-theme\_index.scss" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
@@ -106,6 +122,39 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Migrations\" />
+	  <Folder Include="Styles\elemental-theme\body\" />
+	  <Folder Include="Styles\elemental-theme\button\" />
+	  <Folder Include="Styles\elemental-theme\card\" />
+	  <Folder Include="Styles\elemental-theme\checkbox\" />
+	  <Folder Include="Styles\elemental-theme\collapse\" />
+	  <Folder Include="Styles\elemental-theme\column\" />
+	  <Folder Include="Styles\elemental-theme\common\" />
+	  <Folder Include="Styles\elemental-theme\dropdown\" />
+	  <Folder Include="Styles\elemental-theme\flex\" />
+	  <Folder Include="Styles\elemental-theme\icon\" />
+	  <Folder Include="Styles\elemental-theme\ie-not-supported\" />
+	  <Folder Include="Styles\elemental-theme\input\" />
+	  <Folder Include="Styles\elemental-theme\layout\" />
+	  <Folder Include="Styles\elemental-theme\list\" />
+	  <Folder Include="Styles\elemental-theme\markdown\" />
+	  <Folder Include="Styles\elemental-theme\menu\" />
+	  <Folder Include="Styles\elemental-theme\modal\" />
+	  <Folder Include="Styles\elemental-theme\model-form\" />
+	  <Folder Include="Styles\elemental-theme\navbar\" />
+	  <Folder Include="Styles\elemental-theme\outline\" />
+	  <Folder Include="Styles\elemental-theme\pageoutline\" />
+	  <Folder Include="Styles\elemental-theme\pagination\" />
+	  <Folder Include="Styles\elemental-theme\progress\" />
+	  <Folder Include="Styles\elemental-theme\row\" />
+	  <Folder Include="Styles\elemental-theme\spinner\" />
+	  <Folder Include="Styles\elemental-theme\steps\" />
+	  <Folder Include="Styles\elemental-theme\table\" />
+	  <Folder Include="Styles\elemental-theme\tabs\" />
+	  <Folder Include="Styles\elemental-theme\tag\" />
+	  <Folder Include="Styles\elemental-theme\toggle\" />
+	  <Folder Include="Styles\elemental-theme\tooltip\" />
+	  <Folder Include="Styles\elemental-theme\treeview\" />
+	  <Folder Include="Styles\elemental-theme\typography\" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
