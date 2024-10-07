@@ -2,7 +2,7 @@
     <MudDrawer
         Width="320px"
         Variant="DrawerVariant.Mini"
-        @bind-Open="@_open"
+        @bind-Open="@Open"
         Overlay="false"
         Style="@DatahubTheme.SideBorderStyle"
         Elevation="0"
@@ -18,10 +18,10 @@
 
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
-    private bool _open { get; set; } = true;
+    public bool Open { get; set; } = true;
     
     public void ToggleDrawer()
     {
-        _open = !_open;
+        Open = !Open;
     }
 }

@@ -4,6 +4,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Infrastructure.Services.UserManagement
+@using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Components.User
 @using MudBlazor.Utilities
 
@@ -19,46 +20,32 @@
 }
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudStack Class="ml-2">
-        <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
+    <MudStack Row AlignItems="AlignItems.Center">
+        <span>
+            <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
+            <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
+        </span>
+        @if (Drawer.Open)
+        {
+            <div style="text-wrap: nowrap">
+                <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
+            </div>
+        }
     </MudStack>
-    <MudStack Spacing="2">
-        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-            <strong>
-                @Localizer["My account"]
-            </strong>
-        </MudText>
-        <MudNavMenu Color="Color.Primary" role="navigation">
-            <ul>
-                @foreach (var sectionView in _accountItems)
-                {
-                    <li>
-                        <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                <MudText Style="@_workspaceLinkStyle">
-                                    @GetLabel(sectionView)
-                                </MudText>
-                            </MudStack>
-                        </MudNavLink>
-                    </li>
-                }
-            </ul>
-        </MudNavMenu>
-    </MudStack>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+    @if (Drawer.Open)
+    {
         <MudStack Spacing="2">
-            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
+            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                 <strong>
-                    @Localizer["Datahub Admin"]
+                    @Localizer["My account"]
                 </strong>
             </MudText>
             <MudNavMenu Color="Color.Primary" role="navigation">
                 <ul>
-                    @foreach (var sectionView in _datahubAdminItems)
+                    @foreach (var sectionView in _accountItems)
                     {
                         <li>
-                            <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                            <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
                                 <MudStack Row AlignItems="AlignItems.Center">
                                     <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                                     <MudText Style="@_workspaceLinkStyle">
@@ -71,15 +58,40 @@
                 </ul>
             </MudNavMenu>
         </MudStack>
-    </DatahubAuthView>
-
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-        <MudSwitch T="bool"
-                   Color="Color.Primary"
-                   Value="@_isViewAsAdmin"
-                   ValueChanged="@ToggleAdminMode"
-                   Label="@Localizer["Admin Access Enabled"]"/>
-    </DatahubAuthView>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                    <strong>
+                        @Localizer["Datahub Admin"]
+                    </strong>
+                </MudText>
+                <MudNavMenu Color="Color.Primary" role="navigation">
+                    <ul>
+                        @foreach (var sectionView in _datahubAdminItems)
+                        {
+                            <li>
+                                <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                        <MudText Style="@_workspaceLinkStyle">
+                                            @GetLabel(sectionView)
+                                        </MudText>
+                                    </MudStack>
+                                </MudNavLink>
+                            </li>
+                        }
+                    </ul>
+                </MudNavMenu>
+            </MudStack>
+        </DatahubAuthView>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+            <MudSwitch T="bool"
+                       Color="Color.Primary"
+                       Value="@_isViewAsAdmin"
+                       ValueChanged="@ToggleAdminMode"
+                       Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap"/>
+        </DatahubAuthView>
+    }
 </MudStack>
 
 @code {
@@ -88,6 +100,7 @@
     private bool _isViewAsAdmin;
     private List<Datahub_Project_User> _userRoles;
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
+    [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
     private ushort _maxRecentLinks = 5;
     private ushort _maxWorkspacesToShow = 3;
@@ -299,4 +312,5 @@
         await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
+
 }

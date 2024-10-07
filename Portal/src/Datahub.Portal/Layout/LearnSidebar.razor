@@ -1,4 +1,5 @@
 ﻿@using Datahub.Markdown.Model
+@using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Components.Resources
 
 @inject NavigationManager _navManager
@@ -7,85 +8,96 @@
 @if (!PageIsLoading)
 {
     <MudStack Class="px-4 mt-6" id="nav">
-        <MudStack Class="ml-2">
-            <MudStack Row="true" Spacing="3">
-                <DHIcon Icon="@currentCategory.GetMudblazorMaterialIcon("Outlined")"/>
-                <MudText Typo="Typo.h6">
-                    @Localizer[currentCategory.Title.ToUpper()]
+        <MudStack Row AlignItems="AlignItems.Center">
+            <span>
+                <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
+                <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
+            </span>
+            @if (Drawer.Open)
+            {
+                <MudText Typo="Typo.h2" Style="font-size: 1rem">
+                    <strong>
+                        @Localizer["Documentation"]
+                    </strong>
                 </MudText>
-            </MudStack>
+            }
+        </MudStack>
+        @if (Drawer.Open)
+        {
+            <MudStack Class="ml-2">
 
-            <MudItem >
-                <MudNavMenu Color=@Color.Primary>
-                    <MudNavLink Href=@PageRoutes.ResourceDefault Match="NavLinkMatch.All">
-                        @Localizer["Popular Documents"]
-                    </MudNavLink>
-                    <MudDivider Class="my-3"/>
-                    <ul>
-                        @foreach (var cat in currentCategory.Children.Where(d => !hiddenNavGroups.Contains(d.Id)))
-                        {
-                            var isDoc = cat.Children.Count == 0;
-
-                            if (isDoc)
+                <MudItem >
+                    <MudNavMenu Color=@Color.Primary>
+                        <MudNavLink Href=@PageRoutes.ResourceDefault Match="NavLinkMatch.All" Style="text-wrap: nowrap">
+                            @Localizer["Popular Documents"]
+                        </MudNavLink>
+                        <MudDivider Class="my-3"/>
+                        <ul>
+                            @foreach (var cat in currentCategory.Children.Where(d => !hiddenNavGroups.Contains(d.Id)))
                             {
-                                @*                             <MudToggleIconButton aria-label="Notifications toggle"
+                                var isDoc = cat.Children.Count == 0;
+
+                                if (isDoc)
+                                {
+                                    @*                             <MudToggleIconButton aria-label="Notifications toggle"
                                                  ToggledIcon="@Icons.Material.Filled.Notifications"
                                                  ToggledChanged="@ToggleNotificationsList"
                                                  Toggled="IsNotificationsListOpen"
                                                  Icon="@Icons.Material.Outlined.Notifications" /> *@
-                                <li>
-                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
-                                        @cat.Title
-                                    </MudNavLink>
-                                </li>
-                            }
-                            else
-                            {
-                                <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())">
-                                    <ul>
-                                        @foreach (var article in cat.Children)
-                                        {
-                                            if (article.DocType == DocItemType.External)
+                                    <li>
+                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat) Icon="@(cat.GetSidebarIcon())">
+                                            @cat.Title
+                                        </MudNavLink>
+                                    </li>
+                                }
+                                else
+                                {
+                                    <MudNavGroup Title="@cat.Title" ExpandedChanged=@(isExpanding => UpdateCategory(cat, isExpanding)) Icon="@(cat.GetSidebarIcon())" Style="text-wrap: nowrap">
+                                        <ul style="text-wrap: wrap">
+                                            @foreach (var article in cat.Children)
                                             {
-                                                <li>
-                                                    <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article)>
-                                                        <MudStack Row AlignItems="AlignItems.Center">
-                                                            <MudIcon Title="@Localizer["External"]" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;"/>
-                                                            <MudText>
-                                                                <span class="sr-only" id="decimg01">
-                                                                    @Localizer["External"]
-                                                                </span>
-                                                                @article.Title
-                                                            </MudText>
-                                                        </MudStack>
-                                                    </MudNavLink>
-                                                </li>
+                                                if (article.DocType == DocItemType.External)
+                                                {
+                                                    <li>
+                                                        <MudNavLink Match="NavLinkMatch.All" Target="_blank" Href=@BuildResourceLink(article)>
+                                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                                <MudIcon Title="@Localizer["External"]" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;"/>
+                                                                <MudText>
+                                                                    <span class="sr-only" id="decimg01">
+                                                                        @Localizer["External"]
+                                                                    </span>
+                                                                    @article.Title
+                                                                </MudText>
+                                                            </MudStack>
+                                                        </MudNavLink>
+                                                    </li>
+                                                }
+                                                else
+                                                {
+                                                    <li>
+                                                        <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
+                                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                                <MudIcon Title="@((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;"/>
+                                                                <MudText >
+                                                                    <span class="sr-only" id="decimg01">
+                                                                        @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video: "] : @Localizer["Document: "])
+                                                                    </span>
+                                                                    @article.Title
+                                                                </MudText>
+                                                            </MudStack>
+                                                        </MudNavLink>
+                                                    </li>
+                                                }
                                             }
-                                            else
-                                            {
-                                                <li>
-                                                    <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(article)>
-                                                        <MudStack Row AlignItems="AlignItems.Center">
-                                                            <MudIcon Title="@((article.DocType == DocItemType.Tutorial) ? @Localizer["Video"] : @Localizer["Document"])" role="img" aria-labelledby="decimg01" Icon="@(article.GetSidebarIcon())" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1.25rem;"/>
-                                                            <MudText>
-                                                                <span class="sr-only" id="decimg01">
-                                                                    @((article.DocType == DocItemType.Tutorial) ? @Localizer["Video: "] : @Localizer["Document: "])
-                                                                </span>
-                                                                @article.Title
-                                                            </MudText>
-                                                        </MudStack>
-                                                    </MudNavLink>
-                                                </li>
-                                            }
-                                        }
-                                    </ul>
-                                </MudNavGroup>
+                                        </ul>
+                                    </MudNavGroup>
+                                }
                             }
-                        }
-                    </ul>
-                </MudNavMenu>
-            </MudItem>
-        </MudStack>
+                        </ul>
+                    </MudNavMenu>
+                </MudItem>
+            </MudStack>
+        }
     </MudStack>
 }
 
@@ -102,5 +114,7 @@
     [Parameter] public Action<DocItem, bool> UpdateCategory { get; set; }
 
     [Parameter] public bool PageIsLoading { get; set; }
+
+    [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
 }
