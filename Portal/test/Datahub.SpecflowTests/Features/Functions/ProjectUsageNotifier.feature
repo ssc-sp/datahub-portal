@@ -17,4 +17,10 @@ Feature: Project Usage Notifier
         Given a workspace with usage exceeding its budget
         When the notifier verifies overbudget is deleted
         Then the resources should be set to deleted
+        And the resource messaging service should be notified
         
+    Scenario: A workspace should not update anything if all the resources are already deleted
+        Given a workspace with usage exceeding its budget
+        And the resources are already deleted
+        When the notifier verifies overbudget is deleted
+        Then the resource messaging service should not be notified

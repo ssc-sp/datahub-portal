@@ -75,8 +75,11 @@ namespace Datahub.Functions
 
             var undeletedResources = await ctx.Project_Resources2
                 .Include(r => r.Project)
-                .Where(r => r.Project.Project_Acronym_CD == projectAcronym && (r.Status != TerraformStatus.Deleted || r.Status != TerraformStatus.DeleteRequested))
+                .Where(r => r.Project.Project_Acronym_CD == projectAcronym && !(r.Status == TerraformStatus.Deleted || r.Status == TerraformStatus.DeleteRequested))
                 .ToListAsync(cancellationToken);
+            
+            if(undeletedResources.Count == 0)
+                return;
 
             foreach (var undeletedResource in undeletedResources)
             {

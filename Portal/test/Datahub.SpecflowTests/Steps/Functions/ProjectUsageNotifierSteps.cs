@@ -6,6 +6,7 @@ using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared;
+using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -19,34 +20,39 @@ namespace Datahub.SpecflowTests.Steps.Functions;
 public class ProjectUsageNotifierSteps(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     AzureConfig azureConfig,
+    IResourceMessagingService resourceMessagingService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace with usage exceeding its budget")]
     public async Task GivenAWorkspaceWithUsageExceedingItsBudget()
     {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var workspace = new Datahub_Project()
         {
             Project_Acronym_CD = Testing.WorkspaceAcronym,
             Project_Name = "RD1",
             Project_Budget = 1,
         };
-        
-        var projectResource = new Project_Resources2()
+
+        for (var i = 0; i < 10; i++)
         {
-            ResourceType = "terraform:new-project-template",
-            Project = workspace,
-            Status = "Created",
-        };
-        
+            var projectResource = new Project_Resources2()
+            {
+                ResourceType = "test" + i,
+                Project = workspace,
+                Status = "Created",
+            };
+
+            await ctx.Project_Resources2.AddAsync(projectResource);
+        }
+
         var projectCredits = new Project_Credits()
         {
             Project = workspace,
             Current = 10000,
         };
-        
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
         await ctx.Projects.AddAsync(workspace);
-        await ctx.Project_Resources2.AddAsync(projectResource);
         await ctx.Project_Credits.AddAsync(projectCredits);
         await ctx.SaveChangesAsync();
     }
@@ -59,7 +65,6 @@ public class ProjectUsageNotifierSteps(
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
         var emailService = Substitute.For<IEmailService>();
-        var resourceMessagingService = Substitute.For<IResourceMessagingService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -70,10 +75,11 @@ public class ProjectUsageNotifierSteps(
             sendEndpointProvider,
             emailService,
             resourceMessagingService);
-        
+
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var result = await projectNotifier.VerifyDeleteIsRequired(Testing.WorkspaceAcronym, CancellationToken.None, ctx);
-        
+        var result =
+            await projectNotifier.VerifyDeleteIsRequired(Testing.WorkspaceAcronym, CancellationToken.None, ctx);
+
         scenarioContext["result"] = result;
     }
 
@@ -93,20 +99,20 @@ public class ProjectUsageNotifierSteps(
             Project_Name = "RD1",
             Project_Budget = 100,
         };
-        
+
         var projectResource = new Project_Resources2()
         {
             ResourceType = "terraform:new-project-template",
             Project = workspace,
             Status = "Created",
         };
-        
+
         var projectCredits = new Project_Credits()
         {
             Project = workspace,
             Current = 1,
         };
-        
+
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         await ctx.Projects.AddAsync(workspace);
         await ctx.Project_Resources2.AddAsync(projectResource);
@@ -129,7 +135,6 @@ public class ProjectUsageNotifierSteps(
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
         var emailService = Substitute.For<IEmailService>();
-        var resourceMessagingService = Substitute.For<IResourceMessagingService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -140,7 +145,7 @@ public class ProjectUsageNotifierSteps(
             sendEndpointProvider,
             emailService,
             resourceMessagingService);
-        
+
         await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
     }
 
@@ -151,8 +156,37 @@ public class ProjectUsageNotifierSteps(
         var resources = ctx.Project_Resources2
             .Where(r => r.Project.Project_Acronym_CD == Testing.WorkspaceAcronym)
             .ToList();
-        
+
         resources.Should().NotBeEmpty();
-        resources.Should().OnlyContain(r => r.Status == TerraformStatus.DeleteRequested || r.Status == TerraformStatus.Deleted);
+        resources.Should().OnlyContain(r =>
+            r.Status == TerraformStatus.DeleteRequested || r.Status == TerraformStatus.Deleted);
+    }
+
+    [Then(@"the resource messaging service should be notified")]
+    public void ThenTheResourceMessagingServiceShouldBeNotified()
+    {
+        resourceMessagingService.Received().SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
+    }
+
+    [Given(@"the resources are already deleted")]
+    public async Task GivenTheResourcesAreAlreadyDeleted()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var resources = ctx.Project_Resources2
+            .Where(r => r.Project.Project_Acronym_CD == Testing.WorkspaceAcronym)
+            .ToList();
+
+        foreach (var resource in resources)
+        {
+            resource.Status = TerraformStatus.Deleted;
+        }
+
+        await ctx.SaveChangesAsync();
+    }
+
+    [Then(@"the resource messaging service should not be notified")]
+    public void ThenTheResourceMessagingServiceShouldNotBeNotified()
+    {
+        resourceMessagingService.DidNotReceive().SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
     }
 }

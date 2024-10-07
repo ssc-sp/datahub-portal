@@ -5,6 +5,7 @@ using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
@@ -47,9 +48,11 @@ namespace Datahub.SpecflowTests.Hooks
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             
             var azureConfig = new AzureConfig(configuration);
+            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(azureConfig);
+            objectContainer.RegisterInstanceAs(resourceMessagingService);
         }
         
         [BeforeScenario("ProjectUsage")]
