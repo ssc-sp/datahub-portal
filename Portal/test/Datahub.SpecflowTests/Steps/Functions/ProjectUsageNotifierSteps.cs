@@ -5,6 +5,7 @@ using Datahub.Functions;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services;
+using Datahub.Shared;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -118,5 +119,40 @@ public class ProjectUsageNotifierSteps(
     {
         var result = scenarioContext.Get<bool>("result");
         result.Should().BeFalse();
+    }
+
+    [When(@"the notifier verifies overbudget is deleted")]
+    public async Task WhenTheNotifierVerifiesOverbudgetIsDeleted()
+    {
+        var logger = Substitute.For<ILoggerFactory>();
+        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
+        var emailValidator = Substitute.For<EmailValidator>();
+        var emailService = Substitute.For<IEmailService>();
+        var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+
+        var projectNotifier = new ProjectUsageNotifier(
+            logger,
+            azureConfig,
+            dbContextFactory,
+            pongService,
+            emailValidator,
+            sendEndpointProvider,
+            emailService,
+            resourceMessagingService);
+        
+        await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
+    }
+
+    [Then(@"the resources should be set to deleted")]
+    public async Task ThenTheResourcesShouldBeSetToDeleted()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var resources = ctx.Project_Resources2
+            .Where(r => r.Project.Project_Acronym_CD == Testing.WorkspaceAcronym)
+            .ToList();
+        
+        resources.Should().NotBeEmpty();
+        resources.Should().OnlyContain(r => r.Status == TerraformStatus.DeleteRequested || r.Status == TerraformStatus.Deleted);
     }
 }

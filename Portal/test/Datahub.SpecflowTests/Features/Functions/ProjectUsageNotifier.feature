@@ -13,3 +13,8 @@ Feature: Project Usage Notifier
         When the notifier checks if a delete is required
         Then the result should be false
         
+    Scenario: A workspace should set the resources to deleted if the usage exceeds 100% of the budget
+        Given a workspace with usage exceeding its budget
+        When the notifier verifies overbudget is deleted
+        Then the resources should be set to deleted
+        
