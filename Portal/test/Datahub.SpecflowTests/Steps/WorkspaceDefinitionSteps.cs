@@ -58,7 +58,7 @@ public class WorkspaceDefinitionSteps(
         var workspaceDefinition = scenarioContext["workspaceDefinition"] as WorkspaceDefinition;
         workspaceDefinition!.Templates
             .Any(t => 
-                t.Name.EndsWith(TerraformTemplate.NewProjectTemplate) 
+                t.Name.Equals(TerraformTemplate.NewProjectTemplate) 
                 && t.Status == TerraformTemplate.TemplateStatus.Created)
             .Should()
             .BeTrue();

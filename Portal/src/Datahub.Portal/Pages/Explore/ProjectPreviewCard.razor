@@ -6,17 +6,17 @@
 @if (_showCreate)
 {
     <MudPaper Elevation="0" Outlined Class="px-3 py-2">
-        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
+        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px; width: 300px">
             <MudStack>
-                <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Localizer["Create a new Workspace"]</MudText>
+                <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Localizer["Create a new workspace"]</MudText>
                 <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Localizer["You can create a new workspace to start working on your project"]</MudText>
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
                     NumberOfWorkspacesRemaining="@NumberOfRemainingWorkspaces"/>
                 <MudElement>
-                    <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@PageRoutes.CreateWorkspace">
-                        @Localizer["Create Workspace"]
+                    <DHButton NoWrap Underline EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@PageRoutes.CreateWorkspace">
+                        @Localizer["Create workspace"]
                     </DHButton>
                 </MudElement>
             </MudStack>
@@ -26,10 +26,13 @@
 else
 {
     <MudPaper Elevation="0" Outlined Class="px-3 py-2">
-        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;">
+        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px; width: 300px">
             <MudStack>
                 <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Project.ProjectName</MudText>
-                <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Project.ProjectDescription</MudText>
+                @if (!string.IsNullOrWhiteSpace(Project.ProjectDescription))
+                {
+                    <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Project.ProjectDescription</MudText>
+                }
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
@@ -38,8 +41,8 @@ else
                     NumberOfFiles="0"/>
                 <MudElement>
                     <DHButton EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary"
-                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")">
-                        @Localizer["Open Workspace"]
+                               Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{Project?.Project_Acronym_CD}")" NoWrap Underline>
+                        @Localizer["Open workspace"]
                     </DHButton>
                 </MudElement>
             </MudStack>

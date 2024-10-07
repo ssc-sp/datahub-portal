@@ -14,6 +14,7 @@ public class Datahub_Project_User
     public int? RoleId { get; set; }
     public int Project_ID { get; set; }
     public DateTime? Approved_DT { get; set; }
+    public bool IsDataSteward { get; set; }
 
     #region Navigation Properties
     public Datahub_Project Project { get; set; }

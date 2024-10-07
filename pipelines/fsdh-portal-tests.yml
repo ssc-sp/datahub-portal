@@ -1,4 +1,14 @@
 steps:
+  # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
+  - task: AzurePowerShell@5
+    displayName: 'Run gen-all-settings.ps1 to configure environment variables'
+    inputs:
+      azureSubscription: 'fsdh-az-service-connection'
+      ScriptType: 'FilePath'  # Run the script using FilePath
+      ScriptPath: './gen-all-settings.ps1'  # Path to your script
+      ScriptArguments: '-Environment dev'
+      azurePowerShellVersion: 'LatestVersion'
+      
   - task: UseDotNet@2
     displayName: 'Use .NET Core sdk 8.0.x'
     inputs:

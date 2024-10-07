@@ -1,59 +1,51 @@
 <MudStack Row Spacing="0">
     @if (NumberOfWorkspacesRemaining >= 0)
     {
-        <MudTooltip Text="@Localizer["Number of workspaces remaining"]" Arrow Placement="Placement.Top">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudChip T="string" title="@Localizer["Number of workspaces remaining"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <span>
+                    <p>
                         <DHIcon Icon="fa-light fa-layer-plus" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <p class="sr-only">@Localizer["Number of workspaces remaining: "]</p>
+                        <span class="sr-only">@Localizer["Number of workspaces remaining: "]</span>
                         @NumberOfWorkspacesRemaining
-                    </span>
+                    </p>
                 </MudStack>
             </MudChip>
-        </MudTooltip>
     }
     @if (NumberOfUsers >= 0)
     {
-        <MudTooltip Text="@Localizer["Number of users in the workspace"]" Arrow Placement="Placement.Top">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudChip T="string" title="@Localizer["Number of users in the workspace"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <span>
-                        <DHIcon Icon="fa-light fa-users" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <p class="sr-only">@Localizer["Number of users in the workspace: "]</p>
+                    <p>
+                        <DHIcon Icon="fa-light fa-users" Style="font-size: 0.75rem;" Color="Color.Dark" Class="mr-1" />
+                        <span class="sr-only">@Localizer["Number of users in the workspace: "]</span>
                         @NumberOfUsers
-                    </span>
+                    </p>
                 </MudStack>
             </MudChip>
-        </MudTooltip>
     }
     @if (NumberOfRepositories >= 0)
     {
-        <MudTooltip Text="@Localizer["Number of shared repositories"]" Arrow Placement="Placement.Top">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudChip T="string" title="@Localizer["Number of shared repositories"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <span>
+                    <p>
                         <DHIcon Icon="fa-light fa-code-branch" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <p class="sr-only">@Localizer["Number of shared repositories: "]</p>
+                        <span class="sr-only">@Localizer["Number of shared repositories: "]</span>
                         @NumberOfRepositories
-                    </span>
+                    </p>
                 </MudStack>
             </MudChip>
-        </MudTooltip>
     }
     @if (NumberOfFiles >= 0)
     {
-        <MudTooltip Text="@Localizer["Number of shared files"]" Arrow Placement="Placement.Top">
-            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudChip T="string" title="@Localizer["Number of shared files"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <span>
+                    <p>
                         <DHIcon Icon="fa-light fa-files" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <p class="sr-only">@Localizer["Number of shared files: "]</p>
+                        <span class="sr-only">@Localizer["Number of shared files: "]</span>
                         @NumberOfFiles
-                    </span>
+                    </p>
                 </MudStack>
             </MudChip>
-        </MudTooltip>
     }
 </MudStack>
 

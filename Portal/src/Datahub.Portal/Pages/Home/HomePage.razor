@@ -18,7 +18,7 @@
 
 @if (_viewedPortalUser is null)
 {
-    <DHLoadingInitializer Message="@Localizer["Initializing Profile..."]"/>
+    <DHLoadingInitializer Message="@Localizer["Initializing profile..."]"/>
     return;
 }
 
@@ -43,7 +43,7 @@
     }
     <div role="group">
         <h2 class="sr-only">
-            @Localizer["Profile information"]
+            @Localizer["Profile of"] @_viewedPortalUser?.DisplayName
         </h2>
         <MudGrid>
             <MudItem xs="12" md="@(_viewedPortalUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
@@ -70,7 +70,7 @@
                             <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
                         </MudStack>
                         <MudLink Href="@_achievementsUrl">
-                            @Localizer["View All Achievements"]
+                            @Localizer["View all achievements"]
                         </MudLink>
                     </MudStack>
                 </MudItem>

@@ -3,7 +3,7 @@
 
 @inject NavigationManager _navigationManager
 
-<ul class="my-4" style="display: grid; grid-template-columns: repeat(@_previewCount, 1fr); gap: 25px">
+<ul class="my-4 d-flex" style="gap: 25px; flex-wrap: wrap">
     @foreach (var index in _announcementIndices)
     {
         if (index != -1)
@@ -11,7 +11,7 @@
             var preview = Previews[index];
             if (!preview.Preview.StartsWith("!["))
             {
-                <li>
+                <li class="flex-1">
 
                     <MudPaper Elevation="0" Outlined Class="py-2 px-3">
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
@@ -19,10 +19,12 @@
                                 <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
                             </MudElement>
                             <MudElement>
-                                <DHButton OnClick="() => HandleReadMore(preview.Id)"
+                                <DHButton Href="@Localizer[PageRoutes.News]"
                                           Color="@Color.Primary"
                                           Variant="@Variant.Text"
-                                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
+                                          Underline 
+                                          NoWrap>
                                     <span class="sr-only">@preview.Preview</span>
                                     @Localizer["Read more"]
                                 </DHButton>
@@ -106,11 +108,5 @@
         // The # of columns for the announcements is displayed accordingly
         _previewCount = count;
     }
-
-    private void HandleReadMore(int newId)
-    {
-        _navigationManager.NavigateTo("/news"); // $"/news/{newId}"
-    }
-
 }
 
