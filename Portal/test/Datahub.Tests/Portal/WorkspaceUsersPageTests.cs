@@ -43,7 +43,7 @@ namespace Datahub.Tests
     {
         private readonly Mock<IProjectUserManagementService> _projectUserManagementServiceMock;
         private readonly Mock<IUserInformationService> _userInformationMock;
-        private readonly Mock<CultureService> _cultureServiceMock;
+        private readonly Mock<ICultureService> _cultureServiceMock;
         private readonly Mock<ISnackbar> _snackBarMock;
         private readonly Mock<IStringLocalizer> _stringLocalizerMock;
         private readonly TestContext _testContext;
@@ -53,7 +53,7 @@ namespace Datahub.Tests
         {
             _projectUserManagementServiceMock = new Mock<IProjectUserManagementService>();
             _userInformationMock = new Mock<IUserInformationService>();
-            _cultureServiceMock = new Mock<CultureService>();
+            _cultureServiceMock = new Mock<ICultureService>();
             _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
             _snackBarMock = new Mock<ISnackbar>();
 
