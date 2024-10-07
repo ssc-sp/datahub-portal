@@ -1,3 +1,4 @@
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentAssertions;
@@ -28,7 +29,7 @@ public class CreateResourceRunTests
         {
             Templates = new List<TerraformTemplate>
             {
-                new("azure-storage-blob", TerraformTemplate.TemplateStatus.CreateRequested),
+                new("azure-storage-blob", TerraformStatus.CreateRequested),
             },
             Workspace = new TerraformWorkspace
             {
