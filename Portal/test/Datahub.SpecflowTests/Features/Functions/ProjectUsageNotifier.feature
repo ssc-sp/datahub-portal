@@ -24,3 +24,10 @@ Feature: Project Usage Notifier
         And the resources are already deleted
         When the notifier verifies overbudget is deleted
         Then the resource messaging service should not be notified
+        
+    Scenario: A workspace that is over budget but has prevent auto delete set to true should not be deleted
+        Given a workspace with usage exceeding its budget
+        And the workspace has prevent auto delete set to true
+        When the notifier verifies overbudget is deleted
+        Then the resources should not be set to deleted
+        And the resource messaging service should not be notified

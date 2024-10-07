@@ -121,6 +121,17 @@ namespace Datahub.Functions
                 _logger.LogInformation("Project {ProjectId} is not over budget", projectAcronym);
                 return false;
             }
+            
+            var project = await ctx.Projects
+                .AsNoTracking()
+                .Where(e => e.Project_Acronym_CD == projectAcronym)
+                .FirstAsync(cancellationToken);
+            
+            if(project.PreventAutoDelete)
+            {
+                _logger.LogInformation("Project {ProjectId} is over budget but auto-delete is disabled", projectAcronym);
+                return false;
+            }
 
             return true;
         }

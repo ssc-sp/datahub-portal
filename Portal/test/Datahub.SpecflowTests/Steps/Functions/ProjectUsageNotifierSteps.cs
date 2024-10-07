@@ -189,4 +189,29 @@ public class ProjectUsageNotifierSteps(
     {
         resourceMessagingService.DidNotReceive().SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
     }
+
+    [Given(@"the workspace has prevent auto delete set to true")]
+    public async Task GivenTheWorkspaceHasPreventAutoDeleteSetToTrue()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var workspace = ctx.Projects
+            .FirstOrDefault(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+        
+        workspace!.PreventAutoDelete = true;
+        
+        await ctx.SaveChangesAsync();
+    }
+
+    [Then(@"the resources should not be set to deleted")]
+    public async Task ThenTheResourcesShouldNotBeSetToDeleted()
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var resources = ctx.Project_Resources2
+            .Where(r => r.Project.Project_Acronym_CD == Testing.WorkspaceAcronym)
+            .ToList();
+        
+        resources.Should().NotBeEmpty();
+        resources.Should().NotContain(r =>
+            r.Status == TerraformStatus.DeleteRequested || r.Status == TerraformStatus.Deleted);
+    }
 }
