@@ -42,9 +42,9 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
         return url;
     }
 
-    public string BuildWebAppURL(string acronym)
+    public string BuildWebAppURL(string acronym, bool routeInfo = false)
     {
-        return _config.ReverseProxy.WebAppPrefix + "/" + acronym + "/";
+        return "/" + _config.ReverseProxy.WebAppPrefix + "/" + acronym + (routeInfo ? "": "/");
     }
 
     public string WebAppPrefix => _config.ReverseProxy.WebAppPrefix;
@@ -62,7 +62,7 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
     RouteConfig BuildRoute(string acronym, bool urlRewritingEnabled)
     {
-        var prefix = $"/{BuildWebAppURL(acronym)}";
+        var prefix = BuildWebAppURL(acronym,true);
         var route = new RouteConfig()
         {
             RouteId = GetRouteId(acronym),
