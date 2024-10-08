@@ -49,7 +49,7 @@ public class WorkspaceSettingsSteps(
         Services.AddMudServices();
         Services.AddDatahubLocalization(portalConfiguration);
 
-        Services.AddStub<CultureService>();
+        Services.AddStub<ICultureService>();
         Services.AddStub<IDatahubAuditingService>();
         Services.AddStub<IUserInformationService>();
 
