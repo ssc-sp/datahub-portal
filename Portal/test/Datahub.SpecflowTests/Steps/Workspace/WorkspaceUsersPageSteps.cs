@@ -11,17 +11,21 @@ using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Pages.Workspace.Settings;
+using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
+using System.Reflection;
 
 namespace Datahub.SpecflowTests.Steps
 {
@@ -33,6 +37,11 @@ namespace Datahub.SpecflowTests.Steps
     {
 
         private const string RelativePathToSrc = "../../../../../src";
+        private SpecFlowDbContextFactory dbContextFactory;
+        private IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage;
+
+        private readonly ISnackbar _snackBar = Substitute.For<ISnackbar>();
+        private readonly IStringLocalizer _stringLocalizer = Substitute.For<IStringLocalizer>();
 
         [Given("the user is on the workspace users page")]
         public async Task GivenTheUserIsOnTheWorkspaceUsersPage()
@@ -57,10 +66,19 @@ namespace Datahub.SpecflowTests.Steps
             var mockRequestManagementService = Substitute.For<IRequestManagementService>();
             Services.AddSingleton(mockRequestManagementService);
 
-            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            var mockProjectUserManagementService = Substitute.For<IProjectUserManagementService>();
+            Services.AddSingleton(mockProjectUserManagementService);
+
+
+            _stringLocalizer[Arg.Any<string>()].Returns(new LocalizedString("test", "test")); 
+
+            var optionsBuilder = new DbContextOptionsBuilder<DatahubProjectDBContext>(); 
+            optionsBuilder.EnableSensitiveDataLogging();  
+
+            var options = optionsBuilder
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
-            var dbContextFactory = new SpecFlowDbContextFactory(options);
+            dbContextFactory = new SpecFlowDbContextFactory(options);
             Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
             var workspace = new Datahub_Project()
@@ -70,6 +88,23 @@ namespace Datahub.SpecflowTests.Steps
 
             await using var context = await dbContextFactory.CreateDbContextAsync();
             context.Projects.Add(workspace);
+            context.Project_Users.Add(new Datahub_Project_User()
+            {
+                Role = new Project_Role() { Name = RoleConstants.GUEST_ROLE, Id=1, Description=RoleConstants.GUEST_ROLE },
+                PortalUser = new PortalUser()
+                {
+                    GraphGuid = Guid.NewGuid().ToString(),
+                    Email = "dataSteward@example.com"
+                }
+            });
+            foreach (var role in context.Project_Roles)
+            {
+                if (string.IsNullOrWhiteSpace(role.Description))
+                {
+                    role.Description = role.Name;
+                }
+            }
+            
             await context.SaveChangesAsync();
 
             var mockAuthorizationPolicyProvider = Substitute.For<IAuthorizationPolicyProvider>();
@@ -81,75 +116,82 @@ namespace Datahub.SpecflowTests.Steps
             authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN);
 
             Services.AddSingleton(mockAuthorizationPolicyProvider);
+            Services.AddMudServices();
 
             JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
 
-            var workspaceSettingsPage = RenderComponent<WorkspaceSettingsPage>(parameterCollection =>
+            workspaceUsersPage = RenderComponent<WorkspaceUsersPage>(parameterCollection =>
                 parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
 
-            scenarioContext["workspaceSettingsPage"] = workspaceSettingsPage;
-        }
-
-        [When(@"the user adds a new user with email ""(.*)""")]
-        public void WhenTheUserAddsANewUserWithEmail(string email)
-        {
-            // Implement the step logic here
-        }
-
-        [When(@"the user removes the user with email ""(.*)""")]
-        public void WhenTheUserRemovesTheUserWithEmail(string email)
-        {
-            // Implement the step logic here
+            scenarioContext["workspaceUsersPage"] = workspaceUsersPage;
         }
 
         [When(@"the user sets the Data Stuart role for the user with email ""(.*)""")]
-        public void WhenTheUserSetsTheDataStuartRoleForTheUserWithEmail(string email)
+        public async Task WhenTheUserSetsTheDataStuartRoleForTheUserWithEmail(string email)
         {
-            // Implement the step logic here
+            await using var context = await dbContextFactory.CreateDbContextAsync();
+            var user = await context.Project_Users
+                .Include(pu => pu.PortalUser)
+                .Include(pu => pu.Role)
+                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
+
+            SetPrivateField(workspaceUsersPage, "_currentlySelected", new List<Datahub_Project_User> { user });
+            var result = InvokePrivateMethod(workspaceUsersPage, "ChangeDataStewardFlag", user, true);
+
         }
 
         [When("the user clicks the \"Save\" button")]
         public void WhenTheUserClicksTheSaveButton()
         {
-            // Implement the step logic here
+            InvokePrivateMethod(workspaceUsersPage, "SaveChanges");
         }
 
-        [Then("the workspace users page should be displayed")]
-        public void ThenTheWorkspaceUsersPageShouldBeDisplayed()
+        [Then("user with email {string} should appear on the page")]
+        public async Task ThenTheUserWithEmailShouldAppearOnThePage(string email)
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync();
+            var user = await context.Project_Users
+                .Include(pu => pu.PortalUser)
+                .Include(pu => pu.Role)
+                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
+
+            user.Should().NotBeNull();
+        }
+
+        [Then(@"the user with email {string} should have the Data Stuart role")]
+        public async Task ThenTheUserWithEmailShouldHaveTheDataStuartRole(string email)
+        {
+            await using var context = await dbContextFactory.CreateDbContextAsync();
+            var user = await context.Project_Users
+                .Include(pu => pu.PortalUser)
+                .Include(pu => pu.Role)
+                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
+
+            user.Should().NotBeNull();
+            //user.IsDataSteward.Should().BeTrue();
+        }
+
+        [When("the user removes the Data Steward role from the user with email {string}")]
+        public void WhenTheUserRemovesTheDataStewardRoleFromTheUserWithEmail(string email)
         {
             // scenarioContext.Pending();
         }
 
-        [Then(@"the user with email ""(.*)"" should have the Data Stuart role")]
-        public void ThenTheUserWithEmailShouldHaveTheDataStuartRole(string email)
-        {
-            // Implement the step logic here
-        }
-
-        [Then("the new user should be added to the workspace")]
-        public void ThenTheNewUserShouldBeAddedToTheWorkspace()
-        {
-            //scenarioContext.Pending();
-        }
-
-        [Then("the user should be removed from the workspace")]
-        public void ThenTheUserShouldBeRemovedFromTheWorkspace()
-        {
-            //scenarioContext.Pending();
-        }
-
-        [When("the user removes the Data Stuart role from the user with email {string}")]
-        public void WhenTheUserRemovesTheDataStuartRoleFromTheUserWithEmail(string email)
-        {
-            // scenarioContext.Pending();
-        }
-
-        [Then("the user with email {string} should not have the Data Stuart role")]
+        [Then("the user with email {string} should not have the Data Steward role")]
         public void ThenTheUserWithEmailShouldNotHaveTheDataStuartRole(string email)
         {
             // scenarioContext.Pending();
         }
 
-
+        private void SetPrivateField(object obj, string fieldName, object value)
+        {
+            var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+            field.SetValue(obj, value);
+        }
+        private object InvokePrivateMethod(object obj, string methodName, params object[] parameters)
+        {
+            var method = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+            return method.Invoke(obj, parameters);
+        }
     }
 }
