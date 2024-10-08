@@ -10,9 +10,9 @@ steps:
       azurePowerShellVersion: 'LatestVersion'  
 
   - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk 8.0.x'
+    displayName: 'Use .NET Core sdk 8.0.1'
     inputs:
-      version: 8.0.x
+      version: 8.0.1
       includePreviewVersions: true
       performMultiLevelLookup: true
 
