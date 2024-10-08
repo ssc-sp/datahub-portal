@@ -25,22 +25,6 @@
 			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
 		</None>
 		<None Include="Components\DialogModalFrame.razor" />
-		<None Remove="Styles\elemental-theme\typography\_typography.scss" />
-		<None Remove="Styles\elemental-theme\tabs\_tabs.scss" />
-		<None Remove="Styles\elemental-theme\tabs\_index.scss" />
-		<None Remove="Styles\elemental-theme\modal\_modal.scss" />
-		<None Remove="Styles\elemental-theme\layout\_layoutV2.scss" />
-		<None Remove="Styles\elemental-theme\input\_search-wrapper.scss" />
-		<None Remove="Styles\elemental-theme\input\_input.scss" />
-		<None Remove="Styles\elemental-theme\input\_input-wrapper.scss" />
-		<None Remove="Styles\elemental-theme\common\_utils.scss" />
-		<None Remove="Styles\elemental-theme\common\_scrollbar.scss" />
-		<None Remove="Styles\elemental-theme\common\_media-mixins.scss" />
-		<None Remove="Styles\elemental-theme\common\_index.scss" />
-		<None Remove="Styles\elemental-theme\common\_constants.scss" />
-		<None Remove="Styles\elemental-theme\common\_colors.scss" />
-		<None Remove="Styles\elemental-theme\_theme.scss" />
-		<None Remove="Styles\elemental-theme\_index.scss" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
