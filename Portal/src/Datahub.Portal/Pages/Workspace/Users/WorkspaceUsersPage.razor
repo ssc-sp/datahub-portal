@@ -149,6 +149,7 @@
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>@Localizer["Role"]</MudTh>
+            <MudTh>@Localizer["Data Steward"]</MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.Approved_DT))">
                     @Localizer["Added to Workspace"]
@@ -181,6 +182,11 @@
                         <MudText>@Localizer[rowContext.Role.Name]</MudText>
                     </NotAuthorized>
                 </DatahubAuthView>
+            </MudTd>
+            <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
+                <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
+                    Value="rowContext.IsDataSteward"
+                    ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 @if (rowContext.Approved_DT != null)
@@ -221,137 +227,7 @@
 
     private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
+    private List<Datahub_Project_User> _currentlySelected = new();
 
     private string _modifiedCellStyle;
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-
-        // red border on top, left, and bottom
-        _modifiedCellStyle = new StyleBuilder()
-            .AddStyle("background-color", $"{Colors.Amber.Default}4D")
-            .Build();
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
-        await InitializedProjectMembers();
-    }
-
-    private async Task InitializedProjectMembers()
-    {
-        _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
-        ProjectMemberRoleFilter();
-    }
-
-    private bool SearchFilter(Datahub_Project_User projectUser)
-    {
-        if (string.IsNullOrWhiteSpace(_filterString))
-            return true;
-        if (projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true)
-            return true;
-        return projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
-    }
-
-    private void ProjectMemberRoleFilter(int? roleId = null)
-    {
-        _filteredProjectUsers = _projectUsers
-            .Where(x => roleId is null || x.Role.Id == roleId)
-            .Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove)
-            .Where(SearchFilter)
-            .ToList();
-    }
-
-    private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
-    {
-        // check if the user is already in the list of users to be updated
-        var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
-        if (existingUser != null)
-        {
-            existingUser.NewRoleId = newRoleId;
-            if (existingUser.NewRoleId == existingUser.ProjectUser.Role.Id)
-            {
-                _usersToUpdate.Remove(existingUser);
-            }
-        }
-        else
-        {
-            _usersToUpdate.Add(new ProjectUserUpdateCommand()
-            {
-                ProjectUser = projectUser,
-                NewRoleId = newRoleId
-            });
-        }
-
-        StateHasChanged();
-    }
-
-    private void UpdateProjectMemberRole(ProjectUserAddUserCommand projectUser, int newRoleId)
-    {
-        projectUser.RoleId = newRoleId;
-        if (projectUser.RoleId == (int)Project_Role.RoleNames.Remove)
-        {
-            _usersToAdd.Remove(projectUser);
-        }
-
-        StateHasChanged();
-    }
-
-    private bool IsModified(Datahub_Project_User projectUser)
-    {
-        return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
-    }
-
-    private async Task OpenDialog()
-    {
-        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
-        var dialogParameters = new DialogParameters
-        {
-            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
-            { "ProjectAcronym", WorkspaceAcronym },
-            { "Inviter", currentUser }
-        };
-        var dialog = await _dialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
-        var result = await dialog.Result;
-        if (!result.Canceled)
-        {
-            if (result.Data is not List<ProjectUserAddUserCommand> userAddUserCommands)
-            {
-                _snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
-            }
-            else
-            {
-                _usersToAdd.AddRange(userAddUserCommands
-                    .Where(c =>
-                        !_usersToAdd.Any(x => x.Email.Equals(c.Email, StringComparison.InvariantCultureIgnoreCase)))
-                    .ToList());
-                StateHasChanged();
-            }
-        }
-    }
-
-    private async Task SaveChanges()
-    {
-        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        if (_usersToUpdate.Any() || _usersToAdd.Any())
-        {
-            _updateInProgress = true;
-            StateHasChanged();
-            await _projectUserManagementService.ProcessProjectUserCommandsAsync(_usersToUpdate, _usersToAdd, currentUser.Id.ToString());
-            _usersToUpdate.Clear();
-            _usersToAdd.Clear();
-        }
-        else
-        {
-            _snackbar.Add(Localizer["No changes to save"], Severity.Info);
-        }
-
-        _updateInProgress = false;
-        await InitializedProjectMembers();
-        StateHasChanged();
-    }
-
 }
