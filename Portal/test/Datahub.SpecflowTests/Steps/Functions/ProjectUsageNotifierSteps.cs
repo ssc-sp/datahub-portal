@@ -1,4 +1,5 @@
 using Datahub.Application.Services;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions;
@@ -7,6 +8,7 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Enums;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -21,6 +23,8 @@ public class ProjectUsageNotifierSteps(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     AzureConfig azureConfig,
     IResourceMessagingService resourceMessagingService,
+    ISendEndpointProvider sendEndpointProvider,
+    IEmailService emailService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace with usage exceeding its budget")]
@@ -34,11 +38,20 @@ public class ProjectUsageNotifierSteps(
             Project_Budget = 1,
         };
 
-        for (var i = 0; i < 10; i++)
+        var resourceTypes = new[]
+        {
+            "terraform:new-project-template",
+            "terraform:azure-storage-blob",
+            "terraform:azure-databricks",
+            "terraform:azure-app-service",
+            "terraform:azure-postgres",
+        };
+
+        foreach (var resourceType in resourceTypes)
         {
             var projectResource = new Project_Resources2()
             {
-                ResourceType = "test" + i,
+                ResourceType = resourceType,
                 Project = workspace,
                 Status = "Created",
             };
@@ -61,10 +74,8 @@ public class ProjectUsageNotifierSteps(
     public async Task WhenTheNotifierChecksIfADeleteIsRequired()
     {
         var logger = Substitute.For<ILoggerFactory>();
-        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -131,10 +142,8 @@ public class ProjectUsageNotifierSteps(
     public async Task WhenTheNotifierVerifiesOverbudgetIsDeleted()
     {
         var logger = Substitute.For<ILoggerFactory>();
-        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -196,9 +205,9 @@ public class ProjectUsageNotifierSteps(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var workspace = ctx.Projects
             .FirstOrDefault(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
-        
+
         workspace!.PreventAutoDelete = true;
-        
+
         await ctx.SaveChangesAsync();
     }
 
@@ -209,9 +218,68 @@ public class ProjectUsageNotifierSteps(
         var resources = ctx.Project_Resources2
             .Where(r => r.Project.Project_Acronym_CD == Testing.WorkspaceAcronym)
             .ToList();
-        
+
         resources.Should().NotBeEmpty();
         resources.Should().NotContain(r =>
             r.Status == TerraformStatus.DeleteRequested || r.Status == TerraformStatus.Deleted);
+    }
+
+    [Given(@"there is a workspace lead and (.*) admin users")]
+    public async Task GivenThereIsAWorkspaceLeadAndAdminUsers(int p0)
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .FirstAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+
+        var workspaceLead = new PortalUser()
+        {
+            GraphGuid = Guid.NewGuid().ToString(),
+            Email = "lead@email.com"
+        };
+
+        var adminUsers = new List<PortalUser>();
+        for (var i = 0; i < p0; i++)
+        {
+            adminUsers.Add(new PortalUser()
+            {
+                GraphGuid = Guid.NewGuid().ToString(),
+                Email = $"admin{i}@email.com",
+            });
+        }
+
+        await ctx.PortalUsers.AddAsync(workspaceLead);
+        await ctx.PortalUsers.AddRangeAsync(adminUsers);
+
+        var projectUsers = new List<Datahub_Project_User>()
+        {
+            new()
+            {
+                Project = workspace,
+                PortalUser = workspaceLead,
+                RoleId = (int)Project_Role.RoleNames.WorkspaceLead
+            }
+        };
+
+        foreach (var adminUser in adminUsers)
+        {
+            projectUsers.Add(new Datahub_Project_User()
+            {
+                Project = workspace,
+                PortalUser = adminUser,
+                RoleId = (int)Project_Role.RoleNames.Admin
+            });
+        }
+
+        await ctx.Project_Users.AddRangeAsync(projectUsers);
+
+        await ctx.SaveChangesAsync();
+    }
+
+    [Then(@"the (.*) admin users and workspace lead should be emailed")]
+    public void ThenTheAdminUsersAndWorkspaceLeadShouldBeEmailed(int p0)
+    {
+        emailService.Received(5).BuildEmail(Arg.Is<string>(s => s.Equals("delete_notification.html")),
+            Arg.Is<List<string>>(l => l.Count == p0 + 1),
+            Arg.Any<List<string>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<Dictionary<string, string>>());
     }
 }

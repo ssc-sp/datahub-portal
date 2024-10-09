@@ -31,3 +31,9 @@ Feature: Project Usage Notifier
         When the notifier verifies overbudget is deleted
         Then the resources should not be set to deleted
         And the resource messaging service should not be notified
+        
+    Scenario: A workspace that is over budget should email the admin users when deleting a resource
+        Given a workspace with usage exceeding its budget
+        And there is a workspace lead and 5 admin users
+        When the notifier verifies overbudget is deleted
+        Then the 5 admin users and workspace lead should be emailed
