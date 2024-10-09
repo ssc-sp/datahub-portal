@@ -46,6 +46,10 @@ namespace Datahub.SpecflowTests.Steps
         [Given("the user is on the workspace users page")]
         public async Task GivenTheUserIsOnTheWorkspaceUsersPage()
         {
+            if (hostingEnvironment == null)
+            {
+                throw new ArgumentNullException(nameof(hostingEnvironment));
+            }
             Services.AddSingleton(hostingEnvironment);
             var portalConfiguration = new DatahubPortalConfiguration()
             {
@@ -122,12 +126,15 @@ namespace Datahub.SpecflowTests.Steps
 
             workspaceUsersPage = RenderComponent<WorkspaceUsersPage>(parameterCollection =>
                 parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
-
+            if (workspaceUsersPage == null)
+            {
+                throw new Exception("workspaceUsersPage is null");
+            }
             scenarioContext["workspaceUsersPage"] = workspaceUsersPage;
         }
 
-        [When(@"the user sets the Data Stuart role for the user with email ""(.*)""")]
-        public async Task WhenTheUserSetsTheDataStuartRoleForTheUserWithEmail(string email)
+        [When("the user sets the Data Steward role for the user with email {string}")]
+        public async Task WhenTheUserSetsTheDataStewardRoleForTheUserWithEmail(string email)
         {
             await using var context = await dbContextFactory.CreateDbContextAsync();
             var user = await context.Project_Users
@@ -158,8 +165,8 @@ namespace Datahub.SpecflowTests.Steps
             user.Should().NotBeNull();
         }
 
-        [Then(@"the user with email {string} should have the Data Stuart role")]
-        public async Task ThenTheUserWithEmailShouldHaveTheDataStuartRole(string email)
+        [Then("the user with email {string} should have the Data Steward role")] 
+        public async Task ThenTheUserWithEmailShouldHaveTheDataStewardRole(string email)
         {
             await using var context = await dbContextFactory.CreateDbContextAsync();
             var user = await context.Project_Users
