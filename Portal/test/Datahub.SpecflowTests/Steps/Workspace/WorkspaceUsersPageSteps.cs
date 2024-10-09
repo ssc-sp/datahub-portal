@@ -62,6 +62,7 @@ namespace Datahub.SpecflowTests.Steps
 
             Services.AddMudServices();
             Services.AddDatahubLocalization(portalConfiguration);
+            Services.AddSingleton(portalConfiguration);
 
             Services.AddStub<ICultureService>();
             Services.AddStub<IDatahubAuditingService>();
@@ -73,6 +74,25 @@ namespace Datahub.SpecflowTests.Steps
             var mockProjectUserManagementService = Substitute.For<IProjectUserManagementService>();
             Services.AddSingleton(mockProjectUserManagementService);
 
+            var mockProjectUsers = new List<Datahub_Project_User>
+            {
+                new Datahub_Project_User
+                {
+                    PortalUserId = 1,
+                    Role = new Project_Role  { Name = RoleConstants.GUEST_ROLE, Id=1, Description=RoleConstants.GUEST_ROLE },
+                    PortalUser = new PortalUser { DisplayName = "User1", Email = "dataSteward@example.com", GraphGuid=Guid.NewGuid().ToString() }
+                },
+                new Datahub_Project_User
+                {
+                    PortalUserId = 2,
+                    Role = new Project_Role  { Name = RoleConstants.ADMIN_ROLE, Id=2, Description=RoleConstants.ADMIN_ROLE },
+                    PortalUser = new PortalUser { DisplayName = "User2", Email = "user2@example.com", GraphGuid=Guid.NewGuid().ToString() }
+                }
+            };
+
+            // Set up the mock to return the mock data
+            mockProjectUserManagementService.GetProjectUsersAsync(Arg.Any<string>())
+                .Returns(Task.FromResult(mockProjectUsers.ToList()));
 
             _stringLocalizer[Arg.Any<string>()].Returns(new LocalizedString("test", "test")); 
 
@@ -122,8 +142,11 @@ namespace Datahub.SpecflowTests.Steps
             Services.AddSingleton(mockAuthorizationPolicyProvider);
             Services.AddMudServices();
 
-            JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
-
+            var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/DHMarkdown.razor.js");
+            JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/DHMarkdown.razor.js")
+                .SetResult(module);
+            module.SetupVoid("styleCodeblocks");
+            JSInterop.Mode = JSRuntimeMode.Loose;
             workspaceUsersPage = RenderComponent<WorkspaceUsersPage>(parameterCollection =>
                 parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
             if (workspaceUsersPage == null)
@@ -143,7 +166,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
 
             SetPrivateField(workspaceUsersPage, "_currentlySelected", new List<Datahub_Project_User> { user });
-            var result = InvokePrivateMethod(workspaceUsersPage, "ChangeDataStewardFlag", user, true);
+            var result = InvokePrivateMethodAsync(workspaceUsersPage, "ChangeDataStewardFlag", user, true);
 
         }
 
@@ -151,6 +174,18 @@ namespace Datahub.SpecflowTests.Steps
         public void WhenTheUserClicksTheSaveButton()
         {
             InvokePrivateMethod(workspaceUsersPage, "SaveChanges");
+        }
+        [Then("specified user should appear on the page")]
+        public async Task ThenSpecifiedUserShouldAppearOnThePage()
+        {
+            var email = "dataSteward@example.com";
+            await using var context = await dbContextFactory.CreateDbContextAsync();
+            var user = await context.Project_Users
+                .Include(pu => pu.PortalUser)
+                .Include(pu => pu.Role)
+                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
+
+            user.Should().NotBeNull();
         }
 
         [Then("user with email {string} should appear on the page")]
@@ -190,15 +225,45 @@ namespace Datahub.SpecflowTests.Steps
             // scenarioContext.Pending();
         }
 
-        private void SetPrivateField(object obj, string fieldName, object value)
+        private void SetPrivateField(IRenderedComponent<WorkspaceUsersPage> component, string fieldName, object value)
         {
-            var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-            field.SetValue(obj, value);
+            var obj = component.Instance;
+            if (obj != null)
+            {
+                var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
+                if (field != null)
+                {
+                    field.SetValue(obj, value);
+                }
+            }
         }
-        private object InvokePrivateMethod(object obj, string methodName, params object[] parameters)
+        private object InvokePrivateMethod(IRenderedComponent<WorkspaceUsersPage> component, string methodName, params object[] parameters)
         {
-            var method = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-            return method.Invoke(obj, parameters);
+            var obj = component.Instance; 
+            if (obj != null)
+            {
+                var method = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+                if (method != null)
+                {
+                    return method.Invoke(obj, parameters);
+                }
+            }
+              
+            return null;
         }
+        private async Task<object> InvokePrivateMethodAsync(IRenderedComponent<WorkspaceUsersPage> component, string methodName, params object[] parameters)
+        {
+            var obj = component.Instance;
+            if (obj != null)
+            {
+                var method = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
+                if (method != null)
+                {
+                    return await component.InvokeAsync(() => method.Invoke(obj, parameters));
+                }
+            }
+            throw new InvalidOperationException($"Method '{methodName}' not found in type '{obj.GetType().FullName}'.");
+        }
+
     }
 }

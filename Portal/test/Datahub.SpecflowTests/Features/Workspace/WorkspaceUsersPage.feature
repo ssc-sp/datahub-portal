@@ -1,10 +1,10 @@
 ﻿@IWebHostEnvironment
 Feature: WorkspaceUsers
-    The Workspace Users page should allow adding data steward role.
+The Workspace Users page should allow adding data steward role.
     
     Scenario: User is listed on the page
         Given the user is on the workspace users page
-        Then user with email "dataSteward@example.com" should appear on the page
+        Then specified user should appear on the page
 
     Scenario: Set Data Steward role for a user
         Given the user is on the workspace users page 
