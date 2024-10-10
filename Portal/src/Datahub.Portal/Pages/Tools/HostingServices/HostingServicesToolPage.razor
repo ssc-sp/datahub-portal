@@ -1,0 +1,64 @@
+﻿@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h2" Class="mb-6">
+    @Localizer["Hosting Services Test Call"]
+</MudText>
+<MudText Typo="Typo.body1">
+    @Localizer["This page is used to test the hosting services endpoint."]
+</MudText>
+<MudTextField T="string" @bind-Value="_message" Label="Message" Variant="Variant.Outlined" />
+<DHButton OnClick="TestCall" Color="Color.Primary" Variant="Variant.Filled">
+    @Localizer["Test Call"]
+</DHButton>
+<br/>
+@if (_running)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+}
+else {
+    <MudText Typo="Typo.body1" Visible="!_running">
+        @Localizer["Output: "] @_result
+    </MudText>
+}
+
+@code {
+    private string _result = "";
+    private string _message { get; set; }
+    private bool _running = false;
+
+    /// <summary>
+    /// Test the call to the hosting services post endpoint
+    /// </summary>
+    private async Task TestCall()
+    {
+        _running = true;
+        // Example data to send
+        var data = new { message = _message };
+
+        string baseUri = NavigationManager.BaseUri;
+
+        using var httpClient = new HttpClient();
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{baseUri}api/anon-echo", data);
+
+            // Handle the response
+            if (response.IsSuccessStatusCode)
+            {
+                _result = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                _result = $"Error: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _result = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _running = false;
+        }
+    }
+}

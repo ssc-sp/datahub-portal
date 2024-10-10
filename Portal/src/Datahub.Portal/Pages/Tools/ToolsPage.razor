@@ -4,6 +4,7 @@
 @using Datahub.Portal.Pages.Tools.Health
 @using Datahub.Portal.Pages.Tools.Statistics
 @using Datahub.Portal.Pages.Tools.SupportRequests
+@using Datahub.Portal.Pages.Tools.HostingServices
 @using Datahub.Portal.Pages.Tools.Users
 @using Datahub.Portal.Components.Sidebar
 
@@ -54,13 +55,15 @@
         { PersonalSidebar.SectionViews.Email, typeof(ComposeEmailPage) },
         { PersonalSidebar.SectionViews.AzureSubscriptions, typeof(AzureSubscriptionsPage) },
         { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage) },
+        { PersonalSidebar.SectionViews.HostingServices, typeof(HostingServicesToolPage) },
         { PersonalSidebar.SectionViews.Diagnostics_FR, typeof(DiagnosticsPage) },
         { PersonalSidebar.SectionViews.Statistics_FR, typeof(StatisticsPage) },
         { PersonalSidebar.SectionViews.HealthCheck_FR, typeof(InfrastructureHealthPage) },
         { PersonalSidebar.SectionViews.Users_FR, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email_FR, typeof(ComposeEmailPage) },
         { PersonalSidebar.SectionViews.AzureSubscriptions_FR, typeof(AzureSubscriptionsPage) },
-        { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage) }
+        { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage) },
+        { PersonalSidebar.SectionViews.HostingServices_FR, typeof(HostingServicesToolPage) }
     };
 
 }

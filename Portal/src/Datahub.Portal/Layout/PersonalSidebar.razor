@@ -114,6 +114,7 @@
         public const string Customization_FR = "personnalisation";
         public const string Notifications_FR = "notifications";
         public const string Achievements_FR = "realisations";
+        public const string HostingServices = "hosting-services";
 
         public const string Diagnostics = "diagnostics";
         public const string Diagnostics_FR = "diagnostiques";
@@ -129,6 +130,7 @@
         public const string SupportRequests_FR = "demandes-assistance";
         public const string AzureSubscriptions = "azure-subscriptions";
         public const string AzureSubscriptions_FR = "abonnements-azure";
+        public const string HostingServices_FR = "services-hebergement";
     }
 
 
@@ -149,7 +151,8 @@
         SectionViews.HealthCheck,
         SectionViews.Users,
         SectionViews.Email,
-        SectionViews.AzureSubscriptions
+        SectionViews.AzureSubscriptions,
+        SectionViews.HostingServices
     };
 
 
@@ -226,6 +229,7 @@
             SectionViews.Email => SidebarIcons.Email,
             SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
             SectionViews.SupportRequests => SidebarIcons.SupportRequests,
+            SectionViews.HostingServices => SidebarIcons.HostingServices,
 
             _ => SidebarIcons.Profile
         };
@@ -248,6 +252,7 @@
             SectionViews.Email => Localizer["Email"],
             SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
             SectionViews.SupportRequests => Localizer["Support Requests"],
+            SectionViews.HostingServices => Localizer["Hosting Services"],
 
             _ => Localizer["Public Profile"]
         };
