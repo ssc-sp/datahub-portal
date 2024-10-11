@@ -1,9 +1,4 @@
 ﻿using System.Text.Json;
-using Azure.Core;
-using Azure.Identity;
-using Azure.Messaging.ServiceBus;
-using Azure.ResourceManager;
-using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
@@ -12,8 +7,6 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Functions;
-using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services.Cost;
 using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;

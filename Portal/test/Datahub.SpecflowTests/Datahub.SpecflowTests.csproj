@@ -39,4 +39,8 @@
     <ItemGroup>
         <Content Include="Features\**\*.feature" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Remove="Hooks\IpAddressWhitelistStepsHook.cs" />
+    </ItemGroup>
 </Project>
