@@ -227,7 +227,6 @@ public class ProjectUserManagementService : IProjectUserManagementService
             .ToListAsync();
 
         return projectAcronyms;
-        }
     }
 
     public async Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym)
