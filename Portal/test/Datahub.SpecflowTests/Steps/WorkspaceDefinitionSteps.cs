@@ -1,5 +1,6 @@
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
@@ -27,7 +28,7 @@ public class WorkspaceDefinitionSteps(
         
         var resource = project!.Resources.FirstOrDefault(r => r.ResourceType.EndsWith(TerraformTemplate.NewProjectTemplate));
         
-        resource!.Status.Should().Be(TerraformTemplate.TemplateStatus.Created);
+        resource!.Status.Should().Be(TerraformStatus.Completed);
     }
 
     [Given(@"a workspace with a new-project-template resource that exists")]
@@ -37,7 +38,7 @@ public class WorkspaceDefinitionSteps(
             dbContextFactory, 
             Testing.WorkspaceAcronym, 
             TerraformTemplate.NewProjectTemplate, 
-            TerraformTemplate.TemplateStatus.Created);
+            TerraformStatus.Completed);
     }
     
     [When(@"the workspace definition is requested")]
@@ -59,7 +60,7 @@ public class WorkspaceDefinitionSteps(
         workspaceDefinition!.Templates
             .Any(t => 
                 t.Name.Equals(TerraformTemplate.NewProjectTemplate) 
-                && t.Status == TerraformTemplate.TemplateStatus.Created)
+                && t.Status == TerraformStatus.Completed)
             .Should()
             .BeTrue();
     }
