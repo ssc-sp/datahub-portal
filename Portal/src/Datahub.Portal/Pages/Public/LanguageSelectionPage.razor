@@ -11,28 +11,34 @@
 <MudContainer MaxWidth=@MaxWidth.Small>
     <MudStack>
         <MudSpacer/>
-        <MudPaper Class="pa-10 mt-20">
-            <MudStack>
-                <span class="sr-only" translate="no">
-                    <DHMainContentTitle Title="Federal Science DataHub - Language Selection / DataHub scientifique fédéral - Sélection de la langue"/>
-                </span>
-                <MudImage Src="/img/canada-fip.svg" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem"/>
-                <MudSpacer/>
-                <MudStack Row>
+        <MudPaper Class="pa-0 mt-20" Style="background-color: var(--mud-palette-background-gray)">
+
+            <MudPaper Class="pa-10" Elevation=2>
+                <MudStack>
+                    <span class="sr-only" translate="no">
+                        <DHMainContentTitle Title="Federal Science DataHub - Language Selection / DataHub scientifique fédéral - Sélection de la langue"/>
+                    </span>
+                    <MudImage Src="/img/canada-fip.svg" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem"/>
                     <MudSpacer/>
-                    <MudStack lang="en">
-                        <MudText translate="no" Align=@Align.Right Typo=@Typo.h2 Style="font-size: 24px">Federal Science DataHub</MudText>
-                        <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
+                    <MudStack Row>
+                        <MudSpacer/>
+                        <MudStack lang="en">
+                            <MudText translate="no" Align=@Align.Right Typo=@Typo.h2 Style="font-size: 24px">Federal Science DataHub</MudText>
+                            <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
+                        </MudStack>
+                        <MudStack lang="fr">
+                            <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">DataHub scientifique fédéral</MudText>
+                            <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>
+                                Français
+                            </MudButton>
+                        </MudStack>
+                        <MudSpacer/>
                     </MudStack>
-                    <MudStack lang="fr">
-                        <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">DataHub scientifique fédéral</MudText>
-                        <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>
-                            Français
-                        </MudButton>
-                    </MudStack>
-                    <MudSpacer/>
                 </MudStack>
-                <MudSpacer/>
+            </MudPaper>
+
+            <MudPaper Elevation=0 Class="pa-10" Style="background: transparent;">
+
                 <MudStack Row>
                     <MudLink lang="en" Href=@EnglishTermsUrl Target="_blank" Typo="Typo.body1" Style="font-size:large">
                         Terms and conditions
@@ -47,8 +53,9 @@
                         <span lang="fr" class="sr-only">Symbole du gouvernement du Canada</span>
                     </p>
                 </MudStack>
-            </MudStack>
+            </MudPaper>
         </MudPaper>
+
     </MudStack>
 </MudContainer>
 
