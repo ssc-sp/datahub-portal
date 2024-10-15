@@ -14,7 +14,6 @@ namespace Datahub.SpecflowTests.Steps
     public class WorkspaceResourceGroupsSteps(
         ScenarioContext scenarioContext,
         IWorkspaceResourceGroupsManagementService sut,
-        DatahubPortalConfiguration datahubPortalConfiguration,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
         [Given(@"a workspace with a new-project-template")]
@@ -22,7 +21,6 @@ namespace Datahub.SpecflowTests.Steps
         {
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
             scenarioContext.Set(Testing.ResourceGroupName1, "expectedResourceGroup");
-            await SetSubToAzureSub(Testing.WorkspaceAcronym);
         }
 
         [When(@"the resource group is requested")]
@@ -83,7 +81,6 @@ namespace Datahub.SpecflowTests.Steps
         {
             scenarioContext.Set(Testing.WorkspaceAcronym2, "workspaceAcronym");
             scenarioContext.Set(Testing.ResourceGroupName2, "expectedResourceGroup");
-            await SetSubToAzureSub(Testing.WorkspaceAcronym2);
         }
 
         [Given(@"an invalid workspace")]
@@ -102,8 +99,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a subscription with resource groups")]
         public void GivenASubscriptionWithResourceGroups()
         {
-            var subId = datahubPortalConfiguration.AzureAd.SubscriptionId;
-            scenarioContext.Set(subId, "subscriptionId");
+            scenarioContext.Set(Testing.WorkspaceSubscriptionGuid, "subscriptionId");
             scenarioContext.Set(Testing.ResourceGroupName2, "expectedResourceGroup");
         }
 
@@ -132,22 +128,9 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a list of projects with resource groups")]
         public async Task GivenAListOfProjectsWithResourceGroups()
         {
-            await SetSubToAzureSub(Testing.WorkspaceAcronym);
-            await SetSubToAzureSub(Testing.WorkspaceAcronym2);
             scenarioContext.Set(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 }, "expectedResourceGroups");
         }
         
-        
-        private async Task SetSubToAzureSub(string acronym)
-        {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
-                .First(p => p.Project_Acronym_CD == acronym).DatahubAzureSubscription!;
-            sub.SubscriptionId = datahubPortalConfiguration.AzureAd.SubscriptionId;
-            ctx.AzureSubscriptions.Update(sub);
-            await ctx.SaveChangesAsync();
-        }
-
         [When(@"all the resource groups are requested")]
         public async Task WhenAllTheResourceGroupsAreRequested()
         {

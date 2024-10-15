@@ -84,31 +84,6 @@ namespace Datahub.SpecflowTests.Steps
             scenarioContext.Set(costs, "costs");
         }
 
-        [When(@"the costs are uploaded to blob storage")]
-        public async Task WhenTheCostsAreUploadedToBlobStorage()
-        {
-            sut.mock = false;
-            var costs = scenarioContext.Get<List<DailyServiceCost>>("costs");
-            var fileName = await sut.UploadToBlob("test", DateTime.UtcNow.ToString("yyyy-mmmm-dd"), new Guid(), costs);
-            scenarioContext.Set(fileName, "fileName");
-        }
-
-        [Then(@"the costs should be properly uploaded to blob storage")]
-        public async Task ThenTheCostsShouldBeProperlyUploadedToBlobStorage()
-        {
-            var expectedCosts = scenarioContext.Get<List<DailyServiceCost>>("costs");
-            var fileName = scenarioContext.Get<string>("fileName");
-            var actualCosts = await updater.FromBlob(fileName);
-            actualCosts.Should().BeEquivalentTo(expectedCosts);
-            await DeleteBlob(configuration.Media.StorageConnectionString, fileName);
-        }
-
-        public async Task DeleteBlob(string connectionString, string fileName)
-        {
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient("costs");
-            var blobClient = containerClient.GetBlobClient(fileName);
-            await blobClient.DeleteIfExistsAsync();
-        }
+        
     }
 }

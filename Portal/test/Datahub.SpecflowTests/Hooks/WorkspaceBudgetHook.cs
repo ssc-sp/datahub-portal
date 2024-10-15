@@ -2,9 +2,12 @@
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Billing.Models;
 using Azure.ResourceManager.Consumption;
 using Azure.ResourceManager.Consumption.Models;
+using Azure.ResourceManager.CostManagement.Models;
 using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Monitor.Models;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
@@ -205,40 +208,19 @@ namespace Datahub.SpecflowTests.Hooks
             context.SaveChanges();
         }
 
-        protected ConsumptionBudgetResource MockBudget(ArmClient armClient)
+        private ConsumptionBudgetResource MockBudget(ArmClient armClient)
         {
             var currentSpend = Substitute.For<BudgetCurrentSpend>((decimal?)10, "CAD");
-            var forecastSpend = Substitute.For<BudgetForecastSpend>((decimal?)10, "CAD");
-            var data = Substitute.For<ConsumptionBudgetData>(
-                new ResourceIdentifier("/subscriptions/123/resourceGroups/rg"), "budget", new ResourceType("Microsoft.Resources/resourceGroups"),
-                new SystemData(), null, (decimal)1000, null,
-                new BudgetTimePeriod(DateTime.UtcNow.AddMonths(1)), new ConsumptionBudgetFilter(), currentSpend,
-                new Dictionary<string, BudgetAssociatedNotification>(), forecastSpend, null);
-            var budget = Substitute.For<ConsumptionBudgetResource>(armClient as ArmClient, data as ConsumptionBudgetData);
+            var budgetData = Substitute.For<ConsumptionBudgetData>();
+            budgetData.Amount = 10;
+            budgetData.CurrentSpend.Returns(currentSpend);
+            var budget =
+                Substitute.For<ConsumptionBudgetResource>();
             budget.GetAsync()
-                .Returns(Response.FromValue(budget as ConsumptionBudgetResource, Substitute.For<Response>()));
-            budget.UpdateAsync(WaitUntil.Completed, Arg.Any<ConsumptionBudgetData>())
-                .ReturnsForAnyArgs(Task.CompletedTask);
+                .Returns(Response.FromValue(budget, Substitute.For<Response>()));
+            budget.UpdateAsync(WaitUntil.Completed, budgetData)
+                .ReturnsForAnyArgs(Task.FromResult<ArmOperation<ConsumptionBudgetResource>>(null));
             return budget;
-        }
-    }
-
-    public class MockConsumptionBudgetResource : ConsumptionBudgetResource
-    {
-        public MockConsumptionBudgetResource() : base()
-        {
-        }
-
-        public void SetData(ConsumptionBudgetData data)
-        {
-            this.Data = data;
-        }
-    }
-
-    public class MockConsumptionBudgetData : ConsumptionBudgetData
-    {
-        public MockConsumptionBudgetData() : base()
-        {
         }
     }
 }

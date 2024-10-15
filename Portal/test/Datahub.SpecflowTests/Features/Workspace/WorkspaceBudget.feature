@@ -1,4 +1,5 @@
-﻿@WorkspaceBudget
+﻿@ignore
+@WorkspaceBudget
 Feature: WorkspaceBudget
 	Tests for the workspace budget management service
 

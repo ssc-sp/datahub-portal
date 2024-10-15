@@ -116,10 +116,19 @@ namespace Datahub.SpecflowTests.Hooks
             var projectUsageScheduler = new ProjectUsageScheduler(loggerFactory, dbContextFactory, sendEndpointProvider,
                 workspaceCostsManagementService, workspaceStorageManagementService, workspaceRgManagementService,
                 configuration);
-            projectUsageScheduler.mock = true;
+            projectUsageScheduler.Mock = true;
             var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, workspaceCostsManagementService,
                 workspaceBudgetManagementService, workspaceStorageManagementService, sendEndpointProvider,
                 configuration);
+            projectUsageUpdater.Mock = true;
+            projectUsageUpdater.MockCosts = new List<DailyServiceCost>
+            {
+                new()
+                {
+                    Amount = 10, Date = Testing.Dates.First(), Source = Testing.ServiceNames.First(),
+                    ResourceGroupName = Testing.ResourceGroupName1
+                }
+            };
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
@@ -245,7 +254,5 @@ namespace Datahub.SpecflowTests.Hooks
             context.Project_Credits.Add(projectCredit);
             context.SaveChanges();
         }
-
-        
     }
 }
