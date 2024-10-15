@@ -1,3 +1,4 @@
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Data.ResourceProvisioner;
@@ -52,7 +53,7 @@ public record CreateResourceData
         [
             new TerraformTemplate(
                 TerraformTemplate.NormalizeTemplateName(TerraformTemplate.NewProjectTemplate),
-                TerraformTemplate.TemplateStatus.CreateRequested)
+                TerraformStatus.CreateRequested)
         ];
         Workspace = new TerraformWorkspace()
         {
