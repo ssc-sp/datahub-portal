@@ -34,7 +34,7 @@ public class DatahubAzureSubscriptionHook
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
         
-        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         

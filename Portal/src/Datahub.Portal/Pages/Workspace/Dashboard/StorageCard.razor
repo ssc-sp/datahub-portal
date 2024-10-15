@@ -19,15 +19,15 @@
                     Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
-                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
-                    @Localizer["View Storage"]
+                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                    @Localizer["View storage"]
                 </DHButton>
 
                 <DHButton 
                     Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
-                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight">
+                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
                     @Localizer["Open Publishing Dashboard"]
                 </DHButton>
             </MudStack>

@@ -1,5 +1,8 @@
 ﻿@using Datahub.Core.Model.Projects
 @using ApexCharts
+
+@inject ICultureService CultureService
+
 <span>
     <h2 class="sr-only">
         @Localizer["Daily storage average for your workspace over the last 30 days. An accessible description is provided below the chart."]
@@ -32,7 +35,7 @@
 
     protected override void OnParametersSet()
     {
-        _locale = CultureService.IsEnglish ? CultureService.English : CultureService.French;
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
         DefineOptions();
     }
 

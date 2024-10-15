@@ -14,7 +14,7 @@
 @inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
 @inject IDialogService _dialogService
-
+@inject ICultureService CultureService
 
 
 <PageTitle>@Localizer["Federal Science DataHub"]</PageTitle>
@@ -26,14 +26,6 @@
             <Authorized>
                 @if (_isSessionEnabled == true)
                 {
-                    @if (_isUserValid)
-                    {
-                        <DHPageAlert Title="@Localizer["Welcome to Datahub"]" Key=@NewUserAlert.KEY>
-                            <ChildContent>
-                                <NewUserAlert/>
-                            </ChildContent>
-                        </DHPageAlert>
-                    }
                     @Body
                 }
                 @if (_isSessionEnabled == false)
@@ -54,7 +46,7 @@ else
         <i class="fa-duotone fa-house" style="opacity:0; position: absolute; top: 0; left: 0;"></i>
         <DHLoadingInitializer Message="@Localizer[GetLoadMessage()]"/>
     </MudContainer>
-    <MudDialogProvider />
+    <MudDialogProvider/>
 }
 
 @code
@@ -73,7 +65,6 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-
         try
         {
             var user = await _userInformationService.GetAuthenticatedUser(true);
@@ -84,7 +75,7 @@ else
                 _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
                 return;
             }
-            
+
             _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
             await _auditingService.TrackEvent("Login");
@@ -94,33 +85,31 @@ else
             _consentHandler.HandleException(ex);
         }
 
-    // register and or update authenticated portal user
+        // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
-        
+
         _isLoaded = true;
     }
-    
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
 
         if (firstRender)
         {
-            var language = await _userSettingsService.GetUserLanguage();
-            if (string.IsNullOrWhiteSpace(language))
-            {
-                await PromptForLanguage();
-            }
+            await UpdateUserLanguageSetting();
 
             _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             if (!_isUserValid)
             {
-                await PromptForTermsAndConditions();
+                await _userSettingsService.RegisterUserTAC();
+                _isUserValid = true;
             }
+
             StateHasChanged();
         }
     }
-    
+
     private async Task PromptForTermsAndConditions()
     {
         var options = new DialogOptions
@@ -142,22 +131,14 @@ else
         }
     }
 
-    private async Task PromptForLanguage()
+    private async Task UpdateUserLanguageSetting()
     {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            BackdropClick = false,
-        };
+        var userLanguageSetting = await _userSettingsService.GetUserLanguage();
+        var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
 
-        var languageDialog = await _dialogService.ShowAsync<UserSelectLanguageDialog>(Localizer["LanguagePreferencePrompt"], options);
-        var languageDialogResult = await languageDialog.Result;
-        if (!languageDialogResult.Canceled)
+        if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
         {
-            var selectedLanguage = languageDialogResult.Data.ToString();
-            var language = selectedLanguage?.Equals("english", StringComparison.InvariantCultureIgnoreCase) ?? true ? "en-CA" : "fr-CA";
-            await _userSettingsService.RegisterUserLanguage(language);
-            await _userSettingsService.SetLanguage(language);
+            await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
         }
     }
 }

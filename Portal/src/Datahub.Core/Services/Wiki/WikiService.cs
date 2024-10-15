@@ -10,35 +10,35 @@ namespace Datahub.Core.Services.Wiki;
 
 public class WikiService : IWikiService
 {
-    private const string WIKIROOT_CONFIG_KEY = "WikiURL";
-    private const string WIKI_EDIT_URL_CONFIG_KEY = "EditWikiURLPrefix";
+    private const string WikirootConfigKey = "WikiURL";
+    private const string WikiEditUrlConfigKey = "EditWikiURLPrefix";
 
-    private readonly string wikiRoot;
-    private readonly string wikiEditPrefix;
-    private readonly ILogger<WikiService> logger;
-    private readonly IHttpClientFactory httpClientFactory;
+    private readonly string _wikiRoot;
+    private readonly string _wikiEditPrefix;
+    private readonly ILogger<WikiService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
 
     //TODO: use proper caching
-    private MarkdownLanguageRoot englishLanguageRoot;
-    private MarkdownLanguageRoot frenchLanguageRoot;
+    private MarkdownLanguageRoot _englishLanguageRoot;
+    private MarkdownLanguageRoot _frenchLanguageRoot;
 
-    private IList<TimeStampedStatus> errorList;
+    private IList<TimeStampedStatus> _errorList;
 
     public event Func<Task> NotifyRefreshErrors;
 
     public WikiService(IConfiguration config, ILogger<WikiService> logger, IHttpClientFactory httpClientFactory)
     {
-        wikiRoot = config[WIKIROOT_CONFIG_KEY];
-        wikiEditPrefix = config[WIKI_EDIT_URL_CONFIG_KEY];
-        this.logger = logger;
-        this.httpClientFactory = httpClientFactory;
-        errorList = new List<TimeStampedStatus>();
+        _wikiRoot = config[WikirootConfigKey];
+        _wikiEditPrefix = config[WikiEditUrlConfigKey];
+        _logger = logger;
+        _httpClientFactory = httpClientFactory;
+        _errorList = new List<TimeStampedStatus>();
     }
 
     private async Task AddErrorMessage(string message)
     {
         var error = new TimeStampedStatus(DateTime.UtcNow, message);
-        errorList.Add(error);
+        _errorList.Add(error);
         await InvokeNotifyRefreshErrors();
     }
 
@@ -46,8 +46,8 @@ public class WikiService : IWikiService
     {
         string nameTrimmed = name.TrimStart('/');
 
-        var fullUrl = $"{wikiRoot}{nameTrimmed}.md";
-        using var client = httpClientFactory.CreateClient();
+        var fullUrl = $"{_wikiRoot}{nameTrimmed}.md";
+        using var client = _httpClientFactory.CreateClient();
         try
         {
             var content = await client.GetStringAsync(fullUrl);
@@ -60,12 +60,12 @@ public class WikiService : IWikiService
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
+            _logger.LogError(ex, "Cannot load page url: {FullUrl}", fullUrl);
             return null;
         }
     }
 
-    private static IList<LinkInline> GetListedLinks(string inputMarkdown)
+    private static IList<LinkInline> ListedLinks(string inputMarkdown)
     {
         if (string.IsNullOrEmpty(inputMarkdown))
         {
@@ -92,23 +92,23 @@ public class WikiService : IWikiService
         return deSpaced;
     }
 
-    private IList<string> GetPath(AbstractMarkdownPage resource)
+    private IList<string> Path(AbstractMarkdownPage resource)
     {
         if (resource is null)
         {
             return new List<string>();
         }
 
-        var parentPath = GetPath(resource.Parent);
+        var parentPath = Path(resource.Parent);
         parentPath.Add(CleanupCharacters(resource.Title));
         return parentPath;
     }
 
     private async Task<MarkdownCard> PopulateResourceCard(LinkInline link, MarkdownCategory category)
     {
-        var path = GetPath(category);
-        var linkUrlMD = $"{link.Url}.md";
-        var content = await LoadWikiPage(linkUrlMD, path);
+        var path = Path(category);
+        var linkUrlMd = $"{link.Url}.md";
+        var content = await LoadWikiPage(linkUrlMd, path);
 
         if (string.IsNullOrEmpty(content))
         {
@@ -134,8 +134,8 @@ public class WikiService : IWikiService
         var title = link.FirstChild.ToString();
         var category = new MarkdownCategory(title, languageRoot);
 
-        var catSidebar = await LoadSidebar(GetPath(category));
-        var catLinks = GetListedLinks(catSidebar);
+        var catSidebar = await LoadSidebar(Path(category));
+        var catLinks = ListedLinks(catSidebar);
 
         if (catLinks?.Count > 0)
         {
@@ -153,8 +153,8 @@ public class WikiService : IWikiService
         var title = link.FirstChild.ToString();
         var langRoot = new MarkdownLanguageRoot(title);
 
-        var langSidebar = await LoadSidebar(GetPath(langRoot));
-        var langLinks = GetListedLinks(langSidebar);
+        var langSidebar = await LoadSidebar(Path(langRoot));
+        var langLinks = ListedLinks(langSidebar);
 
         if (langLinks?.Count > 0)
         {
@@ -179,25 +179,25 @@ public class WikiService : IWikiService
 
     private async Task LoadResourceTree()
     {
-        errorList = new List<TimeStampedStatus>();
+        _errorList = new List<TimeStampedStatus>();
 
         await AddErrorMessage("Loading resources");
 
         var rootSidebar = await LoadSidebar();
-        var rootLinks = GetListedLinks(rootSidebar);
+        var rootLinks = ListedLinks(rootSidebar);
         if (rootLinks != null)
         {
             var enLink = rootLinks[0];
             var frLink = rootLinks[1];
 
-            englishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
-            frenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
+            _englishLanguageRoot = await PopulateResourceLanguageRoot(enLink);
+            _frenchLanguageRoot = await PopulateResourceLanguageRoot(frLink);
 
             await AddErrorMessage("Finished loading resources");
         }
         else
         {
-            logger.LogWarning($"No data found for root sidebar {rootSidebar}");
+            _logger.LogWarning($"No data found for root sidebar {rootSidebar}");
         }
     }
 
@@ -221,7 +221,7 @@ public class WikiService : IWikiService
     {
         StringBuilder sb = new();
 
-        sb.Append(wikiRoot);
+        sb.Append(_wikiRoot);
         if (folders?.Count > 0)
         {
             foreach (var f in folders)
@@ -244,7 +244,7 @@ public class WikiService : IWikiService
     {
         var url = BuildUrl(name, folders);
 
-        var httpClient = httpClientFactory.CreateClient();
+        var httpClient = _httpClientFactory.CreateClient();
         try
         {
             var result = await httpClient.GetStringAsync(url);
@@ -252,7 +252,7 @@ public class WikiService : IWikiService
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Error loading {url}", url);
+            _logger.LogError(e, "Error loading {url}", url);
             await AddErrorMessage($"Error loading {url}");
 
             return await Task.FromResult(default(string));
@@ -261,25 +261,25 @@ public class WikiService : IWikiService
 
     public async Task<MarkdownLanguageRoot> LoadLanguageRoot(bool isFrench)
     {
-        if (englishLanguageRoot == null || frenchLanguageRoot == null)
+        if (_englishLanguageRoot == null || _frenchLanguageRoot == null)
         {
             await LoadResourceTree();
         }
 
-        var result = isFrench ? frenchLanguageRoot : englishLanguageRoot;
+        var result = isFrench ? _frenchLanguageRoot : _englishLanguageRoot;
         return await Task.FromResult(result);
     }
 
     public async Task<string> LoadResourcePage(MarkdownCard card)
     {
-        var path = GetPath(card.ParentCategory);
+        var path = Path(card.ParentCategory);
         var name = $"{card.Url}.md";
         return await LoadWikiPage(name, path);
     }
 
-    public string GetEditUrl(MarkdownCard card) => $"{wikiEditPrefix}{card.Url}/_edit";
+    public string GetEditUrl(MarkdownCard card) => $"{_wikiEditPrefix}{card.Url}/_edit";
 
-    public IReadOnlyList<TimeStampedStatus> GetErrorList() => errorList.AsReadOnly();
+    public IReadOnlyList<TimeStampedStatus> GetErrorList() => _errorList.AsReadOnly();
 
     public async Task LogNotFoundError(string pageName, string resourceRoot) => await AddErrorMessage($"{pageName} was not found in {resourceRoot} cache");
 

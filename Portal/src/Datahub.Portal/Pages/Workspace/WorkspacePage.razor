@@ -61,11 +61,6 @@
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
                          ProjectAcronym="@WorkspaceAcronymParam">
             <Authorized>
-                <DHPageAlert Title="@Localizer["Welcome to a workspace"]" Key="@WorkspaceAlert.KEY">
-                    <ChildContent>
-                        <WorkspaceAlert/>
-                    </ChildContent>
-                </DHPageAlert>
                 <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
             </Authorized>
             <NotAuthorized>

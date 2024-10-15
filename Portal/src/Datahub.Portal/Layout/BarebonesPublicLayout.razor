@@ -1,0 +1,32 @@
+@using MudBlazor.Utilities
+@using Datahub.Portal.Pages.Public
+@inherits LayoutComponentBase
+
+@attribute [AllowAnonymous]
+
+<MudThemeProvider Theme="@DatahubTheme.DefaultTheme"/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+<MudPopoverProvider/>
+
+<MudLayout>
+    @Body
+    
+    <div style="@_backgroundStyle"></div>
+</MudLayout>
+
+@code {
+    private readonly string _backgroundStyle = new StyleBuilder()
+                .AddStyle("background-image", "url('/img/signup-bg-blur.jpg')")
+                .AddStyle("background-size", "cover")
+                .AddStyle("background-position", "center")
+                .AddStyle("background-repeat", "no-repeat")
+                .AddStyle("min-height", "100vh")
+                .AddStyle("position", "fixed")
+                .AddStyle("left", "0")
+                .AddStyle("right", "0")
+                .AddStyle("top", "0")
+                .AddStyle("z-index", "-100")
+                .Build();
+
+}

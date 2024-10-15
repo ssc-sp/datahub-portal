@@ -16,11 +16,17 @@
             <MudStack>
                 <DHMarkdown style="order: 1;" Content="@GetBody()" LinkRewriter="RewriteLink"/>
                 <MudStack style="order: -1;" Spacing="0">
-                    <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy?.DisplayName ?? "DataHub"]</MudText>
-                    @if (Announcement.UpdatedAt.HasValue)
-                    {
-                        <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy?.DisplayName ?? "DataHub"]</MudText>
-                    }
+                    <span>
+                        <p>
+                            <MudText Typo="Typo.caption">@Localizer["Posted at {0} by {1}", Announcement.CreatedAt.ToString("yyyy-MM-dd"), Announcement.CreatedBy?.DisplayName ?? "DataHub"]</MudText>
+                        </p>
+                        @if (Announcement.UpdatedAt.HasValue)
+                        {
+                            <p>
+                                <MudText Typo="Typo.caption">@Localizer["Last updated at {0} by {1}", Announcement.UpdatedAt?.ToString("yyyy-MM-dd")!, Announcement.UpdatedBy?.DisplayName ?? "DataHub"]</MudText>
+                            </p>
+                        }
+                    </span>
                 </MudStack>
             </MudStack>
         </MudPaper>
@@ -29,11 +35,9 @@
 
 @code {
 
-    [Parameter]
-    public Announcement Announcement { get; set; }
+    [Parameter] public Announcement Announcement { get; set; }
 
-    [Parameter]
-    public bool IsHidden { get; set; }
+    [Parameter] public bool IsHidden { get; set; }
 
     private string _style => IsHidden ? "opacity: 0.5;" : string.Empty;
     private bool _isFrench;

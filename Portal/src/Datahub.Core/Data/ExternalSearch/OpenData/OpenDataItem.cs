@@ -17,17 +17,17 @@ public class OpenDataItem
     public string Notes { get; set; }
 
     public string Url { get; set; }
-    private BilingualText urlDecoded;
+    private BilingualText _urlDecoded;
     public BilingualText UrlDecoded
     {
         get
         {
-            if (urlDecoded == null && !string.IsNullOrEmpty(Url))
+            if (_urlDecoded == null && !string.IsNullOrEmpty(Url))
             {
                 var replaced = BILINGUAL_URL_REGEX.Replace(Url, "\"$1\"");
-                urlDecoded = JsonConvert.DeserializeObject<BilingualText>(replaced);
+                _urlDecoded = JsonConvert.DeserializeObject<BilingualText>(replaced);
             }
-            return urlDecoded;
+            return _urlDecoded;
         }
     }
 }

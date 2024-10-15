@@ -4,10 +4,14 @@ namespace Datahub.Core.Data;
 
 public static class RoleConstants
 {
-    public const string ADMIN_SUFFIX = "-admin";
-    public const string WORKSPACE_LEAD_SUFFIX = "-workspace-lead";
-    public const string COLLABORATOR_SUFFIX = "-collaborator";
-    public const string GUEST_SUFFIX = "-guest";
+    public const string ADMIN_ROLE = "admin";
+    public const string ADMIN_SUFFIX = "-" + ADMIN_ROLE;
+    public const string WORKSPACE_LEAD_ROLE = "workspace-lead";
+    public const string WORKSPACE_LEAD_SUFFIX = "-" + WORKSPACE_LEAD_ROLE;
+    public const string COLLABORATOR_ROLE = "collaborator";
+    public const string COLLABORATOR_SUFFIX = "-" + COLLABORATOR_ROLE;
+    public const string GUEST_ROLE = "guest";
+    public const string GUEST_SUFFIX = "-" + GUEST_ROLE;
     public const string WEBAPP_SUFFIX = "-webapp";
 
     public const string DATAHUB_ADMIN_PROJECT = "DHPGLIST";

@@ -26,13 +26,13 @@
         @if (ShowTitle)
         {
             <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Administer"]</MudText>
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin workspaces"]</MudText>
         }
         <div role="group">
-            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
                 @foreach (var project in _adminProjects)
                 {
-                    <li>
+                    <li class="flex-1">
                         <ProjectPreviewCard Project="@project"/>
                     </li>
                 }
@@ -45,13 +45,13 @@
         @if (ShowTitle)
         {
             <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I Collaborate In"]</MudText>
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator workspaces"]</MudText>
         }
         <div role="group">
-            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
                 @foreach (var project in _collaboratedProjects)
                 {
-                    <li>
+                    <li class="flex-1">
                         <ProjectPreviewCard Project="@project"/>
                     </li>
                 }
@@ -64,13 +64,13 @@
         @if (ShowTitle)
         {
             <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Workspaces I'm a Guest In"]</MudText>
+            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest workspaces"]</MudText>
         }
         <div role="group">
-            <ul style="display: grid; grid-template-columns: repeat(3, 1fr); list-style-type: none; gap: 25px">
+            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
                 @foreach (var project in _guestProjects)
                 {
-                    <li>
+                    <li class="flex-1">
                         <ProjectPreviewCard Project="@project"/>
                     </li>
                 }

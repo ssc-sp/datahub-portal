@@ -23,5 +23,4 @@
 <!-- Ensure the following tasks are complete -->
 
 - [ ] Code follows dotnet coding standards
-- [ ] Documentation updated (if necessary)
-- [ ] Tests added/updated (if necessary)
+- [ ] Tests added/updated to cover changes

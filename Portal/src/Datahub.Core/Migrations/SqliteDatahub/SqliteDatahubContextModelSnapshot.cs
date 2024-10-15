@@ -1188,6 +1188,102 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("MiscStoredObjects");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AreaOfScience")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CBRID")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CBRName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DepartmentName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinancialAuthorityCostCentre")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinancialAuthorityFirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinancialAuthorityLastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GcHostingId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("GeneratesInfoBusinessValue")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Keywords")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LeadEmail")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LeadFirstName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("LeadLastName")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProjectDescription")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ProjectEndDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("ProjectStartDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProjectTitle")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RetentionPeriodYears")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SecurityClassification")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Subject")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkspaceDescription")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkspaceIdentifier")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("WorkspaceTitle")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GCHostingWorkspaceDetails", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.OnboardingApp", b =>
                 {
                     b.Property<int>("Application_ID")
@@ -1424,6 +1520,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("PreventAutoDelete")
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Project_Acronym_CD")
                         .IsRequired()
@@ -2402,6 +2501,17 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("WebForm");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
+                        .WithOne("GCHostingWorkspaceDetails")
+                        .HasForeignKey("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Datahub_Project");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "CreatedBy")
@@ -2695,6 +2805,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Comments");
 
                     b.Navigation("Credits");
+
+                    b.Navigation("GCHostingWorkspaceDetails");
 
                     b.Navigation("PBI_License_Request");
 

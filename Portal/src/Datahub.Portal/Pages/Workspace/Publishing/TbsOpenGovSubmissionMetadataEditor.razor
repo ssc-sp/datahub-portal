@@ -58,7 +58,7 @@
 
     private async Task OnNewMetadataCreated()
     {
-        var isFrench = _reqUser.UserSettings.Language?.Contains(CultureService.French) ?? false;
+        var isFrench = _reqUser.UserSettings.Language?.Contains(ICultureService.French) ?? false;
         var titleField = isFrench ? FieldNames.title_translated_fr : FieldNames.title_translated_en;
         if (string.IsNullOrEmpty(_editor.GetValue(titleField)))
         {

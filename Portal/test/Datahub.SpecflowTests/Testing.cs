@@ -1,3 +1,5 @@
+using Datahub.Core.Data;
+
 namespace Datahub.SpecflowTests;
 
 public static class Testing

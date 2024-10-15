@@ -59,7 +59,7 @@ def synchronize_access_policies(client:KeyVaultManagementClient, environment_nam
         user_id = user['ObjectId']
         # Define the access policy
         permissions = ["list","get"]
-        if user['Role'] == 'Admin':
+        if (user['Role'] == 'Admin' or user['Role'] == 'Owner'):
             permissions = ["list","get","delete","set"]        
         # check if user exists in access policies
         user_exists = False

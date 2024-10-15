@@ -8,11 +8,11 @@ public class FieldCodeGenerator
 {
     private const char ChoiceSeparator = '|';
 
-    private readonly Func<string, int> sectionMapper;
+    private readonly Func<string, int> _sectionMapper;
 
     public FieldCodeGenerator(Func<string, int> sectionMapper)
     {
-        this.sectionMapper = sectionMapper;
+        this._sectionMapper = sectionMapper;
     }
 
     public string GetFormattedFieldName(WebForm_Field field)
@@ -54,7 +54,7 @@ public class FieldCodeGenerator
         // AeFormCategory
         if (!string.IsNullOrEmpty(field.Section_DESC))
         {
-            var sectionIndex = sectionMapper?.Invoke(field.Section_DESC) ?? 1;
+            var sectionIndex = _sectionMapper?.Invoke(field.Section_DESC) ?? 1;
             sb.AppendLine($"[AeFormCategory({Quote(field.Section_DESC)}, {sectionIndex})]");
         }
 

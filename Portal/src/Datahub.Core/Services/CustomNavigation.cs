@@ -5,28 +5,28 @@ namespace Datahub.Core.Services;
 
 public class CustomNavigation
 {
-    private readonly NavigationManager navigationManager;
-    private readonly IJSRuntime jsInterop;
+    private readonly NavigationManager _navigationManager;
+    private readonly IJSRuntime _jsInterop;
 
     public CustomNavigation(NavigationManager navigationManager, IJSRuntime jsInterop)
     {
-        this.navigationManager = navigationManager;
-        this.jsInterop = jsInterop;
+        this._navigationManager = navigationManager;
+        this._jsInterop = jsInterop;
     }
 
-    public string Uri => navigationManager.Uri;
+    public string Uri => _navigationManager.Uri;
 
     public async Task NavigateTo(string url, bool overrideHistory)
     {
         if (overrideHistory)
         {
-            await jsInterop.InvokeVoidAsync("overrideHistory", url);
+            await _jsInterop.InvokeVoidAsync("overrideHistory", url);
         }
         else
         {
-            navigationManager.NavigateTo(url);
+            _navigationManager.NavigateTo(url);
         }
     }
 
-    public Uri GetAbsoluteUri() => navigationManager.ToAbsoluteUri(navigationManager.Uri);
+    public Uri GetAbsoluteUri() => _navigationManager.ToAbsoluteUri(_navigationManager.Uri);
 }

@@ -30,6 +30,8 @@ public partial class RepositoryService : IRepositoryService
     [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
     private static partial Regex ModuleRegex();
 
+    private static readonly SemaphoreSlim _semaphore = new(1, 1);
+
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
@@ -43,49 +45,58 @@ public partial class RepositoryService : IRepositoryService
         _logger = logger;
         _resourceProvisionerConfiguration = resourceProvisionerConfiguration;
         _terraformService = terraformService;
-
     }
 
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
-        var user = command.RequestingUserEmail ?? throw new NullReferenceException("Requesting user's email is null");
-        _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
-
-        _logger.LogInformation(
-            "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
-            command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
-        var repositoryUpdateEvents =
-            await ExecuteResourceRuns(command.Templates, command.Workspace, user);
-
-        _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
-            command.Workspace.Acronym);
-        await PushInfrastructureRepository(command.Workspace.Acronym!);
-
-        _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-        var pullRequestValueObject =
-            await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
-
-        _logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-        await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, command.Workspace.Acronym!);
-
-        var pullRequestMessage = new PullRequestUpdateMessage
+        await _semaphore.WaitAsync();
+        try
         {
-            PullRequestValueObject = pullRequestValueObject,
-            TerraformWorkspace = command.Workspace,
-            Events = repositoryUpdateEvents
-        };
+            var user = command.RequestingUserEmail ??
+                       throw new NullReferenceException("Requesting user's email is null");
+            _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
+            await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
 
-        if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
-        {
-            return pullRequestMessage;
+            _logger.LogInformation(
+                "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
+                command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
+            var repositoryUpdateEvents =
+                await ExecuteResourceRuns(command.Templates, command.Workspace, user);
+
+            _logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
+                command.Workspace.Acronym);
+            await PushInfrastructureRepository(command.Workspace.Acronym!);
+
+            _logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            var pullRequestValueObject =
+                await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
+
+            _logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
+                command.Workspace.Acronym!);
+
+            var pullRequestMessage = new PullRequestUpdateMessage
+            {
+                PullRequestValueObject = pullRequestValueObject,
+                TerraformWorkspace = command.Workspace,
+                Events = repositoryUpdateEvents
+            };
+
+            if (pullRequestMessage.Events.All(x => x.StatusCode != MessageStatusCode.Error))
+            {
+                return pullRequestMessage;
+            }
+
+            pullRequestMessage.Events
+                .Where(x => x.StatusCode == MessageStatusCode.Error)
+                .ToList()
+                .ForEach(x => _logger.LogError(x.Message, x));
+            throw new Exception("Error while handling resource run request");
         }
-
-        pullRequestMessage.Events
-            .Where(x => x.StatusCode == MessageStatusCode.Error)
-            .ToList()
-            .ForEach(x => _logger.LogError(x.Message, x));
-        throw new Exception("Error while handling resource run request");
+        finally
+        {
+            _semaphore.Release();
+        }
     }
 
     /// <summary>
@@ -338,18 +349,16 @@ public partial class RepositoryService : IRepositoryService
         var retryPolicy = Policy
             .Handle<AutoApproveIncompleteException>()
             .WaitAndRetryAsync(retryAmount, retryAttempt =>
-                TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(1),
                 (exception, _, _, _) =>
                 {
                     _logger.LogWarning(exception, "Auto-approve infrastructure pull request failed, retrying");
                 });
 
-        await retryPolicy.ExecuteAsync(async ct =>
-        {
-            await SendAutoApprovePatchRequestAsync(patchUrl, patchContent);
-        }, CancellationToken.None);
+        await retryPolicy.ExecuteAsync(async ct => { await SendAutoApprovePatchRequestAsync(patchUrl, patchContent); },
+            CancellationToken.None);
     }
-    
+
     public async Task SendAutoApprovePatchRequestAsync(string patchUrl, StringContent patchContent)
     {
         _logger.LogInformation("Patching auto-approve infrastructure pull request to {Url}", patchUrl);
@@ -363,9 +372,9 @@ public partial class RepositoryService : IRepositoryService
             _logger.LogError("Error: {Error}", content);
             throw new AutoApproveException($"Could not auto-approve infrastructure pull request {patchUrl}");
         }
-        
+
         _logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
-        
+
         // Check that the json content of the response has an object "closedBy"
         var responseContent = await response.Content.ReadAsStringAsync();
         var jsonContent = JsonSerializer.Deserialize<JsonNode>(responseContent);
@@ -444,7 +453,7 @@ public partial class RepositoryService : IRepositoryService
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         await ValidateWorkspaceVersion(terraformWorkspace);
-        
+
         // Execute each module but make sure the `new-project-template` module is first
         modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
 

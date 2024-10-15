@@ -8,14 +8,26 @@
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
-<MudStack Class="my-16 py-16">
-    <MudStack AlignItems="AlignItems.Center" Class="mt-4">
-        <MudText Typo="Typo.h2" Class="text-center">@Localizer["Please login to continue"]</MudText>
-        <MudButton HtmlTag="a" Class="mx-auto px-16 my-4" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">@Localizer["Login"]</MudButton>
-        <MudText Typo="Typo.body1">
-            @Localizer["Don't have an account?"]
-            <MudLink Href="/register" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
-        </MudText>
+<MudStack Class="my-8 py-8">
+    <MudStack AlignItems="AlignItems.Start" Class="mt-4">
+        <p>
+            <MudText Typo="Typo.body1" Class="text-center">
+                <strong>
+                    @Localizer["Please login to continue"]:
+                </strong>
+                <MudButton Class="mx-4 px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
+                    <MudText>
+                        @Localizer["Login"]
+                    </MudText>
+                </MudButton>
+            </MudText>
+        </p>
+        <p>
+            <MudText Typo="Typo.body1">
+                @Localizer["Don't have an account?"]
+                <MudLink Href="/register" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
+            </MudText>
+        </p>
     </MudStack>
 </MudStack>
 

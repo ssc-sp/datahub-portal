@@ -9,13 +9,10 @@
     Class="@Class"
     ViewBox="@ViewBox"
     aria-hidden="@AriaHidden"
-    focusable="@Focusable">
-    @ChildContent
-</MudIcon>
+    focusable="@Focusable"
+    role="img"/>
 
 @code {
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
     // General
     [Parameter] public string Icon { get; set; } = "";
     [Parameter] public string Title { get; set; } = "";

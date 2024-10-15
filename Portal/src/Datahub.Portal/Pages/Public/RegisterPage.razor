@@ -15,8 +15,7 @@
     <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
         <MudStack>
             <MudTextField T="string"
-                          Label=@_emailFieldText 
-                                                                                                                        @bind-Value="_email"
+                          Label=@_emailFieldText
                           Required
                           Variant="Variant.Outlined"
                           RequiredError=@Localizer["Government of Canada Email is required"]
@@ -42,33 +41,46 @@
                 </MudText>
 
             </MudCheckBox>
+            <p>
+                <MudStack Justify="Justify.Center">
 
-            @if (_isRegistering)
-            {
-                <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-auto mt-4">
-                    @Localizer["Registering"]
-                    <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
-                </MudButton>
-                <MudAlert Severity="Severity.Warning" hidden="@(!_failed)" Class="mt-4">
-                    @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
-                </MudAlert>
-            }
-            else
-            {
-                <MudButton HtmlTag="a" Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-auto mt-4 px-16" OnClick="HandleValidSubmit">
-                    @Localizer["Register"]
-                </MudButton>
-            }
+                    <MudText Class="text-center">
+                        <strong>@Localizer["Click here once the form is complete to register"]:</strong>
+                        @if (_isRegistering)
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-4 px-16 my-2">
+                                <MudText>
+                                    @Localizer["Registering"]
+                                </MudText>
+                                <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
+                            </MudButton>
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" hidden="@(!_failed)" Class="mt-2" Style="color: #000">
+                                <MudText>
+                                    @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
+                                </MudText>
+                            </MudAlert>
+                        }
+                        else
+                        {
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-4 my-2 px-16" OnClick="HandleValidSubmit">
+                                <MudText>
+                                    @Localizer["Register"]
+                                </MudText>
+                            </MudButton>
+                        }
+                    </MudText>
+                </MudStack>
+            </p>
         </MudStack>
     </MudForm>
-    <MudText Typo="Typo.body1" Align="Align.Center">
-        @Localizer["Already registered?"]
-        <MudLink Typo="Typo.body1" Href="/login">@Localizer["Login instead"]</MudLink>
-    </MudText>
-    <MudText Typo="Typo.body1" Align="Align.Center">
-        <MudLink Typo="Typo.body1" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
-        @Localizer["on setting up your account."]
-    </MudText>
+    <p>
+        <MudText Typo="Typo.body1" Align="Align.Start">
+            @Localizer["Already registered?"]
+            <MudLink Typo="Typo.body1" Href="/login">@Localizer["Login instead"].</MudLink>
+            <MudLink Typo="Typo.body1" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
+            @Localizer["on setting up your account."]
+        </MudText>
+    </p>
 </MudStack>
 
 

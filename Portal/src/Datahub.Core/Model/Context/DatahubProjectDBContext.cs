@@ -111,6 +111,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<TbsOpenGovSubmission> TbsOpenGovSubmissions { get; set; }
 
     /// <summary>
+    /// Gets or sets the table for storing the GC hosting info
+    /// </summary>
+    public DbSet<GCHostingWorkspaceDetails> GCHostingWorkspaceDetails { get; set; }
+
+    /// <summary>
     /// Gets or sets the table for storing the Azure subscriptions
     /// </summary>
     public DbSet<DatahubAzureSubscription> AzureSubscriptions { get; set; }
@@ -125,7 +130,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthCheckRuns { get; set; }
 
+#pragma warning disable SX1309
     private readonly DbContextOptions<DatahubProjectDBContext> options;
+#pragma warning restore SX1309
 
     // below are used for migrations
 #if MIGRATION

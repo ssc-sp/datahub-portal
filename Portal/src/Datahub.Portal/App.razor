@@ -1,5 +1,7 @@
 ﻿@inject IJSRuntime _jsRuntime
-@inject ILocalStorageService _localStorage
+@inject NavigationManager _navManager
+@inject IUserSettingsService _userSettingsService
+@inject ICultureService CultureService
 
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
@@ -41,23 +43,59 @@
 
 @code {
 
+    [SupplyParameterFromQuery(Name = "culture")]
+    public string CultureOverride { get; set; }
+
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
     Random random = new Random();
+
+    protected override void OnInitialized()
+    {
+        if (!string.IsNullOrEmpty(CultureOverride))
+        {
+            CultureService.OverrideCurrentCulture(CultureOverride);
+        }
+
+        base.OnInitialized();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
-            var language = await _localStorage.GetItemAsStringAsync("language");
+
+            var language = CultureOverride ?? await CultureService.GetLanguageFromLocalStorageAsync();
+
             if (string.IsNullOrEmpty(language))
             {
-                language = "en-CA";
-                await _localStorage.SetItemAsStringAsync("language", language);
+                language = await _userSettingsService.GetUserLanguage();
+
+                if (!string.IsNullOrEmpty(language))
+                {
+                    await CultureService.SetLanguageInLocalStorageAsync(language);
+                }
             }
 
-            await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
+            if (string.IsNullOrEmpty(language))
+            {
+                var currentUrl = new Uri(_navManager.Uri).GetComponents(
+                    UriComponents.PathAndQuery,
+                    UriFormat.Unescaped);
+
+                if (!currentUrl.StartsWith(PageRoutes.LanguageSelection_Bilingual))
+                {
+                    var query = $"?redirectUrl={Uri.EscapeDataString(currentUrl)}";
+                    _navManager.NavigateTo($"{PageRoutes.LanguageSelection_Bilingual}{query}");
+                    
+                }
+            }
+            else
+            {
+                await module.InvokeVoidAsync("SetHtmlLangAttribute", language);
+            }
+
         }
     }
 

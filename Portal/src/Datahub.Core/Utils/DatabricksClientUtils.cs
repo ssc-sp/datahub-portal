@@ -14,14 +14,14 @@ namespace Datahub.Core.Utils;
 /// </summary>
 public class DatabricksClientUtils
 {
-    private readonly DatabricksClient client;
-    private readonly string dataBrickUrl;
-    private readonly string authToken;
+    private readonly DatabricksClient _client;
+    private readonly string _dataBrickUrl;
+    private readonly string _authToken;
     public DatabricksClientUtils(string databricksUrl, string token)
     {
-        client = DatabricksClient.CreateClient(databricksUrl, token);
-        authToken = token;
-        dataBrickUrl = databricksUrl;
+        _client = DatabricksClient.CreateClient(databricksUrl, token);
+        _authToken = token;
+        _dataBrickUrl = databricksUrl;
     }
     public async Task<bool> VerifyACLStatus()
     {
@@ -34,14 +34,14 @@ public class DatabricksClientUtils
             //NumWorkers = 1
         };
 
-        var clusterId = await client.Clusters.Create(cluster);
+        var clusterId = await _client.Clusters.Create(cluster);
 
         // Wait for the cluster to be running
         ClusterInfo clusterInfo;
         do
         {
             await Task.Delay(10000); // wait 10 seconds
-            clusterInfo = await client.Clusters.Get(clusterId);
+            clusterInfo = await _client.Clusters.Get(clusterId);
         }
         while (clusterInfo.State != ClusterState.RUNNING);
 
@@ -55,11 +55,11 @@ public class DatabricksClientUtils
         };
 
         var httpClient = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Post, $"https://{dataBrickUrl}/api/2.0/commands/execute")
+        var request = new HttpRequestMessage(HttpMethod.Post, $"https://{_dataBrickUrl}/api/2.0/commands/execute")
         {
             Content = new StringContent(JsonSerializer.Serialize(commandPayload), Encoding.UTF8, "application/json")
         };
-        request.Headers.Add("Authorization", $"Bearer {authToken}");
+        request.Headers.Add("Authorization", $"Bearer {_authToken}");
 
         var response = await httpClient.SendAsync(request);
         var commandResult = await response.Content.ReadAsStringAsync();
@@ -68,7 +68,7 @@ public class DatabricksClientUtils
         var aclStatus = bool.Parse(commandResult);
 
         // Delete the cluster
-        await client.Clusters.Delete(clusterId);
+        await _client.Clusters.Delete(clusterId);
 
         return aclStatus;
     }
@@ -81,8 +81,8 @@ public class DatabricksClientUtils
             if (allClusters.Count > 0) clusterId = allClusters[0];
         }
         var httpClient = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://{dataBrickUrl}/api/2.0/clusters/get?cluster_id={clusterId}");
-        request.Headers.Add("Authorization", $"Bearer {authToken}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://{_dataBrickUrl}/api/2.0/clusters/get?cluster_id={clusterId}");
+        request.Headers.Add("Authorization", $"Bearer {_authToken}");
 
         var response = await httpClient.SendAsync(request);
         var clusterInfo = await response.Content.ReadAsStringAsync();
@@ -98,8 +98,8 @@ public class DatabricksClientUtils
     {
         var reply = new List<string>();
         var httpClient = new HttpClient();
-        var request = new HttpRequestMessage(HttpMethod.Get, $"https://{dataBrickUrl}/api/2.0/clusters/list");
-        request.Headers.Add("Authorization", $"Bearer {authToken}");
+        var request = new HttpRequestMessage(HttpMethod.Get, $"https://{_dataBrickUrl}/api/2.0/clusters/list");
+        request.Headers.Add("Authorization", $"Bearer {_authToken}");
 
         try
         {

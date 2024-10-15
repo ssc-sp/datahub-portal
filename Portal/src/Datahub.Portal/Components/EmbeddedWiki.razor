@@ -5,7 +5,7 @@
 @using Datahub.Portal.Components.Resources
 @using Datahub.Portal.Pages.Resources
 @inject DocumentationService _docService
-@inject CultureService _cultureService
+@inject ICultureService CultureService
 
 @if (_loading)
 {
@@ -38,8 +38,8 @@ else
         _loading = true;
         try
         {
-            var resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
-            _currentDocument = string.IsNullOrEmpty(PagePath) ? resourceRoot : (await _docService.LoadPageFromPath(PagePath, _cultureService.IsFrench));
+            var resourceRoot = await _docService.LoadResourceTree(DocumentationGuideRootSection.UserGuide, CultureService.Culture);
+            _currentDocument = string.IsNullOrEmpty(PagePath) ? resourceRoot : (await _docService.LoadPageFromPath(PagePath, CultureService.IsFrench));
             if (_currentDocument is null)
             {
                 _docService.LogNotFoundError(PagePath, resourceRoot.Title);
@@ -51,5 +51,5 @@ else
         }
     }
 
-    private string PagePath => _cultureService.IsFrench ? PageNameFr : PageNameEn;
+    private string PagePath => CultureService.IsFrench ? PageNameFr : PageNameEn;
 }

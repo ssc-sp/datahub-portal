@@ -83,7 +83,7 @@
 
     private async Task RefreshErrorList()
     {
-        var errors = _docService.GetErrorList();
+        var errors = _docService.ErrorList();
 
         _formattedErrorList = await Task.WhenAll(errors.Select(async e => await FormatErrorMessage(e)));
 
@@ -93,7 +93,7 @@
     private async Task<string> FormatErrorMessage(Core.Services.Wiki.TimeStampedStatus error)
     {
         var timestampUtc = DateTime.SpecifyKind(error.Timestamp, DateTimeKind.Utc);
-        var localDatetime = await _timezoneService.GetLocalDateTime(timestampUtc);
+        var localDatetime = await _timezoneService.LocalDateTime(timestampUtc);
         return $"{localDatetime.ToString("yyyy-MM-dd HH:mm:ss")} - {error.Message}";
     }
 

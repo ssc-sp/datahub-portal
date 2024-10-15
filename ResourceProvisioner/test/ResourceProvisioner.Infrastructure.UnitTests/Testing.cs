@@ -1,3 +1,4 @@
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
 using ResourceProvisioner.Application.Services;
@@ -35,7 +36,7 @@ public class Testing
     internal const string RequestingUserEmail = "unittest@user.com";
     internal const string RequestingAdminUser = "Unit Test Admin User";
 
-    internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformTemplate.TemplateStatus.CreateRequested);
+    internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformStatus.CreateRequested);
 
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
@@ -132,7 +133,7 @@ public class Testing
         }
 
         var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
-            TerraformTemplate.TemplateStatus.CreateRequested);
+            TerraformStatus.CreateRequested);
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
         await _terraformService.ExtractVariables(module.Name, workspace);
@@ -153,7 +154,7 @@ public class Testing
         return new CreateResourceRunCommand
         {
             Templates = terraformTemplates
-                .Select(s => new TerraformTemplate(s, TerraformTemplate.TemplateStatus.CreateRequested))
+                .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested))
                 .ToList(),
             Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, version),
             RequestingUserEmail = RequestingUser,
@@ -219,6 +220,6 @@ public class Testing
 
     internal static TerraformTemplate GenerateTerraformTemplate(string template)
     {
-        return new TerraformTemplate(template, TerraformTemplate.TemplateStatus.CreateRequested);
+        return new TerraformTemplate(template, TerraformStatus.CreateRequested);
     }
 }

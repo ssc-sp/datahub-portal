@@ -5,19 +5,19 @@ namespace Datahub.Core.Utils;
 
 public class BlobClientUtils
 {
-    private readonly string connectionString;
-    private readonly string containerName;
+    private readonly string _connectionString;
+    private readonly string _containerName;
 
     public BlobClientUtils(string connectionString, string containerName)
     {
-        this.connectionString = connectionString;
-        this.containerName = containerName;
+        this._connectionString = connectionString;
+        this._containerName = containerName;
     }
 
     public async Task UploadFile(string fileName, Stream fileData, IDictionary<string, string> metadata, Action<long> progress)
     {
-        var blobServiceClient = new BlobServiceClient(connectionString);
-        var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+        var blobServiceClient = new BlobServiceClient(_connectionString);
+        var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
         var blob = containerClient.GetBlobClient(fileName);
 
         var uploadOptions = new BlobUploadOptions();

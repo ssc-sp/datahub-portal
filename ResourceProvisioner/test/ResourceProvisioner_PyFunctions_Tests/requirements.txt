@@ -20,7 +20,7 @@ azure-mgmt-storage==21.1.0
 certifi==2024.7.4
 cffi==1.16.0
 charset-normalizer==3.2.0
-cryptography==41.0.7
+cryptography==43.0.1
 databricks-sdk==0.9.0
 Deprecated==1.2.14
 frozenlist==1.4.0
