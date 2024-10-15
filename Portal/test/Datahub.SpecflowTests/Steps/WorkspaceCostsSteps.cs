@@ -1,10 +1,10 @@
-﻿using System.Text.Json;
+﻿using System.Globalization;
+using System.Text.Json;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using FluentAssertions;
-using MassTransit.Transports;
 using Microsoft.EntityFrameworkCore;
 using Reqnroll;
 
@@ -20,7 +20,6 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a workspace with known costs")]
         public void GivenAWorkspaceWithKnownCosts()
         {
-
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
@@ -478,6 +477,53 @@ namespace Datahub.SpecflowTests.Steps
             var actualLastYearTotal = scenarioContext.Get<decimal>("actualLastYearTotal");
             var lastYearTotal = scenarioContext.Get<decimal>("lastYearTotal");
             actualLastYearTotal.Should().Be(lastYearTotal);
+        }
+
+        [When(@"I query the costs for the workspace with a large response")]
+        public async Task WhenIQueryTheCostsForTheWorkspaceWithALargeResponse()
+        {
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
+            var costs = await sut.QueryWorkspaceCostsAsync(acronym, Testing.Dates.First(), Testing.Dates.Last(),
+                QueryGranularity.Daily);
+            var rgName = costs.First().ResourceGroupName;
+            var expectedCosts = GetLargeResponseDailyServiceCosts(1000, rgName);
+            scenarioContext.Set(expectedCosts, "expectedCosts");
+            scenarioContext.Set(costs, "actualCosts");
+        }
+
+        public List<DailyServiceCost> GetLargeResponseDailyServiceCosts(int rows, string rgName)
+        {
+            var costs = new List<DailyServiceCost>();
+            for (int i = 1; i <= rows; i++)
+            {
+                costs.Add(new DailyServiceCost
+                {
+                    Amount = i * 100,
+                    Date = DateTime.ParseExact(Testing.Dates.First().ToString("yyyyMMdd"), "yyyyMMdd",
+                        CultureInfo.InvariantCulture),
+                    ResourceGroupName = rgName,
+                    Source = $"ServiceName{i}"
+                });
+            }
+
+            return costs;
+        }
+
+        [Then(@"there should be no duplicate costs")]
+        public void ThenThereShouldBeNoDuplicateCosts()
+        {
+            var expectedCosts = scenarioContext.Get<List<DailyServiceCost>>("expectedCosts");
+            var actualCosts = scenarioContext.Get<List<DailyServiceCost>>("actualCosts");
+            actualCosts.Should().HaveCount(expectedCosts.Count);
+            actualCosts.ForEach(ac =>
+            {
+                var cost = expectedCosts
+                    .FirstOrDefault(ec =>
+                    ec.Date == ac.Date && ec.ResourceGroupName == ac.ResourceGroupName && ec.Source == ac.Source && ec.Amount == ac.Amount);
+                cost.Should().NotBeNull();
+                expectedCosts.Remove(cost);
+            });
+            expectedCosts.Should().HaveCount(0);
         }
     }
 }
