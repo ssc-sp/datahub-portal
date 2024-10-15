@@ -5,6 +5,7 @@ using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
@@ -28,6 +29,32 @@ namespace Datahub.SpecflowTests.Hooks
     [Binding]
     public class ProjectUsageHook
     {
+        [BeforeScenario("ProjectUsageNotifier")]
+        public void BeforeScenarioProjectUsageNotifier(IObjectContainer objectContainer,
+            ScenarioContext scenarioContext)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddUserSecrets<Hooks>()
+                .AddJsonFile("appsettings.test.json", optional: true)
+                .Build();
+
+            var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            configuration.Bind(datahubPortalConfiguration);
+
+            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var dbContextFactory = new SpecFlowDbContextFactory(options);
+            
+            var azureConfig = new AzureConfig(configuration);
+            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+
+            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs(azureConfig);
+            objectContainer.RegisterInstanceAs(resourceMessagingService);
+        }
+        
         [BeforeScenario("ProjectUsage")]
         public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)

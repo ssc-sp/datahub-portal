@@ -69,6 +69,7 @@ jobs:
         run: |
           FILES_JSON='${{ needs.prep.outputs.files }}'
           PROJECTS_TO_BUILD=()
+
           # Check if any files in the specified directories have changed
           for FILE in $(echo "$FILES_JSON" | jq -r '.[]'); do
             if [[ "$FILE" =~ ^(Portal|ResourceProvisioner|ServerlessOperations)/src/([^/]+)/.* ]]; then
@@ -79,6 +80,10 @@ jobs:
               fi
             fi
           done
+
+          # Deduplicate the projects by sorting and using uniq
+          PROJECTS_TO_BUILD=($(printf "%s\n" "${PROJECTS_TO_BUILD[@]}" | sort -u))
+
           if [ ${#PROJECTS_TO_BUILD[@]} -eq 0 ]; then
             echo "No projects need to be built. Skipping build step."
             exit 0
