@@ -20,6 +20,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a workspace with known costs")]
         public void GivenAWorkspaceWithKnownCosts()
         {
+
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
@@ -45,12 +46,11 @@ namespace Datahub.SpecflowTests.Steps
         public void ThenIShouldReceiveTheCorrectDailyCosts()
         {
             var costs = scenarioContext.Get<List<DailyServiceCost>>("costs");
-            var timeDiff = (int)Math.Round((Testing.Dates.Last() - Testing.Dates.First()).TotalDays);
             costs.Should().NotBeNull();
-            costs.Count.Should().BeGreaterOrEqualTo(timeDiff);
+            costs.Should().HaveCount(5);
             costs.Should().AllSatisfy(c =>
             {
-                var b = c.Amount > 0 && c.Amount < 10 && c.ResourceGroupName == Testing.ExistingTestRg &&
+                var b = c.ResourceGroupName == Testing.ResourceGroupName1 &&
                         c.Date >= Testing.Dates.First() && c.Date <= Testing.Dates.Last();
             });
         }
@@ -58,7 +58,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a subscription with known costs")]
         public void GivenASubscriptionWithKnownCosts()
         {
-            scenarioContext.Set(datahubPortalConfiguration.AzureAd.SubscriptionId, "subscriptionId");
+            scenarioContext.Set(Testing.WorkspaceSubscriptionGuid, "subscriptionId");
         }
 
         [When(@"I query the daily costs for the subscription")]
@@ -84,12 +84,8 @@ namespace Datahub.SpecflowTests.Steps
         {
             var totals = scenarioContext.Get<List<DailyServiceCost>>("totals");
             totals.Should().NotBeNull();
-            totals.Count.Should().Be(1);
-            totals.TotalAmount().Should().BeApproximately(Testing.ExistingTestRgTotal, (decimal)0.4);
-            totals.Should().AllSatisfy(c =>
-            {
-                var b = c.ResourceGroupName == Testing.ExistingTestRg;
-            });
+            totals.Should().HaveCount(2);
+            totals.TotalAmount().Should().Be(300);
         }
 
         [When(@"I query the total costs for the subscription")]
@@ -119,17 +115,17 @@ namespace Datahub.SpecflowTests.Steps
             {
                 new()
                 {
-                    Amount = 1, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ExistingTestRg,
+                    Amount = 1, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ResourceGroupName1,
                     Source = "Service1"
                 },
                 new()
                 {
-                    Amount = 2, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ExistingTestRg,
+                    Amount = 2, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ResourceGroupName1,
                     Source = "Service2"
                 },
                 new()
                 {
-                    Amount = 3, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ExistingTestRg,
+                    Amount = 3, Date = Testing.Dates.First().Date, ResourceGroupName = Testing.ResourceGroupName1,
                     Source = "Service3"
                 },
             };
@@ -174,9 +170,14 @@ namespace Datahub.SpecflowTests.Steps
         }
 
         [Given(@"a workspace with no existing costs or credits")]
-        public void GivenAWorkspaceWithNoExistingCostsOrCredits()
+        public async Task GivenAWorkspaceWithNoExistingCostsOrCredits()
         {
-            scenarioContext.Set(Testing.WorkspaceAcronym2, "workspaceAcronym");
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+            ctx.Project_Costs.RemoveRange(ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID));
+            ctx.Project_Credits.RemoveRange(ctx.Project_Credits.Where(c => c.ProjectId == project.Project_ID));
+            await ctx.SaveChangesAsync();
         }
 
         [When(@"I update the costs with existing cost but different enough values")]
@@ -194,7 +195,7 @@ namespace Datahub.SpecflowTests.Steps
                 {
                     Amount = existingCost.Amount * 10,
                     Date = existingCost.Date,
-                    ResourceGroupName = Testing.ExistingTestRg,
+                    ResourceGroupName = Testing.ResourceGroupName1,
                     Source = existingCost.Source
                 }
             };
@@ -239,7 +240,7 @@ namespace Datahub.SpecflowTests.Steps
                 {
                     Amount = existingCost.Amount + (decimal)0.05,
                     Date = existingCost.Date,
-                    ResourceGroupName = Testing.ExistingTestRg,
+                    ResourceGroupName = Testing.ResourceGroupName1,
                     Source = existingCost.Source
                 }
             };
@@ -290,7 +291,7 @@ namespace Datahub.SpecflowTests.Steps
                 new()
                 {
                     Amount = costs.TotalAmount() + variance,
-                    ResourceGroupName = Testing.ExistingTestRg
+                    ResourceGroupName = Testing.ResourceGroupName1
                 }
             };
             var refreshNeeded = await sut.VerifyAndRefreshWorkspaceCostsAsync(acronym, totals, executeRefresh: false);
@@ -335,16 +336,16 @@ namespace Datahub.SpecflowTests.Steps
             var projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).Select(c =>
                 new DailyServiceCost { Amount = (decimal)c.CadCost, Date = c.Date, Source = c.ServiceName }).ToList();
             refreshed.Should().BeTrue();
+            projectCosts.Should().HaveCount(5);
             projectCosts.Should().AllSatisfy(c =>
             {
                 var b = c.Date > CostManagementUtilities.CurrentFiscalYear.StartDate &&
                         c.Date < CostManagementUtilities.CurrentFiscalYear.EndDate;
             });
-            projectCosts.Any(c => c.Date < Testing.Dates.First()).Should().BeTrue();
-            projectCosts.TotalAmount().Should().BeApproximately(Testing.ExistingTestRgTotal, (decimal)0.04);
+            projectCosts.TotalAmount().Should().Be(1500);
             var projectCredits = ctx.Project_Credits.FirstOrDefault(c => c.ProjectId == project.Project_ID);
             projectCredits.Should().NotBeNull();
-            projectCredits!.Current.Should().BeApproximately((double)Testing.ExistingTestRgTotal, 0.04);
+            projectCredits!.Current.Should().Be(1500);
         }
 
         [Given(@"a non-existent workspace acronym")]
