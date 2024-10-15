@@ -52,4 +52,6 @@
   "/register-lt": "/inscription",
   "settings-lt": "parametres",
   "/settings-lt": "/parametres",
+  "locked-lt": "locked",
+  "/locked-lt": "/locked",
 }
