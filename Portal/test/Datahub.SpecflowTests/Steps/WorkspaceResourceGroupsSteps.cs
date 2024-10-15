@@ -63,19 +63,6 @@ namespace Datahub.SpecflowTests.Steps
             await ctx.SaveChangesAsync();
         }
 
-        [Then(@"the new-project-template should be assigned the resource group")]
-        public async Task ThenTheNewProjectTemplateShouldBeAssignedTheResourceGroup()
-        {
-            var acronym = scenarioContext.Get<string>("workspaceAcronym");
-            var expectedResourceGroup = scenarioContext.Get<string>("expectedResourceGroup");
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
-            var newProjectTemplate = ctx.Project_Resources2.First(p =>
-                p.ProjectId == project.Project_ID && p.ResourceType ==
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-            newProjectTemplate.JsonContent.Should().Contain(expectedResourceGroup);
-        }
-
         [Given(@"a workspace with RG not stored in DB")]
         public async Task GivenAWorkspaceWithRgNotStoredInDb()
         {
