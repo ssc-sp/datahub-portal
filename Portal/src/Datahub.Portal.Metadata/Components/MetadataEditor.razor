@@ -6,15 +6,6 @@
 @if (Definitions != null && FieldValues != null && Profile != null)
 {
     <MudStack>
-        @if (_showTranslationNote)
-        {
-            <MudItem Class="mb-4">
-                <MudAlert Severity="Severity.Info" Icon="@Icons.Material.Filled.GTranslate">
-                    @(new MarkupString(Localizer["METADATA-PAGE.TranslationNote"]))
-                </MudAlert>
-            </MudItem>
-        }
-
         @{ _totalFields = 0; }
 
         @foreach (var s in Profile.Sections)
