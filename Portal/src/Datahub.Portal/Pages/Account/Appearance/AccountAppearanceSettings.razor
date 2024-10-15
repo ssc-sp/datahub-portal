@@ -7,27 +7,38 @@
 @inject ILocalStorageService _localStorage
 @inject IPortalUserTelemetryService _telemetryService
 
-<MudStack Spacing="8" Class="mb-16">
-    <MudStack>
-        <DHMainContentTitle Title="@Localizer["Portal Appearance"]" />
-        <MudDivider/>
-    </MudStack>
-    <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
-        <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
-            <MudSelectItem T="string" Value="@("DataHub Light")"/>
-            <MudSelectItem Disabled T="string" Value="@("DataHub Dark")"/>
-            <MudSelectItem Disabled T="string" Value="@("Space Light")"/>
-            <MudSelectItem Disabled T="string" Value="@("Space Dark")"/>
-        </MudSelect>
-    </SettingsField>
-    <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
-        <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
-            <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
-            <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
-            <MudSelectItem Disabled T="string" Value="@("Klingon")">Klingon</MudSelectItem>
-        </MudSelect>
-    </SettingsField>
-</MudStack>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserGraphId=@ViewedUser.GraphGuid>
+
+    <Authorized>
+        <MudStack Spacing="8" Class="mb-16">
+            <MudStack>
+                <DHMainContentTitle Title="@Localizer["Portal Appearance"]" />
+                <MudDivider/>
+            </MudStack>
+            <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
+                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
+                    <MudSelectItem T="string" Value="@("DataHub Light")"/>
+                    <MudSelectItem Disabled T="string" Value="@("DataHub Dark")"/>
+                    <MudSelectItem Disabled T="string" Value="@("Space Light")"/>
+                    <MudSelectItem Disabled T="string" Value="@("Space Dark")"/>
+                </MudSelect>
+            </SettingsField>
+            <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
+                <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
+                    <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
+                    <MudSelectItem Disabled T="string" Value="@("Klingon")">Klingon</MudSelectItem>
+                </MudSelect>
+            </SettingsField>
+        </MudStack>
+    </Authorized>
+
+    <NotAuthorized>
+        <UserViewProfileIconButton ViewedUserGraphId=@ViewedUser.GraphGuid />
+    </NotAuthorized>
+
+</DatahubAuthView>
+
 
 @code {
 
