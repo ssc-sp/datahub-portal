@@ -1,7 +1,18 @@
 ﻿using System.Text.Json;
+using Azure;
 using Azure.Core;
 using Azure.Identity;
+using Azure.Monitor.Query.Models;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Monitor;
+using Azure.ResourceManager.Monitor.Models;
+using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.Resources.Mocking;
+using Azure.ResourceManager.Resources.Models;
+using Azure.ResourceManager.Storage;
+using Azure.ResourceManager.Storage.Mocking;
+using Azure.ResourceManager.Storage.Models;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
@@ -15,6 +26,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.Extensions;
 using Reqnroll;
 using Reqnroll.BoDi;
 
@@ -24,7 +36,7 @@ namespace Datahub.SpecflowTests.Hooks
     public class WorkspaceStorageHook
     {
         [BeforeScenario("WorkspaceStorage")]
-        public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
+        public async Task BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
         {
             var configuration = new ConfigurationBuilder()
@@ -40,52 +52,11 @@ namespace Datahub.SpecflowTests.Hooks
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
-
-            var credential = new ClientSecretCredential(datahubPortalConfiguration.AzureAd.TenantId,
-                datahubPortalConfiguration.AzureAd.ClientId, datahubPortalConfiguration.AzureAd.ClientSecret);
-            var armOptions = new ArmClientOptions
-            {
-                Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
-            };
-            var armClient = new ArmClient(credential, datahubPortalConfiguration.AzureAd.SubscriptionId, armOptions);
+            var armClient = Substitute.For<ArmClient>();
             var logger = Substitute.For<ILogger<WorkspaceStorageManagementService>>();
 
-            var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
-            var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
-                dbContextFactory, workspaceRgManagementService);
-
-            workspaceRgManagementService
-                .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym)
-                .Returns(new List<string> { Testing.ExistingTestRg });
-            workspaceRgManagementService
-                .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym2)
-                .Returns(new List<string> { Testing.ExistingTestRg2 });
-            workspaceRgManagementService
-                .GetAllSubscriptionResourceGroupsAsync( datahubPortalConfiguration.AzureAd.SubscriptionId )
-                .Returns(new List<string> { Testing.ExistingTestRg, Testing.ExistingTestRg2 });
-            workspaceRgManagementService
-                .GetAllResourceGroupsAsync()
-                .Returns(new List<string> { Testing.ExistingTestRg, Testing.ExistingTestRg2 });
-            workspaceRgManagementService
-                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym)
-                .Returns(new List<ResourceIdentifier>
-                {
-                    new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg}")
-                });
-            workspaceRgManagementService
-                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym2)
-                .Returns(new List<ResourceIdentifier>
-                {
-                    new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg2}")
-                });
-
-            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
-            objectContainer.RegisterInstanceAs(workspaceRgManagementService);
-            objectContainer.RegisterInstanceAs<IWorkspaceStorageManagementService>(workspaceStorageManagementService);
-            objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
-
+            MockServiceCalls(armClient, logger, dbContextFactory, datahubPortalConfiguration, objectContainer);
+            await MockArmMethods(armClient);
             SeedDb(dbContextFactory);
         }
 
@@ -96,6 +67,42 @@ namespace Datahub.SpecflowTests.Hooks
             using var context = dbContextFactory.CreateDbContext();
             context.Database.EnsureDeleted();
         }
+
+        /* Currently unused
+        [BeforeScenario("WorkspaceStorageMockArm")]
+        public void BeforeScenarioWorkspaceCostsMockArm(IObjectContainer objectContainer,
+            ScenarioContext scenarioContext)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddUserSecrets<Hooks>()
+                .AddJsonFile("appsettings.test.json", optional: true)
+                .Build();
+
+            var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            configuration.Bind(datahubPortalConfiguration);
+
+            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var dbContextFactory = new SpecFlowDbContextFactory(options);
+            var armClient = Substitute.For<ArmClient>();
+            var logger = Substitute.For<ILogger<WorkspaceStorageManagementService>>();
+
+
+            MockServiceCalls(armClient, logger, dbContextFactory, datahubPortalConfiguration, objectContainer);
+            SeedDb(dbContextFactory);
+        }
+
+        [AfterScenario("WorkspaceStorageMockArm")]
+        public void AfterScenarioWorkspaceCostsMockArm(IObjectContainer objectContainer)
+        {
+            var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
+            using var context = dbContextFactory.CreateDbContext();
+            context.Database.EnsureDeleted();
+        }
+        */
+
         private void SeedDb(IDbContextFactory<DatahubProjectDBContext> contextFactory)
         {
             using var context = contextFactory.CreateDbContext();
@@ -142,7 +149,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }
@@ -213,6 +220,121 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.Project_Storage_Avgs.Add(projectAverage);
             context.SaveChanges();
+        }
+
+        public void MockServiceCalls(ArmClient armClient, ILogger<WorkspaceStorageManagementService> logger,
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+            DatahubPortalConfiguration datahubPortalConfiguration, IObjectContainer objectContainer)
+        {
+            var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
+            var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
+                dbContextFactory, workspaceRgManagementService);
+
+
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym)
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym2)
+                .Returns(new List<string> { Testing.ResourceGroupName2 });
+            workspaceRgManagementService
+                .GetAllSubscriptionResourceGroupsAsync(datahubPortalConfiguration.AzureAd.SubscriptionId)
+                .Returns(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 });
+            workspaceRgManagementService
+                .GetAllResourceGroupsAsync()
+                .Returns(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 });
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym)
+                .Returns(new List<ResourceIdentifier>
+                {
+                    new ResourceIdentifier(
+                        $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}")
+                });
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym2)
+                .Returns(new List<ResourceIdentifier>
+                {
+                    new ResourceIdentifier(
+                        $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName2}")
+                });
+
+            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs(workspaceRgManagementService);
+            objectContainer.RegisterInstanceAs<IWorkspaceStorageManagementService>(workspaceStorageManagementService);
+            objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
+        }
+
+        public async Task MockArmMethods(ArmClient armClient)
+        {
+            var timeSeriesData = ArmMonitorModelFactory.MonitorMetricValue(average: 10.0);
+            var timeSeries = ArmMonitorModelFactory.MonitorTimeSeriesElement(data: new[] { timeSeriesData });
+            var monitorMetric = ArmMonitorModelFactory.MonitorMetric(timeseries: new[] { timeSeries });
+            var monitorMetricPage =
+                Page<MonitorMetric>.FromValues(new[] { monitorMetric }, null, Substitute.For<Response>());
+            var pageableMetrics = Pageable<MonitorMetric>.FromPages(new[] { monitorMetricPage });
+            var storage1Id =
+                new ResourceIdentifier(
+                    $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}/providers/Microsoft.Storage/storageAccounts/{Testing.StorageAccountId}");
+
+            var rg1 = Substitute.For<ResourceGroupResource>();
+            var rg1Id = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
+            var storage1 = Substitute.For<StorageAccountResource>();
+            var storage1Data = ArmStorageModelFactory.StorageAccountData(id: storage1Id);
+            var storage1Collection = Substitute.For<StorageAccountCollection>();
+
+            storage1.Data.Returns(storage1Data);
+            storage1.Id.Returns(storage1Id);
+            rg1.Id.Returns(rg1Id);
+            var storage1Page =
+                Page<StorageAccountResource>.FromValues(new[] { storage1 }, null, Substitute.For<Response>());
+            var storage1Pageable = Pageable<StorageAccountResource>.FromPages(new[] { storage1Page });
+            storage1Collection.GetAll().Returns(storage1Pageable);
+            armClient.GetResourceGroupResource(rg1Id).Returns((ResourceGroupResource)rg1);
+            rg1.GetStorageAccounts().Returns(storage1Collection);
+            var rg2 = Substitute.For<ResourceGroupResource>();
+            var rg2Id = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName2}");
+            var rg2Data = ResourceManagerModelFactory.ResourceGroupData(id: rg2Id);
+            var storage2 = Substitute.For<StorageAccountResource>();
+            var storage2Id =
+                new ResourceIdentifier(
+                    $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName2}/providers/Microsoft.Storage/storageAccounts/{Testing.StorageAccountId}");
+            var storage2Data = ArmStorageModelFactory.StorageAccountData(id: storage2Id);
+            var storage2Collection = Substitute.For<StorageAccountCollection>();
+            storage2.Data.Returns(storage2Data);
+            storage2.Id.Returns(storage2Id);
+            rg2.Id.Returns(rg2Id);
+            rg2.HasData.Returns(true);
+            rg2.Data.Returns(rg2Data);
+            var storage2Page =
+                Page<StorageAccountResource>.FromValues(new[] { storage2 }, null, Substitute.For<Response>());
+            var storage2Pageable = Pageable<StorageAccountResource>.FromPages(new[] { storage2Page });
+            storage2Collection.GetAll().Returns(storage2Pageable);
+
+            var today = DateTime.UtcNow;
+            var dateFormat = "yyyy-MM-ddTHH:00:00.000Z";
+            var fromDate = today.AddDays(-1).ToString(dateFormat);
+            var toDate = today.ToString(dateFormat);
+            var option = new ArmResourceGetMonitorMetricsOptions();
+            option.Metricnames = "UsedCapacity";
+            option.Aggregation = "average";
+            option.Timespan = $"{fromDate}/{toDate}";
+            option.Metricnamespace = "Microsoft.Storage/storageAccounts";
+            option.ValidateDimensions = false;
+
+            rg1.GetAsync()
+                .Returns(Task.FromResult(Response.FromValue(rg1, Substitute.For<Response>())));
+            rg2.GetAsync()
+                .Returns(Task.FromResult(Response.FromValue(rg2, Substitute.For<Response>())));
+            rg1.Configure().GetStorageAccounts().Returns(storage1Collection);
+            rg2.Configure().GetStorageAccounts().Returns(storage2Collection);
+            armClient.GetMonitorMetrics(storage1Id, option)
+                .Returns(pageableMetrics);
+            armClient.GetMonitorMetrics(storage2Id, option)
+                .Returns(pageableMetrics);
+            armClient.GetResourceGroupResource(rg1Id).Returns(rg1);
+            armClient.GetResourceGroupResource(rg2Id).Returns(rg2);
         }
     }
 }

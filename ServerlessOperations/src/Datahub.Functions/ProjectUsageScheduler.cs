@@ -33,7 +33,7 @@ public class ProjectUsageScheduler(
     IWorkspaceResourceGroupsManagementService rgMgmtService,
     IConfiguration config)
 {
-    public bool mock { get; set; } = false;
+    public bool Mock { get; set; } = false;
     private readonly ILogger<ProjectUsageScheduler> _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
     private readonly AzureConfig _azConfig = new(config);
     private const int WORKSPACE_UPDATE_LIMIT = 100;
@@ -253,7 +253,7 @@ public class ProjectUsageScheduler(
     internal async Task<string> UploadToBlob(string key, string date, Guid guid, List<DailyServiceCost> list)
     {
         var fileName = $"{key}-{date}-{guid}.json";
-        if (!mock)
+        if (!Mock)
         {
             var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient("costs");
