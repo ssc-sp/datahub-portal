@@ -124,7 +124,7 @@
 
         if (await Task.WhenAny(registrationTask, timeoutTask) == timeoutTask)
         {
-            _logger.LogWarning("Registration for user with email: {Email} timed out", _email);
+            _logger.LogWarning("Registration for user timed out");
             _timedOut = true;
         }
         else
@@ -138,21 +138,21 @@
     private async Task Registration()
     {
         await Task.Delay(3000);
-        _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
+        _logger.LogInformation("Saving registration details for user");
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
-        _logger.LogInformation("Attempting to register user with email: {Email}", _email);
+        _logger.LogInformation("Attempting to register user");
         var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, default);
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
-            _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
+            _logger.LogInformation("User has been registered");
             _snackbar.Add(Localizer["Registration successful! Please login to continue"], Severity.Success);
             _navigationManager.NavigateTo(Localizer["/login"]);
         }
         else
         {
-            _logger.LogWarning("User with email: {Email} was not registered", _email);
+            _logger.LogWarning("User could not be registered");
             _timedOut = true;
         }
     }
