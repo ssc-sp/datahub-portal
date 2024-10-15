@@ -1,7 +1,9 @@
 ﻿using System.Text.Json;
+using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.CostManagement;
+using Azure.ResourceManager.CostManagement.Models;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
@@ -40,44 +42,140 @@ namespace Datahub.SpecflowTests.Hooks
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
 
-            var credential = new ClientSecretCredential(datahubPortalConfiguration.AzureAd.TenantId,
-                datahubPortalConfiguration.AzureAd.ClientId, datahubPortalConfiguration.AzureAd.ClientSecret);
-            var armOptions = new ArmClientOptions
-            {
-                Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
-            };
-            var armClient = new ArmClient(credential, datahubPortalConfiguration.AzureAd.SubscriptionId, armOptions);
+            var armClient = Substitute.For<ArmClient>();
+
             var logger = Substitute.For<ILogger<WorkspaceCostManagementService>>();
 
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
             var workspaceCostsManagementService = new WorkspaceCostManagementService(armClient, logger,
                 dbContextFactory, workspaceRgManagementService);
 
+            var mockRgId1 = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
+            var mockRgId2 = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid2}/resourceGroups/{Testing.ResourceGroupName2}");
+
+
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym)
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym2)
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName2 });
             workspaceRgManagementService
-                .GetAllSubscriptionResourceGroupsAsync( datahubPortalConfiguration.AzureAd.SubscriptionId )
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .GetAllSubscriptionResourceGroupsAsync(Testing.WorkspaceSubscriptionGuid)
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetAllResourceGroupsAsync()
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym)
                 .Returns(new List<ResourceIdentifier>
                 {
-                    new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg}")
+                    mockRgId1
                 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym2)
                 .Returns(new List<ResourceIdentifier>
                 {
-                    new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg}")
+                    mockRgId2
+                });
+
+            var mockGranularQuery =
+                workspaceCostsManagementService.BuildGranularQueryDefinition(
+                    new List<string> { Testing.ResourceGroupName1 },
+                    Testing.Dates.First(), Testing.Dates.Last());
+            var mockTotalQuery =
+                workspaceCostsManagementService.BuildTotalsQueryDefinition(
+                    new List<string> { Testing.ResourceGroupName1 },
+                    Testing.Dates.First(), Testing.Dates.Last());
+            armClient
+                .UsageQueryAsync(mockRgId1, mockGranularQuery)
+                .ReturnsForAnyArgs(c => c.ArgAt<QueryDefinition>(1) switch
+                {
+                    { Dataset: { } dataset } when dataset.Granularity == GranularityType.Daily => GranularQuery(5),
+                    _ => TotalQuery()
+                });
+            ;
+
+            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs(workspaceRgManagementService);
+            objectContainer.RegisterInstanceAs<IWorkspaceCostManagementService>(workspaceCostsManagementService);
+            objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
+
+            SeedDb(dbContextFactory);
+        }
+
+        [BeforeScenario("LargeResponse")]
+        public void BeforeScenarioLargeResponse(IObjectContainer objectContainer)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddUserSecrets<Hooks>()
+                .AddJsonFile("appsettings.test.json", optional: true)
+                .Build();
+
+            var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            configuration.Bind(datahubPortalConfiguration);
+
+            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var dbContextFactory = new SpecFlowDbContextFactory(options);
+
+            var armClient = Substitute.For<ArmClient>();
+
+            var logger = Substitute.For<ILogger<WorkspaceCostManagementService>>();
+
+            var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
+            var workspaceCostsManagementService = new WorkspaceCostManagementService(armClient, logger,
+                dbContextFactory, workspaceRgManagementService);
+
+            var mockRgId1 = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
+            var mockRgId2 = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid2}/resourceGroups/{Testing.ResourceGroupName2}");
+
+
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym)
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym2)
+                .Returns(new List<string> { Testing.ResourceGroupName2 });
+            workspaceRgManagementService
+                .GetAllSubscriptionResourceGroupsAsync(Testing.WorkspaceSubscriptionGuid)
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
+            workspaceRgManagementService
+                .GetAllResourceGroupsAsync()
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym)
+                .Returns(new List<ResourceIdentifier>
+                {
+                    mockRgId1
+                });
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym2)
+                .Returns(new List<ResourceIdentifier>
+                {
+                    mockRgId2
+                });
+
+            var mockGranularQuery =
+                workspaceCostsManagementService.BuildGranularQueryDefinition(
+                    new List<string> { Testing.ResourceGroupName1 },
+                    Testing.Dates.First(), Testing.Dates.Last());
+            var mockTotalQuery =
+                workspaceCostsManagementService.BuildTotalsQueryDefinition(
+                    new List<string> { Testing.ResourceGroupName1 },
+                    Testing.Dates.First(), Testing.Dates.Last());
+            armClient
+                .UsageQueryAsync(mockRgId1, mockGranularQuery)
+                .ReturnsForAnyArgs(c => c.ArgAt<QueryDefinition>(1) switch
+                {
+                    { Dataset: { } dataset } when dataset.Granularity == GranularityType.Daily => GranularQuery(1000),
+                    _ => TotalQuery()
                 });
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
@@ -95,6 +193,15 @@ namespace Datahub.SpecflowTests.Hooks
             using var context = dbContextFactory.CreateDbContext();
             context.Database.EnsureDeleted();
         }
+        
+        [AfterScenario("LargeResponse")]
+        public void AfterScenarioLargeResponse(IObjectContainer objectContainer)
+        {
+            var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
+            using var context = dbContextFactory.CreateDbContext();
+            context.Database.EnsureDeleted();
+        }
+
         private void SeedDb(IDbContextFactory<DatahubProjectDBContext> contextFactory)
         {
             using var context = contextFactory.CreateDbContext();
@@ -141,7 +248,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }
@@ -202,6 +309,60 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.Project_Credits.Add(projectCredit);
             context.SaveChanges();
+        }
+
+        private Response<QueryResult> GranularQuery(int rows)
+        {
+            var queryColumns = new List<QueryColumn>
+            {
+                BuildQueryColumn("ResourceGroupName"),
+                BuildQueryColumn("Cost"),
+                BuildQueryColumn("UsageDate"),
+                BuildQueryColumn("ServiceName"),
+            };
+            var queryRows = new List<IList<BinaryData>>();
+            for (int i = 1; i <= rows; i++)
+            {
+                queryRows.Add(
+                    BuildQueryRow(new List<string>
+                    {
+                        Testing.ResourceGroupName1,
+                        (i * 100).ToString(),
+                        Testing.Dates.First().ToString("yyyyMMdd"),
+                        $"ServiceName{i.ToString()}"
+                    }));
+            }
+
+            var queryResult = ArmCostManagementModelFactory.QueryResult(columns: queryColumns, rows: queryRows);
+
+            return Response.FromValue(queryResult, Substitute.For<Response>());
+        }
+
+        private QueryColumn BuildQueryColumn(string columnName)
+        {
+            return ArmCostManagementModelFactory.QueryColumn(columnName, "Dimension");
+        }
+
+        private IList<BinaryData> BuildQueryRow(List<string> values)
+        {
+            return values.Select(BinaryData.FromString).ToList();
+        }
+
+        private Response<QueryResult> TotalQuery()
+        {
+            var queryColumns = new List<QueryColumn>
+            {
+                BuildQueryColumn("ResourceGroupName"),
+                BuildQueryColumn("Cost"),
+            };
+            var queryRows = new List<IList<BinaryData>>
+            {
+                BuildQueryRow([Testing.ResourceGroupName1, "100"]),
+                BuildQueryRow([Testing.ResourceGroupName2, "200"]),
+            };
+            var queryResult = ArmCostManagementModelFactory.QueryResult(columns: queryColumns, rows: queryRows);
+
+            return Response.FromValue(queryResult, Substitute.For<Response>());
         }
     }
 }
