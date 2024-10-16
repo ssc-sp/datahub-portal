@@ -87,7 +87,7 @@
 
     public void RefreshUrl()
     {
-        _url = $"/{ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym)}/";
+        _url = ReverseProxyConfigService.BuildWebAppURL(WorkspaceAcronym);
     }
 
 }

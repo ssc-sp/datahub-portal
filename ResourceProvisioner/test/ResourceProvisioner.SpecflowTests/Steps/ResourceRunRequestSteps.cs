@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Reqnroll;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
@@ -21,8 +22,8 @@ public sealed class ResourceRunRequestSteps(
         var createResourceRunCommand = new CreateResourceRunCommand()
         {
             Templates = [
-                new TerraformTemplate("test", TerraformTemplate.TemplateStatus.CreateRequested),
-                new TerraformTemplate("test2", TerraformTemplate.TemplateStatus.CreateRequested)
+                new TerraformTemplate("test", TerraformStatus.CreateRequested),
+                new TerraformTemplate("test2", TerraformStatus.CreateRequested)
             ],
             Workspace = new TerraformWorkspace()
             {

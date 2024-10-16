@@ -5,28 +5,40 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
-<MudStack Spacing="8" Class="mb-16">
-    <MudStack>
-        <DHMainContentTitle Title="@Localizer["Email Notifications"]" />
-        <MudDivider/>
-    </MudStack>
-    <SettingsField Label="@Localizer["Email preferences"]" Description="@Localizer["Choose your preferred frequency of communications from the DataHub team"]">
-        <MudRadioGroup T="int" Value="1">
-            <MudStack Spacing="0">
-                <MudRadio Value="1" Color="Color.Primary">
-                    @Localizer["I want to receive all notifications"]
-                </MudRadio>
-                <MudRadio Value="2" Disabled>
-                    @Localizer["I want to receive only important notifications"]
-                </MudRadio>
-                <MudRadio Value="3" Disabled>
-                    @Localizer["I want to receive only critical notifications"]
-                </MudRadio>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserGraphId=@ViewedUser.GraphGuid>
+    
+    <Authorized>
+        <MudStack Spacing="8" Class="mb-16">
+            <MudStack>
+                <DHMainContentTitle Title="@Localizer["Email Notifications"]" />
+                <MudDivider/>
             </MudStack>
-        </MudRadioGroup>
-    </SettingsField>
+            <SettingsField Label="@Localizer["Email preferences"]" Description="@Localizer["Choose your preferred frequency of communications from the DataHub team"]">
+                <MudRadioGroup T="int" Value="1">
+                    <MudStack Spacing="0">
+                        <MudRadio Value="1" Color="Color.Primary">
+                            @Localizer["I want to receive all notifications"]
+                        </MudRadio>
+                        <MudRadio Value="2" Disabled>
+                            @Localizer["I want to receive only important notifications"]
+                        </MudRadio>
+                        <MudRadio Value="3" Disabled>
+                            @Localizer["I want to receive only critical notifications"]
+                        </MudRadio>
+                    </MudStack>
+                </MudRadioGroup>
+            </SettingsField>
 
-</MudStack>
+        </MudStack>
+
+    </Authorized>
+
+    <NotAuthorized>
+        <UserViewProfileIconButton ViewedUserGraphId=@ViewedUser.GraphGuid />
+    </NotAuthorized>
+
+</DatahubAuthView>
+
 
 @code {
 
