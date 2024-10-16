@@ -46,12 +46,12 @@
 }
 else {
     <MudText Typo="Typo.body1" Visible="!_running">
-        @Localizer["Output: "] @_result
+        @Localizer["Response from API: "] @_result
     </MudText>
 }
 
 @code {
-    private string _result = "";
+    private string _result = "Click the button above to test the call";
     private bool _running = false;
 
     // Form fields
