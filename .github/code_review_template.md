@@ -1,41 +1,12 @@
-# Pull Request
+# Review
 
-## Description
+## Comments
 
-<!-- Provide a high-level, general description of the PR that can be used in release notes if needed. -->
-
-<!-- If applicable, provide screenshots or GIFs of the changes. -->
-
-## Related Issues
-
-<!-- List the user story, task, or bug in ADO that this PR addresses -->
-
-## Changes
-
-<!-- Describe in detail all changes included in this PR. -->
-
-- Change 1
-- Change 2
-
-## Testing
-
-### Unit Tests
-
-<!-- Describe the unit tests changed or added with this PR. -->
-
-- Unit Test 1
-- Unit Test 2
-
-### Manual Testing
-
-<!-- Describe precisely what manual testing you have conducted on this PR. -->
-
-- Manual Test 1
-- Manual Test 2
+<!-- If you have any comments for the PR author, write them here. -->
 
 ## Checklist 
 
-<!-- If you are not sure about any of the following items, mention it to your reviewer. -->
+<!-- If you are not sure about any of the following items, assign an additional reviewer to cover those points. -->
 
 ### General
 
