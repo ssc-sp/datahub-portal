@@ -94,7 +94,7 @@ namespace Datahub.SpecflowTests.Hooks
                     new()
                     {
                         Amount = 10, Date = Testing.Dates.First(), Source = Testing.ServiceNames.First(),
-                        ResourceGroupName = Testing.ExistingTestRg
+                        ResourceGroupName = Testing.ResourceGroupName1
                     }
                 });
             workspaceCostsManagementService
@@ -105,7 +105,7 @@ namespace Datahub.SpecflowTests.Hooks
                     new()
                     {
                         Amount = 100,
-                        ResourceGroupName = Testing.ExistingTestRg
+                        ResourceGroupName = Testing.ResourceGroupName1
                     }
                 });
             workspaceCostsManagementService
@@ -131,15 +131,24 @@ namespace Datahub.SpecflowTests.Hooks
                 .Returns(false);
             workspaceRgManagementService
                 .GetAllSubscriptionResourceGroupsAsync(Arg.Any<string>())
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
 
             var projectUsageScheduler = new ProjectUsageScheduler(loggerFactory, dbContextFactory, sendEndpointProvider,
                 workspaceCostsManagementService, workspaceStorageManagementService, workspaceRgManagementService,
                 configuration);
-            projectUsageScheduler.mock = true;
+            projectUsageScheduler.Mock = true;
             var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, workspaceCostsManagementService,
                 workspaceBudgetManagementService, workspaceStorageManagementService, sendEndpointProvider,
                 configuration);
+            projectUsageUpdater.Mock = true;
+            projectUsageUpdater.MockCosts = new List<DailyServiceCost>
+            {
+                new()
+                {
+                    Amount = 10, Date = Testing.Dates.First(), Source = Testing.ServiceNames.First(),
+                    ResourceGroupName = Testing.ResourceGroupName1
+                }
+            };
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
@@ -203,7 +212,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }
@@ -265,7 +274,5 @@ namespace Datahub.SpecflowTests.Hooks
             context.Project_Credits.Add(projectCredit);
             context.SaveChanges();
         }
-
-        
     }
 }
