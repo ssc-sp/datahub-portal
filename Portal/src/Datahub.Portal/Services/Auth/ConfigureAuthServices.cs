@@ -4,7 +4,9 @@ using Datahub.Core.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Portal.Services.Auth;
@@ -29,6 +31,7 @@ public static class ConfigureAuthServices
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
             };
+            // IdentityModelEventSource.ShowPII = true; - for troubleshooting
         })
             //.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts => configuration.Bind("Jwt", opts))
             .AddMicrosoftIdentityWebApp(configuration)
