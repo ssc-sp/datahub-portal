@@ -126,7 +126,7 @@
         dialogParams.Add(x => x.IsFileExplorerDialog, false);
         dialogParams.Add(x => x.WorkspaceId, _project?.Project_ID);
 
-        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
         var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>(Localizer["Publish New Dataset"], dialogParams, options);
         var result = await dialog.Result;
