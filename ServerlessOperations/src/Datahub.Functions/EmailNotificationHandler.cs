@@ -4,24 +4,28 @@ using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using MimeKit;
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Datahub.Functions.Extensions;
 using Datahub.Shared.Configuration;
+using Datahub.Functions.Services;
+using Newtonsoft.Json;
 
 namespace Datahub.Functions;
 
 public class EmailNotificationHandler
 {
     private readonly ILogger _logger;
-    private readonly AzureConfig _config;
-    private readonly QueuePongService _pongService;
+    private readonly AzureConfig _config; 
+    private readonly IEmailService _emailService;
 
-    public EmailNotificationHandler(ILoggerFactory loggerFactory, AzureConfig config, QueuePongService pongService)
+    public EmailNotificationHandler(
+        ILoggerFactory loggerFactory, 
+        AzureConfig config,  
+        IEmailService emailService)
     {
         _logger = loggerFactory.CreateLogger<EmailNotificationHandler>();
-        _config = config;
-        _pongService = pongService;
+        _config = config; 
+        _emailService = emailService;
     }
 
     [Function("EmailNotificationHandler")]
@@ -43,7 +47,7 @@ public class EmailNotificationHandler
 
         // deserialize message
         var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
-        if (message is null || !message.IsValid)
+        if (message is null || !message.IsValid || message.Body == null)
         {
             _logger.LogError($"Invalid message received: \n{serviceBusReceivedMessage.Body}");
             return;
@@ -56,8 +60,38 @@ public class EmailNotificationHandler
             return;
         }
 
+        // handle user re-activation 
+        if (message.Subject == "FSDH Account Reactivation Notification")
+        {
+            var parameters = JsonConvert.DeserializeObject<Dictionary<string, string>>(message.Body);
+            message = GetEmailRequestMessage(message.To, parameters);
+        }
+
         // send message
         await SendMessage(message);
+    }
+
+    public EmailRequestMessage GetEmailRequestMessage(List<string> contacts, Dictionary<string, string>? parameters)
+    {
+        if (parameters == null) return null;
+        List<string> bcc = new() { GetNotificationCCAddress()};
+        
+        Dictionary<string, string> subjectArgs = new()
+            {
+                { "{{ws}}", parameters["WorkspaceAcronym"] }
+            };
+
+        Dictionary<string, string> bodyArgs = new()
+            {
+                { "{ws}", parameters["WorkspaceAcronym"] },
+                { "{leadName}", parameters["LeadName"] },
+                { "{userName}", parameters["UserName"] }
+        };
+
+        var email = _emailService.BuildEmail("user_reactivation.html", contacts, bcc, bodyArgs,
+            subjectArgs);
+
+        return email;
     }
 
     private async Task SendMessage(EmailRequestMessage req)
@@ -100,4 +134,9 @@ public class EmailNotificationHandler
     }
 
     static MailboxAddress GetMailboxAddress(string address) => new(address, address);
+
+    private string GetNotificationCCAddress()
+    {
+        return _config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
+    }
 }

@@ -33,8 +33,8 @@
         PageRoutes.AccountDefault, PageRoutes.AccountDefault_FR,
         "/login", "/connexion", "/register", "/inscription"
     };
-    private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup" };
-    private static List<string> UnauthenticatedPages_Fr = new() { "/connexion", "/inscription", "/conditions-generales", "configuration-de-compte" };
+    private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup", "/locked" };
+    private static List<string> UnauthenticatedPages_Fr = new() { "/connexion", "/inscription", "/conditions-generales", "configuration-de-compte", "/verrouille" };
 
     private async Task ChangeLanguage(string language)
     {
