@@ -1,12 +1,7 @@
-using Azure;
-using Azure.ResourceManager.Resources;
 using Datahub.Application.Configuration;
-using Datahub.Application.Services;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Subscriptions;
-using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
