@@ -37,6 +37,7 @@ public static class SidebarIcons
     public const string Email = "fa-light fa-mailbox";
     public const string AzureSubscriptions = "fa-light fa-cloud";
     public const string SupportRequests = "fa-light fa-headset";
+    public const string HostingServices = "fa-light fa-globe";
     
     // Default Sidebar Icons
     public const string Default = "fa-light fa-table-layout";
