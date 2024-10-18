@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace Datahub.Portal.Controllers;
 
@@ -11,7 +12,7 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <returns>The IActionResult representing the response.</returns>
     [Route("api/auth-echo")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> PostAuth()
     {
         return await ProcessRequest(Request);
