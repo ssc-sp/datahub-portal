@@ -5,6 +5,7 @@
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject NavigationManager _navigationManager
+@inject ISnackbar _snackbar
 
 @page "/register"
 @page "/inscription"
@@ -15,6 +16,7 @@
     <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
         <MudStack>
             <MudTextField T="string"
+                          @bind-Value="@_email"
                           Label=@_emailFieldText
                           Required
                           Variant="Variant.Outlined"
@@ -22,6 +24,7 @@
                           Validation=@(new Func<string, string>(EmailValidation))/>
 
             <MudTextField T="string"
+                          @bind-Value="@_comment"
                           Label=@Localizer["(Optional) How did you hear about the Federal Science DataHub?"]
                           Variant="Variant.Outlined"
                           Lines="5"
@@ -54,11 +57,14 @@
                                 </MudText>
                                 <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
                             </MudButton>
-                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" hidden="@(!_failed)" Class="mt-2" Style="color: #000">
-                                <MudText>
-                                    @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
-                                </MudText>
-                            </MudAlert>
+                            @if (_timedOut)
+                            {
+                                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" hidden="@(!_timedOut)" Class="mt-2" Style="color: #000">
+                                    <MudText>
+                                        @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
+                                    </MudText>
+                                </MudAlert>
+                            }
                         }
                         else
                         {
@@ -90,7 +96,7 @@
     private string _emailFieldText { get; set; }
     private string _comment;
     private bool _success = true;
-    private bool _failed = false;
+    private bool _timedOut = false;
     private bool _isRegistering;
     private string[] _errors = { };
     private MudForm _form;
@@ -108,42 +114,47 @@
         return validationString;
     }
 
-    private async Task DisplayFailedMessage(int time = 15)
-    {
-        _failed = false;
-        StateHasChanged();
-        await Task.Delay(time * 1000);
-        _failed = true;
-        StateHasChanged();
-    }
 
     private async Task HandleValidSubmit()
     {
         _isRegistering = true;
         StateHasChanged();
+        var timeoutTask = Task.Delay(20000);
+        var registrationTask = Registration();
 
-        await (DisplayFailedMessage(20));
+        if (await Task.WhenAny(registrationTask, timeoutTask) == timeoutTask)
+        {
+            _logger.LogWarning("Registration for user timed out");
+            _timedOut = true;
+        }
+        else
+        {
+            _isRegistering = false;
+        }
 
-        _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
+        StateHasChanged();
+    }
+
+    private async Task Registration()
+    {
+        await Task.Delay(3000);
+        _logger.LogInformation("Saving registration details for user");
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
-        _logger.LogInformation("Attempting to register user with email: {Email}", _email);
+        _logger.LogInformation("Attempting to register user");
         var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, default);
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
-            _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
-            _navigationManager.NavigateTo("/login");
+            _logger.LogInformation("User has been registered");
+            _snackbar.Add(Localizer["Registration successful! Please login to continue"], Severity.Success);
+            _navigationManager.NavigateTo(Localizer["/login"]);
         }
         else
         {
-            _logger.LogWarning("User with email: {Email} was not registered", _email);
-            _failed = true;
-            _success = false;
+            _logger.LogWarning("User could not be registered");
+            _timedOut = true;
         }
-
-        _isRegistering = false;
-        StateHasChanged();
     }
 
 }
