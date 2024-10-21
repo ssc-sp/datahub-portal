@@ -33,6 +33,11 @@ public class OpenDataApprovalController : Controller
         using var templateStream = GetDocumentTemplateStream();
         var outputStream = CompleteDocument(templateStream, formContent);
 
+        if (outputStream.CanSeek && outputStream.Position > 0)
+        {
+            outputStream.Seek(0, SeekOrigin.Begin);
+        }
+
         return new FileStreamResult(outputStream, "application/msword")
         {
             FileDownloadName = outputFileName

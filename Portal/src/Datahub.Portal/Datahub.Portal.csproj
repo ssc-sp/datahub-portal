@@ -10,6 +10,12 @@
 		<UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
 	</PropertyGroup>
 	<ItemGroup>
+	  <None Remove="Controllers\OpenDataApprovalForm.docx" />
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
+	</ItemGroup>
+	<ItemGroup>
 		<PackageReference Include="Azure.Core" Version="1.44.0" />
 		<PackageReference Include="Azure.ResourceManager.AppService" Version="1.0.*" />
 		<PackageReference Include="Azure.ResourceManager.PostgreSql" Version="1.1.*" />
