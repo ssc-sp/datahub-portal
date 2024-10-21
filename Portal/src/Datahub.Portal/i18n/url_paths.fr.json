@@ -51,6 +51,6 @@
   "/inscription-lt": "/register",
   "parametres-lt": "settings",
   "/parametres-lt": "/settings",
-  "locked-lt": "verrouille",
-  "/locked-lt": "/verrouille"
+  "verrouille-lt": "locked",
+  "/verrouille-lt": "/locked",
 }
