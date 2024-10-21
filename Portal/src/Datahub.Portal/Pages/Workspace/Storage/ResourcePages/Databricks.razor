@@ -7,33 +7,29 @@
 @inject ICultureService CultureService
 
 <MudStack>
-    @*<SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" ContainerToken />*@
-    @if (Container.StorageManager is AWSCloudStorageManager)
+    @if (Container?.StorageManager is AWSCloudStorageManager)
     {
         <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-aws-storage-account-in-Databricks.md"
                       PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-aws-de-stockage-dans-Databricks.md"
-                      Substitutions="_substitutions" />
-    } else if (Container.StorageManager is AzureCloudStorageManager az)
-    {
-        if (az.IsInboxAccount)
-        {
-        <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-your-storage-account-in-Databricks.md"
-                      PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-de-stockage-dans-Databricks.md"
-                      Substitutions="_substitutions" />
-        } else
-        {
-            <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-az-storage-account-in-Databricks.md"
-                          PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-az-de-stockage-dans-Databricks.md"
-                          Substitutions="_substitutions" />
-
-        }
-
+                      Substitutions="_substitutions"/>
     }
-    else if (Container.StorageManager is GoogleCloudStorageManager)
+    else if (Container?.StorageManager is GoogleCloudStorageManager)
     {
         <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-gcp-storage-account-in-Databricks.md"
                       PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-gcp-de-stockage-dans-Databricks.md"
-                      Substitutions="_substitutions" />
+                      Substitutions="_substitutions"/>
+    }
+    else if (Container?.StorageManager is AzureCloudStorageManager { IsInboxAccount: true })
+    {
+        <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-your-storage-account-in-Databricks.md"
+                      PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-de-stockage-dans-Databricks.md"
+                      Substitutions="_substitutions"/>
+    }
+    else
+    {
+        <EmbeddedWiki PageNameEn="/UserGuide/Databricks/Access-az-storage-account-in-Databricks.md"
+                      PageNameFr="/fr/UserGuide/Databricks/Accédez-à-votre-compte-az-de-stockage-dans-Databricks.md"
+                      Substitutions="_substitutions"/>
     }
 
 </MudStack>
@@ -52,11 +48,13 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        _substitutions = Container.StorageManager.GetSubstitutions(ProjectAcronym, Container);
+        _substitutions = Container?.StorageManager?.GetSubstitutions(ProjectAcronym, Container)
+            ?? new List<(string, string)>();
     }
-    
+
     private string GetPageName()
     {
         return _configuration[$"WikiPageTitles:DatabricksStorageAccess:{CultureService.Culture}"];
     }
+
 }

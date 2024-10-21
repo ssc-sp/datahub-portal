@@ -1,28 +1,46 @@
-﻿@using Datahub.Portal.Pages.Workspace.Storage.Container
+﻿@using Azure.Core
+@using Datahub.Portal.Pages.Workspace.Settings
 @using Datahub.Core.Storage;
-@* UploaderCode.razor *@
+
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudStack>
+    
     <MudElement>
         <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container"
-            UseUploadCode=true GenerateAndCopy=true
-            TokenName="Desktop Uploader Code"
-            />
+                        UseUploadCode=true GenerateAndCopy=true
+                        TokenName="Desktop Uploader Code"/>
     </MudElement>
     <EmbeddedWiki PageNameEn="/UserGuide/Storage/Desktop-Uploader.md"
                   PageNameFr="/fr/UserGuide/Storage/Chargeur-de-bureau.md"
-                  Substitutions="_substitutions" />
+                  Substitutions="_substitutions"/>
 </MudStack>
 
 @code {
+    
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
 
     [Parameter]
     public CloudStorageContainer Container { get; set; }
 
     private List<(string, string)> _substitutions;
+    private bool _isSasTokenEnabled;
 
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
     {
         _substitutions = substitutions;
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var armClient = WorkspaceSharedKeyAccessControl.BuildArmClient(_portalConfiguration);
+        var storageResourceId = await WorkspaceSharedKeyAccessControl.LoadStorageResourceId(context, ProjectAcronym);
+        _isSasTokenEnabled = await WorkspaceSharedKeyAccessControl.FetchStorageAllowSharedKeyAccess(armClient, new ResourceIdentifier(storageResourceId)) ?? false;
     }
 }

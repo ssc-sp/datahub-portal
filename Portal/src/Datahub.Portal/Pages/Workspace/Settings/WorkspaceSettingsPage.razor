@@ -1,8 +1,6 @@
 @using Datahub.Application.Services
-@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
-@using Datahub.Portal.Pages.Account
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDatahubAuditingService _auditingService
@@ -35,20 +33,23 @@
             </MudStack>
         }
     </MudStack>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@WorkspaceAcronym">
-        <Authorized>
-            <MudStack>
+    <MudStack>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
+                <WorkspaceSharedKeyAccessControl WorkspaceAcronym="@WorkspaceAcronym"/>
+            </Authorized>
+        </DatahubAuthView>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
                 <WorkspacePreventAutoDeleteControl OnValueChanged="@HandlePreventAutoDeleteChange" InitialValue="@_preventAutoDelete"/>
                 <WorkspaceBudgetControl OnValueChanged="@HandleBudgetChanged" InitialValue="@_budget"/>
-                <WorkspaceDeleteControl />
-            </MudStack>
-        </Authorized>
-
-        <NotAuthorized>
-            <WorkspaceBudgetControl Disabled InitialValue="@_budget"/>
-            <WorkspaceDeleteControl/>
-        </NotAuthorized>
-    </DatahubAuthView>
+            </Authorized>
+            <NotAuthorized>
+                <WorkspaceBudgetControl Disabled InitialValue="@_budget"/>
+            </NotAuthorized>
+        </DatahubAuthView>
+        <WorkspaceDeleteControl/>
+    </MudStack>
 </MudStack>
 
 @code {

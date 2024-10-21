@@ -1,11 +1,22 @@
-@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Azure.Core
+@using Datahub.Portal.Pages.Workspace.Settings
 @using Datahub.Core.Storage;
-@* AzCopy.razor *@
+
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudStack>
-    <MudElement>
-        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="5"/>
-    </MudElement>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@ProjectAcronym">
+        <Authorized>
+            @if (_isSasTokenEnabled)
+            {
+                <MudElement>
+                    <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="5"/>
+                </MudElement>
+            }
+        </Authorized>
+
+    </DatahubAuthView>
     <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
                   PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
                   Substitutions="_substitutions"/>
@@ -13,14 +24,29 @@
 
 @code {
 
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
     [Parameter]
     public CloudStorageContainer Container { get; set; }
 
     private List<(string, string)> _substitutions;
+    private bool _isSasTokenEnabled;
 
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
     {
         _substitutions = substitutions;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var armClient = WorkspaceSharedKeyAccessControl.BuildArmClient(_portalConfiguration);
+        var storageResourceId = await WorkspaceSharedKeyAccessControl.LoadStorageResourceId(context, ProjectAcronym);
+        _isSasTokenEnabled = await WorkspaceSharedKeyAccessControl.FetchStorageAllowSharedKeyAccess(armClient, new ResourceIdentifier(storageResourceId)) ?? false;
     }
 
 }

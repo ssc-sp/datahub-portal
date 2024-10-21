@@ -1,0 +1,44 @@
+@using Datahub.Portal.Pages.Account
+
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IPortalUserTelemetryService _telemetryService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISnackbar _snackbar
+
+@if (_doesNotExist)
+{
+    return;
+}
+
+<SettingsField Label="@Localizer["Allow Shared Key Access"]" Description="@Localizer["This setting will allow shared key access to the workspace storage account"]">
+    @if (_isLoadingAccessState)
+    {
+        <MudCheckBox T="bool?" Value="@_accessState" Label="@Localizer["Loading Shared Key Access State..."]" Disabled />
+    }
+    else
+    {
+        <MudCheckBox T="bool?" 
+                     Value="@_accessState"
+                     ValueChanged="ToggleStorageAllowSharedKeyAccess" 
+                     Label="@Localizer["Allow Shared Key Access"]"/>
+    }
+
+</SettingsField>
+
+@code {
+
+    [Parameter, EditorRequired]
+    public string WorkspaceAcronym { get; set; }
+
+    private bool? _accessState = null;
+    private string _storageResourceId = null;
+    private bool _isLoadingAccessState = true;
+    private bool _doesNotExist = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await RefreshStorageAllowSharedKeyAccess();
+    }
+
+}

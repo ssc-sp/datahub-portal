@@ -65,6 +65,11 @@
 
     private async Task HandleSasButtonClick()
     {
+        if(Container == null)
+        {
+            return;
+        }
+        
         if (string.IsNullOrWhiteSpace(_token))
         {
             var uri = await Container.StorageManager.GenerateSasTokenAsync(Container.Name, ExpiryDays);
