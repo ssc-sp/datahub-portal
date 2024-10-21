@@ -9,58 +9,60 @@
 @inject IReverseProxyConfigService _reverseProxyConfigService
 @inject IReverseProxyManagerService ReverseProxyManagerService
 
-@if (_loading)
-{
-    <DHLoadingInitializer Message="Loading Yarp Proxy information..."/>
-}
-else
-{
-    <MudGrid>
-        <MudItem xs="12">
-            <MudText Typo="Typo.h2" Class="mb-6">
-                Yarp Proxy Diagnostics
-            </MudText>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-6" OnClick="@(() => ReloadYarpConfig())">
-                Reload Yarp Config
-            </MudButton>
-            @if (_lastError is not null)
-            {
-                <MudText Typo="Typo.subtitle2" Class="mb-6">
-                    Last error: @(_lastError.Value.errorDescription) at @(_lastError.Value.Timestamp)
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+    @if (_loading)
+    {
+        <DHLoadingInitializer Message="Loading Yarp Proxy information..."/>
+    }
+    else
+    {
+        <MudGrid>
+            <MudItem xs="12">
+                <MudText Typo="Typo.h2" Class="mb-6">
+                    Yarp Proxy Diagnostics
                 </MudText>
-            }
-            else
-            {
-                <MudText Typo="Typo.subtitle2" Class="mb-6">
-                    No errors in Yarp
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mb-6" OnClick="@(() => ReloadYarpConfig())">
+                    Reload Yarp Config
+                </MudButton>
+                @if (_lastError is not null)
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mb-6">
+                        Last error: @(_lastError.Value.errorDescription) at @(_lastError.Value.Timestamp)
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.subtitle2" Class="mb-6">
+                        No errors in Yarp
+                    </MudText>
+                }
+                <MudText Typo="Typo.caption" Class="mb-6">
+                    Active Routes
                 </MudText>
-            }
-            <MudText Typo="Typo.caption" Class="mb-6">
-                Active Routes
-            </MudText>
-            <MudDataGrid Items="@_telemetryConsumer.GetLastInvokeStats()">
-                <Columns>
-                    <PropertyColumn Property="x => x.route" Title="Route" />
-                    <PropertyColumn Property="x => x.cluster" Title="Cluster" />
-                    <PropertyColumn Property="x => x.timeStamp" Title="Timestamp" />
-                </Columns>
-            </MudDataGrid>
-            <MudText Typo="Typo.caption" Class="mb-6">
-                Workspace routes
-            </MudText>
-            <MudDataGrid Items="@_yarpConfig">
-                <Columns>
-                    <PropertyColumn Property="x => x.Acronym" Title="Workspace" />
-                    <PropertyColumn Property="x => x.Cluster.ClusterId" Title="ClusterId" />
-                    <PropertyColumn Property="x => x.Cluster.Destinations.First().Value" Title="Cluster destination" />
-                    <PropertyColumn Property="x => x.Route.RouteId" Title="RouteId" />
-                    <PropertyColumn Property="x => x.Route.Match.Path" Title="Route Path" />
-                    <PropertyColumn Property="x => FindTransformRemovePrefix(x.Route)" Title="Prefix Removed" />
-                </Columns>
-            </MudDataGrid>
-        </MudItem>
-    </MudGrid>
-}
+                <MudDataGrid Items="@_telemetryConsumer.GetLastInvokeStats()">
+                    <Columns>
+                        <PropertyColumn Property="x => x.route" Title="Route" />
+                        <PropertyColumn Property="x => x.cluster" Title="Cluster" />
+                        <PropertyColumn Property="x => x.timeStamp" Title="Timestamp" />
+                    </Columns>
+                </MudDataGrid>
+                <MudText Typo="Typo.caption" Class="mb-6">
+                    Workspace routes
+                </MudText>
+                <MudDataGrid Items="@_yarpConfig">
+                    <Columns>
+                        <PropertyColumn Property="x => x.Acronym" Title="Workspace" />
+                        <PropertyColumn Property="x => x.Cluster.ClusterId" Title="ClusterId" />
+                        <PropertyColumn Property="x => x.Cluster.Destinations.First().Value" Title="Cluster destination" />
+                        <PropertyColumn Property="x => x.Route.RouteId" Title="RouteId" />
+                        <PropertyColumn Property="x => x.Route.Match.Path" Title="Route Path" />
+                        <PropertyColumn Property="x => FindTransformRemovePrefix(x.Route)" Title="Prefix Removed" />
+                    </Columns>
+                </MudDataGrid>
+            </MudItem>
+        </MudGrid>
+    }
+</DatahubAuthView>
 
 @code
 {

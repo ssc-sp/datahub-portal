@@ -1,13 +1,8 @@
-@using Azure.ResourceManager
-@using Azure.Identity
-@using Azure.Core
-@using Azure.ResourceManager.PostgreSql.FlexibleServers
 @using System.Net
-@using Datahub.Application.Services.UserManagement
-@using Azure
 
 
 @inject IHttpContextAccessor _httpContextAccessor
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject ISnackbar _snackbar
 @inject ILogger<DatabaseIpWhitelistTable> _logger
@@ -132,7 +127,7 @@
     {
         await base.OnInitializedAsync();
 
-        var postgresResource = BuildPostgresSqlFlexibleServerResource();
+        var postgresResource = await BuildPostgresSqlFlexibleServerResource();
 
         await foreach (var firewallRule in postgresResource.GetPostgreSqlFlexibleServerFirewallRules())
         {

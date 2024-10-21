@@ -40,10 +40,10 @@
     "Approval_filled_out": "- Le formulaire d'approbation a été rempli, vous pouvez maintenant générer le document du formulaire d'approbation.",
     "GeneratePDF_explanation": "- Une fois que vous avez généré le formulaire d'approbation, veuillez le télécharger sur GCdocs et coller l'URL de ce fichier dans la section ci-dessous.",
     "Publish_File": "Publier le fichier",
-    "Publish_As_URL_Desc1": "Publier un <b>URL</b> à Open Data. Le fichier est stocké dans DataHub.",
-    "Publish_As_URL_Desc2": "<b>Note:</b> Le lien URL sera rompu si le fichier est supprimé de DataHub.",
+    "Publish_As_URL_Desc1": "Publier un <strong>URL</strong> à Open Data. Le fichier est stocké dans DataHub.",
+    "Publish_As_URL_Desc2": "<strong>Note:</strong> Le lien URL sera rompu si le fichier est supprimé de DataHub.",
     "Publish_As_URL": "Publier l'URL",
-    "Upload_And_Publish_Desc": "Publier un <b>Fichier</b> téléchargé vers Open Data. Une copie du fichier est stockée dans DataHub.",
+    "Upload_And_Publish_Desc": "Publier un <strong>Fichier</strong> téléchargé vers Open Data. Une copie du fichier est stockée dans DataHub.",
     "Upload_And_Publish": "Publier le fichier",
     "Uploading_file_in_progress": "Téléchargement du fichier en cours. Vous pouvez attendre ou revenir plus tard si le fichier est trop lourd. Le téléchargement est en cours en arrière-plan.",
     "Upload_Last_Error": "Dernière erreur :",
@@ -51,7 +51,7 @@
     "Approval_Filled_out_2": "Enregistrez le formulaire d'approbation généré dans GCdocs.",
     "Approval_Filled_out_3": "Collez le lien du fichier GCdocs (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) dans la section ci-dessous.",
     "Or": "Ou",
-    "MustAcknowledgeMandatoryReleaseCriteria": "Vous devez reconnaître et cocher toutes les cases des <b>Critères de libération obligatoires</b> avant de les soumettre."
+    "MustAcknowledgeMandatoryReleaseCriteria": "Vous devez reconnaître et cocher toutes les cases des <strong>Critères de libération obligatoires</strong> avant de les soumettre."
   },
   "PUBLIC-URL-WIZARD": {
     "SubmitForApproval": "Soumettre pour approbation",

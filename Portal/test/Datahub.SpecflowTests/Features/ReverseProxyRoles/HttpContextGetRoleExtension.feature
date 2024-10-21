@@ -9,7 +9,7 @@ Adds an extension method to fetch the role of a user in a workspace from the Htt
     Examples:
       | workspace_role_suffix | workspace_acronym | role         |
       | -admin                | test              | admin        |
-      | -workspace-lead       | test              | lead         |
+      | -workspace-lead       | test              | workspace-lead         |
       | -collaborator         | test              | collaborator |
       | -guest                | test              | guest        |
       | -super-admin          | test              | null         |

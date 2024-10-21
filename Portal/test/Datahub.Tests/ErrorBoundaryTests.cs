@@ -41,7 +41,7 @@ public class ErrorBoundaryTests
     private readonly Mock<IDatahubAuditingService> _auditingServiceMock;
     private readonly Mock<IUserInformationService> _userInformationMock;
     private readonly Mock<IUserSettingsService> _userSettingsMock;
-    private readonly Mock<CultureService> _cultureServiceMock;
+    private readonly Mock<ICultureService> _cultureServiceMock;
     private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
     private readonly Mock<IJSRuntime> _jsRuntimeMock;
     private readonly Mock<IJSObjectReference> _jsModuleMock;
@@ -60,7 +60,7 @@ public class ErrorBoundaryTests
         //_hostingMock = new Mock<IWebHostEnvironment>();
         _userInformationMock = new Mock<IUserInformationService>();
         _userSettingsMock = new Mock<IUserSettingsService>();
-        _cultureServiceMock = new Mock<CultureService>();
+        _cultureServiceMock = new Mock<ICultureService>();
         _httpContextAccessorMock =new Mock<IHttpContextAccessor>() { CallBase = true };
         _jsRuntimeMock = new Mock<IJSRuntime>();
         _jsModuleMock = new Mock<IJSObjectReference> { CallBase = true };

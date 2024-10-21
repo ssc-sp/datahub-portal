@@ -9,12 +9,16 @@
     <MudStack>
         <MudText Typo="Typo.h3" GutterBottom>@Title</MudText>
         <MudAvatarGroup Max="12" Spacing="6" MaxColor="Color.Dark">
-            @foreach (var userAchievement in GetUserAchievements())
-            {
-                <MudAvatar>
-                    <MudImage Src="@(_portalConfiguration.Media.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" Alt="@Localizer[""]"/>
-                </MudAvatar>
-            }
+            <ul style="list-style: none; display:flex;">
+                @foreach (var userAchievement in GetUserAchievements())
+                {
+                    <li style="display:flex;" class="mr-n4">
+                        <MudAvatar>
+                            <MudImage Src="@(_portalConfiguration.Media.GetAchievementThumbnailUrl(userAchievement.Achievement.Id))" Alt="@Localizer[userAchievement.Achievement.Name]"/>
+                        </MudAvatar>
+                    </li>
+                }
+            </ul>
         </MudAvatarGroup>
     </MudStack>
 }

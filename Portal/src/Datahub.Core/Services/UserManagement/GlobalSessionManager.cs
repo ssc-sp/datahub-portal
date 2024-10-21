@@ -4,46 +4,46 @@ namespace Datahub.Core.Services.UserManagement;
 
 public class GlobalSessionManager : IGlobalSessionManager
 {
-    private readonly Dictionary<string, int> sessions;
-    private readonly int maxSessions;
+    private readonly Dictionary<string, int> _sessions;
+    private readonly int _maxSessions;
 
     public GlobalSessionManager(IOptions<SessionsConfig> config)
     {
-        sessions = new();
-        maxSessions = config.Value?.MaxSessionsPerUser ?? -1;
+        _sessions = new();
+        _maxSessions = config.Value?.MaxSessionsPerUser ?? -1;
     }
 
     public bool TryAddSession(string userId)
     {
-        lock (sessions)
+        lock (_sessions)
         {
             var count = 0;
-            if (sessions.TryGetValue(userId, out count))
+            if (_sessions.TryGetValue(userId, out count))
             {
-                if (maxSessions > 0 && count >= maxSessions)
+                if (_maxSessions > 0 && count >= _maxSessions)
                     return false;
             }
-            sessions[userId] = count + 1;
+            _sessions[userId] = count + 1;
             return true;
         }
     }
 
     public void RemoveSession(string userId)
     {
-        lock (sessions)
+        lock (_sessions)
         {
-            if (sessions.TryGetValue(userId, out int count))
+            if (_sessions.TryGetValue(userId, out int count))
             {
-                sessions[userId] = Math.Max(0, count - 1);
+                _sessions[userId] = Math.Max(0, count - 1);
             }
         }
     }
 
     public int GetSessionCount(string userId)
     {
-        lock (sessions)
+        lock (_sessions)
         {
-            return sessions.TryGetValue(userId, out int count) ? count : 0;
+            return _sessions.TryGetValue(userId, out int count) ? count : 0;
         }
     }
 }

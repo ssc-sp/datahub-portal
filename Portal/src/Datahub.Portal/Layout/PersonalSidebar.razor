@@ -1,5 +1,4 @@
 @using Datahub.Application.Services.UserManagement
-@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
@@ -24,9 +23,9 @@
     </MudStack>
     <MudStack Spacing="2">
         <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-            <b>
+            <strong>
                 @Localizer["My account"]
-            </b>
+            </strong>
         </MudText>
         <MudNavMenu Color="Color.Primary" role="navigation">
             <ul>
@@ -49,9 +48,9 @@
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
         <MudStack Spacing="2">
             <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-                <b>
+                <strong>
                     @Localizer["Datahub Admin"]
-                </b>
+                </strong>
             </MudText>
             <MudNavMenu Color="Color.Primary" role="navigation">
                 <ul>

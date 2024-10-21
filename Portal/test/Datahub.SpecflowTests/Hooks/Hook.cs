@@ -1,18 +1,9 @@
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Reqnroll.BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Application.Services.Cost;
-using Datahub.Application.Services.Storage;
-using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Services.Projects;
-using Datahub.Functions;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Cost;
-using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.AspNetCore.Hosting;
@@ -22,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
 using Reqnroll.BoDi;
-using Datahub.Core.Model.Context;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -41,7 +31,7 @@ public class Hooks
         configuration.Bind(datahubPortalConfiguration);
 
         // setup in memory provider ef core context
-        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
@@ -68,7 +58,7 @@ public class Hooks
         // register dependencies
         objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
-        objectContainer.RegisterInstanceAs<IResourceMessagingService>(substituteResourceMessageService);
+        objectContainer.RegisterInstanceAs(substituteResourceMessageService);
         objectContainer.RegisterInstanceAs<IRequestManagementService>(requestManagementService);
     }
 
@@ -78,6 +68,6 @@ public class Hooks
         var substituteHostingEnvironment = Substitute.For<IWebHostEnvironment>();
         substituteHostingEnvironment.EnvironmentName.Returns("Hosting:SpecflowUnitTestingEnvironment");
 
-        objectContainer.RegisterInstanceAs<IWebHostEnvironment>(substituteHostingEnvironment);
+        objectContainer.RegisterInstanceAs(substituteHostingEnvironment);
     }
 }

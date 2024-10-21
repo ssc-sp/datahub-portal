@@ -29,24 +29,14 @@ namespace Datahub.Infrastructure.Services.ReverseProxy
             // Access the HttpContext
             var httpContext = context.HttpContext;
             var userRole = httpContext.GetWorkspaceRole(workspaceAcronym);
+            var isDatahubAdmin = httpContext.IsDatahubAdmin();
             var userName = httpContext.User?.Identity?.Name;
-            if (userRole is null)
+            if (userRole is null && !isDatahubAdmin)
             {
                 logger.LogInformation($"WebApp: User {userName} does not have access to workspace {workspaceAcronym}");
                 context.HttpContext.Response.StatusCode = StatusCodes.Status403Forbidden;
             }
             return default;
         }
-
-        private static bool ClaimsContainAcronymRole(HttpContext context, string acronym)
-        {
-            if (context.User is null || string.IsNullOrEmpty(acronym))
-                return false;
-
-            var wsAppRole = $"{acronym}{RoleConstants.WEBAPP_SUFFIX}";
-
-            return context.User.Claims.Any(c => c.Type == ClaimTypes.Role && wsAppRole.Equals(c.Value, StringComparison.OrdinalIgnoreCase));
-        }
-
     }
 }

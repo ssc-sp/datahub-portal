@@ -15,5 +15,5 @@ $env:AzureClientSecret = Get-AzKeyVaultSecret -VaultName "fsdh-key-dev" -Name "d
 $env:DataHub_ENVNAME = "dev"
 $env:AZURE_SUBSCRIPTION_ID = "bc4bcb08-d617-49f4-b6af-69d6f10c240b"
 $env:AzureSubscriptionId = $env:AZURE_SUBSCRIPTION_ID
-
+$env:AzureTenantId = $context.Tenant.Id
 

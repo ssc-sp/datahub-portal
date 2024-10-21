@@ -39,10 +39,10 @@
     "Approval_filled_out": "- Approval form has been filled out, now you can generate the approval form document.",
     "GeneratePDF_explanation": "- Once you generate the approval form, please upload it to GCdocs and paste the URL of this file in the section below.",
     "Publish_File": "Publish File",
-    "Publish_As_URL_Desc1": "Publish a <b>URL</b> to Open Data. The File is stored in DataHub.",
-    "Publish_As_URL_Desc2": "<b>Note:</b> The URL link will be broken if the File is deleted from DataHub.",
+    "Publish_As_URL_Desc1": "Publish a <strong>URL</strong> to Open Data. The File is stored in DataHub.",
+    "Publish_As_URL_Desc2": "<strong>Note:</strong> The URL link will be broken if the File is deleted from DataHub.",
     "Publish_As_URL": "Publish URL",
-    "Upload_And_Publish_Desc": "Publish an uploaded <b>File</b> to Open Data. A copy of the File is stored in DataHub.",
+    "Upload_And_Publish_Desc": "Publish an uploaded <strong>File</strong> to Open Data. A copy of the File is stored in DataHub.",
     "Upload_And_Publish": "Publish File",
     "Uploading_file_in_progress": "Uploading file in progress. You can wait or come back later if the file is too big. The upload is running in the background.",
     "Upload_Last_Error": "Last Error: ",
@@ -50,7 +50,7 @@
     "Approval_Filled_out_2": "Save the generated approval form to GCdocs.",
     "Approval_Filled_out_3": "Paste the GCdocs file link (https://gcdocs.gc.ca/nrcan-rncan/llisapi.dll/link/XXXXXXXX) in the section below.",
     "Or": "Or",
-    "MustAcknowledgeMandatoryReleaseCriteria": "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting."
+    "MustAcknowledgeMandatoryReleaseCriteria": "You must acknowledge and check all <strong>Mandatory Release Criteria</strong> boxes before submitting."
   },
   "PUBLIC-URL-WIZARD": {
     "Page_Title": "Share Public URL",

@@ -1,10 +1,6 @@
 ﻿using System.Text.Json;
-using Azure.Core;
-using Azure.Identity;
-using Azure.Messaging.ServiceBus;
-using Azure.ResourceManager;
-using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
@@ -12,8 +8,6 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Functions;
-using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services.Cost;
 using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -28,6 +22,32 @@ namespace Datahub.SpecflowTests.Hooks
     [Binding]
     public class ProjectUsageHook
     {
+        [BeforeScenario("ProjectUsageNotifier")]
+        public void BeforeScenarioProjectUsageNotifier(IObjectContainer objectContainer,
+            ScenarioContext scenarioContext)
+        {
+            var configuration = new ConfigurationBuilder()
+                .AddEnvironmentVariables()
+                .AddUserSecrets<Hooks>()
+                .AddJsonFile("appsettings.test.json", optional: true)
+                .Build();
+
+            var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            configuration.Bind(datahubPortalConfiguration);
+
+            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            var dbContextFactory = new SpecFlowDbContextFactory(options);
+            
+            var azureConfig = new AzureConfig(configuration);
+            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+
+            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs(azureConfig);
+            objectContainer.RegisterInstanceAs(resourceMessagingService);
+        }
+        
         [BeforeScenario("ProjectUsage")]
         public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
@@ -41,7 +61,7 @@ namespace Datahub.SpecflowTests.Hooks
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
             configuration.Bind(datahubPortalConfiguration);
 
-            var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
@@ -74,7 +94,7 @@ namespace Datahub.SpecflowTests.Hooks
                     new()
                     {
                         Amount = 10, Date = Testing.Dates.First(), Source = Testing.ServiceNames.First(),
-                        ResourceGroupName = Testing.ExistingTestRg
+                        ResourceGroupName = Testing.ResourceGroupName1
                     }
                 });
             workspaceCostsManagementService
@@ -85,7 +105,7 @@ namespace Datahub.SpecflowTests.Hooks
                     new()
                     {
                         Amount = 100,
-                        ResourceGroupName = Testing.ExistingTestRg
+                        ResourceGroupName = Testing.ResourceGroupName1
                     }
                 });
             workspaceCostsManagementService
@@ -111,15 +131,24 @@ namespace Datahub.SpecflowTests.Hooks
                 .Returns(false);
             workspaceRgManagementService
                 .GetAllSubscriptionResourceGroupsAsync(Arg.Any<string>())
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
 
             var projectUsageScheduler = new ProjectUsageScheduler(loggerFactory, dbContextFactory, sendEndpointProvider,
                 workspaceCostsManagementService, workspaceStorageManagementService, workspaceRgManagementService,
                 configuration);
-            projectUsageScheduler.mock = true;
+            projectUsageScheduler.Mock = true;
             var projectUsageUpdater = new ProjectUsageUpdater(loggerFactory, workspaceCostsManagementService,
                 workspaceBudgetManagementService, workspaceStorageManagementService, sendEndpointProvider,
                 configuration);
+            projectUsageUpdater.Mock = true;
+            projectUsageUpdater.MockCosts = new List<DailyServiceCost>
+            {
+                new()
+                {
+                    Amount = 10, Date = Testing.Dates.First(), Source = Testing.ServiceNames.First(),
+                    ResourceGroupName = Testing.ResourceGroupName1
+                }
+            };
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
@@ -183,7 +212,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }
@@ -245,7 +274,5 @@ namespace Datahub.SpecflowTests.Hooks
             context.Project_Credits.Add(projectCredit);
             context.SaveChanges();
         }
-
-        
     }
 }

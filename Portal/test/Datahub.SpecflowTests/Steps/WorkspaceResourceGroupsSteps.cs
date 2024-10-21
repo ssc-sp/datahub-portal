@@ -1,6 +1,8 @@
 ﻿using Datahub.Application.Configuration;
 using Datahub.Application.Services.ResourceGroups;
+using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -12,15 +14,13 @@ namespace Datahub.SpecflowTests.Steps
     public class WorkspaceResourceGroupsSteps(
         ScenarioContext scenarioContext,
         IWorkspaceResourceGroupsManagementService sut,
-        DatahubPortalConfiguration datahubPortalConfiguration,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
         [Given(@"a workspace with a new-project-template")]
         public async Task GivenAWorkspaceWithANewProjectTemplate()
         {
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(Testing.ExistingTestRg, "expectedResourceGroup");
-            await SetSubToAzureSub(Testing.WorkspaceAcronym);
+            scenarioContext.Set(Testing.ResourceGroupName1, "expectedResourceGroup");
         }
 
         [When(@"the resource group is requested")]
@@ -52,7 +52,7 @@ namespace Datahub.SpecflowTests.Steps
         public async Task GivenAWorkspaceWithAnEmptyNewProjectTemplateAndABlobStorage()
         {
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(Testing.ExistingTestRg, "expectedResourceGroup");
+            scenarioContext.Set(Testing.ResourceGroupName1, "expectedResourceGroup");
             using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
             var newProjectTemplate = ctx.Project_Resources2.First(p =>
@@ -63,25 +63,11 @@ namespace Datahub.SpecflowTests.Steps
             await ctx.SaveChangesAsync();
         }
 
-        [Then(@"the new-project-template should be assigned the resource group")]
-        public async Task ThenTheNewProjectTemplateShouldBeAssignedTheResourceGroup()
-        {
-            var acronym = scenarioContext.Get<string>("workspaceAcronym");
-            var expectedResourceGroup = scenarioContext.Get<string>("expectedResourceGroup");
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var project = ctx.Projects.First(p => p.Project_Acronym_CD == acronym);
-            var newProjectTemplate = ctx.Project_Resources2.First(p =>
-                p.ProjectId == project.Project_ID && p.ResourceType ==
-                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
-            newProjectTemplate.JsonContent.Should().Contain(expectedResourceGroup);
-        }
-
         [Given(@"a workspace with RG not stored in DB")]
         public async Task GivenAWorkspaceWithRgNotStoredInDb()
         {
-            scenarioContext.Set(Testing.ExistingWorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(Testing.ExistingTestRg2, "expectedResourceGroup");
-            await SetSubToAzureSub(Testing.ExistingWorkspaceAcronym);
+            scenarioContext.Set(Testing.WorkspaceAcronym2, "workspaceAcronym");
+            scenarioContext.Set(Testing.ResourceGroupName2, "expectedResourceGroup");
         }
 
         [Given(@"an invalid workspace")]
@@ -100,9 +86,8 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a subscription with resource groups")]
         public void GivenASubscriptionWithResourceGroups()
         {
-            var subId = datahubPortalConfiguration.AzureAd.SubscriptionId;
-            scenarioContext.Set(subId, "subscriptionId");
-            scenarioContext.Set(Testing.ExistingTestRg2, "expectedResourceGroup");
+            scenarioContext.Set(Testing.WorkspaceSubscriptionGuid, "subscriptionId");
+            scenarioContext.Set(Testing.ResourceGroupName2, "expectedResourceGroup");
         }
 
         [When(@"the subscription resource groups are requested")]
@@ -130,22 +115,9 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a list of projects with resource groups")]
         public async Task GivenAListOfProjectsWithResourceGroups()
         {
-            await SetSubToAzureSub(Testing.WorkspaceAcronym);
-            await SetSubToAzureSub(Testing.ExistingWorkspaceAcronym);
-            scenarioContext.Set(new List<string> { Testing.ExistingTestRg, Testing.ExistingTestRg2 }, "expectedResourceGroups");
+            scenarioContext.Set(new List<string> { Testing.ResourceGroupName1, Testing.ResourceGroupName2 }, "expectedResourceGroups");
         }
         
-        
-        private async Task SetSubToAzureSub(string acronym)
-        {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var sub = ctx.Projects.Include(p => p.DatahubAzureSubscription)
-                .First(p => p.Project_Acronym_CD == acronym).DatahubAzureSubscription!;
-            sub.SubscriptionId = datahubPortalConfiguration.AzureAd.SubscriptionId;
-            ctx.AzureSubscriptions.Update(sub);
-            await ctx.SaveChangesAsync();
-        }
-
         [When(@"all the resource groups are requested")]
         public async Task WhenAllTheResourceGroupsAreRequested()
         {
@@ -168,6 +140,31 @@ namespace Datahub.SpecflowTests.Steps
             var expectedResourceGroups = scenarioContext.Get<List<string>>("expectedResourceGroups");
 
             resourceGroups.Should().BeEquivalentTo(expectedResourceGroups);
+        }
+
+        [Given(@"a workspace with a new-project-template and a databricks")]
+        public async Task GivenAWorkspaceWithANewProjectTemplateAndADatabricks()
+        {
+            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
+            var project = ctx.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+            var mockRg = $"fsdh_proj_{Testing.WorkspaceAcronym}_test_rg";
+            var newProjectTemplate = ctx.Project_Resources2.First(p =>
+                p.ProjectId == project.Project_ID && p.ResourceType ==
+                TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate));
+            newProjectTemplate.JsonContent = $"{{\"resource_group_name\": \"{mockRg}\"}}";
+            ctx.Project_Resources2.Update(newProjectTemplate);
+            var databricks = new Project_Resources2
+            {
+                ProjectId = project.Project_ID,
+                CreatedAt = DateTime.UtcNow.AddDays(-1),
+                JsonContent = "{}",
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)
+            };
+            ctx.Project_Resources2.Add(databricks);
+            await ctx.SaveChangesAsync();
+            var dbkRg = project.GetDbkResourceGroupName(mockRg);
+            scenarioContext.Set(new List<string> {mockRg, dbkRg}, "expectedResourceGroups");
         }
     }
 }

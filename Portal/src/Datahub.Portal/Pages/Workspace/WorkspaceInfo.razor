@@ -1,18 +1,19 @@
 @using Datahub.Application.Services.Metadata
 @using Datahub.Core.Model.Projects
 @using Datahub.Metadata.DTO
-@using Datahub.Portal.Pages.Workspace
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IMetadataBrokerService _metadataBrokerService
+@inject ICultureService CultureService
 
-<MudStack>
+<MudStack Spacing="4">
     <DHMainContentTitle>
-        <MudText Typo="Typo.h1" Class="my-8">
+        <MudText Typo="Typo.h1">
             <DHIcon Icon="fa-light fa-flask-vial" Title="@Localizer["Workspace Icon"]" Size="Size.Large" Class="mr-2"/>
             @_project?.ProjectName
         </MudText>
     </DHMainContentTitle>
+    <WorkspaceBudgetAlert PercentBudgetSpent="@_percentBudgetSpent"/>
     <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
 
@@ -23,6 +24,7 @@
     private Datahub_Project _project;
     private FieldValueContainer _projectMetadata;
     private string _projectDescription;
+    private decimal _percentBudgetSpent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,13 +32,21 @@
 
         await using var db = await _dbFactoryProject.CreateDbContextAsync();
         _project = await db.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .AsNoTracking()
+            .AsSingleQuery()
+            .Include(p => p.Credits)
+            .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
-        _projectDescription = GetProjectDescription();
+        _projectDescription = LoadProjectDescription();
+
+        var currentSpend = Convert.ToDecimal(_project?.Credits?.Current ?? 0);
+        var maximumSpend = Convert.ToDecimal(_project?.Project_Budget ?? 0);
+        
+        _percentBudgetSpent = maximumSpend > 0 ? Math.Min(100, currentSpend / maximumSpend * 100) : 0;
     }
 
-    private string GetProjectDescription()
+    private string LoadProjectDescription()
     {
         var description = _projectMetadata.GetValue($"description_{CultureService.Culture}", null) ?? _project.ProjectDescription;
 

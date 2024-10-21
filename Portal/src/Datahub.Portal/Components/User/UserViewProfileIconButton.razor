@@ -1,10 +1,8 @@
 @using Datahub.Core.Extensions
 
-<MudTooltip Delay="600" Text="@Localizer["View profile"]">
-    <MudButton HtmlTag="a" Class="align-self-end" Href="@_href" aria-label="view profile" StartIcon="@Icons.Material.Outlined.Person">
+    <DHButton title="@Localizer["View profile"]" Underline Class="align-self-end" Href="@_href" aria-label="view profile" StartIcon="@Icons.Material.Outlined.Person" >
         <MudText>@Localizer["Profile"]</MudText>
-    </MudButton>
-</MudTooltip>
+    </DHButton>
 
 @code {
 

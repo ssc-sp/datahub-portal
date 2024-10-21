@@ -36,7 +36,7 @@ public class Startup
         //services.AddScoped<DataRemovalService>();
         services.AddSingleton<DatahubTools>();
         services.AddScoped<NotificationsService>();
-        services.AddScoped<UIControlsService>();
+        services.AddScoped<UiControlsService>();
         services.AddHttpClient();
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();

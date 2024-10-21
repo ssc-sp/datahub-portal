@@ -1,0 +1,61 @@
+@inject ILogger<WorkspaceBudgetAlert> _logger
+@inject IStringLocalizer Localizer
+
+@if (PercentBudgetSpent < 50)
+{
+    return;
+}
+
+<MudAlert Severity="@SeverityLevel()" Dense Square>
+    @BudgetMessage()
+</MudAlert>
+
+@code {
+
+    [Parameter, EditorRequired] public decimal PercentBudgetSpent { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        if (PercentBudgetSpent <= 100) return;
+        
+        _logger.LogWarning("PercentBudgetSpent is greater than 100. Setting to 100.");
+        PercentBudgetSpent = 100;
+    }
+
+    private Severity SeverityLevel()
+    {
+        switch (PercentBudgetSpent)
+        {
+            case < 75:
+                return Severity.Info;
+            case < 90:
+                return Severity.Warning;
+            case < 100:
+                return Severity.Error;
+            case 100:
+                return Severity.Error;
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private string BudgetMessage()
+    {
+        switch (PercentBudgetSpent)
+        {
+            case < 75:
+                return Localizer["This workspace has consumed {0:F2}% of its budget. It is recommended to monitor the usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+            case < 90:
+                return Localizer["This workspace has consumed {0:F2}% of its budget. It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+            case < 100:
+                return Localizer["This workspace has consumed {0:F2}% of its budget. Please contact the workspace lead immediately to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+            case 100:
+                return Localizer["This workspace has consumed {0:F2}% of its budget. The workspace resources have been deleted or scheduled for deletion due to exceeding the budget.", PercentBudgetSpent];
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
+}

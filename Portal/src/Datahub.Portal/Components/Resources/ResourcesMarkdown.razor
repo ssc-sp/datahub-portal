@@ -21,7 +21,7 @@
         @if (ShowPaper)
         {
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <DHButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                <DHButton Style="@_editButtonStyle" Href="@_docService.EditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
                            Color="@Color.Primary"
                            Variant="@Variant.Filled"
@@ -37,7 +37,7 @@
         else
         {
             <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <DHButton Style="@_editButtonStyle" Href="@_docService.GetEditUrl(DocumentItem)"
+                <DHButton Style="@_editButtonStyle" Href="@_docService.EditUrl(DocumentItem)"
                            OnClick="@HandleRemoveFromCache"
                            Color="@Color.Primary"
                            Variant="@Variant.Filled"
@@ -90,8 +90,8 @@
         if (linkLc.EndsWith(".png") || linkLc.EndsWith(".jpg") || linkLc.EndsWith(".jpeg") || linkLc.EndsWith(".gif"))
         {
             if (link.StartsWith("/"))
-                return _docService.BuildAbsoluteURL(link);
-            var baseAddress = new Uri(_docService.BuildAbsoluteURL(DocumentItem.MarkdownPage));
+                return _docService.BuildAbsoluteUrl(link);
+            var baseAddress = new Uri(_docService.BuildAbsoluteUrl(DocumentItem.MarkdownPage));
             Uri directory = new Uri(baseAddress, "."); // "." == current dir, like MS-DOS
             var imgLink = new Uri(directory, link).AbsoluteUri;
             return imgLink;

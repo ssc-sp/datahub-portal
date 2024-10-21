@@ -50,7 +50,7 @@ public class Project_Resources2
     /// <returns>A new instance of TerraformTemplate with the ResourceType and Status properties set.</returns>
     public TerraformTemplate ToTerraformTemplate()
     {
-        return new TerraformTemplate(ResourceType, Status);
+        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status);
     }
 }
 

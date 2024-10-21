@@ -132,7 +132,7 @@
         {
             if (Id != "new")
             {
-                _navigationManager.NavigateTo("/news");
+                _navigationManager.NavigateTo(Localizer[PageRoutes.News]);
             }
             else
             {
@@ -207,7 +207,7 @@
         if (success)
         {
             _snackbar.Add(Localizer["Article saved"], Severity.Success);
-            _navigationManager.NavigateTo("/news");
+            _navigationManager.NavigateTo(Localizer[PageRoutes.News]);
         }
         else
         {

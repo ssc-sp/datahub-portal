@@ -4,6 +4,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Infrastructure.Services.UserManagement
+@using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Components.User
 @using Datahub.Shared.Entities
 @using MudBlazor.Utilities
@@ -14,22 +15,27 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudStack Class="ml-2">
+    <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
+            <span>
+                <h2 class="sr-only">@Localizer["Toggle sidebar open or closed."]</h2>
+                <p class="sr-only">@Localizer["Clicking this will reduce or increase the sidebar."]</p>
+                <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
+            </span>
             <MudAvatar Size="Size.Small">
                 <MudImage Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg" Alt="@Localizer["Workspace Avatar"]"></MudImage>
             </MudAvatar>
             @* <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/> *@
             <MudText Typo="Typo.h2" Style="@_workspaceTitleStyle">
-                @_project?.ProjectName
+                @_project?.Project_Acronym_CD
             </MudText>
         </MudStack>
     </MudStack>
-    <MudStack Spacing="2">
-        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-            <b>
+    <MudStack Spacing="2" Class="ml-12">
+        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+            <strong>
                 @Localizer["Workspace Tools"]
-            </b>
+            </strong>
         </MudText>
         <MudNavMenu Color="Color.Primary">
             <ul>
@@ -55,11 +61,11 @@
     </MudStack>
 
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
-        <MudStack Spacing="2">
-            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem;">
-                <b>
+        <MudStack Spacing="2" Class="ml-12">
+            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                <strong>
                     @Localizer["Administration"]
-                </b>
+                </strong>
             </MudText>
             <MudNavMenu Color="Color.Primary">
                 <ul>
@@ -87,6 +93,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [CascadingParameter] private DHSidebarDrawer Drawer { get; set; }
 
     private Datahub_Project _project;
 
@@ -187,7 +194,7 @@
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,            
+            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
 
             SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,

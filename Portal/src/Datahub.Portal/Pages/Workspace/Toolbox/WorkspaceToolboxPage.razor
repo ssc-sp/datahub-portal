@@ -2,6 +2,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared
 @using Datahub.Core.Services.Projects
 @using Datahub.Application.Services.Notifications
 
@@ -266,7 +267,7 @@
             await ctx.SaveChangesAsync();
 
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            var template = new TerraformTemplate(tool, TerraformTemplate.TemplateStatus.CreateRequested);
+            var template = new TerraformTemplate(tool, TerraformStatus.CreateRequested);
             await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", tool, WorkspaceAcronym);
             _toolCurrentDevelopmentStatusMap[tool] = ProjectResourceStatus.PendingRequest;

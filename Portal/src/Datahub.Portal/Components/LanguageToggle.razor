@@ -6,8 +6,9 @@
 @inject IPortalUserTelemetryService _telemetryService
 @inject NavigationManager NavManager
 @inject IJSRuntime _jsRuntime
+@inject ICultureService CultureService
 
-<DHButton OnClick="() => ChangeLanguage(Language)" Size="@Size" @attributes="@InputAttributes">
+<DHButton HtmlTag="button" lang="@Language" focusable="true" translate="no" OnClick="() => ChangeLanguage(Language)" Size="@Size" @attributes="@InputAttributes">
     <MudText>
         @LanguageDisplay
     </MudText>
@@ -16,12 +17,12 @@
 @code {
     [Parameter]
     public Size Size { get; set; } = Size.Medium;
-    
+
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; }
-    
-    private static string Language => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "en-CA" : "fr-CA";
-    private static string LanguageDisplay => Thread.CurrentThread.CurrentCulture.Name.ToLower().Contains("fr") ? "English" : "Français";
+
+    private string Language => CultureService.IsFrench ? CultureService.CanadaEnglish : CultureService.CanadaFrench;
+    private string LanguageDisplay => CultureService.IsFrench ? "English" : "Français";
 
     private static List<string> TranslatedPageRoutes = new() { 
         PageRoutes.Home, PageRoutes.Home_FR,
@@ -41,11 +42,11 @@
         var currentPage = NavManager.Uri;
         if (UnauthenticatedPages.Any(x => currentPage.Contains(x)) || UnauthenticatedPages_Fr.Any(x => currentPage.Contains(x)))
         {
-            await _localStorage.SetItemAsStringAsync("language", language);
+            await CultureService.SetLanguageInLocalStorageAsync(language);
         }
         else
         {
-            await _localStorage.SetItemAsStringAsync("language", language);
+            await CultureService.SetLanguageInLocalStorageAsync(language);
             await _userSettingsService.RegisterUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         }

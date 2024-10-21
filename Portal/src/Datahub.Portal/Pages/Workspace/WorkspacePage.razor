@@ -1,10 +1,6 @@
-@using Datahub.Application.Services.UserManagement
-@using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Components.PageAlerts
-@using Datahub.Metadata.DTO
-@using Datahub.Portal.Pages.Workspace
 @using Datahub.Portal.Pages.Workspace.Dashboard
 @using Datahub.Portal.Pages.Workspace.Database
 @using Datahub.Portal.Pages.Workspace.Delete
@@ -53,7 +49,7 @@
     {
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam">
             <Authorized>
-                <DynamicComponent Type=@GetDynamicComponentType() Parameters="@parameters"/>
+                <DynamicComponent Type=@SwitchDynamicComponentType() Parameters="@parameters"/>
             </Authorized>
             <NotAuthorized>
                 <NotAuthorizedMessage/>
@@ -66,11 +62,6 @@
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
                          ProjectAcronym="@WorkspaceAcronymParam">
             <Authorized>
-                <DHPageAlert Title="@Localizer["Welcome to a workspace"]" Key="@WorkspaceAlert.KEY">
-                    <ChildContent>
-                        <WorkspaceAlert/>
-                    </ChildContent>
-                </DHPageAlert>
                 <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
             </Authorized>
             <NotAuthorized>
@@ -116,7 +107,7 @@
         { WorkspaceSidebar.SectionViews.Settings_FR, typeof(WorkspaceSettingsPage) }
     };
 
-    private Type GetDynamicComponentType()
+    private Type SwitchDynamicComponentType()
     {
         var defaultSectionType = _sectionComponents[Section];
 
@@ -141,7 +132,7 @@
         if (string.IsNullOrEmpty(WorkspaceAcronymParam))
             return;
 
-        var linkType = GetLinkType();
+        var linkType = SwitchLinkType();
 
         var userRecentLink = new UserRecentLink()
         {
@@ -153,7 +144,7 @@
         await _userLocationManagerService.RegisterNavigation(userRecentLink);
     }
 
-    private DatahubLinkType GetLinkType()
+    private DatahubLinkType SwitchLinkType()
     {
         return Section switch
         {

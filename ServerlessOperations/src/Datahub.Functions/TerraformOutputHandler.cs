@@ -1,22 +1,17 @@
-using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Transactions;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
-using Datahub.Core.Enums;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
-using Lucene.Net.Analysis.Hunspell;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions;
 
@@ -92,13 +87,6 @@ public class TerraformOutputHandler(
             return;
         }
 
-        if (!output.ContainsKey(TerraformVariables.OutputAzureDatabricksWorkspaceUrl)
-            || string.IsNullOrWhiteSpace(output[TerraformVariables.OutputAzureDatabricksWorkspaceUrl].Value))
-        {
-            _logger.LogInformation("Azure Databricks workspace url is null or empty, skipping post terraform triggers");
-            return;
-        }
-
         // handle external user permissions
         var projectAcronym = output[TerraformVariables.OutputProjectAcronym];
         var project = await projectDbContext.Projects
@@ -164,7 +152,7 @@ public class TerraformOutputHandler(
 
         var azureAppServiceStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
-        if (!azureAppServiceStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (!azureAppServiceStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure App Service status is not completed. Status: {Status}",
                 azureAppServiceStatus);
@@ -203,7 +191,7 @@ public class TerraformOutputHandler(
         }
 
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
-        if (!databricksStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (!databricksStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure Databricks status is not completed. Status: {Status}", databricksStatus);
             return;
@@ -240,7 +228,7 @@ public class TerraformOutputHandler(
 
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
-        if (!storageBlobStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (!storageBlobStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure storage blob status is not completed. Status: {Status}", storageBlobStatus);
             return;
@@ -281,7 +269,7 @@ public class TerraformOutputHandler(
         }
 
         var postgresStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzurePostgresStatus].Value);
-        if (!postgresStatus.Equals(TerraformOutputStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        if (!postgresStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogError("Azure Postgres status is not completed. Status: {Status}", postgresStatus);
             return;
@@ -325,13 +313,13 @@ public class TerraformOutputHandler(
             throw new Exception($"Project not found for acronym {projectAcronym.Value}");
         }
 
-        var outputPhase = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
+        var resourceGroupStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputNewProjectTemplate].Value);
         var resourceGroupName =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureResourceGroupName].Value);
 
-        if (project.Project_Phase != outputPhase)
+        if (project.Project_Phase != resourceGroupStatus)
         {
-            project.Project_Phase = outputPhase;
+            project.Project_Phase = resourceGroupStatus;
         }
 
         // check if there's a workspace version variable
@@ -358,6 +346,7 @@ public class TerraformOutputHandler(
 
         projectResource.CreatedAt = DateTime.UtcNow;
         projectResource.JsonContent = jsonContent.ToString();
+        projectResource.Status = resourceGroupStatus;
 
         await projectDbContext.SaveChangesAsync();
     }
@@ -366,11 +355,10 @@ public class TerraformOutputHandler(
     {
         return value switch
         {
-            "completed" => TerraformOutputStatus.Completed,
-            "in_progress" => TerraformOutputStatus.InProgress,
-            "pending_approval" => TerraformOutputStatus.PendingApproval,
-            "failed" => TerraformOutputStatus.Failed,
-            _ => TerraformOutputStatus.Missing
+            "completed" => TerraformStatus.Completed,
+            "in_progress" => TerraformStatus.InProgress,
+            "failed" => TerraformStatus.Failed,
+            _ => TerraformStatus.Missing
         };
     }
 

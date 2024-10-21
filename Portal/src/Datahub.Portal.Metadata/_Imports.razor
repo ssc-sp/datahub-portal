@@ -3,7 +3,6 @@
 @using System.Threading
 @using System.Globalization
 
-@using Datahub.Core.Services.UserManagement;
 @using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Forms
@@ -21,6 +20,8 @@
 @using Tewr.Blazor.FileReader
 @using Microsoft.Extensions.Hosting
 
+@using Datahub.Application.Services.UserManagement
+
 @using Datahub.Core.Data
 @using Datahub.Core.Services
 @using Datahub.Core.Components
@@ -37,4 +38,3 @@
 @using MudBlazor;
 
 @inject IStringLocalizer Localizer
-@inject CultureService CultureService

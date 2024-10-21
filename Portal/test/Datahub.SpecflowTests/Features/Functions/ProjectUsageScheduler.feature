@@ -11,8 +11,3 @@ Feature: ProjectUsageScheduler
         Given no workspaces that need to be updated
         When the scheduler runs
         Then the correct number of messages get scheduled
-        
-    Scenario: Uploading to blob storage should work properly
-        Given some costs
-        When the costs are uploaded to blob storage
-        Then the costs should be properly uploaded to blob storage

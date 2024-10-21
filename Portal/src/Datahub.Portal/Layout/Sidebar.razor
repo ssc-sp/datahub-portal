@@ -84,8 +84,8 @@
     private async Task<bool> ShowResourcesBadge()
     {
         try {
-            var lastCommitGit = await documentationService.GetLastRepoCommitTS();
-            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.COMMIT_API_URL) ?? DateTime.MinValue;
+            var lastCommitGit = await documentationService.LastRepoCommitTs();
+            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.CommitApiUrl) ?? DateTime.MinValue;
             //await localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
             return lastCommitGit.HasValue && lastCommitGit.Value > lastCommitUser;
         } catch (Exception ex)

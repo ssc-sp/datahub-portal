@@ -20,7 +20,8 @@ namespace Datahub.Core
             Integration,
             ProofOfConcept,
             Production,
-            ProductionProtected
+            ProductionProtected,
+            QualityControl
         }
 
         public static TopBarEnvironments TopBarEnvironment()
@@ -31,8 +32,9 @@ namespace Datahub.Core
                 "Development" or "dev" => TopBarEnvironments.Development,
                 "int" => TopBarEnvironments.Integration,
                 "poc" => TopBarEnvironments.ProofOfConcept,
-                "prod" => TopBarEnvironments.Production,
+                "prod" or "prd" => TopBarEnvironments.Production,
                 "prot" => TopBarEnvironments.ProductionProtected,
+                "qc" => TopBarEnvironments.QualityControl,
                 _ => TopBarEnvironments.Development
             };
         }

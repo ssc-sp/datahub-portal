@@ -10,6 +10,9 @@
 
     <ItemGroup>
         <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.18.1" />
+        <PackageReference Include="Azure.ResourceManager.Billing" Version="1.1.0" />
+        <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.1" />
+        <PackageReference Include="Azure.ResourceManager.Resources" Version="1.8.0" />
         <PackageReference Include="bunit" Version="1.28.9" />
         <PackageReference Include="Deque.AxeCore.Commons" Version="4.9.1" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.6" />
@@ -20,7 +23,11 @@
         <PackageReference Include="Reqnroll" Version="2.0.3" />
         <PackageReference Include="Reqnroll.xUnit" Version="2.0.3" />
         <PackageReference Include="xunit" Version="2.8.1" />
-        <PackageReference Include="coverlet.collector" Version="6.0.2">
+		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		</PackageReference>
+		<PackageReference Include="coverlet.collector" Version="6.0.2">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -36,7 +43,4 @@
         <Content Include="Features\**\*.feature" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Features\Reregistration\" />
-    </ItemGroup>
 </Project>

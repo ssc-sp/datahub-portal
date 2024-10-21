@@ -1,5 +1,8 @@
 ﻿@using ApexCharts
 @using Datahub.Application.Services.Cost
+
+@inject ICultureService CultureService
+
 <span>
     <h2 class="sr-only">
         @Localizer["A bar chart showing the monthly costs for the workspace grouped by service. An accessible description is provided below the chart."]
@@ -65,7 +68,7 @@
 
     protected override void OnParametersSet()
     {
-        _locale = CultureService.IsEnglish ? CultureService.English : CultureService.French;
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
         _culture = new(_locale + "-CA");
         DefineOptions();
     }

@@ -1,18 +1,27 @@
 <SectionContent SectionName="@DatahubTheme.SideBarContentName">
     <MudDrawer
         Width="320px"
-        Variant="DrawerVariant.Persistent"
-        Open
+        Variant="DrawerVariant.Mini"
+        @bind-Open="@_open"
         Overlay="false"
         Style="@DatahubTheme.SideBorderStyle"
         Elevation="0"
-        ClipMode="DrawerClipMode.Always" Breakpoint="Breakpoint.Always">
-        <MudDrawerContainer>
-            @ChildContent
-        </MudDrawerContainer>
+        OpenMiniOnHover="false"
+        ClipMode="DrawerClipMode.Always" MiniWidth="70px">
+        <CascadingValue Value="this">
+            <MudDrawerContainer Style="overflow: hidden">
+                @ChildContent
+            </MudDrawerContainer>
+        </CascadingValue>
     </MudDrawer>
 </SectionContent>
 
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
+    private bool _open { get; set; } = true;
+    
+    public void ToggleDrawer()
+    {
+        _open = !_open;
+    }
 }

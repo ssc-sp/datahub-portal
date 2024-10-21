@@ -1,7 +1,13 @@
 ﻿using System.Text.Json;
+using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Billing.Models;
+using Azure.ResourceManager.Consumption;
+using Azure.ResourceManager.Consumption.Models;
+using Azure.ResourceManager.CostManagement.Models;
+using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Monitor.Models;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
@@ -23,7 +29,7 @@ namespace Datahub.SpecflowTests.Hooks
     public class WorkspaceBudgetHook
     {
         [BeforeScenario("WorkspaceBudget")]
-        public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
+        public async Task BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
         {
             var configuration = new ConfigurationBuilder()
@@ -35,51 +41,48 @@ namespace Datahub.SpecflowTests.Hooks
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
             configuration.Bind(datahubPortalConfiguration);
 
-            var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
-
-            var credential = new ClientSecretCredential(datahubPortalConfiguration.AzureAd.TenantId,
-                datahubPortalConfiguration.AzureAd.ClientId, datahubPortalConfiguration.AzureAd.ClientSecret);
-            var armOptions = new ArmClientOptions
-            {
-                Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
-            };
-            var armClient = new ArmClient(credential, datahubPortalConfiguration.AzureAd.SubscriptionId, armOptions);
+            var armClient = Substitute.For<ArmClient>();
             var logger = Substitute.For<ILogger<WorkspaceBudgetManagementService>>();
 
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
             var workspaceBudgetManagementService = new WorkspaceBudgetManagementService(armClient, logger,
                 dbContextFactory, workspaceRgManagementService);
+            var mockRgId1 = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
+            var mockRgId2 = new ResourceIdentifier(
+                $"/subscriptions/{Testing.WorkspaceSubscriptionGuid2}/resourceGroups/{Testing.ResourceGroupName2}");
 
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym)
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsAsync(Testing.WorkspaceAcronym2)
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
-                .GetAllSubscriptionResourceGroupsAsync( datahubPortalConfiguration.AzureAd.SubscriptionId )
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .GetAllSubscriptionResourceGroupsAsync(Testing.WorkspaceSubscriptionGuid)
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetAllResourceGroupsAsync()
-                .Returns(new List<string> { Testing.ExistingTestRg });
+                .Returns(new List<string> { Testing.ResourceGroupName1 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym)
                 .Returns(new List<ResourceIdentifier>
                 {
-                    new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg}")
+                    mockRgId1
                 });
             workspaceRgManagementService
                 .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.WorkspaceAcronym2)
                 .Returns(new List<ResourceIdentifier>
                 {
-                    new ResourceIdentifier(
-                        $"/subscriptions/{datahubPortalConfiguration.AzureAd.SubscriptionId}/resourceGroups/{Testing.ExistingTestRg}")
+                    mockRgId2
                 });
-
+            armClient
+                .GetConsumptionBudgetResource(mockRgId1)
+                .Returns(MockBudget(armClient));
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs<IWorkspaceBudgetManagementService>(workspaceBudgetManagementService);
@@ -95,6 +98,7 @@ namespace Datahub.SpecflowTests.Hooks
             using var context = await dbContextFactory.CreateDbContextAsync();
             context.Database.EnsureDeleted();
         }
+
         private void SeedDb(IDbContextFactory<DatahubProjectDBContext> contextFactory)
         {
             using var context = contextFactory.CreateDbContext();
@@ -141,7 +145,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }
@@ -202,6 +206,21 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.Project_Credits.Add(projectCredit);
             context.SaveChanges();
+        }
+
+        private ConsumptionBudgetResource MockBudget(ArmClient armClient)
+        {
+            var currentSpend = Substitute.For<BudgetCurrentSpend>((decimal?)10, "CAD");
+            var budgetData = Substitute.For<ConsumptionBudgetData>();
+            budgetData.Amount = 10;
+            budgetData.CurrentSpend.Returns(currentSpend);
+            var budget =
+                Substitute.For<ConsumptionBudgetResource>();
+            budget.GetAsync()
+                .Returns(Response.FromValue(budget, Substitute.For<Response>()));
+            budget.UpdateAsync(WaitUntil.Completed, budgetData)
+                .ReturnsForAnyArgs(Task.FromResult<ArmOperation<ConsumptionBudgetResource>>(null));
+            return budget;
         }
     }
 }

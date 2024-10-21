@@ -5,11 +5,11 @@ namespace Datahub.Core.Services.Data;
 
 public class DataImportingService
 {
-    private ILogger<DataImportingService> logger;
+    private ILogger<DataImportingService> _logger;
 
     public DataImportingService(ILogger<DataImportingService> logger)
     {
-        this.logger = logger;
+        _logger = logger;
     }
 
     public List<T> CreateObjects<T>(List<string[]> contents)

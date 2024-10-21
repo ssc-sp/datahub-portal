@@ -7,22 +7,22 @@ namespace Datahub.Core.Services.UserManagement;
 /// </summary>
 public sealed class TimeZoneService
 {
-    private readonly IJSRuntime jsRuntime;
+    private readonly IJSRuntime _jsRuntime;
 
-    private TimeSpan? userOffset;
+    private TimeSpan? _userOffset;
 
     public TimeZoneService(IJSRuntime jsRuntime)
     {
-        this.jsRuntime = jsRuntime;
+        _jsRuntime = jsRuntime;
     }
 
-    public async ValueTask<DateTimeOffset> GetLocalDateTime(DateTimeOffset dateTime)
+    public async ValueTask<DateTimeOffset> LocalDateTime(DateTimeOffset dateTime)
     {
-        if (userOffset == null)
+        if (_userOffset == null)
         {
-            int offsetInMinutes = await jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
-            userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
+            int offsetInMinutes = await _jsRuntime.InvokeAsync<int>("blazorGetTimezoneOffset");
+            _userOffset = TimeSpan.FromMinutes(-offsetInMinutes);
         }
-        return dateTime.ToOffset(userOffset.Value);
+        return dateTime.ToOffset(_userOffset.Value);
     }
 }
