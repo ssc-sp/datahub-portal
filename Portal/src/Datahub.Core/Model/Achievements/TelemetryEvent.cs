@@ -39,4 +39,7 @@ public struct TelemetryEvents
     public const string UserDeleteFile = "user_delete_file";
     public const string UserCreateFolder = "user_create_folder";
     public const string UserDeletedFolder = "user_delete_folder";
+
+    // AUDITING
+    public const string UserToggleStorageAllowSharedKeyAccess = "user_toggle_storage_allow_shared_key_access";
 }
