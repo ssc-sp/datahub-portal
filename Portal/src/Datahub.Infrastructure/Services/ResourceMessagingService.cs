@@ -18,11 +18,10 @@ public class ResourceMessagingService(
     ISendEndpointProvider sendEndpointProvider)
     : IResourceMessagingService
 {
-    public async Task SendToTerraformQueue(WorkspaceDefinition project)
+    public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
     {
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, project);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, workspaceDefinition);
     }
-
 
     public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition)
     {

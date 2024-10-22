@@ -60,6 +60,9 @@ public class RequestManagementService : IRequestManagementService
         var resource = project.Resources
             .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name));
 
+        // TODO: Add delete logic in here
+        
+        
         if (resource is not null)
         {
             _logger.LogInformation(
