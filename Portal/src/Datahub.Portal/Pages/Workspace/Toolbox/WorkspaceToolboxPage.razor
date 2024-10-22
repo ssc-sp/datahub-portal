@@ -1,18 +1,20 @@
-@using Datahub.Application.Services
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
-@using Datahub.Application.Services.Notifications
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 @inject IRequestManagementService _requestManagementService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
-@inject IDatahubEmailService _emailService
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject NavigationManager _navigationManager
+
+@if (_initializing)
+{
+    <DHLoadingInitializer Message="@Localizer["Loading..."]"/>
+    return;
+}
 
 <MudStack>
     <DHMainContentTitle Title="@Localizer["Toolbox Catalogue"]"/>
@@ -135,6 +137,7 @@
     private readonly Dictionary<string, string> _toolDisplayStatusMap = new();
 
     private bool _metadataRequired = true;
+    private bool _initializing = true;
     private string _metadataUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Metadata}";
 
     protected override async Task OnInitializedAsync()
@@ -165,6 +168,9 @@
                 _toolDisplayStatusMap[tool] = resourceStatus;
             }
         }
+        
+        _initializing = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private string FetchWorkspaceResourceStatus(string resourceType)
@@ -176,8 +182,17 @@
 
         var resource = _workspace.Resources
             .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(resourceType));
+        
+        if(resource is null)
+        {
+            return AvailabilityStatus.Available;
+        }
 
-        return resource == null ? AvailabilityStatus.Available : resource.Status;
+        if (resource.Status is not null) return resource.Status;
+        
+        _logger.LogWarning("Resource {ResourceType} in workspace {WorkspaceAcronym} has no status", resourceType, WorkspaceAcronym);
+        // TODO: Add a default status for resources that have no status
+        return TerraformStatus.Completed;
     }
 
     private async Task AddResourceToWorkspace(string resource)
