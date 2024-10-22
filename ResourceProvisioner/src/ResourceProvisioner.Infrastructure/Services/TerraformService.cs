@@ -188,6 +188,7 @@ public class TerraformService : ITerraformService
         // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
         {TerraformTemplate.AzureAppService, "azure_app_service_module_status"},
         {TerraformTemplate.AzurePostgres, "azure_psql_module_status"},
+        {TerraformTemplate.NewProjectTemplate, "new_project_template"}
         // {TerraformTemplate.AzureArcGis, "arcgis_url"},
         // {TerraformTemplate.AzureAPI, "api_url"}
     };
