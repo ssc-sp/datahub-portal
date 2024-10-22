@@ -156,6 +156,42 @@ public class TerraformService : ITerraformService
         }
     }
 
+    public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
+    {
+        var projectPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.*");
+        if(matchingFiles.Length > 0)
+        {
+            foreach (var file in matchingFiles)
+            {
+                File.Delete(file);
+                _logger.LogInformation("Deleted file {File}", file);
+            }
+        }
+        
+        await WriteDeletedFile(templateName, projectPath);
+    }
+    
+    private async Task WriteDeletedFile(string templateName, string projectPath)
+    {
+        var deletedFilePath = Path.Join(projectPath, $"{templateName}.tf");
+        var content = $"output \"{_terraformModuleStatusOutputName[templateName]}\" {{\n  value = \"deleted\"\n}}";
+        await File.WriteAllTextAsync(deletedFilePath, content);
+        _logger.LogInformation("Created deleted file {DeletedFilePath}", deletedFilePath);
+    }
+    
+    private readonly Dictionary<string, string> _terraformModuleStatusOutputName = new()
+    {
+        {TerraformTemplate.AzureStorageBlob, "azure_storage_blob_status"},
+        {TerraformTemplate.AzureDatabricks, "azure_databricks_module_status"},
+        // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
+        {TerraformTemplate.AzureAppService, "azure_app_service_module_status"},
+        {TerraformTemplate.AzurePostgres, "azure_psql_module_status"},
+        // {TerraformTemplate.AzureArcGis, "arcgis_url"},
+        // {TerraformTemplate.AzureAPI, "api_url"}
+    };
+
     private Dictionary<string, (string, bool)> FindMissingVariables(string templateName,
         TerraformWorkspace terraformWorkspace)
     {

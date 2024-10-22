@@ -2,6 +2,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using Datahub.Shared;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Enums;
@@ -488,16 +489,23 @@ public partial class RepositoryService : IRepositoryService
     {
         try
         {
-            await _terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
-            await _terraformService.ExtractVariables(template.Name, terraformWorkspace);
-            switch (template.Name)
+            if (template.Status == TerraformStatus.DeleteRequested)
             {
-                case TerraformTemplate.NewProjectTemplate:
-                    await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
-                    break;
-                case TerraformTemplate.VariableUpdate:
-                    await _terraformService.ExtractAllVariables(terraformWorkspace);
-                    break;
+                await _terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+            }
+            else
+            {
+                await _terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
+                await _terraformService.ExtractVariables(template.Name, terraformWorkspace);
+                switch (template.Name)
+                {
+                    case TerraformTemplate.NewProjectTemplate:
+                        await _terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                        break;
+                    case TerraformTemplate.VariableUpdate:
+                        await _terraformService.ExtractAllVariables(terraformWorkspace);
+                        break;
+                }
             }
 
             await CommitTerraformTemplate(template, requestingUsername);
