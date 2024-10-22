@@ -183,12 +183,12 @@ public class TerraformService : ITerraformService
     
     private readonly Dictionary<string, string> _terraformModuleStatusOutputName = new()
     {
-        {TerraformTemplate.AzureStorageBlob, "azure_storage_blob_status"},
-        {TerraformTemplate.AzureDatabricks, "azure_databricks_module_status"},
+        {TerraformTemplate.AzureStorageBlob, TerraformVariables.OutputAzureStorageBlobStatus},
+        {TerraformTemplate.AzureDatabricks, TerraformVariables.OutputAzureDatabricksStatus},
         // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
-        {TerraformTemplate.AzureAppService, "azure_app_service_module_status"},
-        {TerraformTemplate.AzurePostgres, "azure_psql_module_status"},
-        {TerraformTemplate.NewProjectTemplate, "new_project_template"}
+        {TerraformTemplate.AzureAppService, TerraformVariables.OutputAzureAppServiceStatus},
+        {TerraformTemplate.AzurePostgres, TerraformVariables.OutputAzurePostgresStatus},
+        {TerraformTemplate.NewProjectTemplate, TerraformVariables.OutputNewProjectTemplate}
         // {TerraformTemplate.AzureArcGis, "arcgis_url"},
         // {TerraformTemplate.AzureAPI, "api_url"}
     };
