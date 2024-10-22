@@ -1,18 +1,22 @@
 ﻿@namespace Datahub.Portal.Pages.Workspace.Delete
 
-@using Datahub.Core.Model.Projects
+@using Datahub.Core.Services.Projects
+@using Datahub.Shared
 @using Datahub.Shared.Entities
 
-@inject NavigationManager NavigationManager
+@inject NavigationManager _navigationManager
 @inject ISnackbar _snackbar
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+
+@inject IRequestManagementService _requestManagementService
+@inject IUserInformationService _userInformationService
 
 <MudStack Class="px-4">
     <MudGrid>
        <MudItem xs="12">
            <MudStack>
                 <MudText Typo="Typo.h4">
-                    @Localizer["Are you sure you want to delete {0} from this workspace?", Resource]
+                    @Localizer["Are you sure you want to delete {0} from this workspace?", SubSection]
                 </MudText>
                 <MudText Typo="Typo.body1">
                     @Localizer["This action is permanent. Upon deletion, all workspace admins will be notified via email."]
@@ -22,7 +26,7 @@
                 </MudText>
                 <MudGrid>
                     <MudItem xs="5">
-                        <MudTextField @bind-Value="DeleteConfirmation" Variant="Variant.Text"></MudTextField>
+                        <MudTextField @bind-Value="_deleteConfirmation" Variant="Variant.Text"></MudTextField>
                     </MudItem>
                 </MudGrid>
             </MudStack>
@@ -41,7 +45,7 @@
             }
         </MudItem>
         <MudItem xs="3">
-            <DHButton Variant="@Variant.Filled" Color="@Color.Default" OnClick="@CancelDeletion">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Default" Href="@_toolboxPage">
                 @Localizer["Cancel"]
             </DHButton>
         </MudItem>
@@ -58,10 +62,11 @@
 {
     [Parameter]
     public string WorkspaceAcronym { get; set; }
+    
+    [Parameter]
+    public string SubSection { get; set; }
 
-    private string Resource = "";
-
-    private string DeleteConfirmation;
+    private string _deleteConfirmation;
     private string _error = "";
     private string _toolboxPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
 
@@ -70,71 +75,50 @@
         await base.OnInitializedAsync();
 
         await using var ctx = await _contextFactory.CreateDbContextAsync();
-        var _resourceCheck = await ctx.Project_Resources2
-            .AsNoTracking()
-            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString()));
-
-        if(_resourceCheck != null)
+        
+        
+        if (WorkspaceAcronym == null || SubSection == null)
         {
-            Resource = GetLabel(_resourceCheck.ResourceType.Substring(10));
-        }
-        else
-        {
-            Resource = "Error";
+            _snackbar.Add(Localizer["Invalid parameters, redirecting"], Severity.Error);            
+            _navigationManager.NavigateTo(_toolboxPage);
+            return;
         }
 
-        await InvokeAsync(StateHasChanged);
+        var terraformType = TerraformTemplate.GetTerraformServiceType(SubSection);
+        var exists = await ctx.Project_Resources2
+            .AnyAsync(r => r.ResourceType == terraformType);
 
-    }
-
-    private async void CancelDeletion()
-    {
-        await using var ctx = await _contextFactory.CreateDbContextAsync();
-        var _resourceCheck = await ctx.Project_Resources2
-            .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString()));
-        _resourceCheck.Status = ProjectResourceStatus.Exists.ToString();
-
-        await ctx.SaveChangesAsync();
-        await InvokeAsync(StateHasChanged);
-
-        NavigationManager.NavigateTo(_toolboxPage);
+        if (!exists)
+        {
+            _snackbar.Add(Localizer["Resource not found, redirecting"], Severity.Error);            
+            _navigationManager.NavigateTo(_toolboxPage);
+        }
     }
 
     private async void ConfirmDeletion()
     {
-        if (DeleteConfirmation == null || DeleteConfirmation == "")
+        if (string.IsNullOrEmpty(_deleteConfirmation))
         {
+            _snackbar.Add(Localizer["Please enter a workspace acronym."], Severity.Error);
             _error = "_emptyConfirmation";
         }
-        else if(!DeleteConfirmation.Equals(WorkspaceAcronym))
+        else if(!_deleteConfirmation.Equals(WorkspaceAcronym))
         {
+            _snackbar.Add(Localizer["Incorrect workspace acronym."], Severity.Error);
             _error = "_badConfirmation";
         }
         else
         {
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            var _resourceCheck = await ctx.Project_Resources2
-                .FirstOrDefaultAsync(r => r.Status.Equals(ProjectResourceStatus.PendingDeletion.ToString())); //!
-            _resourceCheck.Status = ProjectResourceStatus.SendingDeletion.ToString();
-
-            await ctx.SaveChangesAsync();
-            await InvokeAsync(StateHasChanged);
-
-            NavigationManager.NavigateTo(_toolboxPage);
+            var workspace = await ctx.Projects
+                .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            
+            var template = new TerraformTemplate(SubSection, TerraformStatus.DeleteRequested);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(workspace, template, currentUser);
+            
+            _snackbar.Add(Localizer["Deletion request has been sent."], Severity.Success);
+            _navigationManager.NavigateTo(_toolboxPage);
         }
-    }
-
-    private string GetLabel(string tool)
-    {
-        return tool switch
-        {
-            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
-            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
-            TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
-            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
-            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
-            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
-            _ => tool
-        };
     }
 }
