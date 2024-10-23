@@ -206,7 +206,9 @@
             var resourceType = TerraformTemplate.GetTerraformServiceType(resource);
             await using var ctx = await _contextFactory.CreateDbContextAsync();
             
-            var exists = await ctx.Project_Resources2.AnyAsync(r => r.ResourceType == resourceType);
+            var exists = await ctx.Project_Resources2
+                .AnyAsync(r => r.ProjectId == _workspace.Project_ID && r.ResourceType == resourceType);
+            
             if (exists)
             {
                 _snackbar.Add(Localizer["{0} is already added to your workspace", GetLabel(resource)], Severity.Info);
