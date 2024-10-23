@@ -169,12 +169,12 @@ public class TerraformService(
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)
     {
         var deletedFilePath = Path.Join(projectPath, $"{templateName}.tf");
-        var content = $"output \"{_terraformModuleStatusOutputName[templateName]}\" {{\n  value = \"deleted\"\n}}";
+        var content = $"output \"{TerraformModuleStatusOutputName[templateName]}\" {{\n  value = \"deleted\"\n}}";
         await File.WriteAllTextAsync(deletedFilePath, content);
         logger.LogInformation("Created deleted file {DeletedFilePath}", deletedFilePath);
     }
     
-    private readonly Dictionary<string, string> _terraformModuleStatusOutputName = new()
+    internal static readonly Dictionary<string, string> TerraformModuleStatusOutputName = new()
     {
         {TerraformTemplate.AzureStorageBlob, TerraformVariables.OutputAzureStorageBlobStatus},
         {TerraformTemplate.AzureDatabricks, TerraformVariables.OutputAzureDatabricksStatus},

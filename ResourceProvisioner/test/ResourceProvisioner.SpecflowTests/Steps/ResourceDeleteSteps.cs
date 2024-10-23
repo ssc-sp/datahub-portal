@@ -107,12 +107,6 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         scenarioContext.Add("resourceProvisionerConfiguration", resourceProvisionerConfiguration);
     }
 
-    [Given(@"a template name of ""(.*)""")]
-    public void GivenATemplateNameOf(string templateName)
-    {
-        scenarioContext.Add("templateName", templateName);
-    }
-
     [Given(@"a few files starting with the template name exist in the project path")]
     public void GivenAFewFilesStartingWithTheTemplateNameExistInTheProjectPath()
     {
@@ -167,5 +161,61 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
             Acronym = acronym
         };
         scenarioContext.Add("terraformWorkspace", terraformWorkspace);
+    }
+
+    [Given(@"a terraform service")]
+    public void GivenATerraformService()
+    {
+        var terraformService = new TerraformService(
+            Substitute.For<ILogger<TerraformService>>(),
+            Substitute.For<ResourceProvisionerConfiguration>(),
+            Substitute.For<IConfiguration>()
+        );
+        
+        scenarioContext.Add("terraformService", terraformService);
+    }
+
+    [Given(@"a project path of ""(.*)""")]
+    public void GivenAProjectPathOf(string pathName)
+    {
+        scenarioContext.Add("projectPath", pathName);
+    }
+
+    [Given(@"a template name of (.*)")]
+    public void GivenATemplateNameOf(string templateName)
+    {
+        scenarioContext.Add("templateName", templateName);
+    }
+
+    [When(@"the WriteDeletedFile method is invoked")]
+    public async Task WhenTheWriteDeletedFileMethodIsInvoked()
+    {
+        var terraformService = scenarioContext.Get<TerraformService>("terraformService");
+        var templateName = scenarioContext.Get<string>("templateName");
+        var projectPath = scenarioContext.Get<string>("projectPath");
+        
+        Directory.CreateDirectory(projectPath);
+        
+        await terraformService.WriteDeletedFile(templateName, projectPath);
+    }
+
+    [Then(@"a \.tf file with the template name should be written to the project path")]
+    public void ThenATfFileWithTheTemplateNameShouldBeWrittenToTheProjectPath()
+    {
+        var projectPath = scenarioContext.Get<string>("projectPath");
+        var templateName = scenarioContext.Get<string>("templateName");
+        
+        File.Exists(Path.Join(projectPath, $"{templateName}.tf")).Should().BeTrue();
+    }
+
+    [Then(@"the file contents should have the module status variable of (.*) and the value of ""(.*)""")]
+    public void ThenTheFileContentsShouldHaveTheModuleStatusVariableOfAndTheValueOf(string templateName, string deleted)
+    {
+        var projectPath = scenarioContext.Get<string>("projectPath");
+        var fileContents = File.ReadAllText(Path.Join(projectPath, $"{templateName}.tf"));
+
+        var moduleStatusName = TerraformService.TerraformModuleStatusOutputName[templateName];
+        
+        fileContents.Should().Contain($"output \"{moduleStatusName}\" {{\n  value = \"deleted\"\n}}");
     }
 }
