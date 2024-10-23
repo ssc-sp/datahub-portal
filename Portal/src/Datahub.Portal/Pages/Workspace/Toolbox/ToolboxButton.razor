@@ -21,6 +21,9 @@
             <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
             @Localizer["Resource is being deleted"]
             break;
+        case TerraformStatus.Deleted:
+            @Localizer["Resource has been deleted"]
+            break;
         case WorkspaceToolboxPage.AvailabilityStatus.Available:
             @Localizer["Add Resource to Workspace"]
             break;

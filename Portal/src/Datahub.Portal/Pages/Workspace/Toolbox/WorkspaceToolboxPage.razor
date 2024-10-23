@@ -62,6 +62,7 @@
                                 case TerraformStatus.CreateRequested:
                                 case TerraformStatus.InProgress:
                                 case TerraformStatus.DeleteRequested:
+                                case TerraformStatus.Deleted:
                                     <ToolboxButton Status="@status" Disabled="@true"/>
                                     break;
                                 case TerraformStatus.Completed:
