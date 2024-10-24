@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
+@using Datahub.Shared
 @using Datahub.Shared.Entities
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Portal.Pages.Workspace.Repositories
@@ -35,7 +36,7 @@
                         @foreach (var resource in _resources)
                         {
                             var found = _cardComponents.ContainsKey(resource.ResourceType);
-                            if (found)
+                            if (found && resource.Status != TerraformStatus.Deleted)
                             {
                                 var parameters = new Dictionary<string, object>
                                 {
