@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Model.Achievements;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Newtonsoft.Json;
 
@@ -37,6 +38,13 @@ public class Project_Resources2
 
     public Datahub_Project Project { get; set; }
 
+    /// <summary>
+    /// Gets or sets the status of the project resource.
+    /// The status represents the current state of the terraform for the resource within a workspace.
+    ///
+    /// See <see cref="TerraformStatus"/> for possible values.
+    /// </summary>
+    // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Status { get; set; }
     public DateTime? UpdatedAt { get; set; }
     public int? UpdatedById { get; set; }
