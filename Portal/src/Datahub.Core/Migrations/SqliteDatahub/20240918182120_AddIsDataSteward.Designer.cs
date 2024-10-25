@@ -4,20 +4,23 @@ using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
 
-namespace Datahub.Core.Migrations
+namespace Datahub.Core.Migrations.SqliteDatahub
 {
-    [DbContext(typeof(SqlServerDatahubContext))]
-    partial class SqlServerDatahubContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(SqliteDatahubContext))]
+    [Migration("20240918182120_AddIsDataSteward")]
+    partial class AddIsDataSteward
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.7")
+                .HasAnnotation("ProductVersion", "8.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1231,102 +1234,6 @@ namespace Datahub.Core.Migrations
                     b.ToTable("MiscStoredObjects");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("AreaOfScience")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CBRID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CBRName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("DepartmentName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FinancialAuthorityCostCentre")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FinancialAuthorityFirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FinancialAuthorityLastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GcHostingId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("GeneratesInfoBusinessValue")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Keywords")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LeadEmail")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LeadFirstName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LeadLastName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ProjectDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("ProjectEndDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("ProjectStartDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("ProjectTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("RetentionPeriodYears")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SecurityClassification")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Subject")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WorkspaceDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WorkspaceIdentifier")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("WorkspaceTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("GCHostingWorkspaceDetails", (string)null);
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.OnboardingApp", b =>
                 {
                     b.Property<int>("Application_ID")
@@ -1571,9 +1478,6 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
-
-                    b.Property<bool>("PreventAutoDelete")
-                        .HasColumnType("bit");
 
                     b.Property<string>("Project_Acronym_CD")
                         .IsRequired()
@@ -2030,26 +1934,32 @@ namespace Datahub.Core.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Revoke the user's access to the project's private resources",
+                            Description = "Revoke the user's access to the workspace",
                             Name = "Remove User"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Head of the business unit and bears business responsibility for successful implementation and availability",
+                            Description = "Head of the workspace and bears business responsibility for success of the workspace",
                             Name = "Workspace Lead"
                         },
                         new
                         {
                             Id = 3,
-                            Description = "Management authority within the project with direct supervision over the project resources and deliverables",
+                            Description = "Management authority within the workspace with direct supervision over the cloud resourcing and users",
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 4,
-                            Description = "Responsible for contributing to the overall project objectives and deliverables to ensure success",
+                            Description = "Responsible for contributing to the overall workspace objectives and deliverables",
                             Name = "Collaborator"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            Description = "Responsible for controlling the quality of data and ensuring data policies are followed",
+                            Name = "Data Steward"
                         },
                         new
                         {
@@ -2573,17 +2483,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("WebForm");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithOne("GCHostingWorkspaceDetails")
-                        .HasForeignKey("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.Navigation("Datahub_Project");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "CreatedBy")
@@ -2877,8 +2776,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Comments");
 
                     b.Navigation("Credits");
-
-                    b.Navigation("GCHostingWorkspaceDetails");
 
                     b.Navigation("PBI_License_Request");
 
