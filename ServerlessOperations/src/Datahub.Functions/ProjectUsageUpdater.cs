@@ -32,6 +32,8 @@ public class ProjectUsageUpdater(
 {
     private readonly ILogger<ProjectUsageUpdater> _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
     private readonly AzureConfig _azConfig = new(config);
+    public bool Mock = false;
+    public List<DailyServiceCost> MockCosts { get; set; } = new(); 
 
 
     [Function("ProjectUsageUpdater")]
@@ -151,6 +153,10 @@ public class ProjectUsageUpdater(
 
     internal async Task<List<DailyServiceCost>> FromBlob(string fileName)
     {
+        if (Mock)
+        {
+            return MockCosts;
+        }
         _logger.LogInformation("Downloading from blob {FileName}", fileName);
         var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
