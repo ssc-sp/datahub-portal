@@ -6,16 +6,24 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 
+<EditForm Model="@loginModel">
+
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
 <MudStack Class="my-8 py-8">
     <MudStack AlignItems="AlignItems.Start" Class="mt-4">
-        <p>
+        <p style="width:100%">
             <MudText Typo="Typo.body1" Class="text-center">
                 <strong>
                     @Localizer["Please login to continue"]:
                 </strong>
-                <MudButton Class="mx-4 px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
+                <div class="form-group">
+                    <MudStack Class="form-group flex-item" AlignItems="AlignItems.Center">
+                        <MudTextField T="string" id="Email" Label="@Localizer["Email address"]"
+                                          @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="my-2" FullWidth="true" />
+                    </MudStack>
+                </div>
+                <MudButton Class="px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
                     <MudText>
                         @Localizer["Login"]
                     </MudText>
@@ -30,21 +38,37 @@
         </p>
     </MudStack>
 </MudStack>
-
+</EditForm>
 @code {
+    [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
-    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
+    private LoginModel loginModel = new LoginModel();
 
-    private void HandleLogin()
+    internal async void HandleLogin()
     {
-        //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
-        if (string.IsNullOrWhiteSpace(redirectUri))
+        var loginHint = loginModel.Email;
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
+        if (existingUser == null || existingUser.IsDeleted)
         {
-            redirectUri = _navigationManager.BaseUri;
+            _navigationManager.NavigateTo($"/register?email={loginHint}");
         }
+        else
+        {
+            if (existingUser.IsLocked)
+            {
+                _navigationManager.NavigateTo("/locked");
+                return;
+            }
 
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
-        _navigationManager.NavigateTo(url, true);
+            //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
+            if (string.IsNullOrWhiteSpace(redirectUri))
+            {
+                redirectUri = _navigationManager.BaseUri;
+            }
+
+            var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
+            _navigationManager.NavigateTo(url, true);
+        }
     }
 
     protected override async Task OnInitializedAsync()
@@ -61,5 +85,8 @@
             HandleLogin();
         }
     }
-
+    public class LoginModel
+    {
+        public string Email { get; set; }
+    }
 }
