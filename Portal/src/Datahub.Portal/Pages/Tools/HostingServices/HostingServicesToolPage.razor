@@ -1,0 +1,154 @@
+﻿@using Datahub.Core.Model.Projects;
+@using Datahub.Core.Model.Onboarding;
+@using System.Text.Json;
+
+@inject NavigationManager NavigationManager
+
+<MudText Typo="Typo.h2" Class="mb-6">
+    @Localizer["Hosting Services Test Call"]
+</MudText>
+<MudText Typo="Typo.body1">
+    @Localizer["This page is used to test the hosting services endpoint."]
+</MudText>
+<MudForm>
+    <MudTextField T="string" @bind-Value="GcHostingId" Label="GC Hosting ID" Variant="Variant.Outlined" />
+    <MudNumericField @bind-Value="Id" Label="ID" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="LeadFirstName" Label="Lead First Name" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="LeadLastName" Label="Lead Last Name" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="DepartmentName" Label="Department Name" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="LeadEmail" Label="Lead Email" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityFirstName" Label="Financial Authority First Name" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityLastName" Label="Financial Authority Last Name" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityCostCentre" Label="Financial Authority Cost Centre" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="WorkspaceTitle" Label="Workspace Title" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="WorkspaceDescription" Label="Workspace Description" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="WorkspaceIdentifier" Label="Workspace Identifier" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="Subject" Label="Subject" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="Keywords" Label="Keywords" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="AreaOfScience" Label="Area Of Science" Variant="Variant.Outlined" />
+    <MudNumericField @bind-Value="RetentionPeriodYears" Label="Retention Period Years" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="SecurityClassification" Label="Security Classification" Variant="Variant.Outlined" />
+    <MudCheckBox T="bool" @bind-Value="GeneratesInfoBusinessValue" Label="Generates Info Business Value" />
+    <MudTextField T="string" @bind-Value="ProjectTitle" Label="Project Title" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="ProjectDescription" Label="Project Description" Variant="Variant.Outlined" />
+    <MudTextField T="DateTime" @bind-Value="ProjectStartDate" Label="Project Start Date" Variant="Variant.Outlined" />
+    <MudTextField T="DateTime" @bind-Value="ProjectEndDate" Label="Project End Date" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="CBRName" Label="CBR Name" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="CBRID" Label="CBR ID" Variant="Variant.Outlined" />
+</MudForm>
+<DHButton OnClick="TestCall" Color="Color.Primary" Variant="Variant.Filled">
+    @Localizer["Test Call"]
+</DHButton>
+<br/>
+@if (_running)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
+}
+else {
+    <MudText Typo="Typo.body1" Visible="!_running">
+        @Localizer["Response from API: "] @_result
+    </MudText>
+}
+
+@code {
+    private string _result = "Click the button above to test the call";
+    private bool _running = false;
+
+    // Form fields
+    public string GcHostingId { get; set; }
+    public int Id { get; set; }
+    public string LeadFirstName { get; set; }
+    public string LeadLastName { get; set; }
+    public string DepartmentName { get; set; }
+    public string LeadEmail { get; set; }
+    public string FinancialAuthorityFirstName { get; set; }
+    public string FinancialAuthorityLastName { get; set; }
+    public string FinancialAuthorityCostCentre { get; set; }
+    public string WorkspaceTitle { get; set; }
+    public string WorkspaceDescription { get; set; }
+    public string WorkspaceIdentifier { get; set; }
+    public string Subject { get; set; }
+    public string Keywords { get; set; }
+    public string AreaOfScience { get; set; }
+    public int RetentionPeriodYears { get; set; }
+    public string SecurityClassification { get; set; }
+    public bool GeneratesInfoBusinessValue { get; set; } = false;
+    public string ProjectTitle { get; set; }
+    public string ProjectDescription { get; set; }
+    public DateTime ProjectStartDate { get; set; }
+    public DateTime ProjectEndDate { get; set; }
+    public string CBRName { get; set; }
+    public string CBRID { get; set; }
+    public Datahub_Project DatahubProject { get; set; } = null;
+
+    /// <summary>
+    /// Test the call to the hosting services post endpoint
+    /// </summary>
+    private async Task TestCall()
+    {
+        _running = true;
+
+        GCHostingWorkspaceDetails project = BuildGCHostingWorkspaceDetailsObject();
+        string data = JsonSerializer.Serialize(project);
+
+        string baseUri = NavigationManager.BaseUri;
+
+        using var httpClient = new HttpClient();
+        try
+        {
+            var response = await httpClient.PostAsJsonAsync($"{baseUri}api/anon-echo", data);
+
+            // Handle the response
+            if (response.IsSuccessStatusCode)
+            {
+                _result = await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                _result = $"Error: {response.StatusCode}";
+            }
+        }
+        catch (Exception ex)
+        {
+            _result = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            _running = false;
+        }
+    }
+
+    /// <summary>
+    /// Build the GCHostingWorkspaceDetails object from the form fields to send to the endpoint
+    /// </summary>
+    private GCHostingWorkspaceDetails BuildGCHostingWorkspaceDetailsObject()
+    {
+        return new GCHostingWorkspaceDetails
+        {
+            GcHostingId = GcHostingId,
+            Id = Id,
+            LeadFirstName = LeadFirstName,
+            LeadLastName = LeadLastName,
+            DepartmentName = DepartmentName,
+            LeadEmail = LeadEmail,
+            FinancialAuthorityFirstName = FinancialAuthorityFirstName,
+            FinancialAuthorityLastName = FinancialAuthorityLastName,
+            FinancialAuthorityCostCentre = FinancialAuthorityCostCentre,
+            WorkspaceTitle = WorkspaceTitle,
+            WorkspaceDescription = WorkspaceDescription,
+            WorkspaceIdentifier = WorkspaceIdentifier,
+            Subject = Subject,
+            Keywords = Keywords,
+            AreaOfScience = AreaOfScience,
+            RetentionPeriodYears = RetentionPeriodYears,
+            SecurityClassification = SecurityClassification,
+            GeneratesInfoBusinessValue = GeneratesInfoBusinessValue,
+            ProjectTitle = ProjectTitle,
+            ProjectDescription = ProjectDescription,
+            ProjectStartDate = ProjectStartDate,
+            ProjectEndDate = ProjectEndDate,
+            CBRName = CBRName,
+            CBRID = CBRID
+        };
+    }
+}
