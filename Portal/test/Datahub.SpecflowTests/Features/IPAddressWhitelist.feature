@@ -1,5 +1,10 @@
 Feature: IP Address Whitelist
 Allows a user to add an IP address to the whitelist of a cloud resource
+    
+    Scenario: The subscription id fetching the postgres database should use the workspace subscription id
+        Given a workspace and an azure subscription id for an DatabaseIpWhitelistTable component
+        When the workspace subscription id is retrieved
+        Then the workspace subscription id should be the same as the azure subscription id
 
 #    Scenario: Add my IP address to the whitelist
 #        Given a current user with a name of <name>
