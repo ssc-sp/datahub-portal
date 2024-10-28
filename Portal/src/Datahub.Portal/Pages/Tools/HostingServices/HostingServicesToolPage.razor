@@ -96,7 +96,7 @@ else {
         using var httpClient = new HttpClient();
         try
         {
-            var response = await httpClient.PostAsJsonAsync($"{baseUri}api/anon-echo", data);
+            var response = await httpClient.PostAsJsonAsync($"{baseUri}api/create-workspace", data);
 
             // Handle the response
             if (response.IsSuccessStatusCode)
