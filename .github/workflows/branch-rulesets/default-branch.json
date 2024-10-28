@@ -54,7 +54,7 @@
           "required_status_checks": [
             {
               "context": "ssc-sp.datahub-portal",
-              "integration_id": 9426
+              "integration_id": null
             }
           ]
         }

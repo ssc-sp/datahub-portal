@@ -1,25 +1,18 @@
 #nullable enable
-using System.Transactions;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Enums;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
-using Datahub.Core.Model.Projects.Configuration;
-using Datahub.Core.Model.Subscriptions;
-using Datahub.Core.Services;
 using Datahub.Core.Services.CatalogSearch;
-using Datahub.Infrastructure.Services.Security;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
@@ -161,7 +154,7 @@ public class ProjectCreationService(
             ProjectId = project.Project_ID,
             RequestedById = currentPortalUser.Id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-            Status = TerraformTemplate.TemplateStatus.CreateRequested
+            Status = TerraformStatus.CreateRequested
         };
 
         await context.Project_Resources2.AddAsync(newResource);
@@ -183,7 +176,7 @@ public class ProjectCreationService(
             Sector_Name = sectorName,
             Contact_List = portalUser.Email,
             Project_Admin = portalUser.Email,
-            Project_Phase = TerraformOutputStatus.PendingApproval,
+            Project_Phase = TerraformStatus.CreateRequested,
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
             Project_Budget = portalConfiguration.DefaultProjectBudget,

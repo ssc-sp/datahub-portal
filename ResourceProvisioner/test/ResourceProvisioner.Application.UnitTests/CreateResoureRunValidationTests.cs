@@ -1,3 +1,4 @@
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using FluentAssertions;
@@ -34,7 +35,7 @@ public class CreateResourceRunValidationTests
             },
             Templates = new List<TerraformTemplate>()
             {
-                new(TerraformTemplate.NewProjectTemplate, TerraformTemplate.TemplateStatus.CreateRequested)
+                new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested)
             }
         };
         var validator = new CreateResourceRunCommandValidator();

@@ -1,7 +1,10 @@
 ﻿using System.Text.Json;
+using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.Resources.Mocking;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.ResourceGroups;
@@ -14,6 +17,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ExceptionExtensions;
+using NSubstitute.Extensions;
 using Reqnroll;
 using Reqnroll.BoDi;
 
@@ -39,22 +44,16 @@ namespace Datahub.SpecflowTests.Hooks
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
-
-            var credential = new ClientSecretCredential(datahubPortalConfiguration.AzureAd.TenantId,
-                datahubPortalConfiguration.AzureAd.ClientId, datahubPortalConfiguration.AzureAd.ClientSecret);
-            var armOptions = new ArmClientOptions
-            {
-                Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
-            };
-            var armClient = new ArmClient(credential, datahubPortalConfiguration.AzureAd.SubscriptionId, armOptions);
+            var armClient = Substitute.For<ArmClient>(); 
             var logger = Substitute.For<ILogger<WorkspaceResourceGroupsManagementService>>();
             var config = Substitute.For<IConfiguration>();
+            MockArmMethods(armClient);
 
             var workspaceRgManagementService =
                 new WorkspaceResourceGroupsManagementService(armClient, logger, dbContextFactory, config);
 
             config["DataHub_ENVNAME"].Returns("test");
-            
+
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs<IWorkspaceResourceGroupsManagementService>(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
@@ -69,6 +68,7 @@ namespace Datahub.SpecflowTests.Hooks
             using var context = dbContextFactory.CreateDbContext();
             context.Database.EnsureDeleted();
         }
+
         private void SeedDb(IDbContextFactory<DatahubProjectDBContext> contextFactory)
         {
             using var context = contextFactory.CreateDbContext();
@@ -91,7 +91,7 @@ namespace Datahub.SpecflowTests.Hooks
                 new()
                 {
                     Project_Name = Testing.WorkspaceName2,
-                    Project_Acronym_CD = Testing.ExistingWorkspaceAcronym,
+                    Project_Acronym_CD = Testing.WorkspaceAcronym2,
                     DatahubAzureSubscription = sub
                 }
             };
@@ -101,7 +101,7 @@ namespace Datahub.SpecflowTests.Hooks
             context.SaveChanges();
 
             var project1 = projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
-            var project2 = projects.First(p => p.Project_Acronym_CD == Testing.ExistingWorkspaceAcronym);
+            var project2 = projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym2);
             var resourceTypes = new List<string>
             {
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
@@ -114,7 +114,7 @@ namespace Datahub.SpecflowTests.Hooks
                 {
                     ProjectId = project1.Project_ID,
                     CreatedAt = DateTime.UtcNow.AddDays(-1),
-                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ExistingTestRg}\"}}",
+                    JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName1}\"}}",
                     ResourceType = resource
                 });
             }
@@ -185,6 +185,34 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.Project_Storage_Avgs.Add(projectAverage);
             context.SaveChanges();
+        }
+
+        private async Task MockArmMethods(ArmClient armClient)
+        {
+            var rg1 = Substitute.For<ResourceGroupResource>();
+            var rg1Id = new ResourceIdentifier($"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName1}");
+            var rg1Data = ResourceManagerModelFactory.ResourceGroupData(name : Testing.ResourceGroupName1);
+            var rg2 = Substitute.For<ResourceGroupResource>();
+            var rg2Id = new ResourceIdentifier($"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName2}");
+            var rg2Data = ResourceManagerModelFactory.ResourceGroupData(name : Testing.ResourceGroupName2);
+            rg1.HasData.Returns(true);
+            rg1.Data.Returns(rg1Data);
+            rg1.Id.Returns(rg1Id);
+            rg2.HasData.Returns(true);
+            rg2.Data.Returns(rg2Data);
+            rg2.Id.Returns(rg2Id);
+
+            var sub = Substitute.For<SubscriptionResource>();
+            var rgCollection = Substitute.For<ResourceGroupCollection>();
+            var asyncPageable = Substitute.For<AsyncPageable<ResourceGroupResource>>();
+            var page = Page<ResourceGroupResource>.FromValues(new[] { rg1, rg2 }, null, Substitute.For<Response>());
+            var asyncEnumeratorPage = (new List<Page<ResourceGroupResource>> { page }).ToAsyncEnumerable();
+            asyncPageable.AsPages().Returns(asyncEnumeratorPage);
+            rgCollection.GetAllAsync().Returns(asyncPageable);
+            sub.GetResourceGroups().Returns(rgCollection);
+            armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{Testing.WorkspaceSubscriptionGuid}")).Returns(sub);
+            armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{Testing.InvalidSubscriptionId}"))
+                .Throws(new Exception());
         }
     }
 }

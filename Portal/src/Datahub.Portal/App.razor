@@ -83,8 +83,13 @@
                 var currentUrl = new Uri(_navManager.Uri).GetComponents(
                     UriComponents.PathAndQuery,
                     UriFormat.Unescaped);
-                var query = $"?redirectUrl={Uri.EscapeDataString(currentUrl)}";
-                _navManager.NavigateTo($"/language-langue{query}");
+
+                if (!currentUrl.StartsWith(PageRoutes.LanguageSelection_Bilingual))
+                {
+                    var query = $"?redirectUrl={Uri.EscapeDataString(currentUrl)}";
+                    _navManager.NavigateTo($"{PageRoutes.LanguageSelection_Bilingual}{query}");
+                    
+                }
             }
             else
             {
