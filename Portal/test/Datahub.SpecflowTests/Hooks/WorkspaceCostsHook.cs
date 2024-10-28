@@ -178,22 +178,6 @@ namespace Datahub.SpecflowTests.Hooks
                     _ => TotalQuery()
                 });
 
-            var mockGranularQuery =
-                workspaceCostsManagementService.BuildGranularQueryDefinition(
-                    new List<string> { Testing.ResourceGroupName1 },
-                    Testing.Dates.First(), Testing.Dates.Last());
-            var mockTotalQuery =
-                workspaceCostsManagementService.BuildTotalsQueryDefinition(
-                    new List<string> { Testing.ResourceGroupName1 },
-                    Testing.Dates.First(), Testing.Dates.Last());
-            armClient
-                .UsageQueryAsync(mockRgId1, mockGranularQuery)
-                .ReturnsForAnyArgs(c => c.ArgAt<QueryDefinition>(1) switch
-                {
-                    { Dataset: { } dataset } when dataset.Granularity == GranularityType.Daily => GranularQuery(),
-                    _ => TotalQuery()
-                });;
-
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs<IWorkspaceCostManagementService>(workspaceCostsManagementService);
