@@ -135,38 +135,3 @@ public class ErrorBoundaryTests
         _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
     }
 }
-public class FakeNavigationManager : NavigationManager
-{
-    public event EventHandler<LocationChangedEventArgs> LocationChanged;
-
-    public FakeNavigationManager()
-    {
-        Initialize("https://example.com/", "https://example.com/");
-    }
-
-    public void SimulateLocationChange(string newUri)
-    {
-        bool IsNavigationIntercepted = false;
-        var args = new LocationChangedEventArgs(newUri, IsNavigationIntercepted);
-        LocationChanged?.Invoke(this, args);
-    }
-}
-public class FakePortalUserTelemetryService : IPortalUserTelemetryService
-{
-    public event EventHandler<AchievementsEarnedEventArgs> OnAchievementsEarned;
-
-    public FakePortalUserTelemetryService()
-    {
-    }
-
-    public void SimulatechievementsEarned(List<string> events)
-    { 
-        var args = new AchievementsEarnedEventArgs(events, false);
-        OnAchievementsEarned?.Invoke(this, args);
-    }
-
-    public Task LogTelemetryEvent(string eventName)
-    {
-        throw new NotImplementedException();
-    }
-}

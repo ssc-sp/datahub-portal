@@ -1,10 +1,20 @@
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services
+@using Datahub.Core.Model.Achievements
+@using Datahub.Infrastructure.Extensions
+@using Datahub.Infrastructure.Queues.Messages
+@using Datahub.Shared.Configuration
+@using MassTransit
+@using Newtonsoft.Json
 
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
+@inject ISendEndpointProvider _sendEndpointProvider
 @inject NavigationManager _navigationManager
+@inject ISnackbar _snackbar
 
 @page "/register"
 @page "/inscription"
@@ -18,6 +28,7 @@
                           Label=@_emailFieldText
                           Required
                           Variant="Variant.Outlined"
+                          @bind-Value="@_email"
                           RequiredError=@Localizer["Government of Canada Email is required"]
                           Validation=@(new Func<string, string>(EmailValidation))/>
 
@@ -54,11 +65,14 @@
                                 </MudText>
                                 <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
                             </MudButton>
-                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" hidden="@(!_failed)" Class="mt-2" Style="color: #000">
-                                <MudText>
-                                    @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
-                                </MudText>
-                            </MudAlert>
+                            @if (_timedOut)
+                            {
+                                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mt-2" Style="color: #000">
+                                    <MudText>
+                                        @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
+                                    </MudText>
+                                </MudAlert>
+                            }
                         }
                         else
                         {
@@ -85,12 +99,14 @@
 
 
 @code {
+    [Parameter] [SupplyParameterFromQuery] public string Email { get; set; }
 
     private string _email;
     private string _emailFieldText { get; set; }
     private string _comment;
     private bool _success = true;
-    private bool _failed = false;
+    private bool _timedOut;
+    private bool _wasDeleted = false;
     private bool _isRegistering;
     private string[] _errors = { };
     private MudForm _form;
@@ -98,6 +114,10 @@
     protected override void OnInitialized()
     {
         _emailFieldText = Localizer["Government of Canada Email"];
+        if (!string.IsNullOrEmpty(Email))
+        {
+            _email = Email;
+        }
     }
 
     private string EmailValidation(string email)
@@ -108,42 +128,102 @@
         return validationString;
     }
 
-    private async Task DisplayFailedMessage(int time = 15)
-    {
-        _failed = false;
-        StateHasChanged();
-        await Task.Delay(time * 1000);
-        _failed = true;
-        StateHasChanged();
-    }
 
-    private async Task HandleValidSubmit()
+    internal async Task HandleValidSubmit()
     {
         _isRegistering = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
+        var timeoutTask = Task.Delay(20000);
+        var registrationTask = Registration();
 
-        await (DisplayFailedMessage(20));
+        if (await Task.WhenAny(registrationTask, timeoutTask) == timeoutTask)
+        {
+            _logger.LogWarning("Registration for user timed out");
+            _timedOut = true;
+        }
+        else
+        {
+            _isRegistering = false;
+        }
 
-        _logger.LogInformation("Saving registration details for user with email: {Email}", _email);
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    private async Task Registration()
+    {
+        await Task.Delay(3000);
+        
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
+        if (existingUser != null)
+        {
+            _wasDeleted = existingUser.IsDeleted;
+        }
+        
+        _logger.LogInformation("Saving registration details for user");
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
-        _logger.LogInformation("Attempting to register user with email: {Email}", _email);
+        _logger.LogInformation("Attempting to register user");
         var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, default);
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
-            _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
-            _navigationManager.NavigateTo("/login");
+            if (_wasDeleted)
+            {
+                await _userInformationService.HandleDeletedUserRegistration(_email, userId);
+                var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
+                if (projectList != null && projectList.Count>0)
+                {
+                    foreach (var projectAcronym in projectList)
+                    {
+                        var projectLead = _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
+                        if (projectLead?.Result != null)
+                        {
+                            await NotifyWorkspaceAdmin(projectLead.Result?.PortalUser, projectAcronym, existingUser.DisplayName);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
+                        }
+                        await _projectUserManagementService.RunWorkspaceSync(projectAcronym);
+                    }
+                }
+            }
+            _logger.LogInformation("User has been registered");
+            _snackbar.Add(Localizer["Registration successful! Please login to continue"], Severity.Success);
+            _navigationManager.NavigateTo(Localizer["/login"]);
         }
         else
         {
-            _logger.LogWarning("User with email: {Email} was not registered", _email);
-            _failed = true;
-            _success = false;
+            _logger.LogWarning("User could not be registered");
+            _timedOut = true;
         }
+    }
 
-        _isRegistering = false;
-        StateHasChanged();
+    private async Task NotifyWorkspaceAdmin(PortalUser workspaceLead, string projectAcronym, string userName)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            { "WorkspaceAcronym", projectAcronym },
+            { "LeadName", workspaceLead.DisplayName },
+            { "UserName", userName }
+        };
+
+        var request = new EmailRequestMessage
+        {
+            To = new List<string> { workspaceLead.Email },
+            Subject = "FSDH Account Reactivation Notification",
+            Body = JsonConvert.SerializeObject(parameters)
+        };
+
+        try
+        {
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.EmailNotificationQueueName, request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Sending email notification to workspace lead {leadName} failed for user {userName}. Error: {ex}", workspaceLead.DisplayName, userName, ex.Message);
+        }
     }
 
 }
