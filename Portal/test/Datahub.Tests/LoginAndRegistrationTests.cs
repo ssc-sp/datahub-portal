@@ -90,7 +90,9 @@ namespace Datahub.Tests
         {
             var workSpaces = new[] { "AAA", "BBB" };
             _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
-            _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test", "test"));
+            _stringLocalizerMock.Setup(x => x["/locked"]).Returns(new LocalizedString("/locked", "/locked"));
+            _stringLocalizerMock.Setup(x => x["/register"]).Returns(new LocalizedString("/register", "/register"));
+            _stringLocalizerMock.Setup(x => x["/login"]).Returns(new LocalizedString("/login", "/login"));
             _projectUserManagementServiceMock.Setup(x => x.GetProjectListForPortalUser(It.IsAny<int>()))
                 .ReturnsAsync(new List<string>(workSpaces));
             _projectUserManagementServiceMock.Setup(x => x.RunWorkspaceSync(It.IsAny<string>()))

@@ -132,7 +132,7 @@
     internal async Task HandleValidSubmit()
     {
         _isRegistering = true;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
         var timeoutTask = Task.Delay(20000);
         var registrationTask = Registration();
 
@@ -146,12 +146,19 @@
             _isRegistering = false;
         }
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
     
     private async Task Registration()
     {
         await Task.Delay(3000);
+        
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
+        if (existingUser != null)
+        {
+            _wasDeleted = existingUser.IsDeleted;
+        }
+        
         _logger.LogInformation("Saving registration details for user");
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
@@ -160,6 +167,27 @@
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
+            if (_wasDeleted)
+            {
+                await _userInformationService.HandleDeletedUserRegistration(_email, userId);
+                var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
+                if (projectList != null && projectList.Count>0)
+                {
+                    foreach (var projectAcronym in projectList)
+                    {
+                        var projectLead = _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
+                        if (projectLead?.Result != null)
+                        {
+                            await NotifyWorkspaceAdmin(projectLead.Result?.PortalUser, projectAcronym, existingUser.DisplayName);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
+                        }
+                        await _projectUserManagementService.RunWorkspaceSync(projectAcronym);
+                    }
+                }
+            }
             _logger.LogInformation("User has been registered");
             _snackbar.Add(Localizer["Registration successful! Please login to continue"], Severity.Success);
             _navigationManager.NavigateTo(Localizer["/login"]);
