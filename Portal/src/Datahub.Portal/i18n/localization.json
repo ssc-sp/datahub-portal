@@ -1971,5 +1971,8 @@
   "Changes to workspace have been saved": "Changes to workspace have been saved",
   "Queued Terraform update for workspace changes": "Queued Terraform update for workspace changes",
   "Prevent auto-delete": "Prevent auto-delete",
-  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget"
+  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget",
+  "Email is required": "Email is required",
+  "Invalid email": "Invalid email",
+  "Logging in...": "Logging in..."
 }

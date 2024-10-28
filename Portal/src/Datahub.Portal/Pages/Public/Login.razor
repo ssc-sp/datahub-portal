@@ -1,34 +1,31 @@
 @page "/login"
 @page "/connexion"
 @using System.ComponentModel.DataAnnotations
-@using Datahub.Application.Services.UserManagement
+@using System.Text.RegularExpressions
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 
-<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-    <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
-    <DataAnnotationsValidator/>
-    <ValidationSummary/>
-    <MudStack AlignItems="AlignItems.Start" Class="my-8 py-8">
+<PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin" >
+    <MudStack AlignItems="AlignItems.Start" Class="my-8" Style="width: 100%">
         <MudText Typo="Typo.body1" Class="text-center">
             <strong>
                 @Localizer["Please login to continue"]:
             </strong>
         </MudText>
-        <MudStack Class="form-group" AlignItems="AlignItems.Center">
-            <MudTextField T="string" id="Email" Label="@Localizer["Email address"]" InputType="InputType.Email"
-                          @bind-Value="loginModel.Email" Variant="Variant.Outlined" Class="my-2" FullWidth="true"/>
-        </MudStack>
+        <div class="form-group" style="width: 100%">
+            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined" @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true" RequiredError="@Localizer["Email is required"]" FullWidth="true"/>
+        </div>
         <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_loggingIn">
             <MudText>
-                @(_loggingIn ? Localizer["Logging in..."]: Localizer["Login"])
+                @(_loggingIn ? Localizer["Logging in..."] : Localizer["Login"])
             </MudText>
         </MudButton>
         <MudText Typo="Typo.body1">
             @Localizer["Don't have an account?"]
-            <MudLink Href="/register" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
+            <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
         </MudText>
     </MudStack>
 </EditForm>
@@ -37,7 +34,6 @@
     [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private LoginModel loginModel = new LoginModel();
-    private static string _emailError { get; set; }
     private bool _loggingIn;
 
     internal async void HandleLogin()
@@ -47,13 +43,13 @@
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
         if (existingUser == null || existingUser.IsDeleted)
         {
-            _navigationManager.NavigateTo($"/register?email={loginHint}");
+            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
         }
         else
         {
             if (existingUser.IsLocked)
             {
-                _navigationManager.NavigateTo("/locked");
+                _navigationManager.NavigateTo(Localizer["/locked"]);
                 return;
             }
 
@@ -72,7 +68,6 @@
     {
         await base.OnInitializedAsync();
 
-        _emailError = Localizer["test"];
         var user = await _userInformationService.GetAuthenticatedUser(true);
         if (user.Identity?.IsAuthenticated == true)
         {
@@ -86,7 +81,6 @@
 
     public class LoginModel
     {
-        [EmailAddress(ErrorMessage = _emailError)]
         public string Email { get; set; }
     }
 

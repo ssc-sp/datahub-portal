@@ -32,6 +32,7 @@
                           Label=@_emailFieldText
                           Required
                           Variant="Variant.Outlined"
+                          @bind-Value="@_email"
                           RequiredError=@Localizer["Government of Canada Email is required"]
                           Validation=@(new Func<string, string>(EmailValidation))/>
 
@@ -99,7 +100,7 @@
 
 
 @code {
-    [Parameter][SupplyParameterFromQuery] public string Email { get; set; }
+    [Parameter] [SupplyParameterFromQuery] public string Email { get; set; }
 
     private string _email;
     private string _emailFieldText { get; set; }
@@ -162,7 +163,7 @@
             {
                 await _userInformationService.HandleDeletedUserRegistration(_email, userId);
                 var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
-                if (projectList != null && projectList.Count>0)
+                if (projectList != null && projectList.Count > 0)
                 {
                     foreach (var projectAcronym in projectList)
                     {
@@ -175,10 +176,12 @@
                         {
                             _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
                         }
+
                         await _projectUserManagementService.RunWorkspaceSync(projectAcronym);
                     }
                 }
             }
+
             _logger.LogInformation("User with email: {Email} has been registered with id: {UserId}", _email, userId);
             _navigationManager.NavigateTo("/login");
         }
@@ -197,16 +200,16 @@
     {
         var parameters = new Dictionary<string, string>
         {
-            { "WorkspaceAcronym", projectAcronym},
+            { "WorkspaceAcronym", projectAcronym },
             { "LeadName", workspaceLead.DisplayName },
             { "UserName", userName }
         };
-         
+
         var request = new EmailRequestMessage
-            {
-                To = new List<string> { workspaceLead.Email },
-                Subject = "FSDH Account Reactivation Notification",
-                Body = JsonConvert.SerializeObject(parameters)
+        {
+            To = new List<string> { workspaceLead.Email },
+            Subject = "FSDH Account Reactivation Notification",
+            Body = JsonConvert.SerializeObject(parameters)
         };
 
         try
@@ -219,4 +222,5 @@
             _logger.LogError("Sending email notification to workspace lead {leadName} failed for user {userName}. Error: {ex}", workspaceLead.DisplayName, userName, ex.Message);
         }
     }
+
 }

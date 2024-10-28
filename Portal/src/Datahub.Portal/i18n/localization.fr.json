@@ -2909,5 +2909,8 @@
   "Changes to workspace have been saved": "Les modifications apportées à l'espace de travail ont été enregistrées",
   "Queued Terraform update for workspace changes": "Mise à jour Terraform enfiler pour les modifications de l'espace de travail",
   "Prevent auto-delete": "Empêcher la suppression automatique",
-  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget"
+  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
+  "Email is required": "L'adresse courriel est requise",
+  "Invalid email": "Courriel invalide",
+  "Logging in...": "Connexion..."
 }
