@@ -12,7 +12,13 @@ public interface IReverseProxyConfigService
 
     List<(string Acronym, RouteConfig Route, ClusterConfig Cluster)> GetAllConfigurationFromProjects();
 
-    string BuildWebAppURL(string acronym);
+    /// <summary>
+    /// Build the web app URL for the given acronym
+    /// </summary>
+    /// <param name="acronym">Workspace acronym</param>
+    /// <param name="routeInfo">the trailing "/" cannot be included when specifying the route info for yarp</param>
+    /// <returns>relative path</returns>
+    string BuildWebAppURL(string acronym, bool routeInfo = false);
     
     string WebAppPrefix { get; }
 }

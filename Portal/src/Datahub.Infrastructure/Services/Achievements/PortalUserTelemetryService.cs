@@ -75,7 +75,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
             EventDate = DateTime.UtcNow
         });
 
-        await ctx.TrackSaveChangesAsync(auditingService);
+        await ctx.SaveChangesAsync();
 
         // report the new achievements
         if (newAchievements.Any())
