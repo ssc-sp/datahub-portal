@@ -146,7 +146,7 @@ public class HostingServicesController : ControllerBase
         temp.Keywords = input.Keywords;
         temp.AreaOfScience = input.AreaOfScience;
         temp.RetentionPeriodYears = input.RetentionPeriodYears;
-        temp.SecurityClassification = input.SecurityClassification.ToString();
+        temp.SecurityClassification = input.SecurityClassification;
         temp.GeneratesInfoBusinessValue = input.GeneratesInfoBusinessValue;
         temp.ProjectTitle = input.ProjectTitle;
         temp.ProjectDescription = input.ProjectDescription;
@@ -208,8 +208,7 @@ public class HostingServicesController : ControllerBase
         public int RetentionPeriodYears { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SecurityClassification", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        [Newtonsoft.Json.JsonConverter(typeof(Newtonsoft.Json.Converters.StringEnumConverter))]
-        public HostingServiceInfoSecurityClassification SecurityClassification { get; set; }
+        public string SecurityClassification { get; set; }
 
         [Newtonsoft.Json.JsonProperty("GeneratesInfoBusinessValue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool GeneratesInfoBusinessValue { get; set; }

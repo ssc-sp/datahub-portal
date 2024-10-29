@@ -130,7 +130,7 @@ else {
             Keywords = Keywords,
             AreaOfScience = AreaOfScience,
             RetentionPeriodYears = RetentionPeriodYears,
-            SecurityClassification = HostingServiceInfoSecurityClassification.Unclassified,
+            SecurityClassification = SecurityClassification,
             GeneratesInfoBusinessValue = GeneratesInfoBusinessValue,
             ProjectTitle = ProjectTitle,
             ProjectDescription = ProjectDescription,
@@ -451,8 +451,7 @@ else {
         public int RetentionPeriodYears { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SecurityClassification")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
-        public HostingServiceInfoSecurityClassification SecurityClassification { get; set; }
+        public string SecurityClassification { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("GeneratesInfoBusinessValue")]
         public bool GeneratesInfoBusinessValue { get; set; }
@@ -484,26 +483,6 @@ else {
             set { _additionalProperties = value; }
         }
     }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum HostingServiceInfoSecurityClassification
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Unclassified")]
-        Unclassified = 0,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Protected A")]
-        Protected_A = 1,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Protected B")]
-        Protected_B = 2,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Protected C")]
-        Protected_C = 3,
-
-    }
-
-
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.1.0.0 (NJsonSchema v11.0.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ApiException : System.Exception
