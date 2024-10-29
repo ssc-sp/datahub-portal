@@ -94,6 +94,28 @@ public class ProjectCreationService(
         }
     }
 
+    public async Task<bool> CreateProjectWithControllerAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
+    {
+        try
+        {
+            acronym ??= await GenerateProjectAcronymAsync(projectName);
+
+            await AddProjectToDb(portalUser, projectName, acronym, organization);
+            await CreateNewTemplateProjectResourceAsync(acronym);
+
+            var workspaceDefinition =
+                await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
+            return false;
+        }
+    }
+
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
     {
         try
