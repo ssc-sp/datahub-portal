@@ -12,23 +12,22 @@ namespace Datahub.SpecflowTests.Steps
     public class WorkspaceBudgetSteps(
         ScenarioContext scenarioContext,
         IWorkspaceBudgetManagementService sut,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        DatahubPortalConfiguration datahubPortalConfiguration)
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
         [Given(@"a workspace with a budget")]
         public void GivenAWorkspaceWithABudget()
         {
             var budgetId =
-                Testing.ExistingTestBudget.Replace("{SUBSCRIPTION}", datahubPortalConfiguration.AzureAd.SubscriptionId);
+                Testing.BudgetId;
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
-            scenarioContext.Set(new List<string> {budgetId}, "budgetIds");
+            scenarioContext.Set(new List<string> { budgetId }, "budgetIds");
         }
 
         [Given(@"the budget amount is \$(.*)")]
         public async Task GivenTheBudgetAmountIs(decimal budgetAmount)
         {
             var budgetIds = scenarioContext.Get<List<string>>("budgetIds");
-            var acronym  = scenarioContext.Get<string>("workspaceAcronym");
+            var acronym = scenarioContext.Get<string>("workspaceAcronym");
             await sut.SetWorkspaceBudgetAmountAsync(acronym, budgetAmount, budgetIds: budgetIds);
             scenarioContext.Set(budgetAmount, "expectedBudgetAmount");
         }

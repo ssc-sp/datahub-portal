@@ -40,11 +40,6 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
                 logger.LogWarning("No resource groups found in database for {WorkspaceAcronym}, attempting from ARM",
                     workspaceAcronym);
                 rgs = await GetWorkspaceResourceGroupsFromArmAsync(workspaceAcronym);
-                var projRg = rgs.FirstOrDefault(rg => rg.Contains("_" + PROJ_RG_KEY + "_"));
-                if (projRg != null)
-                {
-                    await AssignWorkspaceResourceGroup(workspaceAcronym, projRg);
-                }
             }
 
             logger.LogInformation("{Count} resource groups for {WorkspaceAcronym}: {ResourceGroups}", rgs.Count,
@@ -138,7 +133,6 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
                 {
                     var rgName = project.GetResourceGroupNameFromBlob();
                     rgNames.Add(rgName);
-                    await AssignWorkspaceResourceGroup(workspaceAcronym, rgName);
                 }
                 catch
                 {
@@ -162,37 +156,6 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
             }
 
             return rgNames;
-        }
-
-        /// <summary>
-        /// Temporary method to backfill resource group names for workspaces that were created before the new project template
-        /// changes were made. This will update the resource group name in the new project template for the workspace given.
-        /// </summary>
-        /// <param name="workspaceAcronym">The workspace acronym</param>
-        /// <param name="rgName">The resource group name to assign</param>
-        [Obsolete("THIS METHOD SHOULD NOT BE USED UNLESS YOU KNOW WHAT YOURE DOING", false)]
-        internal async Task AssignWorkspaceResourceGroup(string workspaceAcronym, string rgName)
-        {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var newProjectTemplate = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
-            var project = await ctx.Projects.Include(p => p.Resources)
-                .FirstAsync(p => p.Project_Acronym_CD == workspaceAcronym);
-            var newProjectResource = project.Resources.FirstOrDefault(r => r.ResourceType == newProjectTemplate);
-            if (newProjectResource is not null)
-            {
-                var jsonContent = JsonSerializer.Deserialize<JsonObject>(newProjectResource.JsonContent);
-                try
-                {
-                    jsonContent!["resource_group_name"] = rgName;
-                    newProjectResource.JsonContent = JsonSerializer.Serialize(jsonContent);
-                    ctx.Project_Resources2.Update(newProjectResource);
-                    await ctx.SaveChangesAsync();
-                    logger.LogInformation("Updated resource group name for {WorkspaceAcronym}", workspaceAcronym);
-                } catch (Exception e)
-                {
-                    logger.LogError(e, "Error updating resource group name for {WorkspaceAcronym}", workspaceAcronym);
-                }
-            }
         }
 
         /// <summary>

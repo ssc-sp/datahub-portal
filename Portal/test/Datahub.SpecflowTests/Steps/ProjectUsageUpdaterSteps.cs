@@ -20,7 +20,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a project usage update message for a workspace that doesn't to be rolled over")]
         public void GivenAProjectUsageUpdateMessage()
         {
-            var message = new ProjectUsageUpdateMessage(Testing.WorkspaceAcronym, Testing.MockCosts, Testing.MockTotals,
+            var message = new ProjectUsageUpdateMessage(Testing.WorkspaceAcronym, "mock-costs.json", "mock-totals.json",
                 false);
             scenarioContext.Set(message, "message");
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
@@ -84,8 +84,8 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a project usage update message for a workspace that needs to be rolled over")]
         public void GivenAProjectUsageUpdateMessageForAWorkspaceThatNeedsToBeRolledOver()
         {
-            var message = new ProjectUsageUpdateMessage(Testing.WorkspaceAcronym2, Testing.MockCosts,
-                Testing.MockTotals,
+            var message = new ProjectUsageUpdateMessage(Testing.WorkspaceAcronym2, "mock-costs.json",
+                "mock-totals.json",
                 false);
             scenarioContext.Set(message, "message");
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
@@ -94,7 +94,7 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"an existing file in blob storage")]
         public void GivenAnExistingFileInBlobStorage()
         {
-            scenarioContext.Set(Testing.MockTotals, "fileName");
+            scenarioContext.Set("mock-costs", "fileName");
         }
 
         [When(@"the file is downloaded and parsed")]
