@@ -5,10 +5,10 @@
 @inject NavigationManager NavigationManager
 
 <MudText Typo="Typo.h2" Class="mb-6">
-    Hosting Services Test Call
+    @Localizer["Hosting Services Test Call"]
 </MudText>
 <MudText Typo="Typo.body1">
-    This page is used to test the hosting services endpoint.
+    @Localizer["This page is used to test the hosting services endpoint."]
 </MudText>
 <MudForm>
     <MudTextField T="string" @bind-Value="GcHostingId" Label="GC Hosting ID" Variant="Variant.Outlined" />
@@ -37,7 +37,7 @@
     <MudTextField T="string" @bind-Value="CBRID" Label="CBR ID" Variant="Variant.Outlined" />
 </MudForm>
 <DHButton OnClick="TestCall" Color="Color.Primary" Variant="Variant.Filled">
-    Test Call
+    @Localizer["Test Call"]
 </DHButton>
 <br />
 @if (_running)
@@ -46,7 +46,7 @@
 }
 else {
     <MudText Typo="Typo.body1" Visible="!_running">
-        Response from API: @_result
+        @Localizer["Response from API:"] @_result
     </MudText>
 }
 
