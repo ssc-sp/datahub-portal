@@ -89,30 +89,37 @@ public class HostingServicesController : ControllerBase
 
             // Create a new workspace.
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
+            string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
 
-            var user = _userInformationService.GetPortalUserByEmailAsync(workspaceDetails.LeadEmail);
+            // Return acronym and resource group name
+            return Ok(new object[] { acronym, rg });
 
-            var isAdded = await _projectCreationService.CreateProjectWithControllerAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
+            // Create a new workspace. (Only to be done when authentication is complete)
+            //var users = _context.PortalUsers.ToListAsync();
+            //var user = users.Result.FirstOrDefault(e => e.Email == workspaceDetails.LeadEmail);
 
-            if (isAdded)
-            {
-                //await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
+            //var isAdded = await _projectCreationService.CreateProjectWithControllerAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
 
-                // Retrieve the workspace details.
-                //var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
+            //if (isAdded)
+            //{
+            //    await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
 
-                //workspaceDetails.Datahub_Project = project;
+            //    // Retrieve the workspace details.
+            //    var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
 
-                //_context.GCHostingWorkspaceDetails.Add(workspaceDetails);
-                //await _context.SaveChangesAsync();
+            //    // Create a new GC Hosting workspace record using the given details.
+            //    GCHostingWorkspaceDetails gcHostingRecord = ConvertInputToGCHostingObject(workspaceDetails);
+            //    gcHostingRecord.Datahub_Project = project;
+            //    _context.GCHostingWorkspaceDetails.Add(gcHostingRecord);
+            //    await _context.SaveChangesAsync();
 
-                // Return the workspace acronym, resource group name, and tenant ID.
-                return Ok(new object[] { acronym });
-            }
-            else
-            {
-                return Ok("Failed to create workspace.");
-            }
+            //    // Return the workspace acronym, resource group name, and tenant ID.
+            //    return Ok(new object[] { acronym });
+            //}
+            //else
+            //{
+            //    return Ok("Failed to create workspace.");
+            //}
         }
         catch (Exception ex)
         {

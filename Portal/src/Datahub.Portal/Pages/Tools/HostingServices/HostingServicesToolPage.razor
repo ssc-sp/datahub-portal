@@ -40,9 +40,6 @@
     Test Call
 </DHButton>
 <br />
-<MudText>
-    Debugging: @_message
-</MudText>
 @if (_running)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
@@ -56,7 +53,6 @@ else {
 @code {
     private string _result = "Click the button above to test the call";
     private bool _running = false;
-    private string _message = "";
 
     // Form fields
     public string GcHostingId { get; set; }
@@ -98,15 +94,14 @@ else {
 
         using var httpClient = new HttpClient();
         Client client = new Client(baseUri, httpClient);
-        _message += client.BaseUrl;
 
         try
         {
-            await client.CreateHostingServiceAsync(project);
+            _result = await client.CreateHostingServiceAsync(project);
         }
         catch (Exception ex)
         {
-            _message += ex.ToString();
+            _result += ex.ToString();
         }
         _running = false;
 
@@ -195,7 +190,7 @@ else {
         /// </summary>
         /// <returns>Workspace successfully created</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task<HostingServiceInfo> CreateHostingServiceAsync(HostingServiceInfo body)
+        public virtual System.Threading.Tasks.Task<string> CreateHostingServiceAsync(HostingServiceInfo body)
         {
             return CreateHostingServiceAsync(body, System.Threading.CancellationToken.None);
         }
@@ -206,7 +201,7 @@ else {
         /// </summary>
         /// <returns>Workspace successfully created</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<HostingServiceInfo> CreateHostingServiceAsync(HostingServiceInfo body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task<string> CreateHostingServiceAsync(HostingServiceInfo body, System.Threading.CancellationToken cancellationToken)
         {
             if (body == null)
                 throw new System.ArgumentNullException("body");
@@ -252,14 +247,15 @@ else {
                         ProcessResponse(client_, response_);
 
                         var status_ = (int)response_.StatusCode;
-                        if (status_ == 201)
+                        if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<HostingServiceInfo>(response_, headers_, cancellationToken).ConfigureAwait(false);
-                            if (objectResponse_.Object == null)
-                            {
-                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
-                            }
-                            return objectResponse_.Object;
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            return responseData_;
+                        }
+                        else if (status_ == 201)
+                        {
+                            var responseData_ = response_.Content == null ? null : await response_.Content.ReadAsStringAsync().ConfigureAwait(false);
+                            return responseData_;
                         }
                         else
                         if (status_ == 400)

@@ -101,6 +101,7 @@ public class ProjectCreationService(
             acronym ??= await GenerateProjectAcronymAsync(projectName);
 
             await AddProjectToDb(portalUser, projectName, acronym, organization);
+            return true;
             await CreateNewTemplateProjectResourceAsync(acronym);
 
             var workspaceDefinition =
@@ -228,7 +229,7 @@ public class ProjectCreationService(
         };
         await db.Project_Whitelists.AddAsync(projectWhiteList);
 
-        await db.TrackSaveChangesAsync(auditingService);
+        await db.TrackSaveChangesAsync(auditingService); // causing a crash right now
         serviceAuthManager.InvalidateAuthCache();
 
         var catalogObject = new Core.Model.Catalog.CatalogObject()
