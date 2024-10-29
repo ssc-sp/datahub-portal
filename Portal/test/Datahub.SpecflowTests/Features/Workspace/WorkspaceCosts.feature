@@ -32,6 +32,12 @@ Scenario: Querying costs with invalid date range should not work
 	When I query the costs for the workspace with an invalid date range
 	Then I should receive an error
 	
+@LargeResponse
+Scenario: Querying costs with a large response does not cause duplicate costs
+	Given a workspace with known costs
+    When I query the costs for the workspace with a large response
+    Then there should be no duplicate costs
+	
 Scenario: Update costs for old workspace works correctly
 	Given a workspace with existing costs and credits
 	When I update the costs for the workspace
