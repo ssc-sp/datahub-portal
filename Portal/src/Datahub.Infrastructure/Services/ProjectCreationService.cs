@@ -94,14 +94,13 @@ public class ProjectCreationService(
         }
     }
 
-    public async Task<bool> CreateProjectWithControllerAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
+    public async Task<bool> CreateProjectCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
     {
         try
         {
             acronym ??= await GenerateProjectAcronymAsync(projectName);
 
             await AddProjectToDb(portalUser, projectName, acronym, organization);
-            return true;
             await CreateNewTemplateProjectResourceAsync(acronym);
 
             var workspaceDefinition =

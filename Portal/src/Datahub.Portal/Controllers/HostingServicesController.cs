@@ -100,7 +100,7 @@ public class HostingServicesController : ControllerBase
             //var users = _context.PortalUsers.ToListAsync();
             //var user = users.Result.FirstOrDefault(e => e.Email == workspaceDetails.LeadEmail);
 
-            //var isAdded = await _projectCreationService.CreateProjectWithControllerAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
+            //var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
 
             //if (isAdded)
             //{

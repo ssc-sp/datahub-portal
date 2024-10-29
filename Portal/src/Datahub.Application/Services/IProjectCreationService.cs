@@ -9,7 +9,7 @@ public interface IProjectCreationService
     public Task<string> GenerateProjectAcronymAsync(string projectName, IEnumerable<string> existingAcronyms);
     //token needs to be acquired by component so that exception handling can be done there
     //(handling exception causes force refresh through navigation manager)
-    public Task<bool> CreateProjectWithControllerAsync(string projectName, string acronym, string organization, PortalUser portalUser);
+    public Task<bool> CreateProjectCloudHostingEndPointAsync(string projectName, string acronym, string organization, PortalUser portalUser);
     public Task<bool> CreateProjectAsync(string projectName, string acronym, string organization); 
     public Task<bool> CreateProjectAsync(string projectName, string organization);
     
