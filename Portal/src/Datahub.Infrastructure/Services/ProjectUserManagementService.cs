@@ -1,14 +1,11 @@
 using System.Linq.Dynamic.Core;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
-using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
-using Datahub.Infrastructure.Services.Security;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -24,6 +21,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly IDatahubAuditingService _datahubAuditingService;
+    private readonly IResourceMessagingService _resourceMessagingService;
 
     public ProjectUserManagementService(
         ILogger<ProjectUserManagementService> logger,
@@ -31,6 +29,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         IUserInformationService userInformationService,
         IMSGraphService msGraphService,
         IRequestManagementService requestManagementService,
+        IResourceMessagingService resourceMessagingService,
         IUserEnrollmentService userEnrollmentService,
         IDatahubAuditingService datahubAuditingService)
     {
@@ -41,6 +40,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         _contextFactory = contextFactory;
         _userEnrollmentService = userEnrollmentService;
         _datahubAuditingService = datahubAuditingService;
+        _resourceMessagingService = resourceMessagingService;
     }
 
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
@@ -214,5 +214,44 @@ public class ProjectUserManagementService : IProjectUserManagementService
             .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
             .Where(u => u.PortalUser != null)
             .ToListAsync();
+    }
+
+    public async Task<List<string>> GetProjectListForPortalUser(int portalUserId)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        
+        var projectAcronyms = await context.Project_Users
+            .Include(pu => pu.Project)
+            .Where(pu => pu.PortalUserId == portalUserId)
+            .Select(pu => pu.Project.Project_Acronym_CD)
+            .ToListAsync();
+
+        return projectAcronyms;
+    }
+
+    public async Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        var users = await GetProjectUsersAsync(projectAcronym);
+        var admin = users?.Where(u => RoleConstants.GetRoleConstants(u.Role) == RoleConstants.WORKSPACE_LEAD_SUFFIX);
+
+        return admin?.FirstOrDefault();
+    }
+
+    public async Task<bool> RunWorkspaceSync(string projectAcronym)
+    {
+        try
+        {
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(projectAcronym);
+            await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
+
+            _logger.LogInformation($"Triggered workspace sync for {projectAcronym}" );
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error triggerring workspace sync for {projectAcronym}");
+            return false;
+        }
     }
 }
