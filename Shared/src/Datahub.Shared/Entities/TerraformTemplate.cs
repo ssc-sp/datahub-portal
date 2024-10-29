@@ -15,18 +15,9 @@ public class TerraformTemplate(string name, string status)
     public const string AzureArcGis = "azure-arcgis";
     public const string AzureAPI = "azure-api";
 
-    public record struct TemplateStatus
-    {
-        public const string CreateRequested = "CreateRequested";
-        public const string Created = "Created";
-        public const string DeleteRequested = "DeleteRequested";
-        public const string Deleted = "Deleted";
-        public const string Unknown = "Unknown";
-    }
-
     public string Name { get; } = name;
 
-    public string Status { get; } = status ?? TemplateStatus.Unknown;
+    public string Status { get; } = status ?? TerraformStatus.Unknown;
 
     public static string NormalizeTemplateName(string name)
     {
@@ -55,11 +46,11 @@ public class TerraformTemplate(string name, string status)
             AzureStorageBlob => [],
             AzureDatabricks =>
             [
-                new TerraformTemplate(AzureStorageBlob, TemplateStatus.CreateRequested),
+                new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
             ],
             AzureAppService =>
             [
-                new TerraformTemplate(AzureStorageBlob, TemplateStatus.CreateRequested),
+                new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
             ],
             AzurePostgres => [],
             VariableUpdate => [],

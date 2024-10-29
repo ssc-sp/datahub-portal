@@ -1,4 +1,5 @@
-﻿using System.Net.Mail;
+﻿using System.ComponentModel;
+using System.Net.Mail;
 using System.Security.Claims;
 using Azure.Identity;
 using Datahub.Application.Services.Security;
@@ -9,6 +10,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
+using J2N.Numerics;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -359,6 +361,71 @@ public class UserInformationService(
         }
     }
 
+    public async Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email)
+    {
+        ExtendedPortalUser? extendedPortalUser = new ExtendedPortalUser { Email=email };
+        PortalUser? portalUser;
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
+        {
+            portalUser = await ctx.PortalUsers
+                .AsNoTracking()
+                .Include(u => u.UserSettings)
+                .FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower());
+            if (portalUser is not null)
+            {
+                try
+                {
+                    extendedPortalUser = new ExtendedPortalUser(portalUser);
+                    if (extendedPortalUser == null)
+                    {
+                        throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
+                    }
+                    PrepareAuthenticatedClient();
+                    var graphUser = await graphServiceClient.Users[portalUser.GraphGuid].GetAsync();
+
+                    if (graphUser == null)
+                    {
+                        extendedPortalUser.IsDeleted = true;
+                    }
+                    else
+                    {
+                        // Check if the user is locked out
+                        extendedPortalUser.IsLocked = graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
+                    }
+                }
+                catch (ServiceException e)
+                {
+                    if (e.InnerException is MsalUiRequiredException ||
+                        e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                        throw;
+
+                    logger.LogError(e, "Error Loading User");
+                    extendedPortalUser.IsDeleted = true;
+                }
+                catch (Exception e)
+                {
+                    logger.LogError(e, "Error Loading User");
+                    extendedPortalUser.IsDeleted = true;
+                }
+                return extendedPortalUser;
+            }
+            return null;
+        }
+    }
+
+    public async Task HandleDeletedUserRegistration(string email, string graphId)
+    {
+        // update portal user with new graph id
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
+        {
+            var portalUser = await ctx.PortalUsers.FirstOrDefaultAsync(p => p.Email == email);
+            if (portalUser != null)
+            {
+                portalUser.GraphGuid = graphId;
+                ctx.Update(portalUser);
+            }
+        }
+    }
     public async Task RegisterAuthenticatedPortalUser()
     {
         var graphId = await GetUserIdString();
