@@ -24,6 +24,8 @@ public class HostingServicesController : ControllerBase
 
     private string message = "";
 
+    public HostingServicesController() { }
+
     public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService)
     {
         _context = context;
