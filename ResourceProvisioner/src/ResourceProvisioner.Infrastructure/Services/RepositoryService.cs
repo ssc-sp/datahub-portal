@@ -31,11 +31,13 @@ public partial class RepositoryService : IRepositoryService
     private static partial Regex ModuleRegex();
 
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
+    private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
 
     private readonly ILogger<RepositoryService> _logger;
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
+    private static readonly string _tempDirectory = Guid.NewGuid().ToString();
 
     public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger,
         ResourceProvisionerConfiguration resourceProvisionerConfiguration,
@@ -52,6 +54,9 @@ public partial class RepositoryService : IRepositoryService
         await _semaphore.WaitAsync();
         try
         {
+            _logger.LogInformation("Creating temporary directory {Directory} for resource run", _tempDirectory);
+            CreateTemporaryDirectory();
+            
             var user = command.RequestingUserEmail ??
                        throw new NullReferenceException("Requesting user's email is null");
             _logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
@@ -74,6 +79,9 @@ public partial class RepositoryService : IRepositoryService
             _logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
                 command.Workspace.Acronym!);
+            
+            _logger.LogInformation("Deleting temporary directory {Directory} for resource run", _tempDirectory);
+            CleanUpEnvironment();
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
@@ -107,7 +115,7 @@ public partial class RepositoryService : IRepositoryService
     /// <returns>A list of <see cref="Version"/> representing the available module versions.</returns>
     public async Task<List<Version>> GetModuleVersions()
     {
-        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
         var modulePath = Path.Combine(repositoryPath,
             _resourceProvisionerConfiguration.ModuleRepository.ModulePathPrefix);
 
@@ -115,7 +123,7 @@ public partial class RepositoryService : IRepositoryService
         if (!Directory.Exists(modulePath))
         {
             _logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
-            await FetchModuleRepository();
+            FetchModuleRepository();
         }
 
         var versions = Directory.GetDirectories(modulePath)
@@ -129,36 +137,56 @@ public partial class RepositoryService : IRepositoryService
             .ToList();
         return versions;
     }
-
-    public Task FetchModuleRepository()
+    
+    public void CreateTemporaryDirectory()
     {
-        var repositoryUrl = _resourceProvisionerConfiguration.ModuleRepository.Url;
-        var localPath = _resourceProvisionerConfiguration.ModuleRepository.LocalPath;
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        Directory.CreateDirectory(tempPath);
+    }
 
-        _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
-        DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
-
-        _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-        Repository.Clone(repositoryUrl, repositoryPath);
-
-        if (_resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
+    public void FetchModuleRepository()
+    {
+        _moduleSemaphore.Wait();
+        try
         {
-            using var repo = new Repository(repositoryPath);
-            var branch =
-                repo.Branches[$"refs/remotes/origin/{_resourceProvisionerConfiguration.ModuleRepository.Branch}"];
-            if (branch == null)
+            var repositoryUrl = _resourceProvisionerConfiguration.ModuleRepository.Url;
+            var localPath = _resourceProvisionerConfiguration.ModuleRepository.LocalPath;
+
+            _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
+            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+            DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
+
+            _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+            Repository.Clone(repositoryUrl, repositoryPath);
+
+            if (_resourceProvisionerConfiguration.ModuleRepository.Branch !=
+                ModuleRepositoryConfiguration.DefaultBranch)
             {
-                _logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                    _resourceProvisionerConfiguration.ModuleRepository.Branch);
-                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+                using var repo = new Repository(repositoryPath);
+                var branch =
+                    repo.Branches[$"refs/remotes/origin/{_resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+                if (branch == null)
+                {
+                    _logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
+                        _resourceProvisionerConfiguration.ModuleRepository.Branch);
+                    branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+                }
+
+                Commands.Checkout(repo, branch);
             }
 
-            Commands.Checkout(repo, branch);
-        }
+            _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
 
-        _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
-        return Task.CompletedTask;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error while fetching module repository");
+            throw new Exception("Error while fetching module repository", e);
+        }
+        finally
+        {
+            _moduleSemaphore.Release();
+        }
     }
 
     public async Task FetchInfrastructureRepository()
@@ -166,7 +194,7 @@ public partial class RepositoryService : IRepositoryService
         var localPath = _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath;
         var repositoryUrl = _resourceProvisionerConfiguration.InfrastructureRepository.Url;
         _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
         var azureDevOpsClient =
@@ -194,7 +222,7 @@ public partial class RepositoryService : IRepositoryService
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
         _logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
@@ -243,7 +271,7 @@ public partial class RepositoryService : IRepositoryService
 
     public Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
 
         _logger.LogInformation("Committing changes in {LocalPath}", repositoryPath);
         using var repository = new Repository(repositoryPath);
@@ -271,7 +299,7 @@ public partial class RepositoryService : IRepositoryService
 
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
 
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
@@ -409,7 +437,7 @@ public partial class RepositoryService : IRepositoryService
 
     public virtual string GetBranchLastCommitId(string branchName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[branchName];
 
@@ -442,7 +470,7 @@ public partial class RepositoryService : IRepositoryService
 
     public async Task FetchRepositoriesAndCheckoutProjectBranch(string workspaceAcronym)
     {
-        await FetchModuleRepository();
+        FetchModuleRepository();
         await FetchInfrastructureRepository();
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
@@ -551,5 +579,12 @@ public partial class RepositoryService : IRepositoryService
                    .AsObject()["pullRequestId"]?.ToString() ??
                throw new NullReferenceException(
                    $"Could not get existing pull request id for workspace {workspaceAcronym}");
+    }
+    
+    private void CleanUpEnvironment()
+    {
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var dir = new DirectoryInfo(tempPath);
+        DirectoryUtils.NormalizeAndDelete(dir);
     }
 }

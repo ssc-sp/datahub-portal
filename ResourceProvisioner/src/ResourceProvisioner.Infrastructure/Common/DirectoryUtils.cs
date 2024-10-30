@@ -1,9 +1,16 @@
+using Polly;
+using Polly.Retry;
 using ResourceProvisioner.Application.Config;
 
 namespace ResourceProvisioner.Infrastructure.Common;
 
 public static class DirectoryUtils
 {
+    private static ResiliencePipeline _retryPipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 5, Delay = TimeSpan.FromSeconds(1) })
+        .AddTimeout(TimeSpan.FromSeconds(20))
+        .Build();
+
     public static void VerifyDirectoryDoesNotExist(string path)
     {
         if (!Directory.Exists(path))
@@ -12,18 +19,18 @@ public static class DirectoryUtils
         }
 
         var dir = new DirectoryInfo(path);
-        SetAttributesNormal(dir);
+        NormalizeAndDelete(dir);
+    }
 
-        try
-        {
-            dir.Delete(true);
-        }
-        catch (IOException)
-        {
-            // wait for one second and try again
-            Thread.Sleep(1000);
-            dir.Delete(true);
-        }
+    public static void NormalizeAndDelete(DirectoryInfo dir)
+    {
+        SetAttributesNormal(dir);
+        RetryDelete(dir);
+    }
+
+    private static void RetryDelete(DirectoryInfo dir)
+    {
+        _retryPipeline.Execute(() => dir.Delete(true));
     }
 
     private static void SetAttributesNormal(DirectoryInfo dir)
@@ -36,37 +43,53 @@ public static class DirectoryUtils
         }
     }
 
-
-    public static string GetInfrastructureRepositoryPath(
-        ResourceProvisionerConfiguration resourceProvisionerConfiguration)
+    public static string GetTempDirectoryPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+        string tempDirectory)
     {
         return Path.Join(Environment.CurrentDirectory,
-            resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+            resourceProvisionerConfiguration.InfrastructureRepository.LocalPath,
+            tempDirectory);
     }
 
-    public static string GetModuleRepositoryPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration)
+    public static string GetInfrastructureRepositoryPath(
+        ResourceProvisionerConfiguration resourceProvisionerConfiguration, string tempDirectory)
     {
-        return Path.Join(Environment.CurrentDirectory,
-            resourceProvisionerConfiguration.ModuleRepository.LocalPath);
+        return Path.Join(
+            Environment.CurrentDirectory, // i.e. /home/site/wwwroot
+            resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, // i.e. /../tmp
+            tempDirectory, // i.e. caf2aaaf-a3d6-4518-ad8b-06c78fa8dc40 
+            resourceProvisionerConfiguration.InfrastructureRepository.Name // i.e. datahub-project-infrastructure-poc
+        ); // i.e. /home/site/wwwroot/../tmp/caf2aaaf-a3d6-4518-ad8b-06c78fa8dc40/datahub-project-infrastructure-poc
+    }
+
+    public static string GetModuleRepositoryPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+        string tempDirectory)
+    {
+        return Path.Join(
+            Environment.CurrentDirectory, // i.e. /home/site/wwwroot
+            resourceProvisionerConfiguration.ModuleRepository.LocalPath, // i.e. /../tmp
+            tempDirectory, // i.e. caf2aaaf-a3d6-4518-ad8b-06c78fa8dc40
+            resourceProvisionerConfiguration.ModuleRepository.Name // i.e. datahub-resource-modules
+        ); // i.e. /home/site/wwwroot/../tmp/caf2aaaf-a3d6-4518-ad8b-06c78fa8dc40/datahub-resource-modules
     }
 
     public static string GetTemplatePath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
-        string? templateName)
+        string? templateName, string tempDirectory)
     {
         if (templateName == null)
             throw new ArgumentNullException(nameof(templateName));
 
-        return Path.Join(GetModuleRepositoryPath(resourceProvisionerConfiguration),
+        return Path.Join(GetModuleRepositoryPath(resourceProvisionerConfiguration, tempDirectory),
             resourceProvisionerConfiguration.ModuleRepository.TemplatePathPrefix, templateName);
     }
 
     public static string GetProjectPath(ResourceProvisionerConfiguration resourceProvisionerConfiguration,
-        string? workspaceAcronym)
+        string? workspaceAcronym, string tempDirectory)
     {
         if (workspaceAcronym == null)
             throw new ArgumentNullException(nameof(workspaceAcronym));
 
-        return Path.Join(GetInfrastructureRepositoryPath(resourceProvisionerConfiguration),
+        return Path.Join(GetInfrastructureRepositoryPath(resourceProvisionerConfiguration, tempDirectory),
             resourceProvisionerConfiguration.InfrastructureRepository.ProjectPathPrefix, workspaceAcronym);
     }
 }
