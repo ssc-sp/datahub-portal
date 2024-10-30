@@ -53,6 +53,7 @@ public partial class RepositoryService : IRepositoryService
         await _semaphore.WaitAsync();
         try
         {
+            DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
             _logger.LogInformation("Creating temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CreateTemporaryDirectory();
             
