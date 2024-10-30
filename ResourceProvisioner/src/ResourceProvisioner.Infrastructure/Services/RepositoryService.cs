@@ -584,6 +584,7 @@ public partial class RepositoryService : IRepositoryService
     private void CleanUpEnvironment()
     {
         var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration, _tempDirectory);
-        Directory.Delete(tempPath, true);
+        var dir = new DirectoryInfo(tempPath);
+        DirectoryUtils.NormalizeAndDelete(dir);
     }
 }

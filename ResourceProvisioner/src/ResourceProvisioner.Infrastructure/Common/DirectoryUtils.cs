@@ -14,6 +14,11 @@ public static class DirectoryUtils
         }
 
         var dir = new DirectoryInfo(path);
+        NormalizeAndDelete(dir);
+    }
+
+    public static void NormalizeAndDelete(DirectoryInfo dir)
+    {
         SetAttributesNormal(dir);
         RetryDelete(dir);
     }
