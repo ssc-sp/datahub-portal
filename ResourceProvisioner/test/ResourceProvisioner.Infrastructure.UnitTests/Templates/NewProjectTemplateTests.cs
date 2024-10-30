@@ -135,7 +135,7 @@ public class NewProjectTemplateTests
     [Test]
     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
     {
-        const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariablesWithoutDuplicates";
+        const string workspaceAcronym = "TestAcronym";
         var workspace = new TerraformWorkspace
         {
             Acronym = workspaceAcronym
