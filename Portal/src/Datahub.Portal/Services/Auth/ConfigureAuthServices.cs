@@ -16,11 +16,7 @@ public static class ConfigureAuthServices
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-        }).AddJwtBearer(options =>
+        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme).AddJwtBearer(options =>
         {
             options.Authority = "https://sts.windows.net/" + configuration["AzureAd:TenantId"];
             options.Audience = "https://management.core.windows.net/";
