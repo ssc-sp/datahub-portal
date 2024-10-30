@@ -22,8 +22,8 @@ public static class ConfigureAuthServices
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
         }).AddJwtBearer(options =>
         {
-            options.Authority = "https://login.microsoftonline.com/" + configuration["AzureAd:TenantId"] + "/v2.0";
-            options.Audience = "api://" + configuration["AzureAd:ClientId"];
+            options.Authority = "https://sts.windows.net/" + configuration["AzureAd:TenantId"];
+            options.Audience = "https://management.core.windows.net/";
             options.TokenValidationParameters = new TokenValidationParameters
             {
                 ValidateIssuer = true,
@@ -31,9 +31,7 @@ public static class ConfigureAuthServices
                 ValidateLifetime = true,
                 ValidateIssuerSigningKey = true,
             };
-            // IdentityModelEventSource.ShowPII = true; - for troubleshooting
         })
-            //.AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, opts => configuration.Bind("Jwt", opts))
             .AddMicrosoftIdentityWebApp(configuration)
             .EnableTokenAcquisitionToCallDownstreamApi()
             .AddMicrosoftGraph(configuration.GetSection("Graph"))
