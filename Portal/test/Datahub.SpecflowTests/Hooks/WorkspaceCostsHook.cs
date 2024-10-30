@@ -1,7 +1,6 @@
 ﻿using System.Text.Json;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CostManagement;
 using Azure.ResourceManager.CostManagement.Models;
