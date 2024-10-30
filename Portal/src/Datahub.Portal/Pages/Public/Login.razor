@@ -8,7 +8,7 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
-<EditForm Model="@loginModel" OnValidSubmit="HandleLogin" >
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
     <MudStack AlignItems="AlignItems.Start" Class="my-8" Style="width: 100%">
         <MudText Typo="Typo.body1" Class="text-center">
             <strong>
@@ -41,27 +41,25 @@
         _loggingIn = true;
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
-        if (existingUser == null || existingUser.IsDeleted)
+        if (existingUser is { IsDeleted: true })
         {
             _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
+            return;
         }
-        else
+
+        if (existingUser is { IsLocked: true })
         {
-            if (existingUser.IsLocked)
-            {
-                _navigationManager.NavigateTo(Localizer["/locked"]);
-                return;
-            }
-
-            //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
-            if (string.IsNullOrWhiteSpace(redirectUri))
-            {
-                redirectUri = _navigationManager.BaseUri;
-            }
-
-            var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
-            _navigationManager.NavigateTo(url, true);
+            _navigationManager.NavigateTo(Localizer["/locked"]);
+            return;
         }
+
+        if (string.IsNullOrWhiteSpace(redirectUri))
+        {
+            redirectUri = _navigationManager.BaseUri;
+        }
+
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
+        _navigationManager.NavigateTo(url, true);
     }
 
     protected override async Task OnInitializedAsync()
