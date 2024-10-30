@@ -29,6 +29,9 @@
         <Content Include="EmailTemplates\test_template.html">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </Content>
+        <Content Update="EmailTemplates\delete_notification.html">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Content>
     </ItemGroup>
     <ItemGroup>
         <PackageReference Include="Azure.Data.Tables" Version="12.8.3"/>
