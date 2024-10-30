@@ -21,7 +21,7 @@ public class TerraformServiceTests
     [Test]
     public void ShouldThrowExceptionWhenProjectNotInitialized()
     {
-        var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+        var moduleDestinationPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, DirectoryUtils.tempDirectory, _resourceProvisionerConfiguration.ModuleRepository.Name);
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
