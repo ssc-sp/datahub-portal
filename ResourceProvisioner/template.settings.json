@@ -7,13 +7,15 @@
     },
     "ModuleRepository": {
         "Url": "https://github.com/ssc-sp/datahub-resource-modules.git",
-        "LocalPath": "/tmp/datahub-resource-modules",
+        "LocalPath": "/tmp/",
+        "Name": "datahub-resource-modules",
         "TemplatePathPrefix": "templates/",
         "ModulePathPrefix": "modules/"
     },
     "InfrastructureRepository": {
         "Url": "https://$azureDevOpsOrganization@dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_git/$azureDevopsRepository",
-        "LocalPath": "/tmp/$azureDevopsRepository",
+        "LocalPath": "/tmp/",
+        "Name": "$azureDevopsRepository",
         "ProjectPathPrefix": "terraform/projects",
         "AutoApproveUserOid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-infrastructure-repo-auto-approver-oid)",
         "PullRequestUrl": "https://dev.azure.com/$azureDevOpsOrganization/$azureDevOpsProject/_apis/git/repositories/$repositoryId/pullrequests",
