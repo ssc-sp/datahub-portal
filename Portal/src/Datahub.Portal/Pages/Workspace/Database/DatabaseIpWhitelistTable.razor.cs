@@ -5,7 +5,9 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
+using Datahub.Core.Model.Context;
 using Microsoft.AspNetCore.Components.Web;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -22,25 +24,48 @@ public partial class DatabaseIpWhitelistTable
     /// Builds a PostgreSqlFlexibleServerResource object for the specified workspace acronym.
     /// </summary>
     /// <returns>A PostgreSqlFlexibleServerResource object.</returns>
-    private PostgreSqlFlexibleServerResource BuildPostgresSqlFlexibleServerResource()
+    private async Task<PostgreSqlFlexibleServerResource> BuildPostgresSqlFlexibleServerResource()
     {
         var credential = new ClientSecretCredential(
-            _portalConfiguration.AzureAd.TenantId, 
-            _portalConfiguration.AzureAd.InfraClientId, 
+            _portalConfiguration.AzureAd.TenantId,
+            _portalConfiguration.AzureAd.InfraClientId,
             _portalConfiguration.AzureAd.InfraClientSecret);
         var client = new ArmClient(credential);
 
-        var resourceGroupName = $"{_portalConfiguration.ResourcePrefix}_proj_{WorkspaceAcronym.ToLowerInvariant()}_{_portalConfiguration.Hosting.EnvironmentName}_rg";
-        var subscriptionId = _portalConfiguration.AzureAd.SubscriptionId;
+        var resourceGroupName =
+            $"{_portalConfiguration.ResourcePrefix}_proj_{WorkspaceAcronym.ToLowerInvariant()}_{_portalConfiguration.Hosting.EnvironmentName}_rg";
+        
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var subscriptionId = await RetrieveWorkspaceSubscriptionId(WorkspaceAcronym, context);
         var resourceProviderNamespace = "Microsoft.DBforPostgreSQL";
         var resourceType = "flexibleServers";
-        var resourceName = $"{_portalConfiguration.ResourcePrefix}-{WorkspaceAcronym.ToLowerInvariant()}-psql-{_portalConfiguration.Hosting.EnvironmentName}";
+        var resourceName =
+            $"{_portalConfiguration.ResourcePrefix}-{WorkspaceAcronym.ToLowerInvariant()}-psql-{_portalConfiguration.Hosting.EnvironmentName}";
 
-        var resourceIdentifier = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}";
+        var resourceIdentifier =
+            $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}";
 
         var postgresResource = client.GetPostgreSqlFlexibleServerResource(new ResourceIdentifier(resourceIdentifier));
-        
+
         return postgresResource;
+    }
+
+    /// <summary>
+    /// Retrieves the subscription ID for the specified workspace acronym.
+    /// </summary>
+    /// <param name="workspaceAcronym">The acronym of the workspace.</param>
+    /// <param name="context">The database context to use for retrieving the workspace information.</param>
+    /// <returns>A task representing the asynchronous operation. The task result contains the subscription ID.</returns>
+    internal static async Task<string> RetrieveWorkspaceSubscriptionId(string workspaceAcronym,
+        DatahubProjectDBContext context)
+    {
+        var workspace = await context.Projects
+            .AsNoTracking()
+            .Where(w => w.Project_Acronym_CD == workspaceAcronym)
+            .Include(w => w.DatahubAzureSubscription)
+            .FirstAsync();
+
+        return workspace.DatahubAzureSubscription.SubscriptionId;
     }
 
     /// <summary>
@@ -61,19 +86,19 @@ public partial class DatabaseIpWhitelistTable
     private void HandleRowEditCommit(object element)
     {
         var item = element as WhitelistIPAddressData;
-        
+
         CreateOrUpdateIpAddress(item);
-        
+
         // if it's only the name that has changed
-        if (Equals(item?.StartIPAddress, _elementBeforeEdit?.StartIPAddress) 
+        if (Equals(item?.StartIPAddress, _elementBeforeEdit?.StartIPAddress)
             && Equals(item?.EndIPAddress, _elementBeforeEdit?.EndIPAddress))
         {
             // clean up the old firewall rule
             DeleteIpAddress(_elementBeforeEdit);
         }
-        
+
         _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
-        
+
         _logger.LogInformation($"Item has been committed: {item?.Name}");
     }
 
@@ -105,7 +130,7 @@ public partial class DatabaseIpWhitelistTable
         var startIpAddress = _userIpAddress;
         var endIpAddress = _userIpAddress;
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        
+
         var userWhitelistIpAddress = new WhitelistIPAddressData
         {
             Name = currentUser.Email,
@@ -114,8 +139,9 @@ public partial class DatabaseIpWhitelistTable
         };
 
         CreateOrUpdateIpAddress(userWhitelistIpAddress);
-        
-        _snackbar.Add(Localizer["Current IP address has been added. Changes may take 15 minutes to apply."], Severity.Success);
+
+        _snackbar.Add(Localizer["Current IP address has been added. Changes may take 15 minutes to apply."],
+            Severity.Success);
         _firewallRules.Add(userWhitelistIpAddress);
     }
 
@@ -126,10 +152,12 @@ public partial class DatabaseIpWhitelistTable
     private async Task AddNewIpAddress()
     {
         // run a window.prompt to get the new IP address
-        var newIpAddress = await _jsRuntime.InvokeAsync<string>("prompt", Localizer["Enter the new IP address (ex: 192.168.2.1) to whitelist:"].ToString());
+        var newIpAddress = await _jsRuntime.InvokeAsync<string>("prompt",
+            Localizer["Enter the new IP address (ex: 192.168.2.1) to whitelist:"].ToString());
 
         // check if the newIpAddress is a valid IP address
-        if (IPAddress.TryParse(newIpAddress, out var ipAddress) && ipAddress.AddressFamily == AddressFamily.InterNetwork)
+        if (IPAddress.TryParse(newIpAddress, out var ipAddress) &&
+            ipAddress.AddressFamily == AddressFamily.InterNetwork)
         {
             var newWhitelistIpAddress = new WhitelistIPAddressData
             {
@@ -138,8 +166,9 @@ public partial class DatabaseIpWhitelistTable
                 EndIPAddress = ipAddress
             };
 
-            CreateOrUpdateIpAddress(newWhitelistIpAddress);
-            _snackbar.Add(Localizer["IP address {0} has been added. Changes may take 15 minutes to apply.", ipAddress], Severity.Success);
+            await CreateOrUpdateIpAddress(newWhitelistIpAddress);
+            _snackbar.Add(Localizer["IP address {0} has been added. Changes may take 15 minutes to apply.", ipAddress],
+                Severity.Success);
             _firewallRules.Add(newWhitelistIpAddress);
         }
         else
@@ -153,30 +182,33 @@ public partial class DatabaseIpWhitelistTable
     /// </summary>
     /// <param name="whitelistIpAddressData">The IP address data to be deleted.</param>
     /// <param name="showSnackbar">Optional. If set to true, a snackbar message will be shown after the deletion. Default is false.</param>
-    private void DeleteIpAddress(WhitelistIPAddressData whitelistIpAddressData, bool showSnackbar = false)
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task DeleteIpAddress(WhitelistIPAddressData whitelistIpAddressData, bool showSnackbar = false)
     {
-        var postgresResource = BuildPostgresSqlFlexibleServerResource();
+        var postgresResource = await BuildPostgresSqlFlexibleServerResource();
         var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
         var rule = rules.Get(whitelistIpAddressData?.Name);
 
         _logger.LogInformation($"Deleting firewall rule: {whitelistIpAddressData?.Name}");
         rule.Value.Delete(WaitUntil.Started);
-        
+
         if (showSnackbar)
         {
-            _snackbar.Add(Localizer["IP address {0} has been deleted.", whitelistIpAddressData?.Name ?? string.Empty], Severity.Success);
+            _snackbar.Add(Localizer["IP address {0} has been deleted.", whitelistIpAddressData?.Name ?? string.Empty],
+                Severity.Success);
         }
     }
 
     /// <summary>
-    /// Creates or updates a firewall rule for whitelisting an IP address.
+    /// Creates or updates a firewall rule with the specified whitelist IP address data.
     /// </summary>
-    /// <param name="rule">The whitelist IP address data.</param>
-    private void CreateOrUpdateIpAddress(WhitelistIPAddressData rule)
+    /// <param name="rule">The whitelist IP address data to create or update.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task CreateOrUpdateIpAddress(WhitelistIPAddressData rule)
     {
-        var postgresResource = BuildPostgresSqlFlexibleServerResource();
+        var postgresResource = await BuildPostgresSqlFlexibleServerResource();
         var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
-        
+
         // until we support IP ranges, we will only use the start IP address
         rule.EndIPAddress = rule.StartIPAddress;
 
@@ -197,7 +229,7 @@ public partial class DatabaseIpWhitelistTable
             StartIPAddress = ((WhitelistIPAddressData)whitelistRule).StartIPAddress,
             EndIPAddress = ((WhitelistIPAddressData)whitelistRule).EndIPAddress
         };
-        
+
         _logger.LogInformation($"Item has been backed up: {_elementBeforeEdit?.Name}");
     }
 
