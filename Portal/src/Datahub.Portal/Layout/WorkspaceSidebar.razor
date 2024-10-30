@@ -6,6 +6,7 @@
 @using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Components.User
+@using Datahub.Shared
 @using Datahub.Shared.Entities
 @using MudBlazor.Utilities
 
@@ -109,6 +110,8 @@
     public struct SectionViews
     {
         public const string Dashboard = "dashboard";
+
+        public const string Delete = "d";
         public const string Storage = "s";
         public const string Publishing = "publishing";
         public const string Databricks = "databricks";
@@ -186,6 +189,7 @@
             SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
             // Administration
+            SectionViews.Delete => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -309,13 +313,13 @@
         {
             SectionViews.Dashboard => true,
             SectionViews.Healthcheck => true,
-            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
-            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
+            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.Status != TerraformStatus.Deleted) ?? false,
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
-            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)) ?? false,
-            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
-            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
-            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis)) ?? false,
+            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.Status != TerraformStatus.Deleted) ?? false,
             _ => false
         };
     }
