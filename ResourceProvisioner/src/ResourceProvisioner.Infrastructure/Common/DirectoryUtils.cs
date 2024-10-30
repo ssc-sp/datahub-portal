@@ -11,7 +11,7 @@ public static class DirectoryUtils
         .AddTimeout(TimeSpan.FromSeconds(20))
         .Build();
 
-    public static readonly string tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
+    public static string tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
 
     public static void VerifyDirectoryDoesNotExist(string path)
     {
