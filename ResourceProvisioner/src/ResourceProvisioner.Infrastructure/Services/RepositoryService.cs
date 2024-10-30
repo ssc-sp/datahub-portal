@@ -37,7 +37,6 @@ public partial class RepositoryService : IRepositoryService
     private readonly ITerraformService _terraformService;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly ResourceProvisionerConfiguration _resourceProvisionerConfiguration;
-    private static readonly string _tempDirectory = Guid.NewGuid().ToString();
 
     public RepositoryService(IHttpClientFactory httpClientFactory, ILogger<RepositoryService> logger,
         ResourceProvisionerConfiguration resourceProvisionerConfiguration,
@@ -54,7 +53,7 @@ public partial class RepositoryService : IRepositoryService
         await _semaphore.WaitAsync();
         try
         {
-            _logger.LogInformation("Creating temporary directory {Directory} for resource run", _tempDirectory);
+            _logger.LogInformation("Creating temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CreateTemporaryDirectory();
             
             var user = command.RequestingUserEmail ??
@@ -80,7 +79,7 @@ public partial class RepositoryService : IRepositoryService
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
                 command.Workspace.Acronym!);
             
-            _logger.LogInformation("Deleting temporary directory {Directory} for resource run", _tempDirectory);
+            _logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CleanUpEnvironment();
 
             var pullRequestMessage = new PullRequestUpdateMessage
@@ -115,7 +114,7 @@ public partial class RepositoryService : IRepositoryService
     /// <returns>A list of <see cref="Version"/> representing the available module versions.</returns>
     public async Task<List<Version>> GetModuleVersions()
     {
-        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
         var modulePath = Path.Combine(repositoryPath,
             _resourceProvisionerConfiguration.ModuleRepository.ModulePathPrefix);
 
@@ -140,7 +139,7 @@ public partial class RepositoryService : IRepositoryService
     
     public void CreateTemporaryDirectory()
     {
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
         Directory.CreateDirectory(tempPath);
     }
 
@@ -153,7 +152,7 @@ public partial class RepositoryService : IRepositoryService
             var localPath = _resourceProvisionerConfiguration.ModuleRepository.LocalPath;
 
             _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
             _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
@@ -194,7 +193,7 @@ public partial class RepositoryService : IRepositoryService
         var localPath = _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath;
         var repositoryUrl = _resourceProvisionerConfiguration.InfrastructureRepository.Url;
         _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
         var azureDevOpsClient =
@@ -222,7 +221,7 @@ public partial class RepositoryService : IRepositoryService
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         _logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
@@ -271,7 +270,7 @@ public partial class RepositoryService : IRepositoryService
 
     public Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         _logger.LogInformation("Committing changes in {LocalPath}", repositoryPath);
         using var repository = new Repository(repositoryPath);
@@ -299,7 +298,7 @@ public partial class RepositoryService : IRepositoryService
 
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         var azureDevOpsClient =
             new AzureDevOpsClient(_resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
@@ -437,7 +436,7 @@ public partial class RepositoryService : IRepositoryService
 
     public virtual string GetBranchLastCommitId(string branchName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[branchName];
 
@@ -583,7 +582,7 @@ public partial class RepositoryService : IRepositoryService
     
     private void CleanUpEnvironment()
     {
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration, _tempDirectory);
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
         var dir = new DirectoryInfo(tempPath);
         DirectoryUtils.NormalizeAndDelete(dir);
     }

@@ -40,7 +40,7 @@ public class RepositoryServiceTests
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
-        await _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository();
 
         Assert.That(Directory.Exists(expectedClonePath), Is.True);
     }
@@ -48,11 +48,12 @@ public class RepositoryServiceTests
     [Test]
     public async Task ShouldFetchModuleRepositoryAndOverwriteExisting()
     {
-        var expectedClonePath = Path.Join(Environment.CurrentDirectory, _configuration["ModuleRepository:LocalPath"]);
+        var expectedClonePath = Path.Join(Environment.CurrentDirectory,
+            _configuration["ModuleRepository:LocalPath"], DirectoryUtils.tempDirectory, _configuration["ModuleRepository:Name"]);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
-        await _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository();
 
         Assert.That(Directory.Exists(expectedClonePath), Is.True);
 
@@ -64,7 +65,7 @@ public class RepositoryServiceTests
         Assert.That(File.Exists(Path.Combine(repository.Info.WorkingDirectory, fileName)), Is.True);
 
         // Overwrite the existing repository with a new one
-        await _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository();
         Assert.Multiple(() =>
         {
             Assert.That(File.Exists(Path.Combine(repository.Info.WorkingDirectory, fileName)), Is.False);
@@ -89,7 +90,9 @@ public class RepositoryServiceTests
     public async Task ShouldCheckoutProjectBranch()
     {
         var repositoryLocalPath = _configuration["InfrastructureRepository:LocalPath"];
-        var expectedClonePath = Path.Join(Environment.CurrentDirectory, repositoryLocalPath);
+        var repositoryName = _configuration["InfrastructureRepository:Name"];
+        var expectedClonePath = Path.Join(Environment.CurrentDirectory,
+            repositoryLocalPath, DirectoryUtils.tempDirectory, repositoryName);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
@@ -107,7 +110,8 @@ public class RepositoryServiceTests
     public async Task ShouldFetchBothRepositoriesAndCheckoutProjectBranch()
     {
         var moduleRepositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
-        var infrastructureRepositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
+        var infrastructureRepositoryPath =
+            DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
         Assert.That(Directory.Exists(moduleRepositoryPath), Is.False);
         Assert.That(Directory.Exists(infrastructureRepositoryPath), Is.False);
@@ -141,7 +145,7 @@ public class RepositoryServiceTests
     {
         InitializeTestInfrastructureRepository();
         var mockTerraformService = SetupMockTerraformService();
-        
+
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
@@ -195,10 +199,10 @@ public class RepositoryServiceTests
 
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
-        
+
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>()
@@ -273,14 +277,15 @@ public class RepositoryServiceTests
         var httpClient = new HttpClient(mockHandler.Object);
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
-        
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
 
         var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym, RequestingUser);
 
         Assert.That(result, Is.TypeOf<PullRequestValueObject>());
-        Assert.That(result.Url, Is.EqualTo($"{_configuration["InfrastructureRepository:PullRequestBrowserUrl"]}/{fakePullRequestId}"));
+        Assert.That(result.Url,
+            Is.EqualTo($"{_configuration["InfrastructureRepository:PullRequestBrowserUrl"]}/{fakePullRequestId}"));
         Assert.That(result.Url.Split('/').Last(), Is.EqualTo(fakePullRequestId.ToString()));
         Assert.That(result.WorkspaceAcronym, Is.EqualTo(ProjectAcronym));
     }
@@ -289,7 +294,7 @@ public class RepositoryServiceTests
     public async Task ShouldBeAbleToGetModuleVersions()
     {
         var result = await _repositoryService.GetModuleVersions();
-        
+
         Assert.That(result, Is.Not.Null);
         Assert.That(result, Is.Not.Empty);
         Assert.That(result, Is.All.InstanceOf<Version>());
