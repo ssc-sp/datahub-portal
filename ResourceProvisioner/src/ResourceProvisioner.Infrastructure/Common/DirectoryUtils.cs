@@ -6,6 +6,11 @@ namespace ResourceProvisioner.Infrastructure.Common;
 
 public static class DirectoryUtils
 {
+    private static ResiliencePipeline _retryPipeline = new ResiliencePipelineBuilder()
+        .AddRetry(new RetryStrategyOptions { MaxRetryAttempts = 5, Delay = TimeSpan.FromSeconds(1) })
+        .AddTimeout(TimeSpan.FromSeconds(20))
+        .Build();
+
     public static void VerifyDirectoryDoesNotExist(string path)
     {
         if (!Directory.Exists(path))
@@ -25,11 +30,7 @@ public static class DirectoryUtils
 
     private static void RetryDelete(DirectoryInfo dir)
     {
-        var pipeline = new ResiliencePipelineBuilder()
-            .AddRetry(new RetryStrategyOptions {MaxRetryAttempts = 5, Delay = TimeSpan.FromSeconds(1)})
-            .AddTimeout(TimeSpan.FromSeconds(20))
-            .Build();
-        pipeline.Execute(() => dir.Delete(true));
+        _retryPipeline.Execute(() => dir.Delete(true));
     }
 
     private static void SetAttributesNormal(DirectoryInfo dir)
