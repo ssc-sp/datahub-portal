@@ -44,7 +44,7 @@
         WorkspaceAdmin,
         WorkspaceLead,
         DatahubAdminGuestView,
-        DatahubAdmin,
+        DatahubSupport,
         Unauthorized
     }
 
@@ -90,7 +90,7 @@
                 return $"{workspaceLeadRole},{datahubAdminRole}";
             case AuthLevels.DatahubAdminGuestView:
                 return $"{datahubAdminRole},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
-            case AuthLevels.DatahubAdmin:
+            case AuthLevels.DatahubSupport:
                 return datahubAdminRole;
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
