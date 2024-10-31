@@ -80,8 +80,6 @@ public partial class RepositoryService : IRepositoryService
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
                 command.Workspace.Acronym!);
             
-            _logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
-            CleanUpEnvironment();
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
@@ -103,6 +101,8 @@ public partial class RepositoryService : IRepositoryService
         }
         finally
         {
+            _logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
+            CleanUpEnvironment();
             _semaphore.Release();
         }
     }
@@ -138,8 +138,9 @@ public partial class RepositoryService : IRepositoryService
         return versions;
     }
     
-    public void CreateTemporaryDirectory()
+    private void CreateTemporaryDirectory()
     {
+        CleanUpEnvironment();
         var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
         Directory.CreateDirectory(tempPath);
     }
