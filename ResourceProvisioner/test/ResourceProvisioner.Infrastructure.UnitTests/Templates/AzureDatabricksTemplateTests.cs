@@ -50,7 +50,7 @@ public class AzureDatabricksTemplateTests
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
-        await _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository();
 
         var moduleSourcePath =
             DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureDatabricks);
