@@ -138,6 +138,25 @@
         _showToDatahubAdmins = _project.AllowDatahubSupport > DateTimeOffset.Now;
     }
 
+    private async Task GrantAdminAccess()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronymParam);
+
+        // Set .AllowDatahubSupport to 3 days from now
+        project.AllowDatahubSupport = DateTimeOffset.Now.AddDays(3).DateTime;
+
+        dbContext.Projects.Update(project);
+
+        await dbContext.SaveChangesAsync();
+
+        _showToDatahubAdmins = true;
+    }
+
     private async Task RecordRecentLink()
     {
         if (string.IsNullOrEmpty(WorkspaceAcronymParam))

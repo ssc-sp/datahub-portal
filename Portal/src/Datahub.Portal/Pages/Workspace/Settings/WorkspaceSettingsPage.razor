@@ -38,6 +38,11 @@
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
         <Authorized>
             <MudStack>
+                <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["Grant access to Datahub Support for 72 hours to troubleshoot issues in your workspace."]">
+                    <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Primary">
+                        @Localizer["Grant Support Access"]
+                    </DHButton>
+                </SettingsField>
                 <WorkspacePreventAutoDeleteControl OnValueChanged="@HandlePreventAutoDeleteChange" InitialValue="@_preventAutoDelete"/>
                 <WorkspaceBudgetControl OnValueChanged="@HandleBudgetChanged" InitialValue="@_budget"/>
                 <WorkspaceDeleteControl />
