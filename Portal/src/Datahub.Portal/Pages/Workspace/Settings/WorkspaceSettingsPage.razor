@@ -35,9 +35,14 @@
             </MudStack>
         }
     </MudStack>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@WorkspaceAcronym">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
         <Authorized>
             <MudStack>
+                <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["Grant access to Datahub Support for 72 hours to troubleshoot issues in your workspace."]">
+                    <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Primary" OnClick="@GrantAdminAccess">
+                        @Localizer["Grant Support Access"]
+                    </DHButton>
+                </SettingsField>
                 <WorkspacePreventAutoDeleteControl OnValueChanged="@HandlePreventAutoDeleteChange" InitialValue="@_preventAutoDelete"/>
                 <WorkspaceBudgetControl OnValueChanged="@HandleBudgetChanged" InitialValue="@_budget"/>
                 <WorkspaceDeleteControl />
@@ -54,6 +59,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private Datahub_Project _workspace;
 
@@ -78,4 +84,22 @@
         SetFormPropertiesFromWorkspace();
     }
 
+    private async Task GrantAdminAccess()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        // Set .AllowDatahubSupport to 3 days from now
+        project.AllowDatahubSupport = DateTimeOffset.Now.AddDays(3).DateTime;
+
+        dbContext.Projects.Update(project);
+
+        await dbContext.SaveChangesAsync();
+
+        ShowToAdmins = true;
+    }
 }
