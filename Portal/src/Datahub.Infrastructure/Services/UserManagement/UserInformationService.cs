@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
 
@@ -364,50 +365,65 @@ public class UserInformationService(
     public async Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email)
     {
         ExtendedPortalUser? extendedPortalUser = new ExtendedPortalUser { Email=email };
-        PortalUser? portalUser;
+        //PortalUser? portalUser;
         await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
         {
-            portalUser = await ctx.PortalUsers
-                .AsNoTracking()
-                .Include(u => u.UserSettings)
-                .FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower());
-            if (portalUser is not null)
-            {
-                try
-                {
-                    extendedPortalUser = new ExtendedPortalUser(portalUser);
-                    if (extendedPortalUser == null)
-                    {
-                        throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
-                    }
-                    PrepareAuthenticatedClient();
-                    var graphUser = await graphServiceClient.Users[portalUser.GraphGuid].GetAsync();
+            //portalUser = await ctx.PortalUsers
+            //    .AsNoTracking()
+            //    .Include(u => u.UserSettings)
+            //    .FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower());
 
-                    if (graphUser == null)
+            var matchingUsers = await ctx.PortalUsers
+                .AsNoTracking()
+                .Where(p => p.Email.ToLower() == email.ToLower())
+                .ToListAsync();
+
+            foreach (PortalUser portalUser in matchingUsers)
+            {
+                if (portalUser is not null)
+                {
+                    try
                     {
+                        extendedPortalUser = new ExtendedPortalUser(portalUser);
+                        if (extendedPortalUser == null)
+                        {
+                            throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
+                        }
+                        PrepareAuthenticatedClient();
+                        var graphUser = await graphServiceClient.Users[portalUser.GraphGuid].GetAsync();
+
+                        if (graphUser == null)
+                        {
+                            extendedPortalUser.IsDeleted = true;
+                        }
+                        else
+                        {
+                            // Check if the user is locked out
+                            extendedPortalUser.IsLocked = graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
+                        }
+                    }
+                    catch (ODataError e)
+                    {
+                        logger.LogError(e, "Could not find user with GraphGuid. Continuing to load user...");
+                        continue;
+                    }
+                    catch (ServiceException e)
+                    {
+                        if (e.InnerException is MsalUiRequiredException ||
+                            e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                            throw;
+
+                        logger.LogError(e, "Error Loading User");
                         extendedPortalUser.IsDeleted = true;
                     }
-                    else
+                    catch (Exception e)
                     {
-                        // Check if the user is locked out
-                        extendedPortalUser.IsLocked = graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
+                        logger.LogError(e, "Error Loading User");
+                        extendedPortalUser.IsDeleted = true;
                     }
+                    return extendedPortalUser;
                 }
-                catch (ServiceException e)
-                {
-                    if (e.InnerException is MsalUiRequiredException ||
-                        e.InnerException is MicrosoftIdentityWebChallengeUserException)
-                        throw;
-
-                    logger.LogError(e, "Error Loading User");
-                    extendedPortalUser.IsDeleted = true;
-                }
-                catch (Exception e)
-                {
-                    logger.LogError(e, "Error Loading User");
-                    extendedPortalUser.IsDeleted = true;
-                }
-                return extendedPortalUser;
+                return null;
             }
             return null;
         }
