@@ -35,6 +35,9 @@
     [Parameter]
     public string UserGraphId { get; set; }
 
+    [Parameter]
+    public bool ShowToAdmins { get; set; } = true;
+
     public enum AuthLevels
     {
         Authenticated,
@@ -81,13 +84,13 @@
             case AuthLevels.Personal:
                 return $"{UserGraphId},{RoleConstants.DATAHUB_ROLE_ADMIN}";
             case AuthLevels.WorkspaceGuest:
-                return $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+                return ShowToAdmins ? $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
             case AuthLevels.WorkspaceCollaborator:
-                return $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+                return ShowToAdmins ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}" : $"{collaboratorRole},{adminRole},{workspaceLeadRole}";
             case AuthLevels.WorkspaceAdmin:
-                return $"{adminRole},{workspaceLeadRole},{datahubAdminRole}";
+                return ShowToAdmins ? $"{adminRole},{workspaceLeadRole},{datahubAdminRole}" : $"{adminRole},{workspaceLeadRole}";
             case AuthLevels.WorkspaceLead:
-                return $"{workspaceLeadRole},{datahubAdminRole}";
+                return ShowToAdmins ? $"{workspaceLeadRole},{datahubAdminRole}" : workspaceLeadRole;
             case AuthLevels.DatahubAdminGuestView:
                 return $"{datahubAdminRole},{RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST}";
             case AuthLevels.DatahubSupport:
