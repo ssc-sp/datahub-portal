@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Application.Services;
 using Datahub.Infrastructure.Services;
@@ -24,8 +25,6 @@ public class HostingServicesController : ControllerBase
 
     private string message = "";
 
-    public HostingServicesController() { }
-
     public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService)
     {
         _context = context;
@@ -38,7 +37,7 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <returns>The IActionResult representing the response.</returns>
     [Route("api/auth-echo")]
-    [Authorize]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> PostAuth()
     {
         return await ProcessRequest(Request);
