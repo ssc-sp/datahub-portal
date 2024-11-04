@@ -88,9 +88,6 @@
                                 <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
                                 <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
                             </MudRadioGroup>
-                            <MudText Typo="@Typo.body1" Class="py-3">
-                                @Localizer["Would you like to give the DataHub support team access to your workspace(s) to investigate the issue?"]
-                            </MudText>
                             <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
                                 <MudCheckBox @bind-Value="_giveAdminAccessToWorkspaces" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Color="@Color.Primary"></MudCheckBox>
                             </SettingsField>
