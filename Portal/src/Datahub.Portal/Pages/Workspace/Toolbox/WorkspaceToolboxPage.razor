@@ -17,9 +17,6 @@
     </MudText>
 
     <MudDivider Class="my-6"/>
-    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-        @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
-    </MudAlert>
 
     @if (_metadataRequired)
     {
@@ -28,6 +25,12 @@
             <MudLink Href="@_metadataUrl">
                 @Localizer["Click here to edit the metadata."]
             </MudLink>
+        </MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+            @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
         </MudAlert>
     }
 

@@ -2476,6 +2476,7 @@
   "The Security Classification field is required.": "Le champ Classification de sécurité est obligatoire.",
   "The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the \u0027Add to Workspace\u0027 button.": "Le catalogue de la boîte à outils est une collection d'outils qui peuvent être ajoutés à votre espace de travail. Vous pouvez ajouter des outils à votre espace de travail en cliquant sur le bouton \"Ajouter à l'espace de travail\".",
   "The \\": "Le \\",
+  "The \"Add to Workspace\" button will show the state your tool request after being clicked.": "Le bouton \"Ajouter à l'espace de travail\" affichera l'état de votre demande d'outil après avoir été cliqué.",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "Le montant de crédits alloué à votre espace de travail. Veuillez contacter les administrateurs du Datahub si vous souhaitez modifier votre budget.",
   "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.": "Le montant des crédits alloués à votre espace de travail. Veuillez nous contacter si vous souhaitez modifier votre budget.",
   "The current project has {0} active file shared": "L'espace de travail actuelle a {0} fichier actif partagé",
