@@ -38,19 +38,20 @@
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
         <Authorized>
             <MudStack>
-                <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["Grant access to Datahub Support for 72 hours to troubleshoot issues in your workspace."]">
-                    <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Primary" OnClick="@GrantAdminAccess">
-                        @Localizer["Grant Support Access"]
-                    </DHButton>
+                <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
+                    @* <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Primary" OnClick="@ToggleAdminAccess">
+                        @Localizer["Enable Temporary Administrative Access to FSDH Support Team"]
+                    </DHButton> *@
+                    <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ShowToAdmins" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
                     @if (ShowToAdmins)
                     {
                         <MudText Typo="Typo.body2">
-                            @Localizer["The DataHub team has access to your workspace until {0}", _accessDate.ToString()]
+                            @Localizer["FSDH Support Team access is enabled until {0}", _accessDate.ToString()]
                         </MudText>
                     }
                     else
                     {
-                        <MudText Typo="Typo.body2">@Localizer["The DataHub team does not currently have access to your workspace."]</MudText>
+                        <MudText Typo="Typo.body2">@Localizer["The FSDH Support Team does not have access to your workspace."]</MudText>
                     }
                 </SettingsField>
                 <WorkspacePreventAutoDeleteControl OnValueChanged="@HandlePreventAutoDeleteChange" InitialValue="@_preventAutoDelete"/>
@@ -97,7 +98,7 @@
         SetFormPropertiesFromWorkspace();
     }
 
-    private async Task GrantAdminAccess()
+    private async Task ToggleAdminAccess()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
@@ -106,15 +107,28 @@
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        dbContext.Projects.Update(ExtendAdminAccess(project));
+        if (WorkspacePage.DisplayToSupport(project))
+        {
+            dbContext.Projects.Update(CancelAdminAccess(project));
+            ShowToAdmins = false;
+            _snackbar.Add(Localizer["Support access has been revoked"], Severity.Success);
+        }
+        else
+        {
+            dbContext.Projects.Update(ExtendAdminAccess(project));
+            ShowToAdmins = true;
+            _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
+        }
 
         await dbContext.SaveChangesAsync();
 
         _accessDate = project.AllowDatahubSupport;
+    }
 
-        ShowToAdmins = true;
-
-        _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
+    public static Datahub_Project CancelAdminAccess(Datahub_Project project)
+    {
+        project.AllowDatahubSupport = DateTime.MinValue;
+        return project;
     }
 
     public static Datahub_Project ExtendAdminAccess(Datahub_Project project)
