@@ -1872,6 +1872,8 @@
   "Workspace lead": "Workspace lead",
   "Workspace tools": "Workspace tools",
   "Workspaces": "Workspaces",
+  "Would you like to give the DataHub support team access to your workspace(s) to investigate the issue?": "Would you like to give the DataHub support team access to your workspace(s) to investigate the issue?",
+  "Yes, grant access to my workspace(s)": "Yes, grant access to my workspace(s)",
   "Admin workspaces": "Admin workspaces",
   "Collaborator workspaces": "Collaborator workspaces",
   "Guest workspaces": "Guest workspaces",

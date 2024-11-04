@@ -18,6 +18,7 @@
 @using Datahub.Application.Configuration
 @using Datahub.Portal.Components.User
 @using Datahub.Portal.Pages.Project
+@using Datahub.Portal.Pages.Workspace.Settings;
 
 @using System;
 @using System.Net.Http;
@@ -86,6 +87,10 @@
                                 <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
                                 <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
                             </MudRadioGroup>
+                            <MudText Typo="@Typo.body1" Class="py-3">
+                                @Localizer["Would you like to give the DataHub support team access to your workspace(s) to investigate the issue?"]
+                            </MudText>
+                            <MudCheckBox @bind-Value="_giveAdminAccessToWorkspaces" Label="@Localizer["Yes, grant access to my workspace(s)"]" Color="@Color.Primary"></MudCheckBox>
                         }
                         else if (_currentStep == Steps.Submit)
                         {
@@ -206,6 +211,7 @@
     private List<Datahub_Project_User> _userRoles;
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new();
+    private bool _giveAdminAccessToWorkspaces = true;
 
     private bool _loading = true;
 
@@ -224,6 +230,7 @@
 
     // This dictionary is used to generate Workspace checkboxes in the help request
     Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
+    Dictionary<string, string> _ticketWorkspaceAcronyms = new Dictionary<string, string> { };
 
     private Steps _currentStep = Steps.Start; // Indicates what part of the form to show
 
@@ -268,6 +275,7 @@
         foreach (var project in _userRoles.Select(userRole => userRole.Project))
         {
             _ticketWorkspaces.Add(project.Project_Name, false);
+            _ticketWorkspaceAcronyms.Add(project.Project_Name, project.Project_Acronym_CD);
         }
 
         StateHasChanged();
@@ -368,6 +376,15 @@
             workspaces = "N/A";
         }
 
+        // Grant support access to the selected workspaces, if requested.
+        if (_giveAdminAccessToWorkspaces)
+        {
+            foreach (var workspace in matchingWorkspaces)
+            {
+                await GiveAccessToProject(_ticketWorkspaceAcronyms[workspace]);
+            }
+        }
+
         // We create the bug report message and send it to the queue.
         var bugReport = new BugReportMessage(
             UserName: _ticketName,
@@ -390,6 +407,24 @@
         await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
         _currentStep = Steps.Start; // Reset the form
         StateHasChanged();
+    }
+
+    /**
+     * Given a project acronym, grants support access to the project for a period of 3 days.
+     * 
+     * @param acronym - The project acronym for which to grant support access.
+     */
+    private async Task GiveAccessToProject(string acronym){
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = dbContext.Projects
+                    .AsNoTracking()
+                    .Include(p => p.Resources)
+                    .FirstOrDefault(p => p.Project_Acronym_CD == acronym);
+
+        dbContext.Projects.Update(WorkspaceSettingsPage.ExtendAdminAccess(project));
+
+        await dbContext.SaveChangesAsync();
     }
 
     /**
