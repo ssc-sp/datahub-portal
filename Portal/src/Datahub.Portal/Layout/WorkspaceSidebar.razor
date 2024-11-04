@@ -72,7 +72,7 @@
                     @foreach (var toolSection in _workspaceAdministration)
                     {
                         <li>
-                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
                                 <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                                     <MudStack Row AlignItems="AlignItems.Center">
                                         <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
