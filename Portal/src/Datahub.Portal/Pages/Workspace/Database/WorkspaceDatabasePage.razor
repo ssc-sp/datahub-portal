@@ -27,7 +27,7 @@
         Port="@_port" />
 
     <MudText Typo="Typo.caption">@Localizer["Connection info can only be displayed by the workspace lead."]</MudText>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
         <DHButton style="width: fit-content;" OnClick="ToggleContentVisibility" Color=@Color.Primary Variant=@Variant.Filled>@Localizer[_message]</DHButton>
         <DatabaseAdminSetupInfo />
     </DatahubAuthView>
@@ -61,6 +61,7 @@
 
     [Parameter, EditorRequired] 
     public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private string _pythonConnectionInfo;
     private string _rConnectionInfo;
