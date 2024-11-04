@@ -128,14 +128,18 @@
 
         await RecordRecentLink();
 
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        _showToDatahubAdmins = await DisplayToSupport(WorkspaceAcronymParam);
+    }
 
-        var _project = dbContext.Projects
+    public async Task<bool> DisplayToSupport(string acronym)
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var project = dbContext.Projects
             .AsNoTracking()
             .Include(p => p.Resources)
-            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronymParam);
+            .FirstOrDefault(p => p.Project_Acronym_CD == acronym);
 
-        _showToDatahubAdmins = _project.AllowDatahubSupport > DateTimeOffset.Now;
+        return project.AllowDatahubSupport > DateTimeOffset.Now;
     }
 
     private async Task RecordRecentLink()
