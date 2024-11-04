@@ -99,6 +99,15 @@
 
     private async Task GrantAdminAccess()
     {
+        await ExtendAdminAccess(WorkspaceAcronym);
+
+        ShowToAdmins = true;
+
+        _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
+    }
+
+    public async Task ExtendAdminAccess(string acronym)
+    {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         var project = dbContext.Projects
@@ -113,9 +122,5 @@
         dbContext.Projects.Update(project);
 
         await dbContext.SaveChangesAsync();
-
-        ShowToAdmins = true;
-
-        _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
     }
 }
