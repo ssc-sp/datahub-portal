@@ -99,15 +99,6 @@
 
     private async Task GrantAdminAccess()
     {
-        await ExtendAdminAccess(WorkspaceAcronym);
-
-        ShowToAdmins = true;
-
-        _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
-    }
-
-    public async Task ExtendAdminAccess(string acronym)
-    {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         var project = dbContext.Projects
@@ -115,12 +106,22 @@
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        // Set .AllowDatahubSupport to 3 days from now
-        _accessDate = DateTimeOffset.Now.AddDays(3).DateTime;
-        project.AllowDatahubSupport = _accessDate;
-
-        dbContext.Projects.Update(project);
+        dbContext.Projects.Update(ExtendAdminAccess(project));
 
         await dbContext.SaveChangesAsync();
+
+        _accessDate = project.AllowDatahubSupport;
+
+        ShowToAdmins = true;
+
+        _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
+    }
+
+    public static Datahub_Project ExtendAdminAccess(Datahub_Project project)
+    {
+        // Set .AllowDatahubSupport to 3 days from now
+        var accessDate = DateTimeOffset.Now.AddDays(3).DateTime;
+        project.AllowDatahubSupport = accessDate;
+        return project;
     }
 }
