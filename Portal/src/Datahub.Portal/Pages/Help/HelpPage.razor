@@ -17,6 +17,7 @@
 @using Datahub.Core.Model.Projects;
 @using Datahub.Application.Configuration
 @using Datahub.Portal.Components.User
+@using Datahub.Portal.Pages.Account
 @using Datahub.Portal.Pages.Project
 @using Datahub.Portal.Pages.Workspace.Settings;
 
@@ -90,7 +91,9 @@
                             <MudText Typo="@Typo.body1" Class="py-3">
                                 @Localizer["Would you like to give the DataHub support team access to your workspace(s) to investigate the issue?"]
                             </MudText>
-                            <MudCheckBox @bind-Value="_giveAdminAccessToWorkspaces" Label="@Localizer["Yes, grant access to my workspace(s)"]" Color="@Color.Primary"></MudCheckBox>
+                            <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
+                                <MudCheckBox @bind-Value="_giveAdminAccessToWorkspaces" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Color="@Color.Primary"></MudCheckBox>
+                            </SettingsField>
                         }
                         else if (_currentStep == Steps.Submit)
                         {

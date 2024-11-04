@@ -39,9 +39,6 @@
         <Authorized>
             <MudStack>
                 <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
-                    @* <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Primary" OnClick="@ToggleAdminAccess">
-                        @Localizer["Enable Temporary Administrative Access to FSDH Support Team"]
-                    </DHButton> *@
                     <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ShowToAdmins" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
                     @if (ShowToAdmins)
                     {
@@ -117,7 +114,7 @@
         {
             dbContext.Projects.Update(ExtendAdminAccess(project));
             ShowToAdmins = true;
-            _snackbar.Add(Localizer["Support access granted until {0}", _accessDate.ToString()], Severity.Success);
+            _snackbar.Add(Localizer["Support access granted until {0}", project.AllowDatahubSupport.ToString()], Severity.Success);
         }
 
         await dbContext.SaveChangesAsync();
