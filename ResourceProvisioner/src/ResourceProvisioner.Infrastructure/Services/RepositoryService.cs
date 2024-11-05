@@ -54,7 +54,6 @@ public partial class RepositoryService : IRepositoryService
         try
         {
             DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
-            _logger.LogInformation("Creating temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CreateTemporaryDirectory();
             
             var user = command.RequestingUserEmail ??
@@ -142,6 +141,7 @@ public partial class RepositoryService : IRepositoryService
     {
         CleanUpEnvironment();
         var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
+        _logger.LogInformation("Creating temporary directory {Directory} for resource run", Path.GetFullPath(tempPath));
         Directory.CreateDirectory(tempPath);
     }
 
@@ -215,10 +215,10 @@ public partial class RepositoryService : IRepositoryService
             }
         };
 
-        _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+        _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
         Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
 
-        _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
+        _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
     }
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
@@ -584,8 +584,14 @@ public partial class RepositoryService : IRepositoryService
     
     private void CleanUpEnvironment()
     {
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
-        var dir = new DirectoryInfo(tempPath);
-        DirectoryUtils.NormalizeAndDelete(dir);
+        try
+        {
+            var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
+            var dir = new DirectoryInfo(tempPath);
+            DirectoryUtils.NormalizeAndDelete(dir);
+        } catch (Exception e)
+        {
+            _logger.LogError(e, "Error while cleaning up environment");
+        }
     }
 }
