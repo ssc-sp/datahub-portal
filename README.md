@@ -89,3 +89,4 @@ Les champs d'application sont représentés par le tableau suivant
 ## Branches
 
 Les branches sont créées à partir de la branche de développement et fusionnées dans la branche de développement. La branche master est utilisée uniquement pour les versions. Les Pull requests sont fortement encouragées et doivent être revues par au moins un autre développeur.
+
