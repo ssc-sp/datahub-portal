@@ -60,4 +60,30 @@ public class SupportAccessToWorkspacesSteps (
         bool hasAccess = WorkspacePage.DisplayToSupport(workspace);
         hasAccess.Should().BeTrue();
     }
+
+    [Given(@"the user has requested support for a workspace")]
+    public void GivenTheUserHasRequestedSupportForAWorkspace()
+    {
+        // Arrange
+        var workspace = new Datahub_Project()
+        {
+            Project_ID = 1,
+            Project_Acronym_CD = "TEST",
+            Project_Name = "Test Project",
+            AllowDatahubSupport = new DateTime(2000, 6, 5),
+        };
+
+        workspace = WorkspaceSettingsPage.ExtendAdminAccess(workspace);
+
+        scenarioContext.Set(workspace);
+    }
+
+    [When(@"the user revokes access to the workspace")]
+    public void WhenTheUserRevokesSupportForTheWorkspace()
+    {
+        // Act
+        var workspace = scenarioContext.Get<Datahub_Project>();
+        workspace = WorkspaceSettingsPage.CancelAdminAccess(workspace);
+        scenarioContext.Set(workspace);
+    }
 }

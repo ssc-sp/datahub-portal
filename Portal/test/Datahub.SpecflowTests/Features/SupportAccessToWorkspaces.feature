@@ -10,3 +10,8 @@ Feature: Support Access to Workspaces
 		Given the user has created a workspace
 		When the user requests support for the workspace
 		Then the admin team should have access to the workspace
+
+	Scenario: User revokes access to workspace
+		Given the user has requested support for a workspace
+		When the user revokes access to the workspace
+		Then the admin team should not have access to the workspace
