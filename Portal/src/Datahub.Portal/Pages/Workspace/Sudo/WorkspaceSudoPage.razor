@@ -26,7 +26,7 @@
     return;
 }
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+<DatahubAuthView AuthLevel="@_authLevel">
     <Authorized>
         <MudStack>
             <DHMainContentTitle Title="@Localizer["Super User Page"]"/>
@@ -107,6 +107,7 @@
     const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
     private string _workspaceDefinitionMarkdown;
     private string _expectedTerraformOutput;
+    private DatahubAuthView.AuthLevels _authLevel = DatahubAuthView.AuthLevels.Unauthorized;
 
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public bool ShowToAdmins { get; set; } = false;
@@ -141,6 +142,11 @@
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
         _expectedTerraformOutput = $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
+
+        if (ShowToAdmins)
+        {
+            _authLevel = DatahubAuthView.AuthLevels.DatahubSupport;
+        }
     }
 
     private static string RewriteLink(string link)
