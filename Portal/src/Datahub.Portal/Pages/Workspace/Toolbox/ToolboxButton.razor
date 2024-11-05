@@ -1,0 +1,71 @@
+@using Datahub.Shared
+<DHButton Variant="@Variant.Filled" Color="@Color.Primary" OnClick="@HandleOnClick" Disabled="@Disabled">
+    @switch (Status)
+    {
+        case TerraformStatus.CreateRequested:
+            <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+            @Localizer["Request has been sent"]
+            break;
+        case TerraformStatus.InProgress:
+            <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+            @Localizer["Resource is being provisioned"]
+            break;
+        case TerraformStatus.Completed:
+            @Localizer["Resource has been created"]
+            break;
+        case TerraformStatus.DeleteRequested:
+            <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+            @Localizer["Deletion has been requested"]
+            break;
+        case TerraformStatus.DeleteInProgress:
+            <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true"/>
+            @Localizer["Resource is being deleted"]
+            break;
+        case WorkspaceToolboxPage.AvailabilityStatus.Available:
+            @Localizer["Add Resource to Workspace"]
+            break;
+        case WorkspaceToolboxPage.AvailabilityStatus.Disabled:
+            @Localizer["Not Enabled"]
+            break;
+        case WorkspaceToolboxPage.AvailabilityStatus.UnderDevelopment:
+            @Localizer["Under Development"]
+            break;
+        case WorkspaceToolboxPage.AvailabilityStatus.MetadataRequired:
+            @Localizer["Metadata Required"]
+            break;
+        default:
+            @Localizer["Unknown"]
+            break;
+    }
+    @if (!string.IsNullOrEmpty(Icon))
+    {
+        <DHIcon Icon="@Icon" Class="ml-2" Style="font-size: 0.8rem;"/>
+    }
+</DHButton>
+
+@code {
+
+    [Parameter]
+    public string Icon { get; set; }
+
+    [Parameter, EditorRequired]
+    public string Status { get; set; }
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public EventCallback<string> OnClick { get; set; }
+
+
+    private async Task HandleOnClick()
+    {
+        if (Disabled)
+        {
+            return;
+        }
+
+        await OnClick.InvokeAsync();
+    }
+
+}
