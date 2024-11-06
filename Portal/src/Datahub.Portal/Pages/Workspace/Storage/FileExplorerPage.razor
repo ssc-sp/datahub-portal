@@ -1,36 +1,28 @@
-﻿@* FileExplorerPage.razor *@
-
-@using Datahub.Core.Storage;
-@using Datahub.Portal.Components.PageAlerts
+﻿@using Datahub.Application.Services;
 @using Datahub.Core.Model.CloudStorage;
-@using Datahub.Infrastructure.Services.Storage;
-@using Datahub.Portal.Components.Dialogs;
-@using Datahub.Portal.Pages.Workspace.Storage.Container
-@using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
-@using Microsoft.Graph.Models
-@using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
-@using Datahub.Application.Services.Security
-@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Storage;
+@using Datahub.Infrastructure.Services.Storage
+@using Datahub.Portal.Components.Dialogs
+@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Datahub.Portal.Pages.Workspace.Storage.ResourcePages
+@using Microsoft.Graph.Models;
 @using Microsoft.Identity.Web;
-@using Datahub.Core.Components;
 
-@inject Microsoft.Identity.Web.MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @inject IKeyVaultUserService keyVaultUserService
 
-@* @page "/w/{ProjectAcronymParam}/storage" *@
 
 <!--suppress CssUnresolvedCustomProperty -->
 <DHPageTitle PageTitleKey="@_title"/>
 
-@if (!containersLoaded)
+@if (_loading)
 {
     <DHLoadingInitializer/>
     return;
@@ -38,12 +30,12 @@
 
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
+        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]"/>
     </MudStack>
     <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
-                @if (ShouldShowContainerDropdown)
+                @if (ShouldShowContainerDropdown && !_failedToLoadContainers)
                 {
                     <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
                         <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
@@ -58,40 +50,47 @@
                     </MudStack>
                 }
                 <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
-                    @if (SelectedContainer != null)
-                    {
-                        <MudTabs Elevation="0" @key="@SelectedContainer.Name">
-                            <MudTabPanel Text="@(!MultiContainer ? SelectedContainer.Name : Localizer["File Explorer"])" Icon="fas fa-hdd">
+                    <MudTabs Elevation="0">
+                        <MudTabPanel Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["File Explorer"])" Icon="fas fa-hdd">
+                            @if (_failedToLoadContainers)
+                            {
+                                <MudAlert Severity="Severity.Error">
+                                    <MudText>@Localizer["Failed to load storage containers"]</MudText>
+                                </MudAlert>
+                            }
+                            else
+                            {
                                 <FileExplorer ProjectId=@_projectId Container="@_selectedContainer"/>
-                            </MudTabPanel>
-                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
-                                @if (SelectedContainer.StorageManager.AzCopyEnabled)
-                                {
-                                    <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                        <MudStack Class="py-6 px-2">
-                                            <AzCopy Container=@SelectedContainer/>
-                                        </MudStack>
-                                    </MudTabPanel>
-                                }
-                                @if (SelectedContainer.StorageManager.DatabrickEnabled)
-                                {
-                                    <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                        <MudStack Class="py-6 px-2">
-                                            <Databricks Container="@SelectedContainer"/>
-                                        </MudStack>
-                                    </MudTabPanel>
-                                }
-                                @if (SelectedContainer.StorageManager.AzCopyEnabled)
-                                {
-                                    <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                        <MudStack Class="py-6 px-2">
-                                            <UploaderCode Container=@SelectedContainer/>
-                                        </MudStack>
-                                    </MudTabPanel>
-                                }
-                            </DatahubAuthView>
-                        </MudTabs>
-                    }
+                            }
+
+                        </MudTabPanel>
+                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
+                            @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                            {
+                                <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
+                                    <MudStack Class="py-6 px-2">
+                                        <AzCopy Container=@SelectedContainer/>
+                                    </MudStack>
+                                </MudTabPanel>
+                            }
+                            @if (SelectedContainer is null || SelectedContainer.StorageManager.DatabrickEnabled)
+                            {
+                                <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
+                                    <MudStack Class="py-6 px-2">
+                                        <Databricks Container="@SelectedContainer"/>
+                                    </MudStack>
+                                </MudTabPanel>
+                            }
+                            @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                            {
+                                <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
+                                    <MudStack Class="py-6 px-2">
+                                        <UploaderCode Container=@SelectedContainer/>
+                                    </MudStack>
+                                </MudTabPanel>
+                            }
+                        </DatahubAuthView>
+                    </MudTabs>
                 </MudPaper>
             </CascadingValue>
         </CascadingValue>
@@ -100,11 +99,11 @@
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project _project;
     private int? _projectId;
-    private string _projectName;
     private string _title;
 
     private List<CloudStorageContainer> _cloudContainers = new();
@@ -112,6 +111,12 @@
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private User _user;
+
+    private bool _loading = true;
+    private bool _failedToLoadContainers = false;
+    private bool MultiContainer => _cloudContainers?.Count > 1;
+    private bool _isUserProjectAdmin = false;
+    private bool ShouldShowContainerDropdown => _loading && (MultiContainer || _isUserProjectAdmin);
 
     protected override async Task OnInitializedAsync()
     {
@@ -127,26 +132,30 @@
             .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
             .FirstOrDefaultAsync();
 
-        _projectName = _project?.ProjectName;
         var acronym = _project?.Project_Acronym_CD;
         _title = $"{acronym} - {Localizer["Storage"]}";
         _projectId = _project?.Project_ID;
-        containersLoaded = false;
         try
         {
             await keyVaultUserService.Authenticate();
             await LoadContainersAsync();
-            containersLoaded = true;
-            StateHasChanged();
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
             _consentHandler.HandleException(e);
         }
+        catch (Azure.RequestFailedException e)
+        {
+            _logger.LogInformation(e, "Error loading cloud storage connection. Possibly due to Access Key not being set.");
+            _failedToLoadContainers = true;
+        }
         catch (Exception e)
         {
             _logger.LogError(e, "Error loading cloud storage connection");
         }
+
+        _loading = false;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task LoadContainersAsync()
@@ -201,10 +210,6 @@
         set { _selectedContainer = value; }
     }
 
-    private bool MultiContainer => _cloudContainers?.Count > 1;
-    private bool _isUserProjectAdmin = false;
-    private bool containersLoaded = false;
-    private bool ShouldShowContainerDropdown => containersLoaded && (MultiContainer || _isUserProjectAdmin);
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
