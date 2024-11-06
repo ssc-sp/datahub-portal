@@ -1669,6 +1669,7 @@
   "The Federal Science Datahub website is divided into 3 parts:": "The Federal Science Datahub website is divided into 3 parts:",
   "The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the \u0027Add to Workspace\u0027 button.": "The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the \u0027Add to Workspace\u0027 button.",
   "The \\": "The \\",
+  "The \"Add to Workspace\" button will show the state your tool request after being clicked.": "The \"Add to Workspace\" button will show the state of your tool request after being clicked.",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.",
   "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.": "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.",
   "The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace.": "The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace.",

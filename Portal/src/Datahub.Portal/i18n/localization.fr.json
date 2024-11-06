@@ -2503,6 +2503,7 @@
   "The \\": "Le \\",
   "The DataHub team has access to your workspace until {0}": "L'équipe DataHub a accès à votre espace de travail jusqu'au {0}",
   "The DataHub team does not currently have access to your workspace.": "L'équipe DataHub n'a pas accès à votre espace de travail",
+  "The \"Add to Workspace\" button will show the state your tool request after being clicked.": "Le bouton \"Ajouter à l'espace de travail\" affichera l'état de votre demande d'outil après avoir été cliqué.",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "Le montant de crédits alloué à votre espace de travail. Veuillez contacter les administrateurs du Datahub si vous souhaitez modifier votre budget.",
   "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.": "Le montant des crédits alloués à votre espace de travail. Veuillez nous contacter si vous souhaitez modifier votre budget.",
   "The current project has {0} active file shared": "L'espace de travail actuelle a {0} fichier actif partagé",
