@@ -1,6 +1,6 @@
 # Welcome to DataHub 
 
-This repository contains the source code the Federal Science DataHub. 
+This repository contains the source code for the Federal Science DataHub (FSDH/DHSF).
 
 
 ![Repository Analytics](https://repobeats.axiom.co/api/embed/4f8232ed4f6dc3b08e20251bc5d5525047cbd490.svg "Repobeats analytics image")
