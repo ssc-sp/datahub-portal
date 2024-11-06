@@ -135,6 +135,7 @@
         public const string Users_FR = "utilisateurs";
         public const string Metadata_FR = "metadonnees";
         public const string Reports_FR = "rapports";
+        public const string Healthcheck_FR = "verification-sante";
         public const string Settings_FR = "parametres";
     }
 
@@ -206,6 +207,7 @@
             SectionViews.Users_FR => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Healthcheck_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Settings_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
 
             _ => DatahubAuthView.AuthLevels.Unauthorized
