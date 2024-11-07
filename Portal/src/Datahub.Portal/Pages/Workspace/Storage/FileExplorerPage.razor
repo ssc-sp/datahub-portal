@@ -69,7 +69,10 @@
                                 {
                                     <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
-                                            <AzCopy Container=@SelectedContainer/>
+                                            <AzCopy 
+                                                Container=@SelectedContainer 
+                                                TermsAcknowledged=@_tokenTermsAcknowledged 
+                                                OnTermsAccepted=@AgreeToAccessTokenTerms />
                                         </MudStack>
                                     </MudTabPanel>
                                 }
@@ -85,7 +88,10 @@
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
-                                            <UploaderCode Container=@SelectedContainer/>
+                                            <UploaderCode 
+                                                Container=@SelectedContainer
+                                                TermsAcknowledged=@_tokenTermsAcknowledged
+                                                OnTermsAccepted=@AgreeToAccessTokenTerms />
                                         </MudStack>
                                     </MudTabPanel>
                                 }
@@ -112,6 +118,10 @@
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private User _user;
+
+    private bool _tokenTermsAcknowledged = false;
+
+    private void AgreeToAccessTokenTerms() => _tokenTermsAcknowledged = true;
 
     protected override async Task OnInitializedAsync()
     {
