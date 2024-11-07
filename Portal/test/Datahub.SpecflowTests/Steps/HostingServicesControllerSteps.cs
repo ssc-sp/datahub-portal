@@ -25,7 +25,7 @@ public class HostingServicesControllerSteps(
     public async Task WhenISendTheMessageToTheEchoEndpoint()
     {
         // Act
-        var controller = new HostingServicesController();
+        var controller = new HostingServicesController(null, null, null);
         var request = scenarioContext.Get<HttpRequest>();
         var response = await controller.ProcessRequest(request);
         scenarioContext.Set(response);
