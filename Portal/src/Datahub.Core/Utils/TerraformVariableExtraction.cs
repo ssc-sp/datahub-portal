@@ -188,6 +188,32 @@ public static class TerraformVariableExtraction
     }
 
     /// <summary>
+    /// Extracts the resource group name associated with a workspace from the provided project.
+    /// </summary>
+    /// <param name="workspace">The Datahub project containing the workspace information.</param>
+    /// <returns>The resource group name of the workspace if available; otherwise, null.</returns>
+    public static string? ExtractWorkspaceResourceGroupName(Datahub_Project? workspace)
+    {
+        var resourceGroupTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
+        return ExtractStringVariable(
+            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == resourceGroupTemplateName)?.JsonContent,
+            "resource_group_name");
+    }
+
+    /// <summary>
+    /// Extracts the Azure Storage Account name from the provided project.
+    /// </summary>
+    /// <param name="workspace">The Datahub project.</param>
+    /// <returns>The Azure Storage Account name, or null if not found.</returns>
+    public static string? ExtractAzureStorageAccountName(Datahub_Project? workspace)
+    {
+        var storageAccountTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);
+        return ExtractStringVariable(
+            workspace?.Resources?.FirstOrDefault(r => r.ResourceType == storageAccountTemplateName)?.JsonContent,
+            "storage_account");
+    }
+
+    /// <summary>
     /// Extracts a string variable from the given JSON content based on the variable name.
     /// </summary>
     /// <param name="projectResourceJsonContent">The JSON content from which to extract the variable.</param>
