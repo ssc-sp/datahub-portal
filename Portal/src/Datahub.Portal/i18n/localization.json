@@ -2039,5 +2039,6 @@
   "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget",
   "Email is required": "Email is required",
   "Invalid email": "Invalid email",
-  "Logging in...": "Logging in..."
+  "Logging in...": "Logging in...",
+  "Accept Storage Access Token Terms": "Accept Storage Access Token Terms"
 }
