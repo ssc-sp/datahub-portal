@@ -12,7 +12,7 @@
         </MudStack>
     </ActivatorContent>
     <ChildContent>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
             <Authorized>
                 @{
                     var role = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
