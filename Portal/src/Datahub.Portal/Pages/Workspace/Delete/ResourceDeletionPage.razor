@@ -1,0 +1,124 @@
+﻿@namespace Datahub.Portal.Pages.Workspace.Delete
+
+@using Datahub.Core.Services.Projects
+@using Datahub.Shared
+@using Datahub.Shared.Entities
+
+@inject NavigationManager _navigationManager
+@inject ISnackbar _snackbar
+@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+
+@inject IRequestManagementService _requestManagementService
+@inject IUserInformationService _userInformationService
+
+<MudStack Class="px-4">
+    <MudGrid>
+       <MudItem xs="12">
+           <MudStack>
+                <MudText Typo="Typo.h4">
+                    @Localizer["Are you sure you want to delete {0} from this workspace?", SubSection]
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @Localizer["This action is permanent. Upon deletion, all workspace admins will be notified via email."]
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @Localizer["Please type {0} to confirm the deletion.", WorkspaceAcronym]
+                </MudText>
+                <MudGrid>
+                    <MudItem xs="5">
+                        <MudTextField @bind-Value="_deleteConfirmation" Variant="Variant.Text"></MudTextField>
+                    </MudItem>
+                </MudGrid>
+            </MudStack>
+            
+            @if (_error.Equals("_emptyConfirmation"))
+            {
+                <MudAlert Severity="Severity.Error">
+                    <MudText Typo="Typo.body2">@Localizer["Please enter a workspace acronym."]</MudText>
+                </MudAlert>
+            }
+            else if (_error.Equals("_badConfirmation"))
+            {
+                <MudAlert Severity="Severity.Error">
+                    <MudText Typo="Typo.body2">@Localizer["Incorrect workspace acronym."]</MudText>
+                </MudAlert>
+            }
+        </MudItem>
+        <MudItem xs="3">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Default" Href="@_toolboxPage">
+                @Localizer["Cancel"]
+            </DHButton>
+        </MudItem>
+        <MudItem xs="3">
+            <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
+                @Localizer["Delete Resource"]
+                <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
+            </DHButton>
+        </MudItem>
+    </MudGrid>
+</MudStack>
+
+@code
+{
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+    
+    [Parameter]
+    public string SubSection { get; set; }
+
+    private string _deleteConfirmation;
+    private string _error = "";
+    private string _toolboxPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var ctx = await _contextFactory.CreateDbContextAsync();
+        
+        
+        if (WorkspaceAcronym == null || SubSection == null)
+        {
+            _snackbar.Add(Localizer["Invalid parameters, redirecting"], Severity.Error);            
+            _navigationManager.NavigateTo(_toolboxPage);
+            return;
+        }
+
+        var terraformType = TerraformTemplate.GetTerraformServiceType(SubSection);
+        var exists = await ctx.Project_Resources2
+            .AnyAsync(r => r.ResourceType == terraformType);
+
+        if (!exists)
+        {
+            _snackbar.Add(Localizer["Resource not found, redirecting"], Severity.Error);            
+            _navigationManager.NavigateTo(_toolboxPage);
+        }
+    }
+
+    private async void ConfirmDeletion()
+    {
+        if (string.IsNullOrEmpty(_deleteConfirmation))
+        {
+            _snackbar.Add(Localizer["Please enter a workspace acronym."], Severity.Error);
+            _error = "_emptyConfirmation";
+        }
+        else if(!_deleteConfirmation.Equals(WorkspaceAcronym))
+        {
+            _snackbar.Add(Localizer["Incorrect workspace acronym."], Severity.Error);
+            _error = "_badConfirmation";
+        }
+        else
+        {
+            await using var ctx = await _contextFactory.CreateDbContextAsync();
+            var workspace = await ctx.Projects
+                .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            
+            var template = new TerraformTemplate(SubSection, TerraformStatus.DeleteRequested);
+            await _requestManagementService.HandleTerraformRequestServiceAsync(workspace, template, currentUser);
+            
+            _snackbar.Add(Localizer["Deletion request has been sent."], Severity.Success);
+            _navigationManager.NavigateTo(_toolboxPage);
+        }
+    }
+}
