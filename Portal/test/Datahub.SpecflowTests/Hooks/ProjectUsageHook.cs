@@ -8,6 +8,9 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Functions;
+using Datahub.Functions.Services;
+using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services.Cost;
 using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -42,10 +45,15 @@ namespace Datahub.SpecflowTests.Hooks
             
             var azureConfig = new AzureConfig(configuration);
             var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+            
+            var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+            var emailService = Substitute.For<IEmailService>();
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(azureConfig);
             objectContainer.RegisterInstanceAs(resourceMessagingService);
+            objectContainer.RegisterInstanceAs(sendEndpointProvider);
+            objectContainer.RegisterInstanceAs(emailService);
         }
         
         [BeforeScenario("ProjectUsage")]

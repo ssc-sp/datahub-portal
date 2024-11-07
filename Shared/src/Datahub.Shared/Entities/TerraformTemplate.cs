@@ -19,6 +19,60 @@ public class TerraformTemplate(string name, string status)
 
     public string Status { get; } = status ?? TerraformStatus.Unknown;
 
+    /// <summary>
+    /// Converts a template name to a readable name based on the specified culture.
+    /// </summary>
+    /// <param name="name">The name of the template to be converted.</param>
+    /// <param name="isFrench">The culture to use for translation. Default is english.</param>
+    /// <returns>A readable name for the template in the specified culture.</returns>
+    /// <exception cref="ArgumentException">Thrown when the culture is unknown or the template name is unknown.</exception>
+    public static string ConvertTemplateNameToReadableName(string name, bool isFrench = false)
+    {
+        return isFrench
+            ? ConvertTemplateNameToReadableNameFr(name)
+            : ConvertTemplateNameToReadableNameEn(name);
+    }
+
+    /// <summary>
+    /// Converts a template name to a readable name in French.
+    /// </summary>
+    /// <param name="name">The name of the template to be converted.</param>
+    /// <returns>A readable name for the template in French.</returns>
+    /// <exception cref="ArgumentException">Thrown when the template name is unknown.</exception>
+    private static string ConvertTemplateNameToReadableNameFr(string name)
+    {
+        var normalizedName = NormalizeTemplateName(name);
+        return normalizedName switch
+        {
+            NewProjectTemplate => "Groupe de ressources de l'espace de travail",
+            AzureStorageBlob => "Blob de stockage Azure",
+            AzureDatabricks => "Azure Databricks",
+            AzureAppService => "Service App Azure",
+            AzurePostgres => "Azure Postgres",
+            _ => throw new ArgumentException($"Unknown template name: {name}")
+        };
+    }
+
+    /// <summary>
+    /// Converts a template name to a readable name in English.
+    /// </summary>
+    /// <param name="name">The name of the template to be converted.</param>
+    /// <returns>A readable name for the template in English.</returns>
+    /// <exception cref="ArgumentException">Thrown when the template name is unknown.</exception>
+    private static string ConvertTemplateNameToReadableNameEn(string name)
+    {
+        var normalizedName = NormalizeTemplateName(name);
+        return normalizedName switch
+        {
+            NewProjectTemplate => "Workspace Resource Group",
+            AzureStorageBlob => "Azure Storage Blob",
+            AzureDatabricks => "Azure Databricks",
+            AzureAppService => "Azure App Service",
+            AzurePostgres => "Azure Postgres",
+            _ => throw new ArgumentException($"Unknown template name: {name}")
+        };
+    }
+
     public static string NormalizeTemplateName(string name)
     {
         var templateName = name.ToLower();
