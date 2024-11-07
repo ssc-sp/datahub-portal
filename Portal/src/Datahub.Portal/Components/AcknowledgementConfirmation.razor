@@ -1,0 +1,88 @@
+﻿@using Datahub.Core.Services.Docs
+@using Datahub.Markdown
+@inject DocumentationService _docService
+@inject ICultureService _cultureService
+@inject ILogger<AcknowledgementConfirmation> _logger
+@inject NavigationManager _navManager
+
+
+<MudPaper Class="mt-8 pa-8">
+    @if (_markdownLoaded)
+    {
+        <DHMarkdown Content=@_markdownContent />
+
+        @if (_loadingSuccessful)
+        {
+            <DHButton Class="mt-8" OnClick=@OnAccepted Variant=@Variant.Filled>@_buttonText</DHButton>
+        }
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate />
+    }
+</MudPaper>
+
+@code {
+    [Parameter, EditorRequired]
+    public EventCallback OnAccepted { get; set; }
+
+    [Parameter]
+    public string ButtonText { get; set; }
+
+    [Parameter]
+    public string MarkdownContent { get; set; }
+
+    [Parameter]
+    public string MarkdownPathEn { get; set; }
+
+    [Parameter]
+    public string MarkdownPathFr { get; set; }
+
+
+    private string _buttonText => string.IsNullOrEmpty(ButtonText) ? Localizer["Accept"] : ButtonText;
+
+    private string _markdownPath => _cultureService.IsFrench ? MarkdownPathFr : MarkdownPathEn;
+
+    private string _markdownContent = string.Empty;
+
+    private bool _markdownLoaded => !string.IsNullOrEmpty(_markdownContent);
+    private bool _loadingSuccessful = false;
+
+    private async Task<string> LoadMarkdownContent()
+    {
+        if (!string.IsNullOrEmpty(MarkdownContent))
+        {
+            _loadingSuccessful = true;
+            return await Task.FromResult(MarkdownContent);
+        }
+        else if (!string.IsNullOrEmpty(_markdownPath))
+        {
+            var resourceRoot = await _docService.LoadResourceTree(Datahub.Markdown.Model.DocumentationGuideRootSection.UserGuide, _cultureService.Culture);
+            var doc = await _docService.LoadPageFromPath(_markdownPath, _cultureService.IsFrench);
+            if (doc is null)
+            {
+                _docService.LogNotFoundError(_markdownPath, resourceRoot.Title);
+            }
+            else
+            {
+                var docContent = await _docService.LoadResourcePage(doc);
+                var cleanContent = MarkdownHelper.RemoveFrontMatter(docContent);
+                _loadingSuccessful = true;
+                return await Task.FromResult(cleanContent);
+            }
+        }
+        else
+        {
+            var currentUrl = _navManager.Uri;
+            _logger.LogError($"AcknowledgementConfirmation has no MarkdownContent or MarkdownPath specified in {currentUrl}");
+        }
+
+        return Localizer["N/A"];
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _markdownContent = await LoadMarkdownContent();
+        await base.OnInitializedAsync();
+    }
+}
