@@ -3,6 +3,7 @@
 @using Datahub.Portal.Components.PageAlerts
 @using Datahub.Portal.Pages.Workspace.Dashboard
 @using Datahub.Portal.Pages.Workspace.Database
+@using Datahub.Portal.Pages.Workspace.Delete
 @using Datahub.Portal.Pages.Workspace.Metadata
 @using Datahub.Portal.Pages.Workspace.Publishing
 @using Datahub.Portal.Pages.Workspace.Reports
@@ -82,6 +83,7 @@
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
+        { WorkspaceSidebar.SectionViews.Delete, typeof(ResourceDeletionPage) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
         { WorkspaceSidebar.SectionViews.Publishing, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
@@ -102,6 +104,7 @@
         { WorkspaceSidebar.SectionViews.Metadata_FR, typeof(WorkspaceMetadataPage) },
         { WorkspaceSidebar.SectionViews.Toolbox_FR, typeof(WorkspaceToolboxPage) },
         { WorkspaceSidebar.SectionViews.Reports_FR, typeof(WorkspaceReports) },
+        { WorkspaceSidebar.SectionViews.Healthcheck_FR, typeof(WorkspaceHealthcheckPage) },
         { WorkspaceSidebar.SectionViews.Settings_FR, typeof(WorkspaceSettingsPage) }
     };
 

@@ -294,6 +294,11 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public bool PreventAutoDelete { get; set; } = false;
 
+    /// <summary>
+    /// Gets or sets the date when the project is granting access to Datahub support.
+    /// </summary>
+    public DateTime AllowDatahubSupport { get; set; }
+
     [AeFormIgnore]
     [NotMapped]
     public string ProjectName
