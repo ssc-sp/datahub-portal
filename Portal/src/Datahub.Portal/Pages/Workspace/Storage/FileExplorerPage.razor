@@ -62,35 +62,37 @@
                             {
                                 <FileExplorer ProjectId=@_projectId Container="@_selectedContainer"/>
                             }
-
-                        </MudTabPanel>
-                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
-                            @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
-                            {
-                                <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
-                                    <MudStack Class="py-6 px-2">
-                                        <AzCopy Container=@SelectedContainer/>
-                                    </MudStack>
-                                </MudTabPanel>
-                            }
-                            @if (SelectedContainer is null || SelectedContainer.StorageManager.DatabrickEnabled)
-                            {
-                                <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
-                                    <MudStack Class="py-6 px-2">
-                                        <Databricks Container="@SelectedContainer"/>
-                                    </MudStack>
-                                </MudTabPanel>
-                            }
-                            @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
-                            {
-                                <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
-                                    <MudStack Class="py-6 px-2">
-                                        <UploaderCode Container=@SelectedContainer/>
-                                    </MudStack>
-                                </MudTabPanel>
-                            }
-                        </DatahubAuthView>
-                    </MudTabs>
+                            </MudTabPanel>
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
+                                @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                                {
+                                    <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
+                                        <MudStack Class="py-6 px-2">
+                                            <AzCopy Container=@SelectedContainer 
+                                                TermsAcknowledged=@_tokenTermsAcknowledged 
+                                                OnTermsAccepted=@AgreeToAccessTokenTerms />
+                                        </MudStack>
+                                    </MudTabPanel>
+                                }
+                                @if (SelectedContainer is null || SelectedContainer.StorageManager.DatabrickEnabled)
+                                {
+                                    <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
+                                        <MudStack Class="py-6 px-2">
+                                            <Databricks Container="@SelectedContainer"/>
+                                        </MudStack>
+                                    </MudTabPanel>
+                                }
+                                @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                                {
+                                    <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
+                                        <MudStack Class="py-6 px-2">
+                                            <UploaderCode Container=@SelectedContainer/>
+                                        </MudStack>
+                                    </MudTabPanel>
+                                }
+                            </DatahubAuthView>
+                        </MudTabs>
+                    }
                 </MudPaper>
             </CascadingValue>
         </CascadingValue>
@@ -111,6 +113,10 @@
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private User _user;
+
+    private bool _tokenTermsAcknowledged = false;
+
+    private void AgreeToAccessTokenTerms() => _tokenTermsAcknowledged = true;
 
     private bool _loading = true;
     private bool _failedToLoadContainers = false;
