@@ -18,7 +18,7 @@
 
 <MudStack>
 
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
         <MudStack>
             @if (_usersToAdd.Any() || _usersToUpdate.Any())
             {
@@ -91,7 +91,7 @@
     <MudStack Row Class="mt-6 mb-4">
         <DHMainContentTitle Title="@Localizer["Workspace Users"]" />
         <MudSpacer/>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
             <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
                 @Localizer["Invite New User"]
             </DHButton>
@@ -209,6 +209,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private string _filterString = null;
     private string _tabStyle;

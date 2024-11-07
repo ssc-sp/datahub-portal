@@ -239,6 +239,7 @@
 @code {
 
     [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private string _webAppHost = "<web_app_host>";
     private string _webAppId = "<web_app_id>";
