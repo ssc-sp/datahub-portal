@@ -30,6 +30,9 @@ else
 
 @code {
 
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
     [Parameter, EditorRequired]
     public CloudStorageContainer Container { get; set; }
 
