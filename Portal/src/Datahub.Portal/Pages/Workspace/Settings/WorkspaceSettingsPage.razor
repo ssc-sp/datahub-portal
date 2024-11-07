@@ -54,7 +54,7 @@
                 <WorkspaceSharedKeyAccessControl WorkspaceAcronym="@WorkspaceAcronym"/>
             </Authorized>
         </DatahubAuthView>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@WorkspaceAcronym">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ProjectAcronym="@WorkspaceAcronym">
             <Authorized>
                 <WorkspacePreventAutoDeleteControl OnValueChanged="@HandlePreventAutoDeleteChange" InitialValue="@_preventAutoDelete"/>
                 <WorkspaceBudgetControl OnValueChanged="@HandleBudgetChanged" InitialValue="@_budget"/>
