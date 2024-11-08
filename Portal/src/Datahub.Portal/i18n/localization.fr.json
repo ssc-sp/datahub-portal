@@ -2952,5 +2952,6 @@
   "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
   "Email is required": "L'adresse courriel est requise",
   "Invalid email": "Courriel invalide",
-  "Logging in...": "Connexion..."
+  "Logging in...": "Connexion...",
+  "Accept Storage Access Token Terms": "Accepter les conditions d'utilisation du jeton d'accès au stockage"
 }
