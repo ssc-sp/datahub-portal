@@ -8,7 +8,7 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
-<EditForm Model="@loginModel" OnValidSubmit="HandleLogin" >
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
     <MudStack AlignItems="AlignItems.Start" Class="my-8" Style="width: 100%">
         <MudText Typo="Typo.body1" Class="text-center">
             <strong>
@@ -16,7 +16,7 @@
             </strong>
         </MudText>
         <div class="form-group" style="width: 100%">
-            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined" @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true" RequiredError="@Localizer["Email is required"]" FullWidth="true"/>
+            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined" @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true" RequiredError="@Localizer["Email is required"]" FullWidth="true" />
         </div>
         <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_loggingIn">
             <MudText>
@@ -27,42 +27,17 @@
             @Localizer["Don't have an account?"]
             <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
         </MudText>
-        </MudButton>
-        <MudText Typo="Typo.body1">
-            @Localizer["Don't have an account?"]
-            <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
-        </MudText>
     </MudStack>
-</EditForm>
 </EditForm>
 
 @code {
-    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
+    [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
-    private LoginModel loginModel = new LoginModel();
-    private bool _loggingIn;
-
-    internal async void HandleLogin()
     private LoginModel loginModel = new LoginModel();
     private bool _loggingIn;
 
     internal async void HandleLogin()
     {
-        _loggingIn = true;
-        var loginHint = loginModel.Email;
-        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
-        if (existingUser is { IsDeleted: true })
-        {
-            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
-            return;
-        }
-
-        if (existingUser is { IsLocked: true })
-        {
-            _navigationManager.NavigateTo(Localizer["/locked"]);
-            return;
-        }
-
         _loggingIn = true;
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
@@ -83,9 +58,9 @@
             redirectUri = _navigationManager.BaseUri;
         }
 
-            var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
-            _navigationManager.NavigateTo(url, true);
-        
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
+        _navigationManager.NavigateTo(url, true);
+
     }
 
     protected override async Task OnInitializedAsync()
@@ -101,11 +76,6 @@
         {
             HandleLogin();
         }
-    }
-
-    public class LoginModel
-    {
-        public string Email { get; set; }
     }
 
     public class LoginModel

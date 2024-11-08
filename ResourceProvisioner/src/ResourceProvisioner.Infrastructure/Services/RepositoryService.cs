@@ -91,7 +91,7 @@ public partial class RepositoryService(
         }
         finally
         {
-            _logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CleanUpEnvironment();
             _semaphore.Release();
         }
@@ -112,7 +112,7 @@ public partial class RepositoryService(
         // check if module path exists
         if (!Directory.Exists(modulePath))
         {
-            _logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
+            logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
             FetchModuleRepository();
         }
 
@@ -131,8 +131,8 @@ public partial class RepositoryService(
     private void CreateTemporaryDirectory()
     {
         CleanUpEnvironment();
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
-        _logger.LogInformation("Creating temporary directory {Directory} for resource run", Path.GetFullPath(tempPath));
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+        logger.LogInformation("Creating temporary directory {Directory} for resource run", Path.GetFullPath(tempPath));
         Directory.CreateDirectory(tempPath);
     }
 
@@ -141,38 +141,38 @@ public partial class RepositoryService(
         _moduleSemaphore.Wait();
         try
         {
-            var repositoryUrl = _resourceProvisionerConfiguration.ModuleRepository.Url;
-            var localPath = _resourceProvisionerConfiguration.ModuleRepository.LocalPath;
+            var repositoryUrl = resourceProvisionerConfiguration.ModuleRepository.Url;
+            var localPath = resourceProvisionerConfiguration.ModuleRepository.LocalPath;
 
-            _logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(_resourceProvisionerConfiguration);
+            logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
+            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
-            _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+            logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
             Repository.Clone(repositoryUrl, repositoryPath);
 
-            if (_resourceProvisionerConfiguration.ModuleRepository.Branch !=
+            if (resourceProvisionerConfiguration.ModuleRepository.Branch !=
                 ModuleRepositoryConfiguration.DefaultBranch)
             {
                 using var repo = new Repository(repositoryPath);
                 var branch =
-                    repo.Branches[$"refs/remotes/origin/{_resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+                    repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
                 if (branch == null)
                 {
-                    _logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                        _resourceProvisionerConfiguration.ModuleRepository.Branch);
+                    logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
+                        resourceProvisionerConfiguration.ModuleRepository.Branch);
                     branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
                 }
 
                 Commands.Checkout(repo, branch);
             }
 
-            _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
+            logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
 
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Error while fetching module repository");
+            logger.LogError(e, "Error while fetching module repository");
             throw new Exception("Error while fetching module repository", e);
         }
         finally
@@ -206,10 +206,10 @@ public partial class RepositoryService(
             }
         };
 
-        _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
+        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
         Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
 
-        _logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
+        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
     }
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
@@ -584,12 +584,12 @@ public partial class RepositoryService(
     {
         try
         {
-            var tempPath = DirectoryUtils.GetTempDirectoryPath(_resourceProvisionerConfiguration);
+            var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);
         } catch (Exception e)
         {
-            _logger.LogError(e, "Error while cleaning up environment");
+            logger.LogError(e, "Error while cleaning up environment");
         }
     }
 }
