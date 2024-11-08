@@ -1,6 +1,7 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
+@using Datahub.Shared
 @using Datahub.Core.Services.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
@@ -71,7 +72,7 @@
                                 case TerraformStatus.Completed:
                                     <MudStack>
                                         <ToolboxButton Status="@status" Disabled="@true" Icon="fa-light fa-check-to-slot"/>
-                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
                                             <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
                                                 @Localizer["Remove Tool from Workspace"]
                                                 <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
