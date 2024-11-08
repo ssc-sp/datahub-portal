@@ -27,7 +27,13 @@
             @Localizer["Don't have an account?"]
             <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
         </MudText>
+        </MudButton>
+        <MudText Typo="Typo.body1">
+            @Localizer["Don't have an account?"]
+            <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
+        </MudText>
     </MudStack>
+</EditForm>
 </EditForm>
 
 @code {
@@ -37,7 +43,26 @@
     private bool _loggingIn;
 
     internal async void HandleLogin()
+    private LoginModel loginModel = new LoginModel();
+    private bool _loggingIn;
+
+    internal async void HandleLogin()
     {
+        _loggingIn = true;
+        var loginHint = loginModel.Email;
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
+        if (existingUser is { IsDeleted: true })
+        {
+            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
+            return;
+        }
+
+        if (existingUser is { IsLocked: true })
+        {
+            _navigationManager.NavigateTo(Localizer["/locked"]);
+            return;
+        }
+
         _loggingIn = true;
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
@@ -76,6 +101,11 @@
         {
             HandleLogin();
         }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; }
     }
 
     public class LoginModel
