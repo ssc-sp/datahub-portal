@@ -82,10 +82,10 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 });
             }
 
-            StateHasChanged();
+            InvokeAsync(StateHasChanged);
         }
 
-        private void UpdateProjectMemberRole(ProjectUserAddUserCommand projectUser, int newRoleId)
+        private void UpdateProjectMemberRoleCommand(ProjectUserAddUserCommand projectUser, int newRoleId)
         {
             projectUser.RoleId = newRoleId;
             if (projectUser.RoleId == (int)Project_Role.RoleNames.Remove)
@@ -93,7 +93,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 _usersToAdd.Remove(projectUser);
             }
 
-            StateHasChanged();
+            InvokeAsync(StateHasChanged);
         }
 
         private bool IsModified(Datahub_Project_User projectUser)
@@ -135,7 +135,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 });
             }
 
-            StateHasChanged();
+            InvokeAsync(StateHasChanged);
         }
 
         private bool NothingChanged()

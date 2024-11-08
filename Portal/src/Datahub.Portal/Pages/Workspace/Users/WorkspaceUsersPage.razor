@@ -77,7 +77,7 @@
                                         <MudText Typo="Typo.body2">
                                             @Localizer["will be added as a"]
                                         </MudText>
-                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(userToBeAdded, newRoleId))"/>
+                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRoleCommand(userToBeAdded, newRoleId))"/>
                                     </MudStack>
                                 </MudItem>
 

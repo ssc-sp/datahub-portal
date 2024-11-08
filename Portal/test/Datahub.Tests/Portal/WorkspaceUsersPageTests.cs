@@ -1,39 +1,21 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using Blazored.LocalStorage;
 using Bunit;
-using Datahub.Application.Configuration;
-using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Context;
-using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Services.UserManagement;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.DependencyInjection;
-using MediatR;
-using Microsoft.JSInterop;
 using Moq;
 using MudBlazor;
 using Xunit;
-using Datahub.Tests.Portal;
-using NSubstitute;
 using MudBlazor.Services;
-using Datahub.Portal.Pages.Public;
-using MassTransit;
-using Datahub.Application.Services.Metadata;
 using Datahub.Core.Model.Projects;
 using Datahub.Portal.Pages.Workspace.Users;
 using System.Reflection;
-using Datahub.Core.Components.AuthViews;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 
@@ -72,34 +54,40 @@ namespace Datahub.Tests
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
                 .ReturnsAsync(fakeClaimsPrincipal);
 
-            var projectAcronym = "ABC"; 
+            var projectAcronym = "ABC";
 
-            //_component = (WorkspaceUsersPage?)_testContext.RenderComponent<WorkspaceUsersPage>(parameters => parameters
-            //    .Add(p => p.WorkspaceAcronym, projectAcronym)
-            //    .AddCascadingValue<Task<AuthenticationState>>(Task.FromResult(new AuthenticationState(fakeClaimsPrincipal))));
+            _component = _testContext.RenderComponent<WorkspaceUsersPage>(parameters => parameters
+                    .Add(p => p.WorkspaceAcronym, projectAcronym)
+                    .AddCascadingValue<Task<AuthenticationState>>(
+                        Task.FromResult(new AuthenticationState(fakeClaimsPrincipal))))
+                .Instance;
 
-            var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("WorkspaceAcronym", projectAcronym) };
-            _component = (WorkspaceUsersPage?)_testContext.RenderComponent<WorkspaceUsersPage>(pageParams.ToArray());
-
+            //var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("WorkspaceAcronym", projectAcronym) };
+            //_component = (WorkspaceUsersPage?)_testContext.RenderComponent<WorkspaceUsersPage>(pageParams.ToArray());
         }
 
         private TestContext SetupTestContext()
         {
             _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
+            _projectUserManagementServiceMock.Setup(x => x.GetProjectUsersAsync(It.IsAny<string>()))
+                .ReturnsAsync(new List<Datahub_Project_User>());
 
             using var ctx = new TestContext();
+            ctx.JSInterop.Mode = JSRuntimeMode.Loose;
+            ctx.JSInterop.SetupVoid("mudPopover.initialize", _ => true);
+            ctx.JSInterop.SetupVoid("mudPopover.connect", _ => true);
+            ctx.JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
+            ctx.JSInterop.Setup<IEnumerable>("mudResizeObserver.connect", _ => true);
             ctx.Services.AddSingleton(_projectUserManagementServiceMock.Object);
             ctx.Services.AddSingleton(_userInformationMock.Object);
             ctx.Services.AddSingleton(_cultureServiceMock.Object);
             ctx.Services.AddSingleton(_stringLocalizerMock.Object);
             ctx.Services.AddSingleton(_snackBarMock.Object);
             ctx.Services.AddSingleton<IAuthorizationPolicyProvider, DefaultAuthorizationPolicyProvider>();
-            ctx.Services.AddAuthorizationCore(options =>
+            ctx.Services.AddSingleton<IAuthorizationService, DefaultAuthorizationService>();
+            ctx.Services.AddAuthorization(options =>
             {
-                options.AddPolicy("AlwaysAllow", policy =>
-                {
-                    policy.RequireAssertion(_ => true);
-                });
+                options.AddPolicy("AlwaysAllow", policy => { policy.RequireAssertion(_ => true); });
 
                 var alwaysAllowPolicy = options.GetPolicy("AlwaysAllow");
                 if (alwaysAllowPolicy != null)
@@ -110,9 +98,7 @@ namespace Datahub.Tests
                 {
                     throw new InvalidOperationException("AlwaysAllow policy is not configured.");
                 }
-
             });
-
             ctx.Services.AddMudServices();
             return ctx;
         }
@@ -141,7 +127,9 @@ namespace Datahub.Tests
             // Arrange
             var user = new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 };
             SetPrivateField(_component, "_projectUsers", new List<Datahub_Project_User> { user });
-            SetPrivateField(_component, "_currentlySelected", new List<Datahub_Project_User> { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 } });
+            SetPrivateField(_component, "_currentlySelected",
+                new List<Datahub_Project_User>
+                    { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 } });
 
             // Act
             var result = InvokePrivateMethod(_component, "NothingChanged");
@@ -156,7 +144,9 @@ namespace Datahub.Tests
             // Arrange
             var user = new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 };
             SetPrivateField(_component, "_projectUsers", new List<Datahub_Project_User> { user });
-            SetPrivateField(_component, "_currentlySelected", new List<Datahub_Project_User> { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = true, RoleId = 1 } });
+            SetPrivateField(_component, "_currentlySelected",
+                new List<Datahub_Project_User>
+                    { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = true, RoleId = 1 } });
 
             // Act
             var result = InvokePrivateMethod(_component, "NothingChanged");
@@ -171,7 +161,9 @@ namespace Datahub.Tests
             // Arrange
             var user = new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 };
             SetPrivateField(_component, "_projectUsers", new List<Datahub_Project_User> { user });
-            SetPrivateField(_component, "_currentlySelected", new List<Datahub_Project_User> { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 2 } });
+            SetPrivateField(_component, "_currentlySelected",
+                new List<Datahub_Project_User>
+                    { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 2 } });
 
             // Act
             var result = InvokePrivateMethod(_component, "NothingChanged");
@@ -186,7 +178,9 @@ namespace Datahub.Tests
             // Arrange
             var user = new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 };
             SetPrivateField(_component, "_projectUsers", new List<Datahub_Project_User> { user });
-            SetPrivateField(_component, "_currentlySelected", new List<Datahub_Project_User> { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = true, RoleId = 2 } });
+            SetPrivateField(_component, "_currentlySelected",
+                new List<Datahub_Project_User>
+                    { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = true, RoleId = 2 } });
 
             // Act
             var result = InvokePrivateMethod(_component, "NothingChanged");
@@ -199,16 +193,21 @@ namespace Datahub.Tests
         public void NothingChanged_RevertChanges_ReturnsTrue()
         {
             // Arrange
-            var user = new Datahub_Project_User { PortalUserId = 1, IsDataSteward = false, RoleId = 1 };
+            var portalUser = new PortalUser() { GraphGuid = "1", Id = 1 };
+            var user = new Datahub_Project_User
+                { PortalUserId = 1, IsDataSteward = false, RoleId = 1, PortalUser = portalUser };
+            var modifiedUser = new Datahub_Project_User
+                { PortalUserId = 1, IsDataSteward = true, RoleId = 2, PortalUser = portalUser };
             SetPrivateField(_component, "_projectUsers", new List<Datahub_Project_User> { user });
-            SetPrivateField(_component, "_currentlySelected", new List<Datahub_Project_User> { new Datahub_Project_User { PortalUserId = 1, IsDataSteward = true, RoleId = 2 } });
-
+            
             // Act
-            var changeDataStewardFlagMethod = _component.GetType().GetMethod("ChangeDataStewardFlag", BindingFlags.NonPublic | BindingFlags.Instance);
-            changeDataStewardFlagMethod.Invoke(_component, new object[] { user, false });
+            var changeDataStewardFlagMethod = _component.GetType()
+                .GetMethod("ChangeDataStewardFlag", BindingFlags.NonPublic | BindingFlags.Instance);
+            changeDataStewardFlagMethod.Invoke(_component, new object[] { modifiedUser, false });
 
-            var updateProjectMemberRoleMethod = _component.GetType().GetMethod("UpdateProjectMemberRole", BindingFlags.NonPublic | BindingFlags.Instance);
-            updateProjectMemberRoleMethod.Invoke(_component, new object[] { user, 1 });
+            var updateProjectMemberRoleMethod = _component.GetType()
+                .GetMethod("UpdateProjectMemberRole", BindingFlags.NonPublic | BindingFlags.Instance);
+            updateProjectMemberRoleMethod.Invoke(_component, new object[] { modifiedUser, 1 });
 
             var result = InvokePrivateMethod(_component, "NothingChanged");
 
