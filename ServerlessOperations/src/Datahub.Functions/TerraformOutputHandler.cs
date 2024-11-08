@@ -152,6 +152,13 @@ public class TerraformOutputHandler(
 
         var azureAppServiceStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureAppServiceStatus].Value);
+        if (!azureAppServiceStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logger.LogError("Azure App Service status is not completed. Status: {Status}",
+                azureAppServiceStatus);
+            return;
+        }
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService));
 
@@ -190,6 +197,12 @@ public class TerraformOutputHandler(
         }
 
         var databricksStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureDatabricksStatus].Value);
+        if (!databricksStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logger.LogError("Azure Databricks status is not completed. Status: {Status}", databricksStatus);
+            return;
+        }
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks));
 
@@ -226,6 +239,11 @@ public class TerraformOutputHandler(
 
         var storageBlobStatus =
             GetStatusMapping(outputVariables[TerraformVariables.OutputAzureStorageBlobStatus].Value);
+        if (!storageBlobStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logger.LogError("Azure storage blob status is not completed. Status: {Status}", storageBlobStatus);
+            return;
+        }
 
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob));
@@ -268,6 +286,12 @@ public class TerraformOutputHandler(
         }
 
         var postgresStatus = GetStatusMapping(outputVariables[TerraformVariables.OutputAzurePostgresStatus].Value);
+        if (!postgresStatus.Equals(TerraformStatus.Completed, StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logger.LogError("Azure Postgres status is not completed. Status: {Status}", postgresStatus);
+            return;
+        }
+
         var projectResource = await GetProjectResource(outputVariables,
             TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
 
