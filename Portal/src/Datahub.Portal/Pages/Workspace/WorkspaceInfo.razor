@@ -13,7 +13,9 @@
             @_project?.ProjectName
         </MudText>
     </DHMainContentTitle>
-    <WorkspaceBudgetAlert PercentBudgetSpent="@_percentBudgetSpent"/>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+        <WorkspaceBudgetAlert PercentBudgetSpent="@_percentBudgetSpent"/>
+    </DatahubAuthView>
     <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
 

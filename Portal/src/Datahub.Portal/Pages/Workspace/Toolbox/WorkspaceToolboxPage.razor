@@ -1,6 +1,7 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
+@using Datahub.Shared
 @using Datahub.Core.Services.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
@@ -23,9 +24,6 @@
     </MudText>
 
     <MudDivider Class="my-6"/>
-    <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-        @Localizer["The \"Add to Workspace\" button will show the state of your tool request after being clicked."]
-    </MudAlert>
 
     @if (_metadataRequired)
     {
@@ -34,6 +32,12 @@
             <MudLink Href="@_metadataUrl">
                 @Localizer["Click here to edit the metadata."]
             </MudLink>
+        </MudAlert>
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+            @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
         </MudAlert>
     }
 
@@ -68,7 +72,7 @@
                                 case TerraformStatus.Completed:
                                     <MudStack>
                                         <ToolboxButton Status="@status" Disabled="@true" Icon="fa-light fa-check-to-slot"/>
-                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
                                             <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
                                                 @Localizer["Remove Tool from Workspace"]
                                                 <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
@@ -102,8 +106,8 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private Datahub_Project _workspace;
 
