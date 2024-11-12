@@ -5,7 +5,7 @@ on:
   push: {}
   pull_request:
     branches:
-      - develop  
+      - develop
   workflow_dispatch:
 
 permissions: read-all
