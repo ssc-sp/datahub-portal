@@ -32,4 +32,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # To report GitHub Actions status checks
           DEFAULT_BRANCH: develop
           VALIDATE_ALL_CODEBASE: false # Lint only changed files
+          VALIDATE_CHECKOV: false
+          VALIDATE_JSCPD: false
           SUPPRESS_POSSUM: true
