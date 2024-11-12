@@ -30,4 +30,6 @@ jobs:
         uses: super-linter/super-linter@b92721f792f381cedc002ecdbb9847a15ece5bb8 # v7.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # To report GitHub Actions status checks
+          DEFAULT_BRANCH: develop
           VALIDATE_ALL_CODEBASE: false # Lint only changed files
+          SUPPRESS_POSSUM: true
