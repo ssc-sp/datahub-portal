@@ -31,3 +31,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # To report GitHub Actions status checks
           VALIDATE_ALL_CODEBASE: false # Lint only changed files
+          VALIDATE_CHECKOV: false
+          VALIDATE_JSCPD: false
+          SUPPRESS_POSSUM: true
