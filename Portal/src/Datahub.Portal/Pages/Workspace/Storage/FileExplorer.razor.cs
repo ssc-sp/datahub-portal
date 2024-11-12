@@ -34,8 +34,7 @@ public partial class FileExplorer
     {
         if (_lastContainer != Container)
         {
-            _currentFolder = _root;
-            await RefreshStoragePageAsync();
+            await SetCurrentFolder(_root);
         }            
     }
 
