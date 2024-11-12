@@ -81,7 +81,7 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <returns>Json containing the workspace acronym, resource group name, and tenant ID</returns>
     [Route("api/create-workspace")]
-    [AllowAnonymous]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> PostCreateWorkspace()
     {
         try
