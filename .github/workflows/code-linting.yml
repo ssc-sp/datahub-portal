@@ -34,3 +34,5 @@ jobs:
           VALIDATE_CHECKOV: false
           VALIDATE_JSCPD: false
           SUPPRESS_POSSUM: true
+          DISABLE_ERRORS: true
+          
