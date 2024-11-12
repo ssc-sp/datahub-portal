@@ -5,6 +5,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IUserInformationService _userInformationService
 @inject IResourceMessagingService resourceMessagingService
+@inject IJSRuntime JSRuntime
 
 <MudPaper Outlined Class="pa-8 my-8 mx-n8" Style="background-color: transparent; border-color: red;">
     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
@@ -19,6 +20,11 @@
 
     private async void ConfirmDeletion()
     {
+        
+        var message = string.Format(Localizer["Are you sure you want to delete the workspace \"{0}\"?"], WorkspaceAcronym);
+        if (!await JSRuntime.InvokeAsync<bool>("confirm", message))
+            return;
+
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         
         var undeletedResources = await ctx.Project_Resources2

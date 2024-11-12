@@ -225,6 +225,7 @@
   "Architecture": "Architecture",
   "Are you sure you want to delete file \\": "Etes-vous sûr de vouloir supprimer le fichier \\",
   "Are you sure you want to delete folder \\": "Etes-vous sûr de vouloir supprimer le dossier \\",
+  "Are you sure you want to delete the workspace \\": "Êtes-vous sûr de vouloir supprimer l'espace de travail \\",
   "Are you sure you want to delete the following project?": "Êtes-vous sûr de vouloir supprimer le projet suivant?",
   "Are you sure you want to delete {0} from this workspace?": "Êtes-vous sûr de vouloir supprimer {0} de cet espace de travail?",
   "Are you sure you want to remove this user from the workspace?": "Êtes-vous sûr de vouloir supprimer cet utilisateur de l'espace de travail?",

@@ -188,6 +188,7 @@
   "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.": "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.",
   "Are you sure you want to delete file \\": "Are you sure you want to delete file \\",
   "Are you sure you want to delete folder \\": "Are you sure you want to delete folder \\",
+  "Are you sure you want to delete the workspace \\": "Are you sure you want to delete the workspace \\",
   "Are you sure you want to delete the following project?": "Are you sure you want to delete the following project?",
   "Are you sure you want to delete {0} from this workspace?": "Are you sure you want to delete {0} from this workspace?",
   "Are you sure you want to remove this user from the workspace?": "Are you sure you want to remove this user from the workspace?",
