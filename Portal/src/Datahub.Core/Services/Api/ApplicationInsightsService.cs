@@ -9,9 +9,9 @@ namespace Datahub.Core.Services.Api;
 
 public class ApplicationInsightsService
 {
-    private readonly LogsQueryClient client;
-    private readonly ILogger<ApplicationInsightsService> logger;
-    private readonly IConfiguration config;
+    private readonly LogsQueryClient _client;
+    private readonly ILogger<ApplicationInsightsService> _logger;
+    private readonly IConfiguration _config;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ApplicationInsightsService"/> class.
@@ -20,9 +20,9 @@ public class ApplicationInsightsService
     /// <param name="configuration"></param>
     public ApplicationInsightsService(ILogger logger, IConfiguration configuration)
     {
-        this.logger = (ILogger<ApplicationInsightsService>)logger;
-        config = configuration;
-        client = new LogsQueryClient(new DefaultAzureCredential());
+        _logger = (ILogger<ApplicationInsightsService>)logger;
+        _config = configuration;
+        _client = new LogsQueryClient(new DefaultAzureCredential());
     }
 
     public async Task<List<InfrastructureHealthResult>> GetHealthResultsAsync(string workspaceId)
@@ -31,7 +31,7 @@ public class ApplicationInsightsService
             customEvents
             | where name == 'InfrastructureHealthCheck'
             | summarize count() by tostring(customDimesions.resourceType), tostring(customDimesions.status) ";
-        Response<LogsQueryResult> response = await client.QueryWorkspaceAsync(
+        Response<LogsQueryResult> response = await _client.QueryWorkspaceAsync(
             workspaceId,
             query,
             new QueryTimeRange(TimeSpan.FromDays(1)));

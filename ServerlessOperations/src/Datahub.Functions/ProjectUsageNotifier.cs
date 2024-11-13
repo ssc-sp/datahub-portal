@@ -1,7 +1,6 @@
-using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Extensions;
 using Datahub.Functions.Services;
@@ -9,7 +8,9 @@ using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
+using Datahub.Shared;
 using Datahub.Shared.Configuration;
+using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -24,7 +25,8 @@ namespace Datahub.Functions
         QueuePongService pongService,
         EmailValidator emailValidator,
         ISendEndpointProvider sendEndpointProvider,
-        IEmailService emailService)
+        IEmailService emailService,
+        IResourceMessagingService resourceMessagingService)
     {
         private readonly int[] _notificationPercents =
             ParseNotificationPercents(config.NotificationPercents ?? "25,50,80,100");
@@ -40,10 +42,11 @@ namespace Datahub.Functions
         {
             // test for ping
             // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-                // return;
+            // return;
 
             // deserialize message
-            var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageNotificationMessage>();
+            var message = await serviceBusReceivedMessage
+                .DeserializeAndUnwrapMessageAsync<ProjectUsageNotificationMessage>();
 
             // verify message 
             if (message is null || message.ProjectAcronym.Length <= 0)
@@ -53,6 +56,135 @@ namespace Datahub.Functions
 
             // run project verification
             await VerifyAndNotifyProject(message.ProjectAcronym, cancellationToken);
+
+            await VerifyOverBudgetIsDeleted(message.ProjectAcronym, cancellationToken);
+        }
+
+        /// <summary>
+        /// Verifies that any over-budget records associated with the specified project acronym
+        /// are set to deleted in the database and sent to the service bus otherwise.
+        /// </summary>
+        /// <param name="projectAcronym">The project acronym associated with the message.</param>
+        /// <param name="cancellationToken">A cancellation token to observe during the task execution.</param>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        internal async Task VerifyOverBudgetIsDeleted(string projectAcronym, CancellationToken cancellationToken)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var deleteIsRequired = await VerifyDeleteIsRequired(projectAcronym, cancellationToken, ctx);
+
+            if (!deleteIsRequired)
+                return;
+
+            var undeletedResources = await ctx.Project_Resources2
+                .Include(r => r.Project)
+                .Where(r => r.Project.Project_Acronym_CD == projectAcronym && !(r.Status == TerraformStatus.Deleted ||
+                    r.Status == TerraformStatus.DeleteRequested))
+                .ToListAsync(cancellationToken);
+
+            if (undeletedResources.Count == 0)
+                return;
+
+            _logger.LogInformation("Project {ProjectId} is over budget, deleting resources", projectAcronym);
+            foreach (var undeletedResource in undeletedResources)
+            {
+                undeletedResource.Status = TerraformStatus.DeleteRequested;
+                ctx.Project_Resources2.Update(undeletedResource);
+            }
+
+            await ctx.SaveChangesAsync(cancellationToken);
+
+            _logger.LogInformation("Project {ProjectId} is over budget, deleting resources", projectAcronym);
+            var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(projectAcronym);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            _logger.LogInformation("Project {ProjectId} resources have been queued for deletion", projectAcronym);
+
+            await SendDeleteNotificationEmailToWorkspaceAdmins(projectAcronym,
+                undeletedResources.Select(r => r.ResourceType).ToList(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Sends a deletion notification email to workspace administrators for a given project.
+        /// </summary>
+        /// <param name="projectAcronym">The acronym of the project for which the deletion notification is to be sent.</param>
+        /// <param name="resourceNames">A list of resource names that have been queued for deletion.</param>
+        /// <param name="cancellationToken">A cancellation token to observe during the task execution.</param>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        private async Task SendDeleteNotificationEmailToWorkspaceAdmins(
+            string projectAcronym,
+            List<string> resourceNames,
+            CancellationToken cancellationToken)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var project = await ctx.Projects
+                .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
+                .Where(p => p.Project_Acronym_CD == projectAcronym)
+                .FirstAsync(cancellationToken);
+
+            var adminContacts = project.Users
+                .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
+                            u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+                .Select(u => u.PortalUser.Email)
+                .Where(emailValidator.IsValidEmail)
+                .ToList();
+
+            foreach (var resourceName in resourceNames)
+            {
+                var args = new Dictionary<string, string>
+                {
+                    { "{workspaceAcronym}", projectAcronym },
+                    { "{resource}", TerraformTemplate.ConvertTemplateNameToReadableName(resourceName) },
+                    { "{resource_fr}", TerraformTemplate.ConvertTemplateNameToReadableName(resourceName, true) }
+                };
+
+                var email = emailService.BuildEmail("delete_notification.html", adminContacts, [],
+                    args, args);
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                    email!, cancellationToken);
+            }
+        }
+
+        /// <summary>
+        /// Determines if a delete action is required for the specified project acronym.
+        /// </summary>
+        /// <param name="projectAcronym">The acronym of the project to check.</param>
+        /// <param name="cancellationToken">A token to monitor for cancellation requests.</param>
+        /// <param name="ctx">The database context used for accessing project data.</param>
+        /// <returns>A boolean indicating whether delete is required.</returns>
+        internal async Task<bool> VerifyDeleteIsRequired(string projectAcronym, CancellationToken cancellationToken,
+            DatahubProjectDBContext ctx)
+        {
+            var details = await GetProjectDetails(ctx, projectAcronym, cancellationToken);
+
+            if (details?.Credits is null)
+            {
+                _logger.LogWarning("Project {ProjectId} details or credits are null", projectAcronym);
+                return false;
+            }
+
+            var currentPercent = details.ProjectBudget > 0
+                ? (int)Math.Round(100.0 * details.Credits.Current / details.ProjectBudget)
+                : 0;
+
+            if (currentPercent < 100)
+            {
+                _logger.LogInformation("Project {ProjectId} is not over budget", projectAcronym);
+                return false;
+            }
+
+            var project = await ctx.Projects
+                .AsNoTracking()
+                .Where(e => e.Project_Acronym_CD == projectAcronym)
+                .FirstAsync(cancellationToken);
+
+            if (project.PreventAutoDelete)
+            {
+                _logger.LogInformation("Project {ProjectId} is over budget but auto-delete is disabled",
+                    projectAcronym);
+                return false;
+            }
+
+            return true;
         }
 
         private async Task VerifyAndNotifyProject(string projectAcronym, CancellationToken cancellationToken)

@@ -24,6 +24,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Enums\TerraformRole.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNotFoundException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\UserNotFoundException.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TerraformStatus.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TerraformVariables.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -6,38 +6,49 @@
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
 
-<MudStack Spacing="8" Class="mb-16">
-    <MudStack>
-        <DHMainContentTitle Title="@Localizer["Public profile"]"/>
-        <MudDivider/>
-    </MudStack>
-    <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
-        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName" Label="@Localizer["Display name"]"/>
-    </SettingsField>
-    <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
-        <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email" Label="@Localizer["Email"]"/>
-    </SettingsField>
-    <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
-        <ImageSelectionView
-            ViewedUser="@ViewedUser"
-            IsProfilePictureDialog="@true"
-            OnImageSelected="@(code => HandleImageSelected(code, true))"/>
-    </SettingsField>
-    <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
-        <ImageSelectionView
-            ViewedUser="@ViewedUser"
-            IsProfilePictureDialog="@false"
-            OnImageSelected="@(code => HandleImageSelected(code, false))"/>
-    </SettingsField>
-    <MudDivider/>
-    <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
-        <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Value="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAchievementsChanged"/>
-    </SettingsField>
-    <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
-        <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Value="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAlertsChanged"/>
-        <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
-    </SettingsField>
-</MudStack>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserGraphId=@ViewedUser.GraphGuid>
+
+    <Authorized>
+        <MudStack Spacing="8" Class="mb-16">
+            <MudStack>
+                <DHMainContentTitle Title="@Localizer["Public profile"]"/>
+                <MudDivider/>
+            </MudStack>
+            <SettingsField Label="@Localizer["Display Name"]" Description="@Localizer["Your display name will be shown around DataHub as your username."]">
+                <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.DisplayName" Label="@Localizer["Display name"]"/>
+            </SettingsField>
+            <SettingsField Label="@Localizer["Email Address"]" Description="@Localizer["Your email address will be used to send you notifications."]">
+                <MudTextField T="string" Disabled Variant="Variant.Outlined" Margin="Margin.Dense" Value="@ViewedUser.Email" Label="@Localizer["Email"]"/>
+            </SettingsField>
+            <SettingsField Label="@Localizer["Profile Picture"]" Description="@Localizer["Your profile picture will be displayed beside your name around DataHub. You can it at any time and unlock more variations from completing achievements."]">
+                <ImageSelectionView
+                    ViewedUser="@ViewedUser"
+                    IsProfilePictureDialog="@true"
+                    OnImageSelected="@(code => HandleImageSelected(code, true))"/>
+            </SettingsField>
+            <SettingsField Label="@Localizer["Profile Background"]" Description="@Localizer["Your profile background will be displayed on your profile page. You can unlock more variations from completing achievements and change it at any time."]">
+                <ImageSelectionView
+                    ViewedUser="@ViewedUser"
+                    IsProfilePictureDialog="@false"
+                    OnImageSelected="@(code => HandleImageSelected(code, false))"/>
+            </SettingsField>
+            <MudDivider/>
+            <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
+                <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Value="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAchievementsChanged"/>
+            </SettingsField>
+            <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
+                <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Value="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAlertsChanged"/>
+                <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
+            </SettingsField>
+        </MudStack>
+    </Authorized>
+
+    <NotAuthorized>
+        <UserViewProfileIconButton ViewedUserGraphId=@ViewedUser.GraphGuid />
+    </NotAuthorized>
+
+</DatahubAuthView>
+
 
 @code {
 

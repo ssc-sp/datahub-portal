@@ -40,35 +40,34 @@ namespace Datahub.Portal.Pages.Help
         /// </summary>
         public string ChangedDate { get; set; }
 
-        /// <summary>
-        /// Initializes a new instance of the IssueForDisplaying class.
-        /// </summary>
-        /// <param name="workItemDetails">The JObject containing the work item details.</param>
-        /// <param name="userView">A flag indicating whether the user view is enabled or not.</param>
-        public IssueForDisplaying(JObject workItemDetails, bool userView = true)
-        {
-            Id = (string)workItemDetails["id"];
-            Title = (string)workItemDetails["fields"]["System.Title"];
-            var description = (string)workItemDetails["fields"]["System.Description"];
-            description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
-            Description = TrimDescription(description);
-            State = (string)workItemDetails["fields"]["System.State"];
-            Message = userView == true ? GetUserHelpStatusMessage(State) : State;
-            SubmittedDate = (string)workItemDetails["fields"]["System.CreatedDate"];
-            ChangedDate = (string)workItemDetails["fields"]["System.ChangedDate"]; ;
-        }
-
         public IssueForDisplaying(WorkItem workItem, bool userView = true)
         {
             Id = workItem.Id.ToString();
             Title = workItem.Fields["System.Title"].ToString();
-            var description = workItem.Fields["System.Description"].ToString();
-            description = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
-            Description = TrimDescription(description);
+            Description = CreateUserDescription(workItem.Fields["System.Description"].ToString());
             State = workItem.Fields["System.State"].ToString();
             Message = userView == true ? GetUserHelpStatusMessage(State) : State;
             SubmittedDate = workItem.Fields["System.CreatedDate"].ToString();
             ChangedDate = workItem.Fields["System.ChangedDate"].ToString();
+        }
+
+        /// <summary>
+        /// Retrieves the original description provided by the user.
+        /// </summary>
+        /// <param name="description">The full description from ADO</param>
+        /// <returns></returns>
+        private string CreateUserDescription(string description)
+        {
+            string temp;
+            try
+            {
+                temp = description.Split("<b>Description:</b> ")[1].Split("<br>")[0];
+            }
+            catch
+            {
+                temp = description.Split("<strong>Description:</strong> ")[1].Split("<br>")[0];
+            }
+            return TrimDescription(temp);
         }
 
         /// <summary>

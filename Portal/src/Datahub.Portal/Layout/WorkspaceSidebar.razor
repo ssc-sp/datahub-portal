@@ -6,6 +6,7 @@
 @using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Components.User
+@using Datahub.Shared
 @using Datahub.Shared.Entities
 @using MudBlazor.Utilities
 
@@ -45,7 +46,7 @@
                 <ul>
                     @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                     {
-                        <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                        <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
                             <li>
                                 <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                                     <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
@@ -63,7 +64,7 @@
                 </ul>
             </MudNavMenu>
         </MudStack>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
             <MudStack Spacing="2" Class="ml-2">
                 <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                     <strong>
@@ -75,7 +76,7 @@
                         @foreach (var toolSection in _workspaceAdministration)
                         {
                             <li>
-                                <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym">
+                                <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
                                     <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                                         <MudStack Row AlignItems="AlignItems.Center">
                                             <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
@@ -97,6 +98,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToDatahubAdmins { get; set; } = false;
     [CascadingParameter] private DHSidebarDrawer Drawer { get; set; }
 
     private Datahub_Project _project;
@@ -113,6 +115,8 @@
     public struct SectionViews
     {
         public const string Dashboard = "dashboard";
+
+        public const string Delete = "d";
         public const string Storage = "s";
         public const string Publishing = "publishing";
         public const string Databricks = "databricks";
@@ -136,6 +140,7 @@
         public const string Users_FR = "utilisateurs";
         public const string Metadata_FR = "metadonnees";
         public const string Reports_FR = "rapports";
+        public const string Healthcheck_FR = "verification-sante";
         public const string Settings_FR = "parametres";
     }
 
@@ -190,12 +195,13 @@
             SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
             // Administration
+            SectionViews.Delete => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubAdmin,
+            SectionViews.Sudo => DatahubAuthView.AuthLevels.DatahubSupport,
             SectionViews.Settings => DatahubAuthView.AuthLevels.WorkspaceAdmin,
 
             SectionViews.Dashboard_FR => DatahubAuthView.AuthLevels.Authenticated,
@@ -206,6 +212,7 @@
             SectionViews.Users_FR => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.Healthcheck_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Settings_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
 
             _ => DatahubAuthView.AuthLevels.Unauthorized
@@ -313,13 +320,13 @@
         {
             SectionViews.Dashboard => true,
             SectionViews.Healthcheck => true,
-            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
-            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false,
+            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.Status != TerraformStatus.Deleted) ?? false,
             SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
-            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)) ?? false,
-            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)) ?? false,
-            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks)) ?? false,
-            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis)) ?? false,
+            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.Status != TerraformStatus.Deleted) ?? false,
             _ => false
         };
     }

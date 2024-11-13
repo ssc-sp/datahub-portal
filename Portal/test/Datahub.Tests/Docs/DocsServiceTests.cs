@@ -48,7 +48,7 @@ namespace Datahub.Tests.Docs
         [Fact]
         public async Task TestReadLastCommitTS()
         {
-            var lastCommit = await _service.GetLastRepoCommitTS();
+            var lastCommit = await _service.LastRepoCommitTs();
             Assert.NotNull(lastCommit);
         }
 
@@ -86,7 +86,7 @@ namespace Datahub.Tests.Docs
             var pageId = root.Children[5].Id!;
             var loadedPage = _service.LoadPage(pageId, false);
             Assert.NotNull(loadedPage);
-            var parent = _service.GetParent(loadedPage);
+            var parent = _service.Parent(loadedPage);
             Assert.NotNull(parent);
         }
     }

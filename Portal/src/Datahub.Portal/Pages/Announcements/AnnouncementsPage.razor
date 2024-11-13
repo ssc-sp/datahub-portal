@@ -16,7 +16,7 @@
         <MudStack Row>
             <DHMainContentTitle Title="@Localizer["Announcements"]" />
             <MudSpacer/>
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
                 <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="/announcements/edit/new">@Localizer["Create a new Announcement"]</DHButton>
             </DatahubAuthView>
         </MudStack>
@@ -26,7 +26,7 @@
             <MudStack>
                 @foreach (var announcement in _announcements)
                 {
-                    var authLevel = announcement.IsVisible() ? DatahubAuthView.AuthLevels.Authenticated : DatahubAuthView.AuthLevels.DatahubAdmin;
+                    var authLevel = announcement.IsVisible() ? DatahubAuthView.AuthLevels.Authenticated : DatahubAuthView.AuthLevels.DatahubSupport;
                     <DatahubAuthView AuthLevel="authLevel">
                         <AnnouncementItem Announcement="@announcement" IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())"/>
                     </DatahubAuthView>

@@ -148,9 +148,10 @@ namespace Datahub.Infrastructure.Services.Storage
                         logger.LogError("Resource group with id {RgId} not found", rgId);
                         throw new Exception($"Resource group with id {rgId} not found");
                     }
-
-                    var storageAccounts = response.Value.GetStorageAccounts().ToList();
-
+                    
+                    var storageAccountsCollection = response.Value.GetStorageAccounts();
+                    var storageAccountsPageable = storageAccountsCollection.GetAll();
+                    var storageAccounts = storageAccountsPageable.ToList();
 
                     storageAccounts.ForEach(sa => { storageIds.Add(sa.Id.ToString()); });
                 }
@@ -162,7 +163,7 @@ namespace Datahub.Infrastructure.Services.Storage
 
             return storageIds;
         }
-
+        
         #endregion
     }
 }

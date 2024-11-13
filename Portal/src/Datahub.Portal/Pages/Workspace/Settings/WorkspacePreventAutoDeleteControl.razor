@@ -1,0 +1,27 @@
+@using Datahub.Portal.Pages.Account
+
+<SettingsField Label="@Localizer["Prevent auto-delete"]" Description="@Localizer["This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget"]">
+    <MudCheckBox T="bool" Value="@_autoDelete" Disabled="@Disabled" ValueChanged="@HandleValueChanged" Label="@Localizer["Prevent auto-delete"]" />
+</SettingsField>
+
+@code {
+
+    [Parameter] public bool InitialValue { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public EventCallback<bool> OnValueChanged { get; set; }
+
+    private bool _autoDelete;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _autoDelete = InitialValue;
+    }
+    
+    private async Task HandleValueChanged(bool arg)
+    {
+        _autoDelete = arg;
+        await OnValueChanged.InvokeAsync(arg);
+    }
+
+}

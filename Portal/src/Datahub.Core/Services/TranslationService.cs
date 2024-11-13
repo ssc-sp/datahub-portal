@@ -5,13 +5,13 @@ namespace Datahub.Core.Services;
 
 public class TranslationService
 {
-    private readonly Translator client;
+    private readonly Translator _client;
 
     public TranslationService(IConfiguration configuration)
     {
         var useFreeApi = configuration.GetSection("DeepL").GetValue("UseFreeApi", true);
         var authKey = configuration.GetSection("DeepL").GetValue<string>("AuthKey");
-        client = new Translator(authKey, new TranslatorOptions() { ServerUrl = useFreeApi ? "https://api-free.deepl.com" : null });
+        _client = new Translator(authKey, new TranslatorOptions() { ServerUrl = useFreeApi ? "https://api-free.deepl.com" : null });
     }
 
     public async Task<string> GetFrenchTranslation(string englishText)
@@ -26,7 +26,7 @@ public class TranslationService
 
     public async Task<string> TranslateTo(string text, string sourceLanguage, string targetLanguage)
     {
-        var translation = await client.TranslateTextAsync(text, sourceLanguage, targetLanguage);
+        var translation = await _client.TranslateTextAsync(text, sourceLanguage, targetLanguage);
         return translation?.Text ?? String.Empty;
     }
 }

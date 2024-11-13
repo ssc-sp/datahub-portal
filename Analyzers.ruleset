@@ -50,6 +50,8 @@
     <Rule Id="SA1303" Action="Error" />
     <Rule Id="SA1306" Action="Error" />
     <Rule Id="SA1307" Action="Error" />
+    <Rule Id="SA1309" Action="None" />
+    <Rule Id="SX1309" Action="Warning" />
     <Rule Id="SA1310" Action="Hidden" />
     <Rule Id="SA1402" Action="Hidden" />
     <Rule Id="SA1413" Action="Hidden" />

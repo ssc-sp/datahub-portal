@@ -11,11 +11,11 @@ public class OrganizationLevelsService : IOrganizationLevelsService
     private const int DIVISION_ORG_LEVEL = 5;
     private const int SECTION_ORG_LEVEL = 6;
 
-    private readonly IDbContextFactory<DatahubProjectDBContext> dbContextFactory;
+    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
     public OrganizationLevelsService(IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
     {
-        this.dbContextFactory = dbContextFactory;
+        _dbContextFactory = dbContextFactory;
     }
 
     public Task<List<OrganizationLevel>> GetSectors() => GetLevelChoices(SECTOR_ORG_LEVEL);
@@ -28,7 +28,7 @@ public class OrganizationLevelsService : IOrganizationLevelsService
 
     private async Task<List<OrganizationLevel>> GetLevelChoices(string level)
     {
-        using var ctx = dbContextFactory.CreateDbContext();
+        using var ctx = _dbContextFactory.CreateDbContext();
         return await ctx.Organization_Levels
             .Where(l => l.Org_Level == level)
             .Select(l => new OrganizationLevel(l.Organization_ID, l.Superior_OrgId ?? 0, l.Org_Name_E, l.Org_Name_F, l.Org_Acronym_E, l.Org_Acronym_F))
@@ -37,7 +37,7 @@ public class OrganizationLevelsService : IOrganizationLevelsService
 
     private async Task<OrganizationLevel> GetOrganizationLevel(int id, string level)
     {
-        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
         return await ctx.Organization_Levels
             .Where(l => l.Organization_ID == id && l.Org_Level == level)
             .Select(l => new OrganizationLevel(l.Organization_ID, l.Superior_OrgId ?? 0, l.Org_Name_E, l.Org_Name_F, l.Org_Acronym_E, l.Org_Acronym_F))

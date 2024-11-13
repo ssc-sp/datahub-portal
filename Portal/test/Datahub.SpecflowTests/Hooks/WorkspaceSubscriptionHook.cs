@@ -1,15 +1,12 @@
-using Reqnroll.BoDi;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Subscriptions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -17,7 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
-using Datahub.Core.Model.Context;
+using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -56,7 +53,7 @@ public class WorkspaceSubscriptionHook
     {
         var datahubPortalConfiguration = LoadConfiguration(objectContainer);
 
-        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 

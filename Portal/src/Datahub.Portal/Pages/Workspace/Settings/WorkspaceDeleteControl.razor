@@ -1,0 +1,12 @@
+@using Datahub.Portal.Pages.Account
+
+<MudPaper Outlined Class="pa-8 my-8 mx-n8" Style="background-color: transparent; border-color: red;">
+    <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
+        <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
+            @Localizer["Delete Workspace"]
+        </DHButton>
+    </SettingsField>
+</MudPaper>
+@code {
+    
+}

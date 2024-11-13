@@ -1,0 +1,129 @@
+name: Pull Request Build Workflow
+
+on:
+  pull_request:
+    branches:
+      - 'develop'
+
+jobs:
+  prep:
+    runs-on: ubuntu-latest
+    steps:
+      # Step 1: Checkout the repository with full history to get the commits we need
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # Step 2: Get list of changed files as JSON and set booleans for changed directories
+      - name: Get list of changed files as JSON
+        id: get_files
+        run: |
+          FILES=$(git diff --name-only ${{ github.event.pull_request.base.sha }} ${{ github.sha }})
+          JSON_FILES=$(echo "$FILES" | jq -R -s -c 'split("\n")[:-1]')
+          echo "files=$JSON_FILES" >> $GITHUB_OUTPUT
+
+          PORTAL_CHANGED="false"
+          RESOURCE_PROVISIONER_CHANGED="false"
+          SERVERLESS_OPERATIONS_CHANGED="false"
+
+          for FILE in $FILES; do
+            if [[ "$FILE" =~ ^Portal/ ]]; then
+              PORTAL_CHANGED="true"
+            elif [[ "$FILE" =~ ^ResourceProvisioner/ ]]; then
+              RESOURCE_PROVISIONER_CHANGED="true"
+            elif [[ "$FILE" =~ ^ServerlessOperations/ ]]; then
+              SERVERLESS_OPERATIONS_CHANGED="true"
+            fi
+          done
+
+          echo "portal_changed=$PORTAL_CHANGED" >> $GITHUB_OUTPUT
+          echo "resource_provisioner_changed=$RESOURCE_PROVISIONER_CHANGED" >> $GITHUB_OUTPUT
+          echo "serverless_operations_changed=$SERVERLESS_OPERATIONS_CHANGED" >> $GITHUB_OUTPUT
+    
+    outputs:
+      files: ${{ steps.get_files.outputs.files }}
+      portal_changed: ${{ steps.get_files.outputs.portal_changed }}
+      resource_provisioner_changed: ${{ steps.get_files.outputs.resource_provisioner_changed }}
+      serverless_operations_changed: ${{ steps.get_files.outputs.serverless_operations_changed }}
+
+  build:
+    runs-on: ubuntu-latest
+    needs: prep
+
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: List all changed files
+      - name: List all changed files
+        run: |
+          FILES_JSON='${{ needs.prep.outputs.files }}'
+          echo "Changed files:"
+          echo "$FILES_JSON" | jq -r '.[]'
+
+      # Step 3: Find and build changed projects
+      - name: Find, build, and test changed projects
+        if: needs.prep.outputs.files != '[]'
+        run: |
+          FILES_JSON='${{ needs.prep.outputs.files }}'
+          PROJECTS_TO_BUILD=()
+
+          # Check if any files in the specified directories have changed
+          for FILE in $(echo "$FILES_JSON" | jq -r '.[]'); do
+            if [[ "$FILE" =~ ^(Portal|ResourceProvisioner|ServerlessOperations)/src/([^/]+)/.* ]]; then
+              PROJECT_PATH=$(echo "$FILE" | grep -oE '^(Portal|ResourceProvisioner|ServerlessOperations)/src/[^/]+')
+              CSPROJ_PATH=$(find "$PROJECT_PATH" -name "*.csproj" | head -n 1)
+              if [ -n "$CSPROJ_PATH" ]; then
+                PROJECTS_TO_BUILD+=("$CSPROJ_PATH")
+              fi
+            fi
+          done
+
+          # Deduplicate the projects by sorting and using uniq
+          PROJECTS_TO_BUILD=($(printf "%s\n" "${PROJECTS_TO_BUILD[@]}" | sort -u))
+
+          if [ ${#PROJECTS_TO_BUILD[@]} -eq 0 ]; then
+            echo "No projects need to be built. Skipping build step."
+            exit 0
+          else
+            echo "The following projects will be built and tested:"
+            for PROJECT in "${PROJECTS_TO_BUILD[@]}"; do
+              echo " - $PROJECT"
+            done
+            for PROJECT in "${PROJECTS_TO_BUILD[@]}"; do
+              echo "Restoring dependencies for project: $PROJECT"
+              dotnet restore "$PROJECT"
+              echo "Building project: $PROJECT"
+              dotnet build "$PROJECT" /warnaserror:none
+            done
+          fi
+
+  test:
+    runs-on: ubuntu-latest
+    needs: 
+      - prep
+      - build
+      
+    steps:
+      # Step 1: Checkout the repository
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Step 2: Echo changed directory statuses
+      - name: Echo changed directory statuses
+        run: |
+          portal_changed="${{ needs.prep.outputs.portal_changed }}"
+          resource_provisioner_changed='${{ needs.prep.outputs.resource_provisioner_changed }}'
+          serverless_operations_changed='${{ needs.prep.outputs.serverless_operations_changed }}'
+
+          if [ "$portal_changed" = "true" ]; then
+            echo "Portal components have changed."
+          fi
+          if [ "$resource_provisioner_changed" = "true" ]; then
+            echo "ResourceProvisioner components have changed."
+          fi
+          if [ "$serverless_operations_changed" = "true" ]; then
+            echo "ServerlessOperations components have changed."
+          fi

@@ -27,7 +27,7 @@ public class WorkspaceDefinitionHook
         configuration.Bind(datahubPortalConfiguration);
 
         // setup in memory provider ef core context
-        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         

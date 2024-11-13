@@ -19,12 +19,13 @@ public class InfrastructureRepositoryConfiguration
 {
     public string Url { get; set; }
     public string LocalPath { get; set; }
+    public string Name { get; set; }
     public string ProjectPathPrefix { get; set; }
     public string PullRequestUrl { get; set; }
     public string PullRequestBrowserUrl { get; set; }
     public string ApiVersion { get; set; } = "7.1-preview.1";
     public string MainBranch { get; set; }
-    public AzureDevOpsConfiguration AzureDevOpsConfiguration { get; set; } = new(); 
+    public AzureDevOpsConfiguration AzureDevOpsConfiguration { get; set; } = new();
 }
 
 public class ModuleRepositoryConfiguration
@@ -32,6 +33,8 @@ public class ModuleRepositoryConfiguration
     public const string DefaultBranch = "main";
     public string Url { get; set; }
     public string LocalPath { get; set; }
+
+    public string Name = "datahub-resource-modules";
     public string TemplatePathPrefix { get; set; }
     public string ModulePathPrefix { get; set; } = "modules/";
 
@@ -49,7 +52,6 @@ public class TerraformConfiguration
 {
     public Backend Backend { get; set; }
     public Variables Variables { get; set; }
-
 }
 
 public class OmniUser
@@ -69,6 +71,7 @@ public class OmniUser
 
 public class Variables
 {
+    public string log_analytics_workspace_id { get; set; }
     public string automation_account_uai_name { get; set; }
     public string automation_account_uai_rg { get; set; }
     public string automation_account_uai_sub { get; set; }
@@ -89,4 +92,3 @@ public class Variables
     public string aad_admin_group_oid { get; set; }
     public CommonTags common_tags { get; set; }
 }
-

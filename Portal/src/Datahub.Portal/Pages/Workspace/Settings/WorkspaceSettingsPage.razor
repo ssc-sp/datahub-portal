@@ -1,8 +1,7 @@
 @using Datahub.Application.Services
-@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
 @using Datahub.Portal.Pages.Account
-@using Datahub.Shared.Entities
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDatahubAuditingService _auditingService
@@ -12,138 +11,132 @@
 @inject ISnackbar _snackbar
 
 
-@if (_updateInProgress)
+@if (_updateInProgress || _workspace is null)
 {
     <DHLoadingInitializer/>
+    return;
 }
 
 <MudStack Spacing="8" Class="mb-16">
-    <MudStack>
-        <DHMainContentTitle Title="@Localizer["Workspace Settings"]" />
-        <MudDivider/>
+    <MudStack Row Justify="Justify.SpaceBetween">
+        <DHMainContentTitle Title="@Localizer["Workspace Settings"]"/>
+        @if (HasChanged)
+        {
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudElement>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="@SaveChanges">
+                        @Localizer["Save Changes"]
+                    </DHButton>
+                </MudElement>
+                <MudAlert Severity="Severity.Info">
+                    <MudText Typo="Typo.body2">@_alertMessage</MudText>
+                </MudAlert>
+            </MudStack>
+        }
     </MudStack>
-
-    <MudGrid>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin" ProjectAcronym="@WorkspaceAcronym">
-            <Authorized>
-                <MudItem xs="12" sm="6">
-                    <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget."]">
-                        <MudTextField T="decimal" Format="F2" Disabled="false" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged"/>
-                    </SettingsField>
-                </MudItem>
-                <MudItem xs="0" sm="6"/>
-
-                @if (_isChanged)
+    <MudStack>
+            <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
+                <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ShowToAdmins" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
+                @if (ShowToAdmins)
                 {
-                    <MudItem xs="12">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <MudElement>
-                                <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="@SaveChanges">
-                                    @Localizer["Save Changes"]
-                                </DHButton>
-                            </MudElement>
-                            <MudAlert Severity="Severity.Info">
-                                <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                            </MudAlert>
-                        </MudStack>
-                    </MudItem>
+                    <MudText Typo="Typo.body2">
+                        @Localizer["FSDH Support Team access is enabled until {0}", _accessDate.ToString()]
+                    </MudText>
                 }
-
-                <MudDivider/>
-
-                <MudItem xs="12" sm="6" Class="mt-16">
-                    <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-                        <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
-                            @Localizer["Delete Workspace"]
-                        </DHButton>
-                    </SettingsField>
-                </MudItem>
-                <MudItem xs="0" sm="6"/>
+                else
+                {
+                    <MudText Typo="Typo.body2">@Localizer["The FSDH Support Team does not have access to your workspace."]</MudText>
+                }
+            </SettingsField>
+    </MudStack>
+    <MudStack>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
+                <WorkspaceSharedKeyAccessControl WorkspaceAcronym="@WorkspaceAcronym"/>
             </Authorized>
-
+        </DatahubAuthView>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ProjectAcronym="@WorkspaceAcronym">
+            <Authorized>
+                <WorkspacePreventAutoDeleteControl OnValueChanged="@HandlePreventAutoDeleteChange" InitialValue="@_preventAutoDelete"/>
+                <WorkspaceBudgetControl OnValueChanged="@HandleBudgetChanged" InitialValue="@_budget"/>
+            </Authorized>
             <NotAuthorized>
-                <MudItem xs="12" sm="6">
-                    <SettingsField Label="@Localizer["Workspace Budget"]" Description="@Localizer["The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget."]">
-                        <MudTextField T="decimal" Format="F2" Disabled="true" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@_budget" ValueChanged="@OnBudgetChanged"/>
-                    </SettingsField>
-                </MudItem>
-                <MudItem xs="0" sm="6"/>
-
-                <MudDivider/>
-
-                <MudItem xs="12" sm="6" Class="mt-16">
-                    <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-                        <DHButton Disabled="true" Variant="Variant.Filled" Color="Color.Error">
-                            @Localizer["Delete Workspace"]
-                        </DHButton>
-                    </SettingsField>
-                </MudItem>
-                <MudItem xs="0" sm="6"/>
+                <WorkspaceBudgetControl Disabled InitialValue="@_budget"/>
             </NotAuthorized>
         </DatahubAuthView>
-
-    </MudGrid>
-
+        <WorkspaceDeleteControl/>
+    </MudStack>
 </MudStack>
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
+    private Datahub_Project _workspace;
+    private DateTime _accessDate;
+
+    private bool HasChanged => _preventAutoDelete != _workspace.PreventAutoDelete || _budget != _workspace.Project_Budget;
+    private bool RequiresTerraformUpdate => _budget != _workspace.Project_Budget;
+
+    private bool _updateInProgress;
+    private bool _preventAutoDelete;
     private decimal _budget;
 
-    private bool _isDisabled = true;
-    private bool _isChanged = false;
-    private bool _updateInProgress;
+    private string _alertMessage => Localizer["You have unsaved changes. Please save them before leaving this page."];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
         await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var project = await context.Projects
+        _workspace = await context.Projects
             .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+            .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _budget = project.Project_Budget ?? 0;
+        _accessDate = _workspace.AllowDatahubSupport;
+
+        SetFormPropertiesFromWorkspace();
     }
 
-    private void OnBudgetChanged(decimal arg)
+    private async Task ToggleAdminAccess()
     {
-        _budget = arg;
-        _isChanged = true;
-    }
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
+        var project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-    private async Task SaveChanges()
-    {
-        await using var context = await _dbContextFactory.CreateDbContextAsync();
-        var project = await context.Projects
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
-
-        if (_isChanged)
+        if (WorkspacePage.DisplayToSupport(project))
         {
-            _updateInProgress = true;
-            StateHasChanged();
-
-            project.Project_Budget = _budget;
-            await context.TrackSaveChangesAsync(_auditingService);
-
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformTemplate.TemplateStatus.CreateRequested);
-            await _requestManagementService.HandleTerraformRequestServiceAsync(project, template, currentUser);
-
-            _snackbar.Add(Localizer["Changes saved"], Severity.Info);
-            _isChanged = false;
+            dbContext.Projects.Update(CancelAdminAccess(project));
+            ShowToAdmins = false;
+            _snackbar.Add(Localizer["Support access has been revoked"], Severity.Success);
         }
         else
         {
-            _snackbar.Add(Localizer["No changes to save"], Severity.Info);
+            dbContext.Projects.Update(ExtendAdminAccess(project));
+            ShowToAdmins = true;
+            _snackbar.Add(Localizer["Support access granted until {0}", project.AllowDatahubSupport.ToString()], Severity.Success);
         }
 
-        _updateInProgress = false;
-        StateHasChanged();
+        await dbContext.SaveChangesAsync();
+
+        _accessDate = project.AllowDatahubSupport;
     }
 
+    public static Datahub_Project CancelAdminAccess(Datahub_Project project)
+    {
+        project.AllowDatahubSupport = DateTime.MinValue;
+        return project;
+    }
+
+    public static Datahub_Project ExtendAdminAccess(Datahub_Project project)
+    {
+        // Set .AllowDatahubSupport to 3 days from now
+        var accessDate = DateTimeOffset.Now.AddDays(3).DateTime;
+        project.AllowDatahubSupport = accessDate;
+        return project;
+    }
 }

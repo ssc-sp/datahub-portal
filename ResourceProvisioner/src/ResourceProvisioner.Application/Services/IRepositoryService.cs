@@ -8,7 +8,7 @@ namespace ResourceProvisioner.Application.Services;
 
 public interface IRepositoryService
 {
-    public Task FetchModuleRepository();
+    public void FetchModuleRepository();
     public Task FetchInfrastructureRepository();
     public Task CheckoutInfrastructureBranch(string workspaceName);
     public Task CommitTerraformTemplate(TerraformTemplate template, string username);

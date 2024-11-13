@@ -1,50 +1,66 @@
 @page "/login"
 @page "/connexion"
-@using Datahub.Application.Services.UserManagement
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
-
-<MudStack Class="my-8 py-8">
-    <MudStack AlignItems="AlignItems.Start" Class="mt-4">
-        <p>
-            <MudText Typo="Typo.body1" Class="text-center">
-                <strong>
-                    @Localizer["Please login to continue"]:
-                </strong>
-                <MudButton Class="mx-4 px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" OnClick="@HandleLogin">
-                    <MudText>
-                        @Localizer["Login"]
-                    </MudText>
-                </MudButton>
+<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+    <MudStack AlignItems="AlignItems.Start" Class="my-8" Style="width: 100%">
+        <MudText Typo="Typo.body1" Class="text-center">
+            <strong>
+                @Localizer["Please login to continue"]:
+            </strong>
+        </MudText>
+        <div class="form-group" style="width: 100%">
+            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined" @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true" RequiredError="@Localizer["Email is required"]" FullWidth="true" />
+        </div>
+        <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_loggingIn">
+            <MudText>
+                @(_loggingIn ? Localizer["Logging in..."] : Localizer["Login"])
             </MudText>
-        </p>
-        <p>
-            <MudText Typo="Typo.body1">
-                @Localizer["Don't have an account?"]
-                <MudLink Href="/register" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
-            </MudText>
-        </p>
+        </MudButton>
+        <MudText Typo="Typo.body1">
+            @Localizer["Don't have an account?"]
+            <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
+        </MudText>
     </MudStack>
-</MudStack>
+</EditForm>
 
 @code {
+    [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
-    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
+    private LoginModel loginModel = new LoginModel();
+    private bool _loggingIn;
 
-    private void HandleLogin()
+    internal async void HandleLogin()
     {
-        //See https://stackoverflow.com/questions/64853618/oidc-authentication-in-server-side-blazor for an alternative
+        _loggingIn = true;
+        var loginHint = loginModel.Email;
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
+        if (existingUser is { IsDeleted: true })
+        {
+            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
+            return;
+        }
+
+        if (existingUser is { IsLocked: true })
+        {
+            _navigationManager.NavigateTo(Localizer["/locked"]);
+            return;
+        }
+
         if (string.IsNullOrWhiteSpace(redirectUri))
         {
             redirectUri = _navigationManager.BaseUri;
         }
 
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint=&domainHint=&claims=&policy=";
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
+
     }
 
     protected override async Task OnInitializedAsync()
@@ -60,6 +76,11 @@
         {
             HandleLogin();
         }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; }
     }
 
 }

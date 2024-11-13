@@ -5,6 +5,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Services.Projects;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
@@ -68,7 +69,7 @@ namespace Datahub.SpecflowTests.Steps
             var currentUser = await ctx.PortalUsers
                 .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
-            var terraformTemplate = new TerraformTemplate(TerraformTemplate.AzurePostgres, TerraformTemplate.TemplateStatus.CreateRequested);
+            var terraformTemplate = new TerraformTemplate(TerraformTemplate.AzurePostgres, TerraformStatus.CreateRequested);
             
             await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser);
         }
@@ -79,7 +80,7 @@ namespace Datahub.SpecflowTests.Steps
         {
             
             var resourceType = TransformResourceName(resourceName);
-            var terraformTemplate = new TerraformTemplate(resourceType, TerraformTemplate.TemplateStatus.CreateRequested);
+            var terraformTemplate = new TerraformTemplate(resourceType, TerraformStatus.CreateRequested);
             var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
             
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
