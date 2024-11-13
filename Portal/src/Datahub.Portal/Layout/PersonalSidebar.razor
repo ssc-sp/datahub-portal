@@ -19,57 +19,35 @@
 }
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudStack Row AlignItems="AlignItems.Center">
-        <span>
-            <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
-            <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
-        </span>
+    <MudDrawerHeader Dense Style="padding: 0">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+            <span>
+                <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
+                <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
+            </span>
+            @if (Drawer.Open)
+            {
+                <div style="text-wrap: nowrap">
+                    <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
+                </div>
+            }
+        </MudStack>
+    </MudDrawerHeader>
+    <MudDrawerContainer Style="overflow: hidden auto">
         @if (Drawer.Open)
         {
-            <div style="text-wrap: nowrap">
-                <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
-            </div>
-        }
-    </MudStack>
-    @if (Drawer.Open)
-    {
-        <MudStack Spacing="2">
-            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
-                <strong>
-                    @Localizer["My account"]
-                </strong>
-            </MudText>
-            <MudNavMenu Color="Color.Primary" role="navigation">
-                <ul>
-                    @foreach (var sectionView in _accountItems)
-                    {
-                        <li>
-                            <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
-                                <MudStack Row AlignItems="AlignItems.Center">
-                                    <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                    <MudText Style="@_workspaceLinkStyle">
-                                        @GetLabel(sectionView)
-                                    </MudText>
-                                </MudStack>
-                            </MudNavLink>
-                        </li>
-                    }
-                </ul>
-            </MudNavMenu>
-        </MudStack>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
             <MudStack Spacing="2">
                 <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                     <strong>
-                        @Localizer["Datahub Admin"]
+                        @Localizer["My account"]
                     </strong>
                 </MudText>
                 <MudNavMenu Color="Color.Primary" role="navigation">
                     <ul>
-                        @foreach (var sectionView in _datahubAdminItems)
+                        @foreach (var sectionView in _accountItems)
                         {
                             <li>
-                                <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
                                     <MudStack Row AlignItems="AlignItems.Center">
                                         <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                                         <MudText Style="@_workspaceLinkStyle">
@@ -82,15 +60,41 @@
                     </ul>
                 </MudNavMenu>
             </MudStack>
-        </DatahubAuthView>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-            <MudSwitch T="bool"
-                       Color="Color.Primary"
-                       Value="@_isViewAsAdmin"
-                       ValueChanged="@ToggleAdminMode"
-                       Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap"/>
-        </DatahubAuthView>
-    }
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+                <MudStack Spacing="2">
+                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                        <strong>
+                            @Localizer["Datahub Admin"]
+                        </strong>
+                    </MudText>
+                    <MudNavMenu Color="Color.Primary" role="navigation">
+                        <ul>
+                            @foreach (var sectionView in _datahubAdminItems)
+                            {
+                                <li>
+                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                        <MudStack Row AlignItems="AlignItems.Center">
+                                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                            <MudText Style="@_workspaceLinkStyle">
+                                                @GetLabel(sectionView)
+                                            </MudText>
+                                        </MudStack>
+                                    </MudNavLink>
+                                </li>
+                            }
+                        </ul>
+                    </MudNavMenu>
+                </MudStack>
+            </DatahubAuthView>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+                <MudSwitch T="bool"
+                           Color="Color.Primary"
+                           Value="@_isViewAsAdmin"
+                           ValueChanged="@ToggleAdminMode"
+                           Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap"/>
+            </DatahubAuthView>
+        }
+    </MudDrawerContainer>
 </MudStack>
 
 @code {

@@ -16,7 +16,7 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudStack>
+    <MudDrawerHeader Style="padding: 0">
         <MudStack Row AlignItems="AlignItems.Center">
             <span>
                 <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
@@ -29,70 +29,73 @@
                 </MudAvatar>
                 @* <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/> *@
                 <MudText title="@_project?.Project_Name" Typo="Typo.h2" Style="@_workspaceTitleStyle">
-                    @_project?.Project_Name
+                    @_project?.Project_Acronym_CD
                 </MudText>
             }
         </MudStack>
-    </MudStack>
-    @if (Drawer.Open)
-    {
-        <MudStack Spacing="2" Class="ml-2">
-            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
-                <strong>
-                    @Localizer["Workspace Tools"]
-                </strong>
-            </MudText>
-            <MudNavMenu Color="Color.Primary">
-                <ul>
-                    @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
-                    {
-                        <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
-                            <li>
-                                <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
-                                    <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
-                                        <MudStack Row AlignItems="@AlignItems.Center">
-                                            <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                            <MudText Style="@_workspaceTitleStyle">
-                                                @GetLabel(toolSection)
-                                            </MudText>
-                                        </MudStack>
-                                    </span>
-                                </MudNavLink>
-                            </li>
-                        </DatahubAuthView>
-                    }
-                </ul>
-            </MudNavMenu>
-        </MudStack>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+    </MudDrawerHeader>
+    <MudDrawerContainer Style="overflow: hidden auto">
+
+        @if (Drawer.Open)
+        {
             <MudStack Spacing="2" Class="ml-2">
                 <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                     <strong>
-                        @Localizer["Administration"]
+                        @Localizer["Workspace Tools"]
                     </strong>
                 </MudText>
                 <MudNavMenu Color="Color.Primary">
                     <ul>
-                        @foreach (var toolSection in _workspaceAdministration)
+                        @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                         {
-                            <li>
-                                <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
-                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
-                                        <MudStack Row AlignItems="AlignItems.Center">
-                                            <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                            <MudText Style="@_workspaceTitleStyle">
-                                                @GetLabel(toolSection)
-                                            </MudText>
-                                        </MudStack>
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+                                <li>
+                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
+                                        <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                                            <MudStack Row AlignItems="@AlignItems.Center">
+                                                <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                <MudText Style="@_workspaceTitleStyle">
+                                                    @GetLabel(toolSection)
+                                                </MudText>
+                                            </MudStack>
+                                        </span>
                                     </MudNavLink>
-                                </DatahubAuthView>
-                            </li>
+                                </li>
+                            </DatahubAuthView>
                         }
                     </ul>
                 </MudNavMenu>
             </MudStack>
-        </DatahubAuthView>
-    }
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+                <MudStack Spacing="2" Class="ml-2">
+                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                        <strong>
+                            @Localizer["Administration"]
+                        </strong>
+                    </MudText>
+                    <MudNavMenu Color="Color.Primary">
+                        <ul>
+                            @foreach (var toolSection in _workspaceAdministration)
+                            {
+                                <li>
+                                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+                                        <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                                            <MudStack Row AlignItems="AlignItems.Center">
+                                                <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                <MudText Style="@_workspaceTitleStyle">
+                                                    @GetLabel(toolSection)
+                                                </MudText>
+                                            </MudStack>
+                                        </MudNavLink>
+                                    </DatahubAuthView>
+                                </li>
+                            }
+                        </ul>
+                    </MudNavMenu>
+                </MudStack>
+            </DatahubAuthView>
+        }
+    </MudDrawerContainer>
 </MudStack>
 
 @code {
