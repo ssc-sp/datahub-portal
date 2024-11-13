@@ -251,6 +251,7 @@
         return sectionView switch
         {
             SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
+            SectionViews.WebApp => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym),
             _ => $"{_path}/{sectionView}"
         };
     }
