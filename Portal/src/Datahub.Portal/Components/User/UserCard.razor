@@ -15,7 +15,7 @@
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
     <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
     <MudStack Spacing="0" AlignItems="AlignItems.Start">
-        <MudText Typo="Typo.h6" Class="px-4">@_viewedUser?.DisplayName</MudText>
+        <MudText Typo="Typo" Class="px-4">@_viewedUser?.DisplayName</MudText>
         @if (ShowEmail)
         {
             <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
