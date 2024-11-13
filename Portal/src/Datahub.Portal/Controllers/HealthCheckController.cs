@@ -9,6 +9,7 @@ using Datahub.Core.Model.Health;
 using Datahub.Shared.Configuration;
 using Azure.Core;
 using System.Net.Http.Headers;
+using Datahub.Core.Data;
 using Datahub.Infrastructure.Services.Azure;
 using Microsoft.AspNetCore.Authorization;
 
@@ -23,10 +24,12 @@ namespace Datahub.Portal.Controllers
         private readonly IMemoryCache _cache;
         private readonly HttpClient _httpClient;
         private readonly DatahubPortalConfiguration _portalConfiguration;
-        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new ConcurrentDictionary<string, SemaphoreSlim>();
+
+        private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks =
+            new ConcurrentDictionary<string, SemaphoreSlim>();
 
 
-        public HealthCheckController(DatahubProjectDBContext dbProjectContext, 
+        public HealthCheckController(DatahubProjectDBContext dbProjectContext,
             IMemoryCache cache,
             DatahubPortalConfiguration portalConfiguration,
             HttpClient httpClient)
@@ -46,7 +49,8 @@ namespace Datahub.Portal.Controllers
 
             try
             {
-                if (!_cache.TryGetValue("InfrastructureHealthChecks", out List<InfrastructureHealthCheck> infrastructureHealth))
+                if (!_cache.TryGetValue("InfrastructureHealthChecks",
+                        out List<InfrastructureHealthCheck> infrastructureHealth))
                 {
                     infrastructureHealth = await LoadCheckData();
                     _cache.Set("InfrastructureHealthChecks", infrastructureHealth);
@@ -59,7 +63,7 @@ namespace Datahub.Portal.Controllers
                 semaphore.Release();
             }
         }
-         
+
         [HttpGet("logstream")]
         [Authorize]
         public async Task<IActionResult> GetKuduLogStream()
@@ -68,10 +72,12 @@ namespace Datahub.Portal.Controllers
             {
                 return Unauthorized("User is not authenticated.");
             }
+
             if (!User.Identity.Name.EndsWith("@ssc-spc.gc.ca"))
             {
                 return Forbid("User is not part of SSC SPC team.");
             }
+
             var env = _portalConfiguration?.Hosting?.EnvironmentName;
             if (string.IsNullOrEmpty(env) || env == "local")
             {
@@ -79,7 +85,7 @@ namespace Datahub.Portal.Controllers
             }
 
             var kuduUrl = $"https://fsdh-portal-app-{env}.scm.azurewebsites.net/api/logstream";
-            var access_token = await GetAccessTokenAsync();            
+            var access_token = await GetAccessTokenAsync();
             var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
@@ -91,16 +97,17 @@ namespace Datahub.Portal.Controllers
                 Response.ContentType = "text/event-stream";
 
                 using (var streamReader = new StreamReader(stream))
-                using(var writer = new StreamWriter(Response.Body))
+                using (var writer = new StreamWriter(Response.Body))
                 {
                     var buffer = new char[8192];
                     int charsRead;
-                    while((charsRead = await streamReader.ReadAsync(buffer,0,buffer.Length)) >  0 && charsRead > 0)
+                    while ((charsRead = await streamReader.ReadAsync(buffer, 0, buffer.Length)) > 0 && charsRead > 0)
                     {
-                        await writer.WriteAsync(buffer,0,charsRead);
+                        await writer.WriteAsync(buffer, 0, charsRead);
                         await writer.FlushAsync();
                     }
                 }
+
                 return new EmptyResult();
                 // [VB] could not use FileStreamResult - it did not stream as supposed to
                 //return new FileStreamResult(stream, new MediaTypeHeaderValue("text/event-stream").MediaType); 
@@ -126,13 +133,17 @@ namespace Datahub.Portal.Controllers
                 return Unauthorized("Workspace name is missing.");
             }
 
-            // Check if the user has the admin role for the specified workspace
-            var isAdminForWorkspace = User.Claims.Any(claim =>
-                claim.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" && claim.Value == $"{ws}-admin");
+            // Check if the user has the admin, workspace lead or datahub admin role for the specified workspace
+            var allowed = User.Claims.Any(
+                claim =>
+                    claim.Type == "http://schemas.microsoft.com/ws/2008/06/identity/claims/role" &&
+                    (claim.Value == $"{ws}{RoleConstants.ADMIN_SUFFIX}" ||
+                     claim.Value == $"{ws}{RoleConstants.WORKSPACE_LEAD_SUFFIX}") ||
+                    claim.Value == RoleConstants.DATAHUB_ROLE_ADMIN);
 
-            if (!isAdminForWorkspace)
+            if (!allowed)
             {
-                return Forbid("User does not have admin role for the specified workspace.");
+                return Forbid("User does not have admin or lead role for the specified workspace.");
             }
 
             var env = _portalConfiguration?.Hosting?.EnvironmentName;
@@ -140,15 +151,16 @@ namespace Datahub.Portal.Controllers
             {
                 env = "dev";
             }
-                        
+
             var kuduUrl = $"https://fsdh-proj-{ws.ToLower()}-webapp-{env}.scm.azurewebsites.net/api/logstream";
-            var access_token = await GetAccessTokenAsync();    
+            var access_token = await GetAccessTokenAsync();
             //await HttpContext.GetTokenAsync("access_token");
 
             if (string.IsNullOrEmpty(access_token))
             {
                 return Unauthorized("Access token is missing.");
             }
+
             var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
 
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
@@ -166,12 +178,14 @@ namespace Datahub.Portal.Controllers
                     {
                         var buffer = new char[8192];
                         int charsRead;
-                        while ((charsRead = await streamReader.ReadAsync(buffer, 0, buffer.Length)) > 0 && charsRead > 0)
+                        while ((charsRead = await streamReader.ReadAsync(buffer, 0, buffer.Length)) > 0 &&
+                               charsRead > 0)
                         {
                             await writer.WriteAsync(buffer, 0, charsRead);
                             await writer.FlushAsync();
                         }
                     }
+
                     return new EmptyResult();
                     // [VB] could not use FileStreamResult - it did not stream as supposed to
                     //return new FileStreamResult(stream, new MediaTypeHeaderValue("text/event-stream").MediaType); 
@@ -186,9 +200,11 @@ namespace Datahub.Portal.Controllers
                 return new EmptyResult();
             }
         }
+
         private async Task<List<InfrastructureHealthCheck>> LoadCheckData()
         {
-            var projects = await _dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources).Select(p => p.Project_Acronym_CD).ToListAsync();
+            var projects = await _dbProjectContext.Projects.AsNoTracking().Include(p => p.Resources)
+                .Select(p => p.Project_Acronym_CD).ToListAsync();
             var infrastructureHealth = await _dbProjectContext.InfrastructureHealthChecks
                 .Where(h => h.ResourceType == InfrastructureHealthResourceType.AzureSqlDatabase ||
                             h.ResourceType == InfrastructureHealthResourceType.AzureDatabricks ||
@@ -220,7 +236,8 @@ namespace Datahub.Portal.Controllers
                 { "scope", $"{audience}.default" },
                 { "resource", audience }
             });
-            var tokenResponse = await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
+            var tokenResponse =
+                await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
             return tokenResponse?.access_token;
         }
     }
