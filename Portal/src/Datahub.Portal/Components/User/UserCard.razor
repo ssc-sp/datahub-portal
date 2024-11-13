@@ -15,7 +15,7 @@
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
     <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
     <MudStack Spacing="0" AlignItems="AlignItems.Start">
-        <MudText Typo="Typo" Class="px-4">@_viewedUser?.DisplayName</MudText>
+        <MudText Style="@Style" Typo="Typo" Class="px-4">@_viewedUser?.DisplayName</MudText>
         @if (ShowEmail)
         {
             <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
@@ -47,6 +47,8 @@
     
     [Parameter]
     public Typo Typo { get; set; } = Typo.h6;
+
+    [Parameter] public string Style { get; set; } = string.Empty;
 
     private PortalUser _viewedUser;
 
