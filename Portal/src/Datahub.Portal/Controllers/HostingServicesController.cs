@@ -99,38 +99,63 @@ public class HostingServicesController : ControllerBase
             var users = _context.PortalUsers.ToListAsync();
             var user = users.Result.FirstOrDefault(e => e.Email == workspaceDetails.LeadEmail);
 
-            //if (user == null)
-            //{
-            //    await _userEnrollmentService.SaveRegistrationDetails(workspaceDetails.LeadEmail, "HostingServices");
-            //    var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(workspaceDetails.LeadEmail, default);
-            //}
-
-            var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
-
-            if (isAdded)
+            if (user == null)
             {
-                await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
-
-                // Retrieve the workspace details.
-                var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
-
-                // Create a new GC Hosting workspace record using the given details.
-                GCHostingWorkspaceDetails gcHostingRecord = ConvertInputToGCHostingObject(workspaceDetails);
-                gcHostingRecord.Datahub_Project = project;
-                _context.GCHostingWorkspaceDetails.Add(gcHostingRecord);
-                await _context.SaveChangesAsync();
-
-                // Return the workspace acronym, resource group name, and tenant ID.
-                return Ok(new object[] { acronym, rg });
+                await RegisterUser(workspaceDetails.LeadEmail);
             }
-            else
-            {
-                return Ok("Failed to create workspace.");
-            }
+
+            return await CreateProject(workspaceDetails, acronym, rg, user);
         }
         catch (Exception ex)
         {
             return Ok(ex.ToString() + message);
+        }
+    }
+
+    /// <summary>
+    /// Registers a new user in the database and sends an invite to the user.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns>PortalUser object for the newly created user</returns>
+    [NonAction]
+    private async Task<PortalUser> RegisterUser(string email)
+    {
+        await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
+        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
+        return await _context.PortalUsers.FirstOrDefaultAsync(e => e.Id == int.Parse(userId));
+    }
+
+    /// <summary>
+    /// Creates a new project and adds it to the database, returns the acronym and resource group names
+    /// </summary>
+    /// <param name="workspaceDetails"></param>
+    /// <param name="acronym"></param>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    [NonAction]
+    private async Task<IActionResult> CreateProject(HostingServiceInfo workspaceDetails, string acronym, string rg, PortalUser user)
+    {
+        var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
+
+        if (isAdded)
+        {
+            await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
+
+            // Retrieve the workspace details.
+            var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
+
+            // Create a new GC Hosting workspace record using the given details.
+            GCHostingWorkspaceDetails gcHostingRecord = ConvertInputToGCHostingObject(workspaceDetails);
+            gcHostingRecord.Datahub_Project = project;
+            _context.GCHostingWorkspaceDetails.Add(gcHostingRecord);
+            await _context.SaveChangesAsync();
+
+            // Return the workspace acronym, resource group name, and tenant ID.
+            return Ok(new object[] { acronym, rg });
+        }
+        else
+        {
+            return Ok("Failed to create workspace.");
         }
     }
 
