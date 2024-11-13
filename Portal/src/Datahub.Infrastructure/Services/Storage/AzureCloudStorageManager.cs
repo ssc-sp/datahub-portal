@@ -127,8 +127,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string directoryPath)
     {
-        var dirClient = GetDirectoryClient(container, directoryPath);
-        return await dirClient.CreateSubDirectoryAsync(directoryPath) is not null;
+        var dirClient = GetDirectoryClient(container, currentWorkingDirectory);
+        var createResult = await dirClient.CreateSubDirectoryAsync(directoryPath);
+        return createResult is not null;
     }
 
     public async Task<bool> DeleteFileAsync(string container, string filePath)
