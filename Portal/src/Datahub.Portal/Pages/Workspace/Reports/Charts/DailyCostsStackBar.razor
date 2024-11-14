@@ -14,7 +14,7 @@
             <ApexPointSeries
                 TItem="DailyServiceCost"
                 Name="@service"
-                Items="@DailyCosts.Where(c => c.Source == service)"
+                Items="@_dailyCosts.Where(c => c.Source == service)"
                 XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
                 YAggregate="@(e => e.Sum(c => c.Amount))"
                 SeriesType="SeriesType.Bar"/>
@@ -45,6 +45,7 @@
     [Parameter] public string Title { get; set; }
     [CascadingParameter] public List<ChartLocale> Locales { get; set; }
 
+    private List<DailyServiceCost> _dailyCosts = new();
     private ApexChart<DailyServiceCost> _dailyCostChart = new();
     private ApexChartOptions<DailyServiceCost> _dailyCostChartOptions = new();
     private List<string> _distinctServices => DailyCosts.Select(c => c.Source).Distinct().ToList();
@@ -53,7 +54,42 @@
     protected override void OnParametersSet()
     {
         _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        _dailyCosts = FillDailyCosts();
         DefineOptions();
+    }
+    
+    public List<DailyServiceCost> FillDailyCosts()
+    {
+        
+        var distinctDays = DailyCosts.Select(c => c.Date.Date).Distinct().ToList();
+        
+        var dailyCosts = new List<DailyServiceCost>();
+        foreach (var service in _distinctServices)
+        {
+            foreach (var day in distinctDays)
+            {
+                var cost = DailyCosts.FirstOrDefault(c => c.Source == service && c.Date.Date == day);
+                if (cost != null)
+                {
+                    dailyCosts.Add(new DailyServiceCost
+                    {
+                        Date = day,
+                        Source = service,
+                        Amount = cost.Amount
+                    });
+                }
+                else
+                {
+                    dailyCosts.Add(new DailyServiceCost
+                    {
+                        Date = day,
+                        Source = service,
+                        Amount = 0
+                    });
+                }
+            }
+        }
+        return dailyCosts;
     }
 
     public async Task Refresh()
