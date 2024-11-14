@@ -46,11 +46,7 @@
     [Parameter] public string Title { get; set; }
     [CascadingParameter] public List<ChartLocale> Locales { get; set; }
 
-    private List<MonthlyCost> monthlyCosts => Costs
-        .GroupBy(c => (c.Date.ToString("MMMM yyyy"), c.Source))
-        .Select(g => new MonthlyCost { Month = g.Key.Item1, Cost = g.Sum(c => c.Amount), Service = g.Key.Source })
-        .OrderBy(c => DateTime.ParseExact(c.Month, "MMMM yyyy", _culture))
-        .ToList();
+    private List<MonthlyCost> monthlyCosts = new();
 
     private ApexChart<MonthlyCost> _monthlyCostsChart = new();
     private ApexChartOptions<MonthlyCost> _monthlyCostsChartOptions = new();
@@ -70,7 +66,39 @@
     {
         _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
         _culture = new(_locale + "-CA");
+        monthlyCosts = FillMonthlyCosts();
         DefineOptions();
+    }
+
+    private List<MonthlyCost> FillMonthlyCosts()
+    {
+        var uncleanMonthlyCosts = Costs
+            .GroupBy(c => (c.Date.ToString("MMMM yyyy"), c.Source))
+            .Select(g => new MonthlyCost { Month = g.Key.Item1, Cost = g.Sum(c => c.Amount), Service = g.Key.Source })
+            .OrderBy(c => DateTime.ParseExact(c.Month, "MMMM yyyy", _culture))
+            .ToList();
+
+        var distinctMonths = uncleanMonthlyCosts.Select(c => c.Month).Distinct().ToList();
+        var distinctServices = uncleanMonthlyCosts.Select(c => c.Service).Distinct().ToList();
+
+        var tempMonthlyCosts = new List<MonthlyCost>();
+        foreach (var month in distinctMonths)
+        {
+            foreach (var service in distinctServices)
+            {
+                var cost = uncleanMonthlyCosts.FirstOrDefault(c => c.Month == month && c.Service == service);
+                if (cost == null)
+                {
+                    tempMonthlyCosts.Add(new MonthlyCost { Month = month, Cost = 0, Service = service });
+                }
+                else
+                {
+                    tempMonthlyCosts.Add(cost);
+                }
+            }
+        }
+
+        return tempMonthlyCosts;
     }
 
     public async Task Refresh()

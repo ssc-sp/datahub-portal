@@ -6,6 +6,11 @@ namespace Datahub.Core.Services.Offline
 {
     public class OfflineUserSettingsService : IUserSettingsService
     {
+        public Task<bool> RegisterUserSettingsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> HasUserAcceptedTAC()
         {
             return Task.FromResult(true);

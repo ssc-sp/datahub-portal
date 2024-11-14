@@ -1,7 +1,5 @@
-﻿#nullable enable
-using Datahub.Application.Services.UserManagement;
+﻿using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.UserTracking;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
@@ -9,23 +7,40 @@ using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services.UserManagement
 {
-    public class UserSettingsService : IUserSettingsService
+    public class UserSettingsService(
+        IUserInformationService userInformationService,
+        IDbContextFactory<DatahubProjectDBContext> datahubContextFactory,
+        ILogger<UserSettingsService> logger,
+        NavigationManager navigationManager)
+        : IUserSettingsService
     {
-        private readonly IUserInformationService userInformationService;
-        private readonly IDbContextFactory<DatahubProjectDBContext> datahubContextFactory;
-        private readonly ILogger<UserSettingsService> logger;
-        private readonly NavigationManager navigationManager;
-
-        public UserSettingsService(
-            IUserInformationService userInformationService,
-            IDbContextFactory<DatahubProjectDBContext> datahubContextFactory, ILogger<UserSettingsService> logger, NavigationManager navigationManager)
+        /// <summary>
+        /// Registers the current user's settings.
+        /// </summary>
+        /// <returns>True if new user setting record was created, false otherwise</returns>
+        public async Task<bool> RegisterUserSettingsAsync()
         {
-            this.userInformationService = userInformationService;
-            this.datahubContextFactory = datahubContextFactory;
-            this.logger = logger;
-            this.navigationManager = navigationManager;
+            await using var ctx = await datahubContextFactory.CreateDbContextAsync();
+            var currentUser = await userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser.UserSettings is null)
+            {
+                var userSettings = new UserSettings
+                {
+                    PortalUserId = currentUser.Id,
+                    UserName = currentUser.DisplayName
+                };
+                ctx.UserSettings.Add(userSettings);
+                await ctx.SaveChangesAsync();
+                return true;
+            }
+
+            return false;
         }
 
+        /// <summary>
+        /// Checks that the user has accepted the Terms and Conditions.
+        /// </summary>
+        /// <returns>True if they have, false otherwise</returns>
         public async Task<bool> HasUserAcceptedTAC()
         {
             await using var context = await datahubContextFactory.CreateDbContextAsync();
@@ -34,13 +49,19 @@ namespace Datahub.Infrastructure.Services.UserManagement
             {
                 return userSetting.AcceptedDate != null;
             }
+
             return false;
         }
 
+        /// <summary>
+        /// Registers that the user has accepted the Terms and Conditions.
+        /// </summary>
+        /// <returns>True if the operation was successful, false otherwise</returns>
         public async Task<bool> RegisterUserTAC()
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
-            logger.LogInformation($"User: {currentUser.DisplayName} has accepted Terms and Conditions.");
+            logger.LogInformation("User: {CurrentUserDisplayName} has accepted Terms and Conditions",
+                currentUser.DisplayName);
 
             try
             {
@@ -50,7 +71,8 @@ namespace Datahub.Infrastructure.Services.UserManagement
                 if (userSetting == null)
                 {
                     logger.LogError(
-                        $"User: {currentUser.DisplayName} with user id: {currentUser.Id} is not in DB to register TAC.");
+                        "User: {CurrentUserDisplayName} with user id: {CurrentUserId} is not in DB to register TAC",
+                        currentUser.DisplayName, currentUser.Id);
                     return false;
                 }
 
@@ -61,17 +83,22 @@ namespace Datahub.Infrastructure.Services.UserManagement
                     return true;
 
                 logger.LogInformation(
-                    $"User: {currentUser.DisplayName} has accepted Terms and Conditions. Changes NOT saved");
+                    "User: {CurrentUserDisplayName} has accepted Terms and Conditions. Changes NOT saved",
+                    currentUser.DisplayName);
                 return false;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"User: {currentUser.DisplayName} registering TAC failed.");
+                logger.LogError(ex, "User: {CurrentUserDisplayName} registering TAC failed", currentUser.DisplayName);
             }
 
             return false;
         }
 
+        /// <summary>
+        /// Deletes the user's settings.
+        /// </summary>
+        /// <returns>True if a record was deleted, false if no record was deleted</returns>
         public async Task<bool> ClearUserSettingsAsync()
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -108,6 +135,10 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return false;
         }
 
+        /// <summary>
+        /// Gets a list of keys of alerts that were hidden by the user.
+        /// </summary>
+        /// <returns>The list of keys of hidden alerts. Empty list if nothing found</returns>
         public async Task<List<string>> GetHiddenAlerts()
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -117,7 +148,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
             if (userSetting == null)
             {
                 logger.LogError(
-                    "User: {CurrentUserDisplayName} with user id: {UserId} is not in DB.",
+                    "User: {CurrentUserDisplayName} with user id: {UserId} is not in DB",
                     currentUser.DisplayName, currentUser.Id);
                 return new List<string>();
             }
@@ -128,6 +159,11 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return userSetting.HiddenAlerts;
         }
 
+        /// <summary>
+        /// Adds an alert key to the list of hidden alerts for the user.
+        /// </summary>
+        /// <param name="alertKey">The key of the alert to hide</param>
+        /// <returns>True if the alert was added, false otherwise</returns>
         public async Task<bool> AddHiddenAlert(string alertKey)
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -145,8 +181,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
                     return false;
                 }
 
-                if (userSetting.HiddenAlerts == null)
-                    userSetting.HiddenAlerts = new List<string>();
+                userSetting.HiddenAlerts ??= new List<string>();
 
                 userSetting.HiddenAlerts.Add(alertKey);
                 context.UserSettings.Update(userSetting);
@@ -157,7 +192,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
                 }
 
                 logger.LogInformation(
-                    "User: {CurrentUserDisplayName} Alert {AlertKey} has not been added. Changes NOT saved.",
+                    "User: {CurrentUserDisplayName} Alert {AlertKey} has not been added. Changes NOT saved",
                     currentUser.DisplayName, alertKey);
             }
             catch (Exception ex)
@@ -169,6 +204,10 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return false;
         }
 
+        /// <summary>
+        /// Gets the user's preference for hiding alerts.
+        /// </summary>
+        /// <returns>True if all alerts should be hidden, false otherwise</returns>
         public async Task<bool> GetHideAlerts()
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -178,7 +217,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
             if (userSetting == null)
             {
                 logger.LogError(
-                    "User: {CurrentUserDisplayName} with user id: {UserId} is not in DB.",
+                    "User: {CurrentUserDisplayName} with user id: {UserId} is not in DB",
                     currentUser.DisplayName, currentUser.Id);
                 return false;
             }
@@ -186,6 +225,11 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return userSetting.HideAlerts;
         }
 
+        /// <summary>
+        /// Sets the user's preference for hiding alerts.
+        /// </summary>
+        /// <param name="hideAlerts">Whether all alerts should be hidden</param>
+        /// <returns>True if the setting was properly set, false otherwise</returns>
         public async Task<bool> SetHideAlerts(bool hideAlerts)
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -212,7 +256,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
                 }
 
                 logger.LogInformation(
-                    "User: {CurrentUserDisplayName} Hide alerts has not been set. Changes NOT saved.",
+                    "User: {CurrentUserDisplayName} Hide alerts has not been set. Changes NOT saved",
                     currentUser.DisplayName);
             }
             catch (Exception ex)
@@ -224,6 +268,11 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return false;
         }
 
+        /// <summary>
+        /// Sets the user's preference for hiding achievements.
+        /// </summary>
+        /// <param name="hideAchievements">Whether to hide achievements</param>
+        /// <returns>True if the setting was set, false otherwise</returns>
         public async Task<bool> SetHideAchievements(bool hideAchievements)
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -250,7 +299,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
                 }
 
                 logger.LogInformation(
-                    "User: {CurrentUserDisplayName} Hide achievements has not been set. Changes NOT saved.",
+                    "User: {CurrentUserDisplayName} Hide achievements has not been set. Changes NOT saved",
                     currentUser.DisplayName);
             }
             catch (Exception ex)
@@ -262,6 +311,11 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return false;
         }
 
+        /// <summary>
+        /// Registers the user's selected language.
+        /// </summary>
+        /// <param name="language">The two letter language code, i.e. "en" or "fr"</param>
+        /// <returns>True if the operation was successful, false otherwise</returns>
         public async Task<bool> RegisterUserLanguage(string language)
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
@@ -277,8 +331,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
 
                 if (userSetting == null)
                 {
-                    userSetting = new UserSettings { PortalUserId = currentUser.Id, UserName = currentUser.DisplayName, Language = language };
-                    context.UserSettings.Add(userSetting);
+                    await RegisterUserSettingsAsync();
                 }
                 else
                 {
@@ -302,6 +355,12 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return false;
         }
 
+        /// <summary>
+        /// Sets the user's language preference.
+        /// </summary>
+        /// <param name="language">The two letter language code, i.e. "en" or "fr"</param>
+        /// <param name="redirectUrl">The url to redirect to once the language is set</param>
+        /// <returns>True if the language was changed, false otherwise</returns>
         public async Task<bool> SetLanguage(string language, string redirectUrl = "")
         {
             await using var context = await datahubContextFactory.CreateDbContextAsync();
@@ -331,6 +390,10 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return true;
         }
 
+        /// <summary>
+        /// Gets the user's selected language.
+        /// </summary>
+        /// <returns>The two letter language code, or empty string if no language found</returns>
         public async Task<string> GetUserLanguage()
         {
             var userSetting = await GetUserSettingsAsync();
@@ -338,12 +401,20 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return userSetting != null ? userSetting.Language : string.Empty;
         }
 
+        /// <summary>
+        /// Checks if the user's selected language is French.
+        /// </summary>
+        /// <returns>True if french, false otherwise</returns>
         public async Task<bool> IsFrench()
         {
             var lang = await GetUserLanguage();
             return !lang.ToLower().Contains("en");
         }
 
+        /// <summary>
+        /// Gets the user's settings. Not tracked.
+        /// </summary>
+        /// <returns>The UserSettings of the current user, null if none found if there was an error</returns>
         public async Task<UserSettings?> GetUserSettingsAsync()
         {
             try
@@ -357,7 +428,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Unable to fetch current user at this time.");
+                logger.LogError(ex, "Unable to fetch current user at this time");
                 return null;
             }
         }
