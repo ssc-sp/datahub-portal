@@ -110,7 +110,7 @@
     private DatahubAuthView.AuthLevels _authLevel = DatahubAuthView.AuthLevels.Unauthorized;
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private static readonly string[] DatabricksScopes =
     {
@@ -143,7 +143,7 @@
 
         _expectedTerraformOutput = $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
 
-        if (ShowToAdmins)
+        if (ElevatedWorkspaceAccessEnabled)
         {
             _authLevel = DatahubAuthView.AuthLevels.DatahubSupport;
         }
