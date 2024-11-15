@@ -22,7 +22,7 @@
 
 @code {
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     public List<ChartLocale> Locales => new()
     {

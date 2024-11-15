@@ -20,12 +20,12 @@
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
     </MudItem>
     <MudItem xs="12" sm="4">
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
         </DatahubAuthView>
     </MudItem>
     <MudItem xs="12" sm="8">
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <Authorized>
                 @if (_resources.Any())
                 {
@@ -105,7 +105,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _project;
 
