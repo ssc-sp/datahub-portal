@@ -5,7 +5,7 @@
 <MudPaper Outlined Class="pa-4">
     <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
-            <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium" />
+            <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium"/>
             <MudText Typo="Typo.h3">@Localizer["Web Application"]</MudText>
             <MudSpacer/>
 
@@ -13,29 +13,32 @@
         <MudText>
             @Localizer["Navigate to the Azure App Service to view your web application, where you can serve interactive and user-friendly dashboards."]
         </MudText>
-        @if (ProjectResource.CreatedAt.HasValue)
-        {
-            <MudElement HtmlTag="div">
-                <DHButton
-                    Href="@GetWebAppUrl()"
-                    Target="_blank"
-                    Color="Color.Primary"
-                    Variant="@Variant.Text"
-                    EndIcon="@SidebarIcons.External"
-                    Underline>
-                    @Localizer["Navigate to Web App"]
-                </DHButton>
-            </MudElement>
-            <MudElement HtmlTag="div">
-                <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
-                          Color="Color.Primary"
-                          Variant="@Variant.Text"
-                          EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
-                          Underline>
-                    @Localizer["View Web App configuration"]
-                </DHButton>
-            </MudElement>
-        }
+        <MudElement HtmlTag="div">
+            @if (ProjectResource.CreatedAt.HasValue)
+            {
+                <MudStack Row>
+                    <DHButton
+                        Href="@GetWebAppUrl()"
+                        Color="Color.Primary"
+                        Variant="@Variant.Text"
+                        EndIcon="@SidebarIcons.External"
+                        Underline>
+                        @Localizer["Navigate to Web App"]
+                    </DHButton>
+                    <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
+                              Color="Color.Primary"
+                              Variant="@Variant.Text"
+                              EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+                              Underline>
+                        @Localizer["View Web App configuration"]
+                    </DHButton>
+                </MudStack>
+            }
+            else
+            {
+                <ToolBeingProvisionedButton/>
+            }
+        </MudElement>
     </MudStack>
 </MudPaper>
 
