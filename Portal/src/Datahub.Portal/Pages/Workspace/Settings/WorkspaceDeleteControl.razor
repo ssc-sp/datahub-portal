@@ -1,11 +1,5 @@
-@using Datahub.Application.Services
 @using Datahub.Portal.Pages.Account
-@using Datahub.Shared
-@using Datahub.Shared.Entities
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject IUserInformationService _userInformationService
-@inject IResourceMessagingService resourceMessagingService
-@inject IJSRuntime JSRuntime
+@inject NavigationManager _navigationManager
 
 <MudPaper Outlined Class="pa-8 my-8 mx-n8" Style="background-color: transparent; border-color: red;">
     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
@@ -20,36 +14,7 @@
 
     private async void ConfirmDeletion()
     {
-        
-        var message = string.Format(Localizer["Are you sure you want to delete the workspace \"{0}\"?"], WorkspaceAcronym);
-        if (!await JSRuntime.InvokeAsync<bool>("confirm", message))
-            return;
+        _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.DeleteWorkspace}");
 
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        
-        var undeletedResources = await ctx.Project_Resources2
-               .Include(r => r.Project)
-               .Where(r => r.Project.Project_Acronym_CD == WorkspaceAcronym && !(r.Status == TerraformStatus.Deleted ||
-                   r.Status == TerraformStatus.DeleteRequested))
-               .ToListAsync(CancellationToken.None);
-        
-        foreach (var undeletedResource in undeletedResources)
-        {
-            undeletedResource.Status = TerraformStatus.DeleteRequested;
-            ctx.Project_Resources2.Update(undeletedResource);
-        }
-
-        
-        var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
-        await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-
-        var workspace = await ctx.Projects
-            .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
-
-        workspace.Deleted_DT = DateTime.UtcNow;
-        ctx.Projects.Update(workspace);
-
-        await ctx.SaveChangesAsync(CancellationToken.None);
-        
     }
 }
