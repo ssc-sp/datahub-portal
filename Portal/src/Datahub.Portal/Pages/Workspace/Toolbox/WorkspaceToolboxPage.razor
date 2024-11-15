@@ -1,6 +1,7 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
+@using Datahub.Shared
 @using Datahub.Core.Services.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
@@ -71,7 +72,7 @@
                                 case TerraformStatus.Completed:
                                     <MudStack>
                                         <ToolboxButton Status="@status" Disabled="@true" Icon="fa-light fa-check-to-slot"/>
-                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym">
+                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
                                             <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
                                                 @Localizer["Remove Tool from Workspace"]
                                                 <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
@@ -105,8 +106,8 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private Datahub_Project _workspace;
 
@@ -248,7 +249,7 @@
         {
             TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
             TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
-            TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
+            TerraformTemplate.AzureAppService => Localizer["Web Application"],
             TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
             TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
@@ -262,7 +263,7 @@
         {
             TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service."],
             TerraformTemplate.AzureStorageBlob => Localizer["Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data."],
-            TerraformTemplate.AzureAppService => Localizer["Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
+            TerraformTemplate.AzureAppService => Localizer["Web Application is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
             TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
             TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
             TerraformTemplate.AzureAPI => Localizer["Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service."],

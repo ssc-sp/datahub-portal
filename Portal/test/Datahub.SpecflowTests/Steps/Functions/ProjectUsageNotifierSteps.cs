@@ -205,9 +205,9 @@ public class ProjectUsageNotifierSteps(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var workspace = ctx.Projects
             .FirstOrDefault(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
-
+        
         workspace!.PreventAutoDelete = true;
-
+        
         await ctx.SaveChangesAsync();
     }
 
@@ -218,7 +218,7 @@ public class ProjectUsageNotifierSteps(
         var resources = ctx.Project_Resources2
             .Where(r => r.Project.Project_Acronym_CD == Testing.WorkspaceAcronym)
             .ToList();
-
+        
         resources.Should().NotBeEmpty();
         resources.Should().NotContain(r =>
             r.Status == TerraformStatus.DeleteRequested || r.Status == TerraformStatus.Deleted);

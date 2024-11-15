@@ -62,14 +62,15 @@
                             {
                                 <FileExplorer ProjectId=@_projectId Container="@_selectedContainer"/>
                             }
-
                         </MudTabPanel>
                         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
                             @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
                             {
                                 <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
                                     <MudStack Class="py-6 px-2">
-                                        <AzCopy Container=@SelectedContainer/>
+                                        <AzCopy Container=@SelectedContainer 
+                                            TermsAcknowledged=@_tokenTermsAcknowledged 
+                                            OnTermsAccepted=@AgreeToAccessTokenTerms />
                                     </MudStack>
                                 </MudTabPanel>
                             }
@@ -85,7 +86,9 @@
                             {
                                 <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
                                     <MudStack Class="py-6 px-2">
-                                        <UploaderCode Container=@SelectedContainer/>
+                                        <UploaderCode Container=@SelectedContainer
+                                            TermsAcknowledged=@_tokenTermsAcknowledged
+                                            OnTermsAccepted=@AgreeToAccessTokenTerms />
                                     </MudStack>
                                 </MudTabPanel>
                             }
@@ -99,8 +102,8 @@
 
 @code {
 
-    [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ShowToAdmins { get; set; } = false;
 
     private Datahub_Project _project;
     private int? _projectId;
@@ -112,11 +115,15 @@
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private User _user;
 
+    private bool _tokenTermsAcknowledged = false;
+
+    private void AgreeToAccessTokenTerms() => _tokenTermsAcknowledged = true;
+
     private bool _loading = true;
     private bool _failedToLoadContainers = false;
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
-    private bool ShouldShowContainerDropdown => _loading && (MultiContainer || _isUserProjectAdmin);
+    private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
 
     protected override async Task OnInitializedAsync()
     {

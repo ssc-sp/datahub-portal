@@ -45,7 +45,6 @@ public partial class RepositoryService(
         try
         {
             DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
-            logger.LogInformation("Creating temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CreateTemporaryDirectory();
             
             var user = command.RequestingUserEmail ??
@@ -71,8 +70,6 @@ public partial class RepositoryService(
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
                 command.Workspace.Acronym!);
             
-            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
-            CleanUpEnvironment();
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
@@ -94,6 +91,8 @@ public partial class RepositoryService(
         }
         finally
         {
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
+            CleanUpEnvironment();
             _semaphore.Release();
         }
     }
@@ -129,9 +128,11 @@ public partial class RepositoryService(
         return versions;
     }
     
-    public void CreateTemporaryDirectory()
+    private void CreateTemporaryDirectory()
     {
+        CleanUpEnvironment();
         var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+        logger.LogInformation("Creating temporary directory {Directory} for resource run", Path.GetFullPath(tempPath));
         Directory.CreateDirectory(tempPath);
     }
 
@@ -205,10 +206,10 @@ public partial class RepositoryService(
             }
         };
 
-        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
         Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
 
-        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
+        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
     }
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
@@ -581,8 +582,14 @@ public partial class RepositoryService(
     
     private void CleanUpEnvironment()
     {
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
-        var dir = new DirectoryInfo(tempPath);
-        DirectoryUtils.NormalizeAndDelete(dir);
+        try
+        {
+            var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+            var dir = new DirectoryInfo(tempPath);
+            DirectoryUtils.NormalizeAndDelete(dir);
+        } catch (Exception e)
+        {
+            logger.LogError(e, "Error while cleaning up environment");
+        }
     }
 }
