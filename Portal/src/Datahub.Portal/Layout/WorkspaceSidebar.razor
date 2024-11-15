@@ -48,7 +48,7 @@
                     <ul>
                         @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                         {
-                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
                                     <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
@@ -66,7 +66,7 @@
                     </ul>
                 </MudNavMenu>
             </MudStack>
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <MudStack Spacing="2" Class="ml-2">
                     <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                         <strong>
@@ -78,7 +78,7 @@
                             @foreach (var toolSection in _workspaceAdministration)
                             {
                                 <li>
-                                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+                                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                         <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                                             <MudStack Row AlignItems="AlignItems.Center">
                                                 <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
