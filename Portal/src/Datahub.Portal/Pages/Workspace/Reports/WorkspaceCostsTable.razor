@@ -9,7 +9,8 @@
             @Localizer["Your workspace's daily costs"]
         </MudText>
         <MudSpacer/>
-        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download"
+                  OnClick="HandleDownload" Class="mr-4">
             @Localizer["Download to CSV"]
         </DHButton>
     </ToolBarContent>
@@ -57,7 +58,21 @@
             .OrderByDescending(c => c.Date)
             .ToListAsync();
         Costs = projectCosts.Select(c => new CostDisplay { Cost = (decimal)c.CadCost, Date = c.Date.ToString("d"), Source = c.ServiceName }).ToList();
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
+            }
+            catch
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
+            }
+        }
     }
 
     private async Task HandleDownload()
