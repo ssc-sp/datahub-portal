@@ -71,6 +71,7 @@ public class OmniUser
 
 public class Variables
 {
+    public string log_analytics_workspace_id { get; set; }
     public string automation_account_uai_name { get; set; }
     public string automation_account_uai_rg { get; set; }
     public string automation_account_uai_sub { get; set; }
