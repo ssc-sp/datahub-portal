@@ -1,12 +1,20 @@
 @using Datahub.Portal.Pages.Account
+@inject NavigationManager _navigationManager
 
 <MudPaper Outlined Class="pa-8 my-8 mx-n8" Style="background-color: transparent; border-color: red;">
     <SettingsField Label="@Localizer["Delete Workspace"]" Description="@Localizer["Delete your workspace and all associated data. This action cannot be undone."]">
-        <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Error">
+        <DHButton Disabled="false" Variant="Variant.Filled" Color="Color.Error" OnClick="@ConfirmDeletion">
             @Localizer["Delete Workspace"]
         </DHButton>
     </SettingsField>
 </MudPaper>
 @code {
-    
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    private async void ConfirmDeletion()
+    {
+        _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.DeleteWorkspace}");
+
+    }
 }

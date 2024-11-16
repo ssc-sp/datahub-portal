@@ -153,8 +153,16 @@ public class TerraformService(
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
         
-        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.*");
-        if(matchingFiles.Length > 0)
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.*")
+            .Where(file => !file.EndsWith(".auto.tfvars.json"))
+            .ToArray(); 
+        
+        if(templateName == TerraformTemplate.NewProjectTemplate)
+        {
+            matchingFiles.Append("main.tf");
+        }
+
+        if (matchingFiles.Length > 0)
         {
             foreach (var file in matchingFiles)
             {
