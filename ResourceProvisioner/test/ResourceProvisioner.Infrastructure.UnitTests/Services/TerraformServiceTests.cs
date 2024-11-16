@@ -28,7 +28,18 @@ public class TerraformServiceTests
             await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, TestingWorkspace);
         });
     }
-    
+
+    [Test]
+    public void ShouldNotDeleteAutoTfvarsJsonFiles()
+    {
+        string[] fileNames = { "app.tf", "app-template.variables.tf.json", "app.auto.tfvars.json" };
+        var newFileList = fileNames
+            .Where(file => !file.EndsWith(".auto.tfvars.json"))
+            .ToArray();
+
+        Assert.That(newFileList.Length, Is.EqualTo(2));
+    }
+
     [Test]
     public void ShouldParseTerraformVariables()
     {
