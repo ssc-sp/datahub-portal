@@ -50,6 +50,7 @@ else
 }
 
 @code
+
 {
     private bool? _isSessionEnabled;
     private bool _isLoaded = false;
@@ -68,7 +69,6 @@ else
         try
         {
             var user = await _userInformationService.GetAuthenticatedUser(true);
-            var userSettings = await _userSettingsService.GetUserSettingsAsync();
 
             if (!user.Identity?.IsAuthenticated ?? true)
             {
@@ -76,12 +76,6 @@ else
                 _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
                 return;
             }
-
-            if (userSettings == null)
-            {
-                await _userSettingsService.RegisterUserSettingsAsync();
-            }
-
 
             _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
             _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
@@ -94,6 +88,7 @@ else
 
         // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
+        await _userSettingsService.RegisterUserSettingsAsync();
 
         _isLoaded = true;
     }

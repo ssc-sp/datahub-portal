@@ -213,6 +213,7 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
             var subId = subscriptionId.Contains("/") ? subscriptionId : $"/{SUBSCRIPTION_KEY}/{subscriptionId}";
             var sub = armClient.GetSubscriptionResource(new ResourceIdentifier(subId));
             var env = config["DataHub_ENVNAME"];
+            env ??= config["Hosting:EnvironmentName"];
             if (env is null)
             {
                 logger.LogError("Environment name not found in configuration");

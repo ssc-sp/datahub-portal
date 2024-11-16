@@ -36,8 +36,8 @@
     </MudStack>
     <MudStack>
             <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
-                <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ShowToAdmins" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
-                @if (ShowToAdmins)
+                <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ElevatedWorkspaceAccessEnabled" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
+                @if (ElevatedWorkspaceAccessEnabled)
                 {
                     <MudText Typo="Typo.body2">
                         @Localizer["FSDH Support Team access is enabled until {0}", _accessDate.ToString()]
@@ -75,7 +75,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _workspace;
     private DateTime _accessDate;
@@ -115,13 +115,13 @@
         if (WorkspacePage.DisplayToSupport(project))
         {
             dbContext.Projects.Update(CancelAdminAccess(project));
-            ShowToAdmins = false;
+            ElevatedWorkspaceAccessEnabled = false;
             _snackbar.Add(Localizer["Support access has been revoked"], Severity.Success);
         }
         else
         {
             dbContext.Projects.Update(ExtendAdminAccess(project));
-            ShowToAdmins = true;
+            ElevatedWorkspaceAccessEnabled = true;
             _snackbar.Add(Localizer["Support access granted until {0}", project.AllowDatahubSupport.ToString()], Severity.Success);
         }
 
