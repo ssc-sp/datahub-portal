@@ -52,7 +52,7 @@
         </MudItem>
         <MudItem xs="3">
             <DHButton Disabled="@_deleteRequested" Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
-                @Localizer["Delete Workspace"]
+                @_deleteButtonText
                 <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
             </DHButton>
         </MudItem>
@@ -63,12 +63,14 @@
 {
     [Parameter]
     public string WorkspaceAcronym { get; set; }
-    
-    
+    [Parameter] 
+    public bool ShowToAdmins { get; set; } = true;
+
     private string _deleteConfirmation;
     private string _error = "";
     private string _settingsPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Settings}";
     private bool _deleteRequested;
+    private string _deleteButtonText = "Delete Workspace";
 
     protected override async Task OnInitializedAsync()
     {
@@ -80,9 +82,10 @@
                     r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
                     r.ResourceType == newProjectTemplateType)
                .FirstOrDefaultAsync();
-        
+
 
         _deleteRequested = newTemplateResource != null && newTemplateResource.Status == TerraformStatus.DeleteRequested;
+        _deleteButtonText = _deleteRequested ? Localizer["Delete Requested"] : Localizer["Delete Workspace"];
 
         if (WorkspaceAcronym == null)
         {
@@ -90,7 +93,7 @@
             _navigationManager.NavigateTo(_settingsPage);
             return;
         }
-        
+
     }
 
     private async void ConfirmDeletion()
@@ -107,6 +110,7 @@
         }
         else
         {
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             var message = string.Format(Localizer["Are you sure you want to delete the workspace \"{0}\"?"], WorkspaceAcronym);
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
@@ -124,21 +128,16 @@
                 undeletedResource.Status = TerraformStatus.DeleteRequested;
                 ctx.Project_Resources2.Update(undeletedResource);
             }
+            await ctx.SaveChangesAsync(CancellationToken.None);
 
             var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
+            workspaceDefinition.RequestingUserEmail = currentUser.Email;
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             
             _deleteRequested = true;
-            // move the below code into the post terraform output method
-            // var workspace = await ctx.Projects
-            //     .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
-            // workspace.Deleted_DT = DateTime.UtcNow;
-            // ctx.Projects.Update(workspace);
-
-            // await ctx.SaveChangesAsync(CancellationToken.None);
-
-            // _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
+            _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
+            
         }
     }
 }

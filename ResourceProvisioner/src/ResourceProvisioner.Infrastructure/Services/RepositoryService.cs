@@ -474,8 +474,18 @@ public partial class RepositoryService(
 
         await ValidateWorkspaceVersion(terraformWorkspace);
 
-        // Execute each module but make sure the `new-project-template` module is first
-        modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        var newProjectTemplate = modules.FirstOrDefault(x => x.Name == TerraformTemplate.NewProjectTemplate);
+        if(newProjectTemplate.Status == TerraformStatus.DeleteRequested)
+        {
+            // Execute each module but make sure the `new-project-template` module is last for deletion
+            modules = modules.OrderBy(x => x.Name == TerraformTemplate.NewProjectTemplate).ToList();
+        }
+        else
+        {
+            // Execute each module but make sure the `new-project-template` module is first for creation
+            modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        }
+        
 
         foreach (var module in modules)
         {
