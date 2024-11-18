@@ -28,29 +28,52 @@ public static class TerraformVariableExtraction
     /// Extracts the databricks url from a Datahub Project. Be sure to include the project resources in the project object.
     /// </summary>
     /// <param name="project"></param>
+    /// <param name="isFrench">A flag indicating whether the Databricks preferred language is French</param>
     /// <returns>Databricks url of the project</returns>
-    public static string? ExtractDatabricksUrl(Datahub_Project? project)
+    public static string? ExtractDatabricksUrl(Datahub_Project? project, bool? isFrench)
     {
         var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
         var databricksUrlVariable = ExtractStringVariable(
             project?.Resources?.FirstOrDefault(r => r.ResourceType == databricksTemplateName)?.JsonContent,
             "workspace_url");
 
-        return FormatDatabricksUrl(databricksUrlVariable);
+        return AddLanguageURLParameter(FormatDatabricksUrl(databricksUrlVariable), isFrench);
+    }
+
+    private static string? AddLanguageURLParameter(string? databricksURL, bool? isFrench)
+    {
+        if (isFrench is null || databricksURL is null || isFrench == false)
+        {
+            return databricksURL;
+        }
+        if (isFrench == true)
+        {
+            var langParam = "?l=fr";
+            if (databricksURL.EndsWith("/"))
+            {
+                databricksURL = databricksURL + langParam;
+            }
+            else
+            {
+                databricksURL = databricksURL + "/" + langParam;
+            }
+        }
+        return databricksURL;
     }
 
     /// <summary>
     /// Extracts the Databricks URL from the specified project resource.
     /// </summary>
     /// <param name="projectResource">The project resource containing the JSON content.</param>
+    /// <param name="isFrench">A flag indicating whether the Databricks preferred language is French</param>
     /// <returns>The extracted Databricks URL or null if not found.</returns>
-    public static string? ExtractDatabricksUrl(Project_Resources2? projectResource)
+    public static string? ExtractDatabricksUrl(Project_Resources2? projectResource, bool isFrench)
     {
         var databricksUrlVariable = ExtractStringVariable(
             projectResource?.JsonContent,
             "workspace_url");
 
-        return FormatDatabricksUrl(databricksUrlVariable);
+        return AddLanguageURLParameter(FormatDatabricksUrl(databricksUrlVariable), isFrench);
     }
 
     /// <summary>
@@ -115,9 +138,9 @@ public static class TerraformVariableExtraction
     /// <returns>A list of string, corresponding to the keys of the environment variables stored in the workspace keyvault</returns>
     public static IList<string> ExtractEnvironmentVariableKeys(Project_Resources2 projectResources)
     {
-     var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
-     var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
-     return envVars ?? new List<string>();
+        var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
+        var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
+        return envVars ?? new List<string>();
     }
 
     /// <summary>
