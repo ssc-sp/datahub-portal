@@ -15,6 +15,15 @@
     return;
 }
 
+@if (_project.IsDeleted || _isDeleteRequested)
+{
+    <MudItem xs="12" sm="8">
+        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym" />
+    </MudItem>
+    @Localizer["This workspace has been deleted"] 
+    return;
+}
+
 <MudGrid>
     <MudItem xs="12" sm="8">
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
@@ -108,7 +117,7 @@
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _project;
-
+    private bool _isDeleteRequested;
     private List<Project_Resources2> _resources;
     private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
 
@@ -136,6 +145,13 @@
             .OrderBy(r => r.ResourceType)
             .ToList();
 
+        var newTemplateResource = _project.Resources.Where(
+                    r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
+                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+               .FirstOrDefault();
+        
+        _isDeleteRequested = newTemplateResource != null && newTemplateResource.Status == TerraformStatus.DeleteRequested;
+        
         _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(WorkspaceAcronym);
     }
 
