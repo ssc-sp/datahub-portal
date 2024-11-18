@@ -20,7 +20,9 @@
     <MudItem xs="12" sm="8">
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym" />
     </MudItem>
-    @Localizer["This workspace has been deleted"] 
+    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+        @Localizer["This workspace has been deleted"] 
+    </MudAlert>
     return;
 }
 
@@ -45,7 +47,11 @@
                         @foreach (var resource in _resources)
                         {
                             var found = _cardComponents.ContainsKey(resource.ResourceType);
-                            if (found && resource.Status != TerraformStatus.Deleted)
+                            
+                            var deletedStatuses = new[] { TerraformStatus.Deleted, TerraformStatus.DeleteInProgress, TerraformStatus.DeleteRequested };
+                            var isDeleted = deletedStatuses.Contains(resource.Status);
+                            
+                            if (found && !isDeleted)
                             {
                                 var parameters = new Dictionary<string, object>
                                 {
