@@ -91,7 +91,6 @@ public partial class RepositoryService(
         }
         finally
         {
-            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CleanUpEnvironment();
             _semaphore.Release();
         }
@@ -593,6 +592,7 @@ public partial class RepositoryService(
     {
         try
         {
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);
