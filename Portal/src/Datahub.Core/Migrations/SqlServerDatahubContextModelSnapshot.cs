@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.8")
+                .HasAnnotation("ProductVersion", "8.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1235,92 +1235,116 @@ namespace Datahub.Core.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasAnnotation("Relational:JsonPropertyName", "Id");
 
                     b.Property<string>("AreaOfScience")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "AreaOfScience");
 
                     b.Property<string>("CBRID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "CBRID");
 
                     b.Property<string>("CBRName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "CBRName");
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
 
                     b.Property<string>("FinancialAuthorityCostCentre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityCostCentre");
 
                     b.Property<string>("FinancialAuthorityFirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityFirstName");
 
                     b.Property<string>("FinancialAuthorityLastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityLastName");
 
                     b.Property<string>("GcHostingId")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "GcHostingId");
 
                     b.Property<bool>("GeneratesInfoBusinessValue")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasAnnotation("Relational:JsonPropertyName", "GeneratesInfoBusinessValue");
 
                     b.Property<string>("Keywords")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "Keywords");
 
                     b.Property<string>("LeadEmail")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "LeadEmail");
 
                     b.Property<string>("LeadFirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "LeadFirstName");
 
                     b.Property<string>("LeadLastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "LeadLastName");
 
                     b.Property<string>("ProjectDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "ProjectDescription");
 
                     b.Property<DateTime>("ProjectEndDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasAnnotation("Relational:JsonPropertyName", "ProjectEndDate");
 
                     b.Property<DateTime>("ProjectStartDate")
-                        .HasColumnType("datetime2");
+                        .HasColumnType("datetime2")
+                        .HasAnnotation("Relational:JsonPropertyName", "ProjectStartDate");
 
                     b.Property<string>("ProjectTitle")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "ProjectTitle");
 
                     b.Property<int>("RetentionPeriodYears")
-                        .HasColumnType("int");
+                        .HasColumnType("int")
+                        .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodYears");
 
                     b.Property<string>("SecurityClassification")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "SecurityClassification");
 
                     b.Property<string>("Subject")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "Subject");
 
                     b.Property<string>("WorkspaceDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceDescription");
 
                     b.Property<string>("WorkspaceIdentifier")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceIdentifier");
 
                     b.Property<string>("WorkspaceTitle")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceTitle");
 
                     b.HasKey("Id");
 
@@ -1473,6 +1497,9 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Project_ID"));
+
+                    b.Property<DateTime>("AllowDatahubSupport")
+                        .HasColumnType("datetime2");
 
                     b.Property<int?>("BranchId")
                         .HasColumnType("int");
@@ -1667,6 +1694,8 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("SectorId");
 
                     b.ToTable("Projects", (string)null);
+
+                    b.HasAnnotation("Relational:JsonPropertyName", "Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectApiUser", b =>
@@ -1808,9 +1837,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDataApprover")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsDataSteward")
                         .HasColumnType("bit");
 
                     b.Property<int?>("PortalUserId")
@@ -2033,25 +2059,25 @@ namespace Datahub.Core.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Revoke the user's access to the workspace",
+                            Description = "Revoke the user's access to the project's private resources",
                             Name = "Remove User"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Head of the workspace and bears business responsibility for success of the workspace",
+                            Description = "Head of the business unit and bears business responsibility for successful implementation and availability",
                             Name = "Workspace Lead"
                         },
                         new
                         {
                             Id = 3,
-                            Description = "Management authority within the workspace with direct supervision over the cloud resourcing and users",
+                            Description = "Management authority within the project with direct supervision over the project resources and deliverables",
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 4,
-                            Description = "Responsible for contributing to the overall workspace objectives and deliverables",
+                            Description = "Responsible for contributing to the overall project objectives and deliverables to ensure success",
                             Name = "Collaborator"
                         },
                         new

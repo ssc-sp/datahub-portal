@@ -21,14 +21,25 @@ public class TerraformServiceTests
     [Test]
     public void ShouldThrowExceptionWhenProjectNotInitialized()
     {
-        var moduleDestinationPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath);
+        var moduleDestinationPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, DirectoryUtils.tempDirectory, _resourceProvisionerConfiguration.ModuleRepository.Name);
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
             await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, TestingWorkspace);
         });
     }
-    
+
+    [Test]
+    public void ShouldNotDeleteAutoTfvarsJsonFiles()
+    {
+        string[] fileNames = { "app.tf", "app-template.variables.tf.json", "app.auto.tfvars.json" };
+        var newFileList = fileNames
+            .Where(file => !file.EndsWith(".auto.tfvars.json"))
+            .ToArray();
+
+        Assert.That(newFileList.Length, Is.EqualTo(2));
+    }
+
     [Test]
     public void ShouldParseTerraformVariables()
     {

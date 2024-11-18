@@ -1,8 +1,10 @@
 @using Datahub.Core.Model.UserTracking
+@using Datahub.Core.Model.Projects
 @using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Components.PageAlerts
 @using Datahub.Portal.Pages.Workspace.Dashboard
 @using Datahub.Portal.Pages.Workspace.Database
+@using Datahub.Portal.Pages.Workspace.Delete
 @using Datahub.Portal.Pages.Workspace.Metadata
 @using Datahub.Portal.Pages.Workspace.Publishing
 @using Datahub.Portal.Pages.Workspace.Reports
@@ -18,6 +20,7 @@
 
 @inject UserLocationManagerService _userLocationManagerService
 @inject ILogger<WorkspacePage> _logger
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 @attribute [Route(PageRoutes.WorkspaceDefault)]
 @attribute [Route(PageRoutes.Workspace)]
@@ -28,7 +31,7 @@
 </PageTitle>
 
 <DHSidebarDrawer>
-    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam"/>
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
 </DHSidebarDrawer>
 
 @{
@@ -36,7 +39,8 @@
                       && _sectionComponents.ContainsKey(Section);
     var parameters = new Dictionary<string, object>
     {
-        { "WorkspaceAcronym", WorkspaceAcronymParam }
+        { "WorkspaceAcronym", WorkspaceAcronymParam },
+        { "ElevatedWorkspaceAccessEnabled", _showToDatahubAdmins}
     };
 
     if (!string.IsNullOrEmpty(SubSection))
@@ -46,7 +50,7 @@
 
     if (containsKey)
     {
-        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam">
+        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
                 <DynamicComponent Type=@SwitchDynamicComponentType() Parameters="@parameters"/>
             </Authorized>
@@ -59,9 +63,9 @@
     {
         _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
-                         ProjectAcronym="@WorkspaceAcronymParam">
+                         ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
-                <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam"/>
+                <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
             </Authorized>
             <NotAuthorized>
                 <NotAuthorizedMessage/>
@@ -79,9 +83,13 @@
 
     [Parameter] public string SubSection { get; set; } = string.Empty;
 
+    private bool _showToDatahubAdmins = false;
+
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
+        { WorkspaceSidebar.SectionViews.Delete, typeof(ResourceDeletionPage) },
+        { WorkspaceSidebar.SectionViews.DeleteWorkspace, typeof(WorkspaceDeletionPage) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
         { WorkspaceSidebar.SectionViews.Publishing, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },
@@ -102,6 +110,7 @@
         { WorkspaceSidebar.SectionViews.Metadata_FR, typeof(WorkspaceMetadataPage) },
         { WorkspaceSidebar.SectionViews.Toolbox_FR, typeof(WorkspaceToolboxPage) },
         { WorkspaceSidebar.SectionViews.Reports_FR, typeof(WorkspaceReports) },
+        { WorkspaceSidebar.SectionViews.Healthcheck_FR, typeof(WorkspaceHealthcheckPage) },
         { WorkspaceSidebar.SectionViews.Settings_FR, typeof(WorkspaceSettingsPage) }
     };
 
@@ -123,6 +132,20 @@
         await base.OnParametersSetAsync();
 
         await RecordRecentLink();
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronymParam);
+
+        _showToDatahubAdmins = DisplayToSupport(project);
+    }
+
+    public static bool DisplayToSupport(Datahub_Project project)
+    {
+        return project.AllowDatahubSupport > DateTimeOffset.Now;
     }
 
     private async Task RecordRecentLink()

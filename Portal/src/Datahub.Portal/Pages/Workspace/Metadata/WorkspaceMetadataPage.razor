@@ -37,6 +37,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {

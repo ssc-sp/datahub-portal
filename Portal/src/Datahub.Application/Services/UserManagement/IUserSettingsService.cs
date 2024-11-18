@@ -6,6 +6,7 @@ namespace Datahub.Application.Services.UserManagement
 {
     public interface IUserSettingsService
     {
+        Task<bool> RegisterUserSettingsAsync();
         Task<bool> HasUserAcceptedTAC();
         Task<bool> RegisterUserTAC();
         Task<bool> ClearUserSettingsAsync();

@@ -50,6 +50,7 @@ else
 }
 
 @code
+
 {
     private bool? _isSessionEnabled;
     private bool _isLoaded = false;
@@ -87,6 +88,7 @@ else
 
         // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
+        await _userSettingsService.RegisterUserSettingsAsync();
 
         _isLoaded = true;
     }
