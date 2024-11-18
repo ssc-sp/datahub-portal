@@ -31,7 +31,6 @@
         </MudText>
     </MudStack>
 </EditForm>
-</EditForm>
 
 @code {
     [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
@@ -62,7 +61,6 @@
         }
 
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
 
     }
@@ -80,11 +78,6 @@
         {
             HandleLogin();
         }
-    }
-
-    public class LoginModel
-    {
-        public string Email { get; set; }
     }
 
     public class LoginModel
