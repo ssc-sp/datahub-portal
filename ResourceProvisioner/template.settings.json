@@ -49,6 +49,7 @@
             "automation_account_uai_name": "overwritten-by-terraform",
             "automation_account_uai_rg": "overwritten-by-terraform",
             "automation_account_uai_sub": "overwritten-by-terraform",
+            "log_analytics_workspace_id": "overwritten-by-terraform",
             "common_tags": {
                 "Sector": "Science Program",
                 "Environment": "$Environment",
