@@ -91,6 +91,8 @@ public partial class RepositoryService(
         }
         finally
         {
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
+            CleanUpEnvironment();
             _semaphore.Release();
         }
     }
