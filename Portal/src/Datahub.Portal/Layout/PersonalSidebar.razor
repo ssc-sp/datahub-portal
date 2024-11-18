@@ -12,6 +12,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDialogService _dialogService
 @inject NavigationManager _navigationManager
+@inject ICultureService CultureService
 
 @if (!_isLoaded)
 {
@@ -279,7 +280,7 @@
         return recentActivity.userRecentLink.LinkType switch
         {
             DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
-            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject),
+            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject, CultureService.IsFrench),
             DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
             DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
             DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",
