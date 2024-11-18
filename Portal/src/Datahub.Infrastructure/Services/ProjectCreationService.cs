@@ -14,6 +14,7 @@ using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -80,11 +81,22 @@ public class ProjectCreationService(
         }
         else
         {
-            var user = await userInformationService.GetCurrentPortalUserAsync();
+            int id = -1;
+            try
+            {
+                var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+                id = currentPortalUser.Id;
+            }
+            catch (Exception ex)
+            {
+                // Being called from the endpoint - no user context
+                id = 1;
+            }
+
             var newProjectCreationDetails = new ProjectCreationDetails
             {
                 ProjectId = project.Project_ID,
-                CreatedById = user.Id,
+                CreatedById = id,
                 InterestedFeatures = interestedFeatures,
                 CreatedAt = DateTime.UtcNow
             };
@@ -169,12 +181,23 @@ public class ProjectCreationService(
 
         var project = await context.Projects
             .FirstAsync(p => p.Project_ID == projectId);
-        var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+        int id = -1;
+
+        try
+        {
+            var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+            id = currentPortalUser.Id;
+        }
+        catch (Exception ex)
+        {
+            // Being called from the endpoint - no user context
+            id = 1;
+        }
 
         var newResource = new Project_Resources2
         {
             ProjectId = project.Project_ID,
-            RequestedById = currentPortalUser.Id,
+            RequestedById = id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
             Status = TerraformStatus.CreateRequested
         };
