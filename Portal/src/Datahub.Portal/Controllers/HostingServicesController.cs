@@ -102,9 +102,17 @@ public class HostingServicesController : ControllerBase
             if (user == null)
             {
                 await RegisterUser(workspaceDetails.LeadEmail);
+                user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == workspaceDetails.LeadEmail);
             }
 
-            return await CreateProject(workspaceDetails, acronym, rg, user);
+            if (user != null)
+            {
+                return await CreateProject(workspaceDetails, acronym, rg, user);
+            }
+            else
+            {
+                return Ok("Failed to create workspace - Could not register workspace lead");
+            }
         }
         catch (Exception ex)
         {
@@ -120,9 +128,18 @@ public class HostingServicesController : ControllerBase
     [NonAction]
     private async Task<PortalUser> RegisterUser(string email)
     {
-        await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
-        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
-        return await _context.PortalUsers.FirstOrDefaultAsync(e => e.Id == int.Parse(userId));
+        try
+        {
+            await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
+            var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
+            var user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            return null;
+        }
     }
 
     /// <summary>
