@@ -2,6 +2,8 @@
 @page "/connexion"
 @using System.ComponentModel.DataAnnotations
 @using System.Text.RegularExpressions
+@using System.ComponentModel.DataAnnotations
+@using System.Text.RegularExpressions
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
@@ -28,6 +30,7 @@
             <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
         </MudText>
     </MudStack>
+</EditForm>
 </EditForm>
 
 @code {
@@ -59,6 +62,7 @@
         }
 
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
 
     }
@@ -76,6 +80,11 @@
         {
             HandleLogin();
         }
+    }
+
+    public class LoginModel
+    {
+        public string Email { get; set; }
     }
 
     public class LoginModel

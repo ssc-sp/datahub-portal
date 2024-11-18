@@ -91,8 +91,6 @@ public partial class RepositoryService(
         }
         finally
         {
-            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
-            CleanUpEnvironment();
             _semaphore.Release();
         }
     }
@@ -112,8 +110,8 @@ public partial class RepositoryService(
         // check if module path exists
         if (!Directory.Exists(modulePath))
         {
-            logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
-            FetchModuleRepository();
+            _logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
+            await FetchModuleRepository();
         }
 
         var versions = Directory.GetDirectories(modulePath)
@@ -148,21 +146,20 @@ public partial class RepositoryService(
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
-            logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-            Repository.Clone(repositoryUrl, repositoryPath);
+        _logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+        Repository.Clone(repositoryUrl, repositoryPath);
 
-            if (resourceProvisionerConfiguration.ModuleRepository.Branch !=
-                ModuleRepositoryConfiguration.DefaultBranch)
+        if (_resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
+        {
+            using var repo = new Repository(repositoryPath);
+            var branch =
+                repo.Branches[$"refs/remotes/origin/{_resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+            if (branch == null)
             {
-                using var repo = new Repository(repositoryPath);
-                var branch =
-                    repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
-                if (branch == null)
-                {
-                    logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                        resourceProvisionerConfiguration.ModuleRepository.Branch);
-                    branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
-                }
+                _logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
+                    _resourceProvisionerConfiguration.ModuleRepository.Branch);
+                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+            }
 
                 Commands.Checkout(repo, branch);
             }
