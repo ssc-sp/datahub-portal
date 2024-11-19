@@ -9,6 +9,7 @@
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ICultureService CultureService
 
 <MudText Typo="Typo.h2">@Localizer["Quick links"]</MudText>
 <div role="group">
@@ -102,7 +103,7 @@
         return recentActivity.userRecentLink.LinkType switch
         {
             DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
-            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject),
+            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject, CultureService.IsFrench),
             DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
             DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
             DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",

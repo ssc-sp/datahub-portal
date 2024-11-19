@@ -17,6 +17,7 @@
 @inject ILogger<WorkspaceMetadataPage> Logger
 @inject IServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
+@inject ICultureService CultureService
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -37,6 +38,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -57,7 +59,7 @@
 
             if (projectDatabricks is { CreatedAt: not null })
             {
-                var databricksUrlVariable = TerraformVariableExtraction.ExtractDatabricksUrl(projectDatabricks);
+                var databricksUrlVariable = TerraformVariableExtraction.ExtractDatabricksUrl(projectDatabricks, CultureService.IsFrench);
 
                 MetadataBrokerService.CreateChildMetadata(project.Project_Acronym_CD, $"{project.Project_Acronym_CD}-Databricks",
                     MetadataObjectType.Databricks, databricksUrlVariable, true);
