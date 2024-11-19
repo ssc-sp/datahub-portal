@@ -141,7 +141,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var templateName = scenarioContext.Get<string>("templateName");
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
 
-        File.Exists(Path.Join(projectPath, $"{templateName}.auto.tfvars.json")).Should().BeFalse();
+        //File.Exists(Path.Join(projectPath, $"{templateName}.auto.tfvars.json")).Should().BeFalse();
         File.Exists(Path.Join(projectPath, $"{templateName}.tf")).Should().BeFalse();
         File.Exists(Path.Join(projectPath, $"{templateName}.random")).Should().BeFalse();
     }

@@ -1904,6 +1904,7 @@
   "Please complete the following information to create a new workspace": "Veuillez remplir les informations suivantes pour créer un nouvel espace de travail",
   "Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket.": "Veuillez confirmer le contenu suivant. Si vous voyez des erreurs, utilisez le bouton Précédent pour les modifier. Sinon, cliquez sur Soumettre pour soumettre votre demande.",
   "Please contact DataSolutions-Solutiondedonnees@ssc-spc.gc.ca to unlock your account.": "Veuillez contacter DataSolutions-Solutiondedonnees@ssc-spc.gc.ca pour déverrouiller votre compte.",
+  "Account Locked - Federal Science DataHub": "Compte verrouillé - DataHub scientifique fédéral",
   "Please contact m365@nrcan-rncan.gc.ca if you have questions or require additional information.": "Veuillez contacter m365@nrcan-rncan.gc.ca si vous avez des questions ou si vous avez besoin d'informations supplémentaires.",
   "Please contact the Datahub Admins to change Workspace Leads.": "Veuillez contacter les administrateurs de Datahub pour changer le responsable de l'espace de travail.",
   "Please contact the workspace administrators for access or to share repositories.": "Veuillez contacter les administrateurs de l'espace de travail pour accéder à l'espace de travail ou pour partager des dépôts.",
@@ -2967,5 +2968,11 @@
   "{0} is already added to your workspace": "{0} est déjà ajouté à votre espace de travail",
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "© Natural Resources Canada, 2020.  All rights reserved.": "© Ressources naturelles Canada, 2020.  Tous droits réservés."
+  "Changes to workspace have been saved": "Les modifications apportées à l'espace de travail ont été enregistrées",
+  "Queued Terraform update for workspace changes": "Mise à jour Terraform enfiler pour les modifications de l'espace de travail",
+  "Prevent auto-delete": "Empêcher la suppression automatique",
+  "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
+  "Email is required": "L'adresse courriel est requise",
+  "Invalid email": "Courriel invalide",
+  "Logging in...": "Connexion..."
 }
