@@ -1,26 +1,69 @@
-@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Azure.Core
+@using Datahub.Portal.Pages.Workspace.Settings
 @using Datahub.Core.Storage;
-@* AzCopy.razor *@
 
-<MudStack>
-    <MudElement>
-        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="5"/>
-    </MudElement>
-    <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
-                  PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
-                  Substitutions="_substitutions"/>
-</MudStack>
+@inject DatahubPortalConfiguration _portalConfiguration
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+@if (TermsAcknowledged)
+{
+    <MudStack>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@ProjectAcronym">
+        <Authorized>
+            @if (_isSasTokenEnabled)
+            {
+                    <MudElement>
+                        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="3"/>
+                    </MudElement>
+            }
+        </Authorized>
+
+    </DatahubAuthView>
+        <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
+                      PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
+                      Substitutions="_substitutions"/>
+    </MudStack>
+}
+else
+{
+    <AcknowledgementConfirmation 
+        OnAccepted=@OnTermsAccepted
+        MarkdownPathEn="/UserGuide/Acknowledgements/StorageTokenTC.md"
+        MarkdownPathFr="/fr/UserGuide/Acknowledgements/StorageTokenTC-fr.md"
+        ButtonText=@Localizer["Accept Storage Access Token Terms"] />
+}
 
 @code {
 
-    [Parameter]
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; }
+
+    [Parameter, EditorRequired]
     public CloudStorageContainer Container { get; set; }
 
+    [Parameter, EditorRequired]
+    public bool TermsAcknowledged { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback OnTermsAccepted { get; set; }
+
     private List<(string, string)> _substitutions;
+    private bool _isSasTokenEnabled;
 
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
     {
         _substitutions = substitutions;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+
+        var armClient = WorkspaceSharedKeyAccessControl.BuildArmClient(_portalConfiguration);
+        var storageResourceId = await WorkspaceSharedKeyAccessControl.LoadStorageResourceId(context, ProjectAcronym);
+        _isSasTokenEnabled = await WorkspaceSharedKeyAccessControl.FetchStorageAllowSharedKeyAccess(armClient, new ResourceIdentifier(storageResourceId)) ?? false;
     }
 
 }

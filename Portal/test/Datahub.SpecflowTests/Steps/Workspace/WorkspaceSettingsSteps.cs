@@ -2,6 +2,7 @@ using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
@@ -43,8 +44,17 @@ public class WorkspaceSettingsSteps(
             {
                 ResourcesPath = $"{RelativePathToSrc}/Datahub.Portal/i18n",
                 AdditionalResourcePaths = []
+            },
+            AzureAd =
+            {
+                ClientId = Guid.NewGuid().ToString(),
+                TenantId = Guid.NewGuid().ToString(),
+                InfraClientId = Guid.NewGuid().ToString(),
+                InfraClientSecret = Guid.NewGuid().ToString()
             }
         };
+
+        Services.AddSingleton(portalConfiguration);
 
         Services.AddMudServices();
         Services.AddDatahubLocalization(portalConfiguration);
@@ -71,6 +81,8 @@ public class WorkspaceSettingsSteps(
         context.Projects.Add(workspace);
         await context.SaveChangesAsync();
 
+        var telemetryService = Substitute.For<IPortalUserTelemetryService>();
+        Services.AddSingleton(telemetryService);
         var mockAuthorizationPolicyProvider = Substitute.For<IAuthorizationPolicyProvider>();
         mockAuthorizationPolicyProvider.GetDefaultPolicyAsync()
             .Returns(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());

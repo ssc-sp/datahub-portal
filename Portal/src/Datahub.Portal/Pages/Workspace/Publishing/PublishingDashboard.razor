@@ -47,7 +47,7 @@
             <MudText>@Localizer["Please wait"]</MudText>
         }
 
-        <DatahubAuthView AuthLevel=@DatahubAuthView.AuthLevels.WorkspaceAdmin ProjectAcronym=@WorkspaceAcronym>
+        <DatahubAuthView AuthLevel=@DatahubAuthView.AuthLevels.WorkspaceAdmin ProjectAcronym=@WorkspaceAcronym ElevatedWorkspaceAccessEnabled=@ElevatedWorkspaceAccessEnabled>
 
             <MudCard>
                 <MudCardHeader>
@@ -74,7 +74,7 @@
                         DisableTranslation
                         />
 
-                    <DatahubAuthView AuthLevel=@DatahubAuthView.AuthLevels.DatahubAdmin>
+                    <DatahubAuthView AuthLevel=@DatahubAuthView.AuthLevels.DatahubSupport>
                         <MudCard>
                             <MudCardHeader>@Localizer["Connectivity test"]</MudCardHeader>
 
@@ -103,6 +103,7 @@
 @code {
     [Parameter]
     public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _project;
     private List<OpenDataSubmission> _publishingProcesses;

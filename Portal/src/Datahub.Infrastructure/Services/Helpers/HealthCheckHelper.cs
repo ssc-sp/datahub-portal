@@ -318,7 +318,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 else
                 {
                     // We attempt to retrieve the databricks URL. If we cannot, we return an unhealthy status.
-                    var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+                    var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null);
 
                     if (databricksUrl == null)
                     {

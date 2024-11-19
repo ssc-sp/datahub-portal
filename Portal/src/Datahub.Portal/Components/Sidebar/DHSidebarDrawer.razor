@@ -2,26 +2,24 @@
     <MudDrawer
         Width="320px"
         Variant="DrawerVariant.Mini"
-        @bind-Open="@_open"
+        @bind-Open="@Open"
         Overlay="false"
         Style="@DatahubTheme.SideBorderStyle"
         Elevation="0"
         OpenMiniOnHover="false"
         ClipMode="DrawerClipMode.Always" MiniWidth="70px">
         <CascadingValue Value="this">
-            <MudDrawerContainer Style="overflow: hidden">
                 @ChildContent
-            </MudDrawerContainer>
         </CascadingValue>
     </MudDrawer>
 </SectionContent>
 
 @code {
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
-    private bool _open { get; set; } = true;
+    public bool Open { get; set; } = true;
     
     public void ToggleDrawer()
     {
-        _open = !_open;
+        Open = !Open;
     }
 }
