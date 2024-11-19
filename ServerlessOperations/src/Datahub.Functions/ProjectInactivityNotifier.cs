@@ -58,7 +58,10 @@ namespace Datahub.Functions
             await using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
-            var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId)
+            var project = await ctx.Projects
+                .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
+                .AsNoTracking().Where(x => x.Project_ID == message.ProjectId)
                 .FirstOrDefaultAsync(ct);
 
             // get project info
