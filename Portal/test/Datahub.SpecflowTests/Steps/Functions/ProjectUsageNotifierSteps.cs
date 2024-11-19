@@ -74,8 +74,10 @@ public class ProjectUsageNotifierSteps(
     public async Task WhenTheNotifierChecksIfADeleteIsRequired()
     {
         var logger = Substitute.For<ILoggerFactory>();
+        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
+        var emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -142,8 +144,10 @@ public class ProjectUsageNotifierSteps(
     public async Task WhenTheNotifierVerifiesOverbudgetIsDeleted()
     {
         var logger = Substitute.For<ILoggerFactory>();
+        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
+        var emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
