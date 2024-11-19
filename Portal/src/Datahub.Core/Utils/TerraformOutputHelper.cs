@@ -22,7 +22,7 @@ public static class TerraformOutputHelper
             expectedTerraformOutput = string.Join(",", expectedTerraformOutput,
                 GetExpectedTerraformOutputAzureDatabricksString());
             workspaceId ??= TerraformVariableExtraction.ExtractDatabricksWorkspaceId(project);
-            workspaceUrl ??= TerraformVariableExtraction.ExtractDatabricksUrl(project);
+            workspaceUrl ??= TerraformVariableExtraction.ExtractDatabricksUrl(project, null);
         }
 
         if (project.Resources.Any(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService))))

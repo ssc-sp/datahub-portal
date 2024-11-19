@@ -166,7 +166,7 @@
 
     private async Task AddToDatabricksAdmins()
     {
-        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym);
+        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym, null);
         if (string.IsNullOrEmpty(dataBricksUrl))
         {
             _snackbar.Add(Localizer["Your workspace does not have Databricks"], Severity.Error);
