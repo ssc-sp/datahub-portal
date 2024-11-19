@@ -147,7 +147,7 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var emailService = Substitute.For<IEmailService>();
+        emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
