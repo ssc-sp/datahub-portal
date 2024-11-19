@@ -26,7 +26,7 @@ public class OfflineDatabricksApiService : IDatabricksApiService
     {
         return Task.FromResult(true);
     }
-    public Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym)
+    public Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym, bool? isFrench)
     {
         return Task.FromResult(string.Empty);
     }
