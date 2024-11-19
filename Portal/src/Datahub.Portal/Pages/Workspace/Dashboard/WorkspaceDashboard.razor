@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
+@using Datahub.Shared
 @using Datahub.Shared.Entities
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Portal.Pages.Workspace.Repositories
@@ -19,12 +20,12 @@
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
     </MudItem>
     <MudItem xs="12" sm="4">
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
         </DatahubAuthView>
     </MudItem>
     <MudItem xs="12" sm="8">
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <Authorized>
                 @if (_resources.Any())
                 {
@@ -35,7 +36,7 @@
                         @foreach (var resource in _resources)
                         {
                             var found = _cardComponents.ContainsKey(resource.ResourceType);
-                            if (found)
+                            if (found && resource.Status != TerraformStatus.Deleted)
                             {
                                 var parameters = new Dictionary<string, object>
                                 {
@@ -104,6 +105,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _project;
 

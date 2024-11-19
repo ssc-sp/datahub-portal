@@ -60,7 +60,7 @@ public class DatabricksApiService : IDatabricksApiService
 
     public async Task<List<RepositoryInfoDto>> ListWorkspaceRepositoriesAsync(string projectAcronym, string accessToken)
     {
-        var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+        var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym, null);
 
         // Use the access token to call a protected web API.
         var httpClient = _httpClientFactory.CreateClient();
@@ -138,11 +138,17 @@ public class DatabricksApiService : IDatabricksApiService
         return true;
     }
 
-    public async Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym)
+    /// <summary>
+    /// Get Databricks Url for the project
+    /// </summary>
+    /// <param name="projectAcronym">Acronym</param>
+    /// <param name="isFrench">If true adds parameter to change the language to French</param>
+    /// <returns></returns>
+    public async Task<string> GetDatabricsWorkspaceUrlAsync(string projectAcronym, bool? isFrench)
     {
         try
         {
-            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym, isFrench);
             return workspaceDatabricksUrl;
         }
         catch (Exception)
@@ -155,7 +161,7 @@ public class DatabricksApiService : IDatabricksApiService
     {
         try
         {
-            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym);
+            var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym, null);
 
             // Use the access token to call a protected web API.
             var httpClient = _httpClientFactory.CreateClient();
@@ -234,7 +240,7 @@ public class DatabricksApiService : IDatabricksApiService
             .ToDictionaryAsync(pr => pr.RepositoryUrl, pr => pr.IsPublic);
     }
 
-    private async Task<string> GetWorkspaceDatabricksUrl(string projectAcronym)
+    private async Task<string> GetWorkspaceDatabricksUrl(string projectAcronym, bool? isFrench)
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var project = await dbContext.Projects
@@ -247,7 +253,7 @@ public class DatabricksApiService : IDatabricksApiService
             throw new ArgumentException($"Project with acronym {projectAcronym} not found");
         }
 
-        var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project);
+        var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, isFrench);
         if (databricksUrl == null)
         {
             _logger.LogError("Databricks url not found for project {ProjectAcronym}", projectAcronym);

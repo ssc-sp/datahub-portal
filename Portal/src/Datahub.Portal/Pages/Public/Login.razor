@@ -16,7 +16,7 @@
             </strong>
         </MudText>
         <div class="form-group" style="width: 100%">
-            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined" @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true" RequiredError="@Localizer["Email is required"]" FullWidth="true"/>
+            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined" @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true" RequiredError="@Localizer["Email is required"]" FullWidth="true" />
         </div>
         <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="_loggingIn">
             <MudText>
@@ -31,7 +31,7 @@
 </EditForm>
 
 @code {
-    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
+    [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private LoginModel loginModel = new LoginModel();
     private bool _loggingIn;
@@ -60,6 +60,7 @@
 
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
+
     }
 
     protected override async Task OnInitializedAsync()

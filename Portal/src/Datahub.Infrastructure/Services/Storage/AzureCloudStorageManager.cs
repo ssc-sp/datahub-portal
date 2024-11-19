@@ -7,6 +7,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
+using Microsoft.VisualStudio.Services.Common;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -126,8 +127,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string directoryPath)
     {
-        var dirClient = GetDirectoryClient(container, directoryPath);
-        return await dirClient.CreateSubDirectoryAsync(directoryPath) is not null;
+        var dirClient = GetDirectoryClient(container, currentWorkingDirectory);
+        var createResult = await dirClient.CreateSubDirectoryAsync(directoryPath);
+        return createResult is not null;
     }
 
     public async Task<bool> DeleteFileAsync(string container, string filePath)
@@ -217,6 +219,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private async Task IterateDataLakeDirectoryAsync(DataLakeDirectoryClient client, string? continuationToken,
         Action<string> addFolder, Action<FileMetaData> addFile, Action<string?> setContinuationToken)
     {
+        var fileMetadataTasks = new List<Task<FileMetaData?>>();
+
         await foreach (var page in client.GetPathsAsync().AsPages(continuationToken))
         {
             if (page is null)
@@ -231,14 +235,13 @@ public class AzureCloudStorageManager : ICloudStorageManager
                 }
                 else
                 {
-                    var fileMetadata = await GetFileMetadataAsync(client, Path.GetFileName(path.Name));
-                    if (fileMetadata is not null)
-                    {
-                        addFile(fileMetadata);
-                    }
+                    fileMetadataTasks.Add(GetFileMetadataAsync(client, Path.GetFileName(path.Name)));
                 }
             }
         }
+
+        var completedFileMetadata = await Task.WhenAll(fileMetadataTasks);
+        completedFileMetadata.Where(f => f is not null).ForEach(f => addFile(f!));
     }
 
     private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
