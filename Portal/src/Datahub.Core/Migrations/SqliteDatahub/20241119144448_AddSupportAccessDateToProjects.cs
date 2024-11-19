@@ -17,6 +17,13 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 type: "TEXT",
                 nullable: false,
                 defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
+            migrationBuilder.AddColumn<bool>(
+                name: "PreventAutoDelete",
+                table: "Projects",
+                type: "INTEGER",
+                nullable: false,
+                defaultValue: false);
         }
 
         /// <inheritdoc />
@@ -24,6 +31,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         {
             migrationBuilder.DropColumn(
                 name: "AllowDatahubSupport",
+                table: "Projects");
+
+            migrationBuilder.DropColumn(
+                name: "PreventAutoDelete",
                 table: "Projects");
         }
     }
