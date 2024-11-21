@@ -49,15 +49,19 @@ public class ProjectInactiveHandler(
 
     private async Task HandleInactiveProject(ProjectInactiveMessage output)
     {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var project = await ctx.Projects
-            .Include(p => p.Resources)
-            .FirstAsync(p => p.Project_Acronym_CD == output.WorkspaceAcronym);
-        
-        project.Deleted_DT = DateTime.UtcNow;
-        ctx.Projects.Update(project);
-        await ctx.SaveChangesAsync();
-        
+        _logger.LogInformation("This workspace should be set to be deleted, but functionality is not ready yet.");
+
+        //TODO -> Once we have the delete resources and delete workspaces service working, plug it in here.
+
+        //await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        //var project = await ctx.Projects
+        //    .Include(p => p.Resources)
+        //    .FirstAsync(p => p.Project_Acronym_CD == output.WorkspaceAcronym);
+
+        //project.Deleted_DT = DateTime.UtcNow;
+        //ctx.Projects.Update(project);
+        //await ctx.SaveChangesAsync();
+
         // TODO: mark each resource as to be deleted
         // TODO: send workspace definition to resource run queue
     }

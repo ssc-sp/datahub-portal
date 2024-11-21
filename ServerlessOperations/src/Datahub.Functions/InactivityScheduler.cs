@@ -61,7 +61,7 @@ namespace Datahub.Functions
         private async Task<List<int>> GetProjects()
         {
             using var ctx = await dbContextFactory.CreateDbContextAsync();
-            return ctx.Projects.AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
+            return ctx.Projects.Where(w => !w.IsDeleted).AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
         }
 
         private async Task<List<int>> GetUsers()
