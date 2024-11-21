@@ -166,7 +166,7 @@ public class TerraformService(
             }
         }
 
-        //await WriteDeletedFile(templateName, projectPath);
+        await WriteDeletedFile(templateName, projectPath);
     }
     
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)
