@@ -125,7 +125,7 @@
 
             foreach (var undeletedResource in undeletedResources)
             {
-                undeletedResource.Status = TerraformStatus.DeleteRequested;
+                undeletedResource.Status = undeletedResource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
                 ctx.Project_Resources2.Update(undeletedResource);
             }
             await ctx.SaveChangesAsync(CancellationToken.None);
