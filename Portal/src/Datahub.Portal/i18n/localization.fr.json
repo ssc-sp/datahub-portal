@@ -2827,6 +2827,7 @@
   "Workspace Title": "Titre de l'espace de travail",
   "Workspace Title is required": "Le titre de l'espace de travail est obligatoire",
   "Workspace Title is required to generate an acronym": "Le titre de l'espace de travail est requis pour générer un acronyme",
+  "Workspace Title must be {0} characters or less": "Le titre de l'espace de travail doit comporter {0} caractères ou moins",
   "Workspace Tools": "Outils de l'espace de travail",
   "Workspace Users": "Utilisateurs de l'espace de travail",
   "Workspace Version": "Version de l'espace de travail",
