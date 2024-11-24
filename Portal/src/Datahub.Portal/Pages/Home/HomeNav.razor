@@ -24,10 +24,11 @@
                             @foreach (var recentActivity in _recentLinks)
                             {
                                 <li>
-                                    <MudLink Href="@GetSectionViewUrl(recentActivity)" Style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
-                                        @GetLabel(recentActivity)
-                                    </MudLink>
+                                    <DHButton Underline NoWrap StartIcon="@GetIcon(recentActivity)" Href="@GetSectionViewUrl(recentActivity)" Variant="Variant.Text" Color="Color.Primary">
+                                        <MudText Style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40ch; display:inline-block">
+                                            @GetLabel(recentActivity)
+                                        </MudText>
+                                    </DHButton>
                                 </li>
                             }
                         </ul>
@@ -126,7 +127,7 @@
 
     private string GetLabel((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
     {
-        return recentActivity.userRecentLink.LinkType switch
+        var label = recentActivity.userRecentLink.LinkType switch
         {
             DatahubLinkType.DataProject => recentActivity.datahubProject?.ProjectName ?? recentActivity.userRecentLink.DataProject ?? "Workspace",
             DatahubLinkType.Databricks => $"{Localizer["Databricks"]} - {recentActivity.datahubProject.ProjectName}",
@@ -135,6 +136,8 @@
             DatahubLinkType.ResourceArticle => recentActivity.userRecentLink.ResourceArticleTitle,
             _ => recentActivity.datahubProject.ProjectName
         };
+
+        return label;
     }
 
 }
