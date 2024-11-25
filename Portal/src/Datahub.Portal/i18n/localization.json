@@ -593,6 +593,8 @@
   "English_Power_BI_Report": "English Power BI Report",
   "Enter Docker compose file path": "Enter Docker compose file path",
   "Enter a descriptive title for the workspace": "Enter a descriptive title for the workspace",
+  "Enter a new name for the file.": "Enter a new name for the file. Include the desired file extension (such as .csv or .txt).",
+  "Enter a new name for the folder.": "Enter a new name for the folder.",
   "Enter access token": "Enter access token",
   "Enter email addresses": "Enter email addresses",
   "Enter email addresses separated by commas": "Enter email addresses separated by commas",
