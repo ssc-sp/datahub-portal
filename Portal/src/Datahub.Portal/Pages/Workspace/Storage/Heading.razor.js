@@ -14,8 +14,7 @@ export function promptForFileUpload(){
     document.querySelector('.file-list .dropzone-container input').click();
 }
 
-export function promptForNewFolderName() {
-    let message = "Please enter a name for the new folder";
+export function promptForNewFolderName(message) {
     return window.prompt(message)
 }
 

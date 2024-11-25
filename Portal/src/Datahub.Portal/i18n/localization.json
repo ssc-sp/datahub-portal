@@ -190,8 +190,8 @@
   "Approval_By_Program_Offical_DT": "Approval by Program Offical ",
   "ArcGIS": "ArcGIS",
   "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.": "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.",
-  "Are you sure you want to delete file \\": "Are you sure you want to delete file \\",
-  "Are you sure you want to delete folder \\": "Are you sure you want to delete folder \\",
+  "Are you sure you want to delete file \"{0}\"?": "Are you sure you want to delete file \"{0}\"?",
+  "Are you sure you want to delete folder \"{0}\"?": "Are you sure you want to delete folder \"{0}\"?",
   "Are you sure you want to delete the following project?": "Are you sure you want to delete the following project?",
   "Are you sure you want to delete the following workspace: {0}?": "Are you sure you want to delete the following workspace: {0}?",
   "Are you sure you want to delete the workspace \\": "Are you sure you want to delete the workspace \\",
@@ -593,6 +593,8 @@
   "English_Power_BI_Report": "English Power BI Report",
   "Enter Docker compose file path": "Enter Docker compose file path",
   "Enter a descriptive title for the workspace": "Enter a descriptive title for the workspace",
+  "Enter a new name for the file.": "Enter a new name for the file. Include the desired file extension (such as .csv or .txt).",
+  "Enter a new name for the folder.": "Enter a new name for the folder.",
   "Enter access token": "Enter access token",
   "Enter email addresses": "Enter email addresses",
   "Enter email addresses separated by commas": "Enter email addresses separated by commas",
@@ -2061,5 +2063,10 @@
   "Email is required": "Email is required",
   "Invalid email": "Invalid email",
   "Logging in...": "Logging in...",
-  "{0} successfully added to your workspace": "{0} successfully added to your workspace"
+  "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "filename": "File Name",
+  "lastmodifiedts": "Last Modified",
+  "filesize": "File Size",
+  "fileformat": "File Format",
+  "folderpath": "Folder Path"
 }
