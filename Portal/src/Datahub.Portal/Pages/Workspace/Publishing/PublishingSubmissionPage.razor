@@ -42,6 +42,9 @@
     [Parameter]
     public string SubSection { get; set; }
 
+    [Parameter] 
+    public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+
     private bool IsPublishingEnabled => _config.CkanConfiguration.IsFeatureEnabled;
 
     private long? SubmissionId => long.TryParse(SubSection, out var result) ? result : default;
