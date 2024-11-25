@@ -58,7 +58,11 @@ namespace Datahub.Functions
             await using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
-            var project = await ctx.Projects.AsNoTracking().Where(x => x.Project_ID == message.ProjectId)
+            var project = await ctx.Projects
+                .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
+                .AsNoTracking()
+                .Where(x => x.Project_ID == message.ProjectId)
                 .FirstOrDefaultAsync(ct);
 
             // get project info
@@ -87,7 +91,15 @@ namespace Datahub.Functions
 
             // check if project to be deleted
             var projectToBeDeleted = CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow, hasCostRecovery);
-
+            if (projectToBeDeleted)
+            {
+                _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is set to be deleted.");
+                _logger.LogInformation($"Workspace has not been logged into for {daysSinceLastLogin} days.");
+            }
+            else
+            { 
+                _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is safe from deletion");            
+            }
             // if project to be deleted, send to terraform delete queue
             if (projectToBeDeleted)
             {
