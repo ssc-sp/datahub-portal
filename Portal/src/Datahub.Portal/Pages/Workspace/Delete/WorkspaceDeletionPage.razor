@@ -1,6 +1,7 @@
 ﻿@namespace Datahub.Portal.Pages.Workspace.Delete
 
 @using Datahub.Application.Services
+@using Datahub.Core.Extensions;
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared
 @using Datahub.Shared.Entities
@@ -123,14 +124,19 @@
                        r.Status == TerraformStatus.DeleteRequested))
                    .ToListAsync(CancellationToken.None);
 
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
             foreach (var undeletedResource in undeletedResources)
             {
                 undeletedResource.Status = undeletedResource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
+                if (undeletedResource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+                {
+                    workspaceDefinition.ResourceGroupName =  undeletedResource.Project.GetResourceGroupName();
+                }
                 ctx.Project_Resources2.Update(undeletedResource);
             }
+
             await ctx.SaveChangesAsync(CancellationToken.None);
 
-            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
             workspaceDefinition.RequestingUserEmail = currentUser.Email;
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             

@@ -149,10 +149,26 @@ public class TerraformService(
         }
     }
 
+    public async Task DeleteWorkspaceAsync(TerraformWorkspace terraformWorkspace, string resourcegroup)
+    {
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        await RenameTemplateAsDeleted(projectPath, "main", terraformWorkspace);
+
+        var workspaceDeletionFilePath = Path.Join(projectPath, $"deleted.md");
+        var content = $"az group delete --name {resourcegroup} --yes";
+        await File.WriteAllTextAsync(workspaceDeletionFilePath, content);
+        logger.LogInformation("Created workspace deletion file {DeletedFilePath}", workspaceDeletionFilePath);
+    }
+
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        await RenameTemplateAsDeleted(projectPath, templateName, terraformWorkspace);
+        await WriteDeletedFile(templateName, projectPath);
+    }
 
+    private async Task<string> RenameTemplateAsDeleted(string projectPath, string templateName, TerraformWorkspace terraformWorkspace)
+    {    
         var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
             .ToArray();
 
@@ -165,10 +181,9 @@ public class TerraformService(
                 logger.LogInformation("Renamed file {File} to {NewFileName}", file, newFileName);
             }
         }
-
-        await WriteDeletedFile(templateName, projectPath);
+        return projectPath;
     }
-    
+
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)
     {
         var deletedFilePath = Path.Join(projectPath, $"{templateName}.tf");
@@ -369,4 +384,6 @@ public class TerraformService(
                 property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
             ) ?? new Dictionary<string, (string, bool)>();
     }
+
+    
 }

@@ -153,7 +153,7 @@ public class RepositoryServiceTests
             _resourceProvisionerConfiguration, mockTerraformService);
 
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser);
+            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser, string.Empty);
 
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
@@ -179,7 +179,7 @@ public class RepositoryServiceTests
             _resourceProvisionerConfiguration, mockTerraformService);
 
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser);
+            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser, string.Empty);
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
@@ -213,7 +213,7 @@ public class RepositoryServiceTests
             });
 
         var result =
-            await repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, RequestingUser);
+            await repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, RequestingUser, string.Empty);
 
 
         Assert.That(result, Is.TypeOf<List<RepositoryUpdateEvent>>());

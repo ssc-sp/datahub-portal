@@ -56,7 +56,7 @@ public partial class RepositoryService(
                 "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
                 command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
             var repositoryUpdateEvents =
-                await ExecuteResourceRuns(command.Templates, command.Workspace, user);
+                await ExecuteResourceRuns(command.Templates, command.Workspace, user, command.ResourceGroupName);
 
             logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
                 command.Workspace.Acronym);
@@ -466,28 +466,19 @@ public partial class RepositoryService(
     }
 
     public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<TerraformTemplate> modules,
-        TerraformWorkspace terraformWorkspace, string requestingUsername)
+        TerraformWorkspace terraformWorkspace, string requestingUsername, string resourcegroup)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         await ValidateWorkspaceVersion(terraformWorkspace);
 
-        var newProjectTemplate = modules.FirstOrDefault(x => x.Name == TerraformTemplate.NewProjectTemplate);
-        if(newProjectTemplate.Status == TerraformStatus.DeleteRequested)
-        {
-            // Execute each module but make sure the `new-project-template` module is last for deletion
-            modules = modules.OrderBy(x => x.Name == TerraformTemplate.NewProjectTemplate).ToList();
-        }
-        else
-        {
-            // Execute each module but make sure the `new-project-template` module is first for creation
-            modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
-        }
         
-
+        // Execute each module but make sure the `new-project-template` module is first for creation
+        modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        
         foreach (var module in modules)
         {
-            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
+            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername, resourcegroup);
             repositoryUpdateEvents.Add(result);
         }
 
@@ -512,7 +503,7 @@ public partial class RepositoryService(
 
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template,
         TerraformWorkspace terraformWorkspace,
-        string requestingUsername)
+        string requestingUsername, string resourcegroup)
     {
         try
         {
@@ -524,7 +515,14 @@ public partial class RepositoryService(
 
             if (template.Status == TerraformStatus.DeleteRequested)
             {
-                await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+                if(template.Name == TerraformTemplate.NewProjectTemplate)
+                {
+                    await terraformService.DeleteWorkspaceAsync(terraformWorkspace, resourcegroup);
+                }
+                else
+                {
+                    await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+                }
             }
             else if (!templateStatusToIgnore.Contains(template.Status))
             {
