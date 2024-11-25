@@ -2062,5 +2062,10 @@
   "Email is required": "Email is required",
   "Invalid email": "Invalid email",
   "Logging in...": "Logging in...",
-  "{0} successfully added to your workspace": "{0} successfully added to your workspace"
+  "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "filename": "File Name",
+  "lastmodifiedts": "Last Modified",
+  "filesize": "File Size",
+  "fileformat": "File Format",
+  "folderpath": "Folder Path"
 }

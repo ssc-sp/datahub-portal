@@ -2976,5 +2976,10 @@
   "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
   "Email is required": "L'adresse courriel est requise",
   "Invalid email": "Courriel invalide",
-  "Logging in...": "Connexion..."
+  "Logging in...": "Connexion...",
+  "filename": "Nom de fichier",
+  "lastmodifiedts": "Dernière modification",
+  "filesize": "Taille du fichier",
+  "fileformat": "Format de fichier",
+  "folderpath": "Chemin du dossier"
 }
