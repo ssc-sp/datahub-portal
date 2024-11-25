@@ -228,9 +228,9 @@ namespace Datahub.Functions
                 new() { Operation = Operation.Add, Path = "/fields/System.Description", Value = description },
                 new()
                 {
-                    Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\FSDH Support Team"
+                    Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\{config.AzureDevOpsConfiguration.AreaPathName}"
                 },
-                new() { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = $"{project}\\POC 2" },
+                new() { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = $"{project}\\{config.AzureDevOpsConfiguration.SupportIterationName}" },
                 new()
                 {
                     Operation = Operation.Add, Path = "/fields/System.Tags",

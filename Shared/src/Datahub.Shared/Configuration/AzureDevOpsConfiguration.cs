@@ -5,6 +5,8 @@ public class AzureDevOpsConfiguration
     public string TenantId { get; set; }
     public string ClientId { get; set; }
     public string ClientSecret { get; set; }
+    public string SupportIterationName { get; set; } = "POC 2";
+    public string AreaPathName { get; set; } = "FSDH Support Team";
     public int? SupportRequestId { get; set; }
     public int? SystemErrorId { get; set; }
     public int? InfrastructureErrorId { get; set; }
