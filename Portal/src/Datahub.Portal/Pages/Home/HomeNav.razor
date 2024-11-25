@@ -24,18 +24,11 @@
                             @foreach (var recentActivity in _recentLinks)
                             {
                                 <li>
-                                    <MudTooltip Text="@GetLabel(recentActivity)" Placement="Placement.Top">
-                                        <DHButton Underline NoWrap StartIcon="@GetIcon(recentActivity)" Href="@GetSectionViewUrl(recentActivity)" Variant="Variant.Text" Color="Color.Primary">
-                                            <MudText Style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40ch; display:inline-block">
-                                                @GetLabel(recentActivity)
-                                            </MudText>
-                                        </DHButton>
-                                    </MudTooltip>
-                                    @* <DHButton Underline NoWrap StartIcon="@GetIcon(recentActivity)" Href="@GetSectionViewUrl(recentActivity)" Variant="Variant.Text" Color="Color.Primary">
+                                    <DHButton title="@GetLabel(recentActivity)" Underline NoWrap StartIcon="@GetIcon(recentActivity)" Href="@GetSectionViewUrl(recentActivity)" Variant="Variant.Text" Color="Color.Primary">
                                         <MudText Style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40ch; display:inline-block">
                                             @GetLabel(recentActivity)
                                         </MudText>
-                                    </DHButton> *@
+                                    </DHButton>
                                 </li>
                             }
                         </ul>
