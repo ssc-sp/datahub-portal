@@ -1931,6 +1931,7 @@
   "Workspace Title": "Workspace Title",
   "Workspace Title is required": "Workspace Title is required",
   "Workspace Title is required to generate an acronym": "Workspace Title is required to generate an acronym",
+  "Workspace Title must be {0} characters or less": "Workspace Title must be {0} characters or less",
   "Workspace Tools": "Workspace Tools",
   "Workspace Users": "Workspace Users",
   "Workspace Version": "Workspace Version",
