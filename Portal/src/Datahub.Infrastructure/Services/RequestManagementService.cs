@@ -62,11 +62,13 @@ public class RequestManagementService : IRequestManagementService
             .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name));
 
         // TODO: Add delete logic in here
-        
-        
+
+
         if (resource is not null)
         {
-            resource.Status = requestedTemplate.Status;
+            resource.Status = TerraformStatus.ExistsOrInAnyProcess(resource.Status)
+                ? resource.Status
+                : requestedTemplate.Status;
         }
         else
         {
