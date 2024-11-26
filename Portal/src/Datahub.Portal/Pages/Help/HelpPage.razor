@@ -40,6 +40,8 @@
 
 @attribute [Route(PageRoutes.Help)]
 @attribute [Route(PageRoutes.Help_FR)]
+@attribute [Route(PageRoutes.HelpWithParam)]
+@attribute [Route(PageRoutes.HelpWithParam_FR)]
 
 <PageTitle>
     @Localizer["Help - Federal Science DataHub"]
@@ -198,6 +200,9 @@
 </DatahubAuthView>
 
 @code {
+
+    [Parameter] public string CorrelationId { get; set; }
+
     private PortalUser _viewedUser; // To retrieve the user's name/email for the form
     private MudForm form;
 
@@ -253,7 +258,7 @@
     protected override async Task OnInitializedAsync()
     {
         _loading = true; // showing the user that the table is loading.
-
+        
         // Retrieve general info, such as the user submitting the issue.
         _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
         _ticketName = _viewedUser.DisplayName;
@@ -345,6 +350,11 @@
         if (!form.IsValid)
         {
             return;
+        }
+
+        if (!string.IsNullOrWhiteSpace(CorrelationId))
+        {
+            _ticketDescription = $"{_ticketDescription} - cid: {CorrelationId}";
         }
 
         var url = _navigationManager.Uri; // Retrieve the active URL
