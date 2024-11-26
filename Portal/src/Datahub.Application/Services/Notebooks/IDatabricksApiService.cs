@@ -35,8 +35,9 @@ public interface IDatabricksApiService
     /// Get Databricks Url for the project
     /// </summary>
     /// <param name="projectAcronym"></param> 
-    /// <returns>Databricks Url</returns>
-    public Task<string>GetDatabricsWorkspaceUrlAsync(string projectAcronym);
+    /// <param name="isFrench">If language is French then sets adds URL parameter to open Databricks in French. Null if no localization should be done</param>
+    /// <returns>Databricks Url</returns>    
+    public Task<string>GetDatabricsWorkspaceUrlAsync(string projectAcronym, bool? isFrench);
 
     /// <summary>
     /// Adds user as an admin to Databricks admin group

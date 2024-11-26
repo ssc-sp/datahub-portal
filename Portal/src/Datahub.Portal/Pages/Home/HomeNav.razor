@@ -9,6 +9,7 @@
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ICultureService CultureService
 
 <MudText Typo="Typo.h2">@Localizer["Quick links"]</MudText>
 <div role="group">
@@ -23,10 +24,11 @@
                             @foreach (var recentActivity in _recentLinks)
                             {
                                 <li>
-                                    <MudLink Href="@GetSectionViewUrl(recentActivity)" Style="text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">
-                                        <DHIcon Icon="@GetIcon(recentActivity)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" Color="Color.Dark"/>
-                                        @GetLabel(recentActivity)
-                                    </MudLink>
+                                    <DHButton title="@GetLabel(recentActivity)" Underline NoWrap StartIcon="@GetIcon(recentActivity)" Href="@GetSectionViewUrl(recentActivity)" Variant="Variant.Text" Color="Color.Primary">
+                                        <MudText Style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:40ch; display:inline-block">
+                                            @GetLabel(recentActivity)
+                                        </MudText>
+                                    </DHButton>
                                 </li>
                             }
                         </ul>
@@ -102,7 +104,7 @@
         return recentActivity.userRecentLink.LinkType switch
         {
             DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
-            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject),
+            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject, CultureService.IsFrench),
             DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
             DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
             DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",

@@ -110,7 +110,7 @@
     private DatahubAuthView.AuthLevels _authLevel = DatahubAuthView.AuthLevels.Unauthorized;
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private static readonly string[] DatabricksScopes =
     {
@@ -143,7 +143,7 @@
 
         _expectedTerraformOutput = $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
 
-        if (ShowToAdmins)
+        if (ElevatedWorkspaceAccessEnabled)
         {
             _authLevel = DatahubAuthView.AuthLevels.DatahubSupport;
         }
@@ -166,7 +166,7 @@
 
     private async Task AddToDatabricksAdmins()
     {
-        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym);
+        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(WorkspaceAcronym, null);
         if (string.IsNullOrEmpty(dataBricksUrl))
         {
             _snackbar.Add(Localizer["Your workspace does not have Databricks"], Severity.Error);

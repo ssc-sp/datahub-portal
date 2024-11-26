@@ -14,6 +14,7 @@
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject ICultureService CultureService
 
 <MudStack Class="px-4 mt-6" id="nav">
     <MudDrawerHeader Style="padding: 0">
@@ -37,7 +38,7 @@
     <MudDrawerContainer Style="overflow: hidden auto">
 
         @if (Drawer.Open)
-        {
+        {            
             <MudStack Spacing="2" Class="ml-2">
                 <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                     <strong>
@@ -48,7 +49,7 @@
                     <ul>
                         @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                         {
-                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
                                     <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
                                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
@@ -66,34 +67,37 @@
                     </ul>
                 </MudNavMenu>
             </MudStack>
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
-                <MudStack Spacing="2" Class="ml-2">
-                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
-                        <strong>
-                            @Localizer["Administration"]
-                        </strong>
-                    </MudText>
-                    <MudNavMenu Color="Color.Primary">
-                        <ul>
-                            @foreach (var toolSection in _workspaceAdministration)
-                            {
-                                <li>
-                                    <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToDatahubAdmins">
-                                        <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
-                                            <MudStack Row AlignItems="AlignItems.Center">
-                                                <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                                <MudText Style="@_workspaceTitleStyle">
-                                                    @GetLabel(toolSection)
-                                                </MudText>
-                                            </MudStack>
-                                        </MudNavLink>
-                                    </DatahubAuthView>
-                                </li>
-                            }
-                        </ul>
-                    </MudNavMenu>
-                </MudStack>
-            </DatahubAuthView>
+            @if (_project != null && !_project.IsDeleted)
+            {
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                    <MudStack Spacing="2" Class="ml-2">
+                        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                            <strong>
+                                @Localizer["Administration"]
+                            </strong>
+                        </MudText>
+                        <MudNavMenu Color="Color.Primary">
+                            <ul>
+                                @foreach (var toolSection in _workspaceAdministration)
+                                {
+                                    <li>
+                                        <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                                            <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                                                <MudStack Row AlignItems="AlignItems.Center">
+                                                    <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                    <MudText Style="@_workspaceTitleStyle">
+                                                        @GetLabel(toolSection)
+                                                    </MudText>
+                                                </MudStack>
+                                            </MudNavLink>
+                                        </DatahubAuthView>
+                                    </li>
+                                }
+                            </ul>
+                        </MudNavMenu>
+                    </MudStack>
+                </DatahubAuthView>
+            }
         }
     </MudDrawerContainer>
 </MudStack>
@@ -101,7 +105,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToDatahubAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
     [CascadingParameter] private DHSidebarDrawer Drawer { get; set; }
 
     private Datahub_Project _project;
@@ -120,6 +124,7 @@
         public const string Dashboard = "dashboard";
 
         public const string Delete = "d";
+        public const string DeleteWorkspace = "dw";
         public const string Storage = "s";
         public const string Publishing = "publishing";
         public const string Databricks = "databricks";
@@ -181,6 +186,7 @@
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
+
         // check the resources against what to display in the sidebar
     }
 
@@ -199,6 +205,7 @@
 
             // Administration
             SectionViews.Delete => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.DeleteWorkspace => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -227,29 +234,29 @@
         switch (toolSection)
         {
             case SectionViews.Databricks:
-            {
-                var userRecentLink = new UserRecentLink()
+                {
+                    var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.Databricks,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                break;
-            }
+                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                    break;
+                }
             case SectionViews.WebApp:
-            {
-                var userRecentLink = new UserRecentLink()
+                {
+                    var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.AzureWebApp,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                break;
-            }
+                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                    break;
+                }
         }
     }
 
@@ -257,7 +264,7 @@
     {
         return sectionView switch
         {
-            SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project),
+            SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project, CultureService.IsFrench),
             SectionViews.WebApp => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym),
             _ => $"{_path}/{sectionView}"
         };
@@ -320,6 +327,11 @@
 
     private bool ShouldToolBeShown(string toolSection)
     {
+        if (_project.IsDeleted)
+        {
+            return toolSection == SectionViews.Dashboard;    
+        }
+
         return toolSection switch
         {
             SectionViews.Dashboard => true,
