@@ -108,7 +108,7 @@ public partial class Heading
         var selectedFile = _selectedFiles.FirstOrDefault();
         if (selectedFile is not null && _ownsSelectedFiles)
         {
-            var newName = await _jsRuntime.InvokeAsync<string>("prompt", "Enter new name", 
+            var newName = await _jsRuntime.InvokeAsync<string>("prompt", Localizer["Enter a new name for the file."].ToString(), 
                 FileExplorer.GetFileName(selectedFile.filename));
             newName = newName?.Replace("/", "").Trim();
 
@@ -121,7 +121,7 @@ public partial class Heading
         if (IsActionDisabled(ButtonAction.NewFolder))
             return;
         
-        var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName");
+        var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName", Localizer["Enter a new name for the folder."].ToString());
         if (!string.IsNullOrWhiteSpace(newFolderName))
         {
             await OnNewFolder.InvokeAsync(newFolderName.Trim());
