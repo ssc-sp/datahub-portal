@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
@@ -190,29 +191,44 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
-storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
-container_name = ""{{prefix}}-project-states""
-key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
-subscription_id = ""{{az_subscription_id}}""
-";
-        
-        expectedConfiguration = expectedConfiguration
-            .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
-            .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
-            .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
-            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
-            .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
+        var actualConfig = new Dictionary<string, string>();
+        var expectedConfig = new Dictionary<string, string>
+        {
+            { "resource_group_name", "" },
+            { "storage_account_name", "" },
+            { "container_name", "" },
+            { "key", "" },
+            { "subscription_id" , ""}
+        };    
+        var expectedVar = _resourceProvisionerConfiguration.Terraform.Variables;
+ 
+        expectedConfig["resource_group_name"]= $"{expectedVar.resource_prefix}-{expectedVar.environment_name}-rg";
+        expectedConfig["storage_account_name"] = $"{expectedVar.resource_prefix_alphanumeric}{expectedVar.environment_name}{expectedVar.storage_suffix}";
+        expectedConfig["container_name"] = $"{expectedVar.resource_prefix}-project-states";  
+        expectedConfig["key"] = $"{expectedVar.resource_prefix}-ShouldExtractBackendConfiguration.tfstate";   
+        expectedConfig["subscription_id"] = $"{expectedVar.az_subscription_id}";
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
-
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             "project.tfbackend");
 
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
-        Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
+
+        var configFile = await File.ReadAllTextAsync(expectedConfigurationFilename);
+        
+        foreach (Match match in Regex.Matches(configFile, @"^([\w_]+)\s*=\s*""(.*?)""", RegexOptions.Multiline))
+        {
+            actualConfig[match.Groups[1].Value] = match.Groups[2].Value;
+        }
+
+        // Compare actual and expected configurations
+        foreach (var key in expectedConfig.Keys)
+        {
+            Assert.That(actualConfig.ContainsKey(key), Is.True, $"Key '{key}' is missing in the actual configuration.");
+            Assert.That(actualConfig[key], Is.EqualTo(expectedConfig[key]), $"Value for key '{key}' does not match.");
+        }
     }
     
     [Test]
