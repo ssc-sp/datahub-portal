@@ -24,56 +24,39 @@
     
     <div class="heading">
         <div class="actions">
-            <AeButton class="button-tool" @onclick="HandleUpload" Disabled="IsActionDisabled(ButtonAction.Upload)">
-                <i class="fas fa-upload"></i>@Localizer["Upload"]
-            </AeButton>
+            <DHButton class="button-tool" @onclick="HandleUpload" StartIcon="fas fa-upload" Disabled="IsActionDisabled(ButtonAction.Upload)">
+                @Localizer["Upload"]
+            </DHButton>
 
-            <AeButton class="button-tool" @onclick="HandleDownload" Disabled="IsActionDisabled(ButtonAction.Download)">
-                <i class="fas fa-download"></i>
+            <DHButton class="button-tool" @onclick="HandleDownload" StartIcon="fas fa-download" Disabled="IsActionDisabled(ButtonAction.Download)">
                 @Localizer["Download"]
-            </AeButton>
+            </DHButton>
 
-            @*<AeButton class="button-tool" @onclick="HandleAzSyncDown" Disabled="IsActionDisabled(ButtonAction.AzSync)">
-            <i class="fas fa-cloud-download-alt"></i>
-            @Localizer["Azure Copy"]
-        </AeButton>*@
-
-            <AeButton class="button-tool" @onclick="HandleRename" Disabled="IsActionDisabled(ButtonAction.Rename)">
-                <i class="fas fa-edit"></i>
+            <DHButton class="button-tool" @onclick="HandleRename" StartIcon="fas fa-edit" Disabled="IsActionDisabled(ButtonAction.Rename)">
                 @Localizer["Rename"]
-            </AeButton>
-
-            @*<span class="tool-divider"></span>
-        <AeButton class="button-tool" @onclick="HandleShare" Disabled="!_isUnclassifiedSingleFile">
-            <i class="fas fa-share-square"></i>
-            @Localizer["Share"]
-        </AeButton>*@
+            </DHButton>
 
             <span class="tool-divider"></span>
 
-            <AeButton class="button-tool" @onclick="HandleDelete" Disabled="IsActionDisabled(ButtonAction.Delete)">
-                <i class="fas fa-trash-alt"></i>
+            <DHButton class="button-tool" @onclick="HandleDelete" StartIcon="fas fa-trash-alt" Disabled="IsActionDisabled(ButtonAction.Delete)">
                 @Localizer["Delete"]
-            </AeButton>
+            </DHButton>
 
             <span class="tool-divider"></span>
 
-            <AeButton class="button-tool" @onclick="HandleNewFolder" Disabled="IsActionDisabled(ButtonAction.NewFolder)">
-                <i class="fas fa-folder-plus"></i>
+            <DHButton class="button-tool" @onclick="HandleNewFolder" StartIcon="fas fa-folder-plus" Disabled="IsActionDisabled(ButtonAction.NewFolder)">
                 @Localizer["New Folder"]
-            </AeButton>
+            </DHButton>
 
-            <AeButton class="button-tool" @onclick="HandleDeleteFolder" Disabled="IsActionDisabled(ButtonAction.DeleteFolder)">
-                <i class="fas fa-folder-minus"></i>
+            <DHButton class="button-tool" @onclick="HandleDeleteFolder" StartIcon="fas fa-folder-minus" Disabled="IsActionDisabled(ButtonAction.DeleteFolder)">
                 @Localizer["Delete Folder"]
-            </AeButton>
+            </DHButton>
 
             <span class="tool-divider"></span>
 
-            <AeButton class="button-tool" @onclick="HandlePublish" Disabled="IsActionDisabled(ButtonAction.Publish)">
-                <i class="fas fa-bullhorn"></i>
+            <DHButton class="button-tool" @onclick="HandlePublish" StartIcon="fas fa-bullhorn" Disabled="IsActionDisabled(ButtonAction.Publish)">
                 @Localizer["Publish"]
-            </AeButton>
+            </DHButton>
         </div>
 
         <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
