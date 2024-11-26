@@ -54,7 +54,6 @@ public class NewProjectTemplateTests
             var expectedContent = sourceFileContent
                 .Replace(TerraformService.TerraformVersionToken, workspace.Version)
                 .Replace(TerraformService.TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
-            
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
@@ -86,7 +85,7 @@ public class NewProjectTemplateTests
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
 
-        
+
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -143,7 +142,7 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        
+
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
@@ -162,7 +161,7 @@ public class NewProjectTemplateTests
             JsonSerializer.Deserialize<JsonObject>(
                 await File.ReadAllTextAsync(expectedVariablesFilename));
 
-        
+
         foreach (var (key, value) in actualVariables!)
         {
             Assert.Multiple(() =>
@@ -199,13 +198,13 @@ public class NewProjectTemplateTests
             { "container_name", "" },
             { "key", "" },
             { "subscription_id" , ""}
-        };    
+        };
         var expectedVar = _resourceProvisionerConfiguration.Terraform.Variables;
- 
-        expectedConfig["resource_group_name"]= $"{expectedVar.resource_prefix}-{expectedVar.environment_name}-rg";
+
+        expectedConfig["resource_group_name"] = $"{expectedVar.resource_prefix}-{expectedVar.environment_name}-rg";
         expectedConfig["storage_account_name"] = $"{expectedVar.resource_prefix_alphanumeric}{expectedVar.environment_name}{expectedVar.storage_suffix}";
-        expectedConfig["container_name"] = $"{expectedVar.resource_prefix}-project-states";  
-        expectedConfig["key"] = $"{expectedVar.resource_prefix}-ShouldExtractBackendConfiguration.tfstate";   
+        expectedConfig["container_name"] = $"{expectedVar.resource_prefix}-project-states";
+        expectedConfig["key"] = $"{expectedVar.resource_prefix}-ShouldExtractBackendConfiguration.tfstate";
         expectedConfig["subscription_id"] = $"{expectedVar.az_subscription_id}";
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
@@ -217,7 +216,7 @@ public class NewProjectTemplateTests
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
 
         var configFile = await File.ReadAllTextAsync(expectedConfigurationFilename);
-        
+
         foreach (Match match in Regex.Matches(configFile, @"^([\w_]+)\s*=\s*""(.*?)""", RegexOptions.Multiline))
         {
             actualConfig[match.Groups[1].Value] = match.Groups[2].Value;
@@ -230,7 +229,7 @@ public class NewProjectTemplateTests
             Assert.That(actualConfig[key], Is.EqualTo(expectedConfig[key]), $"Value for key '{key}' does not match.");
         }
     }
-    
+
     [Test]
     public async Task ShouldSkipExtractBackendConfigurationIfExists()
     {
@@ -243,15 +242,15 @@ public class NewProjectTemplateTests
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
-        
+
         // Write a fake backend config before extracting
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             "project.tfbackend");
         var existingConfiguration = "test";
         Directory.CreateDirectory(Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym)));
         await File.WriteAllTextAsync(expectedConfigurationFilename, existingConfiguration);
-        
-        
+
+
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
@@ -266,12 +265,12 @@ public class NewProjectTemplateTests
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
-        
+
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, command.RequestingUserEmail);
-    
+
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
-        
+
         // verify that the file main.tf does not contain "{{version}}" or "{{branch}}"
         var mainTfPath = Path.Join(moduleDestinationPath, "main.tf");
         var mainTfContent = await File.ReadAllTextAsync(mainTfPath);
