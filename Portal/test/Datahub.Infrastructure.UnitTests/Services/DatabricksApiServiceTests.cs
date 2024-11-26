@@ -5,6 +5,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Graph.Models;
 using Moq;
@@ -48,7 +49,17 @@ public class DatabricksApiServiceTests
     public async Task ShouldReturnDatabricsWorkspaceUrl(string projectAcronym, string expectedResult)
     {
         await SeedDatabase();
-        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(projectAcronym);
+        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(projectAcronym, false);
+        Assert.That(dataBricksUrl, Is.EqualTo(expectedResult));
+    }
+
+    [Test]
+    [TestCase("TEST1", "https://test.azuredatabricks.net/?l=fr")]
+    [TestCase("UNKNOWN", "")]
+    public async Task ShouldReturnDatabricsWorkspaceUrlFr(string projectAcronym, string expectedResult)
+    {
+        await SeedDatabase();
+        var dataBricksUrl = await _databricksApiService.GetDatabricsWorkspaceUrlAsync(projectAcronym, true);
         Assert.That(dataBricksUrl, Is.EqualTo(expectedResult));
     }
 

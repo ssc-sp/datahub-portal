@@ -274,8 +274,11 @@
 
         foreach (var project in _userRoles.Select(userRole => userRole.Project))
         {
-            _ticketWorkspaces.Add(project.Project_Name, false);
-            _ticketWorkspaceAcronyms.Add(project.Project_Name, project.Project_Acronym_CD);
+            if (!_ticketWorkspaces.ContainsKey(project.Project_Name))
+            {
+                _ticketWorkspaces.Add(project.Project_Name, false);
+                _ticketWorkspaceAcronyms.Add(project.Project_Name, project.Project_Acronym_CD);
+            }
         }
 
         StateHasChanged();

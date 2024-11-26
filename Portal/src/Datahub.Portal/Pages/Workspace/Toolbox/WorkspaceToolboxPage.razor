@@ -1,6 +1,6 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
-@using Datahub.Shared
+
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
 
@@ -25,21 +25,30 @@
 
     <MudDivider Class="my-6"/>
 
-    @if (_metadataRequired)
-    {
-        <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-            @Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"].
-            <MudLink Href="@_metadataUrl">
-                @Localizer["Click here to edit the metadata."]
-            </MudLink>
-        </MudAlert>
-    }
-    else
-    {
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-            @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
-        </MudAlert>
-    }
+    <MudStack Spacing="0" >
+        @if (_metadataRequired)
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+                @Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"].
+                <MudLink Href="@_metadataUrl">
+                    @Localizer["Click here to edit the metadata."]
+                </MudLink>
+            </MudAlert>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+                @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
+            </MudAlert>
+        }
+
+        @if (_toolDisplayStatusMap.Any(s => s.Value is TerraformStatus.CreateRequested or TerraformStatus.InProgress or TerraformStatus.DeleteRequested or TerraformStatus.DeleteInProgress))
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+                @Localizer["Your tool request was put in the queue and is being processed. Most requests in the queue are processed within an hour. Please come back later and refresh this page. If it takes longer than expected, please submit a support request."]
+            </MudAlert>
+        }
+    </MudStack>
 
     <MudGrid>
         @foreach (var tool in _toolList)
@@ -71,29 +80,37 @@
                                     break;
                                 case TerraformStatus.Completed:
                                     <MudStack>
-                                        <ToolboxButton Status="@status" Disabled="@true" Icon="fa-light fa-check-to-slot"/>
-                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
-                                            <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
-                                                @Localizer["Remove Tool from Workspace"]
-                                                <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                            </DHButton>
+                                        <ToolboxButton Status="@status" Disabled="@true"
+                                                       Icon="fa-light fa-check-to-slot"/>
+                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin"
+                                                         ProjectAcronym="@WorkspaceAcronym">
+                                            @if (!_permenantToolList.Contains(tool))
+                                            {
+                                                <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
+                                                    @Localizer["Remove Tool from Workspace"]
+                                                    <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                                </DHButton>
+                                            }
                                         </DatahubAuthView>
                                     </MudStack>
                                     break;
                                 case AvailabilityStatus.Available:
-                                    <ToolboxButton Status="@status" Icon="@SidebarIcons.CreateNew" OnClick="@(async () => await AddResourceToWorkspace(tool))"/>
+                                    <ToolboxButton Status="@status" Icon="@SidebarIcons.CreateNew"
+                                                   OnClick="@(async () => await AddResourceToWorkspace(tool))"/>
                                     break;
                                 case AvailabilityStatus.Disabled:
-                                    <ToolboxButton Status="@status" Disabled="@true" Icon="@SidebarIcons.CreateNew"/>
+                                    <ToolboxButton Status="@status" Disabled="@true"
+                                                   Icon="@SidebarIcons.CreateNew"/>
                                     break;
                                 case AvailabilityStatus.UnderDevelopment:
-                                    <ToolboxButton Status="@status" Disabled="@true" Icon="fa-light fa-space-station-moon-construction"/>
+                                    <ToolboxButton Status="@status" Disabled="@true"
+                                                   Icon="fa-light fa-space-station-moon-construction"/>
                                     break;
                                 case AvailabilityStatus.MetadataRequired:
                                     <ToolboxButton Status="@status" Disabled="@true" Icon="@SidebarIcons.Metadata"/>
                                     break;
                                 default:
-                                    <ToolboxButton Status="Error" Disabled="@true" />
+                                    <ToolboxButton Status="Error" Disabled="@true"/>
                                     break;
                             }
                         </MudStack>
@@ -107,7 +124,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _workspace;
 
@@ -120,6 +137,13 @@
         TerraformTemplate.AzureArcGis,
         TerraformTemplate.AzureAPI
     ];
+
+    private readonly List<string> _permenantToolList =
+    [
+        TerraformTemplate.AzureDatabricks,
+        TerraformTemplate.AzureStorageBlob
+    ];
+
 
     internal record struct AvailabilityStatus
     {
@@ -173,7 +197,7 @@
                 _toolDisplayStatusMap[tool] = resourceStatus;
             }
         }
-        
+
         _initializing = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -187,14 +211,14 @@
 
         var resource = _workspace.Resources
             .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(resourceType));
-        
-        if(resource is null)
+
+        if (resource is null)
         {
             return AvailabilityStatus.Available;
         }
 
         if (resource.Status is not null) return resource.Status;
-        
+
         _logger.LogWarning("Resource {ResourceType} in workspace {WorkspaceAcronym} has no status", resourceType, WorkspaceAcronym);
         // TODO: Add a default status for resources that have no status
         return TerraformStatus.Completed;
@@ -210,10 +234,10 @@
         {
             var resourceType = TerraformTemplate.GetTerraformServiceType(resource);
             await using var ctx = await _contextFactory.CreateDbContextAsync();
-            
+
             var exists = await ctx.Project_Resources2
                 .AnyAsync(r => r.ProjectId == _workspace.Project_ID && r.ResourceType == resourceType);
-            
+
             if (exists)
             {
                 _snackbar.Add(Localizer["{0} is already added to your workspace", GetLabel(resource)], Severity.Info);
@@ -225,14 +249,14 @@
             await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
             _logger.LogInformation("Tool {Tool} successfully added to workspace {WorkspaceAcronym}", resource, WorkspaceAcronym);
             _snackbar.Add(Localizer["{0} successfully added to your workspace", GetLabel(resource)], Severity.Success);
-            
+
             _toolDisplayStatusMap[resource] = TerraformStatus.InProgress;
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception e)
         {
             _logger.LogError(e, "Error adding tool {Tool} to workspace {WorkspaceAcronym}", resource, WorkspaceAcronym);
-            
+
             _toolDisplayStatusMap[resource] = TerraformStatus.Failed;
             _snackbar.Add(Localizer["Error adding {0} to your workspace", GetLabel(resource)], Severity.Error);
         }
@@ -249,7 +273,7 @@
         {
             TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
             TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
-            TerraformTemplate.AzureAppService => Localizer["Azure App Service"],
+            TerraformTemplate.AzureAppService => Localizer["Web Application"],
             TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
             TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
             TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
@@ -263,7 +287,7 @@
         {
             TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service."],
             TerraformTemplate.AzureStorageBlob => Localizer["Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data."],
-            TerraformTemplate.AzureAppService => Localizer["Azure App Service is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
+            TerraformTemplate.AzureAppService => Localizer["Web Application is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
             TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
             TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
             TerraformTemplate.AzureAPI => Localizer["Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service."],

@@ -152,17 +152,20 @@ public class TerraformService(
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        
-        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.*");
-        if(matchingFiles.Length > 0)
+
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
+            .ToArray();
+
+        if (matchingFiles.Length > 0)
         {
             foreach (var file in matchingFiles)
             {
-                File.Delete(file);
-                logger.LogInformation("Deleted file {File}", file);
+                var newFileName = $"{file}.deleted";
+                File.Move(file, newFileName);
+                logger.LogInformation("Renamed file {File} to {NewFileName}", file, newFileName);
             }
         }
-        
+
         await WriteDeletedFile(templateName, projectPath);
     }
     
