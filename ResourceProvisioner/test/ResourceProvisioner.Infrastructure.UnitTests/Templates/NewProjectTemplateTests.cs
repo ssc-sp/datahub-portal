@@ -191,11 +191,11 @@ public class NewProjectTemplateTests
         };
 
         var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
-storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
-container_name = ""{{prefix}}-project-states""
-key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
-subscription_id = ""{{az_subscription_id}}""
-";
+        storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
+        container_name = ""{{prefix}}-project-states""
+        key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
+        subscription_id = ""{{az_subscription_id}}""
+        ";
         
         expectedConfiguration = expectedConfiguration
             .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
