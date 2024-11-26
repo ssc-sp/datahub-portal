@@ -55,7 +55,7 @@ public partial class FileExplorer
 
     private async Task HandleFileDelete(string fileName)
     {
-        var message = string.Format(Localizer["Are you sure you want to delete file \"{0}\"?"], fileName);
+        var message = string.Format(Localizer["Are you sure you want to delete file \"{0}\"?"].ToString(), fileName);
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
@@ -115,7 +115,7 @@ public partial class FileExplorer
 
     private async Task HandleDeleteFolder()
     {
-        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"], GetDirectoryName(_currentFolder));
+        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"].ToString(), _currentFolder);
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 

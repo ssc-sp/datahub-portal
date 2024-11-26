@@ -516,17 +516,11 @@ public partial class RepositoryService(
     {
         try
         {
-            var templateStatusToIgnore = new List<string>
-            {
-                TerraformStatus.Deleted,
-                TerraformStatus.DeleteInProgress
-            };
-
             if (template.Status == TerraformStatus.DeleteRequested)
             {
                 await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
             }
-            else if (!templateStatusToIgnore.Contains(template.Status))
+            else if (!TerraformStatus.DeletedOrInProcessOf(template.Status))
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
                 await terraformService.ExtractVariables(template.Name, terraformWorkspace);
