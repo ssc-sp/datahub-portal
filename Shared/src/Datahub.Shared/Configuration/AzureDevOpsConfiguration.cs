@@ -5,6 +5,12 @@ public class AzureDevOpsConfiguration
     public string TenantId { get; set; }
     public string ClientId { get; set; }
     public string ClientSecret { get; set; }
+    public string SupportIterationName { get; set; } = "POC 2";
+    public string AreaPathName { get; set; } = "FSDH Support Team";
+    public int? SupportRequestId { get; set; }
+    public int? SystemErrorId { get; set; }
+    public int? InfrastructureErrorId { get; set; }
+    public int? PythonWorkspaceSyncErrorId { get; set; }
     public string OrganizationName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
     public string OrganizationUrl => $"https://dev.azure.com/{OrganizationName}";
