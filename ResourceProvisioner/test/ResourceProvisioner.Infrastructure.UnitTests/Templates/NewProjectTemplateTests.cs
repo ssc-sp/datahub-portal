@@ -196,12 +196,13 @@ public class NewProjectTemplateTests
         subscription_id = ""{{az_subscription_id}}""
         ";
 
+
         expectedConfiguration = expectedConfiguration
-            .Replace("{{prefix}}", resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
-            .Replace("{{env}}", resourceProvisionerConfiguration.Terraform.Variables.environment_name)
-            .Replace("{{suffix}}", resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
-            .Replace("{{prefix_alphanumeric}}", resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
-            .Replace("{{az_subscription_id}}", resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
+            .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
+            .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
+            .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
+            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
+            .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
 
         // Normalize line endings to '\n' for both Linux and Windows compatibility
         expectedConfiguration = expectedConfiguration.Replace("\r\n", "\n");
