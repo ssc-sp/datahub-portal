@@ -190,29 +190,39 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
-        var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
-        storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
-        container_name = ""{{prefix}}-project-states""
-        key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
-        subscription_id = ""{{az_subscription_id}}""
-        ";
-        
-        expectedConfiguration = expectedConfiguration
-            .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
-            .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
-            .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
-            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
-            .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
+        // Define the expected backend configuration as a dictionary
+        var expectedConfiguration = new Dictionary<string, string>
+        {
+            { "resource_group_name", $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}-rg" },
+            { "storage_account_name", $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric}{_resourceProvisionerConfiguration.Terraform.Variables.environment_name}{_resourceProvisionerConfiguration.Terraform.Variables.storage_suffix}" },
+            { "container_name", $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states" },
+            { "key", $"{_resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-ShouldExtractBackendConfiguration.tfstate" },
+            { "subscription_id", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id }
+        };
 
+        // Perform the setup and call the method
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
-        var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            "project.tfbackend");
+        var expectedConfigurationFilename = Path.Join(
+            DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
+            "project.tfbackend"
+        );
 
+        // Assert that the file exists
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
-        Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
+
+        // Read and parse the file into a dictionary
+        var actualConfiguration = File.ReadAllLines(expectedConfigurationFilename)
+            .Select(line => line.Split('=', 2))
+            .ToDictionary(
+                parts => parts[0].Trim(),
+                parts => parts[1].Trim(' ', '"')
+            );
+
+        // Assert that the actual configuration matches the expected configuration
+        CollectionAssert.AreEquivalent(expectedConfiguration, actualConfiguration);
     }
     
     [Test]
