@@ -1,7 +1,10 @@
 ﻿using Datahub.Application.Services.Notifications;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -11,14 +14,14 @@ namespace Datahub.Infrastructure.Services.Notifications;
 public class DatahubEmailService : IDatahubEmailService
 {
     private readonly ILogger<DatahubEmailService> _logger;
-    private readonly IMediator _mediator;
+    private readonly ISendEndpointProvider _sendEndpointProvider;
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
-    public DatahubEmailService(ILogger<DatahubEmailService> logger, IMediator mediator, IDbContextFactory<DatahubProjectDBContext> dbContextFactory)
+    public DatahubEmailService(ILogger<DatahubEmailService> logger, IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ISendEndpointProvider sendEndpointProvider)
     {
         _logger = logger;
-        _mediator = mediator;
         _dbContextFactory = dbContextFactory;
+        _sendEndpointProvider = sendEndpointProvider;
     }
 
     public async Task<bool> SendAll(string sender, string subject, string body)
@@ -62,7 +65,7 @@ public class DatahubEmailService : IDatahubEmailService
                 Subject = subject,
                 Body = body
             };
-            await _mediator.Send(message);
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, message);
             return true;
         }
         catch (Exception ex)

@@ -55,10 +55,18 @@ public class ProjectCreationService(
             _ => words.Select(w => w[0]).Aggregate("", (a, b) => a + b).ToUpperInvariant()
         };
         var enumerable = existingAcronyms.ToArray();
+        if (acronym.Length > 7) // Ensure acronym is not too long
+        {
+            acronym = acronym.Substring(0, 7);
+        }
         if (!enumerable.Contains(acronym)) return acronym;
         var largestNumber = enumerable.Where(a => a.StartsWith(acronym)).Select(
             a => a.Length > acronym.Length && int.TryParse(a[acronym.Length..], out var n) ? n : 0
         ).Max();
+        if (acronym.Length > 7 - (largestNumber + 1).ToString().Length) // If acronym would be too long with a number, shorten it
+        {
+            acronym = acronym.Substring(0, 7 - (largestNumber + 1).ToString().Length);
+        }
         acronym += (largestNumber + 1).ToString();
         return await Task.FromResult(acronym);
     }
