@@ -194,7 +194,7 @@ public class NewProjectTemplateTests
         container_name = ""{{prefix}}-project-states""
         key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
         subscription_id = ""{{az_subscription_id}}""
-        ";
+        ".TrimStart();
 
 
         expectedConfiguration = expectedConfiguration
