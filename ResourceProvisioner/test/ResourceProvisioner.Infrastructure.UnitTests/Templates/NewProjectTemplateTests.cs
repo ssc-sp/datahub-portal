@@ -189,32 +189,37 @@ public class NewProjectTemplateTests
         {
             Acronym = workspaceAcronym
         };
-
         var expectedConfiguration = @"resource_group_name = ""{{prefix}}-{{env}}-rg""
-storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
-container_name = ""{{prefix}}-project-states""
-key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
-subscription_id = ""{{az_subscription_id}}""
-";
-        
+        storage_account_name = ""{{prefix_alphanumeric}}{{env}}{{suffix}}""
+        container_name = ""{{prefix}}-project-states""
+        key = ""{{prefix}}-ShouldExtractBackendConfiguration.tfstate""
+        subscription_id = ""{{az_subscription_id}}""
+        ";
+
         expectedConfiguration = expectedConfiguration
-            .Replace("{{prefix}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
-            .Replace("{{env}}", _resourceProvisionerConfiguration.Terraform.Variables.environment_name)
-            .Replace("{{suffix}}", _resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
-            .Replace("{{prefix_alphanumeric}}", _resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
-            .Replace("{{az_subscription_id}}", _resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
+            .Replace("{{prefix}}", resourceProvisionerConfiguration.Terraform.Variables.resource_prefix)
+            .Replace("{{env}}", resourceProvisionerConfiguration.Terraform.Variables.environment_name)
+            .Replace("{{suffix}}", resourceProvisionerConfiguration.Terraform.Variables.storage_suffix)
+            .Replace("{{prefix_alphanumeric}}", resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric)
+            .Replace("{{az_subscription_id}}", resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id);
+
+        // Normalize line endings to '\n' for both Linux and Windows compatibility
+        expectedConfiguration = expectedConfiguration.Replace("\r\n", "\n");
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
-
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             "project.tfbackend");
 
         Assert.That(File.Exists(expectedConfigurationFilename), Is.True);
-        Assert.That(await File.ReadAllTextAsync(expectedConfigurationFilename), Is.EqualTo(expectedConfiguration));
+
+        var actualConfiguration = await File.ReadAllTextAsync(expectedConfigurationFilename);
+        // Normalize actual file content to use '\n' line endings
+        actualConfiguration = actualConfiguration.Replace("\r\n", "\n");
+
+        Assert.That(actualConfiguration, Is.EqualTo(expectedConfiguration));
     }
-    
     [Test]
     public async Task ShouldSkipExtractBackendConfigurationIfExists()
     {
