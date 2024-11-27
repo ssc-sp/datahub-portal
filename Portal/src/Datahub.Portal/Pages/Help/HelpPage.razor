@@ -354,7 +354,7 @@
 
         if (!string.IsNullOrWhiteSpace(CorrelationId))
         {
-            _ticketDescription = $"{_ticketDescription} - cid: {CorrelationId}";
+            _ticketDescription = $"{_ticketDescription} \n\n cid: {CorrelationId}";
         }
 
         var url = _navigationManager.Uri; // Retrieve the active URL
