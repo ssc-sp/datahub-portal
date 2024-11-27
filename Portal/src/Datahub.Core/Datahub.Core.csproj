@@ -27,7 +27,7 @@
 		<None Include="Components\DialogModalFrame.razor" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" Version="0.5.22329.4-beta" />
+		<PackageReference Include="Ae.MudBlazor.Forms" Version="1.0.0" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
 
@@ -80,7 +80,7 @@
 
 		<PackageReference Include="RulesEngine" Version="5.0.3" />
 		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="8.0.*" />
-		<PackageReference Include="MudBlazor" Version="7.0.0" />
+		<PackageReference Include="MudBlazor" Version="7.13.0" />
 		<PackageReference Include="MudBlazor.Markdown" Version="1.0.2" />
 		<PackageReference Include="System.Drawing.Common" Version="8.0.*" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />

@@ -1,0 +1,13 @@
+﻿<MudThemeProvider Theme="@DatahubTheme.DefaultTheme" />
+<MudDialogProvider />
+<MudSnackbarProvider />
+<MudPopoverProvider />
+@if (ChildContent is not null)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment ChildContent { get; set; }
+}
