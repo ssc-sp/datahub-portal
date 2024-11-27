@@ -85,6 +85,25 @@ public class FieldValueContainer : List<ObjectFieldValue>
         return fieldValueObj;
     }
 
+    public void CopyFieldFromOtherMetadata(FieldValueContainer other, string fieldName)
+    {
+        var otherField = other?[fieldName];
+
+        if (otherField is null)
+        {
+            return;
+        }
+
+        var newField = new ObjectFieldValue()
+        {
+            FieldDefinitionId = otherField.FieldDefinitionId,
+            Value_TXT = otherField.Value_TXT,
+            ObjectMetadataId = MetadataId
+        };
+
+        Add(newField);
+    }
+
     private FieldDefinition GetFieldDefinition(ObjectFieldValue value) => value.FieldDefinition ?? Definitions.Get(value.FieldDefinitionId);
 
     private ObjectFieldValue GetFieldValueByName(string fieldName)
