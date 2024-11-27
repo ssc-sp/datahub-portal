@@ -13,6 +13,7 @@
 *.cs        text diff=csharp eol=crlf
 *.vb        text eol=crlf
 *.csx       text diff=csharp
+*.feature   text eol=crlf
 
 # ==========================================================
 # Web and View Files
