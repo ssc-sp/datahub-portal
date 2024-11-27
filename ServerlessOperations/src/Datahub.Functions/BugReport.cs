@@ -212,6 +212,15 @@ namespace Datahub.Functions
             var title = $"{bug.Topics} in {bug.Workspaces}";
             var description = GetIssueDescription(bug);
 
+            var typeId = bug.BugReportType switch
+            {
+                BugReportTypes.SupportRequest => config.AzureDevOpsConfiguration.SupportRequestId ?? (int)BugReportTypes.SupportRequest,
+                BugReportTypes.SystemError => config.AzureDevOpsConfiguration.SystemErrorId ?? (int)BugReportTypes.SystemError,
+                BugReportTypes.InfrastructureError => config.AzureDevOpsConfiguration.InfrastructureErrorId ?? (int)BugReportTypes.InfrastructureError,
+                BugReportTypes.PythonWorkspaceSyncError => config.AzureDevOpsConfiguration.PythonWorkspaceSyncErrorId ?? (int)BugReportTypes.PythonWorkspaceSyncError,
+                _ => throw new ArgumentOutOfRangeException()
+            };
+
             // Content of the issue. Possible additions: New tags (topics?), AssignedTo, State, Reason.
             var body = new JsonPatchDocument
             {
@@ -219,9 +228,9 @@ namespace Datahub.Functions
                 new() { Operation = Operation.Add, Path = "/fields/System.Description", Value = description },
                 new()
                 {
-                    Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\FSDH Support Team"
+                    Operation = Operation.Add, Path = "/fields/System.AreaPath", Value = $"{project}\\{config.AzureDevOpsConfiguration.AreaPathName}"
                 },
-                new() { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = $"{project}\\POC 2" },
+                new() { Operation = Operation.Add, Path = "/fields/System.IterationPath", Value = $"{project}\\{config.AzureDevOpsConfiguration.SupportIterationName}" },
                 new()
                 {
                     Operation = Operation.Add, Path = "/fields/System.Tags",
@@ -241,7 +250,7 @@ namespace Datahub.Functions
                     {
                         rel = "System.LinkTypes.Hierarchy-Reverse",
                         url =
-                            $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{(int)bug.BugReportType}",
+                            $"https://dev.azure.com/{organization}/{project}/_apis/wit/workItems/{typeId}",
                         attributes = new { comment = "Parent work item for user generated issue" }
                     }
                 }
