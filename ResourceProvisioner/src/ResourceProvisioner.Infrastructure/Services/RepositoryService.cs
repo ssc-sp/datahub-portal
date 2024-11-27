@@ -91,7 +91,6 @@ public partial class RepositoryService(
         }
         finally
         {
-            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             CleanUpEnvironment();
             _semaphore.Release();
         }
@@ -148,21 +147,20 @@ public partial class RepositoryService(
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
-            logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-            Repository.Clone(repositoryUrl, repositoryPath);
+        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+        Repository.Clone(repositoryUrl, repositoryPath);
 
-            if (resourceProvisionerConfiguration.ModuleRepository.Branch !=
-                ModuleRepositoryConfiguration.DefaultBranch)
+        if (resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
+        {
+            using var repo = new Repository(repositoryPath);
+            var branch =
+                repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+            if (branch == null)
             {
-                using var repo = new Repository(repositoryPath);
-                var branch =
-                    repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
-                if (branch == null)
-                {
-                    logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                        resourceProvisionerConfiguration.ModuleRepository.Branch);
-                    branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
-                }
+                logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
+                    resourceProvisionerConfiguration.ModuleRepository.Branch);
+                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+            }
 
                 Commands.Checkout(repo, branch);
             }
@@ -474,8 +472,18 @@ public partial class RepositoryService(
 
         await ValidateWorkspaceVersion(terraformWorkspace);
 
-        // Execute each module but make sure the `new-project-template` module is first
-        modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        var newProjectTemplate = modules.FirstOrDefault(x => x.Name == TerraformTemplate.NewProjectTemplate);
+        if(newProjectTemplate.Status == TerraformStatus.DeleteRequested)
+        {
+            // Execute each module but make sure the `new-project-template` module is last for deletion
+            modules = modules.OrderBy(x => x.Name == TerraformTemplate.NewProjectTemplate).ToList();
+        }
+        else
+        {
+            // Execute each module but make sure the `new-project-template` module is first for creation
+            modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        }
+        
 
         foreach (var module in modules)
         {
@@ -512,7 +520,7 @@ public partial class RepositoryService(
             {
                 await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
             }
-            else
+            else if (!TerraformStatus.DeletedOrInProcessOf(template.Status))
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
                 await terraformService.ExtractVariables(template.Name, terraformWorkspace);
@@ -532,7 +540,7 @@ public partial class RepositoryService(
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym} with a template status of {template.Status}",
                 StatusCode = MessageStatusCode.Success
             };
         }
@@ -584,6 +592,7 @@ public partial class RepositoryService(
     {
         try
         {
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
             var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);

@@ -36,7 +36,7 @@
     public string UserGraphId { get; set; }
 
     [Parameter]
-    public bool ShowToAdmins { get; set; } = false;
+    public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     public enum AuthLevels
     {
@@ -77,25 +77,25 @@
         var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
         var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
         var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
-        var datahubAdminRole = RoleConstants.DATAHUB_ROLE_ADMIN;
+        var datahubSupportRole = RoleConstants.DATAHUB_ROLE_ADMIN;
         var datahubAdminAsGuestRole = RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST;
 
         switch (AuthLevel)
         {
             case AuthLevels.Personal:
-                return $"{UserGraphId},{datahubAdminRole}";
+                return $"{UserGraphId},{datahubSupportRole}";
             case AuthLevels.WorkspaceGuest:
-                return ShowToAdmins ? $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
+                return ElevatedWorkspaceAccessEnabled ? $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
             case AuthLevels.WorkspaceCollaborator:
-                return ShowToAdmins ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubAdminRole}" : $"{collaboratorRole},{adminRole},{workspaceLeadRole}";
+                return ElevatedWorkspaceAccessEnabled ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{collaboratorRole},{adminRole},{workspaceLeadRole}";
             case AuthLevels.WorkspaceAdmin:
-                return ShowToAdmins ? $"{adminRole},{workspaceLeadRole},{datahubAdminRole}" : $"{adminRole},{workspaceLeadRole}";
+                return ElevatedWorkspaceAccessEnabled ? $"{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{adminRole},{workspaceLeadRole}";
             case AuthLevels.WorkspaceLead:
-                return ShowToAdmins ? $"{workspaceLeadRole},{datahubAdminRole}" : workspaceLeadRole;
+                return ElevatedWorkspaceAccessEnabled ? $"{workspaceLeadRole},{datahubSupportRole}" : workspaceLeadRole;
             case AuthLevels.DatahubAdminGuestView:
-                return $"{datahubAdminRole},{datahubAdminAsGuestRole}";
+                return $"{datahubSupportRole},{datahubAdminAsGuestRole}";
             case AuthLevels.DatahubSupport:
-                return datahubAdminRole;
+                return datahubSupportRole;
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
             default:

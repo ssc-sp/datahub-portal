@@ -31,7 +31,7 @@
 </PageTitle>
 
 <DHSidebarDrawer>
-    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" ShowToDatahubAdmins="@_showToDatahubAdmins" />
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
 </DHSidebarDrawer>
 
 @{
@@ -40,7 +40,7 @@
     var parameters = new Dictionary<string, object>
     {
         { "WorkspaceAcronym", WorkspaceAcronymParam },
-        { "ShowToAdmins", _showToDatahubAdmins}
+        { "ElevatedWorkspaceAccessEnabled", _showToDatahubAdmins}
     };
 
     if (!string.IsNullOrEmpty(SubSection))
@@ -50,7 +50,7 @@
 
     if (containsKey)
     {
-        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam" ShowToAdmins="@_showToDatahubAdmins">
+        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
                 <DynamicComponent Type=@SwitchDynamicComponentType() Parameters="@parameters"/>
             </Authorized>
@@ -63,9 +63,9 @@
     {
         _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
-                         ProjectAcronym="@WorkspaceAcronymParam" ShowToAdmins="@_showToDatahubAdmins">
+                         ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
-                <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam" ShowToAdmins="@_showToDatahubAdmins"/>
+                <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
             </Authorized>
             <NotAuthorized>
                 <NotAuthorizedMessage/>
@@ -89,6 +89,7 @@
     {
         { WorkspaceSidebar.SectionViews.Dashboard, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Delete, typeof(ResourceDeletionPage) },
+        { WorkspaceSidebar.SectionViews.DeleteWorkspace, typeof(WorkspaceDeletionPage) },
         { WorkspaceSidebar.SectionViews.Storage, typeof(FileExplorerPage) },
         { WorkspaceSidebar.SectionViews.Publishing, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories, typeof(RepositoryManagementPage) },

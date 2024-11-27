@@ -67,7 +67,7 @@ public class ResourceMessagingService(
             Templates = templates,
             AppData = new WorkspaceAppData
             {
-                DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project),
+                DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null),
                 AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project)
             },
             RequestingUserEmail = requestingUserEmail,

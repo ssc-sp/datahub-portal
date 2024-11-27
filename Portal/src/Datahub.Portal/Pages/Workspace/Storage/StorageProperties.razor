@@ -4,7 +4,9 @@
 @using Datahub.Core.Components.Code
 @using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Workspace.Storage.Container
-@using Datahub.Core.Storage;
+@using Datahub.Core.Storage
+@using Datahub.Portal.Components.User
+
 
 @if (_loading)
 {
@@ -19,19 +21,12 @@ else
         <div class="title-container">
             <i class="fas fa-folder"></i>
             <AeTypography Variant="h3" class="details-title-text">
-                @if (@DisplayName == _root)
-                {
-                    <span>@Localizer["root"]/</span>
-                }
-                else
-                {
-                    @DisplayName
-                }
+                @DisplayName
             </AeTypography>
         </div>
 
         <div class="access-container">
-            <AeTypography Variant="h4">Who has access</AeTypography>
+            <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
             <span class="circle-item">
                 <ProfileCircle FullName="@ProjectAcronym"/>
                 <AeTypography>@ProjectAcronym</AeTypography>
@@ -39,10 +34,10 @@ else
         </div>
 
         <div class="properties">
-            <AeTypography class="properties-title" Variant="h4">Storage Properties</AeTypography>
+            <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
             @foreach (var (key, (value, fragment)) in _properties)
             {
-                <AeTypography class="label">@key</AeTypography>
+                <AeTypography class="label">@Localizer[key]</AeTypography>
                 @if (fragment != null)
                 {
                     @fragment

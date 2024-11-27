@@ -18,7 +18,7 @@
 
 <MudStack>
 
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
         <MudStack>
             @if (_usersToAdd.Any() || _usersToUpdate.Any())
             {
@@ -91,7 +91,7 @@
     <MudStack Row Class="mt-6 mb-4">
         <DHMainContentTitle Title="@Localizer["Workspace Users"]" />
         <MudSpacer/>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ShowToAdmins="@ShowToAdmins">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
                 @Localizer["Invite New User"]
             </DHButton>
@@ -209,7 +209,7 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ShowToAdmins { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private string _filterString = null;
     private string _tabStyle;
@@ -221,7 +221,7 @@
     private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
     private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
     private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
-    private int _allCount => _projectUsers?.Count ?? 0;
+    private int _allCount => _projectUsers?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Remove) ?? 0;
 
     private List<Datahub_Project_User> _projectUsers;
     private List<Datahub_Project_User> _filteredProjectUsers;
