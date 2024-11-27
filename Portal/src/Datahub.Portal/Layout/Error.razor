@@ -29,36 +29,35 @@
                 <MudText Typo="Typo.h5">@Localizer["TECHNICAL DETAILS"]</MudText>
                 <MudText>@GetGeneralErrorText()</MudText>
             </MudItem>
+            <MudItem>
+                <MudText>@SupportContact() <MudLink Underline="Underline.Always" OnClick="NavigateToSupport">@Localizer["FSDH Support Request Form"]</MudLink></MudText>
+            </MudItem>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+                <environment include="Development">
+                    <MudItem>
+                        <MudText Typo="Typo.h6">AppInsights Query</MudText>
+                        <pre>
+                            @AppInsightsQuery
+                        </pre>
+                    </MudItem>
 
-            <environment include="Development">
-                <MudItem>
-                    <MudText Typo="Typo.h6">AppInsights Query</MudText>
-                    <pre>
-                        @AppInsightsQuery
-                    </pre>
-                </MudItem>
+                    <MudItem>
+                        <MudText Typo="Typo.h6">Message</MudText>
+                        <pre>
+                            @Exception?.Message
+                        </pre>
+                    </MudItem>
 
-                <MudItem>
-                    <MudText Typo="Typo.h6">Message</MudText>
-                    <pre>
-                        @Exception?.Message
-                    </pre>
-                </MudItem>
-
-                <MudItem>
-                    <MudText Typo="Typo.h6">Stack Trace</MudText>
-                    <pre>
-                        @Exception?.StackTrace
-                    </pre>
-                </MudItem>
-            </environment>
+                    <MudItem>
+                        <MudText Typo="Typo.h6">Stack Trace</MudText>
+                        <pre>
+                            @Exception?.StackTrace
+                        </pre>
+                    </MudItem>
+                </environment>
+            </DatahubAuthView>
         </MudStack>
-    </MudCardContent>
-    <MudCardActions>
-        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick=@HandleEmailDatahub Disabled=@_emailSent>
-            @Localizer["Email Datahub"]
-        </MudButton>
-    </MudCardActions>
+    </MudCardContent>    
 </MudCard>
 
 @code {
@@ -74,10 +73,23 @@
 
     private bool _emailSent;
 
+    private string _supportLink;
+
+
     private MarkupString GetGeneralErrorText()
     {
         var template = Localizer["An application error has occurred on the DataHub server. The error has been recorded with Correlation ID {0}. To avoid network issues, if you are currently on the VPN, please try to disconnect the VPN and retry your actions."].ToString();
-        return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));
+        return new MarkupString(string.Format(template, $"<strong>{CorrelationId}</strong>"));        
+    }
+    private void NavigateToSupport()
+    {
+        var url = Localizer[PageRoutes.HelpWithParam];
+        _navigationManager.NavigateTo(url.ToString().Replace("{CorrelationId}", CorrelationId), forceLoad: true);
+    }
+
+    private string SupportContact()
+    {
+        return Localizer["To report an issue or request assistance, please use the "];
     }
 
     private string AppInsightsQuery => $"exceptions\n| where customDimensions.correlationId == '{CorrelationId}'";

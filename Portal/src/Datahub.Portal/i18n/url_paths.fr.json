@@ -28,6 +28,7 @@
   "/account/": "/compte/",
   "/explore": "/explorer",
   "/support": "/assistance",
+  "/support/{CorrelationId}/": "/assistance/{CorrelationId}/",  
   "/home": "/accueil",
   "/announcements": "/annonces",
   "/resources": "/ressources",
