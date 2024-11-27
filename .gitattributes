@@ -66,3 +66,4 @@
 # === Compiled Libraries ===
 # DLLs and other compiled binaries should remain as-is to prevent corruption.
 *.dll       binary
+
