@@ -221,7 +221,7 @@
     private int _adminCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
     private int _contributorCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Collaborator) ?? 0;
     private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
-    private int _allCount => _projectUsers?.Count ?? 0;
+    private int _allCount => _projectUsers?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Remove) ?? 0;
 
     private List<Datahub_Project_User> _projectUsers;
     private List<Datahub_Project_User> _filteredProjectUsers;

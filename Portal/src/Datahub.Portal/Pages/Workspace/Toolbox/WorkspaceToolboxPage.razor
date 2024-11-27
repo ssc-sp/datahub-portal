@@ -1,6 +1,6 @@
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
-@using Datahub.Shared
+
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
 
@@ -84,12 +84,13 @@
                                                        Icon="fa-light fa-check-to-slot"/>
                                         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin"
                                                          ProjectAcronym="@WorkspaceAcronym">
-                                            <DHButton Variant="@Variant.Filled" Color="@Color.Error"
-                                                      OnClick="@(() => NavigateToResourceDeletePage(tool))">
-                                                @Localizer["Remove Tool from Workspace"]
-                                                <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2"
-                                                        Style="font-size: 0.8rem;"/>
-                                            </DHButton>
+                                            @if (!_permenantToolList.Contains(tool))
+                                            {
+                                                <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
+                                                    @Localizer["Remove Tool from Workspace"]
+                                                    <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
+                                                </DHButton>
+                                            }
                                         </DatahubAuthView>
                                     </MudStack>
                                     break;
@@ -136,6 +137,13 @@
         TerraformTemplate.AzureArcGis,
         TerraformTemplate.AzureAPI
     ];
+
+    private readonly List<string> _permenantToolList =
+    [
+        TerraformTemplate.AzureDatabricks,
+        TerraformTemplate.AzureStorageBlob
+    ];
+
 
     internal record struct AvailabilityStatus
     {
