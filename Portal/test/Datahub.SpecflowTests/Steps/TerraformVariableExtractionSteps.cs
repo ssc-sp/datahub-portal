@@ -21,10 +21,8 @@ public sealed class TerraformVariableExtractionSteps
     public void GivenADatahubProjectWithTheFollowingResources(Table table)
     {
         var project = new Datahub_Project();
-        
         var projectResources = table.CreateSet<Project_Resources2>()
             .ToList();
-        
         project.Resources = projectResources;
         _scenarioContext["project"] = project;
     }
@@ -42,7 +40,6 @@ public sealed class TerraformVariableExtractionSteps
     {
         var expectedValue = table.Rows[0]["Value"];
         var name = table.Rows[0]["Name"];
-        
         var actualValue = _scenarioContext[name] as string;
         actualValue.Should().Be(expectedValue);
     }
@@ -51,7 +48,7 @@ public sealed class TerraformVariableExtractionSteps
     public void WhenICallTheMethodToExtractTheDatabricksWorkspaceUrl()
     {
         var project = _scenarioContext["project"] as Datahub_Project;
-        var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null);
+        var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, (bool?)null);
         _scenarioContext["databricksUrl"] = databricksUrl;
     }
 
