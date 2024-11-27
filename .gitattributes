@@ -14,6 +14,7 @@
 *.vb        text eol=crlf
 *.csx       text diff=csharp
 *.feature   text eol=crlf
+*.razor     text eol=crlf
 
 # ==========================================================
 # Web and View Files
