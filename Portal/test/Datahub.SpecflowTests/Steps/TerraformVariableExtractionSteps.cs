@@ -51,7 +51,7 @@ public sealed class TerraformVariableExtractionSteps
     public void WhenICallTheMethodToExtractTheDatabricksWorkspaceUrl()
     {
         var project = _scenarioContext["project"] as Datahub_Project;
-        var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null);
+        var databricksUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, (bool?)null);
         _scenarioContext["databricksUrl"] = databricksUrl;
     }
 
