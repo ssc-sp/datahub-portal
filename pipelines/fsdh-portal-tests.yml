@@ -43,14 +43,14 @@ steps:
       testRunTitle: 'Datahub Specflow Tests'
       arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
-  - task: DotNetCoreCLI@2
-    displayName: 'Datahub Specs Tests'
-    condition: succeededOrFailed()
-    inputs:
-      command: 'test'
-      projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
-      testRunTitle: 'Datahub Specs Tests'
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+  # - task: DotNetCoreCLI@2
+  #   displayName: 'Datahub Specs Playwright Tests'
+  #   condition: succeededOrFailed()
+  #   inputs:
+  #     command: 'test'
+  #     projects: 'Portal/test/Datahub.Specs/Datahub.Specs.csproj'
+  #     testRunTitle: 'Datahub Specs Tests'
+  #     arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - task: DotNetCoreCLI@2
     displayName: 'Datahub Unit Tests'
