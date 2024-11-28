@@ -58,8 +58,18 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         {
             throw new OpenDataPublishingException($"Metadata not found for workspace {workspaceAcronym}");
         }
+        else if (workspaceMetadata[FieldNames.opengov_owner_org] == null)
+        {
+            throw new OpenDataPublishingException($"Workspace {workspaceAcronym} has no owner organization set");
+        }
+        else if (submissionMetadata[FieldNames.opengov_owner_org] == null)
+        {
+            submissionMetadata.CopyFieldFromOtherMetadata(workspaceMetadata, FieldNames.opengov_owner_org);
+        }
 
         submissionMetadata[FieldNames.opengov_owner_org].Value_TXT = workspaceMetadata[FieldNames.opengov_owner_org].Value_TXT;
+            
+        await metadataBrokerService.SaveMetadata(submissionMetadata);
     }
 
     private async Task<ICloudStorageManager> GetCloudStorageManagerAsync(OpenDataPublishFile publishFile)
