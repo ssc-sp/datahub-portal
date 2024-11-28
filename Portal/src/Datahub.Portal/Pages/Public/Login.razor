@@ -21,20 +21,21 @@
                           RequiredError="@Localizer["Email is required"]" FullWidth="true"/>
         </div>
         <div class="form-group">
-        <MudCheckBox T="bool"
-                     Required
-                     RequiredError=@Localizer["Agreement with the Terms and conditions is required"]>
-            <MudText Typo="Typo.body1">
-                @Localizer["I agree to the "]
-                <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body1" Target="_blank">
-                    @Localizer["Terms and conditions"]
-                </MudLink>
-                @Localizer[" of use for FSDH"]
-            </MudText>
-        </MudCheckBox>
+            <MudCheckBox T="bool"
+                         @bind-Value="loginModel.Agreement"
+                         Required
+                         RequiredError=@Localizer["Agreement with the Terms and conditions is required"]>
+                <MudText Typo="Typo.body1">
+                    @Localizer["I agree to the "]
+                    <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body1" Target="_blank">
+                        @Localizer["Terms and conditions"]
+                    </MudLink>
+                    @Localizer[" of use for FSDH"]
+                </MudText>
+            </MudCheckBox>
         </div>
         <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                   Disabled="_loggingIn">
+                   Disabled="@(_loggingIn || String.IsNullOrWhiteSpace(loginModel.Email) || !loginModel.Agreement)">
             <MudText>
                 @(_loggingIn ? Localizer["Logging in..."] : Localizer["Login"])
             </MudText>
@@ -96,6 +97,7 @@
     public class LoginModel
     {
         public string Email { get; set; }
+        public bool Agreement { get; set; }
     }
 
 }
