@@ -27,6 +27,8 @@
 # to avoid issues with Windows-based tooling.
 *.sln       text eol=crlf
 *.csproj    text eol=crlf
+*.razor     text eol=crlf
+*.feature   text eol=crlf
 
 # ==========================================================
 # Script and Configuration Files
