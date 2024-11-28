@@ -233,8 +233,5 @@
 
     private string _modifiedCellStyle;
 
-    private DatahubAuthView.AuthLevels GetAuthLevel(Datahub_Project_User projectUser)
-    {
-        return projectUser.Role?.Id == 2 ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.WorkspaceAdmin;
-    }
+    
 }
