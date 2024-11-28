@@ -152,9 +152,10 @@ public class TerraformService(
     public async Task DeleteWorkspaceAsync(TerraformWorkspace terraformWorkspace, string resourcegroup)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        await RenameTemplateAsDeleted(projectPath, "main", terraformWorkspace);
+        await RenameTemplateAsDeleted(projectPath, TerraformTemplate.NewProjectTemplateFile, terraformWorkspace);
 
-        var workspaceDeletionFilePath = Path.Join(projectPath, $"deleted.md");
+        var workspaceDeletionFilePath = Path.Join(projectPath, $"deleted.ps1");
+
         var content = $"az group delete --name {resourcegroup} --yes";
         await File.WriteAllTextAsync(workspaceDeletionFilePath, content);
         logger.LogInformation("Created workspace deletion file {DeletedFilePath}", workspaceDeletionFilePath);
@@ -167,8 +168,8 @@ public class TerraformService(
         await WriteDeletedFile(templateName, projectPath);
     }
 
-    private async Task<string> RenameTemplateAsDeleted(string projectPath, string templateName, TerraformWorkspace terraformWorkspace)
-    {    
+    private async Task RenameTemplateAsDeleted(string projectPath, string templateName, TerraformWorkspace terraformWorkspace)
+    {            
         var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
             .ToArray();
 
@@ -180,8 +181,7 @@ public class TerraformService(
                 File.Move(file, newFileName);
                 logger.LogInformation("Renamed file {File} to {NewFileName}", file, newFileName);
             }
-        }
-        return projectPath;
+        }        
     }
 
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)
