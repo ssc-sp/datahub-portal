@@ -152,7 +152,7 @@ public class TerraformService(
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-
+        templateName = templateName == TerraformTemplate.AzurePostgres ? TerraformTemplate.AzurePostgresTemplateFile : templateName;
         var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
             .ToArray();
 
