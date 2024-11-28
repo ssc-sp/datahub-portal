@@ -45,9 +45,11 @@ public static class PageRoutes
     
     public const string LanguageSelection_Bilingual = "/language-langue";
 
-    public const string Help = "/support";
-    public const string Help_FR = "/assistance";
-  
+    public const string Help = $"/support";
+    public const string Help_FR = $"/assistance";
+    public const string HelpWithParam = $"/support/{{CorrelationId}}/";
+    public const string HelpWithParam_FR = $"/assistance/{{CorrelationId}}/";
+
     public const string CreateWorkspace = "/create-workspace";
     public const string CreateWorkspace_FR = "/creer-espace-de-travail";
 }
