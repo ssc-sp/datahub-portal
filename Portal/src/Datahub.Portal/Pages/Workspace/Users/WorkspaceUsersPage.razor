@@ -171,7 +171,8 @@
                 @rowContext.PortalUser.Email
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+                
+                <DatahubAuthView AuthLevel="@GetAuthLevel(rowContext)" ProjectAcronym="@WorkspaceAcronym">
                     <Authorized>
                         @{
                             var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
@@ -231,4 +232,9 @@
     private List<Datahub_Project_User> _currentlySelected = new();
 
     private string _modifiedCellStyle;
+
+    private DatahubAuthView.AuthLevels GetAuthLevel(Datahub_Project_User projectUser)
+    {
+        return projectUser.Role?.Id == 2 ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.WorkspaceAdmin;
+    }
 }
