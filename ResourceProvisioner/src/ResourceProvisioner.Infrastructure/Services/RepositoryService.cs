@@ -524,7 +524,7 @@ public partial class RepositoryService(
                     await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
                 }
             }
-            else if (!templateStatusToIgnore.Contains(template.Status))
+            else if (!TerraformStatus.DeletedOrInProcessOf(template.Status))
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
                 await terraformService.ExtractVariables(template.Name, terraformWorkspace);
