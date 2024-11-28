@@ -19,7 +19,7 @@
         base.OnParametersSet();
 
         if (PercentBudgetSpent <= 100) return;
-        
+
         _logger.LogWarning("PercentBudgetSpent is greater than 100. Setting to 100.");
         PercentBudgetSpent = 100;
     }
