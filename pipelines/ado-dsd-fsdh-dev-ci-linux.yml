@@ -7,8 +7,7 @@
 pr:
   branches:
     include:
-      - develop
-      - proof-of-concept
+      - new_develop
   paths:
     include:
       - 'Portal/**'
@@ -18,7 +17,7 @@ resources:
   repositories:
   - repository: self
     type: git
-    ref: refs/heads/develop
+    ref: refs/heads/new_develop
 jobs:
 - job: Job_1
   displayName: 'Agent job: prepare'
