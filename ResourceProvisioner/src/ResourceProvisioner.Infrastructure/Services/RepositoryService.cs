@@ -520,7 +520,7 @@ public partial class RepositoryService(
             {
                 await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
             }
-            else
+            else if (!TerraformStatus.DeletedOrInProcessOf(template.Status))
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
                 await terraformService.ExtractVariables(template.Name, terraformWorkspace);
@@ -540,7 +540,7 @@ public partial class RepositoryService(
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym} with a template status of {template.Status}",
                 StatusCode = MessageStatusCode.Success
             };
         }
