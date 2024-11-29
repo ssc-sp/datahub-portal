@@ -10,6 +10,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Offline;
+using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Settings;
 using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.Shared.Entities;
@@ -141,6 +142,8 @@ namespace Datahub.SpecflowTests.Steps
 
             Services.AddSingleton(mockAuthorizationPolicyProvider);
             Services.AddMudServices();
+
+            RenderTree.Add<CommonMudProviders>();
 
             var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/DHMarkdown.razor.js");
             JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/DHMarkdown.razor.js")
