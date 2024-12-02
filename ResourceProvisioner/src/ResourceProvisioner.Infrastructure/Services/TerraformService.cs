@@ -184,6 +184,7 @@ public class TerraformService(
         // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
         {TerraformTemplate.AzureAppService, TerraformVariables.OutputAzureAppServiceStatus},
         {TerraformTemplate.AzurePostgres, TerraformVariables.OutputAzurePostgresStatus},
+        {TerraformTemplate.AzurePostgresTemplateFile, TerraformVariables.OutputAzurePostgresStatus},
         {TerraformTemplate.NewProjectTemplate, TerraformVariables.OutputNewProjectTemplate}
         // {TerraformTemplate.AzureArcGis, "arcgis_url"},
         // {TerraformTemplate.AzureAPI, "api_url"}
