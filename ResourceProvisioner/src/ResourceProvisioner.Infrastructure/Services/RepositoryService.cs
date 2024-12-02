@@ -519,8 +519,9 @@ public partial class RepositoryService(
             if (template.Status == TerraformStatus.DeleteRequested)
             {
                 await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+                await CommitTerraformTemplate(template, requestingUsername);
             }
-            else if (!TerraformStatus.DeletedOrInProcessOf(template.Status))
+            else if (template.Status == TerraformStatus.CreateRequested)
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
                 await terraformService.ExtractVariables(template.Name, terraformWorkspace);
@@ -533,9 +534,8 @@ public partial class RepositoryService(
                         await terraformService.ExtractAllVariables(terraformWorkspace);
                         break;
                 }
-            }
-
-            await CommitTerraformTemplate(template, requestingUsername);
+                await CommitTerraformTemplate(template, requestingUsername);
+            }            
 
             return new RepositoryUpdateEvent()
             {
