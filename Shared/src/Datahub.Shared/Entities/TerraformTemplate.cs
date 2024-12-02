@@ -15,6 +15,8 @@ public class TerraformTemplate(string name, string status)
     public const string AzureArcGis = "azure-arcgis";
     public const string AzureAPI = "azure-api";
 
+    public const string AzurePostgresTemplateFile = "azure-postgresql";
+
     public const string NewProjectTemplateFile = "main";
 
     public string Name { get; } = name;

@@ -164,6 +164,7 @@ public class TerraformService(
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        templateName = templateName == TerraformTemplate.AzurePostgres ? TerraformTemplate.AzurePostgresTemplateFile : templateName;
         await RenameTemplateAsDeleted(projectPath, templateName, terraformWorkspace);
         await WriteDeletedFile(templateName, projectPath);
     }
@@ -199,6 +200,7 @@ public class TerraformService(
         // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
         {TerraformTemplate.AzureAppService, TerraformVariables.OutputAzureAppServiceStatus},
         {TerraformTemplate.AzurePostgres, TerraformVariables.OutputAzurePostgresStatus},
+        {TerraformTemplate.AzurePostgresTemplateFile, TerraformVariables.OutputAzurePostgresStatus},
         {TerraformTemplate.NewProjectTemplate, TerraformVariables.OutputNewProjectTemplate}
         // {TerraformTemplate.AzureArcGis, "arcgis_url"},
         // {TerraformTemplate.AzureAPI, "api_url"}
