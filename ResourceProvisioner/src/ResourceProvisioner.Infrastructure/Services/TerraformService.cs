@@ -154,7 +154,7 @@ public class TerraformService(
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
         await RenameTemplateAsDeleted(projectPath, TerraformTemplate.NewProjectTemplateFile, terraformWorkspace);
 
-        var workspaceDeletionFilePath = Path.Join(projectPath, $"deleted.ps1");
+        var workspaceDeletionFilePath = Path.Join(projectPath, $"delete.ps1");
 
         var content = $"az group delete --name {resourcegroup} --yes";
         await File.WriteAllTextAsync(workspaceDeletionFilePath, content);
