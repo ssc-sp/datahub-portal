@@ -1,4 +1,5 @@
 @using Datahub.Core.Model.Projects
+@inject DatahubPortalConfiguration _config
 
 
 <MudPaper Outlined Class="pa-4">
@@ -22,14 +23,17 @@
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
                     @Localizer["View storage"]
                 </DHButton>
-
-                <DHButton 
-                    Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
-                    Color="Color.Primary"
-                    Variant="@Variant.Text"
-                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
-                    @Localizer["Open Publishing Dashboard"]
-                </DHButton>
+                
+                @if (ShowPublishingDashboardButton)
+                {
+                    <DHButton 
+                        Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
+                        Color="Color.Primary"
+                        Variant="@Variant.Text"
+                        EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                        @Localizer["Open Publishing Dashboard"]
+                    </DHButton>
+                }
             </MudStack>
             }
             else
@@ -41,6 +45,8 @@
 </MudPaper>
 
 @code {
+
+    private bool ShowPublishingDashboardButton => _config.CkanConfiguration.IsFeatureEnabled;
 
     [Parameter]
     [EditorRequired]
