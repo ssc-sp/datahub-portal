@@ -7,22 +7,35 @@
 
 @if (TermsAcknowledged)
 {
-    <MudStack>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@ProjectAcronym">
-        <Authorized>
-            @if (_isSasTokenEnabled)
-            {
-                    <MudElement>
-                        <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" ExpiryDays="3"/>
-                    </MudElement>
-            }
-        </Authorized>
-
-    </DatahubAuthView>
-        <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
-                      PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
-                      Substitutions="_substitutions"/>
-    </MudStack>
+    @if(_isFinishedLoading)
+    {
+        <MudStack>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronym">
+                <Authorized>
+                    @if (_isSasTokenEnabled)
+                    {
+                        <MudElement>
+                            <SASTokenButton OnSubstitutionsChanged="HandleSubstitutionsChanged" Container="@Container" />
+                        </MudElement>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="@Severity.Info">@Localizer["Shared Key Access is disabled. Please enable it in workspace settings to allow token generation."]</MudAlert>
+                    }
+                </Authorized>
+                <NotAuthorized>
+                    <MudAlert Severity="@Severity.Info">@Localizer["SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token."]</MudAlert>
+                </NotAuthorized>
+            </DatahubAuthView>
+            <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
+                          PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
+                          Substitutions="_substitutions"/>
+        </MudStack>
+    }
+    else
+    {
+        <MudProgressCircular Indeterminate />
+    }
 }
 else
 {
@@ -49,6 +62,7 @@ else
 
     private List<(string, string)> _substitutions;
     private bool _isSasTokenEnabled;
+    private bool _isFinishedLoading = false;
 
     private void HandleSubstitutionsChanged(List<(string, string)> substitutions)
     {
@@ -64,6 +78,7 @@ else
         var armClient = WorkspaceSharedKeyAccessControl.BuildArmClient(_portalConfiguration);
         var storageResourceId = await WorkspaceSharedKeyAccessControl.LoadStorageResourceId(context, ProjectAcronym);
         _isSasTokenEnabled = await WorkspaceSharedKeyAccessControl.FetchStorageAllowSharedKeyAccess(armClient, new ResourceIdentifier(storageResourceId)) ?? false;
+        _isFinishedLoading = true;
     }
 
 }
