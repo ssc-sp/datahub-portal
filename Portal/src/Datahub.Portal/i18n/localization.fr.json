@@ -2974,5 +2974,7 @@
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} is already added to your workspace": "{0} est déjà ajouté à votre espace de travail",
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
-  "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail"
+  "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
+  "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.": "L'accès par clé partagée est désactivé. Veuillez l'activer dans les paramètres de l'espace de travail pour permettre la génération de jetons.",
+  "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token.": "La génération de jetons SAS est restreinte. Veuillez contacter le responsable de votre espace de travail ou les administrateurs pour obtenir un jeton."
 }

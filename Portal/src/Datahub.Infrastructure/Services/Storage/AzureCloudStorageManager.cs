@@ -60,12 +60,12 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return new DfsPage(folders, files, continuationToken!);
     }
 
-    public Task<Uri> GenerateSasTokenAsync(string container, int days)
+    public Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
     {
         ValidateContainerName(container);
 
         var containerClient = GetBlobContainerClient(container);
-        var sasBuilder = GetContainerSasBuild(container, days, BlobSasPermissions.All);
+        var sasBuilder = GetContainerSasBuild(container, timeSpan, BlobSasPermissions.All);
         var sharedKeyCred = GetSharedKeyCredentialAsync();
 
         var blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
@@ -290,14 +290,14 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return blobServiceClient.GetBlobContainerClient(containerName);
     }
 
-    static BlobSasBuilder GetContainerSasBuild(string containerName, int days, BlobSasPermissions permissions)
+    static BlobSasBuilder GetContainerSasBuild(string containerName, TimeSpan timeSpan, BlobSasPermissions permissions)
     {
         var sasBuilder = new BlobSasBuilder
         {
             BlobContainerName = containerName,
             Resource = "c",
-            StartsOn = DateTimeOffset.Now,
-            ExpiresOn = DateTimeOffset.Now.AddDays(days)
+            StartsOn = DateTimeOffset.UtcNow,
+            ExpiresOn = DateTimeOffset.UtcNow.Add(timeSpan)
         };
 
         sasBuilder.SetPermissions(permissions);
