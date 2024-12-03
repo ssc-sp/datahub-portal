@@ -2037,5 +2037,7 @@
   "{0} credits consumed yesterday": "{0} credits consumed yesterday",
   "{0} is already added to your workspace": "{0} is already added to your workspace",
   "{0} remaining credits of {1}": "{0} remaining credits of {1}",
-  "{0} successfully added to your workspace": "{0} successfully added to your workspace"
+  "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.": "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.",
+  "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token.": "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token."
 }
