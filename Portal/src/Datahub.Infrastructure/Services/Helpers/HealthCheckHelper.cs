@@ -7,6 +7,7 @@ using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
 using Datahub.Core.Utils;
@@ -51,6 +52,7 @@ namespace Datahub.Infrastructure.Services.Helpers
 
     public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IProjectStorageConfigurationService projectStorageConfigurationService,
+        IWorkspaceWebAppManagementService workspaceWebAppManagementService,
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
@@ -569,57 +571,89 @@ namespace Datahub.Infrastructure.Services.Helpers
                 .Include(p => p.Resources)
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
 
+            //TODO
+
             // If the project is null, the project does not exist or there was an error retrieving it
             if (project == null)
             {
                 errors.Add("Unable to retrieve project.");
-                status = InfrastructureHealthStatus.Create;
+                status = InfrastructureHealthStatus.Unhealthy;
+            }
+            else if (!(project.WebAppEnabled ?? false))
+            {
+                status = InfrastructureHealthStatus.NotProvisioned;
             }
             else
             {
-                // We check if the project has a web app resource. If not, we return a create status.
-                if (project.WebAppEnabled == null || project.WebAppEnabled == false)
+                var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
+                if (appServiceConfig is null)
                 {
-                    status = InfrastructureHealthStatus.Create;
+                    errors.Add("Unable to retrieve App Service configuration from project resource.");
+                    status = InfrastructureHealthStatus.Unhealthy;
                 }
                 else
                 {
-                    string url = project.WebApp_URL;
-
-                    // Validate if the URL is valid
-                    if (!Uri.TryCreate(url, UriKind.Absolute, out var result))
+                    var isProvisioned = !(string.IsNullOrEmpty(appServiceConfig.HostName) && string.IsNullOrEmpty(appServiceConfig.Id));
+                    if (!isProvisioned)
                     {
-                        status = InfrastructureHealthStatus.Unhealthy;
-                        errors.Add("Invalid Web App URL.");
-                        if (!string.IsNullOrEmpty(url) && !url.ToLower().StartsWith("http"))
-                        {
-                            url = "https://" + url;  // add https if not present
-                        }
+                        status = InfrastructureHealthStatus.NeedHealthCheckRun;
                     }
-
-                    try
+                    else
                     {
-                        // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
-                        using var httpClient = httpClientFactory.CreateClient();
-                        var response = await httpClient.GetAsync(url);
-
-                        if (!response.IsSuccessStatusCode)
+                        var appIsRunning = await workspaceWebAppManagementService.GetState(appServiceConfig.Id);
+                        if (!appIsRunning)
                         {
-                            status = InfrastructureHealthStatus.Unhealthy;
-                            errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}. {response.ReasonPhrase}");
+                            errors.Add("App is provisioned but not running.");
+                            status = InfrastructureHealthStatus.Degraded;
                         }
-                        else
-                        {
-                            var content = await response.Content.ReadAsStringAsync();
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        status = InfrastructureHealthStatus.Unhealthy;
-                        errors.Add($"Error while checking Web App health: {ex.Message}");
                     }
                 }
             }
+            //else
+            //{
+            //    // We check if the project has a web app resource. If not, we return a create status.
+            //    if (project.WebAppEnabled == null || project.WebAppEnabled == false)
+            //    {
+            //        status = InfrastructureHealthStatus.Create;
+            //    }
+            //    else
+            //    {
+            //        string url = project.WebApp_URL;
+
+            //        // Validate if the URL is valid
+            //        if (!Uri.TryCreate(url, UriKind.Absolute, out var result))
+            //        {
+            //            status = InfrastructureHealthStatus.Unhealthy;
+            //            errors.Add("Invalid Web App URL.");
+            //            if (!string.IsNullOrEmpty(url) && !url.ToLower().StartsWith("http"))
+            //            {
+            //                url = "https://" + url;  // add https if not present
+            //            }
+            //        }
+
+            //        try
+            //        {
+            //            // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
+            //            using var httpClient = httpClientFactory.CreateClient();
+            //            var response = await httpClient.GetAsync(url);
+
+            //            if (!response.IsSuccessStatusCode)
+            //            {
+            //                status = InfrastructureHealthStatus.Unhealthy;
+            //                errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}. {response.ReasonPhrase}");
+            //            }
+            //            else
+            //            {
+            //                var content = await response.Content.ReadAsStringAsync();
+            //            }
+            //        }
+            //        catch (Exception ex)
+            //        {
+            //            status = InfrastructureHealthStatus.Unhealthy;
+            //            errors.Add($"Error while checking Web App health: {ex.Message}");
+            //        }
+            //    }
+            //}
 
             return new(status, errors);
         }
