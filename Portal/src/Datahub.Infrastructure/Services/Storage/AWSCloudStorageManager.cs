@@ -170,10 +170,9 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		}
 	}
 
-	public Task<Uri> GenerateSasTokenAsync(string container, int days)
+	public Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
 	{
-		// not supported
-		return Task.FromResult(new Uri("http://none"));
+		throw new NotImplementedException();
 	}
 
 	public Task<StorageMetadata> GetStorageMetadataAsync(string container)
