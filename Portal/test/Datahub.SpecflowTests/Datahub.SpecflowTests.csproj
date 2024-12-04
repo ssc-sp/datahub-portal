@@ -43,4 +43,8 @@
         <Content Include="Features\**\*.feature" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ReqnrollFeatureFiles Remove="features\workspace\WorkspaceStorageComponents.feature" />
+    </ItemGroup>
+
 </Project>
