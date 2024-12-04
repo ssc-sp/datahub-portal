@@ -53,7 +53,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var repositoryService = scenarioContext.Get<RepositoryService>("repositoryService");
         var terraformTemplate = scenarioContext.Get<TerraformTemplate>("terraformTemplate");
         var result = await repositoryService.ExecuteResourceRun(terraformTemplate, Substitute.For<TerraformWorkspace>(),
-            "test@username");
+            "test@username", string.Empty);
         scenarioContext.Add("result", result);
     }
 

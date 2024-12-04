@@ -17,6 +17,8 @@ public class TerraformTemplate(string name, string status)
 
     public const string AzurePostgresTemplateFile = "azure-postgresql";
 
+    public const string NewProjectTemplateFile = "main";
+
     public string Name { get; } = name;
 
     public string Status { get; } = status ?? TerraformStatus.Unknown;

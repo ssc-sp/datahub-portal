@@ -42,22 +42,21 @@ public static class TerraformVariableExtraction
 
     private static string? AddLanguageURLParameter(string? databricksURL, bool? isFrench)
     {
-        if (isFrench is null || databricksURL is null || isFrench == false)
+        if (isFrench is null || databricksURL is null)
         {
             return databricksURL;
         }
-        if (isFrench == true)
+
+        var langParam = $"login.html?l={((isFrench == true) ? "fr" : "en")}";
+        if (databricksURL.EndsWith("/"))
         {
-            var langParam = "?l=fr";
-            if (databricksURL.EndsWith("/"))
-            {
-                databricksURL = databricksURL + langParam;
-            }
-            else
-            {
-                databricksURL = databricksURL + "/" + langParam;
-            }
+            databricksURL = databricksURL + langParam;
         }
+        else
+        {
+            databricksURL = databricksURL + "/" + langParam;
+        }
+
         return databricksURL;
     }
 

@@ -8,4 +8,6 @@ public class WorkspaceDefinition
     public WorkspaceAppData AppData { get; set; } = new();
 
     public string RequestingUserEmail { get; set; }
+
+    public string ResourceGroupName { get; set; } = string.Empty;
 }
