@@ -1,5 +1,6 @@
 ﻿@using Datahub.Core.Model.Projects;
 @using Datahub.Core.Model.Onboarding;
+@using System.Net.Http.Headers;
 @using System.Text.Json;
 
 @inject NavigationManager NavigationManager
@@ -11,6 +12,7 @@
     @Localizer["This page is used to test the hosting services endpoint."]
 </MudText>
 <MudForm>
+    <MudTextField T="string" @bind-Value="JwtToken" Label="JWT Token" Variant="Variant.Outlined" InputType="@InputType.Password" />
     <MudTextField T="string" @bind-Value="GcHostingId" Label="GC Hosting ID" Variant="Variant.Outlined" />
     <MudNumericField @bind-Value="Id" Label="ID" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="LeadFirstName" Label="Lead First Name" Variant="Variant.Outlined" />
@@ -53,6 +55,7 @@ else {
 @code {
     private string _result = "Click the button above to test the call";
     private bool _running = false;
+    public string JwtToken = "";
 
     // Form fields
     public string GcHostingId { get; set; }
@@ -95,6 +98,9 @@ else {
         using var httpClient = new HttpClient();
         Client client = new Client(baseUri, httpClient);
 
+        // Add JWT token to the request headers
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", JwtToken);
+
         try
         {
             _result = await client.CreateHostingServiceAsync(project);
@@ -104,7 +110,6 @@ else {
             _result += ex.ToString();
         }
         _running = false;
-
     }
 
     /// <summary>
