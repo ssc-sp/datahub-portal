@@ -26,7 +26,7 @@
     public CloudStorageContainer Container { get; set; }
 
     [Parameter]
-    public int ExpiryDays { get; set; } = 3;
+    public TimeSpan ExpiryTimeSpan { get; set; } = TimeSpan.FromMinutes(30);
 
     [Parameter]
     public bool UseUploadCode { get; set; } = false;
@@ -72,13 +72,13 @@
         
         if (string.IsNullOrWhiteSpace(_token))
         {
-            var uri = await Container.StorageManager.GenerateSasTokenAsync(Container.Name, ExpiryDays);
+            var uri = await Container.StorageManager.GenerateSasTokenAsync(Container.Name, ExpiryTimeSpan);
             if (UseUploadCode)
             {
                 _token = CredentialEncoder.EncodeCredentials(new UploadCredentials()
                     {
                         SASToken = uri.ToString(),
-                        SASTokenExpiry = DateTimeOffset.Now.AddDays(ExpiryDays),
+                        SASTokenExpiry = DateTimeOffset.UtcNow.Add(ExpiryTimeSpan),
                         WorkspaceCode = ProjectAcronym,
                         DataHubEnvironment = NavigationManager.BaseUri
                     });

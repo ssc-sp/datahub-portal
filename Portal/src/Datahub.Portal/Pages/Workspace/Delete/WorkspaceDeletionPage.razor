@@ -1,6 +1,7 @@
 ﻿@namespace Datahub.Portal.Pages.Workspace.Delete
 
 @using Datahub.Application.Services
+@using Datahub.Core.Extensions;
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared
 @using Datahub.Shared.Entities
@@ -117,20 +118,29 @@
 
             await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-            var undeletedResources = await ctx.Project_Resources2
+            var resources = await ctx.Project_Resources2
                    .Include(r => r.Project)
-                   .Where(r => r.Project.Project_Acronym_CD == WorkspaceAcronym && !(r.Status == TerraformStatus.Deleted ||
-                       r.Status == TerraformStatus.DeleteRequested))
+                   .Where(r => r.Project.Project_Acronym_CD == WorkspaceAcronym)
                    .ToListAsync(CancellationToken.None);
 
-            foreach (var undeletedResource in undeletedResources)
+            var rgName = string.Empty;
+
+            foreach (var resource in resources)
             {
-                undeletedResource.Status = TerraformStatus.DeleteRequested;
-                ctx.Project_Resources2.Update(undeletedResource);
+                resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
+                if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+                {
+                    rgName = resource.Project.GetResourceGroupName();
+                }
+                ctx.Project_Resources2.Update(resource);
             }
+
             await ctx.SaveChangesAsync(CancellationToken.None);
 
+
+
             var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
+            workspaceDefinition.ResourceGroupName =  rgName;
             workspaceDefinition.RequestingUserEmail = currentUser.Email;
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             
