@@ -9,4 +9,5 @@ public interface ITerraformService
     Task ExtractBackendConfig(string workspaceAcronym);
     Task ExtractAllVariables(TerraformWorkspace terraformWorkspace);
     Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace);
+    Task DeleteWorkspaceAsync(TerraformWorkspace terraformWorkspace, string resourcegroup);
 }
