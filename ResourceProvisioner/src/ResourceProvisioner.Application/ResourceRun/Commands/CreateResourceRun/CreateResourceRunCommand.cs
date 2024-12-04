@@ -14,6 +14,8 @@ public class CreateResourceRunCommand : IRequest<PullRequestUpdateMessage>
     public WorkspaceAppData AppData { get; set; }
 
     public string RequestingUserEmail { get; set; }
+
+    public string ResourceGroupName { get; set; } = string.Empty;
 }
 
 public class CreateResourceRunCommandHandler : IRequestHandler<CreateResourceRunCommand, PullRequestUpdateMessage>

@@ -267,8 +267,8 @@ public class NewProjectTemplateTests
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, command.RequestingUserEmail);
-
+        await _repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, command.RequestingUserEmail, command.ResourceGroupName);
+    
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // verify that the file main.tf does not contain "{{version}}" or "{{branch}}"
