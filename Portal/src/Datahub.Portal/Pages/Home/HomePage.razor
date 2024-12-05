@@ -63,13 +63,11 @@
                             @Localizer["Last Login: "]
                             @if (isFrench)
                             {
-                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"))
-                                ;
+                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"));
                             }
                             else
                             {
-                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"))
-                                ;
+                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"));
                             }
 
                         </MudText>
@@ -113,9 +111,7 @@
 
         await _telemetryService.FindUserLastLogin();
         lastLogin = _telemetryService.GetUserLastLogin();
-
         isFrench = await _userSettingsService.IsFrench();
-
     }
 
     protected override async Task OnParametersSetAsync()
@@ -131,9 +127,6 @@
 
         _userProjectGuid = _viewedPortalUser.GraphGuid;
         StateHasChanged();
-
-        //await _telemetryService.GetUserLastLogin();
     }
-
 
 }

@@ -67,9 +67,6 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         return lastLogin;
     }
 
-
-
-
     public async Task LogTelemetryEvent(string eventName)
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
