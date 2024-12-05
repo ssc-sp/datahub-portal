@@ -51,8 +51,6 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
             return;
         }
         var userLogins = ctx.TelemetryEvents.Where(t => t.PortalUserId == portalUser.Id && t.EventName == TelemetryEvents.UserLogin).ToList();
-        //logger.LogWarning("User Logins: {logins}", userLogins);
-        //logger.LogWarning("Date -2: {logins}, Date -1: {logins2}", userLogins.ElementAt(userLogins.Count-2).EventDate, userLogins.ElementAt(userLogins.Count - 1).EventDate);
         if (userLogins.Count > 0)
         {
             lastLogin = userLogins.ElementAt(userLogins.Count - 1).EventDate.ToLocalTime();
@@ -113,7 +111,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
             EventDate = DateTime.UtcNow
         });
 
-        await ctx.TrackSaveChangesAsync(auditingService);
+        await ctx.SaveChangesAsync();
 
         // report the new achievements
         if (newAchievements.Any())
