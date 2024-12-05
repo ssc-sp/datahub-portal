@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 Write-Host "Starting Python environment setup"
 
 # Check if the virtual environment is already activated and deactivate it
