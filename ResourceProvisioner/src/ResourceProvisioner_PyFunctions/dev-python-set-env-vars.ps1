@@ -29,20 +29,12 @@ function Read-VaultSecret($vault, $secretId)
     }
 }
 
-# $env:AzureClientId = (Read-VaultSecret "fsdh-key-dev" "devops-client-id")
-# $env:AzureClientSecret = (Read-VaultSecret "fsdh-key-dev" "devops-client-secret")
-# $env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
-# $env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
-# $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
-# $env:Datahub_ENVNAME = "dev"
-
-# Set environment variables globally
-Set-Item -Path "Env:AzureClientId" -Value (Read-VaultSecret "fsdh-key-dev" "devops-client-id")
-Set-Item -Path "Env:AzureClientSecret" -Value (Read-VaultSecret "fsdh-key-dev" "devops-client-secret")
-Set-Item -Path "Env:AzureTenantId" -Value "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
-Set-Item -Path "Env:AzureSubscriptionId" -Value (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
-Set-Item -Path "Env:DatahubServiceBus" -Value (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
-Set-Item -Path "Env:Datahub_ENVNAME" -Value "dev"
+$env:AzureClientId = (Read-VaultSecret "fsdh-key-dev" "devops-client-id")
+$env:AzureClientSecret = (Read-VaultSecret "fsdh-key-dev" "devops-client-secret")
+$env:AzureTenantId = "8c1a4d93-d828-4d0e-9303-fd3bd611c822"
+$env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subscription-id")
+$env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
+$env:DataHub_ENVNAME = "dev"
 
 Write-Output "Environment variables set"
 Write-Output "Use 'func start' to start the function app locally"
