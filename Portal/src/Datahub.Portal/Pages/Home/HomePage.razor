@@ -18,7 +18,7 @@
 
 @if (_viewedPortalUser is null)
 {
-    <DHLoadingInitializer Message="@Localizer["Initializing profile..."]" />
+    <DHLoadingInitializer Message="@Localizer["Initializing profile..."]"/>
     return;
 }
 
@@ -84,7 +84,7 @@
                             <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
                         </MudStack>
                         <MudLink Href="@_achievementsUrl">
-                            @Localizer["View All achievements"]
+                            @Localizer["View all achievements"]
                         </MudLink>
                     </MudStack>
                 </MudItem>
