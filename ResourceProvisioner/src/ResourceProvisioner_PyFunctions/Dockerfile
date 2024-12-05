@@ -9,5 +9,5 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
 COPY . /home/site/wwwroot
 
 # Install any dependencies
-RUN pip install -r /home/site/wwwroot/requirements.txt
+RUN pip install --no-cache-dir -r /home/site/wwwroot/requirements.txt
 
