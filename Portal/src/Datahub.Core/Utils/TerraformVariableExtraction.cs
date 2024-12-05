@@ -2,6 +2,7 @@
 
 using System.Text.Json;
 using Datahub.Core.Model.Projects;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Utils;
@@ -234,6 +235,29 @@ public static class TerraformVariableExtraction
         return ExtractStringVariable(
             workspace?.Resources?.FirstOrDefault(r => r.ResourceType == storageAccountTemplateName)?.JsonContent,
             "storage_account");
+    }
+
+    private static Project_Resources2? GetProjectResource(Datahub_Project? workspace, string terraformTemplateName)
+    {
+        var fullTemplateName = TerraformTemplate.GetTerraformServiceType(terraformTemplateName);
+        return workspace?.Resources?.FirstOrDefault(r => r.ResourceType == fullTemplateName);
+    }
+
+    /// <summary>
+    /// Checks if a specified resource has been requested for the given workspace.
+    /// </summary>
+    /// <param name="workspace">The Datahub workspace.</param>
+    /// <param name="terraformTemplateName">The template name for the resource. See <see cref="TerraformTemplate"/> for template names.</param>
+    /// <returns>True if the resource has been requested and not deleted</returns>
+    public static bool IsResourceRequested(Datahub_Project? workspace, string terraformTemplateName)
+    {
+        var resource = GetProjectResource(workspace, terraformTemplateName);
+        if (resource is null)
+        {
+            return false;
+        }
+
+        return TerraformStatus.CreatedOrInProcessOf(resource.Status);
     }
 
     /// <summary>

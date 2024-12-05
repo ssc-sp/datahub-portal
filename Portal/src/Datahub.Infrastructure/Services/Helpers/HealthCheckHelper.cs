@@ -16,6 +16,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
+using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -247,21 +248,63 @@ namespace Datahub.Infrastructure.Services.Helpers
             // Get the projects that match the request.Name
             try
             {
-                string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
+                await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-                var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+                var project = await ctx.Projects
+                    .AsNoTracking()
+                    .Include(p => p.Resources)
+                    .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
 
-                if (projectStorageManager is null)
+                if (project == null)
                 {
-                    status = InfrastructureHealthStatus.Degraded;
-                    errors.Add("Unable to find the data container.");
+                    status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Unable to retrieve project.");
+                }
+                else
+                {
+                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureStorageBlob);
+
+                    if (!isRequested)
+                    {
+                        status = InfrastructureHealthStatus.Undefined;
+                    }
+                    else
+                    {
+                        string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
+                        string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
+
+                        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+
+                        if (projectStorageManager is null)
+                        {
+                            status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add("Unable to find the data container.");
+                        }
+                        else
+                        {
+                            var containers = await projectStorageManager.GetContainersAsync();
+                            if (containers is null || containers.Count < 1)
+                            {
+                                errors.Add("Storage account appears to have no containers.");
+                                status = InfrastructureHealthStatus.Degraded;
+                            }
+                            else
+                            {
+                                var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
+                                if (metadata is null)
+                                {
+                                    errors.Add("Unable to get container metadata. There may be something wrong with the container.");
+                                    status = InfrastructureHealthStatus.Degraded;
+                                }
+                            }
+                        }
+                    }
                 }
             }
             catch (Exception ex)
             {
                 status = InfrastructureHealthStatus.Unhealthy;
-                errors.Add("Unable to retrieve project. " + ex.GetType().ToString());
+                errors.Add("Error while verifying project storage. " + ex.GetType().ToString());
                 errors.Add($"Details: {ex.Message}");
             }
 
@@ -571,22 +614,22 @@ namespace Datahub.Infrastructure.Services.Helpers
                 .Include(p => p.Resources)
                 .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
 
-            //TODO
-
             // If the project is null, the project does not exist or there was an error retrieving it
             if (project == null)
             {
                 errors.Add("Unable to retrieve project.");
                 status = InfrastructureHealthStatus.Unhealthy;
             }
-            else if (!(project.WebAppEnabled ?? false))
-            {
-                status = InfrastructureHealthStatus.NotProvisioned;
-            }
             else
             {
+                var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppService);
                 var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
-                if (appServiceConfig is null)
+
+                if (!isRequested)
+                {
+                    status = InfrastructureHealthStatus.Undefined;
+                } 
+                else if (appServiceConfig is null)
                 {
                     errors.Add("Unable to retrieve App Service configuration from project resource.");
                     status = InfrastructureHealthStatus.Unhealthy;
@@ -596,6 +639,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     var isProvisioned = !(string.IsNullOrEmpty(appServiceConfig.HostName) && string.IsNullOrEmpty(appServiceConfig.Id));
                     if (!isProvisioned)
                     {
+                        errors.Add("App has not been provisioned - it may still be processing.");
                         status = InfrastructureHealthStatus.NeedHealthCheckRun;
                     }
                     else
@@ -609,52 +653,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     }
                 }
             }
-            //else
-            //{
-            //    // We check if the project has a web app resource. If not, we return a create status.
-            //    if (project.WebAppEnabled == null || project.WebAppEnabled == false)
-            //    {
-            //        status = InfrastructureHealthStatus.Create;
-            //    }
-            //    else
-            //    {
-            //        string url = project.WebApp_URL;
-
-            //        // Validate if the URL is valid
-            //        if (!Uri.TryCreate(url, UriKind.Absolute, out var result))
-            //        {
-            //            status = InfrastructureHealthStatus.Unhealthy;
-            //            errors.Add("Invalid Web App URL.");
-            //            if (!string.IsNullOrEmpty(url) && !url.ToLower().StartsWith("http"))
-            //            {
-            //                url = "https://" + url;  // add https if not present
-            //            }
-            //        }
-
-            //        try
-            //        {
-            //            // We attempt to connect to the URL. If we cannot, we return an unhealthy status.
-            //            using var httpClient = httpClientFactory.CreateClient();
-            //            var response = await httpClient.GetAsync(url);
-
-            //            if (!response.IsSuccessStatusCode)
-            //            {
-            //                status = InfrastructureHealthStatus.Unhealthy;
-            //                errors.Add($"Web App returned an unhealthy status code: {response.StatusCode}. {response.ReasonPhrase}");
-            //            }
-            //            else
-            //            {
-            //                var content = await response.Content.ReadAsStringAsync();
-            //            }
-            //        }
-            //        catch (Exception ex)
-            //        {
-            //            status = InfrastructureHealthStatus.Unhealthy;
-            //            errors.Add($"Error while checking Web App health: {ex.Message}");
-            //        }
-            //    }
-            //}
-
+            
             return new(status, errors);
         }
 
