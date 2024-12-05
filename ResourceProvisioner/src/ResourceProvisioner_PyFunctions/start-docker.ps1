@@ -36,4 +36,11 @@ $env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subs
 $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
 $env:Datahub_ENVNAME = "dev"
 
-. docker run -p 8080:80 -e AzureClientId=$env:AzureClientId -e AzureClientId=$env:AzureClientId -e AzureClientSecret=$env:AzureClientSecret -e AzureTenantId=$env:AzureTenantId -e AzureSubscriptionId=$env:AzureSubscriptionId -e DatahubServiceBus=$env:DatahubServiceBus -e Datahub_ENVNAME=$env:Datahub_ENVNAME fsdh-pyfunction:latest
+docker run -p 8080:80 `
+    -e AzureClientId=$env:AzureClientId `
+    -e AzureClientSecret=$env:AzureClientSecret `
+    -e AzureTenantId=$env:AzureTenantId `
+    -e AzureSubscriptionId=$env:AzureSubscriptionId `
+    -e DatahubServiceBus=$env:DatahubServiceBus `
+    -e Datahub_ENVNAME=$env:Datahub_ENVNAME `
+    fsdh-pyfunction:latest
