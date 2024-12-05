@@ -59,6 +59,18 @@
                             <strong>@_viewedPortalUser?.DisplayName</strong>
                         </MudText>
                         <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
+                        <MudText Typo="Typo.caption" Class="ml-2">
+                            @Localizer["Last Login: "]
+                            @if (isFrench)
+                            {
+                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"));
+                            }
+                            else
+                            {
+                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"));
+                            }
+
+                        </MudText>
                     </MudStack>
                 </MudStack>
             </MudItem>
@@ -88,11 +100,18 @@
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
     private string _achievementsUrl => $"{Localizer[PageRoutes.AccountPrefix]}/{Localizer["achievements"]}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private DateTime lastLogin;
+    private bool isFrench = false;
+
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+
+        await _telemetryService.FindUserLastLogin();
+        lastLogin = _telemetryService.GetUserLastLogin();
+        isFrench = await _userSettingsService.IsFrench();
     }
 
     protected override async Task OnParametersSetAsync()
