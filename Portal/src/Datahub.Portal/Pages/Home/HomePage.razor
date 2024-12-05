@@ -18,7 +18,7 @@
 
 @if (_viewedPortalUser is null)
 {
-    <DHLoadingInitializer Message="@Localizer["Initializing profile..."]"/>
+    <DHLoadingInitializer Message="@Localizer["Initializing Profile..."]" />
     return;
 }
 
@@ -28,7 +28,7 @@
     {
         <div role="group">
             <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
-            <WelcomeBanner/>
+            <WelcomeBanner />
         </div>
     }
     else
@@ -39,7 +39,7 @@
                   Style="width: 100%"
                   ObjectFit="ObjectFit.Cover"
                   Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
+                  ObjectPosition="ObjectPosition.Center" />
     }
     <div role="group">
         <h2 class="sr-only">
@@ -50,15 +50,29 @@
                 <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
                     <MudAvatar Style="width:120px; height: 120px">
                         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
-                                  Alt="@Localizer["Avatar profile picture"]"
+                                  Alt="@Localizer[""]"
                                   Height="120"
-                                  Width="120"/>
+                                  Width="120" />
                     </MudAvatar>
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.h2">
                             <strong>@_viewedPortalUser?.DisplayName</strong>
                         </MudText>
                         <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
+                        <MudText Typo="Typo.caption" Class="ml-2">
+                            @Localizer["Last Login: "]
+                            @if (isFrench)
+                            {
+                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"))
+                                ;
+                            }
+                            else
+                            {
+                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"))
+                                ;
+                            }
+
+                        </MudText>
                     </MudStack>
                 </MudStack>
             </MudItem>
@@ -67,10 +81,10 @@
                 <MudItem xs="12" md="4">
                     <MudStack>
                         <MudStack Spacing="6">
-                            <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
+                            <ProfileAchievements ViewedUser="@_viewedPortalUser" />
                         </MudStack>
                         <MudLink Href="@_achievementsUrl">
-                            @Localizer["View all achievements"]
+                            @Localizer["View All Achievements"]
                         </MudLink>
                     </MudStack>
                 </MudItem>
@@ -79,7 +93,7 @@
     </div>
     <MudDivider />
     <HomeNav />
-    <UserProjects UserId="@_userProjectGuid" SmSize="6"/>
+    <UserProjects UserId="@_userProjectGuid" SmSize="6" />
 </MudStack>
 
 @code {
@@ -88,11 +102,20 @@
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
     private string _achievementsUrl => $"{Localizer[PageRoutes.AccountPrefix]}/{Localizer["achievements"]}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+    private DateTime lastLogin;
+    private bool isFrench = false;
+
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+
+        await _telemetryService.FindUserLastLogin();
+        lastLogin = _telemetryService.GetUserLastLogin();
+
+        isFrench = await _userSettingsService.IsFrench();
+
     }
 
     protected override async Task OnParametersSetAsync()
@@ -108,6 +131,9 @@
 
         _userProjectGuid = _viewedPortalUser.GraphGuid;
         StateHasChanged();
+
+        //await _telemetryService.GetUserLastLogin();
     }
+
 
 }
