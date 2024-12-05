@@ -156,7 +156,7 @@ public class TerraformService(
 
         var workspaceDeletionFilePath = Path.Join(projectPath, $"delete.ps1");
 
-        var contentline1 = $"az account set --subscription {resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id}";
+        var contentline1 = $"az account set --subscription {terraformWorkspace.SubscriptionId}";
         var contentline2 = $"az group delete --name {resourcegroup} --yes";
 
         var content = $"{contentline1}\n{contentline2}";
