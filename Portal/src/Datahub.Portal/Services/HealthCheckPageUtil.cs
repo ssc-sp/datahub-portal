@@ -2,7 +2,7 @@
 
 namespace Datahub.Portal.Services
 {
-    public class HealthCheckHelperService
+    public static class HealthCheckPageUtil
     {
         public static InfrastructureHealthStatus GetRealStatus(InfrastructureHealthCheck health)
         {

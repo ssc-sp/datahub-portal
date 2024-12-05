@@ -49,12 +49,12 @@ else
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
                         <MudStack Row>
-                            <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
-                                @Localizer[GetStatusText(context)]
+                            <MudChip Color="@HealthCheckPageUtil.GetColor(context)" Size="Size.Small" T="string">
+                                @Localizer[HealthCheckPageUtil.GetStatusText(context)]
                             </MudChip>
                             @if (!string.IsNullOrEmpty(context.Details))
                             {
-                                <MudText>@GetStatusDetails(context)</MudText>
+                                <MudText>@HealthCheckPageUtil.GetStatusDetails(context)</MudText>
                             }
                         </MudStack>
                     </MudTd>
@@ -87,12 +87,12 @@ else
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
                     <MudStack Row>
-                        <MudChip Color="@GetColor(context)" Size="Size.Small" T="string">
-                            @Localizer[GetStatusText(context)]
+                        <MudChip Color="@HealthCheckPageUtil.GetColor(context)" Size="Size.Small" T="string">
+                            @Localizer[HealthCheckPageUtil.GetStatusText(context)]
                         </MudChip>
                         @if (!string.IsNullOrEmpty(context.Details))
                         {
-                            <MudText>@GetStatusDetails(context)</MudText>
+                            <MudText>@HealthCheckPageUtil.GetStatusDetails(context)</MudText>
                         }
                     </MudStack>
                 </MudTd>
@@ -178,8 +178,8 @@ else
                 <MudTd DataLabel="Workspace">@context.Name</MudTd>
                 <MudTd DataLabel="Resource">@Localizer[context.ResourceType.ToString()]</MudTd>
                 <MudTd DataLabel="Status">
-                    <MudChip Color="@GetColor(GetRealStatus(context))" T="string" Size="Size.Small">
-                        @Localizer[GetRealStatus(context).ToString()]
+                        <MudChip Color="@HealthCheckPageUtil.GetColor(HealthCheckPageUtil.GetRealStatus(context))" T="string" Size="Size.Small">
+                            @Localizer[HealthCheckPageUtil.GetRealStatus(context).ToString()]
                     </MudChip>
                 </MudTd>
                 <MudTd DataLabel="Updated">@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
@@ -509,7 +509,7 @@ else
         // Apply status filter
         if (selectedStatus.HasValue)
         {
-            filteredData = filteredData.Where(check => GetRealStatus(check) == selectedStatus.Value).ToList();
+            filteredData = filteredData.Where(check => HealthCheckPageUtil.GetRealStatus(check) == selectedStatus.Value).ToList();
         }
 
         // Apply type filter
@@ -520,7 +520,7 @@ else
 
         if (selectedStatuses.Any())
         {
-            filteredData = filteredData.Where(check => selectedStatuses.Contains(GetRealStatus(check).ToString())).ToList();
+            filteredData = filteredData.Where(check => selectedStatuses.Contains(HealthCheckPageUtil.GetRealStatus(check).ToString())).ToList();
         }
 
         // Apply search filter
@@ -569,56 +569,4 @@ else
             });
     }
 
-    private static InfrastructureHealthStatus GetRealStatus(InfrastructureHealthCheck health)
-    {
-        var realStatus = health.Status; 
-        var timestamp = health.HealthCheckTimeUtc;
-        var now = DateTime.UtcNow;
-        if (health.Status == InfrastructureHealthStatus.Healthy)  
-        {
-            if (timestamp >= now.AddHours(-72) && timestamp < now.AddHours(-24)) 
-            {
-                realStatus = InfrastructureHealthStatus.Degraded; 
-            }
-            if (timestamp < now.AddHours(-72)) 
-            {
-                realStatus = InfrastructureHealthStatus.Unhealthy; 
-            }
-        }
-        if (health.Status == InfrastructureHealthStatus.Create)
-        {
-            realStatus = InfrastructureHealthStatus.NeedHealthCheckRun;
-        }
-        return realStatus;
-    }
-
-    private static string GetStatusDetails(InfrastructureHealthCheck health)
-    {
-        var timeStamp = health.HealthCheckTimeUtc.ToLocalTime().ToString();
-        if (health.Status == InfrastructureHealthStatus.Healthy) return timeStamp;
-        return $"{health.Details} (as of {timeStamp})";
-    }
-
-    private static string GetStatusText(InfrastructureHealthCheck health)
-    {
-        var realStatus = GetRealStatus(health);
-        return realStatus.ToString();
-    }
-
-    private static Color GetColor(InfrastructureHealthCheck health)
-    {
-        var realStatus = GetRealStatus(health);
-        return GetColor(realStatus);
-    }
-
-    private static Color GetColor(InfrastructureHealthStatus status)
-    {
-        return status switch
-        {
-            InfrastructureHealthStatus.Healthy => Color.Success,
-            InfrastructureHealthStatus.Degraded => Color.Warning,
-            InfrastructureHealthStatus.Unhealthy => Color.Error,
-            _ => Color.Default
-        };
-    }
 }

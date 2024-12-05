@@ -66,9 +66,9 @@
             <RowTemplate Context="context">
                 <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
-                    <MudTooltip Delay="600" Text="@HealthCheckHelperService.GetStatusDetails(context)">
-                        <MudChip T="string" Color="@HealthCheckHelperService.GetColor(context)" Size="Size.Small">
-                            @Localizer[HealthCheckHelperService.GetStatusText(context)]
+                    <MudTooltip Delay="600" Text="@HealthCheckPageUtil.GetStatusDetails(context)">
+                        <MudChip T="string" Color="@HealthCheckPageUtil.GetColor(context)" Size="Size.Small">
+                            @Localizer[HealthCheckPageUtil.GetStatusText(context)]
                         </MudChip>
                     </MudTooltip>
                 </MudTd>
