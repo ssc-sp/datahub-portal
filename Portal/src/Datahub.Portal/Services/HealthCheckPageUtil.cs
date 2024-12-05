@@ -4,30 +4,28 @@ namespace Datahub.Portal.Services
 {
     public static class HealthCheckPageUtil
     {
-        private const int STALE_AGE_HOURS = 24;
-        private const int EXPIRED_AGE_HOURS = 72;
-
-        private static double GetAgeInHours(InfrastructureHealthCheck infrastructureHealthCheck) => (DateTime.UtcNow - infrastructureHealthCheck.HealthCheckTimeUtc).TotalHours;
-
-        public static InfrastructureHealthStatus GetDisplayStatus(InfrastructureHealthCheck infrastructureHealthCheck) => infrastructureHealthCheck.Status switch
+        public static InfrastructureHealthStatus GetRealStatus(InfrastructureHealthCheck health)
         {
-            InfrastructureHealthStatus.Healthy => GetAgeInHours(infrastructureHealthCheck) < STALE_AGE_HOURS ? InfrastructureHealthStatus.Healthy : InfrastructureHealthStatus.NeedHealthCheckRun,
-            _ => infrastructureHealthCheck.Status
-        };
-
-        public static string GetDisplayStatusText(InfrastructureHealthCheck infrastructureHealthCheck) => GetDisplayStatus(infrastructureHealthCheck).ToString();
-
-        public static MudBlazor.Color GetDisplayColor(InfrastructureHealthCheck infrastructureHealthCheck) => infrastructureHealthCheck.Status switch
-        {
-            InfrastructureHealthStatus.Healthy => GetAgeBasedColor(GetAgeInHours(infrastructureHealthCheck)),
-            InfrastructureHealthStatus.Degraded => MudBlazor.Color.Warning,
-            InfrastructureHealthStatus.Unhealthy => MudBlazor.Color.Error,
-            _ => MudBlazor.Color.Default
-        };
-
-        private static MudBlazor.Color GetAgeBasedColor(double age) => age < STALE_AGE_HOURS ? MudBlazor.Color.Success :
-            age < EXPIRED_AGE_HOURS ? MudBlazor.Color.Warning :
-            MudBlazor.Color.Error;
+            var realStatus = health.Status;
+            var timestamp = health.HealthCheckTimeUtc;
+            var now = DateTime.UtcNow;
+            if (health.Status == InfrastructureHealthStatus.Healthy)
+            {
+                if (timestamp >= now.AddHours(-72) && timestamp < now.AddHours(-24))
+                {
+                    realStatus = InfrastructureHealthStatus.Degraded;
+                }
+                if (timestamp < now.AddHours(-72))
+                {
+                    realStatus = InfrastructureHealthStatus.Unhealthy;
+                }
+            }
+            if (health.Status == InfrastructureHealthStatus.Create)
+            {
+                realStatus = InfrastructureHealthStatus.NeedHealthCheckRun;
+            }
+            return realStatus;
+        }
 
         public static string GetStatusDetails(InfrastructureHealthCheck health)
         {
@@ -36,5 +34,27 @@ namespace Datahub.Portal.Services
             return $"{health.Details} (as of {timeStamp})";
         }
 
+        public static string GetStatusText(InfrastructureHealthCheck health)
+        {
+            var realStatus = GetRealStatus(health);
+            return realStatus.ToString();
+        }
+
+        public static MudBlazor.Color GetColor(InfrastructureHealthCheck health)
+        {
+            var realStatus = GetRealStatus(health);
+            return GetColor(realStatus);
+        }
+
+        public static MudBlazor.Color GetColor(InfrastructureHealthStatus status)
+        {
+            return status switch
+            {
+                InfrastructureHealthStatus.Healthy => MudBlazor.Color.Success,
+                InfrastructureHealthStatus.Degraded => MudBlazor.Color.Warning,
+                InfrastructureHealthStatus.Unhealthy => MudBlazor.Color.Error,
+                _ => MudBlazor.Color.Default
+            };
+        }
     }
 }
