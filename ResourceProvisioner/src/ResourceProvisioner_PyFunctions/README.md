@@ -91,3 +91,27 @@ flowchart
     CheckDef -->|user in definition| End
     Remove --> End
 ```
+
+## Docker build
+
+### Building docker image
+
+```bash
+docker build --tag fsdh-pyfunction:latest .
+```
+
+### Running docker image
+
+
+
+```bash
+docker run -p 8080:80 \
+-e AzureClientId=$AzureClientId \
+-e AzureClientId=$AzureClientId \
+-e AzureClientSecret=$AzureClientSecret \
+-e AzureTenantId=$AzureTenantId \
+-e AzureSubscriptionId=$AzureSubscriptionId \
+-e DatahubServiceBus=$DatahubServiceBus \
+-e Datahub_ENVNAME=$Datahub_ENVNAME \
+ fsdh-pyfunction:latest
+```
