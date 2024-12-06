@@ -23,7 +23,7 @@ The tests should be executed from the `ResourceProvisioner_Functions_Tests` dire
 ## Install requirements
 
 ``bash
-pip install -r requirements.txt
+pip install -r ../../src/ResourceProvisioner_PyFunctions\requirements.txt
 ``
 
 ## Save requirements

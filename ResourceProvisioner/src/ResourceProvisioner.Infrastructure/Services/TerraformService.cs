@@ -156,7 +156,10 @@ public class TerraformService(
 
         var workspaceDeletionFilePath = Path.Join(projectPath, $"delete.ps1");
 
-        var content = $"az group delete --name {resourcegroup} --yes";
+        var contentline1 = $"az account set --subscription {terraformWorkspace.SubscriptionId}";
+        var contentline2 = $"az group delete --name {resourcegroup} --yes";
+
+        var content = $"{contentline1}\n{contentline2}";
         await File.WriteAllTextAsync(workspaceDeletionFilePath, content);
         logger.LogInformation("Created workspace deletion file {DeletedFilePath}", workspaceDeletionFilePath);
     }
