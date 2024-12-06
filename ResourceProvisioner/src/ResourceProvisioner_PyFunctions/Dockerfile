@@ -1,7 +1,7 @@
 FROM python:3.11 AS build
 
 COPY requirements.txt /
-RUN pip install --target /home/site/wwwroot -r /requirements.txt
+RUN pip install --target="/home/site/wwwroot/.python_packages/lib/site-packages" -r ./requirements.txt --upgrade --no-cache-dir
 
 FROM mcr.microsoft.com/azure-functions/python:4-python3.11
 
