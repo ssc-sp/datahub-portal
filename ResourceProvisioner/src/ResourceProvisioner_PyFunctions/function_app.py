@@ -109,8 +109,8 @@ def send_healthcheck_to_service_bus(message):
                 q_message = servicebus.ServiceBusMessage(mtm_json, message_id=mass_transit_msg.messageId)
                 sender.send_messages(q_message)
                 print(f"Sent message to queue: {check_results_queue_name}")
-    except Exception as e:
-        logging.error(f"An error occurred while sending health check to service bus: {e}")
+    except Exception:
+        logging.exception(f"An error occurred while sending health check to service bus")
 
 def keys_upper(dictionary):
     """
@@ -164,8 +164,8 @@ def new_sync_workspace(workspace_definition):
                 logging.info(f"Synchronizing {name} for {workspace_name}.")
                 sync_fn(workspace_definition)
             except Exception as e:
-                error_msg = f"Error synchronizing {name} for {workspace_name}: {e}"
-                logging.error(error_msg)
+                error_msg = f"Error synchronizing {name} for {workspace_name}"
+                logging.exception(error_msg)
                 errors.append(error_msg)
                 send_exception_to_service_bus(error_msg)
     
