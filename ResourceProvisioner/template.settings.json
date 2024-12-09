@@ -39,7 +39,6 @@
             "azure_databricks_enterprise_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-databricks-sp)",
             "environment_classification": "U",
             "environment_name": "$Environment",
-            "budget_amount": "400",
             "aad_admin_group_oid": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=aad-admin-group-oid)",
             "storage_size_limit_tb": "5",
             "az_location": "canadacentral",
