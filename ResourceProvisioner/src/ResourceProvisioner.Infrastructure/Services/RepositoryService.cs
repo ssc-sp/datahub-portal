@@ -530,17 +530,19 @@ public partial class RepositoryService(
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
                 await terraformService.ExtractVariables(template.Name, terraformWorkspace);
-                switch (template.Name)
-                {
-                    case TerraformTemplate.NewProjectTemplate:
-                        await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
-                        break;
-                    case TerraformTemplate.VariableUpdate:
-                        await terraformService.ExtractAllVariables(terraformWorkspace);
-                        break;
-                }
-                await CommitTerraformTemplate(template, requestingUsername);
-            }            
+            }
+
+            switch (template.Name)
+            {
+                case TerraformTemplate.NewProjectTemplate:
+                    await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                    break;
+                case TerraformTemplate.VariableUpdate:
+                    await terraformService.ExtractAllVariables(terraformWorkspace);
+                    break;
+            }
+
+            await CommitTerraformTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {
