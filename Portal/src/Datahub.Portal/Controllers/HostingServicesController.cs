@@ -13,6 +13,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Data.Databricks;
 using System.ComponentModel;
 using Datahub.Application.Services.UserManagement;
+using static DeepL.Model.Usage;
 
 namespace Datahub.Portal.Controllers;
 
@@ -22,14 +23,16 @@ public class HostingServicesController : ControllerBase
     private readonly DatahubProjectDBContext _context;
     private readonly IProjectCreationService _projectCreationService;
     private readonly IUserInformationService _userInformationService;
+    private readonly IUserEnrollmentService _userEnrollmentService;
 
     private string message = "";
 
-    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService)
+    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService)
     {
         _context = context;
         _projectCreationService = projectCreationService;
         _userInformationService = userInformationService;
+        _userEnrollmentService = userEnrollmentService;
     }
 
     /// <summary>
@@ -78,7 +81,7 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <returns>Json containing the workspace acronym, resource group name, and tenant ID</returns>
     [Route("api/create-workspace")]
-    [AllowAnonymous]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> PostCreateWorkspace()
     {
         try
@@ -92,39 +95,84 @@ public class HostingServicesController : ControllerBase
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
 
-            // Return acronym and resource group name
-            return Ok(new object[] { acronym, rg });
-
             // Create a new workspace. (Only to be done when authentication is complete)
-            //var users = _context.PortalUsers.ToListAsync();
-            //var user = users.Result.FirstOrDefault(e => e.Email == workspaceDetails.LeadEmail);
+            var users = _context.PortalUsers.ToListAsync();
+            var user = users.Result.FirstOrDefault(e => e.Email == workspaceDetails.LeadEmail);
 
-            //var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
+            if (user == null)
+            {
+                await RegisterUser(workspaceDetails.LeadEmail);
+                user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == workspaceDetails.LeadEmail);
+            }
 
-            //if (isAdded)
-            //{
-            //    await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
-
-            //    // Retrieve the workspace details.
-            //    var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
-
-            //    // Create a new GC Hosting workspace record using the given details.
-            //    GCHostingWorkspaceDetails gcHostingRecord = ConvertInputToGCHostingObject(workspaceDetails);
-            //    gcHostingRecord.Datahub_Project = project;
-            //    _context.GCHostingWorkspaceDetails.Add(gcHostingRecord);
-            //    await _context.SaveChangesAsync();
-
-            //    // Return the workspace acronym, resource group name, and tenant ID.
-            //    return Ok(new object[] { acronym });
-            //}
-            //else
-            //{
-            //    return Ok("Failed to create workspace.");
-            //}
+            if (user != null)
+            {
+                return await CreateProject(workspaceDetails, acronym, rg, user);
+            }
+            else
+            {
+                return Ok("Failed to create workspace - Could not register workspace lead");
+            }
         }
         catch (Exception ex)
         {
             return Ok(ex.ToString() + message);
+        }
+    }
+
+    /// <summary>
+    /// Registers a new user in the database and sends an invite to the user.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns>PortalUser object for the newly created user</returns>
+    [NonAction]
+    private async Task<PortalUser> RegisterUser(string email)
+    {
+        try
+        {
+            await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
+            var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
+            var user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            message = ex.Message;
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Creates a new project and adds it to the database, returns the acronym and resource group names
+    /// </summary>
+    /// <param name="workspaceDetails"></param>
+    /// <param name="acronym"></param>
+    /// <param name="user"></param>
+    /// <returns></returns>
+    [NonAction]
+    private async Task<IActionResult> CreateProject(HostingServiceInfo workspaceDetails, string acronym, string rg, PortalUser user)
+    {
+        var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
+
+        if (isAdded)
+        {
+            await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
+
+            // Retrieve the workspace details.
+            var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
+
+            // Create a new GC Hosting workspace record using the given details.
+            GCHostingWorkspaceDetails gcHostingRecord = ConvertInputToGCHostingObject(workspaceDetails);
+            gcHostingRecord.Datahub_Project = project;
+            _context.GCHostingWorkspaceDetails.Add(gcHostingRecord);
+            await _context.SaveChangesAsync();
+
+            // Return the workspace acronym, resource group name, and tenant ID.
+            return Ok(new object[] { acronym, rg });
+        }
+        else
+        {
+            return Ok("Failed to create workspace.");
         }
     }
 
