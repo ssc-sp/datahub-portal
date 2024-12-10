@@ -167,8 +167,11 @@ public class DocumentationService
         {
             if (doc.Title is not null)
             {
-                doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
-                BuildPreview(doc);
+                if (doc.Content is null)
+                {
+                    doc.Content = await LoadDocsPage(DocumentationGuideRootSection.RootFolder, doc.GetMarkdownFileName());
+                    BuildPreview(doc);
+                }
             }
             else
             {
@@ -242,10 +245,17 @@ public class DocumentationService
     /// <returns>The loaded DocItem if found, otherwise null.</returns>
     public DocItem? LoadPage(string id, bool isFrench)
     {
+        var locId = $"{id}-{(isFrench ? "FR" : "EN")}";
+        if (_cache.TryGetValue(locId, out DocItem? cachedPage))
+        {
+            return cachedPage;
+        }
         var searchRoot = isFrench ? _frOutline : _enOutline;
         if (searchRoot is null)
             throw new InvalidOperationException("sidebar not loaded");
-        return searchRoot.LocateID(id);
+        var docItem = searchRoot.LocateID(id);
+        _cache.Set(locId, docItem, GetEntryOptions());
+        return docItem;
     }
 
     /// <summary>
@@ -345,6 +355,12 @@ public class DocumentationService
         return await LoadDocs(BuildPath(guide, locale ?? string.Empty, name));
     }
 
+    private MemoryCacheEntryOptions GetEntryOptions() =>
+             // Set the cache entry options
+             new MemoryCacheEntryOptions()
+                // Keep in cache for this time, reset time if accessed.
+                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
+
     /// <summary>
     /// Retrieves the last commit timestamp for the repository.
     /// </summary>
@@ -367,13 +383,8 @@ public class DocumentationService
 
         if (lastCommit.HasValue)
         {
-            // Set the cache entry options
-            var cacheEntryOptions = new MemoryCacheEntryOptions()
-                // Keep in cache for this time, reset time if accessed.
-                .SetAbsoluteExpiration(DateTime.Now.AddHours(1));
-
             // Save data in cache.
-            _cache.Set(LastCommitTs, lastCommit.Value, cacheEntryOptions);
+            _cache.Set(LastCommitTs, lastCommit.Value, GetEntryOptions());
             return lastCommit.Value;
         }
         _logger.LogWarning($"Cannot load last commit timestamp for user docs");
