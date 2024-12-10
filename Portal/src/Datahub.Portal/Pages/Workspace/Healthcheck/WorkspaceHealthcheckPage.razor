@@ -11,6 +11,7 @@
 @using Datahub.Core.Model.Projects;
 @using Datahub.Infrastructure.Extensions;
 @using Datahub.Infrastructure.Queues.Messages;
+@using Datahub.Infrastructure.Services.Helpers
 @using Datahub.Infrastructure.Services.Security;
 @using Datahub.Infrastructure.Services.Azure;
 @using Datahub.Portal.Services;
@@ -67,8 +68,8 @@
                 <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
                     <MudTooltip Delay="600" Text="@HealthCheckPageUtil.GetStatusDetails(context)">
-                        <MudChip T="string" Color="@HealthCheckPageUtil.GetColor(context)" Size="Size.Small">
-                            @Localizer[HealthCheckPageUtil.GetStatusText(context)]
+                        <MudChip T="string" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small">
+                            @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
                         </MudChip>
                     </MudTooltip>
                 </MudTd>
@@ -90,14 +91,7 @@
 </MudPaper>
 
 @code {
-
-    private List<InfrastructureHealthResourceType> _workspaceChecks = new List<InfrastructureHealthResourceType>
-    {
-        InfrastructureHealthResourceType.AzureSqlDatabase,
-        InfrastructureHealthResourceType.AzureDatabricks,
-        InfrastructureHealthResourceType.AzureStorageAccount,
-        InfrastructureHealthResourceType.AzureWebApp,
-    };
+    private List<InfrastructureHealthResourceType> _workspaceChecks = HealthCheckHelper.WorkspaceHealthChecks;
 
     private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
     private DatahubProjectDBContext _projectDbContext;
@@ -253,6 +247,7 @@
         var res = _infrastructureHealthChecks
             .Where(h => (_workspaceChecks.Contains(h.ResourceType)))
             .Where(h => (h.Name.Contains(WorkspaceAcronym)))
+            .Where(h => h.Status != InfrastructureHealthStatus.Undefined)
             .GroupBy(h => h.ResourceType)
             .Select(g => g.OrderByDescending(h => h.HealthCheckTimeUtc).FirstOrDefault())
             .ToList();
