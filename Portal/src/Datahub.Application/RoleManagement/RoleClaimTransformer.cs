@@ -35,6 +35,10 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                     {
                         claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
                     }
+                    else if (project.Project_Acronym_CD == RoleConstants.DATAHUB_APPROVER_PROJECT) // Move this to be an `else if` with the above condition to prevent both support & approver role from being added
+                    {
+                        claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE));
+                    }
                     else
                     {
                         claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleConstants(role)}"));
