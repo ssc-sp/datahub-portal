@@ -110,8 +110,9 @@ namespace Datahub.Infrastructure.Services.Cost
 
             if (diff > REFRESH_THRESHOLD)
             {
-                logger.LogWarning("Workspace costs for {WorkspaceAcronym} do not match Azure costs (diff = ${Diff} > ${Threshold}). " +
-                                  "Refreshing costs for workspace", workspaceAcronym, diff, REFRESH_THRESHOLD);
+                logger.LogWarning(
+                    "Workspace costs for {WorkspaceAcronym} do not match Azure costs (diff = ${Diff} > ${Threshold}). " +
+                    "Refreshing costs for workspace", workspaceAcronym, diff, REFRESH_THRESHOLD);
                 if (executeRefresh) return await RefreshWorkspaceCostsAsync(workspaceAcronym);
                 return true;
             }
@@ -120,10 +121,10 @@ namespace Datahub.Infrastructure.Services.Cost
         }
 
         /// <inheritdoc />
-        public bool CheckUpdateNeeded(string workspaceAcronym)
+        public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx)
         {
-            using var ctx = dbContextFactory.CreateDbContext();
             var credits = ctx.Project_Credits
+                .AsNoTracking()
                 .Include(c => c.Project)
                 .FirstOrDefault(c => c.Project.Project_Acronym_CD == workspaceAcronym);
             if (credits is null) return true;
@@ -142,6 +143,7 @@ namespace Datahub.Infrastructure.Services.Cost
             {
                 subscriptionId = $"/subscriptions/{subscriptionId}";
             }
+
             var queryResult = await QueryScopeCostsAsync(subscriptionId, startDate, endDate, granularity, rgNames);
             return queryResult;
         }
@@ -535,7 +537,9 @@ namespace Datahub.Infrastructure.Services.Cost
                 {
                     lstDailyCosts.Add(new DailyServiceCost
                     {
-                        Amount = costColumn < 0 ? 0 : decimal.Parse(r[costColumn].ToString(), CultureInfo.InvariantCulture),
+                        Amount = costColumn < 0
+                            ? 0
+                            : decimal.Parse(r[costColumn].ToString(), CultureInfo.InvariantCulture),
                         Source = serviceColumn < 0
                             ? String.Empty
                             : r[serviceColumn].ToString().Replace("\"", ""),
