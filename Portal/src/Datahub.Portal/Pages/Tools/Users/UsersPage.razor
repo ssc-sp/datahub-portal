@@ -77,7 +77,7 @@ else
     private async Task CopyAllUsersToClipboard()
     {
         var allEmails = _portalUsers.Select(user => user.Email)
-            .Where(email => !EXCLUDED_EMAILS.Any(excluded => email.Contains(excluded)))
+            .Where(email => email != null && !EXCLUDED_EMAILS.Any(excluded => email.Contains(excluded)))
             .ToList();
         _allButton = await CopyToClipboard(allEmails) ? Localizer["Copied!"] : Localizer["Failed to copy"];
     }
@@ -90,7 +90,7 @@ else
     private async Task<bool> CopyToClipboard(List<string> emailList)
     {
         var result = false;
-        if (!emailList.Any())
+        if (emailList.Any())
         {
             var tempstr = String.Join(",\n", emailList);
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
