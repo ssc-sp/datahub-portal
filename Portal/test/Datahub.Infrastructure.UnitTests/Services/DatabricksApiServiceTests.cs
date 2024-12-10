@@ -44,7 +44,7 @@ public class DatabricksApiServiceTests
     }
 
     [Test]
-    [TestCase("TEST1", "https://test.azuredatabricks.net")]
+    [TestCase("TEST1", "https://test.azuredatabricks.net/login.html?l=en")]
     [TestCase("UNKNOWN", "")]
     public async Task ShouldReturnDatabricsWorkspaceUrl(string projectAcronym, string expectedResult)
     {
@@ -54,7 +54,7 @@ public class DatabricksApiServiceTests
     }
 
     [Test]
-    [TestCase("TEST1", "https://test.azuredatabricks.net/?l=fr")]
+    [TestCase("TEST1", "https://test.azuredatabricks.net/login.html?l=fr")]
     [TestCase("UNKNOWN", "")]
     public async Task ShouldReturnDatabricsWorkspaceUrlFr(string projectAcronym, string expectedResult)
     {
