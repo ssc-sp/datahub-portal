@@ -31,6 +31,8 @@ using Datahub.Infrastructure;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Shared.Configuration;
+using Datahub.Application.Services.WebApp;
+using Datahub.Infrastructure.Services.WebApp;
 
 
 var host = new HostBuilder()
@@ -85,6 +87,7 @@ var host = new HostBuilder()
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
