@@ -192,7 +192,7 @@ public class ProjectUsageScheduler(
             else
             {
                 // Otherwise, we grab the last 100 projects that were updated the longest ago
-                projects = projects.Where(p => NeedsUpdate(p, ctx)).OrderBy(p => p.Credits?.LastUpdate ?? DateTime.MinValue).Take(limit).ToList();
+                projects = projects.Where(p => NeedsUpdate(p, ctx)).OrderBy(LastUpdate).Take(limit).ToList();
             }
 
             return projects;
