@@ -607,53 +607,63 @@ namespace Datahub.Infrastructure.Services.Helpers
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-            var project = await ctx.Projects
-                .AsNoTracking()
-                .Include(p => p.Resources)
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
-
-            // If the project is null, the project does not exist or there was an error retrieving it
-            if (project == null)
+            try
             {
-                errors.Add("Unable to retrieve project.");
-                status = InfrastructureHealthStatus.Unhealthy;
-            }
-            else
-            {
-                var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppService);
-                var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
+                await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-                if (!isRequested)
+                var project = await ctx.Projects
+                    .AsNoTracking()
+                    .Include(p => p.Resources)
+                    .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
+
+                // If the project is null, the project does not exist or there was an error retrieving it
+                if (project == null)
                 {
-                    status = InfrastructureHealthStatus.Undefined;
-                } 
-                else if (appServiceConfig is null)
-                {
-                    errors.Add("Unable to retrieve App Service configuration from project resource.");
+                    errors.Add("Unable to retrieve project.");
                     status = InfrastructureHealthStatus.Unhealthy;
                 }
                 else
                 {
-                    var isProvisioned = !(string.IsNullOrEmpty(appServiceConfig.HostName) && string.IsNullOrEmpty(appServiceConfig.Id));
-                    if (!isProvisioned)
+                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppService);
+                    var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
+
+                    if (!isRequested)
                     {
-                        errors.Add("App has not been provisioned - it may still be processing.");
-                        status = InfrastructureHealthStatus.NeedHealthCheckRun;
+                        status = InfrastructureHealthStatus.Undefined;
+                    } 
+                    else if (appServiceConfig is null)
+                    {
+                        errors.Add("Unable to retrieve App Service configuration from project resource.");
+                        status = InfrastructureHealthStatus.Unhealthy;
                     }
                     else
                     {
-                        var appIsRunning = await workspaceWebAppManagementService.GetState(appServiceConfig.Id);
-                        if (!appIsRunning)
+                        var isProvisioned = !(string.IsNullOrEmpty(appServiceConfig.HostName) && string.IsNullOrEmpty(appServiceConfig.Id));
+                        if (!isProvisioned)
                         {
-                            errors.Add("App is provisioned but not running.");
-                            status = InfrastructureHealthStatus.Degraded;
+                            errors.Add("App has not been provisioned - it may still be processing.");
+                            status = InfrastructureHealthStatus.NeedHealthCheckRun;
+                        }
+                        else
+                        {
+                            var appIsRunning = await workspaceWebAppManagementService.GetState(appServiceConfig.Id);
+                            if (!appIsRunning)
+                            {
+                                errors.Add("App is provisioned but not running.");
+                                status = InfrastructureHealthStatus.Degraded;
+                            }
                         }
                     }
                 }
             }
-            
+            catch (Exception ex)
+            {
+                status = InfrastructureHealthStatus.Unhealthy;
+                errors.Add("Error while verifying web app. " + ex.GetType().ToString());
+                errors.Add($"Details: {ex.Message}");
+            }
+
             return new(status, errors);
         }
 
