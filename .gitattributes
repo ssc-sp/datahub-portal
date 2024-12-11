@@ -1,0 +1,68 @@
+# ==========================================================
+# Global Settings
+# ==========================================================
+# Detect text files automatically and normalize to LF line endings
+# across platforms, unless specified otherwise.
+*          text=auto eol=lf
+
+# ==========================================================
+# C# Source Code Files
+# ==========================================================
+# Use syntax-aware diffs for C# files (.cs) and C# script files (.csx).
+# Set line endings to CRLF only where required by tooling.
+*.cs        text diff=csharp eol=crlf
+*.vb        text eol=crlf
+*.csx       text diff=csharp
+
+# ==========================================================
+# Web and View Files
+# ==========================================================
+# .cshtml files use HTML diffs for better readability in reviews.
+*.cshtml    text diff=html
+
+# ==========================================================
+# Project and Solution Files
+# ==========================================================
+# Visual Studio solution and project files require CRLF line endings
+# to avoid issues with Windows-based tooling.
+*.sln       text eol=crlf
+*.csproj    text eol=crlf
+*.razor     text eol=crlf
+*.feature   text eol=crlf
+
+# ==========================================================
+# Script and Configuration Files
+# ==========================================================
+# Shell scripts and environment config files use LF line endings
+# for better cross-platform compatibility.
+*.sh        text eol=lf
+*.in        text eol=lf
+
+# ==========================================================
+# T4 Template Files
+# ==========================================================
+# T4 template files require CRLF endings to avoid extra newlines
+# in generated output. This setting is also reflected in .editorconfig.
+*.tt        text eol=crlf
+*.ttinclude text eol=crlf
+
+# ==========================================================
+# Binary Files
+# ==========================================================
+# Prevent Git from treating image and binary files as text files
+# to avoid line-ending transformations or diffs.
+# === Images ===
+*.png       binary
+*.jpg       binary
+*.gif       binary
+
+# === Security Keys and Certificates ===
+# Strong-name key files (.snk), private keys (.pfx), and certificates (.cer) 
+# are binary and should not be transformed.
+*.snk       binary
+*.pfx       binary
+*.cer       binary
+
+# === Compiled Libraries ===
+# DLLs and other compiled binaries should remain as-is to prevent corruption.
+*.dll       binary

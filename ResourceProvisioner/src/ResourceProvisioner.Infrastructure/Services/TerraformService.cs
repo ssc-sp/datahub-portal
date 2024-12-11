@@ -149,10 +149,31 @@ public class TerraformService(
         }
     }
 
+    public async Task DeleteWorkspaceAsync(TerraformWorkspace terraformWorkspace, string resourcegroup)
+    {
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        await RenameTemplateAsDeleted(projectPath, TerraformTemplate.NewProjectTemplateFile, terraformWorkspace);
+
+        var workspaceDeletionFilePath = Path.Join(projectPath, $"delete.ps1");
+
+        var contentline1 = $"az account set --subscription {terraformWorkspace.SubscriptionId}";
+        var contentline2 = $"az group delete --name {resourcegroup} --yes";
+
+        var content = $"{contentline1}\n{contentline2}";
+        await File.WriteAllTextAsync(workspaceDeletionFilePath, content);
+        logger.LogInformation("Created workspace deletion file {DeletedFilePath}", workspaceDeletionFilePath);
+    }
+
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        templateName = templateName == TerraformTemplate.AzurePostgres ? TerraformTemplate.AzurePostgresTemplateFile : templateName;
+        await RenameTemplateAsDeleted(projectPath, templateName, terraformWorkspace);
+        await WriteDeletedFile(templateName, projectPath);
+    }
 
+    private async Task RenameTemplateAsDeleted(string projectPath, string templateName, TerraformWorkspace terraformWorkspace)
+    {            
         var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
             .ToArray();
 
@@ -164,11 +185,9 @@ public class TerraformService(
                 File.Move(file, newFileName);
                 logger.LogInformation("Renamed file {File} to {NewFileName}", file, newFileName);
             }
-        }
-
-        await WriteDeletedFile(templateName, projectPath);
+        }        
     }
-    
+
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)
     {
         var deletedFilePath = Path.Join(projectPath, $"{templateName}.tf");
@@ -184,6 +203,7 @@ public class TerraformService(
         // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
         {TerraformTemplate.AzureAppService, TerraformVariables.OutputAzureAppServiceStatus},
         {TerraformTemplate.AzurePostgres, TerraformVariables.OutputAzurePostgresStatus},
+        {TerraformTemplate.AzurePostgresTemplateFile, TerraformVariables.OutputAzurePostgresStatus},
         {TerraformTemplate.NewProjectTemplate, TerraformVariables.OutputNewProjectTemplate}
         // {TerraformTemplate.AzureArcGis, "arcgis_url"},
         // {TerraformTemplate.AzureAPI, "api_url"}
@@ -369,4 +389,6 @@ public class TerraformService(
                 property => (property.Value?["type"]?.ToString() ?? "", property.Value?["default"]?.ToString() == null)
             ) ?? new Dictionary<string, (string, bool)>();
     }
+
+    
 }

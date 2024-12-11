@@ -46,7 +46,7 @@ public partial class RepositoryService(
         {
             DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
             CreateTemporaryDirectory();
-            
+
             var user = command.RequestingUserEmail ??
                        throw new NullReferenceException("Requesting user's email is null");
             logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
@@ -56,7 +56,7 @@ public partial class RepositoryService(
                 "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
                 command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
             var repositoryUpdateEvents =
-                await ExecuteResourceRuns(command.Templates, command.Workspace, user);
+                await ExecuteResourceRuns(command.Templates, command.Workspace, user, command.ResourceGroupName);
 
             logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
                 command.Workspace.Acronym);
@@ -69,7 +69,7 @@ public partial class RepositoryService(
             logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
                 command.Workspace.Acronym!);
-            
+
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
@@ -126,7 +126,7 @@ public partial class RepositoryService(
             .ToList();
         return versions;
     }
-    
+
     private void CreateTemporaryDirectory()
     {
         CleanUpEnvironment();
@@ -147,26 +147,25 @@ public partial class RepositoryService(
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
-        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-        Repository.Clone(repositoryUrl, repositoryPath);
+            logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+            Repository.Clone(repositoryUrl, repositoryPath);
 
-        if (resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
-        {
-            using var repo = new Repository(repositoryPath);
-            var branch =
-                repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
-            if (branch == null)
+            if (resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
             {
-                logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                    resourceProvisionerConfiguration.ModuleRepository.Branch);
-                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
-            }
+                using var repo = new Repository(repositoryPath);
+                var branch =
+                    repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+                if (branch == null)
+                {
+                    logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
+                        resourceProvisionerConfiguration.ModuleRepository.Branch);
+                    branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+                }
 
                 Commands.Checkout(repo, branch);
             }
 
             logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
-
         }
         catch (Exception e)
         {
@@ -204,10 +203,12 @@ public partial class RepositoryService(
             }
         };
 
-        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
+        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl,
+            Path.GetFullPath(repositoryPath));
         Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
 
-        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
+        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl,
+            Path.GetFullPath(repositoryPath));
     }
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
@@ -466,28 +467,19 @@ public partial class RepositoryService(
     }
 
     public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<TerraformTemplate> modules,
-        TerraformWorkspace terraformWorkspace, string requestingUsername)
+        TerraformWorkspace terraformWorkspace, string requestingUsername, string resourcegroup)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
         await ValidateWorkspaceVersion(terraformWorkspace);
 
-        var newProjectTemplate = modules.FirstOrDefault(x => x.Name == TerraformTemplate.NewProjectTemplate);
-        if(newProjectTemplate.Status == TerraformStatus.DeleteRequested)
-        {
-            // Execute each module but make sure the `new-project-template` module is last for deletion
-            modules = modules.OrderBy(x => x.Name == TerraformTemplate.NewProjectTemplate).ToList();
-        }
-        else
-        {
-            // Execute each module but make sure the `new-project-template` module is first for creation
-            modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
-        }
-        
+
+        // Execute each module but make sure the `new-project-template` module is first for creation
+        modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
 
         foreach (var module in modules)
         {
-            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername);
+            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername, resourcegroup);
             repositoryUpdateEvents.Add(result);
         }
 
@@ -512,27 +504,29 @@ public partial class RepositoryService(
 
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template,
         TerraformWorkspace terraformWorkspace,
-        string requestingUsername)
+        string requestingUsername, string resourcegroup)
     {
         try
         {
             if (template.Status == TerraformStatus.DeleteRequested)
             {
-                await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+                if (template.Name == TerraformTemplate.NewProjectTemplate)
+                {
+                    await terraformService.DeleteWorkspaceAsync(terraformWorkspace, resourcegroup);
+                }
+                else
+                {
+                    await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+                }
             }
-            else if (!TerraformStatus.DeletedOrInProcessOf(template.Status))
+            else if (template.Status == TerraformStatus.CreateRequested)
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
-                await terraformService.ExtractVariables(template.Name, terraformWorkspace);
-                switch (template.Name)
-                {
-                    case TerraformTemplate.NewProjectTemplate:
-                        await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
-                        break;
-                    case TerraformTemplate.VariableUpdate:
-                        await terraformService.ExtractAllVariables(terraformWorkspace);
-                        break;
-                }
+                await ExtractVariables(template, terraformWorkspace);
+            }
+            else
+            {
+                await ExtractVariables(template, terraformWorkspace);
             }
 
             await CommitTerraformTemplate(template, requestingUsername);
@@ -568,6 +562,19 @@ public partial class RepositoryService(
         }
     }
 
+    private async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    {
+        await terraformService.ExtractVariables(template.Name, terraformWorkspace);
+        switch (template.Name)
+        {
+            case TerraformTemplate.NewProjectTemplate:
+                await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                break;
+            case TerraformTemplate.VariableUpdate:
+                await terraformService.ExtractAllVariables(terraformWorkspace);
+                break;
+        }
+    }
 
     private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
     {
@@ -587,16 +594,18 @@ public partial class RepositoryService(
                throw new NullReferenceException(
                    $"Could not get existing pull request id for workspace {workspaceAcronym}");
     }
-    
+
     private void CleanUpEnvironment()
     {
         try
         {
-            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run",
+                DirectoryUtils.tempDirectory);
             var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             logger.LogError(e, "Error while cleaning up environment");
         }

@@ -1,5 +1,6 @@
 ﻿using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -100,7 +101,10 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
         }
-
+        private DatahubAuthView.AuthLevels GetAuthLevel(Datahub_Project_User projectUser)
+        {
+            return projectUser.Role?.Id == 2 ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.WorkspaceAdmin;
+        }
         private void ChangeDataStewardFlag(Datahub_Project_User projectUser, bool newValue)
         {
             projectUser.IsDataSteward = newValue;

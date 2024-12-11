@@ -134,7 +134,7 @@ namespace Datahub.Infrastructure.Services.Storage
             }
         }
 
-        public Task<Uri> GenerateSasTokenAsync(string container, int days)
+        public Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
         {
             throw new NotImplementedException();
         }

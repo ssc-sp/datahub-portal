@@ -18,6 +18,7 @@ using Datahub.Portal.Pages.Workspace.Users;
 using System.Reflection;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
+using Datahub.Portal.Layout;
 
 namespace Datahub.Tests
 {
@@ -73,6 +74,7 @@ namespace Datahub.Tests
                 .ReturnsAsync(new List<Datahub_Project_User>());
 
             using var ctx = new TestContext();
+            ctx.RenderTree.Add<CommonMudProviders>();
             ctx.JSInterop.Mode = JSRuntimeMode.Loose;
             ctx.JSInterop.SetupVoid("mudPopover.initialize", _ => true);
             ctx.JSInterop.SetupVoid("mudPopover.connect", _ => true);

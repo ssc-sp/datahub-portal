@@ -36,5 +36,15 @@ $env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subs
 $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
 $env:DataHub_ENVNAME = "dev"
 
-Write-Output "Environment variables set"
-Write-Output "Use 'func start' to start the function app locally"
+$dockerCommand = "docker run -p 8080:80 " +
+    "-e AzureClientId=$env:AzureClientId " +
+    "-e AzureClientSecret=`"$env:AzureClientSecret`" " +
+    "-e AzureTenantId=$env:AzureTenantId " +
+    "-e AzureSubscriptionId=$env:AzureSubscriptionId " +
+    "-e DatahubServiceBus=`"$env:DatahubServiceBus`" " +
+    "-e DataHub_ENVNAME=$env:DataHub_ENVNAME " +
+    "fsdh-pyfunction:latest"
+
+Write-Output "Running the Docker container with the following command:"
+Write-Output $dockerCommand
+Invoke-Expression $dockerCommand
