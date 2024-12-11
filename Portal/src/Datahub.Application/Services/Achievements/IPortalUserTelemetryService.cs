@@ -13,6 +13,10 @@ public interface IPortalUserTelemetryService
     /// <param name="eventName">Name, use TelemetryEvents constants</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task LogTelemetryEvent(string eventName);
+
+    Task FindUserLastLogin();
+
+    DateTime GetUserLastLogin();
 }
 
 public class AchievementsEarnedEventArgs : EventArgs
