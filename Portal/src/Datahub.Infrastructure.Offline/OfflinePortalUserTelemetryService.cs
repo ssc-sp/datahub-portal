@@ -14,9 +14,9 @@ public class OfflinePortalUserTelemetryService : IPortalUserTelemetryService
         _logger = logger;
     }
 
-    public DateTime GetUserLastLogin()
+    public DateTime? GetUserLastLogin()
     {
-        return new DateTime();
+        return new DateTime?();
     }
 
     public Task FindUserLastLogin()

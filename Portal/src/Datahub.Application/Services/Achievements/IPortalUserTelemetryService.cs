@@ -16,7 +16,7 @@ public interface IPortalUserTelemetryService
 
     Task FindUserLastLogin();
 
-    DateTime GetUserLastLogin();
+    DateTime? GetUserLastLogin();
 }
 
 public class AchievementsEarnedEventArgs : EventArgs

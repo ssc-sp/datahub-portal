@@ -21,7 +21,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     private readonly ILogger<PortalUserTelemetryService> logger;
     private readonly IDatahubAuditingService auditingService;
 
-    private DateTime lastLogin;
+    private DateTime? lastLogin;
 
     public PortalUserTelemetryService(
         ILogger<PortalUserTelemetryService> logger,
@@ -51,18 +51,18 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
             return;
         }
         var userLogins = ctx.TelemetryEvents.Where(t => t.PortalUserId == portalUser.Id && t.EventName == TelemetryEvents.UserLogin).ToList();
-        if (userLogins.Count > 0)
+        if (userLogins.Count > 1)
         {
-            lastLogin = userLogins.ElementAt(userLogins.Count - 1).EventDate.ToLocalTime();
+            lastLogin = userLogins.ElementAt(userLogins.Count - 2).EventDate.ToLocalTime();
         }
         else
         {
-            lastLogin = new DateTime(0001, 01, 01);
+            lastLogin = null;
         }
 
     }
 
-    public DateTime GetUserLastLogin()
+    public DateTime? GetUserLastLogin()
     {
         return lastLogin;
     }

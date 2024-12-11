@@ -34,12 +34,12 @@
     else
     {
         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-                  Alt="@Localizer["User's background image"]"
-                  Class="rounded-lg mud-elevation-4"
-                  Style="width: 100%"
-                  ObjectFit="ObjectFit.Cover"
-                  Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
+        Alt="@Localizer["User's background image"]"
+        Class="rounded-lg mud-elevation-4"
+        Style="width: 100%"
+        ObjectFit="ObjectFit.Cover"
+        Height="320"
+        ObjectPosition="ObjectPosition.Center"/>
     }
     <div role="group">
         <h2 class="sr-only">
@@ -50,9 +50,9 @@
                 <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
                     <MudAvatar Style="width:120px; height: 120px">
                         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
-                                  Alt="@Localizer["Avatar profile picture"]"
-                                  Height="120"
-                                  Width="120"/>
+                        Alt="@Localizer["Avatar profile picture"]"
+                        Height="120"
+                        Width="120"/>
                     </MudAvatar>
                     <MudStack Spacing="0">
                         <MudText Typo="Typo.h2">
@@ -60,16 +60,18 @@
                         </MudText>
                         <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
                         <MudText Typo="Typo.caption" Class="ml-2">
-                            @Localizer["Last Login: "]
-                            @if (isFrench)
+                            @if (lastLogin != null)
                             {
-                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"));
+                                @Localizer["Previous Login: "]
+                                @if (isFrench)
+                                {
+                                    @lastLogin?.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"));
+                                }
+                                else
+                                {
+                                    @lastLogin?.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"));
+                                }
                             }
-                            else
-                            {
-                                @lastLogin.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"));
-                            }
-
                         </MudText>
                     </MudStack>
                 </MudStack>
@@ -100,7 +102,7 @@
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
     private string _achievementsUrl => $"{Localizer[PageRoutes.AccountPrefix]}/{Localizer["achievements"]}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    private DateTime lastLogin;
+    private DateTime? lastLogin;
     private bool isFrench = false;
 
 
