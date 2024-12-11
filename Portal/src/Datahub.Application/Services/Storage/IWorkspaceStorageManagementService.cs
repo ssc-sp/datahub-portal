@@ -1,4 +1,6 @@
-﻿namespace Datahub.Application.Services.Storage
+﻿using Datahub.Core.Model.Context;
+
+namespace Datahub.Application.Services.Storage
 {
     public interface IWorkspaceStorageManagementService
     {
@@ -22,7 +24,8 @@
         /// Checks if a storage update is needed for a workspace
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym to check for</param>
+        /// <param name="ctx">Project db context to use</param>
         /// <returns>True if it is needed, false otherwise</returns>
-        public bool CheckUpdateNeeded(string workspaceAcronym);
+        public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx);
     }
 }
