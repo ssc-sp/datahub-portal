@@ -1,5 +1,6 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
 using Datahub.Infrastructure.Queues.Messages;
@@ -73,6 +74,7 @@ public class LocalMessageReaderService : BackgroundService
         using (var scope = _serviceProvider.CreateScope())
         { 
             var projectStorageConfigurationService = scope.ServiceProvider.GetRequiredService<ProjectStorageConfigurationService>();
+            var webAppManagementService = scope.ServiceProvider.GetRequiredService<IWorkspaceWebAppManagementService>();
             var projectDBContext = scope.ServiceProvider.GetRequiredService<DatahubProjectDBContext>(); 
             var portalConfiguration = scope.ServiceProvider.GetRequiredService<DatahubPortalConfiguration>();
             var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>(); 
@@ -86,7 +88,8 @@ public class LocalMessageReaderService : BackgroundService
             var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
             var sendEndpointProvider = scope.ServiceProvider.GetRequiredService<ISendEndpointProvider>();
 
-            var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, configuration, 
+            // TODO: refactor this to make it more concise, and/or autowire it
+            var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppManagementService, configuration, 
                 httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration);
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
