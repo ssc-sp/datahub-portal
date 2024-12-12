@@ -29,11 +29,18 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                 claims.AddClaim(new Claim(ClaimTypes.Role, "default"));
                 claims.AddClaim(new Claim(ClaimTypes.Role, userId));
 
+                // Ensure that the user can't be both approver and admin
+                bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
+
                 foreach (var (role, project) in authorizedProjects)
                 {
-                    if (project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
+                    if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
                     {
                         claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
+                    }
+                    else if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_APPROVER_PROJECT)
+                    {
+                        claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE));
                     }
                     else
                     {
