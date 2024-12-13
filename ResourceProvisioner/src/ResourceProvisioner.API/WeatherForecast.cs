@@ -9,4 +9,25 @@ public class WeatherForecast
     public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
 
     public string? Summary { get; set; }
+
+        // Test for SQL injection vulnerability
+    public void GetUserData(string userInput)
+    {
+        string connectionString = "Data Source=.;Initial Catalog=TestDB;Integrated Security=True";
+        using (var connection = new SqlConnection(connectionString))
+        {
+            // Vulnerable SQL query
+            string query = "SELECT * FROM Users WHERE Username = '" + userInput + "'";
+            var command = new SqlCommand(query, connection);
+
+            connection.Open();
+            using (var reader = command.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    Console.WriteLine(reader["Username"]);
+                }
+            }
+        }
+    }
 }
