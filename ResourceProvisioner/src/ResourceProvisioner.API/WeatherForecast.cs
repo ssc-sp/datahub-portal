@@ -14,7 +14,7 @@ namespace ResourceProvisioner.API
         public string? Summary { get; set; }
 
         // Test for credential scanning
-        private string password = "P@ssw0rd123"; //password scan
+        private string password = "Password123"; //password scan
 
         // Test for SQL injection vulnerability
         public void GetUserData(string userInput)
