@@ -1,4 +1,6 @@
-namespace ResourceProvisioner.API;
+using System;
+using System.Data.SqlClient;
+namespace ResourceProvisioner.API;.
 
 public class WeatherForecast
 {
