@@ -10,6 +10,7 @@
 @inject IResourceMessagingService _resourceMessagingService
 @inject IJSRuntime _jSRuntime
 @inject ISnackbar _snackbar
+@inject IProjectDeletionService _projectDeletionService
 
 @inject NavigationManager _navigationManager
 
@@ -115,39 +116,17 @@
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
 
-            // var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            // await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym);
 
-            // var resources = await ctx.Project_Resources2
-            //        .Include(r => r.Project)
-            //        .Where(r => r.Project.Project_Acronym_CD == WorkspaceAcronym)
-            //        .ToListAsync(CancellationToken.None);
+            if (_deleteRequested)
+            {
+                _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["An error occured when deleting this workspace. Please contact support."], Severity.Error);
+            }
 
-            // var rgName = string.Empty;
-
-            // foreach (var resource in resources)
-            // {
-            //     resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
-            //     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
-            //     {
-            //         rgName = resource.Project.GetResourceGroupName();
-            //     }
-            //     ctx.Project_Resources2.Update(resource);
-            // }
-
-            // await ctx.SaveChangesAsync(CancellationToken.None);
-
-
-
-            // var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
-            // workspaceDefinition.ResourceGroupName =  rgName;
-            // workspaceDefinition.RequestingUserEmail = currentUser.Email;
-            // await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-            
-            _deleteRequested = true;
-
-            _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
-            
         }
     }
 }
