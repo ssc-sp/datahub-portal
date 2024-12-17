@@ -74,7 +74,8 @@ public class PublicController: Controller
             var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid, remoteIp);
             if (result == null)
             {
-                _logger.LogError($"File not found: {fileId}");
+                _logger.LogError($"File not found: {fileId}") ;
+                
                 return NotFound();
             }
             else
