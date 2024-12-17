@@ -104,13 +104,15 @@ namespace Datahub.Infrastructure.Services.Storage
         }
 
         /// <inheritdoc />
-        public bool CheckUpdateNeeded(string workspaceAcronym)
+        public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx)
         {
-            using var ctx = dbContextFactory.CreateDbContext();
             var date = DateTime.UtcNow.Date;
-            var project = ctx.Projects.First(p => p.Project_Acronym_CD == workspaceAcronym);
-            var projectAverage = ctx.Project_Storage_Avgs.FirstOrDefault(p =>
-                p.ProjectId == project.Project_ID && p.Date == date.Date);
+            var project = ctx.Projects
+                .AsNoTracking()
+                .First(p => p.Project_Acronym_CD == workspaceAcronym);
+            var projectAverage = ctx.Project_Storage_Avgs
+                .AsNoTracking()
+                .FirstOrDefault(p => p.ProjectId == project.Project_ID && p.Date == date.Date);
             if (projectAverage is null) return true;
             return false;
         }
@@ -148,7 +150,7 @@ namespace Datahub.Infrastructure.Services.Storage
                         logger.LogError("Resource group with id {RgId} not found", rgId);
                         throw new Exception($"Resource group with id {rgId} not found");
                     }
-                    
+
                     var storageAccountsCollection = response.Value.GetStorageAccounts();
                     var storageAccountsPageable = storageAccountsCollection.GetAll();
                     var storageAccounts = storageAccountsPageable.ToList();
@@ -163,7 +165,7 @@ namespace Datahub.Infrastructure.Services.Storage
 
             return storageIds;
         }
-        
+
         #endregion
     }
 }
