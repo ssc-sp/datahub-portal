@@ -46,7 +46,7 @@ public partial class RepositoryService(
         {
             DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
             CreateTemporaryDirectory();
-            
+
             var user = command.RequestingUserEmail ??
                        throw new NullReferenceException("Requesting user's email is null");
             logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
@@ -69,7 +69,7 @@ public partial class RepositoryService(
             logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
                 command.Workspace.Acronym!);
-            
+
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
@@ -126,7 +126,7 @@ public partial class RepositoryService(
             .ToList();
         return versions;
     }
-    
+
     private void CreateTemporaryDirectory()
     {
         CleanUpEnvironment();
@@ -147,26 +147,25 @@ public partial class RepositoryService(
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
-        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-        Repository.Clone(repositoryUrl, repositoryPath);
+            logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
+            Repository.Clone(repositoryUrl, repositoryPath);
 
-        if (resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
-        {
-            using var repo = new Repository(repositoryPath);
-            var branch =
-                repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
-            if (branch == null)
+            if (resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
             {
-                logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                    resourceProvisionerConfiguration.ModuleRepository.Branch);
-                branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
-            }
+                using var repo = new Repository(repositoryPath);
+                var branch =
+                    repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
+                if (branch == null)
+                {
+                    logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
+                        resourceProvisionerConfiguration.ModuleRepository.Branch);
+                    branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+                }
 
                 Commands.Checkout(repo, branch);
             }
 
             logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
-
         }
         catch (Exception e)
         {
@@ -204,10 +203,12 @@ public partial class RepositoryService(
             }
         };
 
-        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
+        logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl,
+            Path.GetFullPath(repositoryPath));
         Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
 
-        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, Path.GetFullPath(repositoryPath));
+        logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl,
+            Path.GetFullPath(repositoryPath));
     }
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
@@ -472,10 +473,10 @@ public partial class RepositoryService(
 
         await ValidateWorkspaceVersion(terraformWorkspace);
 
-        
+
         // Execute each module but make sure the `new-project-template` module is first for creation
         modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
-        
+
         foreach (var module in modules)
         {
             var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername, resourcegroup);
@@ -507,12 +508,6 @@ public partial class RepositoryService(
     {
         try
         {
-            var templateStatusToIgnore = new List<string>
-            {
-                TerraformStatus.Deleted,
-                TerraformStatus.DeleteInProgress
-            };
-
             if (template.Status == TerraformStatus.DeleteRequested)
             {
                 if (template.Name == TerraformTemplate.NewProjectTemplate)
@@ -523,24 +518,18 @@ public partial class RepositoryService(
                 {
                     await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
                 }
-                
-                await CommitTerraformTemplate(template, requestingUsername);
             }
             else if (template.Status == TerraformStatus.CreateRequested)
             {
                 await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
-                await terraformService.ExtractVariables(template.Name, terraformWorkspace);
-                switch (template.Name)
-                {
-                    case TerraformTemplate.NewProjectTemplate:
-                        await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
-                        break;
-                    case TerraformTemplate.VariableUpdate:
-                        await terraformService.ExtractAllVariables(terraformWorkspace);
-                        break;
-                }
-                await CommitTerraformTemplate(template, requestingUsername);
-            }            
+                await ExtractVariables(template, terraformWorkspace);
+            }
+            else
+            {
+                await ExtractVariables(template, terraformWorkspace);
+            }
+
+            await CommitTerraformTemplate(template, requestingUsername);
 
             return new RepositoryUpdateEvent()
             {
@@ -573,6 +562,19 @@ public partial class RepositoryService(
         }
     }
 
+    private async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    {
+        await terraformService.ExtractVariables(template.Name, terraformWorkspace);
+        switch (template.Name)
+        {
+            case TerraformTemplate.NewProjectTemplate:
+                await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                break;
+            case TerraformTemplate.VariableUpdate:
+                await terraformService.ExtractAllVariables(terraformWorkspace);
+                break;
+        }
+    }
 
     private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
     {
@@ -592,16 +594,18 @@ public partial class RepositoryService(
                throw new NullReferenceException(
                    $"Could not get existing pull request id for workspace {workspaceAcronym}");
     }
-    
+
     private void CleanUpEnvironment()
     {
         try
         {
-            logger.LogInformation("Deleting temporary directory {Directory} for resource run", DirectoryUtils.tempDirectory);
+            logger.LogInformation("Deleting temporary directory {Directory} for resource run",
+                DirectoryUtils.tempDirectory);
             var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);
-        } catch (Exception e)
+        }
+        catch (Exception e)
         {
             logger.LogError(e, "Error while cleaning up environment");
         }

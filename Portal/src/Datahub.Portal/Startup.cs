@@ -418,7 +418,6 @@ public class Startup
 
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
-        services.AddScoped<HealthCheckHelperService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();
