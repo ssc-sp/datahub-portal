@@ -7,7 +7,6 @@ using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Shared;
 using FluentAssertions;
-using Google.Api.Gax.ResourceNames;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -151,6 +150,34 @@ namespace Datahub.Functions.UnitTests
         }
 
         [Test]
+        public async Task TestWorkspaceAzureSQLDatabaseHealthCheck()
+        {
+            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase, 
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TEST_PROJECT_ACRONYM);
+            var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
+
+            var results = GetHealthCheckResults(response);
+            var firstResult = results.FirstOrDefault();
+            VerifyHealthyResult(firstResult);
+        }
+
+        [Test]
+        public async Task TestInvalidWorkspaceSQLDatabaseHealthCheck()
+        {
+            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase, 
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, "NOPE");
+            var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
+
+            var results = GetHealthCheckResults(response);
+            var firstResult = results.FirstOrDefault();
+            firstResult.Should().NotBeNull();
+            firstResult.Check.Should().NotBeNull();
+            firstResult.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Degraded);
+            firstResult.Errors.Should().HaveCount(1);
+            firstResult.Errors[0].Should().Contain("Cannot retrieve project");
+        }
+
+        [Test]
         public async Task TestUndefinedWebAppHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
@@ -188,7 +215,7 @@ namespace Datahub.Functions.UnitTests
             firstResult.Should().NotBeNull();
             firstResult.Check.Should().NotBeNull();
             firstResult.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Degraded);
-            firstResult.Errors.Should().NotBeEmpty();
+            firstResult.Errors.Should().HaveCount(1);
             firstResult.Errors[0].Should().Contain("not running");
         }
 
