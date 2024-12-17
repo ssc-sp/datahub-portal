@@ -10,6 +10,7 @@
 @inject IResourceMessagingService _resourceMessagingService
 @inject IJSRuntime _jSRuntime
 @inject ISnackbar _snackbar
+@inject IProjectDeletionService _projectDeletionService
 
 @inject NavigationManager _navigationManager
 
@@ -111,43 +112,21 @@
         }
         else
         {
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
             var message = string.Format(Localizer["Are you sure you want to delete the workspace \"{0}\"?"], WorkspaceAcronym);
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
 
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym);
 
-            var resources = await ctx.Project_Resources2
-                   .Include(r => r.Project)
-                   .Where(r => r.Project.Project_Acronym_CD == WorkspaceAcronym)
-                   .ToListAsync(CancellationToken.None);
-
-            var rgName = string.Empty;
-
-            foreach (var resource in resources)
+            if (_deleteRequested)
             {
-                resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
-                if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
-                {
-                    rgName = resource.Project.GetResourceGroupName();
-                }
-                ctx.Project_Resources2.Update(resource);
+                _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["An error occured when deleting this workspace. Please contact support."], Severity.Error);
             }
 
-            await ctx.SaveChangesAsync(CancellationToken.None);
-
-
-
-            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym);
-            workspaceDefinition.ResourceGroupName =  rgName;
-            workspaceDefinition.RequestingUserEmail = currentUser.Email;
-            await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-            
-            _deleteRequested = true;
-
-            _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
-            
         }
     }
 }
