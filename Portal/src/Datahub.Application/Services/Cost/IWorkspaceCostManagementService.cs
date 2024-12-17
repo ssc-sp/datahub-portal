@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using Datahub.Core.Model.Context;
 
 [assembly: InternalsVisibleTo("Datahub.SpecflowTests")]
 
@@ -39,8 +40,9 @@ namespace Datahub.Application.Services.Cost
         /// Checks if the costs for the given workspace acronym need to be updated.
         /// </summary>
         /// <param name="workspaceAcronym">The workspace acronym to check for</param>
+        /// <param name="ctx">The project db context to use, to avoid having to create a context every time</param>
         /// <returns>True if it is needed, false otherwise</returns>
-        public bool CheckUpdateNeeded(string workspaceAcronym);
+        public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx);
 
         /// <summary>
         /// Queries the costs for the given subscription id within the given date range.

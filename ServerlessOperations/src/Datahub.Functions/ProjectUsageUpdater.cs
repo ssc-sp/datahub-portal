@@ -31,9 +31,11 @@ public class ProjectUsageUpdater(
     IConfiguration config)
 {
     private readonly ILogger<ProjectUsageUpdater> _logger = loggerFactory.CreateLogger<ProjectUsageUpdater>();
+    private static readonly SemaphoreSlim _costUpdateSemaphore = new(1, 10);
+    private static readonly SemaphoreSlim _storageUpdateSemaphore = new(1, 10);
     private readonly AzureConfig _azConfig = new(config);
     public bool Mock = false;
-    public List<DailyServiceCost> MockCosts { get; set; } = new(); 
+    public List<DailyServiceCost> MockCosts { get; set; } = new();
 
 
     [Function("ProjectUsageUpdater")]
@@ -45,7 +47,20 @@ public class ProjectUsageUpdater(
     {
         // deserialize message
         var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageUpdateMessage>();
-        await UpdateUsage(message, cancellationToken);
+        await _costUpdateSemaphore.WaitAsync(cancellationToken);
+        try
+        {
+            await UpdateUsage(message, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Error updating usage: {Error}", e.Message);
+            throw new Exception(e.Message);
+        }
+        finally
+        {
+            _costUpdateSemaphore.Release();
+        }
     }
 
     [Function("ProjectCapacityUsageUpdater")]
@@ -56,7 +71,20 @@ public class ProjectUsageUpdater(
         CancellationToken cancellationToken)
     {
         var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectCapacityUpdateMessage>();
-        await UpdateCapacity(message, cancellationToken);
+        await _storageUpdateSemaphore.WaitAsync(cancellationToken);
+        try
+        {
+            await UpdateCapacity(message, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("Error updating capacity: {Error}", e.Message);
+            throw new Exception(e.Message);
+        }
+        finally
+        {
+            _storageUpdateSemaphore.Release();
+        }
     }
 
     internal async Task<bool> UpdateUsage(ProjectUsageUpdateMessage message, CancellationToken cancellationToken)
@@ -157,6 +185,7 @@ public class ProjectUsageUpdater(
         {
             return MockCosts;
         }
+
         _logger.LogInformation("Downloading from blob {FileName}", fileName);
         var blobServiceClient = new BlobServiceClient(_azConfig.MediaStorageConnectionString);
         var containerClient = blobServiceClient.GetBlobContainerClient("costs");
