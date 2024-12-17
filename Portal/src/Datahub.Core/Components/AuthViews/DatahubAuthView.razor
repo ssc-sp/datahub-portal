@@ -48,6 +48,7 @@
         WorkspaceLead,
         DatahubAdminGuestView,
         DatahubSupport,
+        DatahubApprover,
         Unauthorized
     }
 
@@ -79,6 +80,7 @@
         var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
         var datahubSupportRole = RoleConstants.DATAHUB_ROLE_ADMIN;
         var datahubAdminAsGuestRole = RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST;
+        var datahubApprover = RoleConstants.DATAHUB_APPROVER_ROLE;
 
         switch (AuthLevel)
         {
@@ -96,6 +98,8 @@
                 return $"{datahubSupportRole},{datahubAdminAsGuestRole}";
             case AuthLevels.DatahubSupport:
                 return datahubSupportRole;
+            case AuthLevels.DatahubApprover:
+                return datahubApprover;
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
             default:
