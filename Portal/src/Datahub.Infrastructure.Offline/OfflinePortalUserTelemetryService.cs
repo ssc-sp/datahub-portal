@@ -14,6 +14,17 @@ public class OfflinePortalUserTelemetryService : IPortalUserTelemetryService
         _logger = logger;
     }
 
+    public DateTime? GetUserLastLogin()
+    {
+        return new DateTime?();
+    }
+
+    public Task FindUserLastLogin()
+    {
+        _logger.LogWarning("Error.");
+        return Task.CompletedTask;
+    }
+
     public Task LogTelemetryEvent(string eventName)
     {
         _logger.LogInformation("Logging Telemetry Event: {EventName}", eventName);
