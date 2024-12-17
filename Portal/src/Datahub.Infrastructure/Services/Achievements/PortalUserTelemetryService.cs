@@ -5,8 +5,11 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
+using Lucene.Net.Documents;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.JSInterop;
+using System.Reflection;
 
 namespace Datahub.Infrastructure.Services.Achievements;
 
@@ -17,6 +20,8 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     private readonly IUserInformationService userInformationService;
     private readonly ILogger<PortalUserTelemetryService> logger;
     private readonly IDatahubAuditingService auditingService;
+
+    private DateTime? lastLogin;
 
     public PortalUserTelemetryService(
         ILogger<PortalUserTelemetryService> logger,
@@ -33,6 +38,34 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     }
 
     public event EventHandler<AchievementsEarnedEventArgs> OnAchievementsEarned;
+
+    public async Task FindUserLastLogin()
+    {
+        await using var ctx = await contextFactory.CreateDbContextAsync();
+
+        var portalUser = await userInformationService.GetCurrentPortalUserWithAchievementsAsync();
+        // check the user exists
+        if (portalUser is null)
+        {
+            logger.LogWarning("Getting user's last login without a Portal User.");
+            return;
+        }
+        var userLogins = ctx.TelemetryEvents.Where(t => t.PortalUserId == portalUser.Id && t.EventName == TelemetryEvents.UserLogin).ToList();
+        if (userLogins.Count > 1)
+        {
+            lastLogin = userLogins.ElementAt(userLogins.Count - 2).EventDate.ToLocalTime();
+        }
+        else
+        {
+            lastLogin = null;
+        }
+
+    }
+
+    public DateTime? GetUserLastLogin()
+    {
+        return lastLogin;
+    }
 
     public async Task LogTelemetryEvent(string eventName)
     {
