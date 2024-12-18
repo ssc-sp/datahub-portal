@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - develop
+      - auto-update-v2
     workflow_dispatch: {}
 
 jobs:
