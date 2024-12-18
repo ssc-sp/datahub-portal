@@ -1,23 +1,31 @@
-name: Auto Update PRs
+---
+name: Pull request update
 
 on:
-  # Trigger when commits are pushed to the "develop" branch
   push:
     branches:
       - develop
-  
-  # Allow manually triggering the workflow from the Actions tab
-  workflow_dispatch: {}
+    workflow_dispatch: {}
 
 jobs:
   refresh_stale_prs:
-    name: Refresh Stale PRs
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: write
     steps:
-      # Step: Run the autoupdate Docker action
-      # Using the docker image to perform automatic updates
-      - name: Run refresh stale PRs action
-        uses: docker://chinthakagodawita/autoupdate-action@sha256:53d7013ad4689b703d2715d4b17d4901bb0a385e495e0b481f37adbe9b3cc3fc
-        env:
-          # Pass the GitHub token to allow the action to interact with the repository
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      - uses: actions/checkout@v4
+      
+      - name: Update ALL THE PRS! 🎉
+        uses: DiegoRamil/actions-pr-auto-update
+        with:
+          # defaults to github.token
+          #token: ${{ secrets.USER_TOKEN }}
+          # Optional: include a limit to the number of PRs to update (default is 100)
+          limit: 20
+          # Optional: set this to true if you want to include draft PRs in those to be updated
+          include_drafts: true
+          # Optional: include a list of labels which, if present, will prevent the PR from being updated; these are comma-separated.
+          exclude_labels: "do not update,skip update"
+          # Optional: include a list of labels, at least one of which are required to be present for the PR to be updated; these are comma-separated.
+          #include_labels: 'update,update me'
