@@ -18,7 +18,7 @@ jobs:
           owner: ${{ github.repository_owner }}
     
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@VERSION_YOU_WANT_TO_USE
+        uses: adRise/update-pr-branch@v0.9.1
         with:
           token: ${{ steps.create_token.outputs.token }}
           base: 'develop'
