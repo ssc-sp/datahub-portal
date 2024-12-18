@@ -4,7 +4,7 @@ name: Update Stale PR's
 on:
   push:
     branches:
-      - 'devlop'
+      - 'develop'
 jobs:
   autoupdate:
     runs-on: ubuntu-latest
@@ -13,8 +13,8 @@ jobs:
         id: create_token
         uses: actions/create-github-app-token@v1
         with:
-          app-id: ${{ vars.FSDH_TEAM_ADMIN_APP_ID }}
-          private-key: ${{ secrets.FSDH_TEAM_ADMIN_APP_KEY }}
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.REPO_SECRET }}
           owner: ${{ github.repository_owner }}
     
       - name: Automatically update PR
