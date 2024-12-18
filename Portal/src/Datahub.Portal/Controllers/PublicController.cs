@@ -74,7 +74,7 @@ public class PublicController: Controller
             var result = await _pubFileService.DownloadPublicUrlSharedFile(fileIdGuid, remoteIp);
             if (result == null)
             {
-                _logger.LogError($"File not found: {fileId}");
+                _logger.LogError($"File not found: {fileId.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "")}");
                 return NotFound();
             }
             else
@@ -84,7 +84,7 @@ public class PublicController: Controller
         }
         catch (FormatException)
         {
-            _logger.LogError($"Invalid file id (not a guid): {fileId}");
+            _logger.LogError($"Invalid file id (not a guid): {fileId.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "")}");
             return NotFound();
         }
     }
