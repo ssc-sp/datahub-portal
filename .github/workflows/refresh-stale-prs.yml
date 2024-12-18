@@ -15,9 +15,9 @@ jobs:
       pull-requests: write
     steps:
       - uses: actions/checkout@v4
-      
+
       - name: Update ALL THE PRS! 🎉
-        uses: DiegoRamil/actions-pr-auto-update
+        uses: DiegoRamil/actions-pr-auto-update@v1
         with:
           # defaults to github.token
           #token: ${{ secrets.USER_TOKEN }}
