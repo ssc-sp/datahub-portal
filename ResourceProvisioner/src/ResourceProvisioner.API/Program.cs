@@ -18,6 +18,9 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
+
+var password = "Password123"; //password scan
+
 {
     opts.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
