@@ -117,10 +117,10 @@ namespace Datahub.SpecflowTests.Hooks
                     }
                 });
             workspaceCostsManagementService
-                .CheckUpdateNeeded(Testing.WorkspaceAcronym)
+                .CheckUpdateNeeded(Testing.WorkspaceAcronym, Arg.Any<DatahubProjectDBContext>())
                 .Returns(true);
             workspaceCostsManagementService
-                .CheckUpdateNeeded(Testing.WorkspaceAcronym2)
+                .CheckUpdateNeeded(Testing.WorkspaceAcronym2, Arg.Any<DatahubProjectDBContext>())
                 .Returns(false);
             workspaceBudgetManagementService
                 .GetWorkspaceBudgetAmountAsync(Arg.Any<string>())
@@ -132,10 +132,10 @@ namespace Datahub.SpecflowTests.Hooks
                 .UpdateStorageCapacity(Arg.Any<string>())
                 .Returns(100.0);
             workspaceStorageManagementService
-                .CheckUpdateNeeded(Testing.WorkspaceAcronym)
+                .CheckUpdateNeeded(Testing.WorkspaceAcronym, Arg.Any<DatahubProjectDBContext>())
                 .Returns(true);
             workspaceStorageManagementService
-                .CheckUpdateNeeded(Testing.WorkspaceAcronym2)
+                .CheckUpdateNeeded(Testing.WorkspaceAcronym2, Arg.Any<DatahubProjectDBContext>())
                 .Returns(false);
             workspaceRgManagementService
                 .GetAllSubscriptionResourceGroupsAsync(Arg.Any<string>())

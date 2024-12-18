@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Services.Cost;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Infrastructure.Offline
 {
@@ -19,7 +20,7 @@ namespace Datahub.Infrastructure.Offline
             throw new NotImplementedException();
         }
 
-        public bool CheckUpdateNeeded(string workspaceAcronym)
+        public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx)
         {
             throw new NotImplementedException();
         }
