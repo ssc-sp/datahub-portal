@@ -70,7 +70,7 @@ public class CheckInfrastructureStatus(ILoggerFactory loggerFactory, HealthCheck
         return await ProcessRequest(request);
     }
 
-    private async Task<IActionResult> ProcessRequest(InfrastructureHealthCheckMessage? request)
+    public async Task<IActionResult> ProcessRequest(InfrastructureHealthCheckMessage? request)
     {
         if (request is null)
         {
