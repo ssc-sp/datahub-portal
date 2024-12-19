@@ -1,0 +1,98 @@
+﻿@using Datahub.Portal.Pages.Account
+@using Datahub.Core.Model.Projects
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISnackbar _snackbar
+
+<SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
+    <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ElevatedWorkspaceAccessEnabled" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
+    @if (ElevatedWorkspaceAccessEnabled)
+    {
+        <MudText Typo="Typo.body2">
+            @Localizer["FSDH Support Team access is enabled until {0}", _accessDate.ToString()]
+        </MudText>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2">@Localizer["The FSDH Support Team does not have access to your workspace."]</MudText>
+    }
+</SettingsField>
+
+@code {
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+    [Parameter]
+    public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+
+    private DateTime _accessDate;
+
+    private Datahub_Project _workspace;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        _workspace = await context.Projects
+            .AsNoTracking()
+            .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _accessDate = _workspace.AllowDatahubSupport;
+    }
+
+    /// <summary>
+    /// Toggles admin access for the FSDH Support Team. If access is enabled, it will be disabled, and vice versa.
+    /// </summary>
+    /// <returns></returns>
+    private async Task ToggleAdminAccess()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        var project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        if (WorkspacePage.DisplayToSupport(project))
+        {
+            dbContext.Projects.Update(CancelAdminAccess(project));
+            ElevatedWorkspaceAccessEnabled = false;
+            _snackbar.Add(Localizer["Support access has been revoked"], Severity.Success);
+        }
+        else
+        {
+            dbContext.Projects.Update(ExtendAdminAccess(project, 72));
+            ElevatedWorkspaceAccessEnabled = true;
+            _snackbar.Add(Localizer["Support access granted until {0}", project.AllowDatahubSupport.ToString()], Severity.Success);
+        }
+
+        await dbContext.SaveChangesAsync();
+
+        _accessDate = project.AllowDatahubSupport;
+    }
+
+    /// <summary>
+    /// Cancels the support access for the FSDH Support Team.
+    /// </summary>
+    /// <param name="project">The project to revoke support access to.</param>
+    /// <returns></returns>
+    public static Datahub_Project CancelAdminAccess(Datahub_Project project)
+    {
+        project.AllowDatahubSupport = DateTime.MinValue;
+        return project;
+    }
+
+    /// <summary>
+    /// Extends the support access for the FSDH Support Team by the specified number of hours.
+    /// </summary>
+    /// <param name="project">The project to be accessed.</param>
+    /// <param name="time">The number of hours to grant access for.</param>
+    /// <returns></returns>
+    public static Datahub_Project ExtendAdminAccess(Datahub_Project project, int time = 72)
+    {
+        var accessDate = DateTime.Now.AddHours(time);
+        project.AllowDatahubSupport = accessDate;
+        return project;
+    }
+}
