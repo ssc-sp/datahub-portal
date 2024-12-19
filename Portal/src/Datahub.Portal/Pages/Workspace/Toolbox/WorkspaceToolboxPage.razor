@@ -35,6 +35,12 @@
                 </MudLink>
             </MudAlert>
         }
+        else if (_workspace.IsOverBudget)
+        {
+            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+                @Localizer["This workspace has consumed 100% of its budget. Please contact support to discuss increasing the budget."]
+            </MudAlert>
+        }
         else
         {
             <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
@@ -131,17 +137,17 @@
     private readonly List<string> _toolList =
     [
         TerraformTemplate.AzureDatabricks,
-        TerraformTemplate.AzureStorageBlob,
-        TerraformTemplate.AzureAppService,
-        TerraformTemplate.AzurePostgres,
-        TerraformTemplate.AzureArcGis,
-        TerraformTemplate.AzureAPI
+    TerraformTemplate.AzureStorageBlob,
+    TerraformTemplate.AzureAppService,
+    TerraformTemplate.AzurePostgres,
+    TerraformTemplate.AzureArcGis,
+    TerraformTemplate.AzureAPI
     ];
 
     private readonly List<string> _permenantToolList =
     [
         TerraformTemplate.AzureDatabricks,
-        TerraformTemplate.AzureStorageBlob
+    TerraformTemplate.AzureStorageBlob
     ];
 
 
@@ -177,9 +183,11 @@
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)
+            .Include(w => w.Credits)
             .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
+
         _metadataRequired = _workspace.MetadataAdded != true;
         if (_metadataRequired)
         {
@@ -196,7 +204,8 @@
                 var resourceStatus = FetchWorkspaceResourceStatus(tool);
                 _toolDisplayStatusMap[tool] = resourceStatus;
             }
-        }
+        }            
+
 
         _initializing = false;
         await InvokeAsync(StateHasChanged);
@@ -214,7 +223,7 @@
 
         if (resource is null)
         {
-            return AvailabilityStatus.Available;
+            return _workspace.IsOverBudget ? AvailabilityStatus.Disabled : AvailabilityStatus.Available;
         }
 
         if (resource.Status is not null) return resource.Status;

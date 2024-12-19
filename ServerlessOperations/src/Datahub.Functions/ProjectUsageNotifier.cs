@@ -57,7 +57,10 @@ namespace Datahub.Functions
             // run project verification
             await VerifyAndNotifyProject(message.ProjectAcronym, cancellationToken);
 
-            await VerifyOverBudgetIsDeleted(message.ProjectAcronym, cancellationToken);
+
+
+            //Remove the delete functionalilty, but keep the notification above (for now)
+            //await VerifyOverBudgetIsDeleted(message.ProjectAcronym, cancellationToken);
         }
 
         /// <summary>
