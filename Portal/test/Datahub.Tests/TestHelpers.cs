@@ -46,6 +46,16 @@ public class FakePortalUserTelemetryService : IPortalUserTelemetryService
     {
     }
 
+    public DateTime? GetUserLastLogin()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task FindUserLastLogin()
+    {
+        return Task.CompletedTask;
+    }
+
     public void SimulatechievementsEarned(List<string> events)
     { 
         var args = new AchievementsEarnedEventArgs(events, false);
