@@ -16,12 +16,5 @@ Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
         }
     }
 
-    if (Test-Path $objDir) {
-        Remove-Item -Recurse -Force $objDir -WhatIf:$WhatIf
-        if ($WhatIf) {
-            Write-Output "Would delete $objDir"
-        } else {
-            Write-Output "Deleted $objDir"
-        }
-    }
+
 }
