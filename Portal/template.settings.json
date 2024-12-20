@@ -1,23 +1,5 @@
 {
-  "CultureSettings": {
-    "Default": "en-CA",
-    "SupportedCultures": "fr-CA|en-CA",
-    "TrackTranslations": false
-  },
-  "LandingBgFolder": "ssc",
-  "LandingBgImgCount": 2,
-  "Title": "Federal Science DataHub",
-  "DataHubModules": "",
-  "DataProjects": {
-    "PowerBI": false,
-    "PublicSharing": false,
-    "WebForms": false,
-    "Databricks": true,
-    "SQLServer": false,
-    "PostgreSQL": true,
-    "Costing": false,
-    "Storage": true
-  },
+
   "DatahubServiceBus": {
     "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=service-bus-connection-string)"
   },
