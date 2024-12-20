@@ -1,32 +1,30 @@
 ---
-name: Pull request update
+name: Pull request auto update
 
 on:
   push:
     branches:
-      - develop
-      - auto-update-v2
-    workflow_dispatch: {}
-
+      - "develop"
 jobs:
   refresh_stale_prs:
-    runs-on: ubuntu-22.04
-    permissions:
-      contents: read
-      pull-requests: write
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-
-      - name: Update ALL THE PRS! 🎉
-        uses: DiegoRamil/actions-pr-auto-update@v1.0.4
+      - name: Create App token
+        id: create_token
+        uses: actions/create-github-app-token@v1
         with:
-          # defaults to github.token
-          token: ${{ secrets.GITHUB_TOKEN }}
-          # Optional: include a limit to the number of PRs to update (default is 100)
-          limit: 20
-          # Optional: set this to true if you want to include draft PRs in those to be updated
-          include_drafts: true
-          # Optional: include a list of labels which, if present, will prevent the PR from being updated; these are comma-separated.
-          exclude_labels: "do not update,skip update"
-          # Optional: include a list of labels, at least one of which are required to be present for the PR to be updated; these are comma-separated.
-          #include_labels: 'update,update me'
+          app-id: ${{ vars.DATAHUB_PORTAL_PR_APP_ID }}
+          private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
+          owner: ${{ github.repository_owner }}
+
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.9.1
+        with:
+          token: ${{ steps.create_token.outputs.token }}
+          base: "develop"
+          required_approval_count: 0
+          require_passed_checks: false
+          allow_ongoing_checks: true
+          sort: "created"
+          direction: "desc"
+          require_auto_merge_enabled: false
