@@ -52,7 +52,7 @@
             case < 100:
                 return Localizer["This workspace has consumed {0:F2}% of its budget. Please contact the workspace lead immediately to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
             case 100:
-                return Localizer["This workspace has consumed 100% of its budget. Please contact support to discuss increasing the budget."];
+                return Localizer["Your workspace has consumed 100% of its budget. To increase your budget, please submit a request through the GC Hosting Services Portal."];
             default:
                 throw new ArgumentOutOfRangeException();
         }
