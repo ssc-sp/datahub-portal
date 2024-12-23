@@ -435,7 +435,7 @@
                     .Include(p => p.Resources)
                     .FirstOrDefault(p => p.Project_Acronym_CD == acronym);
 
-        dbContext.Projects.Update(WorkspaceSettingsPage.ExtendAdminAccess(project));
+        dbContext.Projects.Update(WorkspaceGrantSupportAccessControl.ExtendAdminAccess(project));
 
         await dbContext.SaveChangesAsync();
     }
