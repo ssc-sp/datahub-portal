@@ -5,7 +5,7 @@
 @inject ICultureService CultureService
 
 
-<PageTitle>Federal Science DataHub / DataHub scientifique fédéral</PageTitle>
+<PageTitle>Federal Science DataHub / Centre de données scientifiques fédéral</PageTitle>
 
 
 <MudContainer MaxWidth=@MaxWidth.Small>
@@ -16,18 +16,18 @@
             <MudPaper Class="pa-10" Elevation=2>
                 <MudStack>
                     <span class="sr-only" translate="no">
-                        <DHMainContentTitle Title="Federal Science DataHub - Language Selection / DataHub scientifique fédéral - Sélection de la langue"/>
+                        <DHMainContentTitle Title="Federal Science DataHub - Language Selection / Centre de données scientifiques fédéral - Sélection de la langue" />
                     </span>
                     <MudImage Src="/img/canada-fip.svg" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem"/>
                     <MudSpacer/>
                     <MudStack Row>
                         <MudSpacer/>
-                        <MudStack lang="en">
+                        <MudStack lang="en" Style="max-width:50%">
                             <MudText translate="no" Align=@Align.Right Typo=@Typo.h2 Style="font-size: 24px">Federal Science DataHub</MudText>
                             <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
                         </MudStack>
-                        <MudStack lang="fr">
-                            <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">DataHub scientifique fédéral</MudText>
+                        <MudStack lang="fr" Style="max-width:50%">
+                            <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">Centre de données scientifiques fédéral</MudText>
                             <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>
                                 Français
                             </MudButton>
