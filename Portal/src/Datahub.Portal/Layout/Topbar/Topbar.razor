@@ -3,23 +3,31 @@
 
 @inject NavigationManager _navManager
 
-<nav class="sr-only">
-    <h2>@Localizer["Screen reader navigation"]</h2>
-    <ul id="wb-tphp" class="wb-init wb-disable-inited">
-        <li class="wb-slc">
-            <a class-="wb-sl" href="@(_navManager.Uri + "#maincontent")">@Localizer["Skip to main content"]</a>
+<nav role="navigation">
+    <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
+    <ul>
+        <li class="skip-link">
+            <DHButton Variant="Variant.Filled" Color="Color.Primary" Href=@(_navManager.Uri + "#maincontent") Size="Size.Large">
+                <MudText>@Localizer["Skip to main content"]</MudText>
+            </DHButton>
         </li>
-        <li class="wb-slc">
-            <a class="wb-sl" href="@(_navManager.Uri + "#nav")">@Localizer["Skip to navigation"]</a>
+        <li class="skip-link">
+            <DHButton Variant="Variant.Filled" Color="Color.Primary" Href=@(_navManager.Uri + "#nav") Size="Size.Large">
+                <MudText>@Localizer["Skip to navigation"]</MudText>
+            </DHButton>
         </li>
     </ul>
 </nav>
 
+
 <MudImage Src=@Localizer["/img/canada-fip.svg"] Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; margin-top: 20px; float:left!important;" />
+
 
 <MudText Typo="Typo.h2" Style="@_titleStyle">
     @Localizer["MainTitle"]
 </MudText>
+
+
 <MudStack Row Style="margin-right: auto; width: 40%; margin-top: 20px" Justify="Justify.Center" role="group">
     <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
     <nav role="navigation">
