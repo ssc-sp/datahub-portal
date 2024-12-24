@@ -13,4 +13,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag fsdh-py:latest
+      run: |
+        cd ResourceProvisioner\src\ResourceProvisioner_PyFunctions
+        docker build . --file Dockerfile --tag fsdh-py:latest       
