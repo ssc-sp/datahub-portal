@@ -366,10 +366,10 @@ public class Startup
             services.AddScoped<IDataRemovalService, DataRemovalService>();
 
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
-            services.AddScoped<IPublicDataFileService, PublicDataFileService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IProjectCreationService, ProjectCreationService>();
+            services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
             
@@ -401,9 +401,6 @@ public class Startup
         }
         services.AddScoped<IProjectCreationService, ProjectCreationService>();
 
-
-        services.AddScoped<IPublicDataFileService, PublicDataFileService>();
-
         services.AddSingleton<IExternalSearchService, ExternalSearchService>();
         services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
 
@@ -417,7 +414,6 @@ public class Startup
 
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
-        services.AddScoped<HealthCheckHelperService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<PortalEmailService>();
