@@ -10,6 +10,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
@@ -119,30 +120,49 @@ namespace Datahub.Infrastructure.Services.Helpers
         /// <returns>An IntermediateHealthCheckResult indicating the result of the check.</returns>
         public async Task<IntermediateHealthCheckResult> CheckAzureSqlDatabase(InfrastructureHealthCheckMessage request)
         {
-            // TODO: workspace specific databases
-
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            try
+            {
+                await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-            bool connectable = await ctx.Database.CanConnectAsync();
-            if (!connectable)
+                bool connectable = await ctx.Database.CanConnectAsync();
+                if (!connectable)
+                {
+                    status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Cannot connect to the database.");
+                }
+                else
+                {
+                    var test = await FetchProjectForHealthRequest(request, ctx);
+                    if (test == null)
+                    {
+                        status = InfrastructureHealthStatus.Degraded;
+                        errors.Add("Cannot retrieve project from the database.");
+                    }
+                }
+            }
+            catch (Exception ex)
             {
                 status = InfrastructureHealthStatus.Unhealthy;
-                errors.Add("Cannot connect to the database.");
-            }
-            else
-            {
-                var test = await ctx.Projects.FirstOrDefaultAsync();
-                if (test == null)
-                {
-                    status = InfrastructureHealthStatus.Degraded;
-                    errors.Add("Cannot retrieve from the database.");
-                }
+                errors.Add($"Error while verifying Azure SQL Database - Group: {request.Group}; Name: {request.Name}. {ex.GetType()}");
+                errors.Add($"Details: {ex.Message}");
             }
 
             return new(status, errors);
+        }
+
+        private async Task<Datahub_Project?> FetchProjectForHealthRequest(InfrastructureHealthCheckMessage req, DatahubProjectDBContext ctx)
+        {
+            if (req.Group == InfrastructureHealthCheckConstants.WorkspacesRequestGroup)
+            {
+                return await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == req.Name);
+            }
+            else
+            {
+                return await ctx.Projects.FirstOrDefaultAsync();
+            }
         }
 
 
@@ -607,53 +627,63 @@ namespace Datahub.Infrastructure.Services.Helpers
             var errors = new List<string>();
             var status = InfrastructureHealthStatus.Healthy;
 
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-            var project = await ctx.Projects
-                .AsNoTracking()
-                .Include(p => p.Resources)
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
-
-            // If the project is null, the project does not exist or there was an error retrieving it
-            if (project == null)
+            try
             {
-                errors.Add("Unable to retrieve project.");
-                status = InfrastructureHealthStatus.Unhealthy;
-            }
-            else
-            {
-                var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppService);
-                var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
+                await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-                if (!isRequested)
+                var project = await ctx.Projects
+                    .AsNoTracking()
+                    .Include(p => p.Resources)
+                    .FirstOrDefaultAsync(p => p.Project_Acronym_CD == request.Name);
+
+                // If the project is null, the project does not exist or there was an error retrieving it
+                if (project == null)
                 {
-                    status = InfrastructureHealthStatus.Undefined;
-                } 
-                else if (appServiceConfig is null)
-                {
-                    errors.Add("Unable to retrieve App Service configuration from project resource.");
+                    errors.Add("Unable to retrieve project.");
                     status = InfrastructureHealthStatus.Unhealthy;
                 }
                 else
                 {
-                    var isProvisioned = !(string.IsNullOrEmpty(appServiceConfig.HostName) && string.IsNullOrEmpty(appServiceConfig.Id));
-                    if (!isProvisioned)
+                    var isRequested = TerraformVariableExtraction.IsResourceRequested(project, TerraformTemplate.AzureAppService);
+                    var appServiceConfig = TerraformVariableExtraction.ExtractAppServiceConfiguration(project);
+
+                    if (!isRequested)
                     {
-                        errors.Add("App has not been provisioned - it may still be processing.");
-                        status = InfrastructureHealthStatus.NeedHealthCheckRun;
+                        status = InfrastructureHealthStatus.Undefined;
+                    } 
+                    else if (appServiceConfig is null)
+                    {
+                        errors.Add("Unable to retrieve App Service configuration from project resource.");
+                        status = InfrastructureHealthStatus.Unhealthy;
                     }
                     else
                     {
-                        var appIsRunning = await workspaceWebAppManagementService.GetState(appServiceConfig.Id);
-                        if (!appIsRunning)
+                        var isProvisioned = !(string.IsNullOrEmpty(appServiceConfig.HostName) && string.IsNullOrEmpty(appServiceConfig.Id));
+                        if (!isProvisioned)
                         {
-                            errors.Add("App is provisioned but not running.");
-                            status = InfrastructureHealthStatus.Degraded;
+                            errors.Add("App has not been provisioned - it may still be processing.");
+                            status = InfrastructureHealthStatus.NeedHealthCheckRun;
+                        }
+                        else
+                        {
+                            var appIsRunning = await workspaceWebAppManagementService.GetState(appServiceConfig.Id);
+                            if (!appIsRunning)
+                            {
+                                errors.Add("App is provisioned but not running.");
+                                status = InfrastructureHealthStatus.Degraded;
+                            }
                         }
                     }
                 }
             }
-            
+            catch (Exception ex)
+            {
+                status = InfrastructureHealthStatus.Unhealthy;
+                errors.Add("Error while verifying web app. " + ex.GetType().ToString());
+                errors.Add($"Details: {ex.Message}");
+            }
+
             return new(status, errors);
         }
 

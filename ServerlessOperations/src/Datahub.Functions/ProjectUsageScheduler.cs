@@ -36,6 +36,7 @@ public class ProjectUsageScheduler(
     public bool Mock { get; set; } = false;
     private readonly ILogger<ProjectUsageScheduler> _logger = loggerFactory.CreateLogger<ProjectUsageScheduler>();
     private readonly AzureConfig _azConfig = new(config);
+    private bool _forceUpdate = false;
     private const int WORKSPACE_UPDATE_LIMIT = 100;
 
     [Function("ProjectUsageScheduler")]
@@ -69,7 +70,7 @@ public class ProjectUsageScheduler(
 
         _logger.LogInformation("Request body: {Body}", body);
         var schedulerRequest = ParseRequestBody(body);
-
+        _forceUpdate = schedulerRequest.Acronyms.Count != 0; // If acronyms are given, we force update for those projects
         _logger.LogInformation("Manual rollover is set to: {ManualRollover}", schedulerRequest.ManualRollover);
         _logger.LogInformation("Acronyms: {Acronyms}", schedulerRequest.Acronyms);
         await RunScheduler(schedulerRequest.Acronyms, schedulerRequest.ManualRollover);
@@ -123,11 +124,12 @@ public class ProjectUsageScheduler(
         _logger.LogInformation("Sending messages to update usage and capacity for {Count} projects", projects.Count);
         var costMessages = 0;
         var storageMessages = 0;
+        var ctx = await dbContextFactory.CreateDbContextAsync();
         foreach (var usageMessage in projects.Select(resource => new ProjectUsageUpdateMessage(
                      resource.Project_Acronym_CD, costBlobName, totalBlobName,
                      manualRollover)))
         {
-            var (costUpdate, storageUpdate) = await SendMessagesIfNeeded(usageMessage);
+            var (costUpdate, storageUpdate) = await SendMessagesIfNeeded(usageMessage, ctx);
             costMessages += costUpdate ? 1 : 0;
             storageMessages += storageUpdate ? 1 : 0;
             // We delay to avoid sending all the messages at the same time to avoid throttling
@@ -139,12 +141,12 @@ public class ProjectUsageScheduler(
         return (costMessages, storageMessages);
     }
 
-    internal async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage)
+    internal async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage, DatahubProjectDBContext ctx)
     {
         try
         {
-            var costUpdate = NeedsCostUpdate(usageMessage.ProjectAcronym);
-            var storageUpdate = NeedsStorageUpdate(usageMessage.ProjectAcronym);
+            var costUpdate = NeedsCostUpdate(usageMessage.ProjectAcronym, ctx);
+            var storageUpdate = NeedsStorageUpdate(usageMessage.ProjectAcronym, ctx);
 
             if (costUpdate)
             {
@@ -178,7 +180,9 @@ public class ProjectUsageScheduler(
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var projects = ctx.Projects
                 .Include(p => p.DatahubAzureSubscription)
-                .Include(p => p.Credits).ToList();
+                .Include(p => p.Credits)
+                .AsNoTracking()
+                .ToList();
 
             if (acronyms.Any())
             {
@@ -188,7 +192,7 @@ public class ProjectUsageScheduler(
             else
             {
                 // Otherwise, we grab the last 100 projects that were updated the longest ago
-                projects = projects.OrderBy(LastUpdate).Where(NeedsUpdate).Take(limit).ToList();
+                projects = projects.Where(p => NeedsUpdate(p, ctx)).OrderBy(LastUpdate).Take(limit).ToList();
             }
 
             return projects;
@@ -276,19 +280,19 @@ public class ProjectUsageScheduler(
         return p.Credits?.LastUpdate ?? DateTime.MinValue;
     }
 
-    private bool NeedsUpdate(Datahub_Project p)
+    private bool NeedsUpdate(Datahub_Project p, DatahubProjectDBContext ctx)
     {
-        return NeedsCostUpdate(p.Project_Acronym_CD) || NeedsStorageUpdate(p.Project_Acronym_CD);
+        return _forceUpdate || NeedsCostUpdate(p.Project_Acronym_CD, ctx) || NeedsStorageUpdate(p.Project_Acronym_CD, ctx);
     }
 
-    private bool NeedsCostUpdate(string workspaceAcronym)
+    private bool NeedsCostUpdate(string workspaceAcronym, DatahubProjectDBContext ctx)
     {
-        return workspaceCostMgmtService.CheckUpdateNeeded(workspaceAcronym);
+        return _forceUpdate || workspaceCostMgmtService.CheckUpdateNeeded(workspaceAcronym, ctx);
     }
 
-    private bool NeedsStorageUpdate(string workspaceAcronym)
+    private bool NeedsStorageUpdate(string workspaceAcronym, DatahubProjectDBContext ctx)
     {
-        return workspaceStorageMgmtService.CheckUpdateNeeded(workspaceAcronym);
+        return _forceUpdate || workspaceStorageMgmtService.CheckUpdateNeeded(workspaceAcronym, ctx);
     }
 
     static ProjectCapacityUpdateMessage ConvertToCapacityUpdateMessage(ProjectUsageUpdateMessage message)

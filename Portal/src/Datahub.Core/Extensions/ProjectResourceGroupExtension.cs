@@ -16,6 +16,7 @@ namespace Datahub.Core.Extensions
             {
                 var jsonContent = JsonSerializer.Deserialize<JsonObject>(newProjectResource.JsonContent);
                 string rgName = jsonContent["resource_group_name"]!.ToString();
+                if (rgName == "Missing") throw new Exception("Resource group name not found");
                 return rgName;
             }
 
@@ -30,6 +31,7 @@ namespace Datahub.Core.Extensions
             {
                 var jsonContent = JsonSerializer.Deserialize<JsonObject>(blobStorageResource.JsonContent);
                 var rgName = jsonContent["resource_group_name"]!.ToString();
+                if (rgName == "Missing") throw new Exception("Resource group name not found");
                 return rgName;
             }
 
