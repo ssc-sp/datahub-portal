@@ -4,6 +4,8 @@
 @using Datahub.Shared.Entities
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Portal.Pages.Workspace.Repositories
+@using Datahub.Portal.Pages.Account
+@using Datahub.Portal.Pages.Workspace.Settings
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ILogger<WorkspaceDashboard> _logger
@@ -31,6 +33,10 @@
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
     </MudItem>
     <MudItem xs="12" sm="4">
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubApprover">
+            <MudText Typo="Typo.h2">Support Access Controls (Approver Only)</MudText>
+            <WorkspaceGrantSupportAccessControl WorkspaceAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled" />
+        </DatahubAuthView>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
         </DatahubAuthView>
@@ -166,5 +172,4 @@
         // if it's in the dictionary, return the type otherwise return null
         return _cardComponents.ContainsKey(resourceType) ? resourceType : null;
     }
-
 }
