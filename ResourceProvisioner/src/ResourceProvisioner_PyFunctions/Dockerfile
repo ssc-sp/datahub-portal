@@ -1,13 +1,25 @@
-# Use the official Azure Functions Python base image
-# See https://hub.docker.com/r/microsoft/azure-functions-python
-FROM mcr.microsoft.com/azure-functions/python:4-python3.12
+FROM python:3.11 AS build
+
+COPY requirements.txt /
+RUN pip install --target="/home/site/wwwroot/.python_packages/lib/site-packages" -r ./requirements.txt --upgrade --no-cache-dir
+
+FROM mcr.microsoft.com/azure-functions/python:4-python3.11
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
-    AzureFunctionsJobHost__Logging__Console__IsEnabled=true
+    AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
+    APPLICATIONINSIGHTS_CONNECTION_STRING= \
+    DataHub_ENVNAME=dev \   
+    AzureWebJobsStorage= \
+    AzureWebJobsDashboard= \
+    AzureClientId= \
+    AzureClientSecret= \
+    AzureStorageQueueConnectionString= \
+    DatahubServiceBus= \
+    DatahubMSSQLProjectConnectionString= \
+    AzureTenantId= \
+    AzureSubscriptionId= \
+    AzureWebJobsFeatureFlags=EnableWorkerIndexing
 
-# Copy the function app code to the container
+COPY --from=build /home/site/wwwroot /home/site/wwwroot
+
 COPY . /home/site/wwwroot
-
-# Install any dependencies
-RUN pip install --no-cache-dir -r /home/site/wwwroot/requirements.txt
-
