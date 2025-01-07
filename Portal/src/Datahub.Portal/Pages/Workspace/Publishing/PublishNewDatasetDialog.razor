@@ -5,41 +5,50 @@
 
 <MudDialog>
     <DialogContent>
-        @if (IsFileExplorerDialog)
-        {
-            @if (HasFiles)
+        <MudForm @ref=@_form FieldChanged="@FieldChanged">
+            @if (IsFileExplorerDialog)
             {
-                <MudText Typo=@Typo.h3>@Localizer["Files"]</MudText>
-                <MudList T="string">
-                    @foreach(var f in Files)
-                    {
-                        <MudListItem T="string"><MudText>@f.filename</MudText></MudListItem>
-                    }
-                </MudList>
-            }
-            <MudSelect T=@OpenDataSubmission @bind-Value=@SelectedSubmission ToStringFunc=@SelectedSubmissionLabel>
-                <MudSelectItem Value=default(OpenDataSubmission) />
-                @if (AreSubmissionsAvailable)
+                @if (HasFiles)
                 {
-                    <MudDivider />
-                    @foreach (var s in _availableSubmissions)
+                    <MudText Typo=@Typo.h3>@Localizer["Files"]</MudText>
+                    <MudList T="string">
+                        @foreach(var f in Files)
+                        {
+                            <MudListItem T="string"><MudText>@f.filename</MudText></MudListItem>
+                        }
+                    </MudList>
+                }
+                <MudSelect T=@OpenDataSubmission @bind-Value=@SelectedSubmission ToStringFunc=@SelectedSubmissionLabel>
+                    <MudSelectItem Value=default(OpenDataSubmission) />
+                    @if (AreSubmissionsAvailable)
                     {
-                        <MudSelectItem Value=@s />
+                        <MudDivider />
+                        @foreach (var s in _availableSubmissions)
+                        {
+                            <MudSelectItem Value=@s />
+                        }
                     }
+                </MudSelect>
+            }
+            <MudTextField 
+                @bind-Value=@_datasetTitle 
+                Label=@Localizer["Dataset Title"] 
+                Required 
+                RequiredError=@Localizer["Required"]
+                Immediate
+                DebounceInterval="300"
+                Disabled=@IsExistingSubmissionSelected />
+            <MudSelect T=@OpenDataPublishProcessType @bind-Value=@_processType ToStringFunc=@ProcessTypeLabel Disabled=@IsExistingSubmissionSelected>
+                @foreach (var t in _availableTypes)
+                {
+                    <MudSelectItem Value=@t />
                 }
             </MudSelect>
-        }
-        <MudTextField @bind-Value=@_datasetTitle Label=@Localizer["Dataset Title"] Required Disabled=@IsExistingSubmissionSelected />
-        <MudSelect T=@OpenDataPublishProcessType @bind-Value=@_processType ToStringFunc=@ProcessTypeLabel Disabled=@IsExistingSubmissionSelected>
-            @foreach (var t in _availableTypes)
-            {
-                <MudSelectItem Value=@t />
-            }
-        </MudSelect>
+        </MudForm>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick=@Cancel>@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick=@Submit>@Localizer["Ok"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick=@Submit Disabled=@(!IsReadyToSubmit)>@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -65,12 +74,15 @@
     private OpenDataPublishProcessType _processType = OpenDataPublishProcessType.TbsOpenGovPublishing;
     private OpenDataSubmission _selectedSubmission = null;
 
+    private MudForm _form;
+    private bool IsReadyToSubmit => !string.IsNullOrWhiteSpace(_datasetTitle) || IsExistingSubmissionSelected;
+
     private OpenDataSubmission SelectedSubmission
     {
         get => _selectedSubmission;
         set
         {
-            _datasetTitle = value?.DatasetTitle;
+            _datasetTitle = value?.SelectableDatasetTitle(Localizer);
             _processType = value?.ProcessType ?? OpenDataPublishProcessType.TbsOpenGovPublishing;
             _selectedSubmission = value;
         }
@@ -86,6 +98,12 @@
     private string ProcessTypeLabel(OpenDataPublishProcessType processType) => Localizer[$"{processType.ToString()}.TypeName"];
 
     private string SelectedSubmissionLabel(OpenDataSubmission s) => s is null ? Localizer["Create New..."] : s.SelectableDatasetTitle(Localizer);
+
+    private async Task FieldChanged()
+    {
+        await _form.Validate();
+        await InvokeAsync(StateHasChanged);
+    }
 
     protected override async Task OnInitializedAsync()
     {
