@@ -289,6 +289,12 @@ public class Startup
 
         app.UseAuthentication();
         app.UseAuthorization();
+        
+        app.Use(async (context, next) =>
+        {
+            context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
+            await next();
+        });
 
         app.UseEndpoints(endpoints =>
         {
