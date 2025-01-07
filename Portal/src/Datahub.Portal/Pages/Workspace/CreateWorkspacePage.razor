@@ -8,7 +8,8 @@
 
 <PageTitle>@Localizer["Create a Workspace - Federal Science DataHub"]</PageTitle>
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+    <Authorized>
     <MudStack Spacing="6">
         <DHMainContentTitle Title="@Localizer["Create a new Workspace"]" />
         <MudText>
@@ -94,6 +95,17 @@
             </MudButton>
         </MudElement>
     </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">
+            <MudText>
+                @Localizer["You are not authorized to use this page. For a new workspace, use the GC Hosting Services Portal."]
+            </MudText>
+            <DHButton Class="my-3" Underline NoWrap EndIcon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Filled" Color="Color.Primary" Href="https://hosting-services-hebergement.canada.ca/s/gc-cloud-fa-catalogue" Target="_blank">
+                @Localizer["GC Hosting Services Portal"]
+            </DHButton>
+        </MudAlert>
+    </NotAuthorized>
 </DatahubAuthView>
 
 @code {

@@ -1960,6 +1960,7 @@
   "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.": "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.",
   "You are not authorized to edit metadata.": "You are not authorized to edit metadata.",
   "You are not authorized to view this page.": "You are not authorized to view this page.",
+  "You are not authorized to use this page. For a new workspace, use the GC Hosting Services Portal.": "You are not authorized to use this page. For a new workspace, use the GC Hosting Services Portal.",
   "You are re-running all health checks. This may take a while.": "You are re-running all health checks. This may take a while.",
   "You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time.": "You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time.",
   "You can create a new workspace to start working on your project": "You can create a new workspace to start working on your project",
