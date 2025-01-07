@@ -2843,6 +2843,7 @@
   "Workspace Wayfarer": "Nomade de l'espace de travail",
   "Workspace admins": "Administrateurs de l'espace de travail",
   "Workspace admins can configure the web app using the link below.": "Les administrateurs de l'espace de travail peuvent configurer l'application web en utilisant le lien ci-dessous.",
+  "Workspace creation is unavailable in the production environment. To create a workspace, submit a support request or use the proof-of-concept environment.": "La création d'un espace de travail n'est pas disponible dans l'environnement de production. Pour créer un espace de travail, soumettez une demande de support ou utilisez l'environnement de preuve de concept.",
   "Workspace lead": "Responsable de l'espace de travail",
   "Workspace tools": "Outils de l'espace de travail",
   "Workspaces": "Espaces de travail",

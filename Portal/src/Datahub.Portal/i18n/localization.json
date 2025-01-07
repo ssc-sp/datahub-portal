@@ -1947,6 +1947,7 @@
   "Workspace Wayfarer": "Workspace Wayfarer",
   "Workspace admins": "Workspace admins",
   "Workspace admins can configure the web app using the link below.": "Workspace admins can configure the web app using the link below.",
+  "Workspace creation is unavailable in the production environment. To create a workspace, submit a support request or use the proof-of-concept environment.": "Workspace creation is unavailable in the production environment. To create a workspace, submit a support request or use the proof-of-concept environment.",
   "Workspace lead": "Workspace lead",
   "Workspace tools": "Workspace tools",
   "Workspaces": "Workspaces",

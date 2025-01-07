@@ -8,92 +8,99 @@
 
 <PageTitle>@Localizer["Create a Workspace - Federal Science DataHub"]</PageTitle>
 
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <MudStack Spacing="6">
-        <DHMainContentTitle Title="@Localizer["Create a new Workspace"]" />
-        <MudText>
-            @Localizer["Please complete the following information to create a new workspace"]
-        </MudText>
+<DatahubAuthView AuthLevel="_authLevel">
+    <Authorized>
+        <MudStack Spacing="6">
+            <DHMainContentTitle Title="@Localizer["Create a new Workspace"]" />
+            <MudText>
+                @Localizer["Please complete the following information to create a new workspace"]
+            </MudText>
 
-        <MudForm Class="mb-4" @bind-IsValid="@_success">
-            <MudTextField T="string"
-                          @bind-Value="_projectTitle"
-                          Label="@Localizer["Workspace Title"]" Required
-                          RequiredError="@Localizer["Workspace Title is required"]"
-                          HelperText="@Localizer["Enter a descriptive title for the workspace"]"
-                          DebounceInterval="500"
-                          OnDebounceIntervalElapsed="UpdateProjectAcronym" 
-                          Validation="@(new Func<string, Task<string>>(ValidateTitle))"
-                          MaxLength="@MaxTitleLength" />
+            <MudForm Class="mb-4" @bind-IsValid="@_success">
+                <MudTextField T="string"
+                              @bind-Value="_projectTitle"
+                              Label="@Localizer["Workspace Title"]" Required
+                              RequiredError="@Localizer["Workspace Title is required"]"
+                              HelperText="@Localizer["Enter a descriptive title for the workspace"]"
+                              DebounceInterval="500"
+                              OnDebounceIntervalElapsed="UpdateProjectAcronym" 
+                              Validation="@(new Func<string, Task<string>>(ValidateTitle))"
+                              MaxLength="@MaxTitleLength" />
 
-            <MudTextField T="string"
-                          @bind-Value="_projectAcronym"
-                          Label="@Localizer["Workspace Acronym"]"
-                          AdornmentIcon="fa-light fa-arrows-rotate"
-                          HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]"
-                          Adornment="Adornment.End"
-                          OnAdornmentClick="GenerateAcronym"
-                          AdornmentAriaLabel="@Localizer["Generate Acronym"]"
-                          RequiredError="@Localizer["Workspace Acronym is required"]"
-                          Converter="_converter"
-                          @ref="_acronymField"
-                          alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
-                          Required
-                          Validation="@(new Func<string, Task<string>>(ValidateAcronym))"
-                          MaxLength="@MaxAcronymLength"/>
+                <MudTextField T="string"
+                              @bind-Value="_projectAcronym"
+                              Label="@Localizer["Workspace Acronym"]"
+                              AdornmentIcon="fa-light fa-arrows-rotate"
+                              HelperText="@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]"
+                              Adornment="Adornment.End"
+                              OnAdornmentClick="GenerateAcronym"
+                              AdornmentAriaLabel="@Localizer["Generate Acronym"]"
+                              RequiredError="@Localizer["Workspace Acronym is required"]"
+                              Converter="_converter"
+                              @ref="_acronymField"
+                              alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
+                              Required
+                              Validation="@(new Func<string, Task<string>>(ValidateAcronym))"
+                              MaxLength="@MaxAcronymLength"/>
 
-            <MudSelect T="string"
-                       Label="@Localizer["(Optional) Which features are of interest to you?"]"
-                       MultiSelection="true"
-                       HelperText="@Localizer["Please select all that apply"]"
-                       AnchorOrigin="Origin.BottomLeft"
-                       TransformOrigin="Origin.TopLeft"
-                       @bind-Value="@_interestedFeatures">
-                <MudSelectItem T="string" Value="@("Storage")">@Localizer["Storage"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Analytics")">@Localizer["Analytics"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
-            </MudSelect>
+                <MudSelect T="string"
+                           Label="@Localizer["(Optional) Which features are of interest to you?"]"
+                           MultiSelection="true"
+                           HelperText="@Localizer["Please select all that apply"]"
+                           AnchorOrigin="Origin.BottomLeft"
+                           TransformOrigin="Origin.TopLeft"
+                           @bind-Value="@_interestedFeatures">
+                    <MudSelectItem T="string" Value="@("Storage")">@Localizer["Storage"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Analytics")">@Localizer["Analytics"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
+                    <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
+                </MudSelect>
 
-            @if (_portalConfiguration.Github.Enabled)
-            {
-                <MudStack Row Class="mt-4">
-                    <MudButton Href="https://github.com/apps/datahub-workspaces"
-                               OnClick="HandleIntegrateWithGit"
-                               Target="_blank"
-                               Variant="Variant.Filled"
-                               EndIcon="@Icons.Custom.Brands.GitHub"
-                               Color="Color.Primary">
-                        @Localizer["Link GitHub"]
-                    </MudButton>
-                    <MudCheckBox Value=@_createRepository
-                                 ValueChanged=@ToggleCreateRepo
-                                 Disabled="!_githubIntegration"
-                                 T="bool"
-                                 Label=@Localizer["Create Repository"] />
-                </MudStack>
-            }
-
-            @if (_errorMessage is not null)
-            {
-                <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
-                    @_errorMessage
-                </MudAlert>
-            }
-        </MudForm>
-        <MudElement Class="pb-4">
-            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
-                @Localizer["Cancel"]
-            </MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
-                @if (_isCreating)
+                @if (_portalConfiguration.Github.Enabled)
                 {
-                    <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
+                    <MudStack Row Class="mt-4">
+                        <MudButton Href="https://github.com/apps/datahub-workspaces"
+                                   OnClick="HandleIntegrateWithGit"
+                                   Target="_blank"
+                                   Variant="Variant.Filled"
+                                   EndIcon="@Icons.Custom.Brands.GitHub"
+                                   Color="Color.Primary">
+                            @Localizer["Link GitHub"]
+                        </MudButton>
+                        <MudCheckBox Value=@_createRepository
+                                     ValueChanged=@ToggleCreateRepo
+                                     Disabled="!_githubIntegration"
+                                     T="bool"
+                                     Label=@Localizer["Create Repository"] />
+                    </MudStack>
                 }
-                @Localizer["Create Workspace"]
-            </MudButton>
-        </MudElement>
-    </MudStack>
+
+                @if (_errorMessage is not null)
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" ShowCloseIcon CloseIconClicked="CloseAlert">
+                        @_errorMessage
+                    </MudAlert>
+                }
+            </MudForm>
+            <MudElement Class="pb-4">
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
+                    @Localizer["Cancel"]
+                </MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
+                    @if (_isCreating)
+                    {
+                        <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
+                    }
+                    @Localizer["Create Workspace"]
+                </MudButton>
+            </MudElement>
+        </MudStack>
+    </Authorized>
+    <NotAuthorized>
+        <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">
+            @Localizer["Workspace creation is unavailable in the production environment. To create a workspace, submit a support request or use the proof-of-concept environment."]
+        </MudAlert>
+    </NotAuthorized>
 </DatahubAuthView>
 
 @code {
@@ -108,11 +115,18 @@
     private string _interestedFeatures = string.Empty;
     private MudTextField<string>? _acronymField;
 
+    private DatahubAuthView.AuthLevels _authLevel;
     private bool _success;
     private bool _isCreating;
 
     private bool _githubIntegration;
     private bool _createRepository;
+
+    protected override void OnInitialized()
+    {
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        _authLevel = env.Equals("prod") || env.Equals("prd") ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.Authenticated;
+    }
 
     private async Task GenerateAcronym()
     {
