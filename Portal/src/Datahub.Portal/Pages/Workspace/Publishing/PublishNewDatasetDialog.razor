@@ -85,7 +85,7 @@
 
     private string ProcessTypeLabel(OpenDataPublishProcessType processType) => Localizer[$"{processType.ToString()}.TypeName"];
 
-    private string SelectedSubmissionLabel(OpenDataSubmission s) => s?.DatasetTitle ?? Localizer["Create New..."];
+    private string SelectedSubmissionLabel(OpenDataSubmission s) => s is null ? Localizer["Create New..."] : s.SelectableDatasetTitle(Localizer);
 
     protected override async Task OnInitializedAsync()
     {

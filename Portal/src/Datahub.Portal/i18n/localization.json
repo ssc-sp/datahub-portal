@@ -2041,5 +2041,6 @@
   "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.": "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.",
   "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token.": "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token.",
   "Successfully updated workspace publishing settings.": "Successfully updated workspace publishing settings.",
-  "Failed to update workspace publishing settings.": "Failed to update workspace publishing settings."
+  "Failed to update workspace publishing settings.": "Failed to update workspace publishing settings.",
+  "(untitled dataset {0})": "(untitled dataset {0})"
 }
