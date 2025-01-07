@@ -1,3 +1,4 @@
+---
 # For most projects, this workflow file will not need changing; you simply need
 # to commit it to your repository.
 #
@@ -22,10 +23,6 @@ on:
       - develop
   schedule:
     - cron: "15 13 * * 5"
-  workflow_run:
-    workflows: ["Auto Update PRs"]
-    types:
-      - completed
 
 jobs:
   analyze:
