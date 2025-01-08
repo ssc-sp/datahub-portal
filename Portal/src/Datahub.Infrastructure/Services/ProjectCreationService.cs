@@ -55,10 +55,18 @@ public class ProjectCreationService(
             _ => words.Select(w => w[0]).Aggregate("", (a, b) => a + b).ToUpperInvariant()
         };
         var enumerable = existingAcronyms.ToArray();
+        if (acronym.Length > 7) // Ensure acronym is not too long
+        {
+            acronym = acronym.Substring(0, 7);
+        }
         if (!enumerable.Contains(acronym)) return acronym;
         var largestNumber = enumerable.Where(a => a.StartsWith(acronym)).Select(
             a => a.Length > acronym.Length && int.TryParse(a[acronym.Length..], out var n) ? n : 0
         ).Max();
+        if (acronym.Length > 7 - (largestNumber + 1).ToString().Length) // If acronym would be too long with a number, shorten it
+        {
+            acronym = acronym.Substring(0, 7 - (largestNumber + 1).ToString().Length);
+        }
         acronym += (largestNumber + 1).ToString();
         return await Task.FromResult(acronym);
     }
@@ -91,6 +99,28 @@ public class ProjectCreationService(
 
             await context.ProjectCreationDetails.AddAsync(newProjectCreationDetails);
             await context.TrackSaveChangesAsync(auditingService);
+        }
+    }
+
+    public async Task<bool> CreateProjectCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
+    {
+        try
+        {
+            acronym ??= await GenerateProjectAcronymAsync(projectName);
+
+            await AddProjectToDb(portalUser, projectName, acronym, organization);
+            await CreateNewTemplateProjectResourceAsync(acronym);
+
+            var workspaceDefinition =
+                await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
+            return false;
         }
     }
 
@@ -206,7 +236,7 @@ public class ProjectCreationService(
         };
         await db.Project_Whitelists.AddAsync(projectWhiteList);
 
-        await db.TrackSaveChangesAsync(auditingService);
+        await db.TrackSaveChangesAsync(auditingService); // causing a crash right now
         serviceAuthManager.InvalidateAuthCache();
 
         var catalogObject = new Core.Model.Catalog.CatalogObject()

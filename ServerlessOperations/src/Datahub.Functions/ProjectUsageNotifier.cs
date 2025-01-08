@@ -10,6 +10,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared;
 using Datahub.Shared.Configuration;
+using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -41,10 +42,11 @@ namespace Datahub.Functions
         {
             // test for ping
             // if (await pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-                // return;
+            // return;
 
             // deserialize message
-            var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<ProjectUsageNotificationMessage>();
+            var message = await serviceBusReceivedMessage
+                .DeserializeAndUnwrapMessageAsync<ProjectUsageNotificationMessage>();
 
             // verify message 
             if (message is null || message.ProjectAcronym.Length <= 0)
@@ -54,7 +56,7 @@ namespace Datahub.Functions
 
             // run project verification
             await VerifyAndNotifyProject(message.ProjectAcronym, cancellationToken);
-            
+
             await VerifyOverBudgetIsDeleted(message.ProjectAcronym, cancellationToken);
         }
 
@@ -69,29 +71,77 @@ namespace Datahub.Functions
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var deleteIsRequired = await VerifyDeleteIsRequired(projectAcronym, cancellationToken, ctx);
-            
-            if(!deleteIsRequired)
+
+            if (!deleteIsRequired)
                 return;
 
             var undeletedResources = await ctx.Project_Resources2
                 .Include(r => r.Project)
-                .Where(r => r.Project.Project_Acronym_CD == projectAcronym && !(r.Status == TerraformStatus.Deleted || r.Status == TerraformStatus.DeleteRequested))
+                .Where(r => r.Project.Project_Acronym_CD == projectAcronym && !(r.Status == TerraformStatus.Deleted ||
+                    r.Status == TerraformStatus.DeleteRequested))
                 .ToListAsync(cancellationToken);
-            
-            if(undeletedResources.Count == 0)
+
+            if (undeletedResources.Count == 0)
                 return;
 
+            _logger.LogInformation("Project {ProjectId} is over budget, deleting resources", projectAcronym);
             foreach (var undeletedResource in undeletedResources)
             {
                 undeletedResource.Status = TerraformStatus.DeleteRequested;
                 ctx.Project_Resources2.Update(undeletedResource);
             }
+
             await ctx.SaveChangesAsync(cancellationToken);
-            
+
             _logger.LogInformation("Project {ProjectId} is over budget, deleting resources", projectAcronym);
             var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(projectAcronym);
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             _logger.LogInformation("Project {ProjectId} resources have been queued for deletion", projectAcronym);
+
+            await SendDeleteNotificationEmailToWorkspaceAdmins(projectAcronym,
+                undeletedResources.Select(r => r.ResourceType).ToList(), cancellationToken);
+        }
+
+        /// <summary>
+        /// Sends a deletion notification email to workspace administrators for a given project.
+        /// </summary>
+        /// <param name="projectAcronym">The acronym of the project for which the deletion notification is to be sent.</param>
+        /// <param name="resourceNames">A list of resource names that have been queued for deletion.</param>
+        /// <param name="cancellationToken">A cancellation token to observe during the task execution.</param>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        private async Task SendDeleteNotificationEmailToWorkspaceAdmins(
+            string projectAcronym,
+            List<string> resourceNames,
+            CancellationToken cancellationToken)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+            var project = await ctx.Projects
+                .Include(p => p.Users)
+                .ThenInclude(u => u.PortalUser)
+                .Where(p => p.Project_Acronym_CD == projectAcronym)
+                .FirstAsync(cancellationToken);
+
+            var adminContacts = project.Users
+                .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
+                            u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+                .Select(u => u.PortalUser.Email)
+                .Where(emailValidator.IsValidEmail)
+                .ToList();
+
+            foreach (var resourceName in resourceNames)
+            {
+                var args = new Dictionary<string, string>
+                {
+                    { "{workspaceAcronym}", projectAcronym },
+                    { "{resource}", TerraformTemplate.ConvertTemplateNameToReadableName(resourceName) },
+                    { "{resource_fr}", TerraformTemplate.ConvertTemplateNameToReadableName(resourceName, true) }
+                };
+
+                var email = emailService.BuildEmail("delete_notification.html", adminContacts, [],
+                    args, args);
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+                    email!, cancellationToken);
+            }
         }
 
         /// <summary>
@@ -105,13 +155,13 @@ namespace Datahub.Functions
             DatahubProjectDBContext ctx)
         {
             var details = await GetProjectDetails(ctx, projectAcronym, cancellationToken);
-            
+
             if (details?.Credits is null)
             {
                 _logger.LogWarning("Project {ProjectId} details or credits are null", projectAcronym);
                 return false;
             }
-            
+
             var currentPercent = details.ProjectBudget > 0
                 ? (int)Math.Round(100.0 * details.Credits.Current / details.ProjectBudget)
                 : 0;
@@ -121,15 +171,16 @@ namespace Datahub.Functions
                 _logger.LogInformation("Project {ProjectId} is not over budget", projectAcronym);
                 return false;
             }
-            
+
             var project = await ctx.Projects
                 .AsNoTracking()
                 .Where(e => e.Project_Acronym_CD == projectAcronym)
                 .FirstAsync(cancellationToken);
-            
-            if(project.PreventAutoDelete)
+
+            if (project.PreventAutoDelete)
             {
-                _logger.LogInformation("Project {ProjectId} is over budget but auto-delete is disabled", projectAcronym);
+                _logger.LogInformation("Project {ProjectId} is over budget but auto-delete is disabled",
+                    projectAcronym);
                 return false;
             }
 

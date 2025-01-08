@@ -6,7 +6,7 @@ public interface ICloudStorageManager
 {
     Task<List<string>> GetContainersAsync();
 
-    Task<Uri> GenerateSasTokenAsync(string container, int days);
+    Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan);
 
     Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = default);
 

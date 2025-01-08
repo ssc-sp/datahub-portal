@@ -1,0 +1,23 @@
+name: Auto Update PRs
+
+on:
+  # Trigger when commits are pushed to the "develop" branch
+  push:
+    branches:
+      - develop
+  
+  # Allow manually triggering the workflow from the Actions tab
+  workflow_dispatch: {}
+
+jobs:
+  refresh_stale_prs:
+    name: Refresh Stale PRs
+    runs-on: ubuntu-22.04
+    steps:
+      # Step: Run the autoupdate Docker action
+      # Using the docker image to perform automatic updates
+      - name: Run refresh stale PRs action
+        uses: docker://chinthakagodawita/autoupdate-action@sha256:53d7013ad4689b703d2715d4b17d4901bb0a385e495e0b481f37adbe9b3cc3fc
+        env:
+          # Pass the GitHub token to allow the action to interact with the repository
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'

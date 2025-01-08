@@ -35,6 +35,7 @@ public class Testing
     internal const string RequestingUser = "Unit Test User";
     internal const string RequestingUserEmail = "unittest@user.com";
     internal const string RequestingAdminUser = "Unit Test Admin User";
+    internal const string ResourceGroup = "TestResourceGroup";
 
     internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformStatus.CreateRequested);
 
@@ -158,6 +159,7 @@ public class Testing
                 .ToList(),
             Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, version),
             RequestingUserEmail = RequestingUser,
+            ResourceGroupName = ResourceGroup
         };
     }
 

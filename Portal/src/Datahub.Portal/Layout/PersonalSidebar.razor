@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Infrastructure.Services.UserManagement
+@using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Components.User
 @using MudBlazor.Utilities
 
@@ -11,6 +12,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDialogService _dialogService
 @inject NavigationManager _navigationManager
+@inject ICultureService CultureService
 
 @if (!_isLoaded)
 {
@@ -18,67 +20,82 @@
 }
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudStack Class="ml-2">
-        <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"/>
-    </MudStack>
-    <MudStack Spacing="2">
-        <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-            <strong>
-                @Localizer["My account"]
-            </strong>
-        </MudText>
-        <MudNavMenu Color="Color.Primary" role="navigation">
-            <ul>
-                @foreach (var sectionView in _accountItems)
-                {
-                    <li>
-                        <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
-                            <MudStack Row AlignItems="AlignItems.Center">
-                                <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                <MudText Style="@_workspaceLinkStyle">
-                                    @GetLabel(sectionView)
-                                </MudText>
-                            </MudStack>
-                        </MudNavLink>
-                    </li>
-                }
-            </ul>
-        </MudNavMenu>
-    </MudStack>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdmin">
-        <MudStack Spacing="2">
-            <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
-                <strong>
-                    @Localizer["Datahub Admin"]
-                </strong>
-            </MudText>
-            <MudNavMenu Color="Color.Primary" role="navigation">
-                <ul>
-                    @foreach (var sectionView in _datahubAdminItems)
-                    {
-                        <li>
-                            <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
-                                <MudStack Row AlignItems="AlignItems.Center">
-                                    <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
-                                    <MudText Style="@_workspaceLinkStyle">
-                                        @GetLabel(sectionView)
-                                    </MudText>
-                                </MudStack>
-                            </MudNavLink>
-                        </li>
-                    }
-                </ul>
-            </MudNavMenu>
+    <MudDrawerHeader Dense Style="padding: 0">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+            <span>
+                <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
+                <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
+            </span>
+            @if (Drawer.Open)
+            {
+                <div style="text-wrap: nowrap; font-size: 1rem">
+                    <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false" Typo="Typo.h2" Style="font-size: 1rem"/>
+                </div>
+            }
         </MudStack>
-    </DatahubAuthView>
-
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-        <MudSwitch T="bool"
-                   Color="Color.Primary"
-                   Value="@_isViewAsAdmin"
-                   ValueChanged="@ToggleAdminMode"
-                   Label="@Localizer["Admin Access Enabled"]"/>
-    </DatahubAuthView>
+    </MudDrawerHeader>
+    <MudDrawerContainer Style="overflow: hidden auto">
+        @if (Drawer.Open)
+        {
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                    <strong>
+                        @Localizer["My account"]
+                    </strong>
+                </MudText>
+                <MudNavMenu Color="Color.Primary" role="navigation">
+                    <ul>
+                        @foreach (var sectionView in _accountItems)
+                        {
+                            <li>
+                                <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.AccountPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                        <MudText Style="@_workspaceLinkStyle">
+                                            @GetLabel(sectionView)
+                                        </MudText>
+                                    </MudStack>
+                                </MudNavLink>
+                            </li>
+                        }
+                    </ul>
+                </MudNavMenu>
+            </MudStack>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+                <MudStack Spacing="2">
+                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                        <strong>
+                            @Localizer["Datahub Admin"]
+                        </strong>
+                    </MudText>
+                    <MudNavMenu Color="Color.Primary" role="navigation">
+                        <ul>
+                            @foreach (var sectionView in _datahubAdminItems)
+                            {
+                                <li>
+                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[PageRoutes.ToolPrefix], Localizer[sectionView])" Match="NavLinkMatch.All">
+                                        <MudStack Row AlignItems="AlignItems.Center">
+                                            <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                            <MudText Style="@_workspaceLinkStyle">
+                                                @GetLabel(sectionView)
+                                            </MudText>
+                                        </MudStack>
+                                    </MudNavLink>
+                                </li>
+                            }
+                        </ul>
+                    </MudNavMenu>
+                </MudStack>
+            </DatahubAuthView>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
+                <MudSwitch T="bool"
+                           Color="Color.Primary"
+                           Value="@_isViewAsAdmin"
+                           ValueChanged="@ToggleAdminMode"
+                           Label="@Localizer["Admin Access Enabled"]" Style="text-wrap: nowrap"/>
+            </DatahubAuthView>
+        }
+    </MudDrawerContainer>
 </MudStack>
 
 @code {
@@ -87,6 +104,7 @@
     private bool _isViewAsAdmin;
     private List<Datahub_Project_User> _userRoles;
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
+    [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
     private ushort _maxRecentLinks = 5;
     private ushort _maxWorkspacesToShow = 3;
@@ -113,6 +131,7 @@
         public const string Customization_FR = "personnalisation";
         public const string Notifications_FR = "notifications";
         public const string Achievements_FR = "realisations";
+        public const string HostingServices = "hosting-services";
 
         public const string Diagnostics = "diagnostics";
         public const string Diagnostics_FR = "diagnostiques";
@@ -128,6 +147,7 @@
         public const string SupportRequests_FR = "demandes-assistance";
         public const string AzureSubscriptions = "azure-subscriptions";
         public const string AzureSubscriptions_FR = "abonnements-azure";
+        public const string HostingServices_FR = "services-hebergement";
     }
 
 
@@ -148,7 +168,8 @@
         SectionViews.HealthCheck,
         SectionViews.Users,
         SectionViews.Email,
-        SectionViews.AzureSubscriptions
+        SectionViews.AzureSubscriptions,
+        SectionViews.HostingServices
     };
 
 
@@ -225,6 +246,7 @@
             SectionViews.Email => SidebarIcons.Email,
             SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
             SectionViews.SupportRequests => SidebarIcons.SupportRequests,
+            SectionViews.HostingServices => SidebarIcons.HostingServices,
 
             _ => SidebarIcons.Profile
         };
@@ -247,6 +269,7 @@
             SectionViews.Email => Localizer["Email"],
             SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
             SectionViews.SupportRequests => Localizer["Support Requests"],
+            SectionViews.HostingServices => Localizer["Hosting Services"],
 
             _ => Localizer["Public Profile"]
         };
@@ -257,7 +280,7 @@
         return recentActivity.userRecentLink.LinkType switch
         {
             DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
-            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject),
+            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject, CultureService.IsFrench),
             DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
             DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
             DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",
@@ -298,4 +321,5 @@
         await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
+
 }

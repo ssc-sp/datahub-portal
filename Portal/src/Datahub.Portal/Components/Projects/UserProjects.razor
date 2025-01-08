@@ -122,7 +122,7 @@
 
         _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
 
-        _adminProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead || u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).ToList();
+        _adminProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead || u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _collaboratedProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).ToList();
         _guestProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).ToList();
     }
