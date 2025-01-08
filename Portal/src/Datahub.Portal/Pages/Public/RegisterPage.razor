@@ -93,7 +93,7 @@
         <NotAuthorized>
             <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">
                 <MudText Typo="Typo.body1">
-                    @Localizer["The Federal Science DataHub is launching this March. To preview the platform, please register in the proof of concept environment"] 
+                    @Localizer["The Federal Science DataHub is launching this March. To preview the platform, please register in the proof of concept environment"]
                 </MudText>
                 <MudLink Typo="Typo.body1" Href="https://poc.fsdh-dhsf.science.cloud-nuage.canada.ca/">
                     @Localizer["Click here to access the proof-of-concept environment"]</MudLink>
@@ -127,7 +127,7 @@
 
     protected override void OnInitialized()
     {
-        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "dev";
         _authLevel = env.Equals("prod") || env.Equals("prd") ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.Authenticated;
 
         _emailFieldText = Localizer["Government of Canada Email"];
