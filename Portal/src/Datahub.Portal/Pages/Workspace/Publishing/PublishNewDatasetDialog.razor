@@ -18,7 +18,14 @@
                         }
                     </MudList>
                 }
-                <MudSelect T=@OpenDataSubmission @bind-Value=@SelectedSubmission ToStringFunc=@SelectedSubmissionLabel>
+                <MudDivider DividerType="DividerType.Middle"/>
+
+                <MudText Typo=@Typo.h3>@Localizer["Dataset"]</MudText>
+                <MudSelect 
+                    T=@OpenDataSubmission 
+                    Label=@Localizer["Select Dataset"]
+                    @bind-Value=@SelectedSubmission 
+                    ToStringFunc=@SelectedSubmissionLabel>
                     <MudSelectItem Value=default(OpenDataSubmission) />
                     @if (AreSubmissionsAvailable)
                     {

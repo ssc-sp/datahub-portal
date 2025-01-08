@@ -2979,5 +2979,6 @@
   "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token.": "La génération de jetons SAS est restreinte. Veuillez contacter le responsable de votre espace de travail ou les administrateurs pour obtenir un jeton.",
   "Successfully updated workspace publishing settings.": "Mise à jour réussie des paramètres de publication de l'espace de travail.",
   "Failed to update workspace publishing settings.": "Échec de la mise à jour des paramètres de publication de l'espace de travail.",
-  "(untitled dataset {0})": "(ensemble de données sans titre {0})"
+  "(untitled dataset {0})": "(ensemble de données sans titre {0})",
+  "Select Dataset": "Sélectionner l'ensemble de données"
 }
