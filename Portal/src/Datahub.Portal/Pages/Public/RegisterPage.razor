@@ -92,7 +92,11 @@
         </Authorized>
         <NotAuthorized>
             <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">
-                @Localizer["The production environment is not available yet. Use the proof-of-concept environment instead."]
+                <MudText Typo="Typo.body1">
+                    @Localizer["The production environment is not available yet. Use the proof-of-concept environment instead."] 
+                </MudText>
+                <MudLink Typo="Typo.body1" Href="https://poc.fsdh-dhsf.science.cloud-nuage.canada.ca/">
+                    @Localizer["Click here to access the proof-of-concept environment"]</MudLink>
             </MudAlert>
         </NotAuthorized>
     </DatahubAuthView>
@@ -124,7 +128,7 @@
     protected override void OnInitialized()
     {
         var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        _authLevel = env.Equals("prod") || env.Equals("prd") ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.Authenticated;
+        _authLevel = env.Equals("prod") || env.Equals("prd") ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.Unauthorized;
 
         _emailFieldText = Localizer["Government of Canada Email"];
         if (!string.IsNullOrEmpty(Email))
