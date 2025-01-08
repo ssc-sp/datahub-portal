@@ -39,7 +39,7 @@ public class ExternalSearchFixture : IDisposable
 
 public class ExternalSearchTest : IClassFixture<ExternalSearchFixture>
 {
-    private static readonly string SEARCH_API_URL = "https://hqdatl0f6d.execute-api.ca-central-1.amazonaws.com/dev/geo";
+    private static readonly string SEARCH_API_URL = "https://geocore.api.geo.ca/geo";
 
     private ExternalSearchFixture _fixture;
 
