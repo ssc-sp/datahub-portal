@@ -1,4 +1,5 @@
 ﻿@using Datahub.Application.Services
+@using static Datahub.Core.DevTools
 @inject IProjectCreationService _projectCreationService
 @inject NavigationManager _navigationManager
 @inject DatahubPortalConfiguration _portalConfiguration
@@ -124,8 +125,8 @@
 
     protected override void OnInitialized()
     {
-        var env = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        _authLevel = env.Equals("prod") || env.Equals("prd") ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.Authenticated;
+        var isProd = TopBarEnvironment() == TopBarEnvironments.Production || TopBarEnvironment() == TopBarEnvironments.ProductionProtected;
+        _authLevel = isProd ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.Unauthorized;
     }
 
     private async Task GenerateAcronym()
