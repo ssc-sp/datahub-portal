@@ -31,7 +31,7 @@
             <MudCardHeader>
                 <MudText Typo=@Typo.h3>@Localizer["Timeline"]</MudText>
                 <MudSpacer />
-                <DHButton OnClick=@ToggleTimeline >@(_timelineCollapsed? "Expand":"Collapse")</DHButton>
+                <DHButton OnClick=@ToggleTimeline >@(Localizer[_timelineCollapsed? "Expand":"Collapse"])</DHButton>
             </MudCardHeader>
 
             <MudCardContent>
