@@ -7,6 +7,9 @@
 @code {
     [Parameter] public RenderFragment ChildContent { get; set; }
 
+    /// <summary>
+    /// List of environments that the component should be visible in. We recommend always including the Development environment to ensure that the component is visible in testing.
+    /// </summary>
     [Parameter] public List<TopBarEnvironments> Environments { get; set; } = new List<TopBarEnvironments> { TopBarEnvironments.Development };
 
     private bool _isCorrectEnvironment = false;
