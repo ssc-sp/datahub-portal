@@ -26,6 +26,14 @@
     return;
 }
 
+@if (_project.IsOverBudget)
+{
+    <MudItem xs="12" sm="8">
+        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym" />
+    </MudItem>    
+    return;
+}
+
 <MudGrid>
     <MudItem xs="12" sm="8">
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
@@ -144,6 +152,7 @@
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         _project = await context.Projects
             .Include(w => w.Resources)
+            .Include(p => p.Credits)
             .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
 
         _resources = _project.Resources

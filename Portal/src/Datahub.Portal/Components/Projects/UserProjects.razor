@@ -115,7 +115,9 @@
         _userRoles = await dbContext.Project_Users
             .Include(u => u.Role)
             .Include(u => u.Project)
-            .ThenInclude(p => p.Users)
+                .ThenInclude(p => p.Users)
+            .Include(u => u.Project)
+                .ThenInclude(p => p.Credits) // Include the Credits table
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
