@@ -2843,6 +2843,7 @@
   "Workspace Wayfarer": "Nomade de l'espace de travail",
   "Workspace admins": "Administrateurs de l'espace de travail",
   "Workspace admins can configure the web app using the link below.": "Les administrateurs de l'espace de travail peuvent configurer l'application web en utilisant le lien ci-dessous.",
+  "Workspace creation is disabled in this environment. Please contact FSDH support to create a workspace.": "La création d'espace de travail est désactivée dans cet environnement. Veuillez contacter le support du DHSF pour créer un espace de travail.",
   "Workspace lead": "Responsable de l'espace de travail",
   "Workspace tools": "Outils de l'espace de travail",
   "Workspaces": "Espaces de travail",

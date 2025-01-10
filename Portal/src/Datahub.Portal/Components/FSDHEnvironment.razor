@@ -14,13 +14,6 @@
     protected override void OnInitialized()
     {
         TopBarEnvironments currentEnvironment = TopBarEnvironment(); // Retrieve the current environment from the DevTools
-
-        if (currentEnvironment == TopBarEnvironments.Development){ // In Development, always show the component for testing.
-            _isCorrectEnvironment = true;
-        }
-        else
-        {
-            _isCorrectEnvironment = Environments.Contains(currentEnvironment);
-        }
+        _isCorrectEnvironment = Environments.Contains(currentEnvironment);
     }
 }
