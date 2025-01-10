@@ -1,0 +1,26 @@
+﻿@using static Datahub.Core.DevTools
+
+<div style="display: @( _isCorrectEnvironment ? "block" : "none" )">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    [Parameter] public List<TopBarEnvironments> Environments { get; set; } = new List<TopBarEnvironments> { TopBarEnvironments.Development };
+
+    private bool _isCorrectEnvironment = false;
+
+    protected override void OnInitialized()
+    {
+        TopBarEnvironments currentEnvironment = TopBarEnvironment(); // Retrieve the current environment from the DevTools
+
+        if (currentEnvironment == TopBarEnvironments.Development){ // In Development, always show the component for testing.
+            _isCorrectEnvironment = true;
+        }
+        else
+        {
+            _isCorrectEnvironment = Environments.Contains(currentEnvironment);
+        }
+    }
+}
