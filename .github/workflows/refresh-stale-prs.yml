@@ -1,23 +1,28 @@
-name: Auto Update PRs
+---
+name: Pull request auto update
 
 on:
-  # Trigger when commits are pushed to the "develop" branch
   push:
     branches:
-      - develop
-  
-  # Allow manually triggering the workflow from the Actions tab
-  workflow_dispatch: {}
-
+      - "develop"
 jobs:
   refresh_stale_prs:
-    name: Refresh Stale PRs
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     steps:
-      # Step: Run the autoupdate Docker action
-      # Using the docker image to perform automatic updates
-      - name: Run refresh stale PRs action
-        uses: docker://chinthakagodawita/autoupdate-action@sha256:53d7013ad4689b703d2715d4b17d4901bb0a385e495e0b481f37adbe9b3cc3fc
-        env:
-          # Pass the GitHub token to allow the action to interact with the repository
-          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+      - name: Create App token
+        id: create_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ vars.DATAHUB_PORTAL_PR_APP_ID }}
+          private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
+
+      - name: Automatically update PR
+        uses: adRise/update-pr-branch@v0.9.1
+        with:
+          token: ${{ steps.create_token.outputs.token }}
+          base: "develop"
+          required_approval_count: 0
+          require_passed_checks: false
+          require_auto_merge_enabled: false
+          sort: "created"
+          direction: "desc"
