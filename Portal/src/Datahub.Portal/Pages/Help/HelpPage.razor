@@ -131,21 +131,21 @@
                             <MudItem xs="6" align="@Align.Start" Class="pb-2">
                                 @if (_currentStep == Steps.Start)
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
                                 }
                                 else
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</DHButton>
                                 }
                             </MudItem>
                             <MudItem xs="6" align="@Align.End" Class="pb-2">
                                 @if (_currentStep == Steps.Submit)
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</DHButton>
                                 }
                                 else if (_currentStep != Steps.Start)
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</DHButton>
                                 }
                             </MudItem>
                         </MudGrid>
