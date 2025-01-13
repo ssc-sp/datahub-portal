@@ -31,6 +31,9 @@ using Datahub.Infrastructure;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Shared.Configuration;
+using Datahub.Application.Services.WebApp;
+using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Infrastructure.Offline.Security;
 
 
 var host = new HostBuilder()
@@ -85,13 +88,15 @@ var host = new HostBuilder()
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
         services.AddScoped<HealthCheckHelper>();
         services.AddDatahubConfigurationFromFunctionFormat(config);
-       
 
+        // This is necessary to satisfy a dependency in WorkspaceWebAppManagementService, but it's not actually used so Offline works fine.
+        services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
     })
     .Build();
 
