@@ -48,7 +48,7 @@ public class SupportAccessToWorkspacesSteps (
     {
         // Act
         var workspace = scenarioContext.Get<Datahub_Project>();
-        workspace = WorkspaceSettingsPage.ExtendAdminAccess(workspace);
+        workspace = WorkspaceGrantSupportAccessControl.ExtendAdminAccess(workspace);
         scenarioContext.Set(workspace);
     }
 
@@ -73,7 +73,7 @@ public class SupportAccessToWorkspacesSteps (
             AllowDatahubSupport = new DateTime(2000, 6, 5),
         };
 
-        workspace = WorkspaceSettingsPage.ExtendAdminAccess(workspace);
+        workspace = WorkspaceGrantSupportAccessControl.ExtendAdminAccess(workspace);
 
         scenarioContext.Set(workspace);
     }
@@ -83,7 +83,7 @@ public class SupportAccessToWorkspacesSteps (
     {
         // Act
         var workspace = scenarioContext.Get<Datahub_Project>();
-        workspace = WorkspaceSettingsPage.CancelAdminAccess(workspace);
+        workspace = WorkspaceGrantSupportAccessControl.CancelAdminAccess(workspace);
         scenarioContext.Set(workspace);
     }
 }
