@@ -27,6 +27,7 @@
 </MudItem>
 
 @code {
+    private const string ORGANIZATION_FIELD_NAME = "organization_name";
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
@@ -174,9 +175,17 @@
         return await Task.FromResult(_approvalForm);
     }
 
-    private void OnConfigure(Forms.IModelFormContext context)
+    private async Task OnConfigure(Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
+        await SetupOrganizations(context);
+    }
+
+    private async Task SetupOrganizations(Forms.IModelFormContext context)
+    {
+        var rawOrgs = await MetadataBrokerService.GetFieldChoices(ORGANIZATION_FIELD_NAME);
+        var orgNames = rawOrgs.Select(r => _isFrench ? r.Label_French_TXT : r.Label_English_TXT).Order();
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Department_NAME, () => orgNames);
     }
 
     private void RefreshBranches(Forms.IModelFormContext context)
