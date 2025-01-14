@@ -60,7 +60,8 @@
   "APPROVAL-FORM.Authority_To_Release_FLAG": "The department or agency has the departmental mandate, legislative authority or permission from a third party provider to publish the data or information resource under the Open Government Licence – Canada.",
   "APPROVAL-FORM.Branch_NAME": "Branch",
   "APPROVAL-FORM.Can_Be_Released_For_Free_FLAG": "The data or information resource can be released to the public without fee.",
-  "APPROVAL-FORM.Cancel": "Clear",
+  "APPROVAL-FORM.Cancel": "Cancel",
+  "APPROVAL-FORM.Clear": "Clear",
   "APPROVAL-FORM.Collection_Of_Datasets_FLAG": "Represents a collection of datasets or data products with a consistently applied specification or model.",
   "APPROVAL-FORM.Copyright_Restrictions_FLAG": "There are no known legal, licensing, or copyright restrictions to prevent the data or information from being released by the department or agency under the terms of the Open Government Licence – Canada.",
   "APPROVAL-FORM.Data": "Data",
@@ -2043,5 +2044,10 @@
   "Successfully updated workspace publishing settings.": "Successfully updated workspace publishing settings.",
   "Failed to update workspace publishing settings.": "Failed to update workspace publishing settings.",
   "(untitled dataset {0})": "(untitled dataset {0})",
-  "Select Dataset": "Select Dataset"
+  "Select Dataset": "Select Dataset",
+  "Revise": "Revise",
+  "Business Owner": "Business Owner",
+  "Source Information": "Source Information",
+  "Mandatory Release Criteria": "Mandatory Release Criteria",
+  "Blanket Approvals": "Blanket Approvals"
 }

@@ -31,7 +31,7 @@
             <MudCardHeader>
                 <MudText Typo=@Typo.h3>@Localizer["Timeline"]</MudText>
                 <MudSpacer />
-                <DHButton OnClick=@ToggleTimeline >@(Localizer[_timelineCollapsed? "Expand":"Collapse"])</DHButton>
+                <DHButton OnClick=@ToggleTimeline >@ExpandCollapseText(!_timelineCollapsed)</DHButton>
             </MudCardHeader>
 
             <MudCardContent>
@@ -47,33 +47,40 @@
             </MudCardContent>
         </MudCard>
 
-        @if (ShowMetadataEntryForm)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo=@Typo.h3>@Localizer["Submission Metadata"]</MudText>
-                </MudCardHeader>
-                <MudCardContent>
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo=@Typo.h3>@Localizer["Submission Metadata"]</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudCollapse Expanded=@MetadataPanelExpanded>
                     <TbsOpenGovSubmissionMetadataEditor Submission=@Submission OnMetadataUpdated=@UpdateSubmission />
-                </MudCardContent>
-            </MudCard>
-        }
+                </MudCollapse>
+                <MudCollapse Expanded=@(!MetadataPanelExpanded)>
+                    <DHButton OnClick="@(() => MetadataPanelExpanded = true)">@Localizer["Revise"]</DHButton>
+                </MudCollapse>
+            </MudCardContent>
+        </MudCard>
+        
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo=@Typo.h3>@Localizer["Open Gov Publishing Criteria"]</MudText>
+            </MudCardHeader>
 
-        @if (ShowOpenGovCriteriaForm)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo=@Typo.h3>@Localizer["Open Gov Publishing Criteria"]</MudText>
-                </MudCardHeader>
-
-                <MudCardContent>
+            <MudCardContent>
+                <MudCollapse Expanded=@CriteriaPanelExpanded>
                     <ApprovalForm ApprovalFormId=@_approvalFormId
                         OnSubmitForm=@UpdateApprovalFormId
                         DatasetTitle=@Submission.DatasetTitle
-                        PortalUser=@_requestingUser />
-                </MudCardContent>
-            </MudCard>
-        }
+                        PortalUser=@_requestingUser 
+                        HasBeenSubmittedAlready=@(!OpenGovCriteriaStepActive)
+                        OnCancelForm=@HandleApprovalFormCancel
+                        />
+                </MudCollapse>
+                <MudCollapse Expanded=@(!CriteriaPanelExpanded)>
+                    <DHButton OnClick="@(() => CriteriaPanelExpanded = true)">@Localizer["Revise"]</DHButton>
+                </MudCollapse>
+            </MudCardContent>
+        </MudCard>
 
         @if (ShowSubmissionFilesPane)
         {
@@ -263,11 +270,19 @@
     private bool PublishButtonDisabled => !(_canBeSubmitted && PublishingEnabled);
 
     private bool ShowMetadataEntryForm => true; //TODO
-    private bool ShowOpenGovCriteriaForm => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
+    private bool OpenGovCriteriaStepActive => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowSubmissionFilesPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowImsoApprovalPane => true; //TODO
     private bool ShowReadyToPublishPane => true;
     private bool ShowPublishedPane => _stepStates[StatusEnum.Published] == DHSteps<StatusEnum>.StepState.Passed;
+
+    private bool MetadataPanelExpanded { get; set; } = false;
+    private bool CriteriaPanelExpanded { get; set; } = false;
+    private bool FilesPanelExpanded { get; set; } = false;
+    private bool ImsoApprovalPanelExpanded { get; set; } = false;
+    private bool ReadyToPublishPanelExpanded { get; set; } = false;
+
+    private string ExpandCollapseText(bool expanded) => Localizer[expanded ? "Collapse" : "Expand"];
 
     private Dictionary<StatusEnum, DHSteps<StatusEnum>.StepState> _stepStates = new();
     private Dictionary<StatusEnum, (string, string)?> _stepInfo = new();
@@ -400,6 +415,11 @@
         await InvokeAsync(StateHasChanged);
     }
 
+    private void HandleApprovalFormCancel()
+    {
+        SetCriteriaExpandedFromSubmission();
+    }
+
     private async Task UpdateApprovalFormId(ApprovalFormSubmitArgs args)
     {
         _approvalFormId = args.FormId;
@@ -435,6 +455,7 @@
 
     private async Task UpdateSubmission()
     {
+        SetAllPanelsExpandedStateFromSubmission();
         if (OnSubmissionUpdated.HasDelegate)
         {
             await OnSubmissionUpdated.InvokeAsync();
@@ -460,6 +481,16 @@
         _initialFilePurposes = Submission.Files.ToDictionary(f => f, f => f.FilePurpose);
 
         SetStatusSteps();
+        SetAllPanelsExpandedStateFromSubmission();
+    }
+
+    private void SetMetadataExpandedFromSubmission() => MetadataPanelExpanded = !Submission.MetadataComplete;
+    private void SetCriteriaExpandedFromSubmission() => CriteriaPanelExpanded = OpenGovCriteriaStepActive;
+
+    private void SetAllPanelsExpandedStateFromSubmission()
+    {
+        SetMetadataExpandedFromSubmission();
+        SetCriteriaExpandedFromSubmission();
     }
 
     private void SetStatusSteps()
