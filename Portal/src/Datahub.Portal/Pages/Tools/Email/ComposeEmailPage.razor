@@ -7,14 +7,12 @@
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
-@inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
 
 <MudStack Class="mb-4">
     @*title*@
     <MudStack Row Justify="Justify.SpaceBetween">
         <MudText Typo="Typo.h2">@Localizer["DataHub Email"]</MudText>
-        <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@NavigateBack"></MudIconButton>
     </MudStack>
 
     @*to field*@
@@ -181,8 +179,6 @@
                     break;
             }
         });
-
-        NavigateBack();
     }
 
     private async Task HandleEmailYourself()
@@ -205,11 +201,6 @@
         {
             _snackbar.Add(Localizer["Failed to send the email"], Severity.Warning);
         }
-    }
-
-    private void NavigateBack()
-    {
-        _navigationManager.NavigateTo("/tools");
     }
 
     static List<string> ParseAddresses(string text)
