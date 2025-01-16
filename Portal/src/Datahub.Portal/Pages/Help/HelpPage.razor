@@ -70,7 +70,14 @@
                         }
                         else if (_currentStep == Steps.Description)
                         {
-                            <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                            if (_ticketTopics["Extended Storage Token"])
+                            {
+                                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please describe why you need an extended storage token and any additional information for your request."]</MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                            }
                             <MudTextField T="string"
                                           @bind-Value="@_ticketDescription"
                                           Label=@(Localizer["Detailed description"])
@@ -227,9 +234,11 @@
         { "Databricks", false },
         { "Storage", false },
         { "PostgreSQL", false },
+        { "Web App", false },
         { "User Management", false },
         { "Documentation", false },
         { "Tool Requesting", false },
+        { "Extended Storage Token", false },
         { "Other", false },
     };
 
