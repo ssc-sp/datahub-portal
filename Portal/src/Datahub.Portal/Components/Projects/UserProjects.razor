@@ -6,6 +6,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Project
 @using Datahub.Portal.Pages.Explore
+@using Datahub.Portal.Pages.Home
 
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
@@ -20,64 +21,113 @@
     return;
 }
 
-<MudStack>
-    @if (_adminProjects.Any())
-    {
-        @if (ShowTitle)
+@if (Dense)
+{
+    <MudStack Row AlignItems="AlignItems.Center">
+        <MudText Typo="Typo.h2">
+            @Localizer["Workspaces"]
+        </MudText>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                  Href="@PageRoutes.CreateWorkspace"
+                  EndIcon="@Icons.Material.Filled.Add">@Localizer["Create new workspace"]</DHButton>
+        <MudChipSet T="string">
+            <MudChip T="string" Text="@Localizer["Lead"]">@Localizer["Lead"]</MudChip>
+            <MudChip T="string" Text="@Localizer["Admin"]">@Localizer["Admin"]</MudChip>
+            <MudChip T="string" Text="@Localizer["Collaborator"]">@Localizer["Collaborator"]</MudChip>
+            <MudChip T="string" Text="@Localizer["Guest"]">@Localizer["Guest"]</MudChip>
+        </MudChipSet>
+        <MudSpacer/>
+        <DHButton Underline Color="Color.Primary"
+                  Href="@PageRoutes.Explore"
+                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Explore other workspaces"]</DHButton>
+    </MudStack>
+    <MudStack>
+        @foreach (var project in _adminProjects)
         {
-            <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin workspaces"]</MudText>
+            <DenseProjectCard Project="@project" Icon="@Icons.Material.Outlined.StarOutline"/>
         }
-        <div role="group">
-            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-                @foreach (var project in _adminProjects)
-                {
-                    <li class="flex-1">
-                        <ProjectPreviewCard Project="@project"/>
-                    </li>
-                }
-            </ul>
-        </div>
-    }
-
-    @if (_collaboratedProjects.Any())
-    {
-        @if (ShowTitle)
+        @foreach (var project in _collaboratedProjects)
         {
-            <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator workspaces"]</MudText>
+            <DenseProjectCard Project="@project" />
         }
-        <div role="group">
-            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-                @foreach (var project in _collaboratedProjects)
-                {
-                    <li class="flex-1">
-                        <ProjectPreviewCard Project="@project"/>
-                    </li>
-                }
-            </ul>
-        </div>
-    }
+        @foreach (var project in _guestProjects)
+        {
+            <DenseProjectCard Project="@project" />
+        }
+    </MudStack>
     
-    @if (_guestProjects.Any())
-    {
-        @if (ShowTitle)
+}
+else
+{
+    <MudStack>
+        @if (_adminProjects.Any())
         {
-            <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest workspaces"]</MudText>
+            @if (ShowTitle)
+            {
+                <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin workspaces"]</MudText>
+            }
+
+            <div role="group">
+                <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
+                    @foreach (var project in _adminProjects)
+                    {
+                        <li class="flex-1">
+                            <ProjectPreviewCard Project="@project"/>
+                        </li>
+                    }
+                </ul>
+            </div>
         }
-        <div role="group">
-            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-                @foreach (var project in _guestProjects)
+
+        @if (_collaboratedProjects.Any())
+        {
+            @if (ShowTitle)
+            {
+                @if (_adminProjects.Any())
                 {
-                    <li class="flex-1">
-                        <ProjectPreviewCard Project="@project"/>
-                    </li>
+                    <MudDivider Class="my-4"/>
                 }
-            </ul>
-        </div>
-    }
-</MudStack>
+
+                <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator workspaces"]</MudText>
+            }
+
+            <div role="group">
+                <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
+                    @foreach (var project in _collaboratedProjects)
+                    {
+                        <li class="flex-1">
+                            <ProjectPreviewCard Project="@project"/>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (_guestProjects.Any())
+        {
+            @if (ShowTitle)
+            {
+                @if (_adminProjects.Any() || _collaboratedProjects.Any())
+                {
+                    <MudDivider Class="my-4"/>
+                }
+
+                <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest workspaces"]</MudText>
+            }
+
+            <div role="group">
+                <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
+                    @foreach (var project in _guestProjects)
+                    {
+                        <li class="flex-1">
+                            <ProjectPreviewCard Project="@project"/>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </MudStack>
+}
 
 @code {
 
@@ -86,6 +136,7 @@
     [Parameter] public int SmSize { get; set; } = 4;
 
     [Parameter] public string UserId { get; set; }
+    [Parameter] public bool Dense { get; set; }
 
     private bool _isCurrentUser;
 
@@ -115,9 +166,9 @@
         _userRoles = await dbContext.Project_Users
             .Include(u => u.Role)
             .Include(u => u.Project)
-                .ThenInclude(p => p.Users)
+            .ThenInclude(p => p.Users)
             .Include(u => u.Project)
-                .ThenInclude(p => p.Credits) // Include the Credits table
+            .ThenInclude(p => p.Credits) // Include the Credits table
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
