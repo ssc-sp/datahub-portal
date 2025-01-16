@@ -1,10 +1,9 @@
 ﻿@using Datahub.Application.Services.ReverseProxy
-@using Datahub.Application.Services.Security
 @using Datahub.Portal.Views.Dialogs
+@using Datahub.Portal.Pages.Account
 @using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
 @using Datahub.Core.Model.Projects
-@using System.Text.Json
 @using Datahub.Application.Services.WebApp
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -23,11 +22,12 @@
 }
 <MudStack>
     <MudStack Row="true" AlignItems="AlignItems.Center">
-        <DHMainContentTitle Title="@Localizer["Web Application"]" />
+        <DHMainContentTitle Title="@Localizer["Web application"]"/>
         @if (_isConfigured)
         {
             <MudStack AlignItems="AlignItems.End" Justify="Justify.Center">
-                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)" Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])" />
+                <DHIcon Icon="@SidebarIcons.Circle" Color="@(_webAppState ? Color.Success : Color.Error)"
+                        Title="@(_webAppState ? Localizer["Running"] : Localizer["Stopped"])"/>
             </MudStack>
         }
         <MudSpacer/>
@@ -37,7 +37,10 @@
             {
                 @if (!_webAppState)
                 {
-                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Start" IconColor="@Color.Success" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
+                    <DHButton HtmlTag="button" Disabled="@_isStartStopping" Variant="Variant.Filled"
+                              StartIcon="@SidebarIcons.Start"
+                              IconColor="@Color.Success" Size="Size.Small"
+                              OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Start, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -50,7 +53,10 @@
                 }
                 else
                 {
-                    <DHButton Disabled="@_isStartStopping" Variant="Variant.Filled" StartIcon="@SidebarIcons.Stop" IconColor="@Color.Error" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
+                    <DHButton HtmlTag="button" Disabled="@_isStartStopping" Variant="Variant.Filled"
+                              StartIcon="@SidebarIcons.Stop"
+                              IconColor="@Color.Error" Size="Size.Small"
+                              OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Stop, _webAppId, 2000); })">
                         @if (_isStartStopping)
                         {
                             <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -62,7 +68,9 @@
                     </DHButton>
                 }
 
-                <DHButton Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled" StartIcon="@SidebarIcons.Restart" Size="Size.Small" OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
+                <DHButton HtmlTag="button" Disabled="@(_isRestarting || !_webAppState)" Variant="Variant.Filled"
+                          StartIcon="@SidebarIcons.Restart" Size="Size.Small"
+                          OnClick="@(async () => { await ExecuteAsyncWithStateChangeDelay(_webAppMgmtService.Restart, _webAppId, 2000); })">
                     @if (_isRestarting)
                     {
                         <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -73,7 +81,8 @@
                     }
                 </DHButton>
 
-                <DHButton Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary" StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await RedeployWebApp())">
+                <DHButton HtmlTag="button" Variant="Variant.Filled" Size="Size.Small" Color="Color.Primary"
+                          StartIcon="@SidebarIcons.Redeploy" OnClick="@(async () => await RedeployWebApp())">
                     @if (_isRedeploying)
                     {
                         <MudProgressCircular Color="Color.Default" Indeterminate="true" Size="Size.Small"/>
@@ -85,7 +94,9 @@
                 </DHButton>
             }
 
-            <DHButton Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled" StartIcon="@SidebarIcons.Gear" OnClick="@(async () => await NewWebAppConfiguration())">
+            <DHButton HtmlTag="button" Color="Color.Primary" Size="Size.Small" Variant="Variant.Filled"
+                      StartIcon="@SidebarIcons.Gear"
+                      OnClick="@(async () => await NewWebAppConfiguration())">
                 @Localizer["Configure"]
             </DHButton>
         }
@@ -102,24 +113,32 @@
     </MudAlert>
     @if (_isProvisioned)
     {
-        <MudSwitch 
-            T=@bool 
-            Value=@_isUrlRewritingEnabled 
-            Color=@Color.Primary 
-            Label=@Localizer["Enable URL Rewriting"] 
-            ValueChanged=@HandleToggleUrlRewriting
-            Disabled=@_isSaving />
+        <MudText Typo="Typo.h2">@Localizer["Quick settings"]</MudText>
+        <MudPaper Class="pa-4">
+            <SettingsField Label=@Localizer["URL rewriting"]
+                           Description="@Localizer["The FSDH proxy rewrites URL paths which is supported by most web applications who do not configure the base href. However some frameworks (such as python dash) do configure a base url. For these frameworks, the URL rewrite option should be disabled and the proxied URL should be configured inside the application as base url."]">
+                <MudSwitch
+                    T=@bool
+                    Value=@_isUrlRewritingEnabled
+                    Color=@Color.Primary
+                    Label=@Localizer["Enable URL rewriting"]
+                    ValueChanged=@HandleToggleUrlRewriting
+                    Disabled=@_isSaving/>
+            </SettingsField>
+        </MudPaper>
+        <MudText Typo="Typo.body1" Style="font-style: italic">
+            @Localizer["Quick settings are applied immediately. No need to restart your web application."]
+        </MudText>
     }
 
     @if (_isProvisioned && _isConfigured)
     {
-        <WorkspaceWebAppInfoTable 
+        <WorkspaceWebAppInfoTable
             @ref=@_webappInfoTable
-            WebAppHost="@_webAppHost" 
-            WebAppId="@_webAppId" 
-            Framework="@_webAppFramework" 
-            GitRepo="@_webAppRepo" 
-            ComposePath="@_webAppCompose" 
+            WebAppHost="@_webAppHost"
+            Framework="@_webAppFramework"
+            GitRepo="@_webAppRepo"
+            ComposePath="@_webAppCompose"
             WorkspaceAcronym="@WorkspaceAcronym"/>
     }
     else if (_isProvisioned)
@@ -136,23 +155,48 @@
     }
     @if (_resource is not null && _isConfigured)
     {
-        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true" @ref="@_envVarTable"/>
+        <EnvironmentVariablesTable resource="@_resource" projectAcronym="@WorkspaceAcronym" isEditable="true"
+                                   @ref="@_envVarTable"/>
+    }
+    @if (_isConfigured)
+    {
+        <MudText Typo="Typo.h2">@Localizer["Web application logs"]</MudText>
+        <MudPaper Class="py-4" Elevation="1">
+            <MudStack Row Class="px-4" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h3">
+                    @Localizer["Runtime logs"]
+                </MudText>
+                <MudSpacer/>
+                <DHButton HtmlTag="Button" OnClick="ToggleLogs" IconSize="Size.Large" Variant="Variant.Filled"
+                          EndIcon="@(_showLogs ? Icons.Material.Filled.ArrowDropUp : Icons.Material.Filled.ArrowDropDown)">@(_showLogs ? Localizer["Hide"] : Localizer["View"])</DHButton>
+            </MudStack>
+            <MudCollapse @bind-Expanded="@_showLogs">
+                <iframe id="logStreamIframe" src="@($"/api/healthcheck/webapplogstream?ws={WorkspaceAcronym}")"
+                        style="height: 500px;">
+                    <!-- Fallback content for browsers that do not support iframes -->
+                    Your browser does not support iframes.
+                </iframe>
+            </MudCollapse>
+        </MudPaper>
+        <MudText Typo="Typo.body1" Style="font-style: italic">
+            @Localizer["Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes."]
+        </MudText>
     }
     @if (_isProvisioned)
     {
-        <MudDivider DividerType="DividerType.Middle"/>
-        <MudPaper Class="pa-6 mt-4 mb-12" Elevation="1">
-            <MudText Typo="Typo.h2">
-                @Localizer["Additional information"]
-            </MudText>
-            <MudAlert Class="mt-4" Severity="Severity.Warning">
+        <MudText Typo="Typo.h2" Class="mt-6">
+            @Localizer["Additional information"]
+        </MudText>
+        <MudPaper Class="pa-6" Elevation="1">
+            <MudAlert Severity="Severity.Warning">
                 <strong>
                     @Localizer["Please read before configuration to ensure that you do not run into any issues!"]
                 </strong>
             </MudAlert>
             <MudText Typo="Typo.body1" Class="mt-4">
                 @Localizer["Web applications in FSDH are deployed and hosted using the "]
-                <MudLink Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</MudLink>
+                <MudLink
+                    Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</MudLink>
                 @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]
             </MudText>
             <MudText Typo="Typo.h3" Class="mt-4">
@@ -160,7 +204,8 @@
             </MudText>
             <MudText Typo="Typo.body1" Class="mt-4">
                 @Localizer["The following are supported and unsupported docker compose configuration options as per "]
-                <MudLink Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
+                <MudLink
+                    Href="https://learn.microsoft.com/en-us/azure/app-service/configure-custom-container?tabs=debian&pivots=container-linux#configure-multi-container-apps">
                     @Localizer["Microsoft's documentation on multi-container web apps. "]
                 </MudLink>
             </MudText>
@@ -190,7 +235,9 @@
                     <li style="display: list-item; list-style-type: circle">
                         <code>services</code>
                     </li>
-                    <li style="display: list-item; list-style-type: circle"><code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]</li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>volumes</code>, @Localizer["please contact us to set-up volumes as they require more configuration."]
+                    </li>
                 </ul>
             </MudText>
             <MudText Typo="Typo.h4" Class="mt-4">
@@ -198,7 +245,9 @@
             </MudText>
             <MudText>
                 <ul class="ml-4">
-                    <li style="display: list-item; list-style-type: circle"><code>build</code> @Localizer[", not allowed without "] <code>image</code>.</li>
+                    <li style="display: list-item; list-style-type: circle">
+                        <code>build</code> @Localizer[", not allowed without "] <code>image</code>.
+                    </li>
                     <li style="display: list-item; list-style-type: circle">
                         <code>depends_on</code> @Localizer[", will be ignored."]
                     </li>
@@ -232,7 +281,8 @@
             <MudText Typo="Typo.body1" Class="mt-4">
                 @Localizer["We currently only support public images, i.e. images that are available on Docker Hub or other public repositories. In order to deploy private images, please fill a support request."]
             </MudText>
-        </MudPaper>    }
+        </MudPaper>
+    }
 </MudStack>
 
 
@@ -262,6 +312,7 @@
     private bool _isRestarting;
     private bool _isSaving;
     private bool _isRedeploying;
+    private bool _showLogs;
 
     protected override async Task OnInitializedAsync()
     {
@@ -285,6 +336,11 @@
         await HydrateValues();
         _webAppState = await _webAppMgmtService.GetState(_webAppId);
         StateHasChanged();
+    }
+
+    private void ToggleLogs()
+    {
+        _showLogs = !_showLogs;
     }
 
     private async Task HandleToggleUrlRewriting(bool value)
@@ -373,7 +429,7 @@
         _isRestarting = false;
         StateHasChanged();
     }
-    
+
     private async Task RedeployWebApp()
     {
         _isRedeploying = true;
@@ -438,7 +494,6 @@
             _logger.LogError(e, "Failed to save web app configuration");
             _snackbar.Add(Localizer["Web application configuration failed"], Severity.Error);
         }
-
     }
 
     private async Task SetGitToken(AppServiceConfiguration config)
