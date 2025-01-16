@@ -3044,5 +3044,9 @@
   "Blanket Approvals": "Approbations générales",
   "Please add some files to this submission.": "Veuillez ajouter des fichiers à cette soumission.",
   "Open Submission Files": "Ouvrir les fichiers de soumission",
-  "Open IMSO Approval": "Ouvrir l'approbation de l'IMSO"
+  "Open IMSO Approval": "Ouvrir l'approbation de l'IMSO",
+  "Successfully submitted IMSO approval.": "L'approbation de l'IMSO a été soumise avec succès.",
+  "Failed to submit IMSO approval.": "N'a pas soumis l'approbation de l'IMSO.",
+  "Successfully published the dataset.": "Publication réussie de l'ensemble de données.",
+  "Failed to publish the dataset.": "Échec de la publication de l'ensemble de données."
 }

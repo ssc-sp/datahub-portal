@@ -2052,5 +2052,9 @@
   "Blanket Approvals": "Blanket Approvals",
   "Please add some files to this submission.": "Please add some files to this submission.",
   "Open Submission Files": "Open Submission Files",
-  "Open IMSO Approval": "Open IMSO Approval"
+  "Open IMSO Approval": "Open IMSO Approval",
+  "Successfully submitted IMSO approval.": "Successfully submitted IMSO approval.",
+  "Failed to submit IMSO approval.": "Failed to submit IMSO approval.",
+  "Successfully published the dataset.": "Successfully published the dataset.",
+  "Failed to publish the dataset.": "Failed to publish the dataset."
 }
