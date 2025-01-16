@@ -3041,5 +3041,8 @@
   "Business Owner": "Propriétaire d'entreprise",
   "Source Information": "Informations sur la source",
   "Mandatory Release Criteria": "Critères obligatoires de libération",
-  "Blanket Approvals": "Approbations générales"
+  "Blanket Approvals": "Approbations générales",
+  "Please add some files to this submission.": "Veuillez ajouter des fichiers à cette soumission.",
+  "Open Submission Files": "Ouvrir les fichiers de soumission",
+  "Open IMSO Approval": "Ouvrir l'approbation de l'IMSO"
 }

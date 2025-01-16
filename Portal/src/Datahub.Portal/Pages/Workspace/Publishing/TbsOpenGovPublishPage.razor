@@ -82,14 +82,13 @@
             </MudCardContent>
         </MudCard>
 
-        @if (ShowSubmissionFilesPane)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo=@Typo.h3>@Localizer["Submission Files"]</MudText>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudTable T=@OpenDataPublishFile Items=@Submission.Files>
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo=@Typo.h3>@Localizer["Submission Files"]</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudCollapse Expanded=@FilesPanelExpanded>
+                    <MudTable T=@OpenDataPublishFile Items=@Submission.Files ContainerClass="mb-4">
                         <RowTemplate>
                             <MudTd><MudText>@context.FileName</MudText></MudTd>
                             <MudTd>
@@ -125,9 +124,11 @@
                                 </MudTooltip>
                             </MudTd>
                         </RowTemplate>
+                        <NoRecordsContent>
+                            <MudText>@Localizer["Please add some files to this submission."]</MudText>
+                        </NoRecordsContent>
                     </MudTable>
-                </MudCardContent>
-                <MudCardActions>
+
                     <DHButton 
                         Color=@Color.Primary 
                         Variant=@Variant.Filled 
@@ -141,18 +142,19 @@
                         EndIcon=@Icons.Material.Outlined.KeyboardDoubleArrowRight
                     >@Localizer["Add Files"]</DHButton>
 
-                    <DHButton Color=@Color.Error OnClick=@ResetFileStatuses>@Localizer["Reset Upload Statuses"]</DHButton>
-                </MudCardActions>
-            </MudCard>
-        }
-
-        @if (ShowImsoApprovalPane)
-        {
-            <MudCard>
-                <MudCardHeader>
-                    <MudText Typo=@Typo.h3>@Localizer["IMSO Approval"]</MudText>
-                </MudCardHeader>
-                <MudCardContent>
+                </MudCollapse>
+                <MudCollapse Expanded=@(!FilesPanelExpanded)>
+                    <DHButton OnClick="@(() => FilesPanelExpanded = true)">@Localizer["Open Submission Files"]</DHButton>
+                </MudCollapse>
+            </MudCardContent>
+        </MudCard>
+        
+        <MudCard>
+            <MudCardHeader>
+                <MudText Typo=@Typo.h3>@Localizer["IMSO Approval"]</MudText>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudCollapse Expanded=@ImsoApprovalPanelExpanded>
                     <MudText>@Localizer["Please press the button below to generate the IMSO approval form."]</MudText>
                     <DHButton 
                         Href=@($"{_navManager.BaseUri}api/OpenDataApproval?id={Submission.OpenGovCriteriaFormId}") 
@@ -169,19 +171,21 @@
                         Submission=@Submission
                         Syncer=@Syncer
                     />
-                    
-                </MudCardContent>
-                <MudCardActions>
-                    <DHButton 
-                        Variant=@Variant.Filled 
+
+                    <DHButton Variant=@Variant.Filled 
+                        Class="mt-4"
                         Color=@Color.Primary
                         Disabled=@SubmitImsoButtonDisabled
-                        OnClick=@SubmitImsoApprovalDocument
-                    >@Localizer["Submit"]</DHButton>
-                </MudCardActions>
+                        OnClick=@SubmitImsoApprovalDocument>@Localizer["Submit"]</DHButton>
 
-            </MudCard>
-        }
+                </MudCollapse>
+                <MudCollapse Expanded=@(!ImsoApprovalPanelExpanded)>
+                    <DHButton OnClick="@(() => ImsoApprovalPanelExpanded = true)">@Localizer["Open IMSO Approval"]</DHButton>
+                </MudCollapse>
+                    
+            </MudCardContent>
+        </MudCard>
+        
 
         @if (ShowReadyToPublishPane)
         {
@@ -271,7 +275,7 @@
 
     private bool ShowMetadataEntryForm => true; //TODO
     private bool OpenGovCriteriaStepActive => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
-    private bool ShowSubmissionFilesPane => true;// _stepStates[StatusEnum.Uploading] == DHSteps<StatusEnum>.StepState.Running;
+    private bool AddFilesStepActive => _stepStates[StatusEnum.AwaitingFiles] == DHSteps<StatusEnum>.StepState.Running;
     private bool ShowImsoApprovalPane => true; //TODO
     private bool ShowReadyToPublishPane => true;
     private bool ShowPublishedPane => _stepStates[StatusEnum.Published] == DHSteps<StatusEnum>.StepState.Passed;
@@ -486,11 +490,13 @@
 
     private void SetMetadataExpandedFromSubmission() => MetadataPanelExpanded = !Submission.MetadataComplete;
     private void SetCriteriaExpandedFromSubmission() => CriteriaPanelExpanded = OpenGovCriteriaStepActive;
+    private void SetFilesExpandedFromSubmission() => FilesPanelExpanded = AddFilesStepActive;
 
     private void SetAllPanelsExpandedStateFromSubmission()
     {
         SetMetadataExpandedFromSubmission();
         SetCriteriaExpandedFromSubmission();
+        SetFilesExpandedFromSubmission();
     }
 
     private void SetStatusSteps()
