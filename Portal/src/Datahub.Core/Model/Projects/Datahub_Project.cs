@@ -185,6 +185,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     public List<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
+    public bool IsOverBudget => Credits is null ? false : Credits.Current >= (double)Project_Budget;
+
     [StringLength(400)]
     [AeFormCategory("Initiative Connections")]
     [Obsolete("Use the new Project Resources relationship instead.", true)]
