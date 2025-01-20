@@ -117,10 +117,12 @@ public class ApprovalForm
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
+    [AeFormIgnore]
     public bool Collection_Of_Datasets_FLAG { get; set; }
 
     /** Section: Blanket Approval **/
     [AeFormCategory("Blanket Approvals")]
+    [AeFormIgnore]
     public bool Approval_InSitu_FLAG { get; set; }
 
     /** Section: Blanket Approval **/
