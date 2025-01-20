@@ -7,6 +7,9 @@
 @using Datahub.Portal.Pages.Project
 @using Datahub.Portal.Pages.Explore
 @using Datahub.Portal.Pages.Home
+@using Color = MudBlazor.Color
+@using ChartType = MudBlazor.ChartType
+@using ApexCharts
 
 @inject IUserInformationService _userInformationService
 @inject IConfiguration _configuration
@@ -24,7 +27,7 @@
 @if (Dense)
 {
     <MudStack Row AlignItems="AlignItems.Center">
-        <MudText Typo="Typo.h2">
+        <MudText Typo="Typo.h2" Class="pr-4">
             @Localizer["Workspaces"]
         </MudText>
         <DHButton Variant="Variant.Filled" Color="Color.Primary"
@@ -41,21 +44,154 @@
                   Href="@PageRoutes.Explore"
                   EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Explore other workspaces"]</DHButton>
     </MudStack>
+    <MudStack Row>
+        <MudPaper Elevation="0" Outlined Height="200" Width="403px" Class="pa-4">
+            <MudStack Row>
+                <MudText>
+                    <strong>
+                        @Localizer["Example workspace 1"]
+                    </strong>
+                    (@Localizer["EW1"])
+                </MudText>
+                <MudSpacer/>
+                <ProjectPreviewCardIconDetails
+                    NumberOfUsers="7"
+                    NumberOfRepositories="2"
+                    NumberOfFiles="0"/>
+
+            </MudStack>
+            <div style="margin-bottom: -100px">
+                <ApexChart TItem="Order"
+                           Options="options1">
+
+                    <ApexPointSeries TItem="Order"
+                                     Items="orders1"
+                                     Name="Gross Value"
+                                     SeriesType="SeriesType.Donut"
+                                     XValue="@(e => e.Country)"
+                                     YAggregate="@(e => e.Sum(e => e.GrossValue))"
+                    />
+                </ApexChart>
+            </div>
+            <MudText>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et,
+                varius orci. Sed auctor
+                nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie ipsum et,
+                varius orci. Sed auctor
+                nulla id tincidunt ultrices. Integer eget luctus nisi.
+            </MudText>
+            <MudSpacer/>
+            <MudStack Row>
+                <MudSpacer/>
+                <DHButton Underline Color="Color.Primary"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["View workspace"]</DHButton>
+            </MudStack>
+        </MudPaper>
+        <MudPaper Elevation="0" Outlined Height="200" Width="403px" Class="pa-4">
+            <MudStack Row>
+                <MudText>
+                    <strong>
+                        @Localizer["Example workspace 2"]
+                    </strong>
+                    (@Localizer["EW2"])
+                </MudText>
+                <MudSpacer/>
+                <ProjectPreviewCardIconDetails
+                    NumberOfUsers="7"
+                    NumberOfRepositories="2"
+                    NumberOfFiles="0"/>
+
+            </MudStack>
+            <div style="margin-bottom: -100px">
+                <ApexChart TItem="Order"
+                           Options="options2">
+
+                    <ApexPointSeries TItem="Order"
+                                     Items="orders2"
+                                     SeriesType="SeriesType.Donut"
+                                     XValue="@(e => e.Country)"
+                                     YAggregate="@(e => e.Sum(e => e.GrossValue))"
+                    />
+                </ApexChart>
+            </div>
+            <MudText>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et,
+                varius orci. Sed auctor
+                nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie ipsum et,
+                varius orci. Sed auctor
+                nulla id tincidunt ultrices. Integer eget luctus nisi.
+            </MudText>
+            <MudSpacer/>
+            <MudStack Row>
+                <MudSpacer/>
+                <DHButton Underline Color="Color.Primary"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["View workspace"]</DHButton>
+            </MudStack>
+        </MudPaper>
+        <MudPaper Elevation="0" Outlined Height="200" Width="403px" Class="pa-4">
+            <MudStack Row>
+                <MudText>
+                    <strong>
+                        @Localizer["Example workspace 3"]
+                    </strong>
+                    (@Localizer["EW3"])
+                </MudText>
+                <MudSpacer/>
+                <ProjectPreviewCardIconDetails
+                    NumberOfUsers="7"
+                    NumberOfRepositories="2"
+                    NumberOfFiles="0"/>
+
+            </MudStack>
+            <div style="margin-bottom: -100px">
+                <ApexChart TItem="Order"
+                           Options="options3">
+
+                    <ApexPointSeries TItem="Order"
+                                     Items="orders3"
+                                     SeriesType="SeriesType.Donut"
+                                     XValue="@(e => e.Country)"
+                                     YAggregate="@(e => e.Sum(e => e.GrossValue))"
+                    />
+                </ApexChart>
+            </div>
+            <MudText>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et,
+                varius orci. Sed auctor
+                nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie ipsum et,
+                varius orci. Sed auctor
+                nulla id tincidunt ultrices. Integer eget luctus nisi.
+            </MudText>
+            <MudSpacer/>
+            <MudStack Row>
+                <MudSpacer/>
+                <DHButton Underline Color="Color.Primary"
+                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["View workspace"]</DHButton>
+            </MudStack>
+        </MudPaper>
+    </MudStack>
     <MudStack>
         @foreach (var project in _adminProjects)
         {
-            <DenseProjectCard Project="@project" Icon="@Icons.Material.Outlined.StarOutline"/>
+            @if (stars > 0)
+            {
+                stars--;
+                <DenseProjectCard Project="@project" Icon="@Icons.Material.Outlined.StarOutline"/>
+            }
+            else
+            {
+                <DenseProjectCard Project="@project"/>
+            }
         }
         @foreach (var project in _collaboratedProjects)
         {
-            <DenseProjectCard Project="@project" />
+            <DenseProjectCard Project="@project"/>
         }
         @foreach (var project in _guestProjects)
         {
-            <DenseProjectCard Project="@project" />
+            <DenseProjectCard Project="@project"/>
         }
     </MudStack>
-    
 }
 else
 {
@@ -148,6 +284,31 @@ else
     private List<Datahub_Project> _adminProjects;
     private List<Datahub_Project> _collaboratedProjects;
     private List<Datahub_Project> _guestProjects;
+    private ApexChartOptions<Order> options1 = new();
+    private ApexChartOptions<Order> options2 = new();
+    private ApexChartOptions<Order> options3 = new();
+    private int stars = 3;
+
+    record Order(string Country, decimal GrossValue);
+
+    private List<Order> orders1 = new()
+    {
+        new Order("Spent", 75),
+        new Order("Remaining", 25)
+    };
+
+    private List<Order> orders2 = new()
+    {
+        new Order("Spent", 20),
+        new Order("Remaining", 80)
+    };
+
+    private List<Order> orders3 = new()
+    {
+        new Order("Spent", 95),
+        new Order("Remaining", 5)
+    };
+
 
     private string _chipStyle = new StyleBuilder()
         .AddStyle("margin-left", "0")
@@ -157,6 +318,36 @@ else
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        options1.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                StartAngle = -90, EndAngle = 90
+            }
+        };
+        options1.Colors = new List<string> { "#594ae2", "#dddddd" };
+        options1.Legend = new Legend { Show = false };
+        options1.Title = new Title { Text = "" };
+        options2.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                StartAngle = -90, EndAngle = 90
+            }
+        };
+        options2.Colors = new List<string> { "#594ae2", "#dddddd" };
+        options2.Legend = new Legend { Show = false };
+        options2.Title = new Title { Text = "" };
+        options3.PlotOptions = new PlotOptions
+        {
+            Pie = new PlotOptionsPie
+            {
+                StartAngle = -90, EndAngle = 90,
+            },
+        };
+        options3.Colors = new List<string> { "#594ae2", "#dddddd" };
+        options3.Legend = new Legend { Show = false };
+        options3.Title = new Title { Text = "" };
 
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
         var userId = UserId ?? portalUser.GraphGuid;

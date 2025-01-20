@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Portal.Views.Dialogs
 @using Microsoft.Graph.Models
+@using Datahub.Portal.Components.User
 
 @inherits ViewUserBase<HomePage>
 
@@ -23,23 +24,27 @@
 }
 
 <MudStack>
-    <DHMainContentTitle Title="@Localizer["Home"]" />
+    <DHMainContentTitle Title="@Localizer["Home"]"/>
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <div role="group">
-            <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+            <MudStack Row AlignItems="AlignItems.End">
+                <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+                <MudSpacer/>
+                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+            </MudStack>
             <WelcomeBanner/>
         </div>
     }
     else
     {
         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-        Alt="@Localizer["User's background image"]"
-        Class="rounded-lg mud-elevation-4"
-        Style="width: 100%"
-        ObjectFit="ObjectFit.Cover"
-        Height="320"
-        ObjectPosition="ObjectPosition.Center"/>
+                  Alt="@Localizer["User's background image"]"
+                  Class="rounded-lg mud-elevation-4"
+                  Style="width: 100%"
+                  ObjectFit="ObjectFit.Cover"
+                  Height="320"
+                  ObjectPosition="ObjectPosition.Center"/>
     }
     <UserProjects UserId="@_userProjectGuid" SmSize="6" Dense/>
 </MudStack>
