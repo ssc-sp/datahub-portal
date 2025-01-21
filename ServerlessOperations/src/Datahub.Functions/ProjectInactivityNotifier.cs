@@ -89,24 +89,28 @@ namespace Datahub.Functions
                     dateProvider.Today, daysUntilDeletion, sentTo, ct);
             }
 
-            // check if project to be deleted
-            var projectToBeDeleted = CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow, hasCostRecovery);
-            if (projectToBeDeleted)
-            {
-                _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is set to be deleted.");
-                _logger.LogInformation($"Workspace has not been logged into for {daysSinceLastLogin} days.");
-            }
-            else
-            { 
-                _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is safe from deletion");            
-            }
-            // if project to be deleted, send to terraform delete queue
-            if (projectToBeDeleted)
-            {
-                var projectInactiveMessage = new ProjectInactiveMessage(acronym);
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectInactiveQueueName, projectInactiveMessage,
-                    ct);
-            }
+
+
+            // There is no deletion for inactivity at this point
+
+            //// check if project to be deleted
+            //var projectToBeDeleted = CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow, hasCostRecovery);
+            //if (projectToBeDeleted)
+            //{
+            //    _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is set to be deleted.");
+            //    _logger.LogInformation($"Workspace has not been logged into for {daysSinceLastLogin} days.");
+            //}
+            //else
+            //{ 
+            //    _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is safe from deletion");            
+            //}
+            //// if project to be deleted, send to terraform delete queue
+            //if (projectToBeDeleted)
+            //{
+            //    var projectInactiveMessage = new ProjectInactiveMessage(acronym);
+            //    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectInactiveQueueName, projectInactiveMessage,
+            //        ct);
+            //}
         }
 
         public async Task<EmailRequestMessage?> CheckIfProjectToBeNotified(int daysUntilDeletion,
