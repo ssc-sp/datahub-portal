@@ -3,22 +3,8 @@
 
 @inject NavigationManager _navManager
 
-<nav role="navigation">
-    <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
-    <ul>
-        <li class="skip-link">
-            <DHButton Variant="Variant.Filled" Color="Color.Primary" Href=@(_navManager.Uri + "#maincontent") Size="Size.Large">
-                <MudText>@Localizer["Skip to main content"]</MudText>
-            </DHButton>
-        </li>
-        <li class="skip-link">
-            <DHButton Variant="Variant.Filled" Color="Color.Primary" Href=@(_navManager.Uri + "#nav") Size="Size.Large">
-                <MudText>@Localizer["Skip to navigation"]</MudText>
-            </DHButton>
-        </li>
-    </ul>
-</nav>
 
+<ScreenReaderNavigation/>
 
 <MudImage Src=@Localizer["/img/canada-fip.svg"] Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; margin-top: 20px; float:left!important;" />
 
