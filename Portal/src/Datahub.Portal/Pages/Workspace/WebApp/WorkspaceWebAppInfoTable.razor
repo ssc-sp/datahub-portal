@@ -2,7 +2,7 @@
 @inject IReverseProxyConfigService ReverseProxyConfigService
 
 <MudText Typo="Typo.h2" Class="mt-6">
-    @Localizer["Web Application Information"]
+    @Localizer["Web application information"]
 </MudText>
 <MudSimpleTable Dense Hover Striped Outlined>
     <thead>
@@ -25,15 +25,7 @@
             @Localizer["Proxy URL for development"]
         </td>
         <td>
-            <MudLink Href="@_url" Target="_blank" >@_url</MudLink>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Web App Id"]
-        </td>
-        <td>
-            <code>@WebAppId</code>
+            <MudLink Href="@_url" Target="_blank">@_url</MudLink>
         </td>
     </tr>
     <tr>
@@ -62,11 +54,14 @@
     </tr>
     </tbody>
 </MudSimpleTable>
+<MudText Typo="Typo.body1" Style="font-style: italic">
+    @Localizer["The share link is used to share the web application with other users in your workspace. The proxy link is a direct access to your web application but may be subject to firewall issues."]
+</MudText>
+
 
 @code {
     [Parameter] public string WebAppHost { get; set; }
 
-    [Parameter] public string WebAppId { get; set; }
 
     [Parameter] public string Framework { get; set; }
 
