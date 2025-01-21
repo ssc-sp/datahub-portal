@@ -165,7 +165,7 @@ def new_sync_workspace(workspace_definition):
                 sync_fn(workspace_definition)
             except Exception as e:
                 error_msg = f"Error synchronizing {name} for {workspace_name}"
-                logging.exception(error_msg)
+                logging.exception(e)
                 errors.append(error_msg)
                 send_exception_to_service_bus(error_msg)
     
