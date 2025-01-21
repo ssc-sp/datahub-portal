@@ -94,6 +94,7 @@ public class WorkspaceSettingsSteps(
         Services.AddSingleton(mockAuthorizationPolicyProvider);
 
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
+        JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
 
         var workspaceSettingsPage = RenderComponent<WorkspaceSettingsPage>(parameterCollection =>
             parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
