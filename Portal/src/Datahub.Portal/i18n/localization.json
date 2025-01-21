@@ -1725,6 +1725,7 @@
   "The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the \u0027Add to Workspace\u0027 button.": "The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the \u0027Add to Workspace\u0027 button.",
   "The \"Add to Workspace\" button will show the state your tool request after being clicked.": "The \"Add to Workspace\" button will show the state of your tool request after being clicked.",
   "The \\": "The \\",
+  "The Federal Science DataHub is launching this March.": "The Federal Science DataHub is launching this March.",
   "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.": "The amount of credits allocated to your workspace. Please contact the Datahub admins if you wish to modify your budget.",
   "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.": "The amount of credits allocated to your workspace. Please contact us if you wish to modify your budget.",
   "The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace.": "The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace.",
@@ -1772,6 +1773,7 @@
   "This workspace has consumed {0:F2}% of its budget. It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.": "This workspace has consumed {0:F2}% of its budget. It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.",
   "This workspace has consumed {0:F2}% of its budget. Please contact the workspace lead immediately to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.": "This workspace has consumed {0:F2}% of its budget. Please contact the workspace lead immediately to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.",
   "This workspace has consumed {0:F2}% of its budget. The workspace resources have been deleted or scheduled for deletion due to exceeding the budget.": "This workspace has consumed {0:F2}% of its budget. The workspace resources have been deleted or scheduled for deletion due to exceeding the budget.",
+  "Your workspace has consumed 100% of its budget. To increase your budget, please submit a request through the GC Hosting Services Portal.": "Your workspace has consumed 100.00% of its budget. To increase your budget, please submit a request through the GC Hosting Services Portal.",
   "Ticket Description": "Ticket Description",
   "Ticket Topics": "Ticket Topics",
   "Timeline": "Timeline",
@@ -2081,5 +2083,7 @@
   "{0} credits consumed yesterday": "{0} credits consumed yesterday",
   "{0} is already added to your workspace": "{0} is already added to your workspace",
   "{0} remaining credits of {1}": "{0} remaining credits of {1}",
-  "{0} successfully added to your workspace": "{0} successfully added to your workspace"
+  "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.": "Shared Key Access is disabled. Please enable it in workspace settings to allow token generation.",
+  "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token.": "SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token."
 }
