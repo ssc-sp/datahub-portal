@@ -12,6 +12,7 @@ using System.Net.Http.Headers;
 using Datahub.Core.Data;
 using Datahub.Infrastructure.Services.Azure;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Portal.Controllers
 {
@@ -64,73 +65,18 @@ namespace Datahub.Portal.Controllers
             }
         }
 
-        [HttpGet("logstream")]
-        [Authorize]
-        public async Task<IActionResult> GetKuduLogStream()
-        {
-            if (!User.Identity.IsAuthenticated)
-            {
-                return Unauthorized("User is not authenticated.");
-            }
-
-            if (!User.Identity.Name.EndsWith("@ssc-spc.gc.ca"))
-            {
-                return Forbid("User is not part of SSC SPC team.");
-            }
-
-            var env = _portalConfiguration?.Hosting?.EnvironmentName;
-            if (string.IsNullOrEmpty(env) || env == "local")
-            {
-                env = "dev";
-            }
-
-            var kuduUrl = $"https://fsdh-portal-app-{env}.scm.azurewebsites.net/api/logstream";
-            var access_token = await GetAccessTokenAsync();
-            var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
-
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
-            var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
-
-            if (response.IsSuccessStatusCode)
-            {
-                var stream = await response.Content.ReadAsStreamAsync();
-                Response.ContentType = "text/event-stream";
-
-                using (var streamReader = new StreamReader(stream))
-                using (var writer = new StreamWriter(Response.Body))
-                {
-                    var buffer = new char[8192];
-                    int charsRead;
-                    while ((charsRead = await streamReader.ReadAsync(buffer, 0, buffer.Length)) > 0 && charsRead > 0)
-                    {
-                        await writer.WriteAsync(buffer, 0, charsRead);
-                        await writer.FlushAsync();
-                    }
-                }
-
-                return new EmptyResult();
-                // [VB] could not use FileStreamResult - it did not stream as supposed to
-                //return new FileStreamResult(stream, new MediaTypeHeaderValue("text/event-stream").MediaType); 
-            }
-            else
-            {
-                return StatusCode((int)response.StatusCode, response.ReasonPhrase);
-            }
-        }
-
-
         [HttpGet("webapplogstream")]
         [Authorize]
         public async Task<IActionResult> GetKuduLogStreamForUser([FromQuery] string ws)
         {
             if (!User.Identity.IsAuthenticated)
             {
-                return Unauthorized("User is not authenticated.");
+                return Unauthorized("User is not authenticated. L'utilisateur n'est pas authentifié.");
             }
 
             if (string.IsNullOrEmpty(ws))
             {
-                return Unauthorized("Workspace name is missing.");
+                return BadRequest("Workspace acronym is missing. L'acronyme de l'espace de travail est manquant.");
             }
 
             // Check if the user has the admin, workspace lead or datahub admin role for the specified workspace
@@ -143,7 +89,8 @@ namespace Datahub.Portal.Controllers
 
             if (!allowed)
             {
-                return Forbid("User does not have admin or lead role for the specified workspace.");
+                return Unauthorized(
+                    "User is not authorized to view web app logs for this workspace. L'utilisateur n'est pas autorisé à consulter les journaux de l'application Web pour cet espace de travail.");
             }
 
             var env = _portalConfiguration?.Hosting?.EnvironmentName;
@@ -158,7 +105,7 @@ namespace Datahub.Portal.Controllers
 
             if (string.IsNullOrEmpty(access_token))
             {
-                return Unauthorized("Access token is missing.");
+                return Unauthorized("Access token is missing. Le jeton d'accès est manquant.");
             }
 
             var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
@@ -190,14 +137,14 @@ namespace Datahub.Portal.Controllers
                     // [VB] could not use FileStreamResult - it did not stream as supposed to
                     //return new FileStreamResult(stream, new MediaTypeHeaderValue("text/event-stream").MediaType); 
                 }
-                else
-                {
-                    return StatusCode((int)response.StatusCode, response.ReasonPhrase);
-                }
+
+                return StatusCode((int)response.StatusCode,
+                    $"Failed to get log stream. Échec de l'obtention du flux de journal. {response.ReasonPhrase}");
             }
             catch (Exception)
             {
-                return new EmptyResult();
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    "Failed to get log stream. Échec de l'obtention du flux de journal.");
             }
         }
 

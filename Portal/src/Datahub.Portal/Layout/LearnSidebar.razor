@@ -10,12 +10,12 @@
     <MudStack Class="px-4 mt-6" id="nav">
         <MudDrawerHeader Style="padding: 0">
             <MudStack Row AlignItems="AlignItems.Center">
-                <span>
+                <SkipLink Type="SkipLinkType.Navigation" Anchor>
                     <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
                     <MudIconButton title="@Localizer["Toggle sidebar open or closed."]"
                                    Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit"
                                    OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
-                </span>
+                </SkipLink>
                 @if (Drawer.Open)
                 {
                     <MudText Typo="Typo.h2" Style="font-size: 1rem">
