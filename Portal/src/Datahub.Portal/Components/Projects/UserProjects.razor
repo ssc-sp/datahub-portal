@@ -9,6 +9,7 @@
 @using Datahub.Portal.Pages.Home
 @using Color = MudBlazor.Color
 @using ChartType = MudBlazor.ChartType
+@using Size = MudBlazor.Size
 @using ApexCharts
 
 @inject IUserInformationService _userInformationService
@@ -44,49 +45,7 @@
                   Href="@PageRoutes.Explore"
                   EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Explore other workspaces"]</DHButton>
     </MudStack>
-    <MudStack Row>
-        <MudPaper Elevation="0" Outlined Height="200" Width="403px" Class="pa-4">
-            <MudStack Row>
-                <MudText>
-                    <strong>
-                        @Localizer["Example workspace 1"]
-                    </strong>
-                    (@Localizer["EW1"])
-                </MudText>
-                <MudSpacer/>
-                <ProjectPreviewCardIconDetails
-                    NumberOfUsers="7"
-                    NumberOfRepositories="2"
-                    NumberOfFiles="0"/>
-
-            </MudStack>
-            <div style="margin-bottom: -100px">
-                <ApexChart TItem="Order"
-                           Options="options1">
-
-                    <ApexPointSeries TItem="Order"
-                                     Items="orders1"
-                                     Name="Gross Value"
-                                     SeriesType="SeriesType.Donut"
-                                     XValue="@(e => e.Country)"
-                                     YAggregate="@(e => e.Sum(e => e.GrossValue))"
-                    />
-                </ApexChart>
-            </div>
-            <MudText>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et,
-                varius orci. Sed auctor
-                nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie ipsum et,
-                varius orci. Sed auctor
-                nulla id tincidunt ultrices. Integer eget luctus nisi.
-            </MudText>
-            <MudSpacer/>
-            <MudStack Row>
-                <MudSpacer/>
-                <DHButton Underline Color="Color.Primary"
-                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["View workspace"]</DHButton>
-            </MudStack>
-        </MudPaper>
+    <MudStack Row StretchItems="StretchItems.None">
         <MudPaper Elevation="0" Outlined Height="200" Width="403px" Class="pa-4">
             <MudStack Row>
                 <MudText>
@@ -128,45 +87,96 @@
                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["View workspace"]</DHButton>
             </MudStack>
         </MudPaper>
-        <MudPaper Elevation="0" Outlined Height="200" Width="403px" Class="pa-4">
-            <MudStack Row>
-                <MudText>
-                    <strong>
-                        @Localizer["Example workspace 3"]
-                    </strong>
-                    (@Localizer["EW3"])
-                </MudText>
-                <MudSpacer/>
-                <ProjectPreviewCardIconDetails
-                    NumberOfUsers="7"
-                    NumberOfRepositories="2"
-                    NumberOfFiles="0"/>
-
+        <MudPaper Elevation="0" Outlined Width="403px" Class="d-flex justify-space-around mud-width-full">
+            <MudProgressLinear Vertical="true" Color="Color.Primary" Size="Size.Large" Value=@Value Class="mr-auto"
+                               Style="width: 30%;"
+                               title="$750 spent, $250 remaining of $1000 budget"/>
+            <MudStack Class="pa-4">
+                <MudStack Row>
+                    <MudText>
+                        <strong>
+                            @Localizer["Example workspace 3"]
+                        </strong>
+                        (@Localizer["EW3"])
+                    </MudText>
+                    <MudSpacer/>
+                    <ProjectPreviewCardIconDetails
+                        NumberOfUsers="7"
+                        NumberOfRepositories="2"
+                        NumberOfFiles="0"/>
+                </MudStack>
+                <MudStack Row>
+                    <MudStack>
+                        <MudText>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie
+                            ipsum et,
+                            varius orci. Sed auctor
+                            nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie
+                            ipsum et,
+                            varius orci. Sed auctor
+                            nulla id tincidunt ultrices. Integer eget luctus nisi.
+                        </MudText>
+                    </MudStack>
+                    <MudStack AlignItems="AlignItems.End">
+                        <MudSpacer/>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Storage"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Databricks"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Web app"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Database"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Dashboard"]</DHButton>
+                    </MudStack>
+                </MudStack>
             </MudStack>
-            <div style="margin-bottom: -100px">
-                <ApexChart TItem="Order"
-                           Options="options3">
-
-                    <ApexPointSeries TItem="Order"
-                                     Items="orders3"
-                                     SeriesType="SeriesType.Donut"
-                                     XValue="@(e => e.Country)"
-                                     YAggregate="@(e => e.Sum(e => e.GrossValue))"
-                    />
-                </ApexChart>
-            </div>
-            <MudText>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie ipsum et,
-                varius orci. Sed auctor
-                nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie ipsum et,
-                varius orci. Sed auctor
-                nulla id tincidunt ultrices. Integer eget luctus nisi.
-            </MudText>
-            <MudSpacer/>
-            <MudStack Row>
-                <MudSpacer/>
-                <DHButton Underline Color="Color.Primary"
-                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["View workspace"]</DHButton>
+        </MudPaper>
+        <MudPaper Elevation="0" Outlined Width="403px" Class="d-flex justify-space-around mud-width-full">
+            <MudProgressLinear Vertical="true" Color="Color.Primary" Size="Size.Large" Value=@Value Class="mr-auto"
+                               Style="width: 30%;"
+                               title="@{ Value }"/>
+            <MudStack Class="pa-4">
+                <MudStack Row>
+                    <MudText>
+                        <strong>
+                            @Localizer["Example workspace 3"]
+                        </strong>
+                        (@Localizer["EW3"])
+                    </MudText>
+                    <MudSpacer/>
+                    <ProjectPreviewCardIconDetails
+                        NumberOfUsers="7"
+                        NumberOfRepositories="2"
+                        NumberOfFiles="0"/>
+                </MudStack>
+                <MudStack Row>
+                    <MudStack>
+                        <MudText>
+                            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla nec purus feugiat, molestie
+                            ipsum et,
+                            varius orci. Sed auctor
+                            nulla id tincidunt ultrices. Integer eget luctus nisi. Nulla nec purus feugiat, molestie
+                            ipsum et,
+                            varius orci. Sed auctor
+                            nulla id tincidunt ultrices. Integer eget luctus nisi.
+                        </MudText>
+                    </MudStack>
+                    <MudStack AlignItems="AlignItems.End">
+                        <MudSpacer/>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Storage"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Databricks"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Web app"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Database"]</DHButton>
+                        <DHButton Underline Color="Color.Primary" NoWrap
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Dashboard"]</DHButton>
+                    </MudStack>
+                </MudStack>
             </MudStack>
         </MudPaper>
     </MudStack>
@@ -277,6 +287,7 @@ else
     private bool _isCurrentUser;
 
     private const int MaxWorkspaceCount = 3;
+    private int Value = 75;
 
     private List<Datahub_Project_User> _userRoles;
     private int _numberOfRemainingWorkspaces;
