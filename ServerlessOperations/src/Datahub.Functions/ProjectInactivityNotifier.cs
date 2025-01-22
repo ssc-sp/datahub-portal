@@ -80,28 +80,29 @@ namespace Datahub.Functions
             var email = await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow,
                 hasCostRecovery, acronym, contacts);
 
+            var emailForAdmin = GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, adminContact, "project_inactive_alert_dhadmin.html");
             // if email is not null, send email
             if (email != null)
             {
-                var emailForAdmin = GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, adminContact, "project_inactive_alert_dhadmin.html");
 
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                    email, ct);
-
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,email, ct);
                 // add notification to db
                 var sentTo = string.Join(",", contacts);
-                await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId,
-                    dateProvider.Today, daysUntilDeletion, sentTo, ct);
+                await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
 
                 //notify admin to follow up
                 if (emailForAdmin != null)
                 {
                     await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailForAdmin, ct);
-
                     sentTo = adminContact[0];
-                    await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId,
-                        dateProvider.Today, daysUntilDeletion, sentTo, ct);
+                    await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
                 }
+            }
+            else if (emailForAdmin != null && daysSinceLastLogin > dateProvider.ProjectDeletionDay() && IsTodayMonday())
+            {
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailForAdmin, ct);
+                var sentTo = adminContact[0];
+                await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
             }
             
         }
@@ -177,6 +178,10 @@ namespace Datahub.Functions
         private string GetNotificationCCAddress()
         {
             return config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
+        }
+        private bool IsTodayMonday()
+        {
+            return DateTime.Now.DayOfWeek == DayOfWeek.Monday;
         }
     }
 }
