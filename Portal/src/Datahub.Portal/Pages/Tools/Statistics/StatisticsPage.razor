@@ -4,6 +4,23 @@
 @using Datahub.Core.Model.Projects
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+
+
+<MudDataGrid Items="@_statsRows" Filterable="true">
+    <Columns>
+        <PropertyColumn Property="x => x.Name" Title="Workspace"></PropertyColumn>
+        <PropertyColumn Property="x => x.Name" Title="Full Workspace Name"></PropertyColumn>
+        <PropertyColumn Property="x => x.UniqueDepartments" Title="Department(s)"></PropertyColumn>
+    </Columns>
+
+    <PagerContent>
+        <MudDataGridPager T="string" />
+    </PagerContent>
+
+
+
+</MudDataGrid>
 
 <MudStack>
     <MudText Typo="Typo.h2">DataHub Statistics</MudText>
@@ -15,9 +32,15 @@
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.UniqueDepartments.Count))">Departments</MudTableSortLabel>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Full Name</MudTableSortLabel>
             </MudTh>
             <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.UniqueDepartments))">Department(s)</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.AllUsers))">Lead(s)</MudTableSortLabel>
+            </MudTh>
+            @*             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Leads?.Count))">Leads</MudTableSortLabel>
             </MudTh>
             <MudTh>
@@ -25,60 +48,81 @@
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Collaborators?.Count))">Collaborators</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-            </MudTh>
+            </MudTh> *@
+@*             <MudTh>
+            </MudTh> *@
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.CostOfLastXDays))">Cost of last 7 days</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.MetadataComplete))">Metadata</MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.StorageStatus))">Storage</MudTableSortLabel>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.StorageStatus))">Provisioned Tools</MudTableSortLabel>
             </MudTh>
-            <MudTh>
+@*             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.DatabricksStatus))">Databricks</MudTableSortLabel>
-            </MudTh>
+            </MudTh> *@
         </HeaderContent>
+        
+        
         <RowTemplate>
             <MudTd DataLabel="Workspace">
+                <DHButton Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{context.Acronym}")">
+                    <strong> @context.Acronym </strong>
+                </DHButton>
+            </MudTd>
+            <MudTd DataLabel="FullName">
+                @context.Name
+            </MudTd>
+            @*  <MudTd DataLabel="Workspace">
                 <MudTooltip Text="@($"Project ID {context.ProjectId}")" Arrow="true">
                     <strong>@context.Acronym</strong> @context.Name
                 </MudTooltip>
-            </MudTd>
+            </MudTd> *@
             <MudTd DataLabel="Departments">
                 @foreach (var department in context.UniqueDepartments)
                 {
                     <span>@department</span>
                     <br/>
+                    break;
                 }
             </MudTd>
             <MudTd DataLabel="Leads">
-                @context.Leads?.Count
+                @foreach(var user in context.AllUsers)
+                {
+                    <span>@user.User_Name</span>
+                }
+                <DHButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
+                    @(context.ShowUserDetails ? "Hide" : "Show") Users
+                </DHButton>
             </MudTd>
-            <MudTd DataLabel="Admins">
+@*             <MudTd DataLabel="Admins">
                 @context.Admins?.Count
             </MudTd>
             <MudTd DataLabel="Collaborators">
                 @context.Collaborators?.Count
-            </MudTd>
-            <MudTd>
-                <DHButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
-                    @(context.ShowUserDetails ? "Hide" : "Show") User details
-                </DHButton>
-            </MudTd>
+            </MudTd> *@
             <MudTd DataLabel="Budget">
                 <MudTooltip Text="@($"{context.BudgetSpent.ToString("C", CultureInfo.CurrentCulture)} / {context.BudgetLimit.ToString("C", CultureInfo.CurrentCulture)}")">
-                    @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
+                    @if(context.BudgetRemaining < 0)
+                    {
+                        <MudAlert>
+                            @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
+                    }
                 </MudTooltip>
+                <DHButton Variant="Variant.Outlined" Size="Size.Small" OnClick="@(() => ShowBudgetPressed(context.ProjectId))">
+                    @(context.ShowBudgetDetails ? "Hide" : "Show") Details
+                </DHButton>
             </MudTd>
-            <MudTd DataLabel="CostXDays">
+@*             <MudTd DataLabel="CostXDays">
                 @context.CostOfLastXDays.ToString("C", CultureInfo.CurrentCulture)
-            </MudTd>
+            </MudTd> *@
             <MudTd DataLabel="Metadata">
                 @if (context.MetadataComplete)
                 {
@@ -104,7 +148,7 @@
                         throw new ArgumentOutOfRangeException();
                 }
             </MudTd>
-            <MudTd DataLabel="Databricks">
+@*             <MudTd DataLabel="Databricks">
                 @switch (context.DatabricksStatus)
                 {
                     case DatahubProjectStatsRow.ResourceStatus.Complete:
@@ -118,7 +162,7 @@
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-            </MudTd>
+            </MudTd> *@
         </RowTemplate>
 
         <ChildRowContent>
@@ -133,11 +177,64 @@
                                 </CardHeaderContent>
                             </MudCardHeader>
                             <MudCardContent class="pl-6 py-0 pr-0">
+                                <MudTable Items="@context.AllUsers" Context="AllUsersContext" Elevation="0" Dense Style="background-color: grey;">
+                                    <HeaderContent>
+                                        <MudTh>
+                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                <strong>Name</strong>
+                                            </MudTableSortLabel>
+                                        </MudTh>
+                                        <MudTh>
+                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                <strong>Email</strong>
+                                            </MudTableSortLabel>
+                                        </MudTh>
+                                        <MudTh>
+                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                <strong>Role</strong>
+                                            </MudTableSortLabel>
+                                        </MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd DataLabel="AllUsers" Style="background-color: lightgrey;">
+                                            @AllUsersContext.User_Name
+                                            <br />
+                                            Gecelovsky, Siovan
+                                        </MudTd>
+                                        <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
+                                            @AllUsersContext.ProjectUser_ID
+                                            <br />
+                                            siovan.gecelovsky@ssc-spc.gc.ca
+                                        </MudTd>
+                                        <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
+                                            @AllUsersContext.IsAdmin
+                                            <br />
+                                            Admin
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                            </MudCardContent>
+                        </MudCard>
+                    </td>
+                </MudTr>
+            }
+
+            @if (context.ShowBudgetDetails)
+            {
+                <MudTr>
+                    <td colspan="7">
+                        <MudCard Elevation="0">
+                            <MudCardHeader>
+                                <CardHeaderContent>
+                                    <MudText Typo="Typo.body1">Budget details for <strong>@context.Name</strong></MudText>
+                                </CardHeaderContent>
+                            </MudCardHeader>
+                            <MudCardContent class="pl-6 py-0 pr-0">
                                 <MudTable Items="@context.Leads" Context="LeadContext" Elevation="0" Dense>
                                     <HeaderContent>
                                         <MudTh>
                                             <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Leads</strong>
+                                                <strong>Cost of last 7 days</strong>
                                             </MudTableSortLabel>
                                         </MudTh>
                                     </HeaderContent>
@@ -151,7 +248,7 @@
                                     <HeaderContent>
                                         <MudTh>
                                             <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Admins</strong>
+                                                <strong>Budget</strong>
                                             </MudTableSortLabel>
                                         </MudTh>
                                     </HeaderContent>
@@ -165,7 +262,7 @@
                                     <HeaderContent>
                                         <MudTh>
                                             <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Collaborators</strong>
+                                                <strong>Provisioned Resources</strong>
                                             </MudTableSortLabel>
                                         </MudTh>
                                     </HeaderContent>
@@ -182,10 +279,17 @@
             }
         </ChildRowContent>
 
+
+        <PagerContent>
+            <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
+        </PagerContent>
     </MudTable>
 </MudStack>
 
 @code {
+
+    [Parameter]
+    public Datahub_Project Project { get; set; }
 
     private bool _isLoading = true;
 
@@ -215,6 +319,9 @@
                     BudgetLimit = p.Project_Budget ?? 0,
                     BudgetSpent = p.Credits?.Current ?? 0,
                     CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
+                    
+                        AllUsers = p.Users?.ToList(),
+                    
                     Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
                     Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
                     Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
@@ -253,6 +360,27 @@
     {
         var row = _statsRows.First(r => r.ProjectId == projectId);
         row.ShowUserDetails = !row.ShowUserDetails;
+    }
+
+    private void ShowBudgetPressed(int projectId)
+    {
+        var row = _statsRows.First(r => r.ProjectId == projectId);
+        row.ShowBudgetDetails = !row.ShowBudgetDetails;
+    }
+
+    private string GetOrg(string email)
+    {
+        var org = "";
+        try
+        {
+            org = email.Split("@")[1].Split('.')[0];
+        }
+        catch
+        {
+            org = "unknown";
+        }
+
+        return org;
     }
 
 }
