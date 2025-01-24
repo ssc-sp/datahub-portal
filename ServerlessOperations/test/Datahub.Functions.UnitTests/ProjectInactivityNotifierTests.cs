@@ -195,7 +195,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         
         // Act
-        var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>());
+        var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>(), string.Empty);
         
         // Assert
         result.Body.Should().Contain("Your workspace <a href=\"https://federal-science-datahub.canada.ca/w/TEST\">TEST</a> has been inactive for 20 days");
