@@ -20,7 +20,7 @@ public class OpenDataApprovalController : Controller
     }
 
     [HttpGet]
-    public async Task<IActionResult> Get(int id)
+    public async Task<IActionResult> Get(int? id = 0)
     {
         using var ctx = _contextFactory.CreateDbContext();
             
@@ -48,7 +48,7 @@ public class OpenDataApprovalController : Controller
 
     static Dictionary<string, string> GetDocumentContent(ApprovalForm form)
     {
-        return new()
+        var contentDict = new Dictionary<string,string>()
         {
             { "Department", form.Department_NAME },
             { "Sector", form.Sector_NAME },
@@ -62,35 +62,6 @@ public class OpenDataApprovalController : Controller
             { "Data", GetCheckBox("Data" == form.Type_Of_Data_TXT) },
             { "Info", GetCheckBox("Info" == form.Type_Of_Data_TXT) },
 
-            { "Legal1", GetCheckBox(form.Copyright_Restrictions_FLAG) },
-            { "Legal2", GetCheckBox(!form.Copyright_Restrictions_FLAG) },
-
-            { "Auth1", GetCheckBox(form.Authority_To_Release_FLAG) },
-            { "Auth2", GetCheckBox(!form.Authority_To_Release_FLAG) },
-
-            { "Privacy1", GetCheckBox(form.Private_Personal_Information_FLAG) },
-            { "Privacy2", GetCheckBox(!form.Private_Personal_Information_FLAG) },
-
-            { "Access1", GetCheckBox(form.Subject_To_Exceptions_Or_Eclusions_FLAG) },
-            { "Access2", GetCheckBox(!form.Subject_To_Exceptions_Or_Eclusions_FLAG) },
-
-            { "Security1", GetCheckBox(form.Not_Clasified_Or_Protected_FLAG) },
-            { "Security2", GetCheckBox(!form.Not_Clasified_Or_Protected_FLAG) },
-
-            { "Cost1", GetCheckBox(form.Can_Be_Released_For_Free_FLAG) },
-            { "Cost2", GetCheckBox(!form.Can_Be_Released_For_Free_FLAG) },
-
-            { "FormatA1", GetCheckBox(form.Machine_Readable_FLAG) },
-            { "FormatA2", GetCheckBox(!form.Machine_Readable_FLAG) },
-
-            { "FormatB1", GetCheckBox(form.Non_Propietary_Format_FLAG) },
-            { "FormatB2", GetCheckBox(!form.Non_Propietary_Format_FLAG) },
-
-            { "FormatC1", GetCheckBox(form.Localized_Metadata_FLAG) },
-            { "FormatC2", GetCheckBox(!form.Localized_Metadata_FLAG) },
-
-            { "BlkApprov01", GetCheckBox(form.Requires_Blanket_Approval_FLAG) },
-            { "BlkApprov02", GetCheckBox(!form.Requires_Blanket_Approval_FLAG) },
 
             { "BlkApprov1", GetCheckBox(form.Updated_On_Going_Basis_FLAG) },
             { "BlkApprov2", GetCheckBox(form.Collection_Of_Datasets_FLAG) },
@@ -99,9 +70,30 @@ public class OpenDataApprovalController : Controller
 
             { "BlkApprovOther", form.Approval_Other_TXT }
         };
+
+        AddCheckboxSet(contentDict, "Conf", form.Confidentiality_FLAG);
+        AddCheckboxSet(contentDict, "Access", form.Subject_To_Exceptions_Or_Eclusions_FLAG);
+        AddCheckboxSet(contentDict, "Auth", form.Authority_To_Release_FLAG);
+        AddCheckboxSet(contentDict, "PrivacyA", form.Privacy_Exemption_FLAG);
+        AddCheckboxSet(contentDict, "PrivacyB", form.Private_Personal_Information_FLAG);
+        AddCheckboxSet(contentDict, "FormatA", form.Accessible_Format_FLAG);
+        AddCheckboxSet(contentDict, "FormatB", form.Machine_Readable_FLAG);
+        AddCheckboxSet(contentDict, "FormatC", form.Non_Propietary_Format_FLAG);
+        AddCheckboxSet(contentDict, "Lang", form.Localized_FLAG);
+        AddCheckboxSet(contentDict, "Security", form.Security_Compliant_FLAG);
+        AddCheckboxSet(contentDict, "Misc", form.Misc_Compliant_FLAG);
+        AddCheckboxSet(contentDict, "BlkApprov0", form.Requires_Blanket_Approval_FLAG);
+
+        return contentDict;
     }
 
     static string GetCheckBox(bool value) => value ? $"☒" : $"☐";
+
+    private static void AddCheckboxSet(Dictionary<string, string> dict, string fieldName, bool value)
+    {
+        dict[$"{fieldName}1"] = GetCheckBox(value);
+        dict[$"{fieldName}2"] = GetCheckBox(!value);
+    }
 
     static Stream CompleteDocument(Stream inputDoc, Dictionary<string, string> content)
     {

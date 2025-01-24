@@ -451,9 +451,12 @@
     {
         _approvalFormId = args.FormId;
 
-        Submission.OpenGovCriteriaMetDate = DateTime.Today;
+        if (args.Completed) 
+        {
+            Submission.OpenGovCriteriaMetDate = DateTime.Today;
 
-        await UpdateSubmission();
+            await UpdateSubmission();
+        }
     }
 
     private async Task SendImsoApprovalRequest()
