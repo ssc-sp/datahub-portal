@@ -20,8 +20,8 @@
 }
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudDrawerHeader Dense Style="padding: 0">
-        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
+    <MudDrawerHeader Style="padding: 0">
+        <MudStack Row AlignItems="AlignItems.Center">
             <SkipLink Type="SkipLinkType.Navigation" Anchor>
                 <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
                 <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu"
@@ -39,7 +39,64 @@
     <MudDrawerContainer Style="overflow: hidden auto">
         @if (Drawer.Open)
         {
-            <MudStack Spacing="2">
+            <MudStack Spacing="2" Class="ml-2">
+                @{
+                    var userRoles = GetWorkspaces();
+                }
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem">
+                        <b>
+                            @Localizer["My workspaces"]
+                        </b>
+                    </MudText>
+                    <MudSpacer />
+                    @if (userRoles.Any())
+                    {
+                        <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Href="@Localizer[PageRoutes.CreateWorkspace]" Disabled="@_canNotCreateWorkspace">
+                            <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-2" Style="font-size: 0.75rem;" />
+                            @Localizer["New"]
+                            <span class="sr-only">@Localizer["Workspace"]</span>
+                        </DHButton>
+                    }
+                </MudStack>
+
+                @if (userRoles.Any())
+                {
+                    <MudNavMenu Color="Color.Primary" role="navigation">
+                        <ul>
+
+                            @foreach (var userRole in userRoles)
+                            {
+                                <li>
+                                    <MudNavLink Href="@($"/w/{userRole.Project.Project_Acronym_CD}")">
+                                        <MudStack Row AlignItems="AlignItems.Center">
+                                            <DHIcon Icon="@SidebarIcons.Workspace" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
+                                            <MudText Style="@_workspaceLinkStyle">
+                                                @userRole.Project.ProjectName
+                                            </MudText>
+                                        </MudStack>
+                                    </MudNavLink>
+                                </li>
+                            }
+                        </ul>
+                        @if (_showAllWorkspaces == false && _userRoles.Count > _maxWorkspacesToShow)
+                        {
+                            <MudLink OnClick="@(() => _showAllWorkspaces = true)" Typo="Typo.body2" Color="Color.Default" Class="ml-4" Style="font-size: 0.75rem;">
+                                @Localizer["Show more"]
+                            </MudLink>
+                        }
+                    </MudNavMenu>
+                }
+                else
+                {
+                    <DHButton Color="Color.Primary" Variant="Variant.Filled" Size="Size.Small" Class="ml-2 mt-2 mb-4" Href="@PageRoutes.CreateWorkspace">
+                        <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Class="mr-5" Style="font-size: 0.85rem;" />
+                        @Localizer["Create new"]
+                        <MudSpacer />
+                    </DHButton>
+                }
+            </MudStack>
+            <MudStack Spacing="2" Class="ml-2">
                 <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                     <strong>
                         @Localizer["My account"]
@@ -67,7 +124,7 @@
                 </MudNavMenu>
             </MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
-                <MudStack Spacing="2">
+                <MudStack Spacing="2" Class="ml-2">
                     <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                         <strong>
                             @Localizer["Datahub Admin"]
@@ -185,6 +242,7 @@
         .AddStyle("white-space", "nowrap")
         .AddStyle("overflow", "hidden")
         .AddStyle("text-overflow", "ellipsis")
+        .AddStyle("font-size", "1rem")
         .Build();
 
     protected override async Task OnInitializedAsync()
