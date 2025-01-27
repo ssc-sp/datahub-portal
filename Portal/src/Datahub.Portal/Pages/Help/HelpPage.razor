@@ -70,7 +70,14 @@
                         }
                         else if (_currentStep == Steps.Description)
                         {
-                            <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                            if (_ticketTopics["Extended Storage Token"])
+                            {
+                                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please describe why you need an extended storage token and any additional information for your request."]</MudText>
+                            }
+                            else
+                            {
+                                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                            }
                             <MudTextField T="string"
                                           @bind-Value="@_ticketDescription"
                                           Label=@(Localizer["Detailed description"])
@@ -131,21 +138,21 @@
                             <MudItem xs="6" align="@Align.Start" Class="pb-2">
                                 @if (_currentStep == Steps.Start)
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
                                 }
                                 else
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</DHButton>
                                 }
                             </MudItem>
                             <MudItem xs="6" align="@Align.End" Class="pb-2">
                                 @if (_currentStep == Steps.Submit)
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</DHButton>
                                 }
                                 else if (_currentStep != Steps.Start)
                                 {
-                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</DHButton>
+                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</DHButton>
                                 }
                             </MudItem>
                         </MudGrid>
@@ -227,9 +234,11 @@
         { "Databricks", false },
         { "Storage", false },
         { "PostgreSQL", false },
+        { "Web App", false },
         { "User Management", false },
         { "Documentation", false },
         { "Tool Requesting", false },
+        { "Extended Storage Token", false },
         { "Other", false },
     };
 
@@ -435,7 +444,7 @@
                     .Include(p => p.Resources)
                     .FirstOrDefault(p => p.Project_Acronym_CD == acronym);
 
-        dbContext.Projects.Update(WorkspaceSettingsPage.ExtendAdminAccess(project));
+        dbContext.Projects.Update(WorkspaceGrantSupportAccessControl.ExtendAdminAccess(project));
 
         await dbContext.SaveChangesAsync();
     }

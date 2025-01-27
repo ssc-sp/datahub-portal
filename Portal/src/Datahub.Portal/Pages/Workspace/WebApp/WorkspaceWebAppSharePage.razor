@@ -27,11 +27,12 @@
             <MudText Class="mt-3">
                 @Localizer["Workspace admins can configure the web app using the link below."]
             </MudText>
-            <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronymParam}/{_reverseProxyConfigService.WebAppPrefix}")
-                      Color="Color.Primary"
-                      Variant="@Variant.Text"
-                      EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
-                      Underline>
+            <DHButton
+                Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronymParam}/{_reverseProxyConfigService.WebAppPrefix}")
+                Color="Color.Primary"
+                Variant="@Variant.Text"
+                EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+                Underline>
                 @Localizer["View Web App configuration"]
             </DHButton>
         </DatahubAuthView>
@@ -44,7 +45,19 @@
             </MudText>
             @if (isDisclaimerAccepted)
             {
-                <MudButton Href="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" Target="_blank" EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Filled" Color="Color.Primary">@Localizer["Open in new window"]</MudButton>
+                <MudButton Href="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" Target="_blank"
+                           EndIcon="@Icons.Material.Filled.Launch" Variant="Variant.Filled"
+                           Color="Color.Primary">@Localizer["Open in new window"]</MudButton>
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronymParam">
+                    <DHButton
+                        Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronymParam}/{_reverseProxyConfigService.WebAppPrefix}")
+                        Color="Color.Primary"
+                        Variant="@Variant.Text"
+                        EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+                        Underline>
+                        @Localizer["View Web App configuration"]
+                    </DHButton>
+                </DatahubAuthView>
             }
         </MudStack>
     }
@@ -58,7 +71,9 @@
                 @if (isAvailable)
                 {
                     <MudItem xs="12">
-                        <iframe src="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)" style="height: 70vh; border: none;" title="@Localizer["Web Application hosted by FSDH"]" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"> </iframe>
+                        <iframe src="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)"
+                                style="height: 70vh; border: none;" title="@Localizer["Web Application hosted by FSDH"]"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
                     </MudItem>
                 }
 
@@ -71,11 +86,11 @@
 }
 else if (isAvailable)
 {
-    <AcknowledgementConfirmation 
+    <AcknowledgementConfirmation
         OnAccepted="ApproveWebAppTC"
         MarkdownPathEn="/UserGuide/Acknowledgements/WebAppTC.md"
         MarkdownPathFr="/fr/UserGuide/Acknowledgements/WebAppTC-fr.md"
-        ButtonText=@Localizer["Accept Web Application Terms"] />
+        ButtonText=@Localizer["Accept Web Application Terms"]/>
 }
 
 
