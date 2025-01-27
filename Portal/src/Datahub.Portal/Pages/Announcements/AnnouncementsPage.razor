@@ -1,5 +1,6 @@
 ﻿@using Datahub.Core.Model.Announcements
 @using Datahub.Application.Services.Announcements
+@using Datahub.Portal.Components.Sidebar
 
 
 @inject IAnnouncementService _announcementService
@@ -10,6 +11,10 @@
 <PageTitle>
     @Localizer["Announcements - Federal Science DataHub"]
 </PageTitle>
+
+<DHSidebarDrawer>
+    <PersonalSidebar/>
+</DHSidebarDrawer>
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">

@@ -3,6 +3,7 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Portal.Views.Dialogs
 @using Microsoft.Graph.Models
+@using Datahub.Portal.Components.Sidebar
 
 @inherits ViewUserBase<HomePage>
 
@@ -21,6 +22,10 @@
     <DHLoadingInitializer Message="@Localizer["Initializing profile..."]"/>
     return;
 }
+
+<DHSidebarDrawer>
+    <PersonalSidebar/>
+</DHSidebarDrawer>
 
 <MudStack>
     <DHMainContentTitle Title="@Localizer["MainTitle"]" />

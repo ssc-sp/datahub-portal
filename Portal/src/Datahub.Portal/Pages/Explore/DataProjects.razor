@@ -2,6 +2,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Tools.Users
 @using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Components.Sidebar
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -13,6 +14,10 @@
 <PageTitle>
     @Localizer["Explore - Federal Science DataHub"]
 </PageTitle>
+
+<DHSidebarDrawer>
+    <PersonalSidebar/>
+</DHSidebarDrawer>
 
 @if (!_allProjects.Any())
 {

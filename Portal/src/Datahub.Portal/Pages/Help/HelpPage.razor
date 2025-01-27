@@ -17,6 +17,7 @@
 @using Datahub.Core.Model.Projects;
 @using Datahub.Application.Configuration
 @using Datahub.Portal.Components.User
+@using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Pages.Account
 @using Datahub.Portal.Pages.Project
 @using Datahub.Portal.Pages.Workspace.Settings;
@@ -46,6 +47,10 @@
 <PageTitle>
     @Localizer["Help - Federal Science DataHub"]
 </PageTitle>
+
+<DHSidebarDrawer>
+    <PersonalSidebar/>
+</DHSidebarDrawer>
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
