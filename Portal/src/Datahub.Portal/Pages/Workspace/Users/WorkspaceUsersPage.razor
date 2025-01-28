@@ -172,7 +172,7 @@
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 
-                <DatahubAuthView AuthLevel="@GetAuthLevel(rowContext)" ProjectAcronym="@WorkspaceAcronym">
+                <DatahubAuthView AuthLevel="@GetAuthLevel(rowContext)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                     <Authorized>
                         @{
                             var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
