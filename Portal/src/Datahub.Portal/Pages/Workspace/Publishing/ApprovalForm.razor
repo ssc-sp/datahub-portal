@@ -8,13 +8,14 @@
     <MudBlazor.Forms.MudModelForm Model="_approvalForm"
                  T="Data.Forms.ShareWorkflow.ApprovalForm"
                  OnValidSubmit="HandleValidSubmit"
-                 OnCancel="ClearForm"
+                 OnCancel="HandleCancel"
                  OnConfigure="OnConfigure"
                  CancelLabel="@CancelLabel"
                  SubmitLabel="@SubmitLabel"
                  Variant=@Variant.Outlined
                  LabelForPropertyFunc="@GetDataLabel"
                  ModelFormStyle=@Forms.ModelFormStyle.Compact
+                 LocalizerFunction=@LocalizerFunction
                  LabelsOnTop />
     
     @if (!_validMandatoryCheckboxes)
@@ -26,6 +27,7 @@
 </MudItem>
 
 @code {
+    private const string ORGANIZATION_FIELD_NAME = "organization_name";
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
@@ -41,6 +43,12 @@
 
     [Parameter]
     public EventCallback<ApprovalFormSubmitArgs> OnSubmitForm { get; set; }
+
+    [Parameter]
+    public EventCallback OnCancelForm { get; set; }
+
+    [Parameter]
+    public bool HasBeenSubmittedAlready { get; set; } = false;
 
     [Parameter]
     public GraphUser User { get; set; }
@@ -68,31 +76,15 @@
     private List<string> LocalizeChoices(IEnumerable<OrganizationLevel> levels) 
         => levels.Select(s => !_isFrench ? s.EnglishLabel : s.FrenchLabel).OrderBy(s => s).ToList();
 
-    public string SubmitLabel => Localizer[MakeLabel("Submit")];
+    public string SubmitLabel => MakeLabelKey("Submit");
 
-    public string CancelLabel => Localizer[MakeLabel("Cancel")];
+    public string CancelLabel => MakeLabelKey(HasBeenSubmittedAlready ? "Cancel" : "Clear");
 
     public Data.Forms.ShareWorkflow.ApprovalForm _approvalForm { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        var dbForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId);
-        if (dbForm is null)
-        {
-            // create a new form
-            _approvalForm = new()
-            {
-                Type_Of_Data_TXT = "Data",
-                Name_NAME = User?.DisplayName ?? PortalUser?.DisplayName,
-                Email_EMAIL = User?.Mail ?? PortalUser?.Email,
-                Dataset_Title_TXT = DatasetTitle ?? string.Empty
-            };
-        }
-        else
-        {
-            _approvalForm = new();
-            dbForm.CopyPublicPropertiesTo(_approvalForm);
-        }
+        await LoadOrCreateApprovalForm();
 
         _isFrench = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.InvariantCulture);
 
@@ -105,6 +97,27 @@
         _branchId = GetChoiceId(_branches, _approvalForm.Branch_NAME, _sectorId);
         _divisionId = GetChoiceId(_divisions, _approvalForm.Division_NAME, _branchId);
         _sectionId = GetChoiceId(_sections, _approvalForm.Section_NAME, _sectionId);
+    }
+
+    private async Task LoadOrCreateApprovalForm()
+    {
+        var dbForm = await MetadataBrokerService.GetApprovalForm(ApprovalFormId);
+        if (dbForm is null)
+        {
+            // create a new form
+            _approvalForm = new()
+                {
+                    Type_Of_Data_TXT = "Data",
+                    Name_NAME = User?.DisplayName ?? PortalUser?.DisplayName,
+                    Email_EMAIL = User?.Mail ?? PortalUser?.Email,
+                    Dataset_Title_TXT = DatasetTitle ?? string.Empty
+                };
+        }
+        else
+        {
+            _approvalForm = new();
+            dbForm.CopyPublicPropertiesTo(_approvalForm);
+        }
     }
 
     private bool _validMandatoryCheckboxes = true;
@@ -140,18 +153,39 @@
         }
     }
 
-    private async Task<Data.Forms.ShareWorkflow.ApprovalForm> ClearForm()
+    private async Task<Data.Forms.ShareWorkflow.ApprovalForm> HandleCancel()
     {
-        _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm()
+        if (HasBeenSubmittedAlready)
         {
-            ApprovalFormId = _approvalForm.ApprovalFormId
-        };
+            await LoadOrCreateApprovalForm();
+        }
+        else
+        {
+            _approvalForm = new Data.Forms.ShareWorkflow.ApprovalForm()
+            {
+                ApprovalFormId = _approvalForm.ApprovalFormId
+            };
+        }
+
+        if (OnCancelForm.HasDelegate)
+        {
+            await OnCancelForm.InvokeAsync();
+        }
+
         return await Task.FromResult(_approvalForm);
     }
 
-    private void OnConfigure(Forms.IModelFormContext context)
+    private async Task OnConfigure(Forms.IModelFormContext context)
     {
         context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
+        await SetupOrganizations(context);
+    }
+
+    private async Task SetupOrganizations(Forms.IModelFormContext context)
+    {
+        var rawOrgs = await MetadataBrokerService.GetFieldChoices(ORGANIZATION_FIELD_NAME);
+        var orgNames = rawOrgs.Select(r => _isFrench ? r.Label_French_TXT : r.Label_English_TXT).Order();
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Department_NAME, () => orgNames);
     }
 
     private void RefreshBranches(Forms.IModelFormContext context)
@@ -177,10 +211,9 @@
         context.RefreshOptions<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Section_NAME);
     }
 
-    private string GetDataLabel(string propName)
-    {
-        return Localizer[MakeLabel(propName)];
-    }
+    private string GetDataLabel(string propName) => Localizer[MakeLabelKey(propName)];
 
-    static string MakeLabel(string label) => $"APPROVAL-FORM.{label}";
+    private string LocalizerFunction(string s) => s is null ? s : Localizer[s];
+
+    static string MakeLabelKey(string label) => $"APPROVAL-FORM.{label}";
 }
