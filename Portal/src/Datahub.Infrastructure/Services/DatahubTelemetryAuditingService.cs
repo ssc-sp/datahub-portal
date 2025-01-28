@@ -79,12 +79,21 @@ public class DatahubTelemetryAuditingService : IDatahubAuditingService
 
     private async Task AppendIdentity(Dictionary<string, string> dictionary, bool anonymous = false)
     {
-        var user = anonymous ? await userInformationService.GetAnonymousGraphUserAsync() : await userInformationService.GetCurrentGraphUserAsync();
-        if (user != null)
+        try
         {
-            dictionary["userId"] = user.Id;
-            dictionary["userName"] = user.DisplayName;
-            dictionary["userPrincipalName"] = user.UserPrincipalName;
+            var user = anonymous ? await userInformationService.GetAnonymousGraphUserAsync() : await userInformationService.GetCurrentGraphUserAsync();
+            if (user != null)
+            {
+                dictionary["userId"] = user.Id;
+                dictionary["userName"] = user.DisplayName;
+                dictionary["userPrincipalName"] = user.UserPrincipalName;
+            }
+        }
+        catch (Exception ex)
+        {
+            dictionary["userId"] = "Unknown";
+            dictionary["userName"] = "Unknown";
+            dictionary["userPrincipalName"] = "Unknown";
         }
     }
 
