@@ -95,16 +95,24 @@ public class HostingServicesController : ControllerBase
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
 
-            // Create a new workspace. (Only to be done when authentication is complete)
+            // Attempt to find the user in the database.
             var users = _context.PortalUsers.ToListAsync();
             var user = users.Result.FirstOrDefault(e => e.Email == workspaceDetails.LeadEmail);
 
-            if (user == null)
+            if (user == null) // If the user is not found, register the user.
             {
                 await RegisterUser(workspaceDetails.LeadEmail);
-                user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == workspaceDetails.LeadEmail);
+                int attempt = 0;
+                
+                while (user == null && attempt < 5)
+                {
+                    await Task.Delay(3000);
+                    user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == workspaceDetails.LeadEmail);
+                    attempt++;
+                }
             }
 
+            // If the user is found or registered successfully, create the project.
             if (user != null)
             {
                 return await CreateProject(workspaceDetails, acronym, rg, user);
@@ -132,6 +140,7 @@ public class HostingServicesController : ControllerBase
         {
             await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
             var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
+            await _userInformationService.CreatePortalUserAsync(userId);
             var user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email);
             return user;
         }
