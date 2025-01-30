@@ -17,7 +17,6 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
     public const string AzureDevopsScope = "499b84ac-1321-427f-aa17-267ca6975798";
 
     private static string AzureDevOpsScopeDefault => $"{AzureDevopsScope}/.default";
-    private static string AzureDatabaseScopeDefault => "https://database.windows.net/.default";
     private static string AzureManagementApiScopeDefault => "https://management.azure.com/.default";
 
     public async Task<WorkItemTrackingHttpClient> WorkItemClientAsync()
@@ -49,7 +48,7 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
         var aadCredentials = new VssAadCredential(aadToken);
         return aadCredentials;
     }
-    public async Task<AccessToken> AccessTokenAsync(bool includeAzureManagement = false, bool includeDatabaseManagement = false)
+    public async Task<AccessToken> AccessTokenAsync(bool includeAzureManagement = false)
     {
         var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
             config.ClientSecret);
@@ -62,13 +61,6 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
             scopes = new List<string>
             {
                 AzureManagementApiScopeDefault
-            };
-        }
-        if (includeDatabaseManagement)
-        {
-            scopes = new List<string>
-            {
-                AzureDatabaseScopeDefault
             };
         }
         // scopes.Add(AzureManagementApiScopeDefault);
