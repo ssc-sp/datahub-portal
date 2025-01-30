@@ -32,35 +32,35 @@
 
     <HeaderContent>
         <MudTh>
-            @Localizer["InstanceType"]
+            <strong>@Localizer["Instance Type"]</strong>
         </MudTh>
         <MudTh>
-            @Localizer["SKU"]
+            <strong>@Localizer["SKU"]</strong>
         </MudTh>
         <MudTh>
-            @Localizer["vCores"]
+            <strong>@Localizer["vCores"]</strong>
         </MudTh>
         <MudTh>
-            @Localizer["MemorySize"]
+            <strong>@Localizer["Memory Size"]</strong>
         </MudTh>
         <MudTh>
-            @Localizer["MaxIOPS"]
+            <strong>@Localizer["MaxIOPS"]</strong>
         </MudTh>
         <MudTh>
-            @Localizer["MaxBandwidth"]
+            <strong>@Localizer["MaxBandwidth"]</strong>
         </MudTh>
         <MudTh>
-            @Localizer["StorageSize"]
+            <strong>@Localizer["Storage Size"]</strong>
         </MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd DataLabel="@Localizer["InstanceType"]">@context.Type</MudTd>
+        <MudTd DataLabel="@Localizer["Instance Type"]">@context.Type</MudTd>
         <MudTd DataLabel="@Localizer["SKU"]">@context.SKU</MudTd>
         <MudTd DataLabel="@Localizer["vCores"]">@context.vCores</MudTd>
-        <MudTd DataLabel="@Localizer["MemorySize"]">@context.MemorySize</MudTd>
+        <MudTd DataLabel="@Localizer["Memory Size"]">@context.MemorySize</MudTd>
         <MudTd DataLabel="@Localizer["MaxIOPS"]">@context.MaxIOPS</MudTd>
         <MudTd DataLabel="@Localizer["MaxBandwidth"]">@context.MaxBandwidth</MudTd>
-        <MudTd DataLabel="@Localizer["StorageSize"]">@context.StorageSize</MudTd> 
+        <MudTd DataLabel="@Localizer["Storage Size"]">@context.StorageSize</MudTd> 
     </RowTemplate>
 </MudTable>
 
