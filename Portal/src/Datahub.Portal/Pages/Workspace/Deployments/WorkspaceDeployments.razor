@@ -1,0 +1,110 @@
+﻿@using System.Diagnostics
+<DHMainContentTitle Title="@Localizer["Deployments"]"/>
+<MudText>
+    @Localizer["Here you can see the progress of your toolbox deployments."]
+</MudText>
+<MudStack Class="my-4">
+    <MudPaper Elevation="0" Outlined>
+        <MudStepper ActiveIndex="3">
+            <LabelTemplate>
+                @if (context.IsActive)
+                {
+                    <MudProgressCircular Size="Size.Small" Color="Color.Primary" Indeterminate Class="pa-0"/>
+                }
+                else if (context.Completed)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Large" Class="pa-0"/>
+                }
+                else
+                {
+                    <div
+                        style="height: 10px; width:10px; background-color: #d4ddeb; border-radius: 50%; padding: 0"></div>
+                }
+            </LabelTemplate>
+            <ActionContent>
+                @* *@
+            </ActionContent>
+            <ChildContent>
+                <MudStep Completed="true" Title="Send request"></MudStep>
+                <MudStep Completed Title="Prepare changes"></MudStep>
+                <MudStep Completed Title="Plan cloud changes"></MudStep>
+                <MudStep Title=@_text></MudStep>
+                <MudStep Title="Validate changes"></MudStep>
+                <MudStep Title="Output results"></MudStep>
+            </ChildContent>
+        </MudStepper>
+        <MudStack Row Class="px-4 pb-4" AlignItems="AlignItems.Center">
+            <MudStack Spacing="0">
+                <MudText>
+                    <strong>
+                        @Localizer["Toolbox deployment 174"]
+                    </strong>
+                </MudText>
+                <MudText Style="font-style: italic">
+                    @Localizer["Azure Postgres, Azure App Service"]
+                </MudText>
+            </MudStack>
+            <MudSpacer/>
+            <MudStack>
+                <MudText Style="font-style: italic">
+                    28-01-2025 | 12min @((36 + _timer.Elapsed.Seconds).ToString())s
+                </MudText>
+                <MudText Style="font-style: italic">
+                    Requested by René, David (SSC/SPC)
+                </MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+    <MudPaper Elevation="0" Outlined>
+        <MudStepper ActiveIndex="10">
+            <LabelTemplate>
+                <MudIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" Size="Size.Large" Class="pa-0"/>
+            </LabelTemplate>
+            <ActionContent>
+                @* *@
+            </ActionContent>
+            <ChildContent>
+                <MudStep Completed="true" Title="Send request"></MudStep>
+                <MudStep Completed Title="Prepare changes"></MudStep>
+                <MudStep Completed Title="Plan cloud changes"></MudStep>
+                <MudStep Completed Title="Apply cloud changes"></MudStep>
+                <MudStep Completed Title="Validate changes"></MudStep>
+                <MudStep Completed Title="Output results"></MudStep>
+            </ChildContent>
+        </MudStepper>
+        <MudStack Row Class="px-4 pb-4" AlignItems="AlignItems.Center">
+            <MudStack Spacing="0">
+                <MudText>
+                    <strong>
+                        @Localizer["Toolbox deployment 123"]
+                    </strong>
+                </MudText>
+                <MudText Style="font-style: italic">
+                    @Localizer["Workspace Essentials, Azure Blob Storage, Azure Databricks"]
+                </MudText>
+            </MudStack>
+            <MudSpacer/>
+            <MudStack>
+                <MudText Style="font-style: italic">
+                    23-01-2025 | 20min 12s
+                </MudText>
+                <MudText Style="font-style: italic">
+                    Requested by René, David (SSC/SPC)
+                </MudText>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+</MudStack>
+
+@code {
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+    private string _text = $"Apply cloud changes (7min {34 + _timer.Elapsed.Seconds}s)";
+    private static Stopwatch _timer = new Stopwatch();
+
+    protected override async Task OnInitializedAsync()
+    {
+        _timer.Start();
+    }
+
+}

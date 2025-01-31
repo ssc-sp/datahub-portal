@@ -1,0 +1,40 @@
+﻿<MudDialog Style="width: 100%">
+    <DialogContent>
+        <MudStack Class="pa-8">
+            <MudStack Row AlignItems="AlignItems.Center">
+                <DHIcon Icon="@Icon"/>
+                <MudText Typo="Typo.h2">@Title</MudText>
+                <MudSpacer/>
+                <MudStack Spacing="0">
+                    <MudText Style="font-style: italic">@Category</MudText>
+                    <MudText Style="font-style: italic">v4.0.0</MudText>
+                </MudStack>
+            </MudStack>
+            <MudText Typo="Typo.h3">Tool information</MudText>
+            <MudStack Row>
+                <MudText>@Description</MudText>
+                <MudSpacer/>
+                <MudStack Justify="Justify.Center">
+                    <MudPaper Elevation="0" Outlined Class="pa-4">
+                        <MudText>Used in 245 workspaces</MudText>
+                    </MudPaper>
+                </MudStack>
+            </MudStack>
+            <MudText Typo="Typo.h3">Cost information</MudText>
+            <MudStack Row>
+                <MudText>Cost: $0.00</MudText>
+                <MudSpacer/>
+                <MudPaper Elevation="0" Outlined>
+                    <MudText>Cost per use: $0.00</MudText>
+                </MudPaper>
+            </MudStack>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public string Icon { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public string Category { get; set; }
+    [Parameter] public string Description { get; set; }
+}

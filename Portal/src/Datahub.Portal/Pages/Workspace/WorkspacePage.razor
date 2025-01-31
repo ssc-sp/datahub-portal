@@ -16,6 +16,7 @@
 @using Datahub.Portal.Pages.Workspace.Healthcheck
 @using Datahub.Portal.Pages.Workspace.Users
 @using Datahub.Portal.Pages.Workspace.WebApp
+@using Datahub.Portal.Pages.Workspace.Deployments
 @using Datahub.Portal.Components.Sidebar
 
 @inject UserLocationManagerService _userLocationManagerService
@@ -102,7 +103,8 @@
         { WorkspaceSidebar.SectionViews.Healthcheck, typeof(WorkspaceHealthcheckPage) },
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) },
-
+        { WorkspaceSidebar.SectionViews.Deployments, typeof(WorkspaceDeployments)},
+    
         { WorkspaceSidebar.SectionViews.Dashboard_FR, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Publishing_FR, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories_FR, typeof(RepositoryManagementPage) },

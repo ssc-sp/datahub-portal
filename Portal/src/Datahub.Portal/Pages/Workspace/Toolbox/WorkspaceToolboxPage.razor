@@ -1,15 +1,21 @@
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Achievements
 @using Datahub.Shared.Entities
 @using Datahub.Core.Model.Projects
-
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
+@using Datahub.Portal.Pages.Account
+
+@inherits ViewUserBase<WorkspaceToolboxPage>
 
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
+@inject IResourceMessagingService _resourceMessagingService
 @inject IRequestManagementService _requestManagementService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceToolboxPage> _logger
 @inject ISnackbar _snackbar
 @inject NavigationManager _navigationManager
+@inject IDialogService _dialogService
 
 @if (_initializing)
 {
@@ -23,108 +29,356 @@
         @Localizer["The Toolbox Catalogue is a collection of tools that can be added to your workspace. You can add tools to your workspace by clicking on the 'Add to Workspace' button."]
     </MudText>
 
-    <MudDivider Class="my-6"/>
+    <MudPaper Elevation="0" Outlined>
+        @if (!_metadataRequired)
+        {
+            <MudStack Row Spacing="0">
+                <MudStepper Style="@(_activeIndex == 2 ? "width: 100%" : "width: 75%")"
+                            @bind-ActiveIndex="@_activeIndex">
+                    <MudStep Title=@Localizer["Select"]>
+                        <MudText Typo="Typo.h2" Class="mb-2">
+                            @Localizer["Select tools to add, remove or configure in your workspace"]
+                        </MudText>
+                        <MudText Class="mb-4">
+                            @Localizer["The tool catalog will list tools that are not yet in your workspace. You will be able to select from those which you would like to add to your workspace."]
+                        </MudText>
+                        <MudText Typo="Typo.h3" Class="mb-4">
+                            @Localizer["Tool catalog"]
+                        </MudText>
+                        <MudStack Spacing="2" Class="mb-4" Style="flex-shrink: 0">
+                            @foreach (var tool in _toolCatalog)
+                            {
+                                <ToolboxItem ToolName="@GetLabel(tool)" ToolIcon="@GetIcon(tool)"
+                                             ToolCategory="@GetCategory(tool)" ShowDetails="@(_ => ShowInfoSheet(tool))">
+                                    @switch (_toolAvailabilityStatusMap[tool])
+                                    {
+                                        case AvailabilityStatus.Available:
+                                            <DHButton OnClick="@(_ => AddTool(tool))"
+                                                      EndIcon="@Icons.Material.Outlined.Add"
+                                                      DisableRipple
+                                                      HtmlTag="button"
+                                                      Variant="Variant.Filled" Color="Color.Primary">
+                                                @Localizer["Add"]
+                                            </DHButton>
+                                            break;
+                                        case AvailabilityStatus.Disabled:
+                                            <MudText Style="font-style: italic">
+                                                @Localizer["Disabled"]
+                                            </MudText>
+                                            break;
+                                        case AvailabilityStatus.UnderDevelopment:
+                                            <MudText Style="font-style: italic">
+                                                @Localizer["Under Development"]
+                                            </MudText>
+                                            break;
+                                    }
+                                </ToolboxItem>
+                            }
+                        </MudStack>
+                        <MudStack Row>
 
-    <MudStack Spacing="0" >
-        @if (_metadataRequired)
-        {
-            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-                @Localizer["The workspace metadata is currently incomplete. No resources can be provisioned until the project metadata has been filled"].
-                <MudLink Href="@_metadataUrl">
-                    @Localizer["Click here to edit the metadata."]
-                </MudLink>
-            </MudAlert>
-        }
-        else if (_workspace.IsOverBudget)
-        {
-            <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-                @Localizer["Your workspace has consumed 100% of its budget. To increase your budget, please submit a request through the GC Hosting Services Portal."]
-            </MudAlert>
+                            <MudText Typo="Typo.h3" Class="mb-4">
+                                @Localizer["Tools in workspace"]
+                            </MudText>
+
+                        </MudStack>
+                        <MudStack Spacing="2" Class="mb-4">
+                            @foreach (var template in _originalWorkspaceDefinition.Templates)
+                            {
+                                var tool = template.Name;
+                                <ToolboxItem ToolName="@GetLabel(tool)" ToolIcon="@GetIcon(tool)"
+                                             ToolCategory="@GetCategory(tool)" ShowDetails="@(_ => ShowInfoSheet(tool))">
+                                    @switch (template.Status)
+                                    {
+                                        case TerraformStatus.Completed:
+
+                                            var configurable = _configurableToolList.Contains(tool);
+                                            var permanent = _permanentToolList.Contains(tool);
+
+                                            <DHButton EndIcon="@SidebarIcons.Gear"
+                                                      Variant="Variant.Filled" Color="Color.Default" DisableRipple
+                                                      OnClick="@(_ => ConfigureTool(tool))"
+                                                      Disabled="@(!configurable)"
+                                                      HtmlTag="button"
+                                                      title="@(configurable ? "" : Localizer["This tool cannot be configured currently."])">
+                                                @Localizer["Configure"]
+                                            </DHButton>
+                                            <DHButton EndIcon="@Icons.Material.Outlined.Delete"
+                                                      Variant="Variant.Filled" Color="Color.Error" DisableRipple
+                                                      OnClick="@(_ => RemoveTool(tool))"
+                                                      Disabled="@(permanent)"
+                                                      HtmlTag="button"
+                                                      title="@(permanent ? Localizer["This tool cannot be removed currently."] : "")">
+                                                @Localizer["Remove"]
+                                            </DHButton>
+                                            break;
+                                        case TerraformStatus.InProgress:
+                                        case TerraformStatus.CreateRequested:
+                                            <MudText Style="font-style: italic">
+                                                @Localizer["In Progress"]
+                                            </MudText>
+                                            break;
+                                        case TerraformStatus.Failed:
+                                            <MudText Style="font-style: italic">
+                                                @Localizer["Failed"]
+                                            </MudText>
+                                            break;
+                                        case TerraformStatus.Deleted:
+                                        case TerraformStatus.DeleteRequested:
+                                            <MudText Style="font-style: italic">
+                                                @Localizer["Deleted"]
+                                            </MudText>
+                                            break;
+                                    }
+                                </ToolboxItem>
+                            }
+                        </MudStack>
+                        <MudText Style="font-style: italic">
+                            @Localizer["Some tools may not be configurable or removable through the toolbox just yet. For more information, please submit a support request."]
+                        </MudText>
+                    </MudStep>
+                    <MudStep Title=@Localizer["Configure"]>
+                        <MudText Typo="Typo.h2" Class="mb-4">
+                            @Localizer["Configure the tools you have added to your workspace"]
+                        </MudText>
+                        <MudStack Spacing="4">
+                            @foreach (var tool in _toolsToConfigure.Concat(_toolsToAdd))
+                            {
+                                <MudPaper Elevation="0" Outlined Class="pa-4">
+                                    <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+                                        <DHIcon Icon="@GetIcon(tool)" Size="Size.Large"/>
+                                        <MudText Typo="Typo.h3">
+                                            @GetLabel(tool) configuration
+                                        </MudText>
+                                    </MudStack>
+                                    <MudStack Spacing="2">
+                                        @switch (tool)
+                                        {
+                                            case TerraformTemplate.AzurePostgres:
+                                            case TerraformTemplate.AzureAppService:
+                                                <SettingsField Label="@Localizer["Database tier"]"
+                                                               Description="@Localizer["Choose a tier for the compute of your database. This will affect the performance and cost of your database."]">
+                                                    <MudSelect T="string" Label="@Localizer["Database tier"]">
+                                                        <MudSelectItem
+                                                            Value="@basicTier">@Localizer["Basic"]</MudSelectItem>
+                                                        <MudSelectItem
+                                                            Value="@generalPurposeTier">@Localizer["General Purpose"]</MudSelectItem>
+                                                        <MudSelectItem
+                                                            Value="@memoryOptimizedTier">@Localizer["Memory Optimized"]</MudSelectItem>
+                                                    </MudSelect>
+                                                </SettingsField>
+                                                <SettingsField Label="@Localizer["Database size"]"
+                                                               Description="@Localizer["Choose the size of your database. This will affect the cost of your database"]">
+                                                    <MudSelect T="string" Label="@Localizer["Database size"]">
+                                                        <MudSelectItem
+                                                            Value="@basicTier">@Localizer["Basic"]</MudSelectItem>
+                                                        <MudSelectItem
+                                                            Value="@generalPurposeTier">@Localizer["General Purpose"]</MudSelectItem>
+                                                        <MudSelectItem
+                                                            Value="@memoryOptimizedTier">@Localizer["Memory Optimized"]</MudSelectItem>
+                                                    </MudSelect>
+                                                </SettingsField>
+                                                break;
+                                        }
+                                    </MudStack>
+                                </MudPaper>
+                            }
+                        </MudStack>
+                    </MudStep>
+                    <MudStep Title=@Localizer["Review"]>
+                        <MudText Typo="Typo.h2" Class="mb-4">
+                            @Localizer["Review the tools you have selected to add, remove or configure in your workspace"]
+                        </MudText>
+                        <MudText Class="mb-4">
+                            @Localizer["Make sure that the following information is correct before submitting your request. Tool requests cannot be cancelled and may take some time to process."]
+                        </MudText>
+                        <MudStack Row Justify="Justify.Center" Class="my-8">
+                            <MudPaper Elevation="0" Outlined Class="pa-4">
+                                <MudStack Row Spacing="8">
+                                    <MudStack Spacing="2">
+                                        <MudText Typo="Typo.h3">
+                                            @Localizer["ADD:"]
+                                        </MudText>
+                                        @if (!_toolsToAdd.Any())
+                                        {
+                                            <MudText Style="font-style: italic">Nothing</MudText>
+                                        }
+                                        @foreach (var tool in _toolsToAdd)
+                                        {
+                                            <MudText>
+                                                @GetLabel(tool).ToUpper()
+                                            </MudText>
+                                            @switch (tool)
+                                            {
+                                                case TerraformTemplate.AzurePostgres:
+                                                case TerraformTemplate.AzureAppService:
+                                                    <MudText Style="font-style: italic">
+                                                        - @Localizer["Database tier:"] @basicTier
+                                                    </MudText>
+                                                    <MudText Style="font-style: italic">
+                                                        - @Localizer["Database size:"] @basicTier
+                                                    </MudText>
+                                                    break;
+                                            }
+                                        }
+                                    </MudStack>
+                                    <MudDivider Vertical FlexItem/>
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.h3">
+                                            @Localizer["CONFIGURE:"]
+                                        </MudText>
+                                        @foreach (var tool in _toolsToConfigure)
+                                        {
+                                            <MudText>
+                                                @GetLabel(tool).ToUpper()
+                                            </MudText>
+                                            @switch (tool)
+                                            {
+                                                case TerraformTemplate.AzurePostgres:
+                                                case TerraformTemplate.AzureAppService:
+                                                    <MudText Style="font-style: italic">
+                                                        - @Localizer["Database tier:"] @basicTier
+                                                    </MudText>
+                                                    <MudText Style="font-style: italic">
+                                                        - @Localizer["Database size:"] @basicTier
+                                                    </MudText>
+                                                    break;
+                                            }
+                                        }
+                                    </MudStack>
+                                    <MudDivider Vertical FlexItem/>
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.h3">
+                                            @Localizer["REMOVE:"]
+                                        </MudText>
+                                        @foreach (var tool in _toolsToRemove)
+                                        {
+                                            <MudText>
+                                                @GetLabel(tool).ToUpper()
+                                            </MudText>
+                                        }
+                                    </MudStack>
+                                </MudStack>
+                            </MudPaper>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.h3">
+                                    @Localizer["Cost information"]
+                                </MudText>
+                                <MudText>
+                                    - @Localizer["Current estimated daily cost: "] <strong>$2.16</strong>
+                                </MudText>
+                                <MudText>
+                                    - @Localizer["New estimated daily cost: "] <strong>$4.78 (+$2.62)</strong>
+                                </MudText>
+                                <MudText>
+                                    - <strong>18% (+2%)</strong> of current budget per month
+                                </MudText>
+                                <MudText>
+                                    - <strong>16.5</strong> months until reaching budget limit
+                                </MudText>
+                            </MudStack>
+                        </MudStack>
+                        <MudText>
+                            @Localizer["By clicking complete, you are confirming that the information above is correct and that you understand the cost implications of your request."]
+                        </MudText>
+                    </MudStep>
+                </MudStepper>
+                @if (_activeIndex != 2)
+                {
+                    <MudDivider Vertical DividerType="DividerType.Middle" FlexItem/>
+                    <MudStack Class="pa-4" Spacing="0">
+                        <MudText Typo="Typo.h2" Class="mb-4">
+                            @Localizer["Summary"]
+                        </MudText>
+                        @if (_toolsToAdd.Any())
+                        {
+                            <MudText Typo="Typo.h3" Class="mb-2">
+                                @Localizer["Tools to add:"]
+                            </MudText>
+                            <MudStack Spacing="2" Class="mb-4">
+                                @foreach (var tool in _toolsToAdd)
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudText>
+                                            @GetLabel(tool)
+                                        </MudText>
+                                        @if (_activeIndex == 0)
+                                        {
+                                            <MudSpacer/>
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                           Color="Color.Error"
+                                                           OnClick="@(_ => RevertAddTool(tool))" Size="Size.Small"/>
+                                        }
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+                        @if (_toolsToConfigure.Any())
+                        {
+                            <MudText Typo="Typo.h3" Class="mb-2">
+                                @Localizer["Tools to configure:"]
+                            </MudText>
+                            <MudStack Spacing="2" Class="mb-4">
+                                @foreach (var tool in _toolsToConfigure)
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudText>
+                                            @GetLabel(tool)
+                                        </MudText>
+                                        @if (_activeIndex == 0)
+                                        {
+                                            <MudSpacer/>
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                           Color="Color.Error"
+                                                           OnClick="@(_ => RevertConfigureTool(tool))"
+                                                           Size="Size.Small"/>
+                                        }
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+                        @if (_toolsToRemove.Any())
+                        {
+                            <MudText Typo="Typo.h3" Class="mb-4">
+                                @Localizer["Tools to remove:"]
+                            </MudText>
+                            <MudStack Spacing="2" Class="mb-4">
+                                @foreach (var tool in _toolsToRemove)
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center">
+                                        <MudText>
+                                            @GetLabel(tool)
+                                        </MudText>
+                                        @if (_activeIndex == 0)
+                                        {
+                                            <MudSpacer/>
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                           Color="Color.Error"
+                                                           OnClick="@(_ => RevertRemoveTool(tool))" Size="Size.Small"/>
+                                        }
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+                        <MudSpacer/>
+                        <MudText Style="font-style: italic">
+                            @Localizer["Current estimated daily cost: $2.16"]
+                        </MudText>
+                        <MudText Style="font-style: italic">
+                            @Localizer["New estimated daily cost: $4.78"]
+                        </MudText>
+                    </MudStack>
+                }
+            </MudStack>
         }
         else
         {
-            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-                @Localizer["The \"Add to Workspace\" button will show the state your tool request after being clicked."]
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
+                @Localizer["Looks like you haven't added metadata to your workspace yet. Please add metadata to your workspace to be able to request tools."]
+                <MudLink Href="@_metadataUrl">@Localizer["Go to metadata page"]</MudLink>
             </MudAlert>
         }
-
-        @if (_toolDisplayStatusMap.Any(s => s.Value is TerraformStatus.CreateRequested or TerraformStatus.InProgress or TerraformStatus.DeleteRequested or TerraformStatus.DeleteInProgress))
-        {
-            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-                @Localizer["Your tool request was put in the queue and is being processed. Most requests in the queue are processed within an hour. Please come back later and refresh this page. If it takes longer than expected, please submit a support request."]
-            </MudAlert>
-        }
-    </MudStack>
-
-    <MudGrid>
-        @foreach (var tool in _toolList)
-        {
-            <MudItem xs="12" sm="6" md="4">
-                <MudPaper Outlined Class="pt-4 px-6 pb-6">
-                    <MudStack Style="height: 280px;">
-                        <MudStack Row AlignItems="AlignItems.Center">
-                            <DHIcon Icon="@GetIcon(tool)" Class="mr-2"/>
-                            <MudText Typo="Typo.h3">
-                                @GetLabel(tool)
-                            </MudText>
-                        </MudStack>
-                        <MudText>
-                            @GetDescription(tool)
-                        </MudText>
-                        <MudSpacer/>
-                        <MudStack Row>
-                            @{
-                                var status = _toolDisplayStatusMap[tool];
-                            }
-                            @switch (status)
-                            {
-                                case TerraformStatus.CreateRequested:
-                                case TerraformStatus.InProgress:
-                                case TerraformStatus.DeleteRequested:
-                                case TerraformStatus.Deleted:
-                                    <ToolboxButton Status="@status" Disabled="@true"/>
-                                    break;
-                                case TerraformStatus.Completed:
-                                    <MudStack>
-                                        <ToolboxButton Status="@status" Disabled="@true"
-                                                       Icon="fa-light fa-check-to-slot"/>
-                                        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin"
-                                                         ProjectAcronym="@WorkspaceAcronym">
-                                            @if (!_permenantToolList.Contains(tool))
-                                            {
-                                                <DHButton Variant="@Variant.Filled" Color="@Color.Error" OnClick="@(() => NavigateToResourceDeletePage(tool))">
-                                                    @Localizer["Remove Tool from Workspace"]
-                                                    <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;"/>
-                                                </DHButton>
-                                            }
-                                        </DatahubAuthView>
-                                    </MudStack>
-                                    break;
-                                case AvailabilityStatus.Available:
-                                    <ToolboxButton Status="@status" Icon="@SidebarIcons.CreateNew"
-                                                   OnClick="@(async () => await AddResourceToWorkspace(tool))"/>
-                                    break;
-                                case AvailabilityStatus.Disabled:
-                                    <ToolboxButton Status="@status" Disabled="@true"
-                                                   Icon="@SidebarIcons.CreateNew"/>
-                                    break;
-                                case AvailabilityStatus.UnderDevelopment:
-                                    <ToolboxButton Status="@status" Disabled="@true"
-                                                   Icon="fa-light fa-space-station-moon-construction"/>
-                                    break;
-                                case AvailabilityStatus.MetadataRequired:
-                                    <ToolboxButton Status="@status" Disabled="@true" Icon="@SidebarIcons.Metadata"/>
-                                    break;
-                                default:
-                                    <ToolboxButton Status="Error" Disabled="@true"/>
-                                    break;
-                            }
-                        </MudStack>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
-        }
-    </MudGrid>
+    </MudPaper>
 </MudStack>
 
 @code {
@@ -133,46 +387,23 @@
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _workspace;
+    private WorkspaceDefinition _originalWorkspaceDefinition;
+    private WorkspaceDefinition _newWorkspaceDefinition;
+    private PortalUser _viewedPortalUser;
+    private string basicTier = "Basic";
+    private string generalPurposeTier = "General Purpose";
+    private string memoryOptimizedTier = "Memory Optimized";
 
-    private readonly List<string> _toolList =
-    [
-        TerraformTemplate.AzureDatabricks,
-    TerraformTemplate.AzureStorageBlob,
-    TerraformTemplate.AzureAppService,
-    TerraformTemplate.AzurePostgres,
-    TerraformTemplate.AzureArcGis,
-    TerraformTemplate.AzureAPI
-    ];
-
-    private readonly List<string> _permenantToolList =
-    [
-        TerraformTemplate.AzureDatabricks,
-    TerraformTemplate.AzureStorageBlob
-    ];
-
-
-    internal record struct AvailabilityStatus
-    {
-        public const string Available = "Available";
-        public const string UnderDevelopment = "Under Development";
-        public const string MetadataRequired = "Metadata Required";
-        public const string Disabled = "Disabled";
-    }
-
-    private readonly Dictionary<string, string> _toolAvailabilityStatusMap = new()
-    {
-        { TerraformTemplate.AzureDatabricks, AvailabilityStatus.Available },
-        { TerraformTemplate.AzureStorageBlob, AvailabilityStatus.Available },
-        { TerraformTemplate.AzureAppService, AvailabilityStatus.Available },
-        { TerraformTemplate.AzurePostgres, AvailabilityStatus.Available },
-        { TerraformTemplate.AzureArcGis, AvailabilityStatus.UnderDevelopment },
-        { TerraformTemplate.AzureAPI, AvailabilityStatus.UnderDevelopment }
-    };
-
-    private readonly Dictionary<string, string> _toolDisplayStatusMap = new();
+    private List<string> _toolCatalog = new();
+    private List<string> _toolsToAdd = new();
+    private List<string> _toolsToRemove = new();
+    private List<string> _toolsToConfigure = new();
 
     private bool _metadataRequired = true;
     private bool _initializing = true;
+
+    private int _activeIndex;
+
     private string _metadataUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Metadata}";
 
     protected override async Task OnInitializedAsync()
@@ -180,33 +411,19 @@
         await base.OnInitializedAsync();
 
         await using var context = await _contextFactory.CreateDbContextAsync();
+        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)
             .Include(w => w.Credits)
             .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
-
+        _originalWorkspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
+        // TODO: Implement object cloning instead of making 2 calls ^ v
+        _newWorkspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
 
         _metadataRequired = _workspace.MetadataAdded != true;
-        if (_metadataRequired)
-        {
-            foreach (var (tool, _) in _toolAvailabilityStatusMap)
-            {
-                _toolDisplayStatusMap[tool] = AvailabilityStatus.MetadataRequired;
-            }
-        }
-        else
-        {
-            // loop through the tools and check if they exist
-            foreach (var tool in _toolList)
-            {
-                var resourceStatus = FetchWorkspaceResourceStatus(tool);
-                _toolDisplayStatusMap[tool] = resourceStatus;
-            }
-        }            
-
-
+        PopulateCatalog();
         _initializing = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -276,46 +493,5 @@
         _navigationManager.NavigateTo($"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Delete}/{resourceName}");
     }
 
-    private string GetLabel(string tool)
-    {
-        return tool switch
-        {
-            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
-            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
-            TerraformTemplate.AzureAppService => Localizer["Web Application"],
-            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
-            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
-            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
-            _ => tool
-        };
-    }
-
-    private string GetDescription(string tool)
-    {
-        return tool switch
-        {
-            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service."],
-            TerraformTemplate.AzureStorageBlob => Localizer["Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data."],
-            TerraformTemplate.AzureAppService => Localizer["Web Application is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
-            TerraformTemplate.AzurePostgres => Localizer["Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
-            TerraformTemplate.AzureArcGis => Localizer["ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
-            TerraformTemplate.AzureAPI => Localizer["Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service."],
-            _ => tool
-        };
-    }
-
-    private static string GetIcon(string tool)
-    {
-        return tool switch
-        {
-            TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
-            TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
-            TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
-            TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
-            TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
-            TerraformTemplate.AzureAPI => SidebarIcons.Api,
-            _ => SidebarIcons.Default
-        };
-    }
 
 }
