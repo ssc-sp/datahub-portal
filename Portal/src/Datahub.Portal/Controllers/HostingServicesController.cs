@@ -3,36 +3,39 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Application.Services;
-using Datahub.Infrastructure.Services;
-using Datahub.Portal.Pages;
 using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using StackExchange.Profiling.Internal;
 using Datahub.Core.Model.Achievements;
-using Datahub.Core.Data.Databricks;
-using System.ComponentModel;
 using Datahub.Application.Services.UserManagement;
-using static DeepL.Model.Usage;
+using Datahub.Infrastructure.Queues.Messages;
+using MassTransit;
+using Datahub.Infrastructure.Extensions;
+using Datahub.Shared.Configuration;
+
 
 namespace Datahub.Portal.Controllers;
 
 [ApiController]
 public class HostingServicesController : ControllerBase
 {
+    private readonly ILogger<HostingServicesController> _logger;
     private readonly DatahubProjectDBContext _context;
     private readonly IProjectCreationService _projectCreationService;
     private readonly IUserInformationService _userInformationService;
     private readonly IUserEnrollmentService _userEnrollmentService;
+    private readonly ISendEndpointProvider _sendEndpointProvider;
 
     private string message = "";
 
-    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService)
+    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider)
     {
         _context = context;
         _projectCreationService = projectCreationService;
         _userInformationService = userInformationService;
         _userEnrollmentService = userEnrollmentService;
+        _logger = logger;
+        _sendEndpointProvider = sendEndpointProvider;
     }
 
     /// <summary>
@@ -43,6 +46,7 @@ public class HostingServicesController : ControllerBase
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> PostAuth()
     {
+        _logger.LogInformation("Received authenticated request.");
         return await ProcessRequest(Request);
     }
 
@@ -54,6 +58,7 @@ public class HostingServicesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> PostAnon()
     {
+        _logger.LogInformation("Received anonymous request.");
         return await ProcessRequest(Request);
     }
 
@@ -68,10 +73,12 @@ public class HostingServicesController : ControllerBase
         try
         {
             var body = await new StreamReader(request.Body).ReadToEndAsync();
+            _logger.LogInformation("Received echo request body: {0}", body);
             return Ok(body);
         }
         catch (Exception ex)
         {
+            _logger.LogError("Error processing echo request: {0}", ex.Message);
             return Ok(ex.Message);
         }
     }
@@ -88,12 +95,14 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
+            _logger.LogInformation("Received create workspace request body: {0}", body);
 
             var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(body);
 
             // Create a new workspace.
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
+            _logger.LogInformation("Generated acronym: {0}", acronym);
 
             // Attempt to find the user in the database.
             var users = _context.PortalUsers.ToListAsync();
@@ -101,12 +110,14 @@ public class HostingServicesController : ControllerBase
 
             if (user == null) // If the user is not found, register the user.
             {
+                _logger.LogInformation("User not found, registering user.");
                 await RegisterUser(workspaceDetails.LeadEmail);
                 int attempt = 0;
                 
                 while (user == null && attempt < 5)
                 {
-                    await Task.Delay(3000);
+                    await Task.Delay(2000);
+                    _logger.LogInformation("Attempt {0} to find user.", attempt);
                     user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == workspaceDetails.LeadEmail);
                     attempt++;
                 }
@@ -115,17 +126,50 @@ public class HostingServicesController : ControllerBase
             // If the user is found or registered successfully, create the project.
             if (user != null)
             {
+                _logger.LogInformation("User found, creating project.");
                 return await CreateProject(workspaceDetails, acronym, rg, user);
             }
             else
             {
-                return Ok("Failed to create workspace - Could not register workspace lead");
+                ReportErrorCreatingWorkspace(workspaceDetails);
+                return BadRequest("Failed to create workspace - Could not register workspace lead");
             }
         }
         catch (Exception ex)
         {
-            return Ok(ex.ToString() + message);
+            return BadRequest(ex.ToString() + message);
         }
+    }
+
+    /// <summary>
+    /// Reports an error creating a workspace to the bug report queue.
+    /// </summary>
+    /// <param name="workspaceDetails"></param>
+    /// <returns></returns>
+    private async Task ReportErrorCreatingWorkspace(HostingServiceInfo workspaceDetails)
+    {
+        string description = $"Failed to create workspace {workspaceDetails.WorkspaceTitle} with workspace lead {workspaceDetails.LeadEmail}";
+
+        _logger.LogError(description);
+
+        var bugReport = new BugReportMessage(
+            UserName: "Datahub Portal",
+            UserEmail: "n/a",
+            UserOrganization: "FSDH",
+            PortalLanguage: "n/a",
+            PreferredLanguage: "n/a",
+            Timezone: "UTC",
+            Workspaces: "n/a",
+            Topics: "Workspace Creation Failure",
+            URL: "n/a",
+            UserAgent: "HostingServicesController",
+            Resolution: "n/a",
+            LocalStorage: "n/a",
+            BugReportType: BugReportTypes.SystemError,
+            Description: description
+        );
+
+        await _sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
     }
 
     /// <summary>
@@ -140,9 +184,9 @@ public class HostingServicesController : ControllerBase
         {
             await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
             var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
+            _logger.LogInformation("User invite sent to {0}, user ID is {1}", email, userId);
             await _userInformationService.CreatePortalUserAsync(userId);
-            var user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email);
-            return user;
+            return await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email); ;
         }
         catch (Exception ex)
         {
@@ -161,16 +205,19 @@ public class HostingServicesController : ControllerBase
     [NonAction]
     private async Task<IActionResult> CreateProject(HostingServiceInfo workspaceDetails, string acronym, string rg, PortalUser user)
     {
+        _logger.LogInformation("Creating project for workspace {0}", workspaceDetails.WorkspaceTitle);
         var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
 
         if (isAdded)
         {
+            _logger.LogInformation("Project created successfully, saving project creation details.");
             await _projectCreationService.SaveProjectCreationDetailsAsync(acronym, workspaceDetails.AreaOfScience);
 
             // Retrieve the workspace details.
             var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
 
             // Create a new GC Hosting workspace record using the given details.
+            _logger.LogInformation("Creating GC Hosting workspace record.");
             GCHostingWorkspaceDetails gcHostingRecord = ConvertInputToGCHostingObject(workspaceDetails);
             gcHostingRecord.Datahub_Project = project;
             _context.GCHostingWorkspaceDetails.Add(gcHostingRecord);

@@ -297,6 +297,7 @@ public class UserInformationService(
 
         try
         {
+            PrepareAuthenticatedClient();
             var graphUser = await graphServiceClient.Users[userGraphId].GetAsync();
             var portalUser = new PortalUser
             {
