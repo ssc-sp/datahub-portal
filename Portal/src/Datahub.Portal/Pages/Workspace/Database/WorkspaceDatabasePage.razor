@@ -1,9 +1,11 @@
 @using Datahub.Application.Services.Security
+@using Datahub.Portal.Model
 @using Microsoft.Identity.Web
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IKeyVaultUserService _keyVaultUserService
 @inject ILogger<WorkspaceDatabasePage> _logger
+@inject DatahubPortalConfiguration _portalConfiguration
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
 
@@ -19,12 +21,7 @@
         @Localizer["Here you can manage your workspace database. You can view and test the connectivity of your database"]
     </MudText>
 
-    <DatabaseInfoTable
-        DatabaseHost="@_databaseHost"
-        DatabaseName="@_databaseName"
-        Username="@_username"
-        Password="@_password"
-        Port="@_port" />
+    <DatabaseInfoTable dbServer="@_dbServer"/>
 
     <MudText Typo="Typo.caption">@Localizer["Connection info can only be displayed by the workspace lead."]</MudText>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
@@ -69,11 +66,7 @@
     private string _csharpConnectionInfo;
     private string _databricksConnectionInfo;
 
-    private string _databaseHost = "<database_host>";
-    private string _databaseName = "<database_name>";
-    private string _username = "<username>";
-    private string _password = "<password>";
-    private string _port = "<port>";
+    private AzureDBServer _dbServer = new AzureDBServer();
 
     private bool _hideContent = true;
     private string _message = "Show Connection Info";
@@ -100,6 +93,27 @@
         {
             _logger.LogError(e, "Failed to get consent from user");
         }
+        // get SKU 
+        var postgresResource = await BuildPostgresSqlFlexibleServerResource();
+
+        var serverData = await postgresResource.GetAsync();
+        var skuList = await LoadSKUs();
+        var instance = new AzureDBServer();
+        if (serverData.Value.HasData)
+        {
+            var sku = serverData.Value.Data.Sku.Name; // Typically, tier + family + cores, e.g. Standard_D4s_v3.
+            instance.SKU = sku;
+            var parts = sku.Split('_');
+            if (parts.Length > 0)
+            {
+                var tier = parts[0];
+                var compute = sku.Replace(tier + "_", "");
+                var match = skuList.Where(x => x.SKU.Contains(compute)).FirstOrDefault();
+                if (match != null) instance = match;
+            }
+            instance.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
+        }
+        _dbServer = instance;
 
         StateHasChanged();
     }
@@ -117,11 +131,6 @@
         {
             _hideContent = true;
             _message = "Show Connection Info";
-            _databaseHost = "<database_host>";
-            _databaseName = "<database_name>";
-            _username = "<username>";
-            _password = "<password>";
-            _port = "<port>";
             UpdateCodeSamples();
         }
         StateHasChanged();
@@ -149,11 +158,11 @@
 
     private string ReplaceHydrationValues(string text)
     {
-        text = text.Replace("<database_host>", _databaseHost);
-        text = text.Replace("<database_name>", _databaseName);
-        text = text.Replace("<username>", _username);
-        text = text.Replace("<password>", _password);
-        text = text.Replace("<port>", _port);
+        text = text.Replace("<database_host>", _dbServer.DatabaseHost);
+        text = text.Replace("<database_name>", _dbServer.DatabaseName);
+        text = text.Replace("<username>", _dbServer.Username);
+        text = text.Replace("<password>", _dbServer.Password);
+        text = text.Replace("<port>", _dbServer.Port);
 
         return text;
     }
@@ -170,14 +179,14 @@
             if (workspace == null)
                 throw new Exception($"Workspace with acronym {WorkspaceAcronym} not found");
 
-            _port = "5432";
-            _databaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
-            _databaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
+            _dbServer.Port = "5432";
+            _dbServer.DatabaseHost = TerraformVariableExtraction.ExtractAzurePostgresHost(workspace);
+            _dbServer.DatabaseName = TerraformVariableExtraction.ExtractAzurePostgresDatabaseName(workspace);
 
             var usernameSecretName = TerraformVariableExtraction.ExtractAzurePostgresUsernameSecretName(workspace);
             if (usernameSecretName != null)
             {
-                _username = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, usernameSecretName);
+                _dbServer.Username = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, usernameSecretName);
             }
             else
             {
@@ -187,7 +196,7 @@
             var passwordSecretName = TerraformVariableExtraction.ExtractAzurePostgresPasswordSecretName(workspace);
             if (passwordSecretName != null)
             {
-                _password = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, passwordSecretName);
+                _dbServer.Password = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, passwordSecretName);
             }
             else
             {
