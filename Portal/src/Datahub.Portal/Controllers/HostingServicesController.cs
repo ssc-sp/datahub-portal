@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Datahub.Core.Model.Onboarding;
@@ -96,14 +97,16 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
-            _logger.LogInformation("Received create workspace request body: {0}", body.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
+            var sanitizedBody = HttpUtility.HtmlEncode(body.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
+            _logger.LogInformation("Received create workspace request body: {0}", sanitizedBody);
 
             var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(body);
 
             // Create a new workspace.
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
-            _logger.LogInformation("Generated acronym: {0}", acronym.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
+            var sanitizedAcronym = HttpUtility.HtmlEncode(acronym.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
+            _logger.LogInformation("Generated acronym: {0}", sanitizedAcronym);
 
             // Attempt to find the user in the database.
             var users = _context.PortalUsers.ToListAsync();
@@ -206,7 +209,8 @@ public class HostingServicesController : ControllerBase
     [NonAction]
     private async Task<IActionResult> CreateProject(HostingServiceInfo workspaceDetails, string acronym, string rg, PortalUser user)
     {
-        _logger.LogInformation("Creating project for workspace {0}", workspaceDetails.WorkspaceTitle);
+        var sanitizedWorkspaceTitle = HttpUtility.HtmlEncode(workspaceDetails.WorkspaceTitle.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
+        _logger.LogInformation("Creating project for workspace {0}", sanitizedWorkspaceTitle);
         var isAdded = await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceTitle, acronym, "Shared Services Canada", user);
 
         if (isAdded)
