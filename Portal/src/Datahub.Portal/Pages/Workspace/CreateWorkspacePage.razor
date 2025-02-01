@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services
+@using Datahub.Application.Services
 @using Datahub.Portal.Components
 @using static Datahub.Core.DevTools
 @inject IProjectCreationService _projectCreationService
@@ -75,7 +75,7 @@
                                      T="bool"
                                      Label=@Localizer["Create Repository"] />
                     </MudStack>
-                }
+                } 
 
                 @if (_errorMessage is not null)
                 {
