@@ -96,14 +96,14 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
-            _logger.LogInformation("Received create workspace request body: {0}", body);
+            _logger.LogInformation("Received create workspace request body: {0}", body.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
 
             var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(body);
 
             // Create a new workspace.
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
-            _logger.LogInformation("Generated acronym: {0}", acronym);
+            _logger.LogInformation("Generated acronym: {0}", acronym.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
 
             // Attempt to find the user in the database.
             var users = _context.PortalUsers.ToListAsync();
@@ -151,7 +151,7 @@ public class HostingServicesController : ControllerBase
     {
         string description = $"Failed to create workspace {workspaceDetails.WorkspaceTitle} with workspace lead {workspaceDetails.LeadEmail}";
 
-        _logger.LogError(description);
+        _logger.LogError(description.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
 
         var bugReport = new BugReportMessage(
             UserName: "Datahub Portal",
@@ -185,7 +185,7 @@ public class HostingServicesController : ControllerBase
         {
             await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
             var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
-            _logger.LogInformation("User invite sent to {0}, user ID is {1}", email, userId);
+            _logger.LogInformation("User invite sent to {0}, user ID is {1}", email.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""), userId);
             await _userInformationService.CreatePortalUserAsync(userId);
             return await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email); ;
         }
