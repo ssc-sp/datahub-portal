@@ -73,7 +73,8 @@ public class HostingServicesController : ControllerBase
         try
         {
             var body = await new StreamReader(request.Body).ReadToEndAsync();
-            _logger.LogInformation("Received echo request body: {0}", body);
+            var sanitizedBody = body.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", "");
+            _logger.LogInformation("Received echo request body: {0}", sanitizedBody);
             return Ok(body);
         }
         catch (Exception ex)
