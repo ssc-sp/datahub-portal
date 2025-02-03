@@ -267,7 +267,7 @@ public class NewProjectTemplateTests
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        await _repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, command.RequestingUserEmail, command.ResourceGroupName);
+        await _repositoryService.ExecuteResourceRuns(command);
     
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 

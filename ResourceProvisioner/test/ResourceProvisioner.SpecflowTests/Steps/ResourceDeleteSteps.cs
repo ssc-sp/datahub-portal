@@ -7,6 +7,7 @@ using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Domain.Enums;
 using ResourceProvisioner.Domain.Events;
@@ -31,7 +32,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
 
         repositoryService
             .Configure()
-            .CommitTerraformTemplate(Arg.Any<TerraformTemplate>(), Arg.Any<string>())
+            .CommitTerraformTemplate(Arg.Any<TerraformTemplate>())
             .Returns(Task.CompletedTask);
 
         scenarioContext.Add("repositoryService", repositoryService);
@@ -43,8 +44,18 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         const string templateName = "template";
         var terraformTemplate = new TerraformTemplate(templateName, TerraformStatus.DeleteRequested);
+        
+        var command = new CreateResourceRunCommand() {
+            Templates = new List<TerraformTemplate>() { terraformTemplate },
+            Workspace = Arg.Any<TerraformWorkspace>(),
+            RequestingUserEmail = string.Empty,
+            ResourceGroupName = string.Empty
+        };
+
+
         scenarioContext.Add("terraformTemplate", terraformTemplate);
         scenarioContext.Add("templateName", templateName);
+        scenarioContext.Add("command", command);
     }
 
     [When(@"the ExecuteResourceRun method is invoked")]
@@ -52,8 +63,9 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         var repositoryService = scenarioContext.Get<RepositoryService>("repositoryService");
         var terraformTemplate = scenarioContext.Get<TerraformTemplate>("terraformTemplate");
-        var result = await repositoryService.ExecuteResourceRun(terraformTemplate, Substitute.For<TerraformWorkspace>(),
-            "test@username", string.Empty);
+        var command = scenarioContext.Get<CreateResourceRunCommand>("command");
+        
+        var result = await repositoryService.ExecuteResourceRun(terraformTemplate, command);
         scenarioContext.Add("result", result);
     }
 
