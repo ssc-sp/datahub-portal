@@ -75,7 +75,7 @@
         if (existingUser is null)
         {
             _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}&s=n");
-            return;
+            return; 
         }
 
         if (string.IsNullOrWhiteSpace(redirectUri))
