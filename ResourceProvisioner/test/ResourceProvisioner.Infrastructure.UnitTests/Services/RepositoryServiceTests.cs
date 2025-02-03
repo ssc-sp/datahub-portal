@@ -14,6 +14,7 @@ using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Version = System.Version;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -366,7 +367,7 @@ public class RepositoryServiceTests
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<TerraformWorkspace>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<CreateResourceRunCommand>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }

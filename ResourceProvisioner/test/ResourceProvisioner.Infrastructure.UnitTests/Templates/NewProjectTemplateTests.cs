@@ -69,13 +69,22 @@ public class NewProjectTemplateTests
             Acronym = workspaceAcronym
         };
 
+        var command = GenerateTestCreateResourceRunCommand(
+               workspaceAcronym, new List<string>()
+               {
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate
+               });
+
+
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
-        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, command);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");
@@ -141,7 +150,13 @@ public class NewProjectTemplateTests
         {
             Acronym = workspaceAcronym
         };
-
+        var command = GenerateTestCreateResourceRunCommand(
+               workspaceAcronym, new List<string>()
+               {
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate
+               });
 
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
@@ -149,9 +164,9 @@ public class NewProjectTemplateTests
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
-        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
-        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
-        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, workspace);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, command);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, command);
+        await _terraformService.ExtractVariables(TerraformTemplate.NewProjectTemplate, command);
 
         var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
             $"{TerraformTemplate.NewProjectTemplate}.auto.tfvars.json");

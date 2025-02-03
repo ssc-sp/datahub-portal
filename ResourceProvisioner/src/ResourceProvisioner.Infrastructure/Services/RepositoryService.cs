@@ -520,11 +520,11 @@ public partial class RepositoryService(
             else if (resourceTemplate.Status == TerraformStatus.CreateRequested)
             {
                 await terraformService.CopyTemplateAsync(resourceTemplate.Name, command.Workspace);
-                await ExtractVariables(resourceTemplate, command.Workspace);
+                await ExtractVariables(resourceTemplate, command);
             }
             else
             {
-                await ExtractVariables(resourceTemplate, command.Workspace);
+                await ExtractVariables(resourceTemplate, command);
             }
 
             await CommitTerraformTemplate(resourceTemplate);
@@ -560,16 +560,16 @@ public partial class RepositoryService(
         }
     }
 
-    private async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    private async Task ExtractVariables(TerraformTemplate template, CreateResourceRunCommand command)
     {
-        await terraformService.ExtractVariables(template.Name, terraformWorkspace);
+        await terraformService.ExtractVariables(template.Name, command);
         switch (template.Name)
         {
             case TerraformTemplate.NewProjectTemplate:
-                await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                await terraformService.ExtractBackendConfig(command.Workspace.Acronym!);
                 break;
             case TerraformTemplate.VariableUpdate:
-                await terraformService.ExtractAllVariables(terraformWorkspace);
+                await terraformService.ExtractAllVariables(command);
                 break;
         }
     }
