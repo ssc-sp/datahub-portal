@@ -62,7 +62,7 @@
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
         if (existingUser is { IsDeleted: true })
         {
-            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
+            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}&s=d");
             return;
         }
 
@@ -70,6 +70,12 @@
         {
             _navigationManager.NavigateTo(Localizer["/locked"]);
             return;
+        }
+        
+        if (existingUser is null)
+        {
+            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}&s=n");
+            return; 
         }
 
         if (string.IsNullOrWhiteSpace(redirectUri))
