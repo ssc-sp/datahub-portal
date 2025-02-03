@@ -275,7 +275,7 @@ public class UserInformationService(
             throw new ArgumentException("projectAcronym expected");
 
         return (await IsUserProjectAdmin(projectAcronym)) ||
-                (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}");
+               (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}");
     }
 
     /// <summary>
@@ -365,7 +365,7 @@ public class UserInformationService(
 
     public async Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email)
     {
-        ExtendedPortalUser? extendedPortalUser = new ExtendedPortalUser { Email=email };
+        ExtendedPortalUser? extendedPortalUser = new ExtendedPortalUser { Email = email };
         //PortalUser? portalUser;
         await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
         {
@@ -383,30 +383,34 @@ public class UserInformationService(
             {
                 if (portalUser is not null)
                 {
+                    extendedPortalUser = new ExtendedPortalUser(portalUser);
+                    if (extendedPortalUser == null)
+                    {
+                        throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
+                    }
+
+                    PrepareAuthenticatedClient();
+
                     try
                     {
-                        extendedPortalUser = new ExtendedPortalUser(portalUser);
-                        if (extendedPortalUser == null)
-                        {
-                            throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
-                        }
-                        PrepareAuthenticatedClient();
                         var graphUser = await graphServiceClient.Users[portalUser.GraphGuid].GetAsync();
-
-                        if (graphUser == null)
+                        if (graphUser is not null)
+                        {
+                            extendedPortalUser.IsLocked =
+                                graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
+                        }
+                    }
+                    catch (ODataError e)
+                    {
+                        if (e.ResponseStatusCode == 404)
                         {
                             extendedPortalUser.IsDeleted = true;
                         }
                         else
                         {
-                            // Check if the user is locked out
-                            extendedPortalUser.IsLocked = graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
+                            logger.LogError(e, "Could not find user with GraphGuid. Continuing to load user...");
+                            continue;
                         }
-                    }
-                    catch (ODataError e)
-                    {
-                        logger.LogError(e, "Could not find user with GraphGuid. Continuing to load user...");
-                        continue;
                     }
                     catch (ServiceException e)
                     {
@@ -422,10 +426,13 @@ public class UserInformationService(
                         logger.LogError(e, "Error Loading User");
                         extendedPortalUser.IsDeleted = true;
                     }
+
                     return extendedPortalUser;
                 }
+
                 return null;
             }
+
             return null;
         }
     }
@@ -441,8 +448,11 @@ public class UserInformationService(
                 portalUser.GraphGuid = graphId;
                 ctx.Update(portalUser);
             }
+
+            await ctx.SaveChangesAsync();
         }
     }
+
     public async Task RegisterAuthenticatedPortalUser()
     {
         var graphId = await GetUserIdString();
@@ -459,6 +469,7 @@ public class UserInformationService(
             {
                 await UpdatePortalUserFirstLogin(graphId);
             }
+
             await UpdatePortalUserLastLogin(graphId);
         }
     }
