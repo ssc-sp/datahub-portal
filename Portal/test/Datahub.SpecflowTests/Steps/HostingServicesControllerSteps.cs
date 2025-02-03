@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Mvc;
 using Reqnroll;
 using System.Text;
 using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 
 namespace Datahub.SpecflowTests.Steps;
 
@@ -25,7 +27,8 @@ public class HostingServicesControllerSteps(
     public async Task WhenISendTheMessageToTheEchoEndpoint()
     {
         // Act
-        var controller = new HostingServicesController(null, null, null, null);
+        var logger = Substitute.For<ILogger<HostingServicesController>>();
+        var controller = new HostingServicesController(null, null, null, null, logger, null);
         var request = scenarioContext.Get<HttpRequest>();
         var response = await controller.ProcessRequest(request);
         scenarioContext.Set(response);
