@@ -35,6 +35,14 @@ namespace Datahub.Functions.UnitTests
         public async Task Setup()
         {
             var datahubConfig = new DatahubPortalConfiguration();
+            datahubConfig.AzureAd = new AzureAd
+            {
+                SubscriptionId = Guid.NewGuid().ToString(),
+                TenantId = Guid.NewGuid().ToString(),
+                InfraClientId = Guid.NewGuid().ToString(),
+                InfraClientSecret = Guid.NewGuid().ToString()
+            };
+
             Testing._configuration.Bind(datahubConfig);
 
             var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig);
@@ -162,6 +170,19 @@ namespace Datahub.Functions.UnitTests
         }
 
         [Test]
+        public async Task TestWorkspaceAzureFunctionHealthCheck()
+        {
+            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureFunction,
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TEST_PROJECT_ACRONYM);
+            var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
+
+            var results = GetHealthCheckResults(response);
+            var firstResult = results.FirstOrDefault();
+            var expectedError = "Error while checking Azure Function health: ClientSecretCredential authentication failed";
+            VerifyUnhealthyResult(firstResult, expectedError);
+        }
+
+        [Test]
         public async Task TestInvalidWorkspaceSQLDatabaseHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase, 
@@ -239,7 +260,15 @@ namespace Datahub.Functions.UnitTests
             result.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Healthy);
             result.Errors.Should().BeEmpty();
         }
-
+        
+        private static void VerifyUnhealthyResult(InfrastructureHealthCheckResponse? result, string expectedError)
+        {
+            result.Should().NotBeNull();
+            result.Check.Should().NotBeNull();
+            result.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Unhealthy);
+            result.Errors?.Count().Should().BeGreaterThan(0);
+            result.Errors?[0].Should().Contain(expectedError);
+        }
         [OneTimeTearDown]
         public void TearDown() 
         { 
