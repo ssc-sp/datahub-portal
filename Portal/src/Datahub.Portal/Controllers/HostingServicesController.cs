@@ -13,6 +13,9 @@ using Datahub.Infrastructure.Queues.Messages;
 using MassTransit;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Shared.Configuration;
+using Datahub.Application.Configuration;
+using Microsoft.Azure.Storage;
+using Microsoft.Azure.Storage.Blob;
 
 
 namespace Datahub.Portal.Controllers;
@@ -26,10 +29,11 @@ public class HostingServicesController : ControllerBase
     private readonly IUserInformationService _userInformationService;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly ISendEndpointProvider _sendEndpointProvider;
+    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
 
     private string message = "";
 
-    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider)
+    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration)
     {
         _context = context;
         _projectCreationService = projectCreationService;
@@ -37,6 +41,7 @@ public class HostingServicesController : ControllerBase
         _userEnrollmentService = userEnrollmentService;
         _logger = logger;
         _sendEndpointProvider = sendEndpointProvider;
+        _datahubPortalConfiguration = datahubPortalConfiguration;
     }
 
     /// <summary>
@@ -97,6 +102,15 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
+            var savedToBlob = await SaveRequestToBlob(body);
+
+            if (savedToBlob is UnauthorizedResult)
+            {
+                _logger.LogError("Failed to save request to blob storage.");
+                return savedToBlob;
+            }
+            _logger.LogInformation("Saved request to blob storage.");
+
             var sanitizedBody = HttpUtility.HtmlEncode(body.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
             _logger.LogInformation("Received create workspace request body: {0}", sanitizedBody);
 
@@ -143,6 +157,25 @@ public class HostingServicesController : ControllerBase
         {
             return BadRequest(ex.ToString() + message);
         }
+    }
+
+    /// <summary>
+    /// Saves the request to blob storage.
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
+    private async Task<IActionResult> SaveRequestToBlob(string request)
+    {
+        if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
+            return Unauthorized("No token available");
+
+        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
+            .CreateCloudBlobClient()
+            .GetContainerReference("hosting-requests")
+            .GetBlockBlobReference(Guid.NewGuid().ToString());
+
+        await blobReference.UploadTextAsync(request);
+        return Ok();
     }
 
     /// <summary>

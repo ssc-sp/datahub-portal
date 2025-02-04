@@ -28,7 +28,7 @@ public class HostingServicesControllerSteps(
     {
         // Act
         var logger = Substitute.For<ILogger<HostingServicesController>>();
-        var controller = new HostingServicesController(null, null, null, null, logger, null);
+        var controller = new HostingServicesController(null, null, null, null, logger, null, null);
         var request = scenarioContext.Get<HttpRequest>();
         var response = await controller.ProcessRequest(request);
         scenarioContext.Set(response);
