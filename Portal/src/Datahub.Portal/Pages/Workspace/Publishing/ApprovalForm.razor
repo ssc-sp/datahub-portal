@@ -180,7 +180,10 @@
 
     private async Task OnConfigure(Forms.IModelFormContext context)
     {
-        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm>(p => p.Type_Of_Data_TXT, () => new string[] { "Data", "Info" });
+        context.RegisterOptionValueProperty<Data.Forms.ShareWorkflow.ApprovalForm, string>(
+            p => p.Type_Of_Data_TXT, 
+            s => Localizer[MakeLabelKey(s)], 
+            () => new string[] { Data.Forms.ShareWorkflow.ApprovalForm.DATASET_DATA_TYPE_VALUE, Data.Forms.ShareWorkflow.ApprovalForm.OPEN_INFORMATION_DATA_TYPE_VALUE });
         await SetupOrganizations(context);
     }
 

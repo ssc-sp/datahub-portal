@@ -3030,7 +3030,7 @@
   "APPROVAL-FORM.Department_NAME": "Département",
   "APPROVAL-FORM.Division_NAME": "Division",
   "APPROVAL-FORM.Email_EMAIL": "Courriel",
-  "APPROVAL-FORM.Info": "Info",
+  "APPROVAL-FORM.Info": "Information ouverte",
   "APPROVAL-FORM.Localized_FLAG": "La ressource de données ou d'informations est disponible dans les deux langues officielles et est conforme aux exigences de la Loi sur les langues officielles.",
   "APPROVAL-FORM.Machine_Readable_FLAG": "Les ensembles de données sont fournis dans un format lisible et traitable par machine.",
   "APPROVAL-FORM.Name_NAME": "Nom",
@@ -3056,5 +3056,7 @@
   "Successfully submitted IMSO approval.": "L'approbation de l'IMSO a été soumise avec succès.",
   "Failed to submit IMSO approval.": "N'a pas soumis l'approbation de l'IMSO.",
   "Successfully published the dataset.": "Publication réussie de l'ensemble de données.",
-  "Failed to publish the dataset.": "Échec de la publication de l'ensemble de données."
+  "Failed to publish the dataset.": "Échec de la publication de l'ensemble de données.",
+  "Please complete metadata": "Veuillez compléter les métadonnées",
+  "Please fill out publication criteria": "Veuillez remplir les critères de publication"
 }

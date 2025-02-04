@@ -66,12 +66,12 @@
   "APPROVAL-FORM.Collection_Of_Datasets_FLAG": "Represents a collection of datasets or data products with a consistently applied specification or model.",
   "APPROVAL-FORM.Confidentiality_FLAG": "The data or information resource is not subject to confidentiality restrictions, such as Cabinet confidences, solicitor-client privilege, classified or protected information, advice or recommendations, third party information, or information obtained in confidence.",
   "APPROVAL-FORM.Misc_Compliant_FLAG": "The release of data or other information resource complies with all other relevant legal, regulatory, contractual, and policy requirements, for example, it is confirmed that there are no relevant legal, contractual, or third party, policy restrictions or limitations.",
-  "APPROVAL-FORM.Data": "Data",
+  "APPROVAL-FORM.Data": "Dataset",
   "APPROVAL-FORM.Dataset_Title_TXT": "Title of Dataset(s) or Information Resource(s)",
   "APPROVAL-FORM.Department_NAME": "Department",
   "APPROVAL-FORM.Division_NAME": "Division",
   "APPROVAL-FORM.Email_EMAIL": "Email",
-  "APPROVAL-FORM.Info": "Info",
+  "APPROVAL-FORM.Info": "Open Information",
   "APPROVAL-FORM.Localized_FLAG": "The data or information resource is available in both official languages and conforms to the requirements of the Official Languages Act.",
   "APPROVAL-FORM.Machine_Readable_FLAG": "Datasets are provided in machine-readable / machine-processable format.",
   "APPROVAL-FORM.Name_NAME": "Name",
@@ -2064,5 +2064,7 @@
   "Successfully submitted IMSO approval.": "Successfully submitted IMSO approval.",
   "Failed to submit IMSO approval.": "Failed to submit IMSO approval.",
   "Successfully published the dataset.": "Successfully published the dataset.",
-  "Failed to publish the dataset.": "Failed to publish the dataset."
+  "Failed to publish the dataset.": "Failed to publish the dataset.",
+  "Please complete metadata": "Please complete metadata",
+  "Please fill out publication criteria": "Please fill out publication criteria"
 }

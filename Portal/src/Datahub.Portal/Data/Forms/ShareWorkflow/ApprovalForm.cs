@@ -5,6 +5,9 @@ namespace Datahub.Portal.Data.Forms.ShareWorkflow;
 
 public class ApprovalForm
 {
+    public const string DATASET_DATA_TYPE_VALUE = "Data";
+    public const string OPEN_INFORMATION_DATA_TYPE_VALUE = "Info";
+
     /** Section:  **/
     [Key]
     [AeFormIgnore]
