@@ -22,8 +22,28 @@
 
 <PageTitle>@Localizer["Registration - Federal Science DataHub"]</PageTitle>
 
-<MudStack >
+<MudStack>
     <FSDHEnvironment Environments="@_environmentsToAllowRegistration">
+        @switch (State)
+        {
+            case "d":
+                <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" Style="color: #0d1117"
+                          Variant="Variant.Outlined">
+                    <MudText Typo="Typo.body1">
+                        @Localizer["Your account has been deleted due to inactivity. Please register again with the same email address and you will regain access to your workspaces."]
+                    </MudText>
+                </MudAlert>
+                break;
+            case "n":
+                <MudAlert Severity="Severity.Info" Dense="true" Class="my-2" Style="color: #0d1117"
+                          Variant="Variant.Outlined">
+                    <MudText Typo="Typo.body1">
+                        @Localizer["Looks like you don't have an account yet. Please register below."]
+                    </MudText>
+                </MudAlert>
+                break;
+        }
+
         <MudForm @ref="@_form" @bind-IsValid="@_success" @bind-Errors="@_errors">
             <MudStack>
                 <MudTextField T="string"
@@ -61,15 +81,18 @@
                             <strong>@Localizer["Click here once the form is complete to register"]:</strong>
                             @if (_isRegistering)
                             {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled Class="mx-4 px-16 my-2">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled
+                                           Class="mx-4 px-16 my-2">
                                     <MudText>
                                         @Localizer["Registering"]
                                     </MudText>
-                                    <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small" Indeterminate="true"/>
+                                    <MudProgressCircular Class="ml-4" Color="Color.Default" Size="Size.Small"
+                                                         Indeterminate="true"/>
                                 </MudButton>
                                 @if (_timedOut)
                                 {
-                                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mt-2" Style="color: #000">
+                                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mt-2"
+                                              Style="color: #000">
                                         <MudText>
                                             @Localizer["This is taking longer than normal... Please try signing in and contact support if you encounter any issue."]
                                         </MudText>
@@ -78,7 +101,8 @@
                             }
                             else
                             {
-                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)" Class="mx-4 my-2 px-16" OnClick="HandleValidSubmit">
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(!_success)"
+                                           Class="mx-4 my-2 px-16" OnClick="HandleValidSubmit">
                                     <MudText>
                                         @Localizer["Register"]
                                     </MudText>
@@ -91,7 +115,7 @@
         </MudForm>
     </FSDHEnvironment>
     <FSDHEnvironment Environments="@_environmentsToShowDisabledMessage">
-        <MudAlert Severity="Severity.Error" Dense="true" Class="my-2">
+        <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" Style="color: #0d1117" Variant="Variant.Outlined">
             <MudText Typo="Typo.body1">
                 @Localizer["The Federal Science DataHub is launching this March."]
             </MudText>
@@ -104,7 +128,8 @@
         <MudText Typo="Typo.body1" Align="Align.Start">
             @Localizer["Already registered?"]
             <MudLink Typo="Typo.body1" Href="/login">@Localizer["Login instead"].</MudLink>
-            <MudLink Typo="Typo.body1" Target="_blank" Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
+            <MudLink Typo="Typo.body1" Target="_blank"
+                     Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
             @Localizer["on setting up your account."]
         </MudText>
     </p>
@@ -113,6 +138,10 @@
 
 @code {
     [Parameter] [SupplyParameterFromQuery] public string Email { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "s")]
+    public string State { get; set; }
 
     private string _email;
     private string _emailFieldText { get; set; }
@@ -164,17 +193,17 @@
 
         await InvokeAsync(StateHasChanged);
     }
-    
+
     private async Task Registration()
     {
         await Task.Delay(3000);
-        
+
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
         if (existingUser != null)
         {
             _wasDeleted = existingUser.IsDeleted;
         }
-        
+
         _logger.LogInformation("Saving registration details for user");
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
@@ -187,7 +216,7 @@
             {
                 await _userInformationService.HandleDeletedUserRegistration(_email, userId);
                 var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
-                if (projectList != null && projectList.Count>0)
+                if (projectList != null && projectList.Count > 0)
                 {
                     foreach (var projectAcronym in projectList)
                     {
@@ -200,10 +229,12 @@
                         {
                             _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
                         }
+
                         await _projectUserManagementService.RunWorkspaceSync(projectAcronym);
                     }
                 }
             }
+
             _logger.LogInformation("User has been registered");
             _snackbar.Add(Localizer["Registration successful! Please login to continue"], Severity.Success);
             _navigationManager.NavigateTo(Localizer["/login"]);
