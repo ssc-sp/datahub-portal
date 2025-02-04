@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
+using Azure.ResourceManager.Resources;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
@@ -67,6 +68,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
         private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
         private string DevopsClientSecret => portalConfiguration.AzureAd.InfraClientSecret;
+        private string SubscriptionId => portalConfiguration.AzureAd.SubscriptionId;
 
         private AzureDevOpsConfiguration BuildDevopsConfig() => new()
         {
@@ -454,7 +456,11 @@ namespace Datahub.Infrastructure.Services.Helpers
                 var credential = new ClientSecretCredential(AzureTenantId, DevopsClientId, DevopsClientSecret);
 
                 var armClient = new ArmClient(credential);
-                var subscription = await armClient.GetDefaultSubscriptionAsync();
+                // [VB] Datahub SP has different default subscription: we have explicitely select correct one 
+                //var subscription = await armClient.GetDefaultSubscriptionAsync();
+                var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(SubscriptionId);
+                var subscription = armClient.GetSubscriptionResource(subscriptionResourceId); 
+                
                 var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{CurrentEnvironment}-rg");
                 var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}");
                 var hostKeys = await functionApp.Value.GetHostKeysAsync();

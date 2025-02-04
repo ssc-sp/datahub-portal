@@ -1,0 +1,44 @@
+﻿@inject IJSRuntime _jsRuntime
+
+@if (_skipLinkIds != null)
+{
+    <nav role="navigation">
+        
+        <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
+        <ul>
+            @foreach (var skipLinkId in _skipLinkIds)
+            {
+                <li class="skip-link">
+                    <SkipLink Type="@SkipLink.GetSkipLinkType(skipLinkId)"/>
+                </li>
+            }
+        </ul>
+    </nav>
+}
+
+
+@code {
+    private List<string> _skipLinkIds;
+    private IJSObjectReference _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/ScreenReaderNavigation.razor.js");
+            }
+            catch
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/ScreenReaderNavigation.razor.js");
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1)); // Wait for the DOM to be ready
+            var skipLinks = SkipLink.GetAvailableSkipLinks();
+            _skipLinkIds = await _module.InvokeAsync<List<string>>("getNavigationIds", skipLinks);
+            StateHasChanged();
+        }
+    }
+
+}

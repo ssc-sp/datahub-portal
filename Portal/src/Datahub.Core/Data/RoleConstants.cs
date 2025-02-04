@@ -18,6 +18,9 @@ public static class RoleConstants
     public const string DATAHUB_ROLE_ADMIN = DATAHUB_ADMIN_PROJECT + ADMIN_SUFFIX;
     public const string DATAHUB_ROLE_ADMIN_AS_GUEST = DATAHUB_ADMIN_PROJECT + "-admin-as-guest";
 
+    public const string DATAHUB_APPROVER_PROJECT = "DHAPPRV"; // 7 character max
+    public const string DATAHUB_APPROVER_ROLE = DATAHUB_APPROVER_PROJECT + "-approver";
+
     public static string GetRoleConstants(Project_Role role)
     {
         return role.Id switch
