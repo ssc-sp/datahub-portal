@@ -157,13 +157,28 @@
             <MudCardContent>
                 <MudCollapse Expanded=@ImsoApprovalPanelExpanded>
                     <MudText>@Localizer["Please press the button below to generate the IMSO approval form."]</MudText>
-                    <DHButton 
-                        Href=@($"{_navManager.BaseUri}api/OpenDataApproval?id={Submission.OpenGovCriteriaFormId}") 
-                        Target="_blank" 
-                        Variant=@Variant.Outlined 
-                        Color=@Color.Primary
-                        OnClick=@SendImsoApprovalRequest
-                    >@Localizer["Generate IMSO Approval Form"]</DHButton>
+                    <MudTooltip Disabled=@CanGenerateImsoForm >
+                        <ChildContent>
+                            <DHButton 
+                                Href=@($"{_navManager.BaseUri}api/OpenDataApproval?id={Submission.OpenGovCriteriaFormId}") 
+                                Target="_blank" 
+                                Variant=@Variant.Outlined 
+                                Color=@Color.Primary
+                                OnClick=@SendImsoApprovalRequest
+                                Disabled=@(!CanGenerateImsoForm)
+                            >@Localizer["Generate IMSO Approval Form"]</DHButton>
+                        </ChildContent>
+                        <TooltipContent>
+                            @if (!IsMetadataComplete)
+                            {
+                                <MudText>@Localizer["Please complete metadata"]</MudText>
+                            }
+                            @if (!HasApprovalForm)
+                            {
+                                <MudText>@Localizer["Please fill out publication criteria"]</MudText>
+                            }
+                        </TooltipContent>
+                    </MudTooltip>
 
                     <MudText>@Localizer["After it is approved, upload the signed form to your cloud storage and submit it below to finalize the IMSO Approval."]</MudText>
                     
@@ -294,6 +309,9 @@
     private bool SubmitImsoButtonDisabled => !(_canBeSubmitted && HasFileSelectedForPurpose(TbsOpenGovSubmission.IMSO_APPROVAL_FILE_TYPE)) || _submittingImsoApproval;
     private bool PublishingEnabled => _config.CkanConfiguration.PublishingEnabled;
     private bool PublishButtonDisabled => !(_canBeSubmitted && PublishingEnabled) || _processingPublishingRequest;
+    private bool IsMetadataComplete => Submission.MetadataComplete;
+    private bool HasApprovalForm => Submission.OpenGovCriteriaFormId.HasValue;
+    private bool CanGenerateImsoForm => IsMetadataComplete && HasApprovalForm;
 
     private bool MetadataEntryStepActive => _stepStates[StatusEnum.AwaitingMetadata] == DHSteps<StatusEnum>.StepState.Running;
     private bool OpenGovCriteriaStepActive => _stepStates[StatusEnum.AwaitingApprovalCriteria] == DHSteps<StatusEnum>.StepState.Running;
@@ -451,9 +469,12 @@
     {
         _approvalFormId = args.FormId;
 
-        Submission.OpenGovCriteriaMetDate = DateTime.Today;
+        if (args.Completed) 
+        {
+            Submission.OpenGovCriteriaMetDate = DateTime.Today;
 
-        await UpdateSubmission();
+            await UpdateSubmission();
+        }
     }
 
     private async Task SendImsoApprovalRequest()
