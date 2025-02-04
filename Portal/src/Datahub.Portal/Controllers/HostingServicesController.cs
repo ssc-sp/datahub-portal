@@ -74,7 +74,7 @@ public class HostingServicesController : ControllerBase
     /// <param name="request"></param>
     /// <returns></returns>
     [NonAction]
-    public async Task<IActionResult> ProcessRequest(HttpRequest request)
+    internal async Task<IActionResult> ProcessRequest(HttpRequest request)
     {
         try
         {
