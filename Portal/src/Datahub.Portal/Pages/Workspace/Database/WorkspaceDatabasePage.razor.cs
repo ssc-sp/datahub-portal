@@ -65,7 +65,7 @@ namespace Datahub.Portal.Pages.Workspace.Database
         /// see https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-compute
         /// </summary>
         /// <returns>List of Azure specifications</returns>
-        internal async Task<List<AzureDBServer>> LoadSKUs()
+        internal async Task<List<AzurePgsqlDBServer>> LoadSKUs()
         {
             try
             {
@@ -75,7 +75,7 @@ namespace Datahub.Portal.Pages.Workspace.Database
                 using var stream = assembly.GetManifestResourceStream(resourceName);
                 using var reader = new StreamReader(stream);
                 var jsonData = await reader.ReadToEndAsync();
-                var data = JsonConvert.DeserializeObject<List<AzureDBServer>>(jsonData);
+                var data = JsonConvert.DeserializeObject<List<AzurePgsqlDBServer>>(jsonData);
                 return data;
             }
             catch (Exception x)

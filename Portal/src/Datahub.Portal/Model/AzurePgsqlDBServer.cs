@@ -1,6 +1,6 @@
 ﻿namespace Datahub.Portal.Model
 {
-    public class AzureDBServer
+    public class AzurePgsqlDBServer
     {
         public string SKU { get; set; } = "N/A";
         public int vCores { get; set; } = 0;

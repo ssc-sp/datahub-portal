@@ -66,7 +66,7 @@
     private string _csharpConnectionInfo;
     private string _databricksConnectionInfo;
 
-    private AzureDBServer _dbServer = new AzureDBServer();
+    private AzurePgsqlDBServer _dbServer = new AzurePgsqlDBServer();
 
     private bool _hideContent = true;
     private string _message = "Show Connection Info";
@@ -98,7 +98,7 @@
 
         var serverData = await postgresResource.GetAsync();
         var skuList = await LoadSKUs();
-        var instance = new AzureDBServer();
+        var instance = new AzurePgsqlDBServer();
         if (serverData.Value.HasData)
         {
             var sku = serverData.Value.Data.Sku.Name; // Typically, tier + family + cores, e.g. Standard_D4s_v3.
