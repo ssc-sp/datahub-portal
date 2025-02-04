@@ -22,6 +22,7 @@ public class OpenDataApprovalController : Controller
 
     private const string OUTPUT_FILE_NAME = "Open Government Approval Form.docx";
     private const string TEMPLATE_PREFIX = "TEMPLATE_";
+    private const string MS_WORD_MIMETYPE = "application/msword";
 
     private const string DATASET_ID_FIELD_NAME = "DatasetId";
     private const string DATASET_NAME_EN_FIELD_NAME = "DatasetNameEn";
@@ -81,7 +82,7 @@ public class OpenDataApprovalController : Controller
         {
             var submission = await GetSubmissionByApprovalFormIdAsync(id);
             var outputStream = await GenerateImsoForm(submission);
-            return new FileStreamResult(outputStream, "application/msword")
+            return new FileStreamResult(outputStream, MS_WORD_MIMETYPE)
             {
                 FileDownloadName = OUTPUT_FILE_NAME
             };
@@ -225,11 +226,11 @@ public class OpenDataApprovalController : Controller
     private async Task<Dictionary<string,string>> GetSubmissionFileDetails(OpenDataPublishFile file)
     {
         var metadata = await _metadataService.GetObjectMetadataValues(file.FileId);
-        var langValue = metadata["resource_language"]?.Value_TXT ?? string.Empty;
+        var langValue = metadata[FieldNames.resource_language]?.Value_TXT ?? string.Empty;
         return new()
         {
-            { FILE_NAME_EN_FIELD_NAME, metadata["name_translated_en"]?.Value_TXT ?? string.Empty },
-            { FILE_NAME_FR_FIELD_NAME, metadata["name_translated_fr"]?.Value_TXT ?? string.Empty },
+            { FILE_NAME_EN_FIELD_NAME, metadata[FieldNames.name_translated_en]?.Value_TXT ?? string.Empty },
+            { FILE_NAME_FR_FIELD_NAME, metadata[FieldNames.name_translated_fr]?.Value_TXT ?? string.Empty },
             { FILE_LANG_EN_FIELD_NAME, GetCheckBox(langValue.Contains("en")) },
             { FILE_LANG_FR_FIELD_NAME, GetCheckBox(langValue.Contains("fr")) },
             { FILE_FILENAME_FIELD_NAME, file.FileName },
