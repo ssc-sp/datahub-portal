@@ -5,6 +5,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.UserTracking
 @using Datahub.Infrastructure.Services.UserManagement
+@using static Datahub.Core.DevTools
 
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
@@ -36,23 +37,44 @@
                 </MudPaper>
             </li>
         }
-        <li class="flex-1 d-flex">
-            <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
-                <MudStack Justify="Justify.SpaceBetween">
-                    <MudStack>
-                        <MudText Typo="Typo.h3">@Localizer["Create a new workspace"]</MudText>
-                        <MudText Typo="Typo.body1">@Localizer["You can create a new workspace to start working on your project"]</MudText>
+        <FSDHEnvironment Environments="@_prodEnvs">
+            <li class="flex-1 d-flex">
+                <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
+                    <MudStack Justify="Justify.SpaceBetween">
+                        <MudStack>
+                            <MudText Typo="Typo.h3">@Localizer["Create a new workspace"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["You can create a new workspace using the GC Hosting Services Portal to start working on your project."]</MudText>
+                        </MudStack>
+                        <MudStack Spacing="1">
+                            <MudElement>
+                                <DHButton Class="my-3" Underline NoWrap EndIcon="@Icons.Material.Filled.OpenInNew" Variant="Variant.Text" Color="Color.Primary" Href="https://hosting-services-hebergement.canada.ca/s/gc-cloud-fa-catalogue" Target="_blank">
+                                    @Localizer["GC Hosting Services Portal"]
+                                </DHButton>
+                            </MudElement>
+                        </MudStack>
                     </MudStack>
-                    <MudStack Spacing="1">
-                        <MudElement>
-                            <DHButton Class="my-3" Underline NoWrap EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@Localizer[PageRoutes.CreateWorkspace]">
-                                @Localizer["Create workspace"]
-                            </DHButton>
-                        </MudElement>
+                </MudPaper>
+            </li>
+        </FSDHEnvironment>
+        <FSDHEnvironment Environments="@_nonProd">
+            <li class="flex-1 d-flex">
+                <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
+                    <MudStack Justify="Justify.SpaceBetween">
+                        <MudStack>
+                            <MudText Typo="Typo.h3">@Localizer["Create a new workspace"]</MudText>
+                            <MudText Typo="Typo.body1">@Localizer["You can create a new workspace to start working on your project"]</MudText>
+                        </MudStack>
+                        <MudStack Spacing="1">
+                            <MudElement>
+                                <DHButton Class="my-3" Underline NoWrap EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight" Variant="Variant.Text" Color="Color.Primary" Href="@Localizer[PageRoutes.CreateWorkspace]">
+                                    @Localizer["Create workspace"]
+                                </DHButton>
+                            </MudElement>
+                        </MudStack>
                     </MudStack>
-                </MudStack>
-            </MudPaper>
-        </li>
+                </MudPaper>
+            </li>
+        </FSDHEnvironment>
         <li class="flex-1 d-flex">
             <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
                 <MudStack Justify="Justify.SpaceBetween">
@@ -76,6 +98,9 @@
 @code {
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     private PortalUser _viewedUser;
+
+    private List<TopBarEnvironments> _prodEnvs = new List<TopBarEnvironments> { TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
+    private List<TopBarEnvironments> _nonProd = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl };
 
     protected override async Task OnInitializedAsync()
     {
