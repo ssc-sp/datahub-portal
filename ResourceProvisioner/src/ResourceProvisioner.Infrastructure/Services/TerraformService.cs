@@ -6,6 +6,7 @@ using Datahub.Shared.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using ResourceProvisioner.Application.Config;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
@@ -69,15 +70,15 @@ public class TerraformService(
         }
     }
 
-    public async Task ExtractVariables(string templateName, TerraformWorkspace terraformWorkspace)
+    public async Task ExtractVariables(string templateName, CreateResourceRunCommand command)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return;
         }
 
-        var missingVariables = FindMissingVariables(templateName, terraformWorkspace);
-        await WriteVariablesFile(templateName, terraformWorkspace, missingVariables);
+        var missingVariables = FindMissingVariables(templateName, command.Workspace);
+        await WriteVariablesFile(templateName, command.Workspace, missingVariables, command.AppData);
     }
 
     public async Task ExtractBackendConfig(string workspaceAcronym)
@@ -116,10 +117,10 @@ public class TerraformService(
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    public async Task ExtractAllVariables(TerraformWorkspace terraformWorkspace)
+    public async Task ExtractAllVariables(CreateResourceRunCommand command)
     {
         // check if the project directory exists
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, command.Workspace.Acronym);
         if (!Directory.Exists(projectPath))
         {
             logger.LogInformation(
@@ -140,7 +141,7 @@ public class TerraformService(
             try
             {
                 var template = TerraformTemplate.NormalizeTemplateName(variableName);
-                await ExtractVariables(template, terraformWorkspace);
+                await ExtractVariables(template, command);
             }
             catch (ArgumentException)
             {
@@ -235,7 +236,7 @@ public class TerraformService(
     }
 
     private async Task WriteVariablesFile(string templateName, TerraformWorkspace terraformWorkspace,
-        Dictionary<string, (string Value, bool isRequired)> missingVariables)
+        Dictionary<string, (string Value, bool isRequired)> missingVariables, WorkspaceAppData workspaceAppData)
     {
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
         var variablesFilePath = Path.Join(projectPath, $"{templateName}.auto.tfvars.json");
@@ -248,7 +249,7 @@ public class TerraformService(
             foreach (var (key, (value, isRequired)) in missingVariables)
             {
                 preExistingVariables.Remove(key);
-                var variableValue = ComputeVariableValue(terraformWorkspace, key, value, isRequired);
+                var variableValue = ComputeVariableValue(terraformWorkspace, workspaceAppData, key, value, isRequired);
                 if (variableValue != null)
                 {
                     preExistingVariables.TryAdd(key, variableValue);
@@ -263,7 +264,7 @@ public class TerraformService(
                 JsonSerializer.Serialize(missingVariables
                     .Select(missingVariable => (
                         missingVariable.Key,
-                        ComputeVariableValue(terraformWorkspace, missingVariable.Key, missingVariable.Value.Value,
+                        ComputeVariableValue(terraformWorkspace, workspaceAppData, missingVariable.Key, missingVariable.Value.Value,
                             missingVariable.Value.isRequired)))
                     .Where(mv => mv.Item2 != null)
                     .ToDictionary(mv => mv.Key, mv => mv.Item2))
@@ -273,7 +274,7 @@ public class TerraformService(
 
     // ReSharper disable once ReturnTypeCanBeNotNullable
     // This can return null if the variable is not required
-    private JsonNode? ComputeVariableValue(TerraformWorkspace terraformWorkspace, string variableName,
+    private JsonNode? ComputeVariableValue(TerraformWorkspace terraformWorkspace, WorkspaceAppData workspaceAppData, string variableName,
         string variableType, bool isRequired = false)
     {
         if (variableType.StartsWith(TerraformVariables.MapType, StringComparison.InvariantCultureIgnoreCase))
@@ -295,7 +296,7 @@ public class TerraformService(
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
-
+            TerraformVariables.PsqlSku => workspaceAppData.PostgresConfiguration.PSQL_SKU,
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,

@@ -14,6 +14,7 @@ using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Version = System.Version;
+using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -131,7 +132,7 @@ public class RepositoryServiceTests
         var repository = InitializeTestInfrastructureRepository();
         CreateFakeFileInTestProject();
 
-        await _repositoryService.CommitTerraformTemplate(TestTemplate, RequestingUser);
+        await _repositoryService.CommitTerraformTemplate(TestTemplate);
 
         Assert.Multiple(() =>
         {
@@ -152,8 +153,18 @@ public class RepositoryServiceTests
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
 
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+            });
+
+
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser, string.Empty);
+            await repositoryService.ExecuteResourceRun(TestTemplate, command);
 
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
@@ -178,8 +189,18 @@ public class RepositoryServiceTests
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
 
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+            });
+
+
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, TestingWorkspace, RequestingUser, string.Empty);
+            await repositoryService.ExecuteResourceRun(TestTemplate, command);
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
@@ -213,7 +234,7 @@ public class RepositoryServiceTests
             });
 
         var result =
-            await repositoryService.ExecuteResourceRuns(command.Templates, command.Workspace, RequestingUser, string.Empty);
+            await repositoryService.ExecuteResourceRuns(command);
 
 
         Assert.That(result, Is.TypeOf<List<RepositoryUpdateEvent>>());
@@ -281,7 +302,7 @@ public class RepositoryServiceTests
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
 
-        var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym, RequestingUser);
+        var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym);
 
         Assert.That(result, Is.TypeOf<PullRequestValueObject>());
         Assert.That(result.Url,
@@ -346,7 +367,7 @@ public class RepositoryServiceTests
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<TerraformWorkspace>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<CreateResourceRunCommand>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }
