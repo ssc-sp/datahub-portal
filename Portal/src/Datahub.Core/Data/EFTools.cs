@@ -97,8 +97,8 @@ public static class EFTools
             case DbDriver.SqlServer:
             case DbDriver.SqlLocalDB:
             case DbDriver.Azure:
-                services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
-                services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString, providerOptions => providerOptions.EnableRetryOnFailure()));
+                services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString, providerOptions => providerOptions.EnableRetryOnFailure()));
                 break;
             case DbDriver.Sqlite:
                 services.AddPooledDbContextFactory<T>(options => options.UseSqlite(connectionString));
