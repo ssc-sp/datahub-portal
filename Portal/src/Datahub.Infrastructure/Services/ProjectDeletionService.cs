@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Datahub.Shared.Entities;
 using Datahub.Shared;
 using Google.Api.Gax.ResourceNames;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Infrastructure.Services
 {
@@ -20,7 +21,7 @@ namespace Datahub.Infrastructure.Services
         IResourceMessagingService resourceMessagingService
         ) : IProjectDeletionService
     {
-        public async Task<bool> DeleteWorkspace(string acronym)
+        public async Task<bool> DeleteWorkspace(string acronym, Project_Delete_Questionnaire questionnaire)
         {
 
             try
@@ -37,6 +38,11 @@ namespace Datahub.Infrastructure.Services
 
                 foreach (var resource in resources)
                 {
+                    if (questionnaire.Project is null)
+                    {
+                        questionnaire.Project = resource.Project;
+                    }
+
                     resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
                     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
                     {
@@ -44,6 +50,11 @@ namespace Datahub.Infrastructure.Services
                     }
                     ctx.Project_Resources2.Update(resource);
                 }
+
+                questionnaire.DeletedDate = DateTime.Now;
+                questionnaire.DeletedBy = currentUser;
+
+                ctx.Project_Delete_Questionnaires.Add(questionnaire);
 
                 await ctx.SaveChangesAsync(CancellationToken.None);
 
