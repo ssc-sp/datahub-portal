@@ -1,0 +1,34 @@
+trigger:
+- vb/9806-azure-functions-tests
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk 8.0.x'
+    inputs:
+      version: 8.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+
+  - task: DotNetCoreCLI@2
+    displayName: 'Run Datahub Function Unit Tests'
+    inputs:
+      command: 'test'
+      projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
+      testRunTitle: 'Datahub Function Unit Tests'
+
+  - script: |
+        dotnet tool install -g dotnet-reportgenerator-globaltool
+        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/ServerlessOperations/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+        echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
+    displayName: 'Create code coverage report'
+
+  - task: PublishCodeCoverageResults@1
+    displayName: 'Publish code coverage report'
+    inputs:
+      codeCoverageTool: 'Cobertura'
+      summaryFileLocation: '$(Build.SourcesDirectory)/ServerlessOperations/test/CodeCoverage/Cobertura.xml'
+      reportDirectory: '$(Build.SourcesDirectory)/ServerlessOperations/test/CodeCoverage'
