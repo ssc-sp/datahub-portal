@@ -13,18 +13,18 @@ steps:
       performMultiLevelLookup: true
 
   - task: DotNetCoreCLI@2
-    displayName: 'Run Datahub Function Unit Tests'
+    displayName: 'Datahub Function Unit Tests'
     inputs:
       command: 'test'
       projects: 'ServerlessOperations/test/Datahub.Functions.UnitTests/Datahub.Functions.UnitTests.csproj'
-      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
       testRunTitle: 'Datahub Function Unit Tests'
+      arguments: '--configuration $(buildConfiguration) --collect:"XPlat Code Coverage"'
 
   - script: |
         dotnet tool install -g dotnet-reportgenerator-globaltool
-        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/ServerlessOperations/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura'
+        reportgenerator -reports:$(Agent.WorkFolder)/**/coverage.cobertura.xml -targetdir:$(Build.SourcesDirectory)/ServerlessOperations/test/CodeCoverage -reporttypes:'HtmlInline_AzurePipelines;Cobertura' -assemblyfilters:+Datahub.Functions*
         echo "##vso[task.setvariable variable=disable.coverage.autogenerate;]true"
-    displayName: 'Create code coverage report'
+    displayName: Create code coverage report
 
   - task: PublishCodeCoverageResults@1
     displayName: 'Publish code coverage report'
