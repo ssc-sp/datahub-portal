@@ -193,9 +193,9 @@ public class ProjectInactivityNotifierTests
     public void GetEmailRequestMessage_ShouldHaveCorrectBody()
     {
         // Arrange
-        
+        var template = "project_inactive_alert.html";
         // Act
-        var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>(), string.Empty);
+        var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>(), template);
         
         // Assert
         result.Body.Should().Contain("Your workspace <a href=\"https://federal-science-datahub.canada.ca/w/TEST\">TEST</a> has been inactive for 20 days");
