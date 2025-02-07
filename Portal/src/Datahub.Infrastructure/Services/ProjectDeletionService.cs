@@ -23,10 +23,8 @@ namespace Datahub.Infrastructure.Services
     {
         public async Task<bool> DeleteWorkspace(string acronym, Project_Delete_Questionnaire questionnaire)
         {
-
             try
             {
-                var currentUser = await userInformationService.GetCurrentPortalUserAsync();
                 await using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
 
                 var resources = await ctx.Project_Resources2
@@ -51,9 +49,13 @@ namespace Datahub.Infrastructure.Services
                     ctx.Project_Resources2.Update(resource);
                 }
 
+                
+                
+                var currentUser = await userInformationService.GetCurrentPortalUserAsync();
                 questionnaire.DeletedDate = DateTime.Now;
                 questionnaire.DeletedBy = currentUser;
 
+                ctx.Attach(currentUser);
                 ctx.Project_Delete_Questionnaires.Add(questionnaire);
 
                 await ctx.SaveChangesAsync(CancellationToken.None);
