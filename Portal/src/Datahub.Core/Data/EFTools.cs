@@ -25,6 +25,7 @@ public static class EFTools
         where T : DbContext
     {
         using var context = factory.CreateDbContext();
+        logger.LogInformation($"Initializing database {GetInfo(context.Database)}-{typeof(T).Name} - reset:{resetDB} - migrate:{migrate}");
         try
         {
             if (resetDB)
@@ -37,6 +38,16 @@ public static class EFTools
             {
                 if (migrate)
                 {
+                    var pendingMigrations = context.Database.GetPendingMigrations();
+                    if (pendingMigrations.Any())
+                    {
+                        logger.LogInformation("Pending migrations: {Migrations}", string.Join(", ", pendingMigrations));
+                    }
+                    else
+                    {
+                        logger.LogInformation("No pending migrations.");
+                    }
+
                     context.Database.Migrate();
                     //TODO:
                     //GetMigrations()
@@ -86,8 +97,8 @@ public static class EFTools
             case DbDriver.SqlServer:
             case DbDriver.SqlLocalDB:
             case DbDriver.Azure:
-                services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
-                services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString, providerOptions => providerOptions.EnableRetryOnFailure()));
+                services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString, providerOptions => providerOptions.EnableRetryOnFailure()));
                 break;
             case DbDriver.Sqlite:
                 services.AddPooledDbContextFactory<T>(options => options.UseSqlite(connectionString));

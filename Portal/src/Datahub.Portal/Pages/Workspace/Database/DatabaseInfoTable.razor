@@ -1,3 +1,4 @@
+@using Datahub.Portal.Model
 <MudText Typo="Typo.h2" Class="mt-6">
     @Localizer["Database Information"]
 </MudText>
@@ -9,12 +10,68 @@
     </tr>
     </thead>
     <tbody>
+        <tr>
+            <td>
+                @Localizer["SKU"]
+            </td>
+            <td>
+                <code>@dbServer?.SKU</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Localizer["InstanceType"]
+            </td>
+            <td>
+                <code>@dbServer?.Type</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Localizer["vCores"]
+            </td>
+            <td>
+                <code>@dbServer?.vCores</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Localizer["Memory Size"]
+            </td>
+            <td>
+                <code>@dbServer?.MemorySize</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Localizer["MaxIOPS"]
+            </td>
+            <td>
+                <code>@dbServer?.MaxIOPS</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Localizer["MaxBandwidth"]
+            </td>
+            <td>
+                <code>@dbServer?.MaxBandwidth</code>
+            </td>
+        </tr>
+        <tr>
+            <td>
+                @Localizer["Storage Size"]
+            </td>
+            <td>
+                <code>@dbServer?.StorageSize</code>
+            </td>
+        </tr>
     <tr>
         <td>
             @Localizer["Host"]
         </td>
         <td>
-            <code>@DatabaseHost</code>
+                <code>@dbServer?.DatabaseHost</code>
         </td>
     </tr>
     <tr>
@@ -22,7 +79,7 @@
             @Localizer["Database Name"]
         </td>
         <td>
-            <code>@DatabaseName</code>
+                <code>@dbServer?.DatabaseName</code>
         </td>
     </tr>
     <tr>
@@ -30,7 +87,7 @@
             @Localizer["Username"]
         </td>
         <td>
-            <code>@Username</code>
+                <code>@dbServer?.Username</code>
         </td>
     </tr>
     <tr>
@@ -38,7 +95,7 @@
             @Localizer["Password"]
         </td>
         <td>
-            <code>@Password</code>
+                <code>@dbServer?.Password</code>
         </td>
     </tr>
     <tr>
@@ -46,21 +103,12 @@
             @Localizer["Port"]
         </td>
         <td>
-            <code>@Port</code>
+                <code>@dbServer?.Port</code>
         </td>
     </tr>
     </tbody>
 </MudSimpleTable>
 
 @code {
-
-    [Parameter] public string DatabaseHost { get; set; }
-
-    [Parameter] public string DatabaseName { get; set; }
-
-    [Parameter] public string Username { get; set; }
-
-    [Parameter] public string Password { get; set; }
-
-    [Parameter] public string Port { get; set; }
+    [Parameter] public AzurePgsqlDBServer dbServer { get; set; }
 }

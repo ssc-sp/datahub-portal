@@ -1288,6 +1288,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT")
                         .HasAnnotation("Relational:JsonPropertyName", "Subject");
 
+                    b.Property<decimal>("WorkspaceBudget")
+                        .HasColumnType("TEXT")
+                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceBudget");
+
                     b.Property<string>("WorkspaceDescription")
                         .IsRequired()
                         .HasColumnType("TEXT")

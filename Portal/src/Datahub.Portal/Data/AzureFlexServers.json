@@ -1,0 +1,314 @@
+[
+  {
+    "SKU": "B1ms",
+    "vCores": 1,
+    "MemorySize": "2 GiB",
+    "MaxIOPS": 640,
+    "MaxBandwidth": "10 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B2s",
+    "vCores": 2,
+    "MemorySize": "4 GiB",
+    "MaxIOPS": "1,280",
+    "MaxBandwidth": "15 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B2ms",
+    "vCores": 2,
+    "MemorySize": "8 GiB",
+    "MaxIOPS": "1,920",
+    "MaxBandwidth": "22.5 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B4ms",
+    "vCores": 4,
+    "MemorySize": "16 GiB",
+    "MaxIOPS": "2,880",
+    "MaxBandwidth": "35 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B8ms",
+    "vCores": 8,
+    "MemorySize": "32 GiB",
+    "MaxIOPS": "4,320",
+    "MaxBandwidth": "50 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B12ms",
+    "vCores": 12,
+    "MemorySize": "48 GiB",
+    "MaxIOPS": "4,320",
+    "MaxBandwidth": "50 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B16ms",
+    "vCores": 16,
+    "MemorySize": "64 GiB",
+    "MaxIOPS": "4,320",
+    "MaxBandwidth": "50 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "B20ms",
+    "vCores": 20,
+    "MemorySize": "80 GiB",
+    "MaxIOPS": "4,320",
+    "MaxBandwidth": "50 MiB/sec",
+    "Type": "Burstable"
+  },
+  {
+    "SKU": "D2s_v3/D2ds_v4",
+    "vCores": 2,
+    "MemorySize": "8 GiB",
+    "MaxIOPS": "3,200",
+    "MaxBandwidth": "48 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D2ds_v5/D2ads_v5",
+    "vCores": 2,
+    "MemorySize": "8 GiB",
+    "MaxIOPS": "3,750",
+    "MaxBandwidth": "85 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D4s_v3/D4ds_v4",
+    "vCores": 4,
+    "MemorySize": "16 GiB",
+    "MaxIOPS": "6,400",
+    "MaxBandwidth": "96 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D4ds_v5/D4ads_v5",
+    "vCores": 4,
+    "MemorySize": "16 GiB",
+    "MaxIOPS": "6,400",
+    "MaxBandwidth": "145 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D8s_v3/D8ds_v4",
+    "vCores": 8,
+    "MemorySize": "32 GiB",
+    "MaxIOPS": "12,800",
+    "MaxBandwidth": "192 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D8ds_v5/D8ads_v5",
+    "vCores": 8,
+    "MemorySize": "32 GiB",
+    "MaxIOPS": "12,800",
+    "MaxBandwidth": "290 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D16s_v3/D16ds_v4",
+    "vCores": 16,
+    "MemorySize": "64 GiB",
+    "MaxIOPS": "25,600",
+    "MaxBandwidth": "384 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D16ds_v5/D16ds_v5",
+    "vCores": 16,
+    "MemorySize": "64 GiB",
+    "MaxIOPS": "25,600",
+    "MaxBandwidth": "600 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D32s_v3/D32ds_v4",
+    "vCores": 32,
+    "MemorySize": "128 GiB",
+    "MaxIOPS": "51,200",
+    "MaxBandwidth": "768 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D32ds_v5/D32ads_v5",
+    "vCores": 32,
+    "MemorySize": "128 GiB",
+    "MaxIOPS": "51,200",
+    "MaxBandwidth": "865 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D48s_v3/D48ds_v4",
+    "vCores": 48,
+    "MemorySize": "192 GiB",
+    "MaxIOPS": "76,800",
+    "MaxBandwidth": "1152 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D48ds_v5/D48ads_v5",
+    "vCores": 48,
+    "MemorySize": "192 GiB",
+    "MaxIOPS": "76,800",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D64s_v3/D64ds_v4/D64ds_v5/D64ads_v5",
+    "vCores": 64,
+    "MemorySize": "256 GiB",
+    "MaxIOPS": "80,000",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "D96ds_v5/D96ads_v5",
+    "vCores": 96,
+    "MemorySize": "384 GiB",
+    "MaxIOPS": "80,000",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "General Purpose"
+  },
+  {
+    "SKU": "E2s_v3/E2ds_v4",
+    "vCores": 2,
+    "MemorySize": "16 GiB",
+    "MaxIOPS": "3,200",
+    "MaxBandwidth": "48 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E2ds_v5/E2ads_v5",
+    "vCores": 2,
+    "MemorySize": "16 GiB",
+    "MaxIOPS": "3,200",
+    "MaxBandwidth": "85 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E4s_v3/E4ds_v4",
+    "vCores": 4,
+    "MemorySize": "32 GiB",
+    "MaxIOPS": "6,400",
+    "MaxBandwidth": "96 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E4ds_v5/E4ads_v5",
+    "vCores": 4,
+    "MemorySize": "32 GiB",
+    "MaxIOPS": "6,400",
+    "MaxBandwidth": "145 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E8s_v3/E8ds_v4",
+    "vCores": 8,
+    "MemorySize": "64 GiB",
+    "MaxIOPS": "12,800",
+    "MaxBandwidth": "192 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E8ds_v5/E8ads_v5",
+    "vCores": 8,
+    "MemorySize": "64 GiB",
+    "MaxIOPS": "12,800",
+    "MaxBandwidth": "290 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E16s_v3/E16ds_v4",
+    "vCores": 16,
+    "MemorySize": "128 GiB",
+    "MaxIOPS": "25,600",
+    "MaxBandwidth": "384 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E16ds_v5/E16ds_v5",
+    "vCores": 16,
+    "MemorySize": "128 GiB",
+    "MaxIOPS": "25,600",
+    "MaxBandwidth": "600 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E20ds_v4",
+    "vCores": 20,
+    "MemorySize": "160 GiB",
+    "MaxIOPS": "32,000",
+    "MaxBandwidth": "480 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E20ds_v5/E20ads_v5",
+    "vCores": 20,
+    "MemorySize": "160 GiB",
+    "MaxIOPS": "32,000",
+    "MaxBandwidth": "750 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E32s_v3/E32ds_v4",
+    "vCores": 32,
+    "MemorySize": "256 GiB",
+    "MaxIOPS": "51,200",
+    "MaxBandwidth": "768 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E32ds_v5/D32ads_v5",
+    "vCores": 32,
+    "MemorySize": "256 GiB",
+    "MaxIOPS": "51,200",
+    "MaxBandwidth": "865 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E48s_v3/E48ds_v4/E48ds_v5/E48ads_v5",
+    "vCores": 48,
+    "MemorySize": "384 GiB",
+    "MaxIOPS": "76,800",
+    "MaxBandwidth": "1152 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E48ds_v5/E48ads_v5",
+    "vCores": 48,
+    "MemorySize": "384 GiB",
+    "MaxIOPS": "76,800",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E64s_v3/E64ds_v4",
+    "vCores": 64,
+    "MemorySize": "432 GiB",
+    "MaxIOPS": "80,000",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E64ds_v5/E64ads_v4",
+    "vCores": 64,
+    "MemorySize": "512 GiB",
+    "MaxIOPS": "80,000",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "Memory Optimized"
+  },
+  {
+    "SKU": "E96ds_v5/E96ads_v5",
+    "vCores": 96,
+    "MemorySize": "672 GiB",
+    "MaxIOPS": "80,000",
+    "MaxBandwidth": "1200 MiB/sec",
+    "Type": "Memory Optimized"
+  }
+]
