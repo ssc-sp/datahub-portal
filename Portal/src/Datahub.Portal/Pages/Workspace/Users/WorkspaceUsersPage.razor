@@ -187,6 +187,7 @@
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
                     Value="rowContext.IsDataSteward"
+                    Disabled=@(IsDataStewardCheckboxDisabled(rowContext))
                     ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">

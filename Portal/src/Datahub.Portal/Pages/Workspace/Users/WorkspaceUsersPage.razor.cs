@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -105,6 +106,11 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             return projectUser.Role?.Id == 2 ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.WorkspaceAdmin;
         }
+
+        private static bool IsAllowedRoleForDataSteward(Datahub_Project_User projectUser) => RoleConstants.AllowedDataStewardRoleIds.Contains(projectUser.RoleId ?? 0);
+
+        private static bool IsDataStewardCheckboxDisabled(Datahub_Project_User projectUser) => !(projectUser.IsDataSteward || IsAllowedRoleForDataSteward(projectUser));
+
         private void ChangeDataStewardFlag(Datahub_Project_User projectUser, bool newValue)
         {
             projectUser.IsDataSteward = newValue;
