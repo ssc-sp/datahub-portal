@@ -1,55 +1,77 @@
 <MudStack Row Spacing="0">
+    @if (WorkspaceUsage is not null)
+    {
+        <MudChip T="string" title="@Localizer["Current spending and budget of your workspace:"]" Size="Size.Small"
+                 Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <p>
+                    <DHIcon Icon="fa-light fa-dollar-sign" Style="font-size: 0.75rem;" Color="Color.Dark"/>
+                    <span class="sr-only">@Localizer["Amount spent: "]</span>
+                    @WorkspaceUsage.Item1.ToString("F2")
+                    /
+                    <span class="sr-only">@Localizer["Budget amount: "]</span>
+                    @WorkspaceUsage.Item2.ToString("F2")
+                </p>
+            </MudStack>
+        </MudChip>
+    }
     @if (NumberOfWorkspacesRemaining >= 0)
     {
-            <MudChip T="string" title="@Localizer["Number of workspaces remaining"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <p>
-                        <DHIcon Icon="fa-light fa-layer-plus" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <span class="sr-only">@Localizer["Number of workspaces remaining: "]</span>
-                        @NumberOfWorkspacesRemaining
-                    </p>
-                </MudStack>
-            </MudChip>
+        <MudChip T="string" title="@Localizer["Number of workspaces remaining"]" Size="Size.Small"
+                 Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <p>
+                    <DHIcon Icon="fa-light fa-layer-plus" Style="font-size: 0.75rem;" Color="Color.Dark"/>
+                    <span class="sr-only">@Localizer["Number of workspaces remaining: "]</span>
+                    @NumberOfWorkspacesRemaining
+                </p>
+            </MudStack>
+        </MudChip>
     }
     @if (NumberOfUsers >= 0)
     {
-            <MudChip T="string" title="@Localizer["Number of users in the workspace"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <p>
-                        <DHIcon Icon="fa-light fa-users" Style="font-size: 0.75rem;" Color="Color.Dark" Class="mr-1" />
-                        <span class="sr-only">@Localizer["Number of users in the workspace: "]</span>
-                        @NumberOfUsers
-                    </p>
-                </MudStack>
-            </MudChip>
+        <MudChip T="string" title="@Localizer["Number of users in the workspace"]" Size="Size.Small"
+                 Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <p>
+                    <DHIcon Icon="fa-light fa-users" Style="font-size: 0.75rem;" Color="Color.Dark" Class="mr-1"/>
+                    <span class="sr-only">@Localizer["Number of users in the workspace: "]</span>
+                    @NumberOfUsers
+                </p>
+            </MudStack>
+        </MudChip>
     }
     @if (NumberOfRepositories >= 0)
     {
-            <MudChip T="string" title="@Localizer["Number of shared repositories"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <p>
-                        <DHIcon Icon="fa-light fa-code-branch" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <span class="sr-only">@Localizer["Number of shared repositories: "]</span>
-                        @NumberOfRepositories
-                    </p>
-                </MudStack>
-            </MudChip>
+        <MudChip T="string" title="@Localizer["Number of shared repositories"]" Size="Size.Small"
+                 Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <p>
+                    <DHIcon Icon="fa-light fa-code-branch" Style="font-size: 0.75rem;" Color="Color.Dark"/>
+                    <span class="sr-only">@Localizer["Number of shared repositories: "]</span>
+                    @NumberOfRepositories
+                </p>
+            </MudStack>
+        </MudChip>
     }
     @if (NumberOfFiles >= 0)
     {
-            <MudChip T="string" title="@Localizer["Number of shared files"]" Size="Size.Small" Variant="Variant.Outlined" Label="true" Color="Color.Dark">
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                    <p>
-                        <DHIcon Icon="fa-light fa-files" Style="font-size: 0.75rem;" Color="Color.Dark"/>
-                        <span class="sr-only">@Localizer["Number of shared files: "]</span>
-                        @NumberOfFiles
-                    </p>
-                </MudStack>
-            </MudChip>
+        <MudChip T="string" title="@Localizer["Number of shared files"]" Size="Size.Small" Variant="Variant.Outlined"
+                 Label="true" Color="Color.Dark">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <p>
+                    <DHIcon Icon="fa-light fa-files" Style="font-size: 0.75rem;" Color="Color.Dark"/>
+                    <span class="sr-only">@Localizer["Number of shared files: "]</span>
+                    @NumberOfFiles
+                </p>
+            </MudStack>
+        </MudChip>
     }
 </MudStack>
 
 @code {
+
+    [Parameter] public Tuple<decimal, decimal> WorkspaceUsage { get; set; } = null;
 
     [Parameter] public int NumberOfUsers { get; set; } = -1;
 
