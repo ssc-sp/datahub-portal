@@ -4,6 +4,17 @@
 # Variable 'target_os' was defined in the Variables tab
 # Variable 'version.MajorMinor' was defined in the Variables tab
 # Variable 'version.Revision' was defined in the Variables tab
+trigger:
+  branches:
+    include:
+      - develop
+      - proof-of-concept
+  paths:
+    include:
+      - 'Portal/**'
+      - 'ServerlessOperations/**'
+      - 'ResourceProvisioner/**'
+
 pr:
   branches:
     include:
@@ -14,6 +25,7 @@ pr:
       - 'Portal/**'
       - 'ServerlessOperations/**'
       - 'ResourceProvisioner/**'
+
 resources:
   repositories:
   - repository: self
