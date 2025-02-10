@@ -37,7 +37,7 @@ public sealed class ResourceRunRequestSteps(
             AppData = new WorkspaceAppData()
             {
                 DatabricksHostUrl = "test",
-                AppServiceConfiguration = new AppServiceConfiguration()
+                    AppServiceConfiguration = new AppServiceConfiguration()
                 {
                     Framework = "test"
                 }

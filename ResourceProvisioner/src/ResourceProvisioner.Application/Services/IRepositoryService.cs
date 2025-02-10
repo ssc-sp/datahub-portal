@@ -13,10 +13,10 @@ public interface IRepositoryService
     public Task CheckoutInfrastructureBranch(string workspaceName);
     public Task CommitTerraformTemplate(TerraformTemplate template, string username);
     public Task PushInfrastructureRepository(string workspaceAcronym);
-    public Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcrynom, string username);
+    public Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcrynom);
     public Task FetchRepositoriesAndCheckoutProjectBranch(string workspaceAcronym);
-    public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<TerraformTemplate> modules, TerraformWorkspace terraformWorkspace, string requestingUsername, string resourcegroup);
-    public Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate templates, TerraformWorkspace terraformWorkspace, string requestingUsername, string resourcegroup);
+    public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username);
+    public Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username);
 
     public Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command);
     public Task<List<Version>> GetModuleVersions();
