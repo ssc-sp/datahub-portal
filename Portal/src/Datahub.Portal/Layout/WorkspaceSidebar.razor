@@ -256,7 +256,7 @@
             .Where(u => u.PortalUser.GraphGuid == _userProjectGuid)
             .ToListAsync();
 
-        _allProjects = userRoles.Select(u => u.Project).ToList();
+        _allProjects = userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
     }
 
     public async Task HandleProjectChange(string projectAcronym)
