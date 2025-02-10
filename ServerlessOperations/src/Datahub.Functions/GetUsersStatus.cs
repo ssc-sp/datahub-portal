@@ -16,7 +16,7 @@ namespace Datahub.Functions
         
         public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration)
         {
-            _logger = loggerFactory.CreateLogger<CreateGraphUser>();
+            _logger = loggerFactory.CreateLogger<GetUsersStatus>();
             _configuration = configuration;
         }
         

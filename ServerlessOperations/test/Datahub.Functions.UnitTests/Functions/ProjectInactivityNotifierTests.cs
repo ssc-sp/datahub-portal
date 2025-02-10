@@ -15,7 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
-namespace Datahub.Functions.UnitTests;
+namespace Datahub.Functions.UnitTests.Functions;
 
 public class ProjectInactivityNotifierTests
 {
@@ -31,9 +31,9 @@ public class ProjectInactivityNotifierTests
 
     private readonly IProjectInactivityNotificationService _projectInactivityNotificationService =
         Substitute.For<IProjectInactivityNotificationService>();
-    
 
-    private readonly IConfiguration _config = Substitute.For<IConfiguration>(); 
+
+    private readonly IConfiguration _config = Substitute.For<IConfiguration>();
 
     private AzureConfig _azConfig;
     private QueuePongService _pongService;
@@ -71,7 +71,7 @@ public class ProjectInactivityNotifierTests
         // Assert
         result.Should().BeNull();
     }
-    
+
     [Test]
     [TestCase(10, new[] { 10, 1 })]
     [TestCase(10, new[] { 20, 10 })]
@@ -99,7 +99,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         _dateProvider.Today.Returns(today);
         _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
-        
+
         // Act
         var result = await _sut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
             false, "", new List<string>());
@@ -114,7 +114,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         _dateProvider.Today.Returns(DateTime.Today);
         _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
-        
+
         // Act
         var result = await _sut.CheckIfProjectToBeNotified(10, 10, null,
             true, "", new List<string>());
@@ -132,14 +132,14 @@ public class ProjectInactivityNotifierTests
         _dateProvider.ProjectDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
-        
+
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false);
-        
+
         // Assert
         result.Should().BeFalse();
     }
-    
+
     [Test]
     [TestCase(30, 30)]
     [TestCase(0, 0)]
@@ -150,10 +150,10 @@ public class ProjectInactivityNotifierTests
         _dateProvider.ProjectDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
-        
+
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false);
-        
+
         // Assert
         result.Should().BeTrue();
     }
@@ -167,13 +167,13 @@ public class ProjectInactivityNotifierTests
         _dateProvider.Today.Returns(today);
         _dateProvider.ProjectDeletionDay().Returns(10);
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
-        
+
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(10, operationalWindow, false);
 
         result.Should().BeFalse();
     }
-    
+
     [Test]
     public void CheckIfProjectToBeDeleted_HasCostRecovery()
     {
@@ -181,10 +181,10 @@ public class ProjectInactivityNotifierTests
         _dateProvider.Today.Returns(DateTime.Today);
         _dateProvider.ProjectDeletionDay().Returns(10);
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
-        
+
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(10, null, true);
-        
+
         // Assert
         result.Should().BeFalse();
     }
@@ -196,7 +196,7 @@ public class ProjectInactivityNotifierTests
         var template = "project_inactive_alert.html";
         // Act
         var result = _sut.GetEmailRequestMessage(10, 20, "TEST", new List<string>(), template);
-        
+
         // Assert
         result.Body.Should().Contain("Your workspace <a href=\"https://federal-science-datahub.canada.ca/w/TEST\">TEST</a> has been inactive for 20 days");
     }

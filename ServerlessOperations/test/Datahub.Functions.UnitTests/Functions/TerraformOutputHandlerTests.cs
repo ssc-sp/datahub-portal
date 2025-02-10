@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Datahub.Functions.UnitTests;
+namespace Datahub.Functions.UnitTests.Functions;
 
 public class TerraformOutputHandlerTests
 {
@@ -355,18 +355,18 @@ public class TerraformOutputHandlerTests
         {
             PropertyNameCaseInsensitive = true
         };
-        
+
         var outputVariables =
             JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(terraformOutput,
                 deserializeOptions);
-        
+
         await _terraformOutputHandler.ProcessWorkspaceStatus(outputVariables!);
-        
+
         var updatedProject = await _context.Projects
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == project.Project_Acronym_CD);
-        
-        
+
+
         Assert.That(updatedProject, Is.Not.Null);
     }
 }

@@ -16,7 +16,7 @@ using Moq;
 using NSubstitute;
 
 
-namespace Datahub.Functions.UnitTests
+namespace Datahub.Functions.UnitTests.Functions
 {
     public class HealthCheckFunctionTests
     {
@@ -160,7 +160,7 @@ namespace Datahub.Functions.UnitTests
         [Test]
         public async Task TestWorkspaceAzureSQLDatabaseHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase, 
+            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -185,7 +185,7 @@ namespace Datahub.Functions.UnitTests
         [Test]
         public async Task TestInvalidWorkspaceSQLDatabaseHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase, 
+            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, "NOPE");
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -215,7 +215,7 @@ namespace Datahub.Functions.UnitTests
         [Test]
         public async Task TestRunningWebAppHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp, 
+            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, ACTIVE_WEB_APP_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -260,7 +260,7 @@ namespace Datahub.Functions.UnitTests
             result.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Healthy);
             result.Errors.Should().BeEmpty();
         }
-        
+
         private static void VerifyUnhealthyResult(InfrastructureHealthCheckResponse? result, string expectedError)
         {
             result.Should().NotBeNull();
@@ -270,8 +270,8 @@ namespace Datahub.Functions.UnitTests
             result.Errors?[0].Should().Contain(expectedError);
         }
         [OneTimeTearDown]
-        public void TearDown() 
-        { 
+        public void TearDown()
+        {
             _loggerFactory?.Dispose();
         }
     }

@@ -1,4 +1,6 @@
-﻿using Datahub.Functions.Services;
+﻿using Azure.Core.Amqp;
+using Azure.Messaging.ServiceBus;
+using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
 using FluentAssertions;
 using MassTransit;
@@ -7,8 +9,11 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using NSubstitute;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
-namespace Datahub.Functions.UnitTests;
+namespace Datahub.Functions.UnitTests.Functions;
 
 [TestFixture]
 public class BugReportTests
@@ -16,7 +21,7 @@ public class BugReportTests
     private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
     private IMediator _mediator = Substitute.For<IMediator>();
     private IConfiguration _config = Substitute.For<IConfiguration>();
-    
+
     private BugReport _bugReport;
     private ILogger<BugReport> _logger;
     private AzureConfig _azureConfig;
@@ -30,17 +35,17 @@ public class BugReportTests
     {
         _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _logger = _loggerFactory.CreateLogger<BugReport>();
-        
+
         var httpClientFactory = Substitute.For<IHttpClientFactory>();
         var httpClient = new HttpClient();
 
-        
+
         httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
 
         _azureConfig = new AzureConfig(_config);
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
         _alertRecordService = new AlertRecordService(_azureConfig);
-        
+
         _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
@@ -61,7 +66,6 @@ public class BugReportTests
     }
 
     [Test]
-    [Ignore("Need to fix")]
     public void BuildEmail_WithValidInputs_ReturnsEmailRequestMessage()
     {
         // Arrange
@@ -72,12 +76,12 @@ public class BugReportTests
         };
 
         // Act
-        // var result = _bugReport.BuildEmail(_bugReportMessage, response);
+        var result = _bugReport.BuildEmail(_bugReportMessage, response);
 
         // Assert
-        // Assert.IsNotNull(result);
-        // Assert.AreEqual(_azureConfig.Email.AdminEmail, result.To[0]);
-        // Assert.AreEqual("bug_report.html", result.Template);
+        result.Should().NotBeNull();
+        result.To[0].Should().Be(_azureConfig.Email.AdminEmail);
+        result.Template.Should().Be("bug_report.html");
     }
 
     [Test]
@@ -91,10 +95,35 @@ public class BugReportTests
         result.Should().NotBeNull();
         result.Should().BeOfType<object[]>();
     }
-    
+
     [OneTimeTearDown]
     public void TearDown()
     {
         _loggerFactory?.Dispose();
+    }
+
+    [Test]
+    public void Run_WithValidMessage_ReturnsSuccess()
+    {
+        // Arrange
+
+        var messageEnvelope = new JsonObject
+        {
+            ["message"] = JsonSerializer.SerializeToNode(_bugReportMessage)
+        };
+        var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
+            new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
+            {
+                Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString())
+            })), new BinaryData("lockToken"u8.ToArray()));
+
+
+        // Act
+        var result = _bugReport.Run(serviceBusReceivedMessage);
+
+        // Assert
+        result.Should().NotBeNull();
+        //result.To[0].Should().Be(_azureConfig.Email.AdminEmail);
+        //result.Template.Should().Be("bug_report.html");
     }
 }

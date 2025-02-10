@@ -4,7 +4,7 @@ using NSubstitute;
 
 using static Datahub.Functions.UnitTests.Testing;
 
-namespace Datahub.Functions.UnitTests;
+namespace Datahub.Functions.UnitTests.Functions;
 
 [TestFixture]
 [Ignore("Missing configuration")]
@@ -22,7 +22,7 @@ public class ConfigureWorkspaceAppServiceTests
         _configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _azureConfig,
             _dbContext);
     }
-    
+
     [SetUp]
     public void Setup()
     {
@@ -44,7 +44,7 @@ public class ConfigureWorkspaceAppServiceTests
     public async Task GetPipelineIdByName_ShouldThrowError_GivenIncorrectUrl()
     {
         // Arrange
-        _azureConfig.AzureDevOpsConfiguration.ListPipelineUrlTemplate = "https://INVALID_URL.com"; 
+        _azureConfig.AzureDevOpsConfiguration.ListPipelineUrlTemplate = "https://INVALID_URL.com";
 
         // Act
         try
