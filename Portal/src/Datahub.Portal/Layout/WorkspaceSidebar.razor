@@ -20,30 +20,55 @@
 @inject NavigationManager _navigationManager
 
 <MudDrawerContainer Style="overflow: hidden auto">
-    <MudStack Row Class="py-4 px-4">
+    <MudStack Row Class="py-4 px-4" AlignItems="AlignItems.Center">
         <span>
             <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
             <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu"
                            Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"
-                           Class="mt-2"/>
+            />
         </span>
         @if (Drawer.Open)
         {
-            @if (_allProjects is not null)
+            @if (_allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
             {
+                <span class="sr-only">
+                    @Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]
+                </span>
                 <MudSelect T="string" Value="@_project.Project_Acronym_CD"
                            ValueChanged="@(projectAcronym => HandleProjectChange(projectAcronym))"
-                           Label="@Localizer["Workspace"]"
+                           Label="@Localizer["Current workspace"]"
+                           title="@Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]"
+                           Dense
                            Variant="Variant.Outlined">
                     @foreach (var project in _allProjects)
                     {
                         <MudSelectItem Value="@project.Project_Acronym_CD">
-                            <MudText Style="text-overflow: ellipsis">
-                                @project.Project_Acronym_CD
-                            </MudText>
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudAvatar Size="Size.Small">
+                                    <MudImage
+                                        Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
+                                        Alt="@Localizer["Workspace avatar"]"></MudImage>
+                                </MudAvatar>
+                                <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
+                                    @project.Project_Acronym_CD
+                                </MudText>
+                            </MudStack>
                         </MudSelectItem>
                     }
                 </MudSelect>
+            }
+            else
+            {
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudAvatar Size="Size.Small">
+                        <MudImage
+                            Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
+                            Alt="@Localizer["Workspace avatar"]"></MudImage>
+                    </MudAvatar>
+                    <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
+                        @WorkspaceAcronym
+                    </MudText>
+                </MudStack>
             }
         }
     </MudStack>
@@ -61,11 +86,13 @@
                     <ul>
                         @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                         {
-                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym"
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
+                                             ProjectAcronym="@WorkspaceAcronym"
                                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
                                     <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
-                                                Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
+                                                Target="@GetTarget(toolSection)"
+                                                Disabled="@IsDisabled(toolSection)">
                                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
                                             <MudStack Row AlignItems="@AlignItems.Center">
                                                 <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small"
