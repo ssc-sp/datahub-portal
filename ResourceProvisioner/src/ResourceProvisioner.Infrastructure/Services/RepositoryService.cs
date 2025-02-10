@@ -38,7 +38,7 @@ public partial class RepositoryService(
 
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
-
+    
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
         await _semaphore.WaitAsync();
@@ -56,7 +56,7 @@ public partial class RepositoryService(
                 "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
                 command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
             var repositoryUpdateEvents =
-                await ExecuteResourceRuns(command.Templates, command.Workspace, user, command.ResourceGroupName);
+                await ExecuteResourceRuns(command, user);
 
             logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
                 command.Workspace.Acronym);
@@ -64,7 +64,7 @@ public partial class RepositoryService(
 
             logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             var pullRequestValueObject =
-                await CreateInfrastructurePullRequest(command.Workspace.Acronym!, user);
+                await CreateInfrastructurePullRequest(command.Workspace.Acronym!);
 
             logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
@@ -318,7 +318,7 @@ public partial class RepositoryService(
             branch.CanonicalName);
     }
 
-    public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym, string username)
+    public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
     {
         // create a pull request in Azure DevOps
         logger.LogInformation("Creating infrastructure pull request");
@@ -466,20 +466,19 @@ public partial class RepositoryService(
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(List<TerraformTemplate> modules,
-        TerraformWorkspace terraformWorkspace, string requestingUsername, string resourcegroup)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
-        await ValidateWorkspaceVersion(terraformWorkspace);
+        await ValidateWorkspaceVersion(command.Workspace);
 
 
         // Execute each module but make sure the `new-project-template` module is first for creation
-        modules = modules.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        command.Templates = command.Templates.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
 
-        foreach (var module in modules)
+        foreach (var resourcetemplate in command.Templates)
         {
-            var result = await ExecuteResourceRun(module, terraformWorkspace, requestingUsername, resourcegroup);
+            var result = await ExecuteResourceRun(resourcetemplate, command, username);
             repositoryUpdateEvents.Add(result);
         }
 
@@ -502,39 +501,37 @@ public partial class RepositoryService(
         terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate template,
-        TerraformWorkspace terraformWorkspace,
-        string requestingUsername, string resourcegroup)
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
     {
         try
         {
-            if (template.Status == TerraformStatus.DeleteRequested)
+            if (resourceTemplate.Status == TerraformStatus.DeleteRequested)
             {
-                if (template.Name == TerraformTemplate.NewProjectTemplate)
+                if (resourceTemplate.Name == TerraformTemplate.NewProjectTemplate)
                 {
-                    await terraformService.DeleteWorkspaceAsync(terraformWorkspace, resourcegroup);
+                    await terraformService.DeleteWorkspaceAsync(command.Workspace, command.ResourceGroupName);
                 }
                 else
                 {
-                    await terraformService.DeleteTemplateAsync(template.Name, terraformWorkspace);
+                    await terraformService.DeleteTemplateAsync(resourceTemplate.Name, command.Workspace);
                 }
             }
-            else if (template.Status == TerraformStatus.CreateRequested)
+            else if (resourceTemplate.Status == TerraformStatus.CreateRequested)
             {
-                await terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
-                await ExtractVariables(template, terraformWorkspace);
+                await terraformService.CopyTemplateAsync(resourceTemplate.Name, command.Workspace);
+                await ExtractVariables(resourceTemplate, command);
             }
             else
             {
-                await ExtractVariables(template, terraformWorkspace);
+                await ExtractVariables(resourceTemplate, command);
             }
 
-            await CommitTerraformTemplate(template, requestingUsername);
+            await CommitTerraformTemplate(resourceTemplate, username);
 
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Successfully created resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym} with a template status of {template.Status}",
+                    $"Successfully created resource run for [{command.Workspace.Version}]{resourceTemplate.Name} in {command.Workspace.Acronym} with a template status of {resourceTemplate.Status}",
                 StatusCode = MessageStatusCode.Success
             };
         }
@@ -543,7 +540,7 @@ public partial class RepositoryService(
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"No changes detected after resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                    $"No changes detected after resource run for [{command.Workspace.Version}]{resourceTemplate.Name} in {command.Workspace.Acronym}",
                 StatusCode = MessageStatusCode.NoChangesDetected
             };
         }
@@ -551,27 +548,27 @@ public partial class RepositoryService(
         {
             logger.LogError(e,
                 "Error while creating resource run for [{ModuleVersion}]{ModuleName} in {WorkspaceAcronym}",
-                terraformWorkspace.Version, template.Name, terraformWorkspace.Acronym);
+                command.Workspace.Version, resourceTemplate.Name, command.Workspace.Acronym);
 
             return new RepositoryUpdateEvent()
             {
                 Message =
-                    $"Error creating resource run for [{terraformWorkspace.Version}]{template.Name} in {terraformWorkspace.Acronym}",
+                    $"Error creating resource run for [{command.Workspace.Version}]{resourceTemplate.Name} in {command.Workspace.Acronym}",
                 StatusCode = MessageStatusCode.Error
             };
         }
     }
 
-    private async Task ExtractVariables(TerraformTemplate template, TerraformWorkspace terraformWorkspace)
+    private async Task ExtractVariables(TerraformTemplate template, CreateResourceRunCommand command)
     {
-        await terraformService.ExtractVariables(template.Name, terraformWorkspace);
+        await terraformService.ExtractVariables(template.Name, command);
         switch (template.Name)
         {
             case TerraformTemplate.NewProjectTemplate:
-                await terraformService.ExtractBackendConfig(terraformWorkspace.Acronym!);
+                await terraformService.ExtractBackendConfig(command.Workspace.Acronym!);
                 break;
             case TerraformTemplate.VariableUpdate:
-                await terraformService.ExtractAllVariables(terraformWorkspace);
+                await terraformService.ExtractAllVariables(command);
                 break;
         }
     }
