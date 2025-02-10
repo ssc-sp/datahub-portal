@@ -5,6 +5,7 @@
 
 @inject IUserInformationService _userInformationService
 @inject ILogger<UserCard> _logger;
+@inject IPortalUserTelemetryService _telemetryService;
 @implements IDisposable
 
 @if (_viewedUser is null)
@@ -13,14 +14,30 @@
 }
 
 <MudStack Row Spacing="0" AlignItems="AlignItems.Center">
-    <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
+    @if (!RightAvatar)
+    {
+        <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
+    }
     <MudStack Spacing="0" AlignItems="AlignItems.Start">
         <MudText Style="@Style" Typo="Typo" Class="px-4">@_viewedUser?.DisplayName</MudText>
         @if (ShowEmail)
         {
             <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">@_viewedUser?.Email</MudText>
         }
+        @if (ShowLoginTime)
+        {
+            <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">
+                @if (_lastLogin != null)
+                {
+                    @Localizer["Last login: {0}", _lastLogin.ToString()]
+                }
+            </MudText>
+        }
     </MudStack>
+    @if (RightAvatar)
+    {
+        <UserAvatar ViewedUser="@_viewedUser" Size="@Size"/>
+    }
     <MudSpacer/>
     @if (ShowProfileLink)
     {
@@ -30,27 +47,26 @@
 
 @code {
 
-    [Parameter]
-    public string ViewedUserGraphId { get; set; }
+    [Parameter] public string ViewedUserGraphId { get; set; }
 
-    [Parameter]
-    public PortalUser ViewedUser { get; set; }
+    [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter]
-    public Size Size { get; set; } = Size.Large;
+    [Parameter] public Size Size { get; set; } = Size.Large;
 
-    [Parameter]
-    public bool ShowProfileLink { get; set; } = false;
+    [Parameter] public bool ShowProfileLink { get; set; } = false;
 
-    [Parameter]
-    public bool ShowEmail { get; set; } = true;
-    
-    [Parameter]
-    public Typo Typo { get; set; } = Typo.h6;
+    [Parameter] public bool ShowEmail { get; set; } = true;
+
+    [Parameter] public bool ShowLoginTime { get; set; } = false;
+
+    [Parameter] public bool RightAvatar { get; set; } = false;
+
+    [Parameter] public Typo Typo { get; set; } = Typo.h6;
 
     [Parameter] public string Style { get; set; } = string.Empty;
 
     private PortalUser _viewedUser;
+    private DateTime? _lastLogin;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -62,6 +78,7 @@
     {
         await base.OnInitializedAsync();
         _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
+        _lastLogin = _telemetryService.GetUserLastLogin();
     }
 
     private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
