@@ -4,6 +4,7 @@ using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250121194303_UpdateImsoFormFields2")]
+    partial class UpdateImsoFormFields2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -80,13 +83,15 @@ namespace Datahub.Metadata.Migrations
                         .HasColumnType("nvarchar(128)");
 
                     b.Property<bool>("Localized_FLAG")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnName("Localized_FLAG");
 
                     b.Property<bool>("Machine_Readable_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<bool>("Misc_Compliant_FLAG")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnName("Misc_Compliant_FLAG");
 
                     b.Property<string>("Name_NAME")
                         .IsRequired()
@@ -121,7 +126,8 @@ namespace Datahub.Metadata.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.Property<bool>("Security_Compliant_FLAG")
-                        .HasColumnType("bit");
+                        .HasColumnType("bit")
+                        .HasColumnName("Security_Compliant_FLAG");
 
                     b.Property<bool>("Subject_To_Exceptions_Or_Eclusions_FLAG")
                         .HasColumnType("bit");
