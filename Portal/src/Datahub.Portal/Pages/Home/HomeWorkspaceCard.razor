@@ -7,16 +7,6 @@
 @inject ICultureService CultureService
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
-    @if (ShowCost)
-    {
-        <MudProgressLinear Vertical="true"
-                           Color=@CostBarColor()
-                           Size="Size.Large"
-                           Style=@CostBarStyle
-                           Value=@Workspace.Credits.Current
-                           Max=@((double)Workspace.Project_Budget!)
-                           title=@CostBarTitle()/>
-    }
     <MudStack Style=@MainStackStyle>
         <MudStack Row>
             <MudText>
@@ -29,7 +19,6 @@
         </MudStack>
         <MudStack Row>
             <ProjectPreviewCardIconDetails
-                WorkspaceUsage=@WorkspaceUsage
                 NumberOfUsers=@NumberOfUsers
                 NumberOfRepositories=@NumberOfRepositories
             />
@@ -49,7 +38,7 @@
                 @Localizer["No description available."]
             </MudText>
         }
-        <MudSpacer/>
+        <MudSpacer />
         <nav>
             <ul style=@CardActionListStyle>
                 @foreach (var tool in ToolActions)
@@ -78,6 +67,20 @@
             </ul>
         </nav>
     </MudStack>
+    @if (ShowCost)
+    {
+        <MudProgressLinear
+            Color=@CostBarColor()
+            Size="Size.Large"
+            Style=@CostBarStyle
+            Value=@Workspace.Credits.Current
+            Max=@((double)Workspace.Project_Budget!)
+            title=@CostBarTitle()>
+            <ProjectPreviewCardIconDetails
+                WorkspaceUsage=@WorkspaceUsage
+            />
+        </MudProgressLinear>
+    }
 </MudPaper>
 
 @code {
@@ -89,19 +92,29 @@
     // Styles
     private string PaperStyle => new StyleBuilder()
         .AddStyle("display", "flex")
+        .AddStyle("flex-direction", "column")
         .AddStyle("flex-grow", "1")
         .AddStyle("min-width", "385px")
         .AddStyle("min-height", "250px")
         .Build();
 
     private string CostBarStyle => new StyleBuilder()
-        .AddStyle("width", "20px")
+        .AddStyle("height", "35px")
         .AddStyle("margin-left", "0")
+        .AddStyle("margin-right", "0")
+        .AddStyle("margin-bottom", "0")
         .Build();
 
     private string MainStackStyle => new StyleBuilder()
         .AddStyle("padding", "16px")
         .AddStyle("width", "100%")
+        .AddStyle("height", "100%")
+        .Build();
+
+    private string ContainerStyle => new StyleBuilder()
+        .AddStyle("flex-grow", "1")
+        .AddStyle("width", "100%")
+        .AddStyle("height", "100%")
         .Build();
 
     private string CardActionListStyle => new StyleBuilder()

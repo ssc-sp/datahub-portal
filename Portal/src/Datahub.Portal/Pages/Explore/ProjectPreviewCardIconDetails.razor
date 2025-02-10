@@ -2,7 +2,7 @@
     @if (WorkspaceUsage is not null)
     {
         <MudChip T="string" title="@Localizer["Current spending and budget of your workspace:"]" Size="Size.Small"
-                 Variant="Variant.Outlined" Label="true" Color="Color.Dark">
+                 Variant="Variant.Outlined" Label="true" Color="Color.Dark" Style="@($"background: {DatahubTheme.DefaultTheme.PaletteLight.Background}")" >
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                 <p>
                     <DHIcon Icon="fa-light fa-dollar-sign" Style="font-size: 0.75rem;" Color="Color.Dark"/>
@@ -80,5 +80,5 @@
     [Parameter] public int NumberOfFiles { get; set; } = -1;
 
     [Parameter] public int NumberOfWorkspacesRemaining { get; set; } = -1;
-
+    
 }
