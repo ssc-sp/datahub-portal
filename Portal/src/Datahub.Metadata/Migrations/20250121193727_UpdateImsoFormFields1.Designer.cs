@@ -4,6 +4,7 @@ using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Metadata.Migrations
 {
     [DbContext(typeof(MetadataDbContext))]
-    partial class MetadataDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250121193727_UpdateImsoFormFields1")]
+    partial class UpdateImsoFormFields1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,6 +64,10 @@ namespace Datahub.Metadata.Migrations
                     b.Property<bool>("Confidentiality_FLAG")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("Copyright_Restrictions_FLAG")
+                        .HasColumnType("bit")
+                        .HasColumnName("Misc_Compliant_FLAG");
+
                     b.Property<string>("Dataset_Title_TXT")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -79,13 +86,11 @@ namespace Datahub.Metadata.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<bool>("Localized_FLAG")
-                        .HasColumnType("bit");
+                    b.Property<bool>("Localized_Metadata_FLAG")
+                        .HasColumnType("bit")
+                        .HasColumnName("Localized_FLAG");
 
                     b.Property<bool>("Machine_Readable_FLAG")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("Misc_Compliant_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name_NAME")
@@ -95,6 +100,10 @@ namespace Datahub.Metadata.Migrations
 
                     b.Property<bool>("Non_Propietary_Format_FLAG")
                         .HasColumnType("bit");
+
+                    b.Property<bool>("Not_Clasified_Or_Protected_FLAG")
+                        .HasColumnType("bit")
+                        .HasColumnName("Security_Compliant_FLAG");
 
                     b.Property<string>("Phone_TXT")
                         .HasMaxLength(32)
@@ -119,9 +128,6 @@ namespace Datahub.Metadata.Migrations
                     b.Property<string>("Sector_NAME")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("Security_Compliant_FLAG")
-                        .HasColumnType("bit");
 
                     b.Property<bool>("Subject_To_Exceptions_Or_Eclusions_FLAG")
                         .HasColumnType("bit");

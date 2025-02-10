@@ -22,4 +22,8 @@ public static class FieldNames
     public static string organization_name => nameof(organization_name);
     public static string opengov_owner_org => nameof(opengov_owner_org);
     public static string owner_org => nameof(owner_org);
+
+    public static string resource_language = nameof(resource_language);
+    public static string name_translated_en = nameof(name_translated_en);
+    public static string name_translated_fr => nameof(name_translated_fr);
 }

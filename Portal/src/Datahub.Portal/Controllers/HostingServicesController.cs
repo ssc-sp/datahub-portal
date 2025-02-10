@@ -282,6 +282,7 @@ public class HostingServicesController : ControllerBase
         temp.FinancialAuthorityFirstName = input.FinancialAuthorityFirstName;
         temp.FinancialAuthorityLastName = input.FinancialAuthorityLastName;
         temp.FinancialAuthorityCostCentre = input.FinancialAuthorityCostCentre;
+        temp.WorkspaceBudget = Decimal.Parse(input.WorkspaceBudget);
         temp.WorkspaceTitle = input.WorkspaceTitle;
         temp.WorkspaceDescription = input.WorkspaceDescription;
         temp.WorkspaceIdentifier = input.WorkspaceIdentifier;
@@ -328,6 +329,9 @@ public class HostingServicesController : ControllerBase
 
         [Newtonsoft.Json.JsonProperty("FinancialAuthorityCostCentre", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCostCentre { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("WorkspaceBudget", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string WorkspaceBudget { get; set; }
 
         [Newtonsoft.Json.JsonProperty("WorkspaceTitle", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string WorkspaceTitle { get; set; }
