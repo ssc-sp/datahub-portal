@@ -1,17 +1,11 @@
-@using Datahub.Application.Services.Achievements
-@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
-@using Datahub.Portal.Views.Dialogs
-@using Microsoft.Graph.Models
+@using Datahub.Portal.Components.User
 
 @inherits ViewUserBase<HomePage>
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 @inject IUserSettingsService _userSettingsService
-@inject IDataCreatorService _dataCreatorService
-@inject IDialogService _dialogService
-@inject NavigationManager _navigationManager
 
 @attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.Home_FR)]
@@ -23,77 +17,29 @@
 }
 
 <MudStack>
-    <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+    <DHMainContentTitle Title="@Localizer["Home"]"/>
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <div role="group">
-            <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+            <MudStack Row AlignItems="AlignItems.End">
+                <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+                <MudSpacer/>
+                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime/>
+            </MudStack>
             <WelcomeBanner/>
         </div>
     }
     else
     {
         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-        Alt="@Localizer["User's background image"]"
-        Class="rounded-lg mud-elevation-4"
-        Style="width: 100%"
-        ObjectFit="ObjectFit.Cover"
-        Height="320"
-        ObjectPosition="ObjectPosition.Center"/>
+                  Alt="@Localizer["User's background image"]"
+                  Class="rounded-lg mud-elevation-4"
+                  Style="width: 100%"
+                  ObjectFit="ObjectFit.Cover"
+                  Height="320"
+                  ObjectPosition="ObjectPosition.Center"/>
     }
-    <div role="group">
-        <h2 class="sr-only">
-            @Localizer["Profile of"] @_viewedPortalUser?.DisplayName
-        </h2>
-        <MudGrid>
-            <MudItem xs="12" md="@(_viewedPortalUser.UserSettings?.HideAchievements ?? true ? 12 : 8)">
-                <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
-                    <MudAvatar Style="width:120px; height: 120px">
-                        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementPortraitUrl(_viewedPortalUser?.ProfilePictureUrl)"
-                        Alt="@Localizer["Avatar profile picture"]"
-                        Height="120"
-                        Width="120"/>
-                    </MudAvatar>
-                    <MudStack Spacing="0">
-                        <MudText Typo="Typo.h2">
-                            <strong>@_viewedPortalUser?.DisplayName</strong>
-                        </MudText>
-                        <MudText Typo="Typo.caption" Class="ml-2">@_viewedPortalUser?.Email</MudText>
-                        <MudText Typo="Typo.caption" Class="ml-2">
-                            @if (lastLogin != null)
-                            {
-                                @Localizer["Previous Login: "]
-                                @if (isFrench)
-                                {
-                                    @lastLogin?.ToString("g", CultureInfo.CreateSpecificCulture("fr-CA"));
-                                }
-                                else
-                                {
-                                    @lastLogin?.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"));
-                                }
-                            }
-                        </MudText>
-                    </MudStack>
-                </MudStack>
-            </MudItem>
-            @if (!(_viewedPortalUser.UserSettings?.HideAchievements ?? true))
-            {
-                <MudItem xs="12" md="4">
-                    <MudStack>
-                        <MudStack Spacing="6">
-                            <ProfileAchievements ViewedUser="@_viewedPortalUser"/>
-                        </MudStack>
-                        <MudLink Href="@_achievementsUrl">
-                            @Localizer["View all achievements"]
-                        </MudLink>
-                    </MudStack>
-                </MudItem>
-            }
-        </MudGrid>
-    </div>
-    <MudDivider />
-    <HomeNav />
-    <UserProjects UserId="@_userProjectGuid" SmSize="6"/>
+    <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle/>
 </MudStack>
 
 @code {
@@ -101,9 +47,6 @@
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
-    private string _achievementsUrl => $"{Localizer[PageRoutes.AccountPrefix]}/{Localizer["achievements"]}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    private DateTime? lastLogin;
-    private bool isFrench = false;
 
 
     protected override async Task OnInitializedAsync()
@@ -112,8 +55,8 @@
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         await _telemetryService.FindUserLastLogin();
-        lastLogin = _telemetryService.GetUserLastLogin();
-        isFrench = await _userSettingsService.IsFrench();
+        _telemetryService.GetUserLastLogin();
+        await _userSettingsService.IsFrench();
     }
 
     protected override async Task OnParametersSetAsync()
