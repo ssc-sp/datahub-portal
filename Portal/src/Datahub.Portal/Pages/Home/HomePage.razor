@@ -1,8 +1,4 @@
-@using Datahub.Application.Services.Achievements
-@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
-@using Datahub.Portal.Views.Dialogs
-@using Microsoft.Graph.Models
 @using Datahub.Portal.Components.User
 
 @inherits ViewUserBase<HomePage>
@@ -10,9 +6,6 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 @inject IUserSettingsService _userSettingsService
-@inject IDataCreatorService _dataCreatorService
-@inject IDialogService _dialogService
-@inject NavigationManager _navigationManager
 
 @attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.Home_FR)]
@@ -31,7 +24,7 @@
             <MudStack Row AlignItems="AlignItems.End">
                 <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
                 <MudSpacer/>
-                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime/>
             </MudStack>
             <WelcomeBanner/>
         </div>
@@ -46,7 +39,7 @@
                   Height="320"
                   ObjectPosition="ObjectPosition.Center"/>
     }
-    <UserProjects UserId="@_userProjectGuid" SmSize="6" Dense/>
+    <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle/>
 </MudStack>
 
 @code {
@@ -54,9 +47,6 @@
     private PortalUser _currentUser;
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
-    private string _achievementsUrl => $"{Localizer[PageRoutes.AccountPrefix]}/{Localizer["achievements"]}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
-    private DateTime? lastLogin;
-    private bool isFrench = false;
 
 
     protected override async Task OnInitializedAsync()
@@ -65,8 +55,8 @@
         _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
         await _telemetryService.FindUserLastLogin();
-        lastLogin = _telemetryService.GetUserLastLogin();
-        isFrench = await _userSettingsService.IsFrench();
+        _telemetryService.GetUserLastLogin();
+        await _userSettingsService.IsFrench();
     }
 
     protected override async Task OnParametersSetAsync()
