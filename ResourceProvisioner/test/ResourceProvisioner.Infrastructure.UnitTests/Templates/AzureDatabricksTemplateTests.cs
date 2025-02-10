@@ -91,8 +91,18 @@ public class AzureDatabricksTemplateTests
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
+        var command = GenerateTestCreateResourceRunCommand(
+         workspaceAcronym, new List<string>()
+         {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+         });
+
+        command.Workspace = workspace;
+
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, command);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -124,8 +134,18 @@ public class AzureDatabricksTemplateTests
         var expectedVariables = GenerateExpectedVariables(workspace, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
+        var command = GenerateTestCreateResourceRunCommand(
+         workspaceAcronym, new List<string>()
+         {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+         });
+
+        command.Workspace = workspace;
+
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, command);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -155,12 +175,20 @@ public class AzureDatabricksTemplateTests
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
+        var command = GenerateTestCreateResourceRunCommand(
+         workspaceAcronym, new List<string>()
+         {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+         });
+        command.Workspace = workspace;
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
-        await _terraformService.ExtractVariables(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, command);
+        await _terraformService.ExtractVariables(module.Name, command);
+        await _terraformService.ExtractVariables(module.Name, command);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
