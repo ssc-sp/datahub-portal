@@ -60,6 +60,12 @@ public class GCHostingWorkspaceDetails
     public string FinancialAuthorityCostCentre { get; set; }
 
     /// <summary>
+    /// Gets or sets the budget of the workspace.
+    /// </summary>
+    [JsonPropertyName("WorkspaceBudget")]
+    public decimal WorkspaceBudget { get; set; }
+
+    /// <summary>
     /// Gets or sets the workspace title.
     /// </summary>
     [JsonPropertyName("WorkspaceTitle")]

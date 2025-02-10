@@ -21,12 +21,12 @@
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-4 px-4" AlignItems="AlignItems.Center">
-        <span>
+        <SkipLink Type="SkipLinkType.Navigation" Anchor>
             <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
             <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu"
                            Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"
             />
-        </span>
+        </SkipLink>
         @if (Drawer.Open)
         {
             @if (_allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
