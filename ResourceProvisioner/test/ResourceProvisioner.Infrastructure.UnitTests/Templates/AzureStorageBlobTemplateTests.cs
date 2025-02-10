@@ -93,7 +93,7 @@ public class AzureStorageBlobTemplateTests
                    TerraformTemplate.NewProjectTemplate,
                    TerraformTemplate.NewProjectTemplate
             });
-
+        command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, workspace);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
 
@@ -133,7 +133,7 @@ public class AzureStorageBlobTemplateTests
                    TerraformTemplate.NewProjectTemplate,
                    TerraformTemplate.NewProjectTemplate
             });
-
+        command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, workspace);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
 
@@ -174,7 +174,7 @@ public class AzureStorageBlobTemplateTests
                TerraformTemplate.NewProjectTemplate,
                TerraformTemplate.NewProjectTemplate
         });
-
+        command.Workspace = workspace;
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
          await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
          await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);

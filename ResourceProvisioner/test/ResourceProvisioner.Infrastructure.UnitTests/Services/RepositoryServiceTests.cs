@@ -15,6 +15,7 @@ using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 using Version = System.Version;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
+using Datahub.Shared;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -132,7 +133,7 @@ public class RepositoryServiceTests
         var repository = InitializeTestInfrastructureRepository();
         CreateFakeFileInTestProject();
 
-        await _repositoryService.CommitTerraformTemplate(TestTemplate);
+        await _repositoryService.CommitTerraformTemplate(TestTemplate, RequestingUser);
 
         Assert.Multiple(() =>
         {
@@ -162,18 +163,16 @@ public class RepositoryServiceTests
                 TerraformTemplate.NewProjectTemplate
             });
 
-
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, command);
-
-
+            await repositoryService.ExecuteResourceRun(TestTemplate, command, RequestingUser);
+    
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
         {
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.Success));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
             Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
-            Assert.That(result.Message, Contains.Substring(ProjectAcronym));
+            Assert.That(result.Message, Contains.Substring(ProjectAcronym).IgnoreCase);
         });
     }
 
@@ -200,7 +199,7 @@ public class RepositoryServiceTests
 
 
         var result =
-            await repositoryService.ExecuteResourceRun(TestTemplate, command);
+            await repositoryService.ExecuteResourceRun(TestTemplate, command, RequestingUser);
 
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
@@ -208,7 +207,7 @@ public class RepositoryServiceTests
             Assert.That(result.StatusCode, Is.EqualTo(MessageStatusCode.NoChangesDetected));
             Assert.That(result.Message, Contains.Substring(TestTemplate.Name));
             Assert.That(result.Message, Contains.Substring(TestingWorkspace.Version));
-            Assert.That(result.Message, Contains.Substring(ProjectAcronym));
+            Assert.That(result.Message, Contains.Substring(ProjectAcronym).IgnoreCase);
         });
     }
 
@@ -234,7 +233,7 @@ public class RepositoryServiceTests
             });
 
         var result =
-            await repositoryService.ExecuteResourceRuns(command);
+            await repositoryService.ExecuteResourceRuns(command, RequestingUser);
 
 
         Assert.That(result, Is.TypeOf<List<RepositoryUpdateEvent>>());

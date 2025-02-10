@@ -32,7 +32,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
 
         repositoryService
             .Configure()
-            .CommitTerraformTemplate(Arg.Any<TerraformTemplate>())
+            .CommitTerraformTemplate(Arg.Any<TerraformTemplate>(), Arg.Any<string>())
             .Returns(Task.CompletedTask);
 
         scenarioContext.Add("repositoryService", repositoryService);
@@ -65,7 +65,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var terraformTemplate = scenarioContext.Get<TerraformTemplate>("terraformTemplate");
         var command = scenarioContext.Get<CreateResourceRunCommand>("command");
         
-        var result = await repositoryService.ExecuteResourceRun(terraformTemplate, command);
+        var result = await repositoryService.ExecuteResourceRun(terraformTemplate, command, "test@username");
         scenarioContext.Add("result", result);
     }
 

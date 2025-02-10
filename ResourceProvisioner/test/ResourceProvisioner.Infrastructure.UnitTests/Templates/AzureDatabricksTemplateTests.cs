@@ -99,6 +99,8 @@ public class AzureDatabricksTemplateTests
                 TerraformTemplate.NewProjectTemplate
          });
 
+        command.Workspace = workspace;
+
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
         await _terraformService.ExtractVariables(module.Name, command);
 
@@ -140,6 +142,8 @@ public class AzureDatabricksTemplateTests
                 TerraformTemplate.NewProjectTemplate
          });
 
+        command.Workspace = workspace;
+
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
         await _terraformService.ExtractVariables(module.Name, command);
 
@@ -178,6 +182,7 @@ public class AzureDatabricksTemplateTests
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
          });
+        command.Workspace = workspace;
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
 

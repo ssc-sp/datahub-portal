@@ -296,7 +296,7 @@ public class TerraformService(
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
-            TerraformVariables.PsqlSku => workspaceAppData.PostgresConfiguration.PSQL_SKU,
+            TerraformVariables.PsqlSku => workspaceAppData.PostgresConfiguration?.PSQL_SKU ?? "B_Standard_B1ms",
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,

@@ -38,8 +38,7 @@ public partial class RepositoryService(
 
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
-    private string? _user;
-
+    
     public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
     {
         await _semaphore.WaitAsync();
@@ -48,16 +47,16 @@ public partial class RepositoryService(
             DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
             CreateTemporaryDirectory();
 
-            _user = command.RequestingUserEmail ??
+            var user = command.RequestingUserEmail ??
                        throw new NullReferenceException("Requesting user's email is null");
             logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
             await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
 
             logger.LogInformation(
                 "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
-                command.Workspace.Acronym, _user, string.Join(", ", command.Templates.Select(x => x.Name)));
+                command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
             var repositoryUpdateEvents =
-                await ExecuteResourceRuns(command);
+                await ExecuteResourceRuns(command, user);
 
             logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
                 command.Workspace.Acronym);
@@ -261,7 +260,7 @@ public partial class RepositoryService(
         }
     }
 
-    public virtual Task CommitTerraformTemplate(TerraformTemplate template)
+    public virtual Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
 
@@ -271,7 +270,7 @@ public partial class RepositoryService(
         logger.LogInformation("Adding all files in {LocalPath}", repositoryPath);
         Commands.Stage(repository, "*");
 
-        var author = new Signature(_user, _user, DateTimeOffset.Now);
+        var author = new Signature(username, username, DateTimeOffset.Now);
         logger.LogInformation(
             "Committing all files in {LocalPath} for module {ModuleName} as {Author}", repositoryPath,
             template.Name, author);
@@ -467,7 +466,7 @@ public partial class RepositoryService(
         await CheckoutInfrastructureBranch(workspaceAcronym);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
@@ -479,7 +478,7 @@ public partial class RepositoryService(
 
         foreach (var resourcetemplate in command.Templates)
         {
-            var result = await ExecuteResourceRun(resourcetemplate, command);
+            var result = await ExecuteResourceRun(resourcetemplate, command, username);
             repositoryUpdateEvents.Add(result);
         }
 
@@ -502,7 +501,7 @@ public partial class RepositoryService(
         terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
     }
 
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command)
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
     {
         try
         {
@@ -527,7 +526,7 @@ public partial class RepositoryService(
                 await ExtractVariables(resourceTemplate, command);
             }
 
-            await CommitTerraformTemplate(resourceTemplate);
+            await CommitTerraformTemplate(resourceTemplate, username);
 
             return new RepositoryUpdateEvent()
             {
