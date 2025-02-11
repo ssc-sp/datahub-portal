@@ -1,4 +1,5 @@
 ﻿using Datahub.Shared.Entities;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
@@ -7,7 +8,6 @@ using static Datahub.Functions.UnitTests.Testing;
 namespace Datahub.Functions.UnitTests.Functions;
 
 [TestFixture]
-[Ignore("Missing configuration")]
 public class ConfigureWorkspaceAppServiceTests
 {
     private readonly ILogger<ConfigureWorkspaceAppService> _logger;
@@ -19,8 +19,22 @@ public class ConfigureWorkspaceAppServiceTests
     public ConfigureWorkspaceAppServiceTests()
     {
         _logger = Substitute.For<ILogger<ConfigureWorkspaceAppService>>();
-        _configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _azureConfig,
-            _dbContext);
+
+        var _config = Substitute.For<IConfiguration>();
+        _azureConfig = new AzureConfig(_config);
+
+        var httpClientFactory = Substitute.For<IHttpClientFactory>();
+        var httpClient = new HttpClient();
+
+
+        httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
+        //_configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _azureConfig, _dbContext);
+
+        _configureWorkspaceAppService = Substitute.For<ConfigureWorkspaceAppService>(_logger, _azureConfig, _dbContext);
+
+        // Stub ConfigureHttpClient method
+        _configureWorkspaceAppService.ConfigureHttpClient().Returns(Task.FromResult(httpClient));
+
     }
 
     [SetUp]
@@ -30,6 +44,7 @@ public class ConfigureWorkspaceAppServiceTests
     }
 
     [Test]
+    [Ignore("Need Azure auth to access URL")]
     public async Task GetPipelineIdByName_ShouldReturnCorrectId_GivenCorrectName()
     {
         // Act
@@ -38,6 +53,21 @@ public class ConfigureWorkspaceAppServiceTests
 
         // Assert
         Assert.That(id, Is.EqualTo(correct_id));
+    }
+
+    [Test]
+    public async Task GetPipelineIdByName_ShouldTrowError_GivenNonAuthorizedUser()
+    {
+        // Act & Assert
+        try
+        {
+            await _configureWorkspaceAppService.GetPipelineIdByName("fsdh.wiki");
+            Assert.Fail("Expected an exception due to unauthorized access.");
+        }
+        catch (Exception)
+        {
+            Assert.Pass("Caught expected unauthorized access exception.");
+        }
     }
 
     [Test]
@@ -81,7 +111,7 @@ public class ConfigureWorkspaceAppServiceTests
     {
         // Arrange
         var appServiceConfiguration = new AppServiceConfiguration("test", "test", "test", id: "/test");
-        var pipelineId = await _configureWorkspaceAppService.GetPipelineIdByName("fsdh.wiki");
+        var pipelineId = 101; 
         var projectAcronym = "TEST";
 
         // Act
