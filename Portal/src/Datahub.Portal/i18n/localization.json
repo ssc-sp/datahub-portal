@@ -2107,5 +2107,6 @@
   "All data or information of business value in the workspace has been migrated to the departmental repositories.": "All data or information of business value in the workspace has been migrated to the departmental repositories.",
   "Data or information in the workspace is not subject to a litigation hold.": "Data or information in the workspace is not subject to a litigation hold.",
   "Data or information in the workspace does not have archival value according to the Disposition Authorization issued by Library and Archives Canada.": "Data or information in the workspace does not have archival value according to the Disposition Authorization issued by Library and Archives Canada.",
-  "I confirm the data, information, applications, notebooks, storage, etc. can be removed from the workspace, and the workspace can be deleted. Once deleted, the data cannot be recovered.": "I confirm the data, information, applications, notebooks, storage, etc. can be removed from the workspace, and the workspace can be deleted. Once deleted, the data cannot be recovered."
+  "I confirm the data, information, applications, notebooks, storage, etc. can be removed from the workspace, and the workspace can be deleted. Once deleted, the data cannot be recovered.": "I confirm the data, information, applications, notebooks, storage, etc. can be removed from the workspace, and the workspace can be deleted. Once deleted, the data cannot be recovered.",
+  "There are no users matching the current filter.": "There are no users matching the current filter."
 }
