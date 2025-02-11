@@ -56,6 +56,9 @@ public static class TerraformVariables
     public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
     public const string AzureLogWorkspaceId = "log_workspace_id";
 
+    // Postgres related variables
+    public const string PsqlSku = "psql_sku";
+
     /// <summary>
     /// Default outbound IP address for the Datahub Portal
     /// </summary>

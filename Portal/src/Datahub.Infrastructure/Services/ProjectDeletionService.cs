@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Datahub.Shared.Entities;
 using Datahub.Shared;
 using Google.Api.Gax.ResourceNames;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Infrastructure.Services
 {
@@ -20,12 +21,10 @@ namespace Datahub.Infrastructure.Services
         IResourceMessagingService resourceMessagingService
         ) : IProjectDeletionService
     {
-        public async Task<bool> DeleteWorkspace(string acronym)
+        public async Task<bool> DeleteWorkspace(string acronym, Project_Delete_Questionnaire questionnaire)
         {
-
             try
             {
-                var currentUser = await userInformationService.GetCurrentPortalUserAsync();
                 await using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
 
                 var resources = await ctx.Project_Resources2
@@ -37,13 +36,28 @@ namespace Datahub.Infrastructure.Services
 
                 foreach (var resource in resources)
                 {
+                    if (questionnaire.Project is null)
+                    {
+                        questionnaire.Project = resource.Project;
+                    }
+
                     resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
+                    resource.Project.Deleted_DT = resource.Project.Deleted_DT ?? DateTime.Now;
                     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
                     {
                         rgName = resource.Project.GetResourceGroupName();
                     }
                     ctx.Project_Resources2.Update(resource);
                 }
+
+                
+                
+                var currentUser = await userInformationService.GetCurrentPortalUserAsync();
+                questionnaire.DeletedDate = DateTime.Now;
+                questionnaire.DeletedBy = currentUser;
+
+                ctx.Attach(currentUser);
+                ctx.Project_Delete_Questionnaires.Add(questionnaire);
 
                 await ctx.SaveChangesAsync(CancellationToken.None);
 
