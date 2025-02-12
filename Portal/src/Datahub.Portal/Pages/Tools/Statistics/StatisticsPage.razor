@@ -109,6 +109,14 @@
 <MudStack>
     <MudText Typo="Typo.h2">DataHub Statistics</MudText>
     <MudText>This page shows statistics about the DataHub.</MudText>
+    <MudText Typo="Typo.h2">
+        @Localizer["BLAH"]
+    </MudText>
+    <MudSpacer />
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download"
+    OnClick="HandleDownload" Class="mr-4">
+        @Localizer["Download to CSV"]
+    </DHButton>
 
     <MudTable Sortable="true" T="DatahubProjectStatsRow" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info" ServerData="LoadWorkspaceChecks" @ref="workspaceHealthTable">
         <HeaderContent>
@@ -117,12 +125,12 @@
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
-                <MudTextField Value="_searchString"
-                              ValueChanged="SearchStringChanged"
-                              DebounceInterval="300"
-                              Label=""
-                              T="string"
-                              Immediate="true" />
+                <MudTextField Value="searchAcronym"
+                ValueChanged="SearchAcronymChanged"
+                DebounceInterval="300"
+                Label=""
+                T="string"
+                Immediate="true" />
             </MudTh>
             @*             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Full Name</MudTableSortLabel>
@@ -131,38 +139,37 @@
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Leads))">Department(s)</MudTableSortLabel>
             </MudTh> *@
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.AllUsers))">Lead(s)</MudTableSortLabel>
-                <MudSelect T="string" Variant="Variant.Text" Dense="true">
-                    @foreach (var state in _states)
-                    {
-                        <MudSelectItem Value="state">@state</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Leads))">Department(s)</MudTableSortLabel>
+                <MudTextField Value="searchLead"
+                ValueChanged="SearchLeadChanged"
+                DebounceInterval="300"
+                Label=""
+                T="string"
+                Immediate="true" />
             </MudTh>
             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
-                <MudSelect T="string" Variant="Variant.Text" Dense="true">
-                    @foreach (var state in _states)
-                    {
-                        <MudSelectItem Value="state">@state</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudNumericField Value="percentBudget"
+                ValueChanged="PercentBudgetChanged"
+                DebounceInterval="300"
+                Label=""
+                T="int"
+                Immediate="true"
+                Min="0"/>
             </MudTh>
-            <MudTh>
+@*             <MudTh>
                 <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.MetadataComplete))">Metadata</MudTableSortLabel>
-                <MudSelect T="string" Variant="Variant.Text" Dense="true">
-                    @foreach (var state in _states)
-                    {
-                        <MudSelectItem Value="state">@state</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudTh>
+            </MudTh> *@
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.StorageStatus))">Provisioned Tools</MudTableSortLabel>
-                <MudSelect T="string" Variant="Variant.Text" Dense="true">
-                    @foreach (var state in _states)
+                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.ProvisionedResources))">Provisioned Tools</MudTableSortLabel>
+                <MudSelect T="string"
+                Value="selectedType"
+                ValueChanged=SelectedTypeChanged
+                Variant="Variant.Text" Dense="true">
+                    <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
+                    @foreach (var status in _resources)
                     {
-                        <MudSelectItem Value="state">@state</MudSelectItem>
+                        <MudSelectItem T="string" Value="status">@Localizer[status.ToString()]</MudSelectItem>
                     }
                 </MudSelect>
             </MudTh>
@@ -201,9 +208,9 @@
                 }
             </MudTd> *@
             <MudTd DataLabel="Leads">
-                @foreach(var user in context.AllUsers)
+                @foreach (var department in context.Leads)
                 {
-                    <span>@user.User_Name</span>
+                    <span>@department</span>
                     <br />
                 }
             </MudTd>
@@ -221,7 +228,7 @@
                     }
                 </MudTooltip>
             </MudTd>
-            <MudTd DataLabel="Metadata">
+@*             <MudTd DataLabel="Metadata">
                 @if (context.MetadataComplete)
                 {
                     <DHIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
@@ -230,21 +237,18 @@
                 {
                     <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning" />
                 }
-            </MudTd>
-            <MudTd DataLabel="Storage">
-                @switch (context.StorageStatus)
+            </MudTd> *@
+            <MudTd DataLabel="Provisioned Tools">
+                @if(context.ProvisionedResources != null)
                 {
-                    case DatahubProjectStatsRow.ResourceStatus.Complete:
-                        <DHIcon Icon="@Icons.Material.Filled.Check" Color="@Color.Success" />
-                        break;
-                    case DatahubProjectStatsRow.ResourceStatus.Requested:
-                        <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="@Color.Warning" />
-                        break;
-                    case DatahubProjectStatsRow.ResourceStatus.None:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
+                    @foreach (var user in context.ProvisionedResources)
+                    {
+                        <span> @GetLabel(user.ResourceType)</span>
+                        <br />
+                        Console.WriteLine(user);
+                    }
                 }
+
             </MudTd>
         </RowTemplate>
 
@@ -382,26 +386,22 @@
     private List<DatahubProjectStatsRow> _filteredItems = new();
     private List<DatahubProjectStatsRow> _workspaceInfrastructureHealthData = new();
 
-    private string _searchString = "";
+    private string searchAcronym = "", searchLead = "";
+    private int percentBudget = -1;
+    private string? selectedType;
 
     private MudTable<DatahubProjectStatsRow> workspaceHealthTable;
 
 
-
-
-    private string[] _states =
-    {
-        "Alabama", "Alaska", "Arizona", "Arkansas", "California",
-        "Colorado", "Connecticut", "Delaware", "Florida", "Georgia",
-        "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas",
-        "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts",
-        "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana",
-        "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico",
-        "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma",
-        "Oregon", "Pennsylvania", "Rhode Island", "South Carolina", "South Dakota",
-        "Tennessee", "Texas", "Utah", "Vermont", "Virginia",
-        "Washington", "West Virginia", "Wisconsin", "Wyoming"
-    };
+    private List<string> _resources =
+    [
+        TerraformTemplate.AzureDatabricks,
+    TerraformTemplate.AzureStorageBlob,
+    TerraformTemplate.AzureAppService,
+    TerraformTemplate.AzurePostgres,
+    TerraformTemplate.AzureArcGis,
+    TerraformTemplate.AzureAPI
+    ];
 
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -417,9 +417,10 @@
             const int numberOfDays = 7;
 
 
-            _workspaceInfrastructureHealthData = context.Projects
+            _statsRows = context.Projects
                 .Include(p => p.Credits)
                 .Include(p => p.Users)
+                //.Include(p => p.Resources)
                 // .Include(p => p.ProjectRequestAudits)
                 .AsEnumerable()
                 .Select(p => new DatahubProjectStatsRow()
@@ -433,7 +434,7 @@
                     CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
 
                         AllUsers = p.Users?.ToList(),
-                        ProvisionedResources = p.Resources?.FirstOrDefault(),
+                        ProvisionedResources = p.Resources?.ToList(),
 
                     Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
                     Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
@@ -449,16 +450,36 @@
                 })
                 .ToList();
 
+            _workspaceInfrastructureHealthData = _statsRows;
+
             _isLoading = false;
             StateHasChanged();
         }
     }
 
-
-
-    private async Task SearchStringChanged(string search)
+    private async Task SelectedTypeChanged(string resource)
     {
-        _searchString = search;
+        selectedType = resource;
+        await ReloadWorkspaceHealthCheckTableAsync();
+    }
+
+
+
+    private async Task SearchAcronymChanged(string search)
+    {
+        searchAcronym = search;
+        await ReloadWorkspaceHealthCheckTableAsync();
+    }
+
+    private async Task SearchLeadChanged(string search)
+    {
+        searchLead = search;
+        await ReloadWorkspaceHealthCheckTableAsync();
+    }
+
+    private async Task PercentBudgetChanged(int percent)
+    {
+        percentBudget = percent;
         await ReloadWorkspaceHealthCheckTableAsync();
     }
 
@@ -474,13 +495,38 @@
     {
         var filteredData = _workspaceInfrastructureHealthData.AsEnumerable();
 
+        // Apply type filter
+        // if (!string.IsNullOrEmpty(selectedType))
+        // {
+        //     filteredData = filteredData.Where(check => check.ProvisionedResources.Contains(selectedType));
+        // }
+
 
         // Apply search filter
-        if (!string.IsNullOrEmpty(_searchString))
+        if (!string.IsNullOrEmpty(searchAcronym))
         {
-            filteredData = filteredData.Where(check => check.Acronym.Contains(_searchString, StringComparison.OrdinalIgnoreCase));
+            filteredData = filteredData.Where(check => check.Acronym.Contains(searchAcronym, StringComparison.OrdinalIgnoreCase));
         }
 
+        //Apply budget filter
+        if (percentBudget > -1)
+        {
+            filteredData = filteredData.Where(check => (check.BudgetRemaining) <= percentBudget);
+        }
+        
+        // Apply sorting
+        if (state.SortDirection != SortDirection.None)
+        {
+            Func<DatahubProjectStatsRow, object> sortBy = state.SortLabel switch
+            {
+                nameof(DatahubProjectStatsRow.Acronym) => x => x.Acronym,
+                nameof(DatahubProjectStatsRow.Name) => x => x.Name,
+                nameof(DatahubProjectStatsRow.BudgetRemaining) => x => x.BudgetRemaining,
+                _ => x => x.Name
+            };
+
+            filteredData = filteredData.OrderByDirection(state.SortDirection, sortBy);
+        }
 
         // Apply pagination
         var totalItems = filteredData.Count();
@@ -492,11 +538,11 @@
         return await Task.FromResult(new TableData<DatahubProjectStatsRow> { TotalItems = totalItems, Items = pagedData });
     }
 
-
-
-
-
-
+    private void ShowUsersPressed(int projectId)
+    {
+        var row = _statsRows.First(r => r.ProjectId == projectId);
+        row.ShowUserDetails = !row.ShowUserDetails;
+    }
 
     private static decimal GetLastXDaysOfCosts(Project_Credits projectCredits, int days)
     {
@@ -511,18 +557,6 @@
         return cost;
     }
 
-
-    private void ShowUsersPressed(int projectId)
-    {
-        var row = _statsRows.First(r => r.ProjectId == projectId);
-        row.ShowUserDetails = !row.ShowUserDetails;
-    }
-
-    private void ShowBudgetPressed(int projectId)
-    {
-        var row = _statsRows.First(r => r.ProjectId == projectId);
-        row.ShowBudgetDetails = !row.ShowBudgetDetails;
-    }
 
     private string GetOrg(string email)
     {
@@ -562,11 +596,25 @@
         }
     }
 
+    private string GetLabel(string tool)
+    {
+        return tool switch
+        {
+            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
+            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
+            TerraformTemplate.AzureAppService => Localizer["Web Application"],
+            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
+            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
+            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
+            _ => tool
+        };
+    }
 
+    // CSV download
     private async Task HandleDownload()
     {
         var fileStream = GenerateCsvStream();
-        var fileName = $"WorkspaceCosts_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+        var fileName = $"WorkspaceStatistics_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
         using var streamReference = new DotNetStreamReference(stream: fileStream);
         await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
     }

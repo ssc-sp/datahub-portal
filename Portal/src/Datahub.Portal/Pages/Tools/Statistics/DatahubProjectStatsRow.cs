@@ -9,8 +9,8 @@ public class DatahubProjectStatsRow
     public string Name { get; set; }
     public string Acronym { get; set; }
     
-    public List<Datahub_Project_User> AllUsers { get; set; }
-    public Project_Resources2 ProvisionedResources { get; set; }
+    public List<string> AllUsers { get; set; }
+    public IList<Project_Resources2> ProvisionedResources { get; set; }
     public List<string> Leads { get; set; }
     public List<string> Admins { get; set; }
     public List<string> Collaborators { get; set; }
