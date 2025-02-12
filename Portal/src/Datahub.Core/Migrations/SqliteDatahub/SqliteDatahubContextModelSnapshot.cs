@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.12");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1288,6 +1288,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT")
                         .HasAnnotation("Relational:JsonPropertyName", "Subject");
 
+                    b.Property<decimal>("WorkspaceBudget")
+                        .HasColumnType("TEXT")
+                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceBudget");
+
                     b.Property<string>("WorkspaceDescription")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -1919,6 +1923,45 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsUnique();
 
                     b.ToTable("Project_Credits", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DoesDataNotHaveArchivalValue")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDataMigrated")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDataNotSubjectToLitigation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeletionConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsWorkspaceNotRequired")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("Project_Delete_Questionnaires");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Resources2", b =>
@@ -2668,6 +2711,21 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasForeignKey("Datahub.Core.Model.Projects.Project_Credits", "ProjectId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("Project");
                 });
