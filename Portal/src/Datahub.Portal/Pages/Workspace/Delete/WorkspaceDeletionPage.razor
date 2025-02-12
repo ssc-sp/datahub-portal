@@ -2,6 +2,7 @@
 
 @using Datahub.Application.Services
 @using Datahub.Core.Extensions;
+@using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared
 @using Datahub.Shared.Entities
@@ -26,7 +27,12 @@
                         <MudText Typo="Typo.body1">
                             @Localizer["This action is permanent. Upon deletion, the workspace and all its resources will be deleted"]
                         </MudText>
-                        <MudText Typo="Typo.body1">
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsWorkspaceNotRequired" ValueChanged="@(e => HandleValueChanged(1))" Label="@Localizer["The workspace is no longer required."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsDataMigrated" ValueChanged="@(e => HandleValueChanged(2))" Label="@Localizer["All data or information of business value in the workspace has been migrated to the departmental repositories."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsDataNotSubjectToLitigation" ValueChanged="@(e => HandleValueChanged(3))" Label="@Localizer["Data or information in the workspace is not subject to a litigation hold."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.DoesDataNotHaveArchivalValue" ValueChanged="@(e => HandleValueChanged(4))" Label="@Localizer["Data or information in the workspace does not have archival value according to the Disposition Authorization issued by Library and Archives Canada."]"></MudCheckBox>
+                        <MudCheckBox T="bool" Value="@_questionnaire.IsDeletionConfirmed" ValueChanged="@(e => HandleValueChanged(5))" Label="@Localizer["I confirm the data, information, applications, notebooks, storage, etc. can be removed from the workspace, and the workspace can be deleted. Once deleted, the data cannot be recovered."]"></MudCheckBox>
+                        <MudText Typo="Typo.h5">
                             @Localizer["Please type {0} to confirm the deletion.", WorkspaceAcronym]
                         </MudText>
                         <MudGrid>
@@ -55,7 +61,7 @@
                     </DHButton>
                 </MudItem>
                 <MudItem xs="3">
-                    <DHButton Disabled="@_deleteRequested" Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
+                    <DHButton Disabled="@_disableDeleteButton" Variant="@Variant.Filled" Color="@Color.Error" OnClick="@ConfirmDeletion">
                         @_deleteButtonText
                         <DHIcon Icon="@SidebarIcons.Delete" Class="ml-2" Style="font-size: 0.8rem;" />
                     </DHButton>
@@ -80,12 +86,13 @@
     private string _error = "";
     private string _settingsPage => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Settings}";
     private bool _deleteRequested;
+    private bool _disableDeleteButton;
     private string _deleteButtonText = "Delete Workspace";
+    private Project_Delete_Questionnaire _questionnaire = new Project_Delete_Questionnaire();
+
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         var newProjectTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         var newTemplateResource = await ctx.Project_Resources2.Where(
@@ -93,9 +100,13 @@
                     r.ResourceType == newProjectTemplateType)
                .FirstOrDefaultAsync();
 
+        if (newTemplateResource != null)
+        {
+            _deleteRequested = newTemplateResource.Status == TerraformStatus.DeleteRequested || newTemplateResource.Status == TerraformStatus.Deleted;
+        }
 
-        _deleteRequested = newTemplateResource != null && newTemplateResource.Status == TerraformStatus.DeleteRequested;
-        _deleteButtonText = _deleteRequested ? Localizer["Delete Requested"] : Localizer["Delete Workspace"];
+        _deleteButtonText = _deleteRequested ? Localizer["Deleted"] : Localizer["Delete Workspace"];
+        _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();        
 
         if (WorkspaceAcronym == null)
         {
@@ -103,7 +114,42 @@
             _navigationManager.NavigateTo(_settingsPage);
             return;
         }
+    }
 
+    private bool IsQuestionnaireComplete()
+    {
+        return _questionnaire.IsWorkspaceNotRequired &&
+                _questionnaire.IsDataMigrated &&
+                _questionnaire.IsDataNotSubjectToLitigation &&
+                _questionnaire.DoesDataNotHaveArchivalValue &&
+                _questionnaire.IsDeletionConfirmed;        
+    }
+
+    private void HandleValueChanged(int questionNumber)
+    {
+        switch (questionNumber)
+        {
+            case 1:
+                _questionnaire.IsWorkspaceNotRequired = !_questionnaire.IsWorkspaceNotRequired;
+                break;
+            case 2:
+                _questionnaire.IsDataMigrated = !_questionnaire.IsDataMigrated;
+                break;
+            case 3:
+                _questionnaire.IsDataNotSubjectToLitigation = !_questionnaire.IsDataNotSubjectToLitigation;
+                break;
+            case 4:
+                _questionnaire.DoesDataNotHaveArchivalValue = !_questionnaire.DoesDataNotHaveArchivalValue;
+                break;
+            case 5:
+                _questionnaire.IsDeletionConfirmed = !_questionnaire.IsDeletionConfirmed;
+                break;
+            default:
+                throw new InvalidOperationException($"Question {questionNumber} not found");
+                break;
+        }        
+
+        _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();
     }
 
     private async void ConfirmDeletion()
@@ -124,8 +170,8 @@
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
 
-            var isRecentLinksCleaned = await _projectDeletionService.CleanWorkspaceFromRecentLinks(WorkspaceAcronym);
-            _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym);
+            var isRecentLinksCleaned = await _projectDeletionService.CleanWorkspaceFromRecentLinks(WorkspaceAcronym);            
+            _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym, _questionnaire);
 
             if (_deleteRequested)
             {

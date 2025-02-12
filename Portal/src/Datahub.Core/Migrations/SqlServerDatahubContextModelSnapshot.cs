@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.10")
+                .HasAnnotation("ProductVersion", "8.0.12")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1331,6 +1331,10 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "Subject");
 
+                    b.Property<decimal>("WorkspaceBudget")
+                        .HasColumnType("decimal(18,2)")
+                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceBudget");
+
                     b.Property<string>("WorkspaceDescription")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
@@ -1839,6 +1843,9 @@ namespace Datahub.Core.Migrations
                     b.Property<bool>("IsDataApprover")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsDataSteward")
+                        .HasColumnType("bit");
+
                     b.Property<int?>("PortalUserId")
                         .HasColumnType("int");
 
@@ -1979,6 +1986,47 @@ namespace Datahub.Core.Migrations
                     b.ToTable("Project_Credits", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("DoesDataNotHaveArchivalValue")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDataMigrated")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDataNotSubjectToLitigation")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeletionConfirmed")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsWorkspaceNotRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("Project_Delete_Questionnaires");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Resources2", b =>
                 {
                     b.Property<Guid>("ResourceId")
@@ -2059,25 +2107,25 @@ namespace Datahub.Core.Migrations
                         new
                         {
                             Id = 1,
-                            Description = "Revoke the user's access to the project's private resources",
+                            Description = "Revoke the user's access to the workspace",
                             Name = "Remove User"
                         },
                         new
                         {
                             Id = 2,
-                            Description = "Head of the business unit and bears business responsibility for successful implementation and availability",
+                            Description = "Head of the workspace and bears business responsibility for success of the workspace",
                             Name = "Workspace Lead"
                         },
                         new
                         {
                             Id = 3,
-                            Description = "Management authority within the project with direct supervision over the project resources and deliverables",
+                            Description = "Management authority within the workspace with direct supervision over the cloud resourcing and users",
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 4,
-                            Description = "Responsible for contributing to the overall project objectives and deliverables to ensure success",
+                            Description = "Responsible for contributing to the overall workspace objectives and deliverables",
                             Name = "Collaborator"
                         },
                         new
@@ -2740,6 +2788,21 @@ namespace Datahub.Core.Migrations
                         .HasForeignKey("Datahub.Core.Model.Projects.Project_Credits", "ProjectId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("Project");
                 });
