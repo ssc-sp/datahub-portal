@@ -170,6 +170,7 @@
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
 
+            var isRecentLinksCleaned = await _projectDeletionService.CleanWorkspaceFromRecentLinks(WorkspaceAcronym);            
             _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym, _questionnaire);
 
             if (_deleteRequested)
