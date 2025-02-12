@@ -102,11 +102,12 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
-            var savedToBlob = await SaveRequestToBlob(body);
+            var requestId = Guid.NewGuid().ToString();
+            var savedToBlob = await SaveRequestToBlob(body, requestId);
 
             if (savedToBlob is UnauthorizedResult)
             {
-                _logger.LogError("Failed to save request to blob storage.");
+                _logger.LogError($"Failed to save request to blob storage. request id {requestId}");
                 return savedToBlob;
             }
             _logger.LogInformation("Saved request to blob storage.");
@@ -170,15 +171,14 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    private async Task<IActionResult> SaveRequestToBlob(string request)
+    private async Task<IActionResult> SaveRequestToBlob(string request, string requestId)
     {
         if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
             return Unauthorized("No token available");
-
         var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
             .CreateCloudBlobClient()
             .GetContainerReference("hosting-requests")
-            .GetBlockBlobReference(Guid.NewGuid().ToString());
+            .GetBlockBlobReference(requestId);
 
         await blobReference.UploadTextAsync(request);
         return Ok();
