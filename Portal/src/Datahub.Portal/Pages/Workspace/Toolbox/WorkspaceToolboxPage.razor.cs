@@ -1,4 +1,5 @@
-﻿using Datahub.Portal.Layout;
+﻿using Datahub.Infrastructure.Services.Toolbox;
+using Datahub.Portal.Layout;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using MudBlazor;
@@ -130,81 +131,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             _toolList.ForEach(tool =>
             {
-                if (_originalWorkspaceDefinition.Templates.All(template => template.Name != tool))
+                if (_workspaceDefinition.Templates.All(template => template.Name != tool))
                 {
                     _toolCatalog.Add(tool);
                 }
             });
         }
-
-        private void AddTool(string tool)
-        {
-            var toolToAdd = new TerraformTemplate(tool, TerraformStatus.CreateRequested);
-            var toolDependencies = TerraformTemplate.GetDependenciesToCreate(tool);
-            if (toolDependencies.Any())
-            {
-                toolDependencies.ForEach(dependency =>
-                {
-                    if (_originalWorkspaceDefinition.Templates.All(template => template.Name != dependency.Name))
-                    {
-                        _newWorkspaceDefinition.Templates.Add(dependency);
-                        _toolCatalog.Remove(dependency.Name);
-                        _toolsToAdd.Add(dependency.Name);
-                    }
-                });
-            }
-
-            _newWorkspaceDefinition.Templates.Add(toolToAdd);
-            _toolCatalog.Remove(tool);
-            _toolsToAdd.Add(tool);
-        }
-        
-        private void RevertAddTool(string tool)
-        {
-            var toolToRemove = _newWorkspaceDefinition.Templates.First(template => template.Name == tool);
-            _newWorkspaceDefinition.Templates.Remove(toolToRemove);
-            _toolCatalog.Add(tool);
-            _toolsToAdd.Remove(tool);
-        }
-
-        private void RemoveTool(string tool)
-        {
-            var toolToRemoveFromDefinition =
-                _originalWorkspaceDefinition.Templates.First(template => template.Name == tool);
-            _originalWorkspaceDefinition.Templates.Remove(toolToRemoveFromDefinition);
-            var toolToRemove = new TerraformTemplate(tool, TerraformStatus.DeleteRequested);
-            _newWorkspaceDefinition.Templates.Add(toolToRemove);
-            _toolsToRemove.Add(tool);
-        }
-        
-        private void RevertRemoveTool(string tool)
-        {
-            var toolToRemove = _newWorkspaceDefinition.Templates.First(template => template.Name == tool);
-            _newWorkspaceDefinition.Templates.Remove(toolToRemove);
-            var toolToRemoveOriginal = new TerraformTemplate(tool, TerraformStatus.Completed);
-            _toolsToRemove.Remove(tool);
-            _originalWorkspaceDefinition.Templates.Add(toolToRemoveOriginal);
-        }
-
-        private void ConfigureTool(string tool)
-        {
-            var toolToConfigure = _originalWorkspaceDefinition.Templates.First(template => template.Name == tool);
-            _originalWorkspaceDefinition.Templates.Remove(toolToConfigure);
-            _toolsToConfigure.Add(tool);
-            if (_newWorkspaceDefinition.Templates.All(template => template.Name != TerraformTemplate.VariableUpdate))
-            {
-                var  variableUpdate = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested);
-                _newWorkspaceDefinition.Templates.Add(variableUpdate);
-            }
-        }
-        
-        private void RevertConfigureTool(string tool)
-        {
-            var toolToConfigure = new TerraformTemplate(tool, TerraformStatus.Completed);
-            _toolsToConfigure.Remove(tool);
-            _originalWorkspaceDefinition.Templates.Add(toolToConfigure);
-        }
-
         #endregion
 
         private void ShowInfoSheet(string tool)
@@ -222,7 +154,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 FullWidth = true,
                 CloseOnEscapeKey = true,
                 CloseButton = true,
-                NoHeader = true,
+                NoHeader = false,
                 MaxWidth = MaxWidth.Large
             };
             _dialogService.Show<InfoSheet>(GetLabel(tool), infoParams, infoOptions);

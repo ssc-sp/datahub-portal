@@ -1,9 +1,14 @@
-﻿<MudDialog Style="width: 100%">
+﻿<MudDialog>
+    <TitleContent>
+        <MudStack Row AlignItems="AlignItems.Center">
+            <DHIcon Icon="@Icon"/>
+            <MudText Typo="Typo.h2">@Title</MudText>
+        </MudStack>
+    </TitleContent>
     <DialogContent>
-        <MudStack Class="pa-8">
+        <MudStack Class="pa-8" Style="min-height: 600px">
             <MudStack Row AlignItems="AlignItems.Center">
-                <DHIcon Icon="@Icon"/>
-                <MudText Typo="Typo.h2">@Title</MudText>
+
                 <MudSpacer/>
                 <MudStack Spacing="0">
                     <MudText Style="font-style: italic">@Category</MudText>
