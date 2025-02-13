@@ -20,7 +20,7 @@ namespace Datahub.Functions
             _configuration = configuration;
         }
         
-        private GraphServiceClient GetAuthenticatedGraphClient()
+        internal virtual GraphServiceClient GetAuthenticatedGraphClient()
         {
             var scopes = new[] { "https://graph.microsoft.com/.default" };
 

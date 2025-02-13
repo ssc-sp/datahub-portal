@@ -13,11 +13,24 @@ if (-Not $coverageFilePath) {
 # Read the entire file as a single string
 [xml]$coverageXml = Get-Content $coverageFilePath.FullName -Raw
 
-# Find and remove the class nodes for DirectFunctionExecutor
-$classesToRemove = $coverageXml.coverage.packages.package.classes.class | Where-Object { $_.name -like "Datahub.Functions.DirectFunctionExecutor*" }
+# Define the list of class name patterns to remove
+$classPatternsToRemove = @(
+    "Datahub.Functions.DirectFunctionExecutor*",
+    "Datahub.Functions.FunctionExecutorHostBuilderExtensions",
+    "Datahub.Functions.FunctionExecutorAutoStartup*",
+    "Datahub.Functions.FunctionExecutorHostBuilderExtensions*",
+    "Datahub.Functions.FunctionMetadataProviderAutoStartup*",
+    "Datahub.Functions.GeneratedFunctionMetadataProvider",
+    "Datahub.Functions.WorkerHostBuilderFunctionMetadataProviderExtension",
+    "Datahub.Functions.WorkerExtensionStartupCodeExecutor"
+)
 
-foreach ($class in $classesToRemove) {
-    $class.ParentNode.RemoveChild($class) | Out-Null
+# Find and remove the class nodes matching the patterns
+foreach ($pattern in $classPatternsToRemove) {
+    $classesToRemove = $coverageXml.coverage.packages.package.classes.class | Where-Object { $_.name -like $pattern }
+    foreach ($class in $classesToRemove) {
+        $class.ParentNode.RemoveChild($class) | Out-Null
+    }
 }
 
 # Save the modified XML back to the file
