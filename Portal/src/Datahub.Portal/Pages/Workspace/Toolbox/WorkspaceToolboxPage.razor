@@ -6,7 +6,7 @@
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
 @using Datahub.Infrastructure.Services.Toolbox
-@using Datahub.Portal.Pages.Account
+@using Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms
 
 @inherits ViewUserBase<WorkspaceToolboxPage>
 
@@ -145,7 +145,7 @@
                         <MudStack Spacing="4">
                             @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add || tr.Type == ToolboxTransactionType.Update))
                             {
-                                <MudPaper Elevation="0" Outlined Class="pa-4">
+                                <MudPaper Elevation="0" Outlined Class="pa-8">
                                     <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
                                         <DHIcon Icon="@GetIcon(transaction.Tool)" Size="Size.Large"/>
                                         <MudText Typo="Typo.h3">
@@ -156,29 +156,14 @@
                                         @switch (transaction.Tool)
                                         {
                                             case TerraformTemplate.AzurePostgres:
-                                            case TerraformTemplate.AzureAppService:
-                                                <SettingsField Label="@Localizer["Database tier"]"
-                                                               Description="@Localizer["Choose a tier for the compute of your database. This will affect the performance and cost of your database."]">
-                                                    <MudSelect T="string" Label="@Localizer["Database tier"]">
-                                                        <MudSelectItem
-                                                            Value="@basicTier">@Localizer["Basic"]</MudSelectItem>
-                                                        <MudSelectItem
-                                                            Value="@generalPurposeTier">@Localizer["General Purpose"]</MudSelectItem>
-                                                        <MudSelectItem
-                                                            Value="@memoryOptimizedTier">@Localizer["Memory Optimized"]</MudSelectItem>
-                                                    </MudSelect>
-                                                </SettingsField>
-                                                <SettingsField Label="@Localizer["Database size"]"
-                                                               Description="@Localizer["Choose the size of your database. This will affect the cost of your database"]">
-                                                    <MudSelect T="string" Label="@Localizer["Database size"]">
-                                                        <MudSelectItem
-                                                            Value="@basicTier">@Localizer["Basic"]</MudSelectItem>
-                                                        <MudSelectItem
-                                                            Value="@generalPurposeTier">@Localizer["General Purpose"]</MudSelectItem>
-                                                        <MudSelectItem
-                                                            Value="@memoryOptimizedTier">@Localizer["Memory Optimized"]</MudSelectItem>
-                                                    </MudSelect>
-                                                </SettingsField>
+                                                transaction.OriginalData = _workspaceDefinition.AppData.PostgresConfiguration ?? new PostgresConfiguration();
+                                                transaction.UpdatedData = new PostgresConfiguration { PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration?.PSQL_SKU ?? null };
+                                                <PostgresConfigurationForm Configuration="@transaction.UpdatedData"/>
+                                                break;
+                                            default:
+                                                <MudText Style="font-style: italic">
+                                                    @Localizer["No configuration available for this tool"]
+                                                </MudText>
                                                 break;
                                         }
                                     </MudStack>
@@ -346,10 +331,8 @@
     private Datahub_Project _workspace;
     private WorkspaceDefinition _workspaceDefinition;
     private PortalUser _viewedPortalUser;
-    private string basicTier = "Basic";
-    private string generalPurposeTier = "General Purpose";
-    private string memoryOptimizedTier = "Memory Optimized";
     private List<ToolboxTransaction> _transactions;
+    private PostgresConfiguration _postgresConfiguration = new();
 
     private List<string> _toolCatalog = new();
 
