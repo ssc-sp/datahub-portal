@@ -562,4 +562,13 @@ public class UserInformationService(
 
         return portalUser;
     }
+
+    public async Task<bool> CheckUserInTenant(string email)
+    {
+        PrepareAuthenticatedClient();
+        var users = await graphServiceClient.Users.GetAsync(
+            test => test.QueryParameters.Filter = $"mail eq '{email}'");
+        if (users?.Value != null) return users.Value.Count > 0;
+        return false;
+    }
 }
