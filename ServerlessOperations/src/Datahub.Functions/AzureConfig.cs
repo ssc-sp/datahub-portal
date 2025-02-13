@@ -25,6 +25,8 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public AzureDevOpsConfiguration AzureDevOpsConfiguration => _azureDevOpsConfiguration;
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
+
+    public bool EnableRollover => false;
     
     #region Inactivity
     
