@@ -26,7 +26,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
 
-    public bool EnableRollover => false;
+    public bool EnableRollover => _config.GetValue<bool>("EnableRollover", false);
     
     #region Inactivity
     
