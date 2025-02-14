@@ -60,29 +60,5 @@ namespace Datahub.Portal.Pages.Workspace.Database
             return workspace.DatahubAzureSubscription.SubscriptionId;
         }
 
-        /// <summary>
-        /// Loads list of compute resources available
-        /// see https://learn.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-compute
-        /// </summary>
-        /// <returns>List of Azure specifications</returns>
-        internal async Task<List<AzurePgsqlDBServer>> LoadSKUs()
-        {
-            try
-            {
-                var assembly = typeof(Program).Assembly;
-                var resourceName = "Datahub.Portal.Data.AzureFlexServers.json";
-
-                using var stream = assembly.GetManifestResourceStream(resourceName);
-                using var reader = new StreamReader(stream);
-                var jsonData = await reader.ReadToEndAsync();
-                var data = JsonConvert.DeserializeObject<List<AzurePgsqlDBServer>>(jsonData);
-                return data;
-            }
-            catch (Exception x)
-            {
-                _logger.LogError(x.Message);
-                return null;
-            }
-        }
     }
 }

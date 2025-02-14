@@ -97,8 +97,7 @@
         // get SKU 
         var postgresResource = await BuildPostgresSqlFlexibleServerResource();
 
-        var serverData = await postgresResource.GetAsync();
-        var skuList = await LoadSKUs();
+        var serverData = await postgresResource.GetAsync();        
         var instance = new AzurePgsqlDBServer();
         if (serverData.Value.HasData)
         {
