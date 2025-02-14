@@ -1,5 +1,6 @@
 ﻿@namespace Datahub.Portal.Pages.Workspace.Delete
 
+@using Datahub.Application.Services
 @using Datahub.Core.Services.Projects
 @using Datahub.Shared
 @using Datahub.Shared.Entities
@@ -9,6 +10,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
 
 @inject IRequestManagementService _requestManagementService
+@inject IProjectDeletionService _projectDeletionService
 @inject IUserInformationService _userInformationService
 
 <MudStack Class="px-4">
@@ -74,8 +76,8 @@
         await base.OnInitializedAsync();
 
         await using var ctx = await _contextFactory.CreateDbContextAsync();
-        
-        
+
+
         if (WorkspaceAcronym == null || SubSection == null)
         {
             _snackbar.Add(Localizer["Invalid parameters, redirecting"], Severity.Error);            
@@ -112,7 +114,9 @@
             var workspace = await ctx.Projects
                 .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            
+
+            var isRecentLinksCleaned = await _projectDeletionService.CleanResourceFromRecentLinks(SubSection, WorkspaceAcronym);
+
             var template = new TerraformTemplate(SubSection, TerraformStatus.DeleteRequested);
             await _requestManagementService.HandleTerraformRequestServiceAsync(workspace, template, currentUser);
             
