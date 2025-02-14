@@ -48,4 +48,8 @@
       <ReqnrollFeatureFiles Remove="features\workspace\WorkspaceStorageComponents.feature" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Features\GCHosting\requests\" />
+    </ItemGroup>
+
 </Project>
