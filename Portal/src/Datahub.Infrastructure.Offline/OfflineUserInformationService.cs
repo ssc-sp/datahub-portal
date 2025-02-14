@@ -238,4 +238,9 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult(false);
     }
+
+    public Task<bool> CheckUserInTenant(string email)
+    {
+        throw new NotImplementedException();
+    }
 }
