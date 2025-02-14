@@ -1,5 +1,6 @@
 @using Datahub.Application.Services.Security
 @using Datahub.Portal.Model
+@using Datahub.Shared.Entities
 @using Microsoft.Identity.Web
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -50,7 +51,7 @@
             <DHMarkdown Content="@_csharpConnectionInfo" LinkRewriter="@(link => link)"/>
         </MudTabPanel>
     </MudTabs>
-    
+
     <DatabaseIpWhitelistTable WorkspaceAcronym="@WorkspaceAcronym" />
 </MudStack>
 
@@ -102,14 +103,12 @@
         if (serverData.Value.HasData)
         {
             var sku = serverData.Value.Data.Sku.Name; // Typically, tier + family + cores, e.g. Standard_D4s_v3.
-            instance.SKU = sku;
             var parts = sku.Split('_');
             if (parts.Length > 0)
             {
-                var tier = parts[0];
-                var compute = sku.Replace(tier + "_", "");
-                var match = skuList.Where(x => x.SKU.Contains(compute)).FirstOrDefault();
-                if (match != null) instance = match;
+                var skuName = parts[1];
+                var postgresTiers = PostgresTier.GetPostgresTiers();
+                instance.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier();                 
             }
             instance.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
         }
