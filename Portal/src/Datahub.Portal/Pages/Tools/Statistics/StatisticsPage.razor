@@ -1,3 +1,4 @@
+@using Datahub.Application.Services
 @using Datahub.Portal.Pages.Workspace.Reports.Charts
 @using Datahub.Shared.Entities
 @using System.Text.Json
@@ -7,181 +8,102 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IJSRuntime _jsRuntime
-
-
-@* <MudDataGrid Items="@_statsRows" ReadOnly="@_isReadOnly" Filterable="true" Striped="true" FilterMode="DataGridFilterMode.ColumnFilterRow">
-    <ToolBarContent>
-        <MudText Typo="Typo.h2">
-            @Localizer["BLAH"]
-        </MudText>
-        <MudSpacer />
-        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download"
-        OnClick="HandleDownload" Class="mr-4">
-            @Localizer["Download to CSV"]
-        </DHButton>
-    </ToolBarContent>
-
-    <Columns>
-        <HierarchyColumn InitiallyExpandedFunc="@(x => false)"/>
-        <PropertyColumn Property="x => x.Acronym" Title="Workspace Acroynm"></PropertyColumn>
-        <TemplateColumn Title="Workspace Lead">
-            <CellTemplate>
-                @if(context.Item.Leads.Count > 0)
-                {
-                    foreach (var user in context.Item.Leads)
-                    {
-                        <div>@user</div>
-                    }
-                }
-
-                else
-                {
-                    <MudText>@Localizer["None"]</MudText>
-                }
-            </CellTemplate>
-        </TemplateColumn>
-        <PropertyColumn Property="x => Math.Round(x.BudgetRemaining, 2)" Title="Budget Remaining"></PropertyColumn>
-        <PropertyColumn Property="x => x.ProvisionedResources" Title="Provisioned Tools"></PropertyColumn>
-    </Columns>
-
-    <ChildRowContent>
-        <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h4">@context.Item.Name</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudStack Row="true">
-
-
-                </MudStack>
-
-
-                <MudText Typo="Typo.h6">@Localizer["Budget"]</MudText>
-
-                <MudText Typo="Typo.h6">@Localizer["Users"]</MudText>
-                <MudTable Items="@context.Item.AllUsers" Context="AllUsersContext" Elevation="0" Dense>
-                    <HeaderContent>
-                        <MudTh>
-                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                <strong>Name</strong>
-                            </MudTableSortLabel>
-                        </MudTh>
-                        <MudTh>
-                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                <strong>Department</strong>
-                            </MudTableSortLabel>
-                        </MudTh>
-                        <MudTh>
-                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                <strong>Role</strong>
-                            </MudTableSortLabel>
-                        </MudTh>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="AllUsers">
-                            @AllUsersContext.User_Name
-                        </MudTd>
-                        <MudTd DataLabel="Leads">
-                            @GetOrg(AllUsersContext.User_Name)
-                        </MudTd>
-                        <MudTd DataLabel="Leads">
-                            @GetRole(AllUsersContext.RoleId)
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
-
-                <MudText>
-
-                </MudText>
-            </MudCardContent>
-        </MudCard>
-    </ChildRowContent>
-
-    <PagerContent>
-        <MudDataGridPager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
-    </PagerContent>
-
-</MudDataGrid> *@
-
+@inject IProjectUserManagementService _projectUserManagementService
 
 <MudStack>
     <MudText Typo="Typo.h2">DataHub Statistics</MudText>
     <MudText>This page shows statistics about the DataHub.</MudText>
-    <MudText Typo="Typo.h2">
-        @Localizer["BLAH"]
-    </MudText>
     <MudSpacer />
-    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download"
-    OnClick="HandleDownload" Class="mr-4">
-        @Localizer["Download to CSV"]
-    </DHButton>
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">@Localizer["Download to CSV"]</DHButton>
 
-    <MudTable Sortable="true" T="DatahubProjectStatsRow" Hover="true" Loading="_isLoading" LoadingProgressColor="Color.Info" ServerData="LoadWorkspaceChecks" @ref="workspaceHealthTable">
+    <MudTable Sortable="true" T="DatahubProjectStatsRow" Striped="true" Loading="_isLoading" LoadingProgressColor="Color.Info" ServerData="LoadWorkspaceChecks" @ref="workspaceHealthTable">
+        <ToolBarContent>
+            <MudTextField Value="searchAcronym"
+            Placeholder=@Localizer["Search by workspace name or acronym"]
+            Adornment="Adornment.Start"
+            AdornmentIcon="@Icons.Material.Filled.Search"
+            IconSize="Size.Medium" Class="mt-0"
+            ValueChanged="SearchAcronymChanged"
+            DebounceInterval="300"
+            Label=""
+            T="string"
+            Immediate="true" />
+            <MudSpacer />
+            <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Dense="true" MultiSelection="true">
+                <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
+                @foreach (var status in _resources)
+                {
+                    <MudSelectItem T="string" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+                }
+            </MudSelect>
+            <MudSpacer />
+            <MudNumericField Value="numberUsers"
+            ValueChanged="NumberUsersChanged"
+            DebounceInterval="300"
+            Label="Minimum Users in Workspace"
+            T="int"
+            Immediate="true"
+            Min="0"/>
+        </ToolBarContent>
         <HeaderContent>
             <MudTh>
-                @* ShowMore button column *@
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
-                <MudTextField Value="searchAcronym"
-                ValueChanged="SearchAcronymChanged"
+                <MudTableSortLabel
+                    InitialDirection="SortDirection.Ascending"
+                    SortLabel="Workspace"
+                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
+
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel
+                    SortLabel="Department"
+                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Department))">Department</MudTableSortLabel>
+                @*                 <MudTextField Value="searchDepartment"
+                ValueChanged="SearchDepartmentChanged"
                 DebounceInterval="300"
                 Label=""
                 T="string"
-                Immediate="true" />
-            </MudTh>
-            @*             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Full Name</MudTableSortLabel>
+                Immediate="true" /> *@
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Leads))">Department(s)</MudTableSortLabel>
-            </MudTh> *@
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Leads))">Department(s)</MudTableSortLabel>
-                <MudTextField Value="searchLead"
-                ValueChanged="SearchLeadChanged"
-                DebounceInterval="300"
-                Label=""
-                T="string"
-                Immediate="true" />
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
-                <MudNumericField Value="percentBudget"
+                <MudTableSortLabel
+                    SortLabel="BudgetRemaining"
+                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
+                @* <MudNumericField Value="percentBudget"
                 ValueChanged="PercentBudgetChanged"
                 DebounceInterval="300"
-                Label=""
+                Label="% Budget Remaining"
                 T="int"
                 Immediate="true"
-                Min="0"/>
+                AdornmentIcon="@Icons.Material.Filled.Percent"
+                Min="0"/> *@
             </MudTh>
-@*             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.MetadataComplete))">Metadata</MudTableSortLabel>
-            </MudTh> *@
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.ProvisionedResources))">Provisioned Tools</MudTableSortLabel>
-                <MudSelect T="string"
-                Value="selectedType"
-                ValueChanged=SelectedTypeChanged
-                Variant="Variant.Text" Dense="true">
+                <MudTableSortLabel
+                    SortLabel="ProvisionedTools" 
+                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.ProvisionedResources))">Provisioned Tools</MudTableSortLabel>
+                @* <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Dense="true" MultiSelection="true">
                     <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
                     @foreach (var status in _resources)
                     {
                         <MudSelectItem T="string" Value="status">@Localizer[status.ToString()]</MudSelectItem>
                     }
-                </MudSelect>
+                </MudSelect> *@
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel
+                    SortLabel="LastLogin"
+                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.LastLogin))">Last User Login</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
 
-
         <RowTemplate>
             <MudTd DataLabel="ShowMore">
-                <DHButton Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId))">
+                <DHButton Size="Size.Small" OnClick="@(() => ShowUsersPressed(context.ProjectId, context.Acronym))">
                     @if(context.ShowUserDetails)
                     {
-                        <MudIcon Icon="fa fa-chevron-right"></MudIcon>
+                        <MudIcon Icon="fa fa-chevron-right" Size="Size.Medium"></MudIcon>
                     }
                     else
                     {
@@ -195,177 +117,118 @@
                     <strong> @context.Acronym </strong>
                 </DHButton>
             </MudTd>
-            @*             <MudTd DataLabel="FullName">
-                @context.Name
-            </MudTd>
-            <MudTd DataLabel="Departments">
-                @GetOrg(AllUsersContext.User_Name)
-                @foreach (var department in context.Leads)
+            <MudTd DataLabel="Department">
+                @if(context.Department != context.Acronym)
                 {
-                    <span>@GetOrg(department.User_Name)</span>
-                    <br/>
-                    break;
-                }
-            </MudTd> *@
-            <MudTd DataLabel="Leads">
-                @foreach (var department in context.Leads)
-                {
-                    <span>@department</span>
-                    <br />
+                    @context.Department
                 }
             </MudTd>
-            <MudTd DataLabel="Budget">
+            <MudTd DataLabel="Budget Remaining">
                 <MudTooltip Text="@($"{context.BudgetSpent.ToString("C", CultureInfo.CurrentCulture)} / {context.BudgetLimit.ToString("C", CultureInfo.CurrentCulture)}")">
                     @if(context.BudgetRemaining < 0)
                     {
-                        <MudAlert>
+                        <MudText Style="color: red;">
                             @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
-                        </MudAlert>
+                        </MudText>
                     }
                     else
                     {
-                        @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
+                        <MudText>
+                            @context.BudgetRemaining.ToString("C", CultureInfo.CurrentCulture)
+                        </MudText>
                     }
                 </MudTooltip>
             </MudTd>
-@*             <MudTd DataLabel="Metadata">
-                @if (context.MetadataComplete)
-                {
-                    <DHIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
-                }
-                else
-                {
-                    <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning" />
-                }
-            </MudTd> *@
             <MudTd DataLabel="Provisioned Tools">
-                @if(context.ProvisionedResources != null)
+                @foreach(var tool in context.ProvisionedResources)
                 {
-                    @foreach (var user in context.ProvisionedResources)
-                    {
-                        <span> @GetLabel(user.ResourceType)</span>
-                        <br />
-                        Console.WriteLine(user);
-                    }
+                    <MudText>
+                        @GetLabel(tool.ResourceType)
+                    </MudText>
                 }
-
+            </MudTd>
+            <MudTd DataLabel="Last User Login">
+                @if(context.LastLogin > new DateTime(2023, 01, 01))
+                {
+                    @context.LastLogin
+                }
             </MudTd>
         </RowTemplate>
 
         <ChildRowContent>
             @if (context.ShowUserDetails)
             {
-                <MudTr>
-                    <td colspan="7">
-                        <MudCard Elevation="0">
-                            <MudCardHeader>
-                                <CardHeaderContent>
-                                    <MudText Typo="Typo.body1">User details for <strong>@context.Name</strong></MudText>
-                                </CardHeaderContent>
-                            </MudCardHeader>
-                            <MudCardContent class="pl-6 py-0 pr-0">
-                                <MudTable Items="@context.AllUsers" Context="AllUsersContext" Elevation="0" Dense Style="background-color: grey;">
-                                    <HeaderContent>
-                                        <MudTh>
-                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Name</strong>
-                                            </MudTableSortLabel>
-                                        </MudTh>
-                                        <MudTh>
-                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Email</strong>
-                                            </MudTableSortLabel>
-                                        </MudTh>
-                                        <MudTh>
-                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Role</strong>
-                                            </MudTableSortLabel>
-                                        </MudTh>
-                                    </HeaderContent>
-                                    <RowTemplate>
-                                        <MudTd DataLabel="AllUsers" Style="background-color: lightgrey;">
-                                            @AllUsersContext.User_Name
-                                            <br />
-                                            Gecelovsky, Siovan
-                                        </MudTd>
-                                        <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
-                                            @AllUsersContext.ProjectUser_ID
-                                            <br />
-                                            siovan.gecelovsky@ssc-spc.gc.ca
-                                        </MudTd>
-                                        <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
-                                            @AllUsersContext.IsAdmin
-                                            <br />
-                                            Admin
-                                        </MudTd>
-                                    </RowTemplate>
-                                </MudTable>
-                            </MudCardContent>
-                        </MudCard>
-                    </td>
-                </MudTr>
-            }
 
-            @if (context.ShowBudgetDetails)
-            {
                 <MudTr>
                     <td colspan="7">
                         <MudCard Elevation="0">
                             <MudCardHeader>
                                 <CardHeaderContent>
-                                    <MudText Typo="Typo.body1">Budget details for <strong>@context.Name</strong></MudText>
+                                    <MudText Typo="Typo.body1">Details for <strong>@context.Name</strong></MudText>
                                 </CardHeaderContent>
                             </MudCardHeader>
                             <MudCardContent class="pl-6 py-0 pr-0">
-                                <MudTable Items="@context.Leads" Context="LeadContext" Elevation="0" Dense>
-                                    <HeaderContent>
-                                        <MudTh>
-                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Cost of last 7 days</strong>
-                                            </MudTableSortLabel>
-                                        </MudTh>
-                                    </HeaderContent>
-                                    <RowTemplate>
-                                        <MudTd DataLabel="Leads">
-                                            @LeadContext
-                                        </MudTd>
-                                    </RowTemplate>
-                                </MudTable>
-                                <MudTable Items="@context.Admins" Context="AdminContext" Elevation="0" Dense>
-                                    <HeaderContent>
-                                        <MudTh>
-                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Budget</strong>
-                                            </MudTableSortLabel>
-                                        </MudTh>
-                                    </HeaderContent>
-                                    <RowTemplate>
-                                        <MudTd DataLabel="Admins">
-                                            @AdminContext
-                                        </MudTd>
-                                    </RowTemplate>
-                                </MudTable>
-                                <MudTable Items="@context.Collaborators" Context="CollaboratorContext" Elevation="0" Dense>
-                                    <HeaderContent>
-                                        <MudTh>
-                                            <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
-                                                <strong>Provisioned Resources</strong>
-                                            </MudTableSortLabel>
-                                        </MudTh>
-                                    </HeaderContent>
-                                    <RowTemplate>
-                                        <MudTd DataLabel="Collaborators">
-                                            @CollaboratorContext
-                                        </MudTd>
-                                    </RowTemplate>
-                                </MudTable>
+                                @Localizer["Cost of last 7 days: "] @context.CostOfLastXDays.ToString("C", CultureInfo.CurrentCulture)
+                                <br/>
+                                @Localizer["Metadata status: "]
+                                @if(context.MetadataComplete)
+                                {
+                                    
+                                }
+                                @if(context.AllUsers != null && context.AllUsers.Any())
+                                {
+                                    <MudTable Items="@context.AllUsers" Context="AllUsersContext" Elevation="0" Sortable="true" Dense Style="background-color: grey;">
+                                        <HeaderContent>
+                                            <MudTh>
+                                                <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                    <strong>Name</strong>
+                                                </MudTableSortLabel>
+                                            </MudTh>
+                                            <MudTh>
+                                                <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                    <strong>Email</strong>
+                                                </MudTableSortLabel>
+                                            </MudTh>
+                                            <MudTh>
+                                                <MudTableSortLabel SortBy="@(new Func<string, object>(x => x))">
+                                                    <strong>Role</strong>
+                                                </MudTableSortLabel>
+                                            </MudTh>
+                                        </HeaderContent>
+                                        <RowTemplate>
+                                            @if (AllUsersContext.RoleId == 1)
+                                            {
+                                                <MudTd DataLabel="AllUsers" Style="background-color: lightcoral;">
+                                                    @AllUsersContext.PortalUser.DisplayName
+                                                </MudTd>
+                                                <MudTd DataLabel="Leads" Style="background-color: lightcoral;">
+                                                    @AllUsersContext.PortalUser.Email
+                                                </MudTd>
+                                                <MudTd DataLabel="Leads" Style="background-color: lightcoral;">
+                                                    @GetRole(AllUsersContext.RoleId)
+                                                </MudTd>
+                                            }
+                                            else
+                                            {
+                                                <MudTd DataLabel="AllUsers" Style="background-color: lightgrey;">
+                                                    @AllUsersContext.PortalUser.DisplayName
+                                                </MudTd>
+                                                <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
+                                                    @AllUsersContext.PortalUser.Email
+                                                </MudTd>
+                                                <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
+                                                    @GetRole(AllUsersContext.RoleId)
+                                                </MudTd>
+                                            }
+                                        </RowTemplate>
+                                    </MudTable>
+                                }
                             </MudCardContent>
                         </MudCard>
                     </td>
                 </MudTr>
             }
         </ChildRowContent>
-
 
         <PagerContent>
             <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
@@ -387,20 +250,28 @@
     private List<DatahubProjectStatsRow> _workspaceInfrastructureHealthData = new();
 
     private string searchAcronym = "", searchLead = "";
-    private int percentBudget = -1;
-    private string? selectedType;
+    private int percentBudget = 0, numberUsers = 0;
+
+    private IEnumerable<string> selectedResources = new HashSet<string>();
 
     private MudTable<DatahubProjectStatsRow> workspaceHealthTable;
+
+    private List<Datahub_Project_User> userz;
 
 
     private List<string> _resources =
     [
-        TerraformTemplate.AzureDatabricks,
-    TerraformTemplate.AzureStorageBlob,
-    TerraformTemplate.AzureAppService,
-    TerraformTemplate.AzurePostgres,
-    TerraformTemplate.AzureArcGis,
-    TerraformTemplate.AzureAPI
+        "new-project-template",
+    "azure-storage-blob",
+    "azure-databricks",
+    "azure-app-service",
+    "azure-postgres"
+    //     TerraformTemplate.AzureDatabricks,
+    // TerraformTemplate.AzureStorageBlob,
+    // TerraformTemplate.AzureAppService,
+    // TerraformTemplate.AzurePostgres,
+    // TerraformTemplate.AzureArcGis,
+    // TerraformTemplate.AzureAPI
     ];
 
 
@@ -417,10 +288,12 @@
             const int numberOfDays = 7;
 
 
+
+
             _statsRows = context.Projects
                 .Include(p => p.Credits)
-                .Include(p => p.Users)
-                //.Include(p => p.Resources)
+                //.Include(p => p.Users)
+                .Include(p => p.Resources)
                 // .Include(p => p.ProjectRequestAudits)
                 .AsEnumerable()
                 .Select(p => new DatahubProjectStatsRow()
@@ -429,41 +302,51 @@
                     Name = p.Project_Name,
                     Acronym = p.Project_Acronym_CD,
                     MetadataComplete = p.MetadataAdded ?? false,
-                        BudgetLimit = p.Project_Budget ?? 0,
+                    BudgetLimit = p.Project_Budget ?? 0,
                     BudgetSpent = p.Credits?.Current ?? 0,
                     CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
 
-                        AllUsers = p.Users?.ToList(),
+                        //AllUsers = p.Users?.ToList(),
                         ProvisionedResources = p.Resources?.ToList(),
+                        IsDeleted = p.IsDeleted,
+                        Department = p.Sector_Name,
+                        LastLogin = p.LastLoginDate
 
-                    Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
-                    Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
-                    Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
-                    StorageStatus = p.Resources?
-                        .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureStorageBlob))
-                        .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
-                        .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
-                    DatabricksStatus = p.Resources?
-                        .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureDatabricks))
-                        .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
-                        .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
+                    // Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
+                    // Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
+                    // Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
+                    // StorageStatus = p.Resources?
+                    //     .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureStorageBlob))
+                    //     .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                    //     .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
+                    // DatabricksStatus = p.Resources?
+                    //     .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureDatabricks))
+                    //     .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
+                    //     .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
                 })
                 .ToList();
 
+            Console.WriteLine("-----------------------------------------------------");
+
+            foreach (var row in _statsRows)
+            {
+                row.AllUsers = (await _projectUserManagementService.GetProjectUsersAsync(row.Acronym)).Where(r => r.RoleId != 1).OrderBy(u => u.RoleId).ToList();
+            }
+
             _workspaceInfrastructureHealthData = _statsRows;
+
+            await ReloadWorkspaceHealthCheckTableAsync();
 
             _isLoading = false;
             StateHasChanged();
         }
     }
 
-    private async Task SelectedTypeChanged(string resource)
+    private async Task SelectedResourcesChanged(IEnumerable<string> resources)
     {
-        selectedType = resource;
+        selectedResources = resources;
         await ReloadWorkspaceHealthCheckTableAsync();
     }
-
-
 
     private async Task SearchAcronymChanged(string search)
     {
@@ -483,11 +366,18 @@
         await ReloadWorkspaceHealthCheckTableAsync();
     }
 
+    private async Task NumberUsersChanged(int users)
+    {
+        numberUsers = users;
+        await ReloadWorkspaceHealthCheckTableAsync();
+    }
+
     private async Task ReloadWorkspaceHealthCheckTableAsync()
     {
         if (workspaceHealthTable is not null)
         {
             await workspaceHealthTable.ReloadServerData();
+            // /Console.WriteLine("HELLLOOO DOWN THEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
         }
     }
 
@@ -496,33 +386,50 @@
         var filteredData = _workspaceInfrastructureHealthData.AsEnumerable();
 
         // Apply type filter
-        // if (!string.IsNullOrEmpty(selectedType))
-        // {
-        //     filteredData = filteredData.Where(check => check.ProvisionedResources.Contains(selectedType));
-        // }
+        if (selectedResources.Any())
+        {
+            Console.WriteLine("resources: ");
+            foreach(var tool in selectedResources)
+            {
+                filteredData = filteredData.Where(check => check.ProvisionedResources.Any(resource => resource.ResourceType.Contains(tool)));
+                Console.WriteLine(tool);
+
+            }
+            
+        }
 
 
         // Apply search filter
         if (!string.IsNullOrEmpty(searchAcronym))
         {
-            filteredData = filteredData.Where(check => check.Acronym.Contains(searchAcronym, StringComparison.OrdinalIgnoreCase));
+            filteredData = filteredData.Where(check => (check.Acronym.Contains(searchAcronym, StringComparison.OrdinalIgnoreCase) || check.Name.Contains(searchAcronym, StringComparison.OrdinalIgnoreCase)));
         }
 
         //Apply budget filter
-        if (percentBudget > -1)
+        if (percentBudget > 0)
         {
-            filteredData = filteredData.Where(check => (check.BudgetRemaining) <= percentBudget);
+            filteredData = filteredData.Where(check => (check.BudgetRemaining) * 100 <= (check.BudgetLimit) * percentBudget);
         }
-        
+
+        //Apply users filter
+        if (numberUsers > 0)
+        {
+            filteredData = filteredData.Where(check => (check.AllUsers.Count() >= numberUsers));
+        }
+
         // Apply sorting
         if (state.SortDirection != SortDirection.None)
         {
+            Console.WriteLine($"SortLabel: {state.SortLabel}");
+            Console.WriteLine($"Properties: {nameof(DatahubProjectStatsRow.Acronym)}, {nameof(DatahubProjectStatsRow.Department)}, {nameof(DatahubProjectStatsRow.BudgetRemaining)}");
             Func<DatahubProjectStatsRow, object> sortBy = state.SortLabel switch
             {
                 nameof(DatahubProjectStatsRow.Acronym) => x => x.Acronym,
-                nameof(DatahubProjectStatsRow.Name) => x => x.Name,
+                nameof(DatahubProjectStatsRow.Department) => x => x.Department,
                 nameof(DatahubProjectStatsRow.BudgetRemaining) => x => x.BudgetRemaining,
-                _ => x => x.Name
+                nameof(DatahubProjectStatsRow.ProvisionedResources) => x => x.ProvisionedResources.Count(),
+                nameof(DatahubProjectStatsRow.LastLogin) => x => x.LastLogin,
+                _ => x => x.Acronym
             };
 
             filteredData = filteredData.OrderByDirection(state.SortDirection, sortBy);
@@ -538,8 +445,9 @@
         return await Task.FromResult(new TableData<DatahubProjectStatsRow> { TotalItems = totalItems, Items = pagedData });
     }
 
-    private void ShowUsersPressed(int projectId)
+    private async void ShowUsersPressed(int projectId, string acronym)
     {
+        //PopulateUserList(acronym);
         var row = _statsRows.First(r => r.ProjectId == projectId);
         row.ShowUserDetails = !row.ShowUserDetails;
     }
@@ -567,14 +475,14 @@
         var org = "";
         try
         {
-            org = email.Split("@")[1].Split('.')[0];
+            org = email.Split("@")[1].Split('-')[0];
         }
         catch
         {
             org = "unknown";
         }
 
-        return org;
+        return org.ToUpper();
     }
 
     private string GetRole(int? num)
@@ -585,6 +493,8 @@
         }
         switch(num)
         {
+            case (int)Project_Role.RoleNames.Remove:
+                return "Removed";
             case (int)Project_Role.RoleNames.Admin:
                 return "Admin";
             case (int)Project_Role.RoleNames.WorkspaceLead:
@@ -600,12 +510,11 @@
     {
         return tool switch
         {
-            TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
-            TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
-            TerraformTemplate.AzureAppService => Localizer["Web Application"],
-            TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
-            TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
-            TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
+            "terraform:new-project-template" => Localizer["New Project Template"],
+            "terraform:azure-storage-blob" => Localizer["Azure Storage Blob"],
+            "terraform:azure-databricks" => Localizer["Azure Databricks"],
+            "terraform:azure-app-service" => Localizer["Azure App Service"],
+            "terraform:azure-postgres" => Localizer["Azure Postgres"],
             _ => tool
         };
     }
