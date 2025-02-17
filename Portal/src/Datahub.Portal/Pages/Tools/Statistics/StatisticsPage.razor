@@ -31,7 +31,7 @@
             Immediate="true" />
 
             <MudSpacer />
-            <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Dense="true" MultiSelection="true">
+            <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Label="Provisioned tools" Dense="true" MultiSelection="true">
                 <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
                 @foreach (var status in _resources)
                 {
@@ -49,7 +49,7 @@
             Min="0"/>
 
             <MudSpacer />
-            <MudSelect T="string" Value="percentString" ValueChanged=PercentBudgetChanged Variant="Variant.Text" Dense="true">
+            <MudSelect T="string" Value="percentString" ValueChanged=PercentBudgetChanged Variant="Variant.Text" Label="Percent of budget used" Dense="true">
                 <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
                 @foreach (var percent in _percentBudgets)
                 {
