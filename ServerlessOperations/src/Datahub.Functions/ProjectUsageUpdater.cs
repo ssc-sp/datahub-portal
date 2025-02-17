@@ -159,9 +159,11 @@ public class ProjectUsageUpdater(
                 rolloverTimer.Elapsed.TotalSeconds);
             rolledOver = true;
         }
-
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName,
-            new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        if (Mock == false)
+        {
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName,
+                new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        }
         return rolledOver;
     }
 

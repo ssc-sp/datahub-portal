@@ -23,12 +23,6 @@ namespace Datahub.Functions.UnitTests.Functions
         private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
         private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();
 
-        private const string TEST_PROJECT_ACRONYM = "TEST";
-        private const string ACTIVE_WEB_APP_PROJECT_ACRONYM = "WAP";
-        private const string INACTIVE_WEB_APP_PROJECT_ACRONYM = "IWAP";
-
-        private const string ACTIVE_WEB_APP_SERVICE_ID = "active-webapp";
-
         private CheckInfrastructureStatus _checkInfrastructureStatusFunction;
 
         [SetUp]
@@ -47,8 +41,8 @@ namespace Datahub.Functions.UnitTests.Functions
 
             var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig);
 
-            var dbContextFactory = CreateMockDbContextFactory();
-            await SeedDatabase(dbContextFactory);
+            var dbContextFactory = TestHelper.CreateMockDbContextFactory();
+            await TestHelper.SeedDatabase(dbContextFactory);
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
             var webAppService = CreateMockWebAppManagementService();
@@ -61,88 +55,14 @@ namespace Datahub.Functions.UnitTests.Functions
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
 
-        private static IDbContextFactory<DatahubProjectDBContext> CreateMockDbContextFactory()
-        {
-            var optionsBuilder = new DbContextOptionsBuilder<SqlServerDatahubContext>().UseInMemoryDatabase(new Guid().ToString());
-            // create a mock factory to return the db context when CreateDbContextAsync is called
-            var context = new SqlServerDatahubContext(optionsBuilder.Options);
-            context.Database.EnsureDeleted();
-            context.Database.EnsureCreated();
-            var mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
-            mockFactory
-                .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
-                .ReturnsAsync(() => new SqlServerDatahubContext(optionsBuilder.Options));
-
-            return mockFactory.Object;
-        }
-
         private static IWorkspaceWebAppManagementService CreateMockWebAppManagementService()
         {
             var mockWebAppService = new Mock<IWorkspaceWebAppManagementService>();
             mockWebAppService
                 .Setup(w => w.GetState(It.IsAny<string>()))
-                .ReturnsAsync((string s) => s == ACTIVE_WEB_APP_SERVICE_ID);
+                .ReturnsAsync((string s) => s == TestHelper.ACTIVE_WEB_APP_SERVICE_ID);
 
             return mockWebAppService.Object;
-        }
-
-        private static async Task SeedDatabase(IDbContextFactory<DatahubProjectDBContext> contextFactory)
-        {
-            await using var context = await contextFactory.CreateDbContextAsync();
-
-            var projects = new List<Datahub_Project>
-            {
-                new()
-                {
-                    Project_Acronym_CD = TEST_PROJECT_ACRONYM,
-                    Project_Name = "Test Workspace",
-                    Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector"
-                },
-                new()
-                {
-                    Project_Acronym_CD = ACTIVE_WEB_APP_PROJECT_ACRONYM,
-                    Project_Name = "WebApp Test Project",
-                    Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector",
-                    Resources =
-                    [
-                        new Project_Resources2
-                        {
-                            ResourceType = "terraform:azure-app-service",
-                            JsonContent = "{\n" +
-                                $"  \"app_service_id\": \"{ACTIVE_WEB_APP_SERVICE_ID}\",\n" +
-                                "  \"app_service_hostname\": \"example.azurewebsites.net\",\n" +
-                                "  \"app_service_rg\": \"test_rg\"\n" +
-                                "}",
-                            Status = TerraformStatus.Completed
-                        }
-                    ]
-                },
-                new()
-                {
-                    Project_Acronym_CD = INACTIVE_WEB_APP_PROJECT_ACRONYM,
-                    Project_Name = "Inactive WebApp Test Project",
-                    Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector",
-                    Resources =
-                    [
-                        new Project_Resources2
-                        {
-                            ResourceType = "terraform:azure-app-service",
-                            JsonContent = "{\n" +
-                                "  \"app_service_id\": \"inactive_webapp\",\n" +
-                                "  \"app_service_hostname\": \"example.azurewebsites.net\",\n" +
-                                "  \"app_service_rg\": \"test_rg\"\n" +
-                                "}",
-                            Status = TerraformStatus.Completed
-                        }
-                    ]
-                }
-            };
-
-            await context.Projects.AddRangeAsync(projects);
-            await context.SaveChangesAsync();
         }
 
         [Test]
@@ -161,7 +81,7 @@ namespace Datahub.Functions.UnitTests.Functions
         public async Task TestWorkspaceAzureSQLDatabaseHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase,
-                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TEST_PROJECT_ACRONYM);
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
             var results = GetHealthCheckResults(response);
@@ -173,7 +93,7 @@ namespace Datahub.Functions.UnitTests.Functions
         public async Task TestWorkspaceAzureFunctionHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureFunction,
-                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TEST_PROJECT_ACRONYM);
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
             var results = GetHealthCheckResults(response);
@@ -202,7 +122,7 @@ namespace Datahub.Functions.UnitTests.Functions
         public async Task TestUndefinedWebAppHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
-                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TEST_PROJECT_ACRONYM);
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
             var results = GetHealthCheckResults(response);
@@ -216,7 +136,7 @@ namespace Datahub.Functions.UnitTests.Functions
         public async Task TestRunningWebAppHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
-                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, ACTIVE_WEB_APP_PROJECT_ACRONYM);
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.ACTIVE_WEB_APP_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
             var results = GetHealthCheckResults(response);
@@ -228,7 +148,7 @@ namespace Datahub.Functions.UnitTests.Functions
         public async Task TestNotRunningWebAppHealthCheck()
         {
             var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
-                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, INACTIVE_WEB_APP_PROJECT_ACRONYM);
+                InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.INACTIVE_WEB_APP_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
             var results = GetHealthCheckResults(response);

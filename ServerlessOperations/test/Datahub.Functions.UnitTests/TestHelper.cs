@@ -13,11 +13,21 @@ using System.Security.Claims;
 using Microsoft.Extensions.DependencyInjection;
 using Azure.Core.Serialization;
 using Microsoft.Extensions.Options;
+using Datahub.Core.Model.Context;
+using Microsoft.EntityFrameworkCore;
+using Datahub.Core.Model.Projects;
+using Datahub.Shared;
+using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Subscriptions;
 
 namespace Datahub.Functions.UnitTests
 {
     public static class TestHelper
     {
+        public const string TEST_PROJECT_ACRONYM = "TEST";
+        public const string ACTIVE_WEB_APP_PROJECT_ACRONYM = "WAP";
+        public const string INACTIVE_WEB_APP_PROJECT_ACRONYM = "IWAP";
+        public const string ACTIVE_WEB_APP_SERVICE_ID = "active-webapp";
 
         /// <summary>
         /// Mocking GraphServiceClient
@@ -54,6 +64,104 @@ namespace Datahub.Functions.UnitTests
             context.InstanceServices.Returns(serviceProvider);
 
             return new FakeHttpRequestData(context, new Uri("http://localhost"), new MemoryStream(Encoding.UTF8.GetBytes(requestBody)));
+        }
+
+
+        public static IDbContextFactory<DatahubProjectDBContext> CreateMockDbContextFactory()
+        {
+            var optionsBuilder = new DbContextOptionsBuilder<SqlServerDatahubContext>().UseInMemoryDatabase(new Guid().ToString());
+            // create a mock factory to return the db context when CreateDbContextAsync is called
+            var context = new SqlServerDatahubContext(optionsBuilder.Options);
+            context.Database.EnsureDeleted();
+            context.Database.EnsureCreated();
+            var mockFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
+            mockFactory
+                .Setup(f => f.CreateDbContextAsync(CancellationToken.None))
+                .ReturnsAsync(() => new SqlServerDatahubContext(optionsBuilder.Options));
+
+            return mockFactory.Object;
+        }
+
+        public static async Task SeedDatabase(IDbContextFactory<DatahubProjectDBContext> contextFactory)
+        {
+            await using var context = await contextFactory.CreateDbContextAsync();
+
+            var projects = new List<Datahub_Project>
+            {
+                new Datahub_Project()
+                {
+                    Project_ID = 1,
+                    Project_Acronym_CD = TEST_PROJECT_ACRONYM,
+                    Project_Name = "Test Workspace",
+                    Project_Status_Desc = "Active",
+                    Sector_Name = "Test Sector",
+                    Deleted_DT = null,
+                    DatahubAzureSubscription = new DatahubAzureSubscription
+                    {
+                        SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-id"
+                    },
+                    Credits = new Project_Credits{ Current=10}
+                },
+                new()
+                {
+                    Project_ID = 2,
+                    Project_Acronym_CD = ACTIVE_WEB_APP_PROJECT_ACRONYM,
+                    Project_Name = "WebApp Test Project",
+                    Project_Status_Desc = "Active",
+                    Sector_Name = "Test Sector",
+                    Deleted_DT = null,
+                    DatahubAzureSubscription = new DatahubAzureSubscription 
+                    {
+                        SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-i"
+                    },
+                    Credits = new Project_Credits{ Current=10},
+                    Resources =
+                    [
+                        new Project_Resources2
+                        {
+                            ResourceType = "terraform:azure-app-service",
+                            JsonContent = "{\n" +
+                                $"  \"app_service_id\": \"{ACTIVE_WEB_APP_SERVICE_ID}\",\n" +
+                                "  \"app_service_hostname\": \"example.azurewebsites.net\",\n" +
+                                "  \"app_service_rg\": \"test_rg\"\n" +
+                                "}",
+                            Status = TerraformStatus.Completed
+                        }
+                    ]
+                },
+                new()
+                {
+                    Project_ID = 3,
+                    Project_Acronym_CD = INACTIVE_WEB_APP_PROJECT_ACRONYM,
+                    Project_Name = "Inactive WebApp Test Project",
+                    Project_Status_Desc = "Active",
+                    Sector_Name = "Test Sector",
+                    Deleted_DT = null,
+                    Resources =
+                    [
+                        new Project_Resources2
+                        {
+                            ResourceType = "terraform:azure-app-service",
+                            JsonContent = "{\n" +
+                                "  \"app_service_id\": \"inactive_webapp\",\n" +
+                                "  \"app_service_hostname\": \"example.azurewebsites.net\",\n" +
+                                "  \"app_service_rg\": \"test_rg\"\n" +
+                                "}",
+                            Status = TerraformStatus.Completed
+                        }
+                    ]
+                }
+            };
+            var users = new List<PortalUser>
+            {
+                new PortalUser
+                { 
+                    Id=1,
+                    GraphGuid=Guid.NewGuid().ToString()
+                }
+            };
+            await context.Projects.AddRangeAsync(projects);
+            await context.SaveChangesAsync();
         }
 
         public class FakeHttpRequestData : HttpRequestData
