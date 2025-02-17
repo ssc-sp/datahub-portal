@@ -63,6 +63,7 @@
         if (existingUser is { IsDeleted: true })
         {
             _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}&s=d");
+            
             return;
         }
 
@@ -86,6 +87,7 @@
         var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
+
 
     protected override async Task OnInitializedAsync()
     {
