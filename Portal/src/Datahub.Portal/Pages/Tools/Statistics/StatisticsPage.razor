@@ -16,8 +16,9 @@
     <MudSpacer />
     <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">@Localizer["Download to CSV"]</DHButton>
 
-    <MudTable Sortable="true" T="DatahubProjectStatsRow" Striped="true" Loading="_isLoading" LoadingProgressColor="Color.Info" ServerData="LoadWorkspaceChecks" @ref="workspaceHealthTable">
+    <MudTable Sortable="true" T="DatahubProjectStatsRow" Striped="true" Loading="_isLoading" LoadingProgressColor="Color.Info" ServerData="LoadWorkspaceChecks" @ref="workspaceStatsTable">
         <ToolBarContent>
+
             <MudTextField Value="searchAcronym"
             Placeholder=@Localizer["Search by workspace name or acronym"]
             Adornment="Adornment.Start"
@@ -28,14 +29,16 @@
             Label=""
             T="string"
             Immediate="true" />
+
             <MudSpacer />
             <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Dense="true" MultiSelection="true">
                 <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
                 @foreach (var status in _resources)
                 {
-                    <MudSelectItem T="string" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+                    <MudSelectItem T="string" Value="status">@Localizer[status]</MudSelectItem>
                 }
             </MudSelect>
+
             <MudSpacer />
             <MudNumericField Value="numberUsers"
             ValueChanged="NumberUsersChanged"
@@ -44,57 +47,47 @@
             T="int"
             Immediate="true"
             Min="0"/>
+
+            <MudSpacer />
+            <MudSelect T="string" Value="percentString" ValueChanged=PercentBudgetChanged Variant="Variant.Text" Dense="true">
+                <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
+                @foreach (var percent in _percentBudgets)
+                {
+                    <MudSelectItem T="string" Value="percent">@Localizer[percent]</MudSelectItem>
+                }
+            </MudSelect>
         </ToolBarContent>
+
         <HeaderContent>
             <MudTh>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel
-                    InitialDirection="SortDirection.Ascending"
-                    SortLabel="Workspace"
-                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
+                InitialDirection="SortDirection.Ascending"
+                SortLabel="Workspace"
+                SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Name))">Workspace</MudTableSortLabel>
 
             </MudTh>
             <MudTh>
                 <MudTableSortLabel
-                    SortLabel="Department"
-                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Department))">Department</MudTableSortLabel>
-                @*                 <MudTextField Value="searchDepartment"
-                ValueChanged="SearchDepartmentChanged"
-                DebounceInterval="300"
-                Label=""
-                T="string"
-                Immediate="true" /> *@
+                SortLabel="Department"
+                SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.Department))">Department</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel
-                    SortLabel="BudgetRemaining"
-                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
-                @* <MudNumericField Value="percentBudget"
-                ValueChanged="PercentBudgetChanged"
-                DebounceInterval="300"
-                Label="% Budget Remaining"
-                T="int"
-                Immediate="true"
-                AdornmentIcon="@Icons.Material.Filled.Percent"
-                Min="0"/> *@
+                SortLabel="BudgetRemaining"
+                SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.BudgetRemaining))">Budget Remaining</MudTableSortLabel>
+
             </MudTh>
             <MudTh>
                 <MudTableSortLabel
-                    SortLabel="ProvisionedTools" 
-                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.ProvisionedResources))">Provisioned Tools</MudTableSortLabel>
-                @* <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Dense="true" MultiSelection="true">
-                    <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
-                    @foreach (var status in _resources)
-                    {
-                        <MudSelectItem T="string" Value="status">@Localizer[status.ToString()]</MudSelectItem>
-                    }
-                </MudSelect> *@
+                SortLabel="ProvisionedTools" 
+                SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.ProvisionedResources))">Provisioned Tools</MudTableSortLabel>
             </MudTh>
             <MudTh>
                 <MudTableSortLabel
-                    SortLabel="LastLogin"
-                    SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.LastLogin))">Last User Login</MudTableSortLabel>
+                SortLabel="LastLogin"
+                SortBy="@(new Func<DatahubProjectStatsRow, object>(x => x.LastLogin))">Last User Login</MudTableSortLabel>
             </MudTh>
         </HeaderContent>
 
@@ -171,9 +164,13 @@
                                 @Localizer["Cost of last 7 days: "] @context.CostOfLastXDays.ToString("C", CultureInfo.CurrentCulture)
                                 <br/>
                                 @Localizer["Metadata status: "]
-                                @if(context.MetadataComplete)
+                                @if (context.MetadataComplete)
                                 {
-                                    
+                                    <DHIcon Icon="@Icons.Material.Filled.Check" Color="Color.Success" />
+                                }
+                                else
+                                {
+                                    <DHIcon Icon="@Icons.Material.Filled.WatchLater" Color="Color.Warning" />
                                 }
                                 @if(context.AllUsers != null && context.AllUsers.Any())
                                 {
@@ -196,20 +193,6 @@
                                             </MudTh>
                                         </HeaderContent>
                                         <RowTemplate>
-                                            @if (AllUsersContext.RoleId == 1)
-                                            {
-                                                <MudTd DataLabel="AllUsers" Style="background-color: lightcoral;">
-                                                    @AllUsersContext.PortalUser.DisplayName
-                                                </MudTd>
-                                                <MudTd DataLabel="Leads" Style="background-color: lightcoral;">
-                                                    @AllUsersContext.PortalUser.Email
-                                                </MudTd>
-                                                <MudTd DataLabel="Leads" Style="background-color: lightcoral;">
-                                                    @GetRole(AllUsersContext.RoleId)
-                                                </MudTd>
-                                            }
-                                            else
-                                            {
                                                 <MudTd DataLabel="AllUsers" Style="background-color: lightgrey;">
                                                     @AllUsersContext.PortalUser.DisplayName
                                                 </MudTd>
@@ -219,7 +202,6 @@
                                                 <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
                                                     @GetRole(AllUsersContext.RoleId)
                                                 </MudTd>
-                                            }
                                         </RowTemplate>
                                     </MudTable>
                                 }
@@ -238,8 +220,8 @@
 
 @code {
 
-    [Parameter]
-    public Datahub_Project Project { get; set; }
+        [Parameter]
+        public Datahub_Project Project { get; set; }
 
     private bool _isLoading = true;
     private bool _isReadOnly = true;
@@ -247,31 +229,31 @@
 
     private List<DatahubProjectStatsRow> _statsRows = new();
     private List<DatahubProjectStatsRow> _filteredItems = new();
-    private List<DatahubProjectStatsRow> _workspaceInfrastructureHealthData = new();
+    private List<DatahubProjectStatsRow> _workspaceStatsData = new();
 
-    private string searchAcronym = "", searchLead = "";
+    private string searchAcronym = "", searchLead = "", percentString = "";
     private int percentBudget = 0, numberUsers = 0;
 
     private IEnumerable<string> selectedResources = new HashSet<string>();
 
-    private MudTable<DatahubProjectStatsRow> workspaceHealthTable;
-
-    private List<Datahub_Project_User> userz;
-
+    private MudTable<DatahubProjectStatsRow> workspaceStatsTable;
 
     private List<string> _resources =
     [
         "new-project-template",
-    "azure-storage-blob",
-    "azure-databricks",
-    "azure-app-service",
-    "azure-postgres"
-    //     TerraformTemplate.AzureDatabricks,
-    // TerraformTemplate.AzureStorageBlob,
-    // TerraformTemplate.AzureAppService,
-    // TerraformTemplate.AzurePostgres,
-    // TerraformTemplate.AzureArcGis,
-    // TerraformTemplate.AzureAPI
+        "azure-storage-blob",
+        "azure-databricks",
+        "azure-app-service",
+        "azure-postgres"
+    ];
+    private List<string> _percentBudgets =
+    [
+        "0%",
+        "25%",
+        "50%",
+        "75%",
+        "100%",
+        "> 100%"
     ];
 
 
@@ -331,11 +313,12 @@
             foreach (var row in _statsRows)
             {
                 row.AllUsers = (await _projectUserManagementService.GetProjectUsersAsync(row.Acronym)).Where(r => r.RoleId != 1).OrderBy(u => u.RoleId).ToList();
+                // Console.WriteLine(row.BudgetRemaining / row.BudgetLimit);
             }
 
-            _workspaceInfrastructureHealthData = _statsRows;
+            _workspaceStatsData = _statsRows;
 
-            await ReloadWorkspaceHealthCheckTableAsync();
+            await ReloadWorkspaceStatsTableAsync();
 
             _isLoading = false;
             StateHasChanged();
@@ -345,57 +328,78 @@
     private async Task SelectedResourcesChanged(IEnumerable<string> resources)
     {
         selectedResources = resources;
-        await ReloadWorkspaceHealthCheckTableAsync();
+        await ReloadWorkspaceStatsTableAsync();
     }
 
     private async Task SearchAcronymChanged(string search)
     {
         searchAcronym = search;
-        await ReloadWorkspaceHealthCheckTableAsync();
+        await ReloadWorkspaceStatsTableAsync();
     }
 
     private async Task SearchLeadChanged(string search)
     {
         searchLead = search;
-        await ReloadWorkspaceHealthCheckTableAsync();
+        await ReloadWorkspaceStatsTableAsync();
     }
 
-    private async Task PercentBudgetChanged(int percent)
+    private async Task PercentBudgetChanged(string percent)
     {
-        percentBudget = percent;
-        await ReloadWorkspaceHealthCheckTableAsync();
+        switch(percent)
+        {
+            case ("0%"):
+                percentBudget = 0;
+                break;
+            case("25%"):
+                percentBudget = 25;
+                break;
+            case("50%"):
+                percentBudget = 50;
+                break;
+            case("75%"):
+                percentBudget = 75;
+                break;
+            case("100%"):
+                percentBudget = 100;
+                break;
+            case("> 100%"):
+                percentBudget = 101;
+                break;
+            default:
+                percentBudget = -1;
+                break;
+
+        }
+        await ReloadWorkspaceStatsTableAsync();
     }
 
     private async Task NumberUsersChanged(int users)
     {
         numberUsers = users;
-        await ReloadWorkspaceHealthCheckTableAsync();
+        await ReloadWorkspaceStatsTableAsync();
     }
 
-    private async Task ReloadWorkspaceHealthCheckTableAsync()
+    private async Task ReloadWorkspaceStatsTableAsync()
     {
-        if (workspaceHealthTable is not null)
+        if (workspaceStatsTable is not null)
         {
-            await workspaceHealthTable.ReloadServerData();
-            // /Console.WriteLine("HELLLOOO DOWN THEREEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE");
+            await workspaceStatsTable.ReloadServerData();
         }
     }
 
     private async Task<TableData<DatahubProjectStatsRow>> LoadWorkspaceChecks(TableState state, CancellationToken cancellationToken)
     {
-        var filteredData = _workspaceInfrastructureHealthData.AsEnumerable();
+        var filteredData = _workspaceStatsData.AsEnumerable();
 
         // Apply type filter
         if (selectedResources.Any())
         {
-            Console.WriteLine("resources: ");
             foreach(var tool in selectedResources)
             {
                 filteredData = filteredData.Where(check => check.ProvisionedResources.Any(resource => resource.ResourceType.Contains(tool)));
-                Console.WriteLine(tool);
 
             }
-            
+
         }
 
 
@@ -405,13 +409,33 @@
             filteredData = filteredData.Where(check => (check.Acronym.Contains(searchAcronym, StringComparison.OrdinalIgnoreCase) || check.Name.Contains(searchAcronym, StringComparison.OrdinalIgnoreCase)));
         }
 
-        //Apply budget filter
-        if (percentBudget > 0)
+        // Apply budget filter
+        if (percentBudget == 101)// More than 100% of budget used
         {
-            filteredData = filteredData.Where(check => (check.BudgetRemaining) * 100 <= (check.BudgetLimit) * percentBudget);
+            filteredData = filteredData.Where(check => check.BudgetRemaining < 0);
+        }
+        else if (percentBudget == 100)
+        {
+            filteredData = filteredData.Where(check => check.BudgetRemaining == 0);
+        }
+        else if (percentBudget == 75)
+        {
+            filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 1.00 && (check.BudgetSpent / (double)check.BudgetLimit) >= 0.75));
+        }
+        else if (percentBudget == 50)
+        {
+            filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 0.75 && (check.BudgetSpent / (double)check.BudgetLimit) >= 0.50));
+        }
+        else if (percentBudget == 25)
+        {
+            filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 0.50 && (check.BudgetSpent / (double)check.BudgetLimit) >= 0.25));
+        }
+        else if (percentBudget == 0)// None of budget used
+        {
+            filteredData = filteredData.Where(check => check.BudgetSpent == 0);
         }
 
-        //Apply users filter
+        // Apply users filter
         if (numberUsers > 0)
         {
             filteredData = filteredData.Where(check => (check.AllUsers.Count() >= numberUsers));
@@ -420,8 +444,6 @@
         // Apply sorting
         if (state.SortDirection != SortDirection.None)
         {
-            Console.WriteLine($"SortLabel: {state.SortLabel}");
-            Console.WriteLine($"Properties: {nameof(DatahubProjectStatsRow.Acronym)}, {nameof(DatahubProjectStatsRow.Department)}, {nameof(DatahubProjectStatsRow.BudgetRemaining)}");
             Func<DatahubProjectStatsRow, object> sortBy = state.SortLabel switch
             {
                 nameof(DatahubProjectStatsRow.Acronym) => x => x.Acronym,
