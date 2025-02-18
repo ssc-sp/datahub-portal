@@ -133,11 +133,19 @@ public class Testing
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
         }
 
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate
+            });
+
         var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
             TerraformStatus.CreateRequested);
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
