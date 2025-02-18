@@ -60,16 +60,34 @@
         _loggingIn = true;
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
+        
+        // If user is deleted, redirect to register page with deleted flag
         if (existingUser is { IsDeleted: true })
         {
-            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}");
+            _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}&s=d");
             return;
         }
 
+        // If user is locked, redirect to locked page
         if (existingUser is { IsLocked: true })
         {
             _navigationManager.NavigateTo(Localizer["/locked"]);
             return;
+        }
+
+        // If there is no portal user associated with the email, then:
+        if (existingUser is null)
+        {
+            // - first check if the user is registered in the tenant (that means they have registered but not logged in yet)
+            var registered = await _userInformationService.CheckUserInTenant(loginHint);
+            
+            // - if not registered, redirect to register page with new flag
+            if (!registered)
+            {
+                _navigationManager.NavigateTo($"{Localizer["/register"]}?email={loginHint}&s=n");
+                return;
+            }
+            // - if they are registered, proceed with the normal login flow
         }
 
         if (string.IsNullOrWhiteSpace(redirectUri))

@@ -10,6 +10,9 @@
 @inject IUserInformationService _userInformationService
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
+<MudText Typo="Typo.h2" Class="mt-4">
+    @Localizer["Environment variables"]
+</MudText>
 @if (((projectUser?.Role?.IsAtLeastAdmin ?? false) && loading) || projectUser is null)
 {
     <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
@@ -29,7 +32,7 @@ else if (isEditable)
               Dense="true"
               Hover="true"
               Outlined="true"
-              Class="mt-6"
+              Class=""
               CanCancelEdit="true"
               Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
               @bind-SelectedItem="@_selectedItem"
@@ -47,10 +50,6 @@ else if (isEditable)
               FooterClass="pa-8">
 
         <ToolBarContent>
-            <MudText Typo="Typo.h2" Class="mt-4">
-                @Localizer["Environment variables"]
-            </MudText>
-
             <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Class="align-self-end" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])"/>
             <MudSpacer/>
             <MudTextField @bind-Value="@_filterString"
@@ -103,7 +102,7 @@ else if (isEditable)
         </EditButtonContent>
         <FooterContent>
             <MudTd >
-                <DHButton Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
+                <DHButton HtmlTag="button" Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
                     @Localizer["Add environment variable"]
                 </DHButton>
             </MudTd>
@@ -125,15 +124,11 @@ else
               Dense="false"
               Hover="false"
               Outlined="true"
-              Class="mt-6 mb-12"
+              Class="mb-12"
               Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
               SortLabel="@Localizer["Sort by"]">
 
         <ToolBarContent>
-            <MudText Typo="Typo.h2" Class="mt-6">
-                @Localizer["Environment variables"]
-            </MudText>
-            <MudSpacer/>
             <MudTextField @bind-Value="@_filterString"
                           Label="@Localizer["Filter"]"
                           Adornment="Adornment.End"

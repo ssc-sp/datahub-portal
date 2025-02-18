@@ -1,0 +1,54 @@
+﻿@inject IJSRuntime _jsRuntime
+@inject NavigationManager _navigationManager
+
+@if (Anchor)
+{
+    <span id=@GetSkipLinkId(Type) tabindex="0">
+        @ChildContent
+    </span>
+}
+else
+{
+    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href=@(GetCleanUri() + "#" + GetSkipLinkId(Type)) Size="Size.Large"
+              OnClick="@OnClick">
+        @GetSkipLinkText(Type)
+    </DHButton>
+}
+
+@code {
+    [Parameter] public SkipLinkType Type { get; set; } = SkipLinkType.MainContent;
+    [Parameter] public bool Anchor { get; set; } = false;
+    [Parameter] public RenderFragment ChildContent { get; set; }
+
+    private IJSObjectReference _module;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/SkipLink.razor.js");
+            }
+            catch
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/SkipLink.razor.js");
+            }
+        }
+    }
+
+    private async Task OnClick()
+    {
+        await _module.InvokeVoidAsync("focusElement", GetSkipLinkId(Type));
+    }
+
+    private string GetCleanUri()
+    {
+        var queryParameters = new Dictionary<string, object?>();
+        var uriWithQuery = _navigationManager.GetUriWithQueryParameters(queryParameters);
+        return uriWithQuery.Split("#")[0];
+    }
+
+    
+
+}

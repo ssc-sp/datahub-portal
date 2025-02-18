@@ -47,6 +47,7 @@ public interface IUserInformationService
     Task<bool> UpdatePortalUserAsync(PortalUser updatedUser);
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
     Task<bool> IsDailyLogin();
+    Task<bool> CheckUserInTenant(string email);
 }
 
 public static class UserInformationServiceConstants

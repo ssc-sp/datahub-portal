@@ -17,10 +17,10 @@ namespace Datahub.Metadata.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.7")
+                .HasAnnotation("ProductVersion", "8.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
-            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder, 1L, 1);
+            SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
             modelBuilder.Entity("Datahub.Metadata.Model.ApprovalForm", b =>
                 {
@@ -28,7 +28,10 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApprovalFormId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ApprovalFormId"));
+
+                    b.Property<bool>("Accessible_Format_FLAG")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Approval_InSitu_FLAG")
                         .HasColumnType("bit");
@@ -55,7 +58,7 @@ namespace Datahub.Metadata.Migrations
                     b.Property<bool>("Collection_Of_Datasets_FLAG")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("Copyright_Restrictions_FLAG")
+                    b.Property<bool>("Confidentiality_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<string>("Dataset_Title_TXT")
@@ -76,10 +79,13 @@ namespace Datahub.Metadata.Migrations
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");
 
-                    b.Property<bool>("Localized_Metadata_FLAG")
+                    b.Property<bool>("Localized_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<bool>("Machine_Readable_FLAG")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("Misc_Compliant_FLAG")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name_NAME")
@@ -90,12 +96,12 @@ namespace Datahub.Metadata.Migrations
                     b.Property<bool>("Non_Propietary_Format_FLAG")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("Not_Clasified_Or_Protected_FLAG")
-                        .HasColumnType("bit");
-
                     b.Property<string>("Phone_TXT")
                         .HasMaxLength(32)
                         .HasColumnType("nvarchar(32)");
+
+                    b.Property<bool>("Privacy_Exemption_FLAG")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Private_Personal_Information_FLAG")
                         .HasColumnType("bit");
@@ -113,6 +119,9 @@ namespace Datahub.Metadata.Migrations
                     b.Property<string>("Sector_NAME")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
+
+                    b.Property<bool>("Security_Compliant_FLAG")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("Subject_To_Exceptions_Or_Eclusions_FLAG")
                         .HasColumnType("bit");
@@ -136,7 +145,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CatalogObjectId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("CatalogObjectId"));
 
                     b.Property<int>("Branch_NUM")
                         .HasColumnType("int");
@@ -208,7 +217,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldChoiceId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldChoiceId"));
 
                     b.Property<string>("Cascading_Value_TXT")
                         .HasMaxLength(128)
@@ -241,7 +250,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldDefinitionId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("FieldDefinitionId"));
 
                     b.Property<int?>("CascadeParentId")
                         .HasColumnType("int");
@@ -300,7 +309,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KeywordId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("KeywordId"));
 
                     b.Property<string>("English_TXT")
                         .HasMaxLength(128)
@@ -336,7 +345,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProfileId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProfileId"));
 
                     b.Property<string>("Name")
                         .HasMaxLength(32)
@@ -357,7 +366,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SectionId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SectionId"));
 
                     b.Property<string>("Name_English_TXT")
                         .HasMaxLength(256)
@@ -383,7 +392,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MetadataVersionId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("MetadataVersionId"));
 
                     b.Property<DateTime>("Last_Update_DT")
                         .HasColumnType("datetime2");
@@ -425,7 +434,7 @@ namespace Datahub.Metadata.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ObjectMetadataId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<long>("ObjectMetadataId"));
 
                     b.Property<int>("MetadataVersionId")
                         .HasColumnType("int");
@@ -463,13 +472,32 @@ namespace Datahub.Metadata.Migrations
                     b.ToTable("SectionFields", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Metadata.Model.SubSubject", b =>
+                {
+                    b.Property<int>("SubSubjectId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubSubjectId"));
+
+                    b.Property<string>("Name_English_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name_French_TXT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("SubSubjectId");
+
+                    b.ToTable("SubSubjects", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Metadata.Model.Subject", b =>
                 {
                     b.Property<int>("SubjectId")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectId"), 1L, 1);
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubjectId"));
 
                     b.Property<string>("Subject_TXT")
                         .HasMaxLength(64)
@@ -482,25 +510,6 @@ namespace Datahub.Metadata.Migrations
                         .HasFilter("[Subject_TXT] IS NOT NULL");
 
                     b.ToTable("Subjects", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Metadata.Model.SubSubject", b =>
-                {
-                    b.Property<int>("SubSubjectId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SubSubjectId"), 1L, 1);
-
-                    b.Property<string>("Name_English_TXT")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name_French_TXT")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("SubSubjectId");
-
-                    b.ToTable("SubSubjects", (string)null);
                 });
 
             modelBuilder.Entity("SubSubjectSubject", b =>
