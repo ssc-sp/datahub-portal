@@ -10,6 +10,9 @@ using Microsoft.Extensions.Logging;
 using Datahub.Shared.Entities;
 using Datahub.Shared;
 using Google.Api.Gax.ResourceNames;
+using Datahub.Core.Components.Resources;
+using Microsoft.Graph.Models.Search;
+using Datahub.Core.Components;
 using Datahub.Core.Model.Projects;
 
 namespace Datahub.Infrastructure.Services
@@ -74,5 +77,58 @@ namespace Datahub.Infrastructure.Services
             }
         }
 
+        public async Task<bool> CleanWorkspaceFromRecentLinks(string workspaceAcronym)
+        {
+            try
+            {
+                await using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
+
+                var recentLinks = await ctx.UserRecentLinks
+                    .Where(link => link.DataProject == workspaceAcronym)
+                    .ToListAsync(CancellationToken.None);
+
+                ctx.UserRecentLinks.RemoveRange(recentLinks);
+                await ctx.SaveChangesAsync(CancellationToken.None);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error deleting workspace from recent links - {workspaceAcronym}");
+                return false;
+            }
+        }
+
+        public async Task<bool> CleanResourceFromRecentLinks(string section, string workspaceAcronym)
+        {
+            try
+            {
+                await using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
+
+                DatahubLinkType linkType = section switch
+                {
+                    //currently can only delete postgres and app service, and postgres doesnt get added to recent links yet
+                    TerraformTemplate.AzureAppService => DatahubLinkType.AzureWebApp,
+                    _ => DatahubLinkType.Undefined
+                };
+
+                if (linkType != DatahubLinkType.Undefined)
+                { 
+                    var recentLinks = await ctx.UserRecentLinks
+                        .Where(link => link.LinkType == linkType && link.DataProject == workspaceAcronym)
+                        .ToListAsync(CancellationToken.None);
+
+                    ctx.UserRecentLinks.RemoveRange(recentLinks);
+                    await ctx.SaveChangesAsync(CancellationToken.None);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, $"Error deleting recent links for - {section} - for workspace - {workspaceAcronym}");
+                return false;
+            }            
+        }
     }
 }
