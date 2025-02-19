@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.13");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1219,6 +1219,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT")
                         .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityCostCentre");
 
+                    b.Property<string>("FinancialAuthorityEmail")
+                        .HasColumnType("TEXT")
+                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityEmail");
+
                     b.Property<string>("FinancialAuthorityFirstName")
                         .IsRequired()
                         .HasColumnType("TEXT")
@@ -1275,9 +1279,17 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT")
                         .HasAnnotation("Relational:JsonPropertyName", "ProjectTitle");
 
+                    b.Property<DateTime>("RetentionPeriodStartDate")
+                        .HasColumnType("TEXT")
+                        .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodStartDate");
+
                     b.Property<int>("RetentionPeriodYears")
                         .HasColumnType("INTEGER")
                         .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodYears");
+
+                    b.Property<string>("RetentionValue")
+                        .HasColumnType("TEXT")
+                        .HasAnnotation("Relational:JsonPropertyName", "RetentionValue");
 
                     b.Property<string>("SecurityClassification")
                         .IsRequired()
