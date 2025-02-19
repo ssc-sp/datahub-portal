@@ -38,7 +38,7 @@
                 @Localizer["No description available."]
             </MudText>
         }
-        <MudSpacer />
+        <MudSpacer/>
         <nav>
             <ul style=@CardActionListStyle>
                 @foreach (var tool in ToolActions)
@@ -73,8 +73,8 @@
             Color=@CostBarColor()
             Size="Size.Large"
             Style=@CostBarStyle
-            Value=@Workspace.Credits.Current
-            Max=@((double)Workspace.Project_Budget!)
+            Value=@((double)WorkspaceUsage.Item1)
+            Max=@((double)WorkspaceUsage.Item2)
             title=@CostBarTitle()>
             <ProjectPreviewCardIconDetails
                 WorkspaceUsage=@WorkspaceUsage
@@ -153,12 +153,12 @@
     private int NumberOfUsers => Workspace?.Users?.Count(x => x.RoleId != (int)Project_Role.RoleNames.Remove) ?? 0;
     private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
-    private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>((decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
+    private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
     // Utils
     private Color CostBarColor()
     {
-        return (Workspace.Credits.Current / (double)Workspace.Project_Budget! * 100) switch
+        return (WorkspaceUsage.Item1 / WorkspaceUsage.Item2 * 100) switch
         {
             >= 90 and < 100 => Color.Warning,
             >= 100 => Color.Error,
@@ -168,8 +168,8 @@
 
     private string CostBarTitle()
     {
-        var defaultTitle = @Localizer["{0:C2} spent of {1:C2} budget for workspace {2}.", Workspace.Credits.Current, Workspace.Project_Budget!, Workspace.Project_Acronym_CD];
-        return (Workspace.Credits.Current / (double)Workspace.Project_Budget * 100) switch
+        var defaultTitle = @Localizer["{0:C2} spent of {1:C2} budget for workspace {2}.", WorkspaceUsage.Item1, WorkspaceUsage.Item2, Workspace.Project_Acronym_CD];
+        return (WorkspaceUsage.Item1 / WorkspaceUsage.Item2 * 100) switch
         {
             >= 90 and < 100 => defaultTitle + " " + Localizer["Warning: You are close to reaching your budget."],
             >= 100 => defaultTitle + " " + Localizer["Error: You have reached your budget."],
