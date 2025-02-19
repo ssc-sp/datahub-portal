@@ -67,19 +67,23 @@
             </ul>
         </nav>
     </MudStack>
-    @if (ShowCost)
+    @if (ShowCost && Workspace.Credits != null)
     {
         <MudProgressLinear
             Color=@CostBarColor()
             Size="Size.Large"
             Style=@CostBarStyle
-            Value=@Workspace.Credits.Current
+            Value=@(Workspace.Credits == null ? 0 : Workspace.Credits.Current)
             Max=@((double)Workspace.Project_Budget!)
             title=@CostBarTitle()>
             <ProjectPreviewCardIconDetails
                 WorkspaceUsage=@WorkspaceUsage
             />
         </MudProgressLinear>
+    }
+    else if (ShowCost && Workspace.Credits == null)
+    {
+        <MudText Typo="Typo.body1">@CostBarTitle()</MudText>
     }
 </MudPaper>
 
@@ -158,6 +162,10 @@
     // Utils
     private Color CostBarColor()
     {
+        if (Workspace == null || Workspace.Project_Budget == null || Workspace.Credits == null)
+        {
+            return Color.Primary;
+        }
         return (Workspace.Credits.Current / (double)Workspace.Project_Budget! * 100) switch
         {
             >= 90 and < 100 => Color.Warning,
@@ -168,6 +176,10 @@
 
     private string CostBarTitle()
     {
+        if (Workspace.Credits == null)
+        {
+            return Localizer["No budget information available yet. Check again later!"];
+        }
         var defaultTitle = @Localizer["{0:C2} spent of {1:C2} budget for workspace {2}.", Workspace.Credits.Current, Workspace.Project_Budget!, Workspace.Project_Acronym_CD];
         return (Workspace.Credits.Current / (double)Workspace.Project_Budget * 100) switch
         {
