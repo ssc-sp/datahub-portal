@@ -7,7 +7,7 @@ namespace Datahub.Functions.UnitTests.Providers
     [TestFixture]
     public class DateProviderTests
     {
-        private DateProvider _dateProvider;
+        private IDateProvider _dateProvider;
         private IConfiguration _config;
         private AzureConfig _azureConfig;
 
@@ -30,6 +30,21 @@ namespace Datahub.Functions.UnitTests.Providers
             _dateProvider = new DateProvider(_azureConfig);
         }
 
+        [Test]
+        public void Now_ShouldReturnCurrentDateTime()
+        {
+            // Arrange
+            var expectedDateTime = DateTime.Now;
+            var expectedToday = DateTime.Today;
+
+            // Act
+            var actualDateTime = _dateProvider.Now;
+            var actualToday = _dateProvider.Today;
+
+            // Assert
+            actualDateTime.Should().BeCloseTo(expectedDateTime, TimeSpan.FromSeconds(1));
+            actualToday.Should().Be(expectedToday);
+        }
         [Test]
         public void ProjectNotificationDays_ShouldReturnParsedDays()
         {
