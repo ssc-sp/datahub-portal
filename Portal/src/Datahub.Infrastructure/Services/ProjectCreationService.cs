@@ -144,11 +144,11 @@ public class ProjectCreationService(
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
             await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
-            await CreateNewTemplateProjectResourceAsync(acronym);
-
-            var workspaceDefinition =
-                await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
-            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            // await CreateNewTemplateProjectResourceAsync(acronym);
+            //
+            // var workspaceDefinition =
+            //     await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+            // await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
 
             return true;
         }

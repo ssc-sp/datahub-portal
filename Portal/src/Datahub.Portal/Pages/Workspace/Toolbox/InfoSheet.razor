@@ -1,4 +1,4 @@
-﻿<MudDialog>
+﻿<MudDialog Style="width: 50%; min-height: 50%">
     <TitleContent>
         <MudStack Row AlignItems="AlignItems.Center">
             <DHIcon Icon="@Icon"/>
@@ -6,33 +6,28 @@
         </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudStack Class="pa-8" Style="min-height: 600px">
-            <MudStack Row AlignItems="AlignItems.Center">
-
-                <MudSpacer/>
-                <MudStack Spacing="0">
-                    <MudText Style="font-style: italic">@Category</MudText>
-                    <MudText Style="font-style: italic">v4.0.0</MudText>
+        <MudStack Class="pb-8">
+            <MudText Typo="Typo.h3">@Localizer["Information"]</MudText>
+            <MudText Typo="Typo.body1" Style="font-style: italic">@Localizer["Category: {0}", Category]</MudText>
+            <MudText>@Description</MudText>
+            @if (Dependencies != null && Dependencies.Any())
+            {
+                <MudText Typo="Typo.h3">@Localizer["Dependencies"]</MudText>
+                <MudStack Row Wrap="Wrap.Wrap" AlignItems="AlignItems.Center" Spacing="4">
+                    @foreach (var (icon, label) in Dependencies)
+                    {
+                        <MudPaper Outlined Elevation="0" Class="pa-3">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <DHIcon Icon=@icon/>
+                                <MudText>@label</MudText>
+                            </MudStack>
+                        </MudPaper>
+                    }
                 </MudStack>
-            </MudStack>
-            <MudText Typo="Typo.h3">Tool information</MudText>
-            <MudStack Row>
-                <MudText>@Description</MudText>
-                <MudSpacer/>
-                <MudStack Justify="Justify.Center">
-                    <MudPaper Elevation="0" Outlined Class="pa-4">
-                        <MudText>Used in 245 workspaces</MudText>
-                    </MudPaper>
-                </MudStack>
-            </MudStack>
-            <MudText Typo="Typo.h3">Cost information</MudText>
-            <MudStack Row>
-                <MudText>Cost: $0.00</MudText>
-                <MudSpacer/>
-                <MudPaper Elevation="0" Outlined>
-                    <MudText>Cost per use: $0.00</MudText>
-                </MudPaper>
-            </MudStack>
+            }
+            <MudText Typo="Typo.h3">@Localizer["Cost & usage"]</MudText>
+            <MudText
+                Typo="Typo.body1">@Localizer["{0} is currently used in {1} workspaces.", Title, Instances]</MudText>
         </MudStack>
     </DialogContent>
 </MudDialog>
@@ -42,4 +37,6 @@
     [Parameter] public string Title { get; set; }
     [Parameter] public string Category { get; set; }
     [Parameter] public string Description { get; set; }
+    [Parameter] public (string Icon, string Name)[] Dependencies { get; set; }
+    [Parameter] public int Instances { get; set; }
 }

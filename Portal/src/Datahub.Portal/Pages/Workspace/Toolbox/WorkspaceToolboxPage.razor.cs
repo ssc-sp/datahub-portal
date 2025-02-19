@@ -1,7 +1,11 @@
-﻿using Datahub.Infrastructure.Services.Toolbox;
+﻿using System.Linq.Dynamic.Core;
+using System.Text.Json;
+using Datahub.Application.Services.Toolbox;
+using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Layout;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 
 namespace Datahub.Portal.Pages.Workspace.Toolbox
@@ -30,9 +34,11 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
         private readonly List<string> _configurableToolList =
         [
-            TerraformTemplate.AzureAppService,
             TerraformTemplate.AzurePostgres,
         ];
+
+        private bool IsConfigurable(ToolboxTransaction transaction) =>
+            _configurableToolList.Contains(transaction.Tool) && transaction.Type != ToolboxTransactionType.Remove;
 
 
         internal record struct AvailabilityStatus
@@ -56,7 +62,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
         private readonly Dictionary<string, string> _toolDisplayStatusMap = new();
 
-        private string GetLabel(string tool)
+        private string ToolLabel(string tool)
         {
             return tool switch
             {
@@ -71,7 +77,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             };
         }
 
-        private string GetCategory(string tool)
+        private string ToolCategory(string tool)
         {
             return tool switch
             {
@@ -86,7 +92,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             };
         }
 
-        private string GetDescription(string tool)
+        private string ToolDescription(string tool)
         {
             return tool switch
             {
@@ -108,7 +114,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             };
         }
 
-        private static string GetIcon(string tool)
+        private static string ToolIcon(string tool)
         {
             return tool switch
             {
@@ -127,6 +133,90 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
         #region Form methods
 
+        private void AddTool(string tool)
+        {
+            Log($"Adding tool: {tool}");
+            _transactions.AddTool(tool, OriginalData(tool));
+            var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
+            dependencies.ForEach(dependency =>
+            {
+                if (_workspaceDefinition.Templates.All(template => template.Name != dependency.Name) &&
+                    _transactions.All(transaction => transaction.Tool != dependency.Name))
+                {
+                    Log($"Adding dependency: {dependency.Name}");
+                    _transactions.AddTool(dependency.Name, OriginalData(tool));
+                }
+            });
+        }
+
+        private void RemoveTool(string tool)
+        {
+            Log($"Removing tool: {tool}");
+            _transactions.RemoveTool(tool);
+        }
+
+        private void UpdateTool(string tool)
+        {
+            Log($"Updating tool: {tool}");
+            _transactions.UpdateTool(tool, OriginalData(tool), UpdatedData(tool));
+        }
+
+        private void RevertTool(ToolboxTransaction transaction)
+        {
+            Log($"Reverting {transaction.Type.ToString().ToUpper()} of tool: {transaction.Tool}");
+
+            // If the tool that is being reverted is the dependency of another tool that is being added, also revert that tool
+            var dependentTools = _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add && TerraformTemplate
+                .GetDependenciesToCreate(tr.Tool).Any(dependency => dependency.Name == transaction.Tool)).ToList();
+            dependentTools.ForEach(tool =>
+            {
+                Log(
+                    $"Reverting {tool.Type.ToString().ToUpper()} tool: {tool.Tool} as it depends on {transaction.Tool}");
+                _transactions.Revert(tool);
+            });
+
+            _transactions.Revert(transaction);
+        }
+
+
+        private object OriginalData(string tool)
+        {
+            switch (tool)
+            {
+                case TerraformTemplate.AzurePostgres:
+                    if (_workspaceDefinition.AppData.PostgresConfiguration == null)
+                    {
+                        Log("No original configuration found for Azure Postgres. Creating new configuration.");
+                        return new PostgresConfiguration();
+                    }
+
+                    return _workspaceDefinition.AppData.PostgresConfiguration;
+                default:
+                    return null;
+            }
+        }
+
+        private object UpdatedData(string tool)
+        {
+            switch (tool)
+            {
+                case TerraformTemplate.AzurePostgres:
+                    if (_workspaceDefinition.AppData.PostgresConfiguration?.PSQL_SKU == null)
+                    {
+                        Log("No original configuration found for Azure Postgres. Creating new configuration.");
+                        return new PostgresConfiguration();
+                    }
+
+                    return new PostgresConfiguration
+                    {
+                        PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
+                    };
+                default:
+                    return null;
+            }
+        }
+
+
         private void PopulateCatalog()
         {
             _toolList.ForEach(tool =>
@@ -137,16 +227,17 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 }
             });
         }
-        #endregion
 
-        private void ShowInfoSheet(string tool)
+        private async Task ShowInfoSheet(string tool)
         {
             var infoParams = new DialogParameters
             {
-                { "Title", GetLabel(tool) },
-                { "Description", GetDescription(tool) },
-                { "Icon", GetIcon(tool) },
-                { "Category", GetCategory(tool) },
+                { "Title", ToolLabel(tool) },
+                { "Description", ToolDescription(tool) },
+                { "Icon", ToolIcon(tool) },
+                { "Category", ToolCategory(tool) },
+                { "Dependencies", ToolDependencies(tool) },
+                { "Instances", await ToolInstances(tool) }
             };
 
             var infoOptions = new DialogOptions
@@ -154,10 +245,95 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 FullWidth = true,
                 CloseOnEscapeKey = true,
                 CloseButton = true,
-                NoHeader = false,
                 MaxWidth = MaxWidth.Large
             };
-            _dialogService.Show<InfoSheet>(GetLabel(tool), infoParams, infoOptions);
+            _dialogService.Show<InfoSheet>(ToolLabel(tool), infoParams, infoOptions);
         }
+
+        private async Task<int> ToolInstances(string tool)
+        {
+            var ctx = await _contextFactory.CreateDbContextAsync();
+            return ctx.Project_Resources2
+                .AsNoTracking()
+                .Count(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(tool));
+        }
+
+        private (string Icon, string Name)[] ToolDependencies(string tool)
+        {
+            var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
+            return dependencies.Select(dependency => (ToolIcon(dependency.Name), ToolLabel(dependency.Name))).ToArray();
+        }
+
+        private string DisplayDiff(Dictionary<string, (object Original, object Updated)> diff)
+        {
+            var diffString = "";
+            foreach (var (key, value) in diff)
+            {
+                var originalValue = value.Original;
+                var updatedValue = value.Updated;
+                if (originalValue == null)
+                {
+                    diffString += Localizer["Added {0}: {1}\n", PropertyLabel(key), updatedValue];
+                }
+                else
+                {
+                    diffString += Localizer["Updated {0}: {1} -> {2}\n", PropertyLabel(key), originalValue,
+                        updatedValue];
+                }
+            }
+
+            return diffString;
+        }
+
+        private string PropertyLabel(string propertyName)
+        {
+            return propertyName switch
+            {
+                "PSQL_SKU" => Localizer["Database tier"],
+                _ => propertyName
+            };
+        }
+
+        #endregion
+
+        #region Admin utils
+
+        private void Log(string message, string type = "info")
+        {
+            var logMessage = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] [{type.ToUpper()}] {message}";
+            switch (type)
+            {
+                case "info":
+                    _adminEventLogs.Add(logMessage);
+                    _logger.LogInformation(message);
+                    break;
+                case "warn":
+                    _adminEventLogs.Add(logMessage);
+                    _logger.LogWarning(message);
+                    break;
+                case "error":
+                    _adminEventLogs.Add(logMessage);
+                    _logger.LogError(message);
+                    break;
+            }
+        }
+
+        private string WorkspaceDefinitionMarkdown(WorkspaceDefinition workspaceDefinition)
+        {
+            var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition,
+                new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                });
+
+            return $"```json\n{workspaceDefinitionJsonString}\n```";
+        }
+
+        private string LinkRewriter(string link)
+        {
+            return link;
+        }
+
+        #endregion
     }
 }
