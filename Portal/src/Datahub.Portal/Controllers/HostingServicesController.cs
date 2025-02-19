@@ -282,6 +282,7 @@ public class HostingServicesController : ControllerBase
         temp.FinancialAuthorityFirstName = input.FinancialAuthorityFirstName;
         temp.FinancialAuthorityLastName = input.FinancialAuthorityLastName;
         temp.FinancialAuthorityCostCentre = input.FinancialAuthorityCostCentre;
+        temp.FinancialAuthorityEmail = input.FinancialAuthorityEmail;
         temp.WorkspaceBudget = Decimal.Parse(input.WorkspaceBudget);
         temp.WorkspaceTitle = input.WorkspaceTitle;
         temp.WorkspaceDescription = input.WorkspaceDescription;
@@ -290,6 +291,8 @@ public class HostingServicesController : ControllerBase
         temp.Keywords = input.Keywords;
         temp.AreaOfScience = input.AreaOfScience;
         temp.RetentionPeriodYears = input.RetentionPeriodYears;
+        temp.RetentionPeriodStartDate = input.RetentionPeriodStartDate.DateTime;
+        temp.RetentionValue = input.RetentionValue;
         temp.SecurityClassification = input.SecurityClassification;
         temp.GeneratesInfoBusinessValue = input.GeneratesInfoBusinessValue;
         temp.ProjectTitle = input.ProjectTitle;
@@ -330,6 +333,9 @@ public class HostingServicesController : ControllerBase
         [Newtonsoft.Json.JsonProperty("FinancialAuthorityCostCentre", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCostCentre { get; set; }
 
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityEmail", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string FinancialAuthorityEmail { get; set; }
+
         [Newtonsoft.Json.JsonProperty("WorkspaceBudget", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string WorkspaceBudget { get; set; }
 
@@ -353,6 +359,12 @@ public class HostingServicesController : ControllerBase
 
         [Newtonsoft.Json.JsonProperty("RetentionPeriodYears", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int RetentionPeriodYears { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("RetentionPeriodStartDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public DateTimeOffset RetentionPeriodStartDate { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("RetentionValue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string RetentionValue { get; set; }
 
         [Newtonsoft.Json.JsonProperty("SecurityClassification", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string SecurityClassification { get; set; }
