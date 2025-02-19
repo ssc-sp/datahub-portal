@@ -26,6 +26,7 @@
     <MudTextField T="string" @bind-Value="WorkspaceTitle" Label="Workspace Title" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceDescription" Label="Workspace Description" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceIdentifier" Label="Workspace Identifier" Variant="Variant.Outlined" />
+    <MudNumericField @bind-Value="WorkspaceBudget" Label="Workspace Budget" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="Subject" Label="Subject" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="Keywords" Label="Keywords" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="AreaOfScience" Label="Area Of Science" Variant="Variant.Outlined" />
@@ -74,6 +75,7 @@ else {
     public string WorkspaceTitle { get; set; }
     public string WorkspaceDescription { get; set; }
     public string WorkspaceIdentifier { get; set; }
+    public decimal WorkspaceBudget { get; set; }
     public string Subject { get; set; }
     public string Keywords { get; set; }
     public string AreaOfScience { get; set; }
@@ -454,6 +456,9 @@ else {
 
         [System.Text.Json.Serialization.JsonPropertyName("WorkspaceIdentifier")]
         public string WorkspaceIdentifier { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WorkspaceBudget")]
+        public decimal WorkspaceBudget { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Subject")]
         public string Subject { get; set; }
