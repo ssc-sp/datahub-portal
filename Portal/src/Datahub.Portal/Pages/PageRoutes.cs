@@ -18,6 +18,12 @@ public static class PageRoutes
 
     public const string WorkspaceWebAppShare = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/app-ext";
 
+    public const string WorkspaceStoragePrefix = "s";
+    public const string WorkspaceStorageDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspaceStoragePrefix}";
+
+    public const string WorkspacePostgresPrefix = "db";
+    public const string WorkspacePostgresDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspacePostgresPrefix}";
+
     public const string AccountPrefix = "account";
     public const string AccountPrefix_FR = "compte";
     public const string AccountDefault = $"/{AccountPrefix}/";

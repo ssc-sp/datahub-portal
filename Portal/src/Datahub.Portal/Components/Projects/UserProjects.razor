@@ -1,137 +1,349 @@
-@using MudBlazor.Utilities
-@using Microsoft.Graph.Models
-@using Datahub.Core.Model.Datahub
-@using Datahub.Application.Configuration
-@using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Projects
-@using Datahub.Portal.Pages.Project
 @using Datahub.Portal.Pages.Explore
+@using Datahub.Portal.Pages.Home
+@using MudBlazor.Utilities
+@using Color = MudBlazor.Color
 
-@inject IUserInformationService _userInformationService
-@inject IConfiguration _configuration
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IUserInformationService UserInformationService
+@inject IConfiguration Configuration
+@inject IDbContextFactory<DatahubProjectDBContext> DbContextFactory
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject DatahubPortalConfiguration DatahubPortalConfiguration
 
 @if (_userRoles is null)
 {
-    <DHLoadingInitializer/>
+    <DHLoadingInitializer Message="@Localizer["Getting your workspaces..."]"/>
     return;
 }
 
-<MudStack>
-    @if (_adminProjects.Any())
-    {
-        @if (ShowTitle)
+@if (NewStyle)
+{
+    <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+        <MudText Typo="Typo.h2" Style=@SectionTitleStyle>
+            @Localizer["Workspaces"]
+        </MudText>
+        @if (HasWorkspaces)
         {
-            <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin workspaces"]</MudText>
-        }
-        <div role="group">
-            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-                @foreach (var project in _adminProjects)
+            <DHButton Variant="Variant.Filled"
+                      Color="Color.Primary"
+                      Underline
+                      NoWrap
+                      Href="@Localizer[PageRoutes.CreateWorkspace]"
+                      EndIcon="@Icons.Material.Filled.Add">
+                @Localizer["Create new workspace"]
+            </DHButton>
+            <MudChipSet T="string"
+                        SelectionMode="SelectionMode.ToggleSelection"
+                        Ripple="false"
+                        CheckMark>
+                @foreach (var group in WorkspaceDisplayGroups)
                 {
-                    <li class="flex-1">
-                        <ProjectPreviewCard Project="@project"/>
-                    </li>
+                    <MudChip T="string"
+                             title=@group.FilterLabel
+                             Text=@group.Label
+                             @bind-Selected=@(group.FilterToggle)>
+                        @group.Label
+                    </MudChip>
+                }
+            </MudChipSet>
+            <MudSpacer/>
+            <DHButton Color="Color.Primary"
+                      Underline
+                      NoWrap
+                      Href="@Localizer[PageRoutes.Explore]"
+                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                @Localizer["Explore other workspaces and users"]
+            </DHButton>
+        }
+    </MudStack>
+    @if (HasWorkspaces)
+    {
+        <MudText Style=@ItalicTextStyle>
+            @FilterLabel()
+        </MudText>
+            <ul style=@DisplayGroupStyle>
+                @foreach (var group in WorkspaceDisplayGroups)
+                {
+                    @if (Show(group))
+                    {
+                        @foreach (var workspace in group.Workspaces)
+                        {
+                            <li class="d-flex flex-1">
+                                <HomeWorkspaceCard Workspace=@workspace ShowCost=@group.ShowCost/>
+                            </li>
+                        }
+                    }
                 }
             </ul>
-        </div>
     }
+    else
+    {
+        <ul style=@NoContentGroupStyle>
+            <li>
+                <NewWorkspaceCard/>
+            </li>
+            <li>
+                <ResourcesReferenceCard/>
+            </li>
+        </ul>
+    }
+}
+else
+{
+    <MudStack>
+        @if (_adminWorkspaces.Any())
+        {
+            @if (ShowTitle)
+            {
+                <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin workspaces"]</MudText>
+            }
 
-    @if (_collaboratedProjects.Any())
-    {
-        @if (ShowTitle)
-        {
-            <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator workspaces"]</MudText>
+            <div role="group">
+                <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
+                    @foreach (var project in _adminWorkspaces)
+                    {
+                        <li class="flex-1">
+                            <ProjectPreviewCard Project="@project"/>
+                        </li>
+                    }
+                </ul>
+            </div>
         }
-        <div role="group">
-            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-                @foreach (var project in _collaboratedProjects)
-                {
-                    <li class="flex-1">
-                        <ProjectPreviewCard Project="@project"/>
-                    </li>
-                }
-            </ul>
-        </div>
-    }
-    
-    @if (_guestProjects.Any())
-    {
-        @if (ShowTitle)
+
+        @if (_collaboratorWorkspaces.Any())
         {
-            <MudDivider Class="my-4" />
-            <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest workspaces"]</MudText>
-        }
-        <div role="group">
-            <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-                @foreach (var project in _guestProjects)
+            @if (ShowTitle)
+            {
+                @if (_adminWorkspaces.Any())
                 {
-                    <li class="flex-1">
-                        <ProjectPreviewCard Project="@project"/>
-                    </li>
+                    <MudDivider Class="my-4"/>
                 }
-            </ul>
-        </div>
-    }
-</MudStack>
+
+                <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator workspaces"]</MudText>
+            }
+
+            <div role="group">
+                <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
+                    @foreach (var project in _collaboratorWorkspaces)
+                    {
+                        <li class="flex-1">
+                            <ProjectPreviewCard Project="@project"/>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+
+        @if (_guestWorkspaces.Any())
+        {
+            @if (ShowTitle)
+            {
+                @if (_adminWorkspaces.Any() || _collaboratorWorkspaces.Any())
+                {
+                    <MudDivider Class="my-4"/>
+                }
+
+                <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest workspaces"]</MudText>
+            }
+
+            <div role="group">
+                <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
+                    @foreach (var project in _guestWorkspaces)
+                    {
+                        <li class="flex-1">
+                            <ProjectPreviewCard Project="@project"/>
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </MudStack>
+}
 
 @code {
 
+    // Parameters
     [Parameter] public bool ShowTitle { get; set; } = true;
-
     [Parameter] public int SmSize { get; set; } = 4;
-
     [Parameter] public string UserId { get; set; }
+    [Parameter] public bool NewStyle { get; set; }
 
+    // Display state
+    private class WorkspaceDisplayGroup
+    {
+        public string Label { get; init; }
+        public bool FilterToggle { get; set; }
+        public string FilterLabel { get; init; }
+        public bool ShowCost { get; init; }
+        public List<Datahub_Project> Workspaces { get; init; }
+    }
+
+    private WorkspaceDisplayGroup _leadGroup = new();
+    private WorkspaceDisplayGroup _adminGroup = new();
+    private WorkspaceDisplayGroup _collaboratorGroup = new();
+    private WorkspaceDisplayGroup _guestGroup = new();
+
+    private List<WorkspaceDisplayGroup> WorkspaceDisplayGroups =>
+    [
+        _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup
+    ];
+
+    bool AnyFilter => WorkspaceDisplayGroups.Any(g => g.FilterToggle);
+    bool HasWorkspaces => _allWorkspaces.Count > 0;
+
+    int FilteredWorkspacesCount => AnyFilter
+        ? WorkspaceDisplayGroups.Where(g => g.FilterToggle).SelectMany(g => g.Workspaces).Count()
+        : WorkspaceDisplayGroups.Sum(g => g.Workspaces.Count);
+
+
+    // User, Roles, and Projects
     private bool _isCurrentUser;
-
-    private const int MaxWorkspaceCount = 3;
-
     private List<Datahub_Project_User> _userRoles;
-    private int _numberOfRemainingWorkspaces;
+    private List<Datahub_Project> _allWorkspaces;
+    private List<Datahub_Project> _leadWorkspaces;
+    private List<Datahub_Project> _adminWorkspaces;
+    private List<Datahub_Project> _collaboratorWorkspaces;
+    private List<Datahub_Project> _guestWorkspaces;
 
-    private List<Datahub_Project> _adminProjects;
-    private List<Datahub_Project> _collaboratedProjects;
-    private List<Datahub_Project> _guestProjects;
-
-    private string _chipStyle = new StyleBuilder()
-        .AddStyle("margin-left", "0")
-        .AddStyle("margin-bottom", "0")
+    // Styles
+    string SectionTitleStyle => new StyleBuilder()
+        .AddStyle("padding-right", "16px")
         .Build();
 
+    string ItalicTextStyle => new StyleBuilder()
+        .AddStyle("font-style", "italic")
+        .Build();
+
+    string DisplayGroupStyle => new StyleBuilder()
+        .AddStyle("display", "flex")
+        .AddStyle("flex-wrap", "wrap")
+        .AddStyle("flex-grow", "1")
+        .AddStyle("list-style-type", "none")
+        .AddStyle("gap", "30px")
+        .AddStyle("justify-content", "start")
+        .Build();
+
+    string NoContentGroupStyle => new StyleBuilder()
+        .AddStyle("display", "flex")
+        .AddStyle("flex-direction", "column")
+        .AddStyle("list-style-type", "none")
+        .AddStyle("gap", "25px")
+        .AddStyle("flex-wrap", "wrap")
+        .Build();
+
+
+    // Hooks
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
+        await QueryWorkspaces();
+        InitiateDisplayState();
+    }
 
-        var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+    private async Task QueryWorkspaces()
+    {
+        var portalUser = await UserInformationService.GetCurrentPortalUserAsync();
         var userId = UserId ?? portalUser.GraphGuid;
         _isCurrentUser = userId == portalUser.GraphGuid;
 
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _userRoles = await dbContext.Project_Users
-            .Include(u => u.Role)
-            .Include(u => u.Project)
-                .ThenInclude(p => p.Users)
-            .Include(u => u.Project)
-                .ThenInclude(p => p.Credits) // Include the Credits table
+        await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+        _userRoles = await dbContext
+            .Project_Users
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == userId)
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Credits) // Include the Credits table
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Repositories)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Resources)
             .ToListAsync();
 
-        _numberOfRemainingWorkspaces = MaxWorkspaceCount - _userRoles.Count(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
-
-        _adminProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead || u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _collaboratedProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).ToList();
-        _guestProjects = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).ToList();
+        _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _leadWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _adminWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _collaboratorWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _guestWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
     }
 
-    private async Task ShowProjectDialog()
+    private void InitiateDisplayState()
     {
-        NavigationManager.NavigateTo(Localizer[PageRoutes.CreateWorkspace]);
+        _leadGroup = new WorkspaceDisplayGroup
+        {
+            Label = Localizer["Lead"],
+            Workspaces = _leadWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces you are a lead of."],
+            ShowCost = true
+        };
+        _adminGroup = new WorkspaceDisplayGroup
+        {
+            Label = Localizer["Admin"],
+            Workspaces = _adminWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces you are an admin of."],
+            ShowCost = true
+        };
+        _collaboratorGroup = new()
+        {
+            Label = Localizer["Collaborator"],
+            Workspaces = _collaboratorWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces you are a collaborator of."],
+        };
+        _guestGroup = new()
+        {
+            Label = Localizer["Guest"],
+            Workspaces = _guestWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces you are a guest of."],
+        };
+    }
+
+
+    // Utils
+    private string FilterLabel()
+    {
+        if (!AnyFilter)
+        {
+            return Localizer["Showing all workspaces ({0})", FilteredWorkspacesCount];
+        }
+        
+        if (FilteredWorkspacesCount == 0)
+        {
+            return Localizer["No workspaces match the filter"];
+        }
+
+        if (Show(_leadGroup))
+        {
+            return Localizer["Showing workspaces where you are a lead ({0})", FilteredWorkspacesCount];
+        }
+
+        if (Show(_adminGroup))
+        {
+            return Localizer["Showing workspaces where you are an admin ({0})", FilteredWorkspacesCount];
+        }
+
+        if (Show(_collaboratorGroup))
+        {
+            return Localizer["Showing workspaces where you are a collaborator ({0})", FilteredWorkspacesCount];
+        }
+
+        if (Show(_guestGroup))
+        {
+            return Localizer["Showing workspaces where you are a guest ({0})", FilteredWorkspacesCount];
+        }
+
+        return Localizer["No filter"];
+    }
+
+    private bool Show(WorkspaceDisplayGroup group)
+    {
+        return group.FilterToggle || !AnyFilter;
     }
 
 }
