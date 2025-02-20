@@ -102,11 +102,12 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
-            var savedToBlob = await SaveRequestToBlob(body);
+            var requestId = Guid.NewGuid().ToString();
+            var savedToBlob = await SaveRequestToBlob(body, requestId);
 
             if (savedToBlob is UnauthorizedResult)
             {
-                _logger.LogError("Failed to save request to blob storage.");
+                _logger.LogError($"Failed to save request to blob storage. request id {requestId}");
                 return savedToBlob;
             }
             _logger.LogInformation("Saved request to blob storage.");
@@ -117,6 +118,11 @@ public class HostingServicesController : ControllerBase
             var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(body);
 
             // Create a new workspace.
+            if (string.IsNullOrWhiteSpace(workspaceDetails.WorkspaceTitle) || string.IsNullOrWhiteSpace(workspaceDetails.LeadEmail))
+            {
+                _logger.LogError("Invalid workspace WorkspaceTitle or LeadEmail provided.");
+                return BadRequest("Invalid workspace WorkspaceTitle or LeadEmail provided.");
+            }
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
             var sanitizedAcronym = HttpUtility.HtmlEncode(acronym.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
@@ -149,12 +155,13 @@ public class HostingServicesController : ControllerBase
             }
             else
             {
-                ReportErrorCreatingWorkspace(workspaceDetails);
+                await ReportErrorCreatingWorkspace(workspaceDetails);
                 return BadRequest("Failed to create workspace - Could not register workspace lead");
             }
         }
         catch (Exception ex)
         {
+            _logger.LogCritical(ex, "Error processing create workspace request");
             return BadRequest(ex.ToString() + message);
         }
     }
@@ -164,15 +171,14 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    private async Task<IActionResult> SaveRequestToBlob(string request)
+    private async Task<IActionResult> SaveRequestToBlob(string request, string requestId)
     {
         if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
             return Unauthorized("No token available");
-
         var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
             .CreateCloudBlobClient()
             .GetContainerReference("hosting-requests")
-            .GetBlockBlobReference(Guid.NewGuid().ToString());
+            .GetBlockBlobReference(requestId);
 
         await blobReference.UploadTextAsync(request);
         return Ok();
@@ -288,7 +294,6 @@ public class HostingServicesController : ControllerBase
         temp.WorkspaceBudget = Decimal.Parse(input.WorkspaceBudget);
         temp.WorkspaceTitle = input.WorkspaceTitle;
         temp.WorkspaceDescription = input.WorkspaceDescription;
-        temp.WorkspaceIdentifier = input.WorkspaceIdentifier;
         temp.Subject = input.Subject;
         temp.Keywords = input.Keywords;
         temp.AreaOfScience = input.AreaOfScience;
@@ -352,9 +357,6 @@ public class HostingServicesController : ControllerBase
 
         [Newtonsoft.Json.JsonProperty("WorkspaceDescription", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string WorkspaceDescription { get; set; }
-
-        [Newtonsoft.Json.JsonProperty("WorkspaceIdentifier", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string WorkspaceIdentifier { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Subject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Subject { get; set; }
