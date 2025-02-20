@@ -1,10 +1,12 @@
-﻿using System.Linq.Dynamic.Core;
+﻿using System.Diagnostics;
+using System.Linq.Dynamic.Core;
 using System.Text.Json;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Layout;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using DocumentFormat.OpenXml.Spreadsheet;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 
@@ -133,6 +135,138 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
         #region Form methods
 
+        private async Task NextStep(MudStepper stepper)
+        {
+            if (stepper.ActiveStep == stepper.Steps.Last())
+            {
+                Log("Completing request");
+                _completed = true;
+                StateHasChanged();
+                await CompleteRequest();
+            }
+            else
+            {
+                Log("Next step");
+                await stepper.NextStepAsync();
+            }
+        }
+
+        private async Task PreviousStep(MudStepper stepper)
+        {
+            Log("Previous step");
+            await stepper.PreviousStepAsync();
+        }
+
+        private async Task CompleteRequest()
+        {
+            _completionSteps =
+            [
+                new CompletionStep { Label = Localizer["Verifying request"], State = "", Task = VerifyRequest },
+                new CompletionStep { Label = Localizer["Creating local state"], State = "", Task = LocalRecords },
+                new CompletionStep
+                    { Label = Localizer["Requesting cloud provisioning"], State = "", Task = CloudRequest }
+            ];
+
+            _context = await _contextFactory.CreateDbContextAsync();
+
+            foreach (var step in _completionSteps)
+            {
+                Log($"Beginning completion step: {step.Label}");
+                var timer = new Stopwatch();
+                timer.Start();
+                try
+                {
+                    step.State = ActiveState;
+                    StateHasChanged();
+                    await step.Task();
+                    Log($"Completed step: {step.Label} in {timer.ElapsedMilliseconds}ms");
+                    step.State = CompletedState;
+                }
+                catch (Exception e)
+                {
+                    Log($"Failed step: {step.Label} in {timer.ElapsedMilliseconds}ms", "error");
+                    Log(e.Message, "error");
+                    step.State = FailedState;
+                    break;
+                }
+                finally
+                {
+                    timer.Stop();
+                    step.Time = timer.ElapsedMilliseconds;
+                    StateHasChanged();
+                }
+            }
+
+            if (_completionSteps.Any(step => step.State == FailedState))
+            {
+                Log("Request failed", "error");
+                await _context.DisposeAsync();
+                return;
+            }
+
+            Log("Request completed successfully");
+            await Task.Delay(4000);
+            
+            if (!_mockRequest)
+            {
+                await _context.SaveChangesAsync();
+            }
+
+            await _context.DisposeAsync();
+            if (_redirectOnCompletion)
+            {
+                _navigationManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}");
+            }
+        }
+
+        private async Task VerifyRequest()
+        {
+            var workspace = await _context
+                .Projects
+                .Include(p => p.Resources)
+                .Include(p => p.Credits)
+                .Include(p => p.Users)
+                .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+            // Check obvious errors
+            if (workspace.IsDeleted) throw new Exception("Workspace has been deleted");
+            if (workspace.Users.Count == 0) throw new Exception("Workspace has no users");
+
+            // Check if the workspace already has the requested resources to add
+            if (_transactions.Where(tr => tr.Type == ToolboxTransactionType.Add).Any(tr =>
+                    workspace.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))))
+            {
+                // we may be adding several of the same resource type soon
+                Log("Workspace already has one or more of the requested resources", "warn");
+                //throw new Exception("Workspace already has one or more of the requested resources");
+            }
+
+            // Check that the resources to delete exist, and have been previously completed
+            var resourceToDelete = _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove)
+                .Select(tr => workspace.Resources.First(r =>
+                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))).ToList();
+            if (resourceToDelete.Any(r => r.CreatedAt is null || r.Status != TerraformStatus.Completed))
+                throw new Exception("One or more resources to delete are not yet created");
+
+            // Check that the resources to update exist, and have been previously completed
+            var resourceToUpdate = _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update)
+                .Select(tr => workspace.Resources.First(r =>
+                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))).ToList();
+            if (resourceToUpdate.Any(r => r.CreatedAt is null || r.Status != TerraformStatus.Completed))
+                throw new Exception("One or more resources to update are not yet created");
+        }
+
+        private static async Task LocalRecords()
+        {
+            await Task.Delay(2000);
+            throw new Exception("test");
+        }
+
+        private static async Task CloudRequest()
+        {
+            await Task.Delay(2000);
+        }
+
         private void AddTool(string tool)
         {
             Log($"Adding tool: {tool}");
@@ -166,8 +300,11 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             Log($"Reverting {transaction.Type.ToString().ToUpper()} of tool: {transaction.Tool}");
 
             // If the tool that is being reverted is the dependency of another tool that is being added, also revert that tool
-            var dependentTools = _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add && TerraformTemplate
-                .GetDependenciesToCreate(tr.Tool).Any(dependency => dependency.Name == transaction.Tool)).ToList();
+            var dependentTools = _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add &&
+                                                           TerraformTemplate
+                                                               .GetDependenciesToCreate(tr.Tool)
+                                                               .Any(dependency =>
+                                                                   dependency.Name == transaction.Tool)).ToList();
             dependentTools.ForEach(tool =>
             {
                 Log(
@@ -258,10 +395,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 .Count(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(tool));
         }
 
+
         private (string Icon, string Name)[] ToolDependencies(string tool)
         {
             var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
-            return dependencies.Select(dependency => (ToolIcon(dependency.Name), ToolLabel(dependency.Name))).ToArray();
+            return dependencies.Select(dependency => (ToolIcon(dependency.Name), ToolLabel(dependency.Name)))
+                .ToArray();
         }
 
         private string DisplayDiff(Dictionary<string, (object Original, object Updated)> diff)
