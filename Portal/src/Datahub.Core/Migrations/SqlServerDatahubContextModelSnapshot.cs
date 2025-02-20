@@ -1257,6 +1257,12 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
 
+                    b.Property<string>("FinancialAuthorityCommitmentIsOrg")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FinancialAuthorityCommitmentIsRef")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FinancialAuthorityCostCentre")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
