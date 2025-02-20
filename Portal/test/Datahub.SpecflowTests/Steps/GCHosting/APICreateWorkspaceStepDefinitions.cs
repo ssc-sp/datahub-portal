@@ -1,15 +1,18 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Portal.Controllers;
 using Datahub.Shared.Configuration;
+using DocumentFormat.OpenXml.Wordprocessing;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Cosmos.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using NSubstitute;
 using Octokit;
 using Reqnroll;
@@ -17,6 +20,7 @@ using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 using Xunit;
+using static Datahub.Portal.Controllers.HostingServicesController;
 
 namespace Datahub.SpecflowTests.Steps.GCHosting
 {
@@ -31,6 +35,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
         private readonly ISendEndpointProvider _sendEndpointProvider;
         private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
         private readonly ScenarioContext _scenarioContext;
+        private readonly DatahubProjectDBContext _dbContext;
         private readonly HostingServicesController _controller;
 
         public APICreateWorkspaceStepDefinitions(ScenarioContext scenarioContext)
@@ -47,8 +52,9 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _datahubPortalConfiguration = Substitute.For<DatahubPortalConfiguration>();
             _scenarioContext = scenarioContext;
+            _dbContext = dbContextFactory.CreateDbContext();
             _controller = new HostingServicesController(
-                dbContextFactory.CreateDbContext(),
+                _dbContext,
                 _projectCreationService,
                 _userInformationService,
                 _userEnrollmentService,
@@ -75,7 +81,29 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
         {
             // Arrange
             var context = new DefaultHttpContext();
-            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes((string)_scenarioContext["requestBody"]));
+            var requestString = (string)_scenarioContext["requestBody"];
+            var cGuid = Guid.NewGuid().ToString();
+            string currentEmail = null!;
+            _userEnrollmentService.SendUserDatahubPortalInvite(Arg.Any<string>(), Arg.Any<string>())
+                .ReturnsForAnyArgs(e => {
+                    currentEmail = (string)e[0];
+                    return cGuid;
+                });
+            _userInformationService.CreatePortalUserAsync(Arg.Any<string>())
+                .ReturnsForAnyArgs(async userName => {
+                    Assert.Equal(cGuid, userName[0]);
+                    _dbContext.PortalUsers.Add(new PortalUser
+                    {
+                        Email = currentEmail,
+                        GraphGuid = cGuid
+                    });
+                    await _dbContext.SaveChangesAsync();                    
+                });
+            // Deserialize the request body
+            var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(requestString);
+
+
+            context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestString));
             _controller.ControllerContext = new ControllerContext
             {
                 HttpContext = context

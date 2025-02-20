@@ -14,3 +14,4 @@ Examples:
 	| a8f21f62-ee89-4ca0-982f-cdbee50a0402 | 400           |
 	| c21b1c50-fdfa-4267-b578-e9442eec5412 | 400           |
 	| d6358d5a-46de-436f-b1b5-91ee824be02c | 400           |
+	| valid1                               | 200           |

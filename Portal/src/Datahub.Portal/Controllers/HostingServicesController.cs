@@ -135,7 +135,7 @@ public class HostingServicesController : ControllerBase
             if (user == null) // If the user is not found, register the user.
             {
                 _logger.LogInformation("User not found, registering user.");
-                await RegisterUser(workspaceDetails.LeadEmail);
+                user = await RegisterUser(workspaceDetails.LeadEmail);
                 int attempt = 0;
                 
                 while (user == null && attempt < 5)
@@ -233,6 +233,7 @@ public class HostingServicesController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError("Error registering user: {0}", ex.Message);
             message = ex.Message;
             return null;
         }
