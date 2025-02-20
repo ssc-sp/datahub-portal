@@ -37,10 +37,10 @@
                 </MudPaper>
             </li>
         }
-        <FSDHEnvironment Environments="@_prodEnvs">
-            <li class="flex-1 d-flex">
-                <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
-                    <MudStack Justify="Justify.SpaceBetween">
+        <li class="flex-1 d-flex">
+            <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
+                <MudStack Justify="Justify.SpaceBetween">
+                    <FSDHEnvironment Environments="@_prodEnvs">
                         <MudStack>
                             <MudText Typo="Typo.h3">@Localizer["Create a new workspace"]</MudText>
                             <MudText Typo="Typo.body1">@Localizer["You can create a new workspace using the GC Hosting Services Portal to start working on your project."]</MudText>
@@ -52,14 +52,8 @@
                                 </DHButton>
                             </MudElement>
                         </MudStack>
-                    </MudStack>
-                </MudPaper>
-            </li>
-        </FSDHEnvironment>
-        <FSDHEnvironment Environments="@_nonProd">
-            <li class="flex-1 d-flex">
-                <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
-                    <MudStack Justify="Justify.SpaceBetween">
+                    </FSDHEnvironment>
+                    <FSDHEnvironment Environments="@_nonProd">
                         <MudStack>
                             <MudText Typo="Typo.h3">@Localizer["Create a new workspace"]</MudText>
                             <MudText Typo="Typo.body1">@Localizer["You can create a new workspace to start working on your project"]</MudText>
@@ -71,10 +65,10 @@
                                 </DHButton>
                             </MudElement>
                         </MudStack>
-                    </MudStack>
-                </MudPaper>
-            </li>
-        </FSDHEnvironment>
+                    </FSDHEnvironment>
+                </MudStack>
+            </MudPaper>
+        </li>
         <li class="flex-1 d-flex">
             <MudPaper Elevation="0" Outlined Class="px-3 py-2 flex-1 d-flex">
                 <MudStack Justify="Justify.SpaceBetween">
