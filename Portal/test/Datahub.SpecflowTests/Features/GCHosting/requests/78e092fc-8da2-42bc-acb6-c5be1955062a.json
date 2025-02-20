@@ -1,0 +1,21 @@
+{
+  "LeadFirstName" : "",
+  "LeadLastName" : "FinancialContact Lead",
+  "DepartmentName" : "abc",
+  "FinancialAuthorityCostCentre" : "12",
+  "WorkspaceTitle" : "123",
+  "WorkspaceDescription" : "12",
+  "WorkspaceIdentifier" : "12",
+  "Subject" : "12",
+  "Keywords" : "",
+  "AreaOfScience" : "Placeholder",
+  "RetentionPeriodYears" : 11,
+  "SecurityClassification" : "Protected A",
+  "GeneratesInfoBusinessValue" : false,
+  "IndigenousConsiderations" : "Yes",
+  "ProjectTitle" : "12",
+  "ProjectDescription" : "12",
+  "ProjectStartDate" : "2025-02-05",
+  "ProjectEndDate" : "2025-02-20",
+  "CBRID" : "011R"
+}
