@@ -347,15 +347,16 @@ public class TerraformOutputHandler(
             projectResource.JsonContent = jsonContent.ToString();
             projectResource.CreatedAt ??= DateTime.UtcNow;
         }
+        projectResource.Status = resourceGroupStatus;
 
-        if (resourceGroupStatus == TerraformStatus.Deleted)
-        {           
-            project.Deleted_DT = DateTime.UtcNow;            
+        var deletedStatusCheck = GetStatusMapping(outputVariables[TerraformVariables.OutputAzureResourceGroupStatus].Value);
+        if (deletedStatusCheck == TerraformStatus.Deleted)
+        {
+            projectResource.Status = TerraformStatus.Deleted;
+            project.Deleted_DT = project.Deleted_DT ?? DateTime.UtcNow;            
         }
 
-        projectResource.Status = resourceGroupStatus;
         projectResource.UpdatedAt = DateTime.UtcNow;
-
         await projectDbContext.SaveChangesAsync();
     }
 
