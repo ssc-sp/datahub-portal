@@ -60,6 +60,16 @@ public class GCHostingWorkspaceDetails
     public string FinancialAuthorityCostCentre { get; set; }
 
     /// <summary>
+    /// Gets or sets the financial authority commitment isref.
+    /// </summary>
+    public string FinancialAuthorityCommitmentIsRef { get; set; }
+
+    /// <summary>
+    /// Gets or sets the financial authority commitment isorg.
+    /// </summary>
+    public string FinancialAuthorityCommitmentIsOrg { get; set; }
+
+    /// <summary>
     /// Gets or sets the government email of the financial authority.
     /// </summary>
     [JsonPropertyName("FinancialAuthorityEmail")]
