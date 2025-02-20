@@ -99,9 +99,6 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                     });
                     await _dbContext.SaveChangesAsync();                    
                 });
-            // Deserialize the request body
-            var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(requestString);
-
 
             context.Request.Body = new MemoryStream(Encoding.UTF8.GetBytes(requestString));
             _controller.ControllerContext = new ControllerContext
