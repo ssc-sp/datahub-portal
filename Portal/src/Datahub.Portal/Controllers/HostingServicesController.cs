@@ -282,6 +282,8 @@ public class HostingServicesController : ControllerBase
         temp.FinancialAuthorityFirstName = input.FinancialAuthorityFirstName;
         temp.FinancialAuthorityLastName = input.FinancialAuthorityLastName;
         temp.FinancialAuthorityCostCentre = input.FinancialAuthorityCostCentre;
+        temp.FinancialAuthorityCommitmentIsRef = input.FinancialAuthorityCommitmentIsRef;
+        temp.FinancialAuthorityCommitmentIsOrg = input.FinancialAuthorityCommitmentIsOrg;
         temp.FinancialAuthorityEmail = input.FinancialAuthorityEmail;
         temp.WorkspaceBudget = Decimal.Parse(input.WorkspaceBudget);
         temp.WorkspaceTitle = input.WorkspaceTitle;
@@ -332,6 +334,12 @@ public class HostingServicesController : ControllerBase
 
         [Newtonsoft.Json.JsonProperty("FinancialAuthorityCostCentre", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCostCentre { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsRef", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string FinancialAuthorityCommitmentIsRef { get; set; }
+
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsOrg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string FinancialAuthorityCommitmentIsOrg { get; set; }
 
         [Newtonsoft.Json.JsonProperty("FinancialAuthorityEmail", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityEmail { get; set; }
