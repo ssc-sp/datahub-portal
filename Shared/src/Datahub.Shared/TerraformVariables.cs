@@ -7,6 +7,7 @@ public static class TerraformVariables
     public const string OutputNewProjectTemplate = "new_project_template";
     public const string OutputWorkspaceVersion = "workspace_version";
     public const string OutputAzureResourceGroupName = "azure_resource_group_name";
+    public const string OutputAzureResourceGroupStatus = "azure_resource_group_status";
 
     // Azure Storage output variables
     public const string AzureStorageType = "blob";

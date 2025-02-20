@@ -3,6 +3,7 @@ using System;
 using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    partial class SqliteDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20250219122415_UpdatingHostingServicesFields")]
+    partial class UpdatingHostingServicesFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.13");
@@ -1213,12 +1216,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
-
-                    b.Property<string>("FinancialAuthorityCommitmentIsOrg")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("FinancialAuthorityCommitmentIsRef")
-                        .HasColumnType("TEXT");
 
                     b.Property<string>("FinancialAuthorityCostCentre")
                         .IsRequired()

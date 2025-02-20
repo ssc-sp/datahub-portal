@@ -60,6 +60,22 @@ public class GCHostingWorkspaceDetails
     public string FinancialAuthorityCostCentre { get; set; }
 
     /// <summary>
+    /// Gets or sets the financial authority commitment isref.
+    /// </summary>
+    public string FinancialAuthorityCommitmentIsRef { get; set; }
+
+    /// <summary>
+    /// Gets or sets the financial authority commitment isorg.
+    /// </summary>
+    public string FinancialAuthorityCommitmentIsOrg { get; set; }
+
+    /// <summary>
+    /// Gets or sets the government email of the financial authority.
+    /// </summary>
+    [JsonPropertyName("FinancialAuthorityEmail")]
+    public string FinancialAuthorityEmail { get; set; }
+
+    /// <summary>
     /// Gets or sets the budget of the workspace.
     /// </summary>
     [JsonPropertyName("WorkspaceBudget")]
@@ -106,6 +122,18 @@ public class GCHostingWorkspaceDetails
     /// </summary>
     [JsonPropertyName("RetentionPeriodYears")]
     public int RetentionPeriodYears { get; set; }
+
+    /// <summary>
+    /// Gets or sets the retention period start date for the workspace.
+    /// </summary>
+    [JsonPropertyName("RetentionPeriodStartDate")]
+    public DateTime RetentionPeriodStartDate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the retention value for the workspace.
+    /// </summary>
+    [JsonPropertyName("RetentionValue")]
+    public string RetentionValue { get; set; }
 
     /// <summary>
     /// Gets or sets the security classification of the workspace.
