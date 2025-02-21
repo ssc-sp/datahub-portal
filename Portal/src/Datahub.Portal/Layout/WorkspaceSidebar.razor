@@ -189,7 +189,6 @@
         public const string Healthcheck = "healthcheck";
         public const string Sudo = "sudo";
         public const string Settings = "settings";
-        public const string Deployments = "deployments";
 
         // exclude databricks, arcgis, and sudo since the translations are the same.
         public const string Dashboard_FR = "tableau-de-bord";
@@ -218,7 +217,6 @@
     private List<string> _workspaceAdministration =
     [
         SectionViews.Toolbox,
-        SectionViews.Deployments,
         SectionViews.Users,
         SectionViews.Metadata,
         SectionViews.Reports,
@@ -283,7 +281,6 @@
             SectionViews.Delete => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.DeleteWorkspace => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
-            SectionViews.Deployments => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -369,7 +366,6 @@
             SectionViews.Repositories => SidebarIcons.Repositories,
             SectionViews.ArcGis => SidebarIcons.ArcGis,
             SectionViews.Toolbox => SidebarIcons.Toolbox,
-            SectionViews.Deployments => Icons.Material.Outlined.CheckCircle,
             SectionViews.Users => SidebarIcons.Users,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
@@ -393,7 +389,6 @@
             SectionViews.Repositories => Localizer["Repositories"],
             SectionViews.ArcGis => Localizer["ArcGIS"],
             SectionViews.Toolbox => Localizer["Toolbox"],
-                SectionViews.Deployments => Localizer["Deployments"],
             SectionViews.Users => Localizer["Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
