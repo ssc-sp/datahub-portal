@@ -102,11 +102,12 @@ public class HostingServicesController : ControllerBase
         {
             // Deserialize the request body.
             var body = await new StreamReader(Request.Body).ReadToEndAsync();
-            var savedToBlob = await SaveRequestToBlob(body);
+            var requestId = Guid.NewGuid().ToString();
+            var savedToBlob = await SaveRequestToBlob(body, requestId);
 
             if (savedToBlob is UnauthorizedResult)
             {
-                _logger.LogError("Failed to save request to blob storage.");
+                _logger.LogError($"Failed to save request to blob storage. request id {requestId}");
                 return savedToBlob;
             }
             _logger.LogInformation("Saved request to blob storage.");
@@ -117,6 +118,11 @@ public class HostingServicesController : ControllerBase
             var workspaceDetails = JsonConvert.DeserializeObject<HostingServiceInfo>(body);
 
             // Create a new workspace.
+            if (string.IsNullOrWhiteSpace(workspaceDetails.WorkspaceTitle) || string.IsNullOrWhiteSpace(workspaceDetails.LeadEmail))
+            {
+                _logger.LogError("Invalid workspace WorkspaceTitle or LeadEmail provided.");
+                return BadRequest("Invalid workspace WorkspaceTitle or LeadEmail provided.");
+            }
             string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceTitle);
             string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
             var sanitizedAcronym = HttpUtility.HtmlEncode(acronym.Replace(Environment.NewLine, "").Replace("\n", "").Replace("\r", ""));
@@ -129,7 +135,7 @@ public class HostingServicesController : ControllerBase
             if (user == null) // If the user is not found, register the user.
             {
                 _logger.LogInformation("User not found, registering user.");
-                await RegisterUser(workspaceDetails.LeadEmail);
+                user = await RegisterUser(workspaceDetails.LeadEmail);
                 int attempt = 0;
                 
                 while (user == null && attempt < 5)
@@ -149,12 +155,13 @@ public class HostingServicesController : ControllerBase
             }
             else
             {
-                ReportErrorCreatingWorkspace(workspaceDetails);
+                await ReportErrorCreatingWorkspace(workspaceDetails);
                 return BadRequest("Failed to create workspace - Could not register workspace lead");
             }
         }
         catch (Exception ex)
         {
+            _logger.LogCritical(ex, "Error processing create workspace request");
             return BadRequest(ex.ToString() + message);
         }
     }
@@ -164,15 +171,14 @@ public class HostingServicesController : ControllerBase
     /// </summary>
     /// <param name="request"></param>
     /// <returns></returns>
-    private async Task<IActionResult> SaveRequestToBlob(string request)
+    private async Task<IActionResult> SaveRequestToBlob(string request, string requestId)
     {
         if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
             return Unauthorized("No token available");
-
         var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
             .CreateCloudBlobClient()
             .GetContainerReference("hosting-requests")
-            .GetBlockBlobReference(Guid.NewGuid().ToString());
+            .GetBlockBlobReference(requestId);
 
         await blobReference.UploadTextAsync(request);
         return Ok();
@@ -227,6 +233,7 @@ public class HostingServicesController : ControllerBase
         }
         catch (Exception ex)
         {
+            _logger.LogError("Error registering user: {0}", ex.Message);
             message = ex.Message;
             return null;
         }
@@ -288,7 +295,6 @@ public class HostingServicesController : ControllerBase
         temp.WorkspaceBudget = Decimal.Parse(input.WorkspaceBudget);
         temp.WorkspaceTitle = input.WorkspaceTitle;
         temp.WorkspaceDescription = input.WorkspaceDescription;
-        temp.WorkspaceIdentifier = input.WorkspaceIdentifier;
         temp.Subject = input.Subject;
         temp.Keywords = input.Keywords;
         temp.AreaOfScience = input.AreaOfScience;
@@ -308,7 +314,7 @@ public class HostingServicesController : ControllerBase
 
     public partial class HostingServiceInfo
     {
-        [Newtonsoft.Json.JsonProperty("GcHostingId", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("GcHostingId", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string GcHostingId { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Id", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -323,38 +329,35 @@ public class HostingServicesController : ControllerBase
         [Newtonsoft.Json.JsonProperty("DepartmentName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string DepartmentName { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("LeadEmail", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("LeadEmail", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string LeadEmail { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityFirstName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityFirstName", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityFirstName { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityLastName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityLastName", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityLastName { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCostCentre", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCostCentre", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCostCentre { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsRef", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsRef", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCommitmentIsRef { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsOrg", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsOrg", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCommitmentIsOrg { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityEmail", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("FinancialAuthorityEmail", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityEmail { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("WorkspaceBudget", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("WorkspaceBudget", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string WorkspaceBudget { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("WorkspaceTitle", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("WorkspaceTitle", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string WorkspaceTitle { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("WorkspaceDescription", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("WorkspaceDescription", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string WorkspaceDescription { get; set; }
-
-        [Newtonsoft.Json.JsonProperty("WorkspaceIdentifier", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string WorkspaceIdentifier { get; set; }
 
         [Newtonsoft.Json.JsonProperty("Subject", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Subject { get; set; }
@@ -365,37 +368,37 @@ public class HostingServicesController : ControllerBase
         [Newtonsoft.Json.JsonProperty("AreaOfScience", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string AreaOfScience { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("RetentionPeriodYears", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("RetentionPeriodYears", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int RetentionPeriodYears { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("RetentionPeriodStartDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("RetentionPeriodStartDate", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public DateTimeOffset RetentionPeriodStartDate { get; set; }
 
         [Newtonsoft.Json.JsonProperty("RetentionValue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string RetentionValue { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("SecurityClassification", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("SecurityClassification", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string SecurityClassification { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("GeneratesInfoBusinessValue", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("GeneratesInfoBusinessValue", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool GeneratesInfoBusinessValue { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("ProjectTitle", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("ProjectTitle", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string ProjectTitle { get; set; }
 
         [Newtonsoft.Json.JsonProperty("ProjectDescription", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string ProjectDescription { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("ProjectStartDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("ProjectStartDate", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.DateTimeOffset ProjectStartDate { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("ProjectEndDate", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("ProjectEndDate", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public System.DateTimeOffset ProjectEndDate { get; set; }
 
         [Newtonsoft.Json.JsonProperty("CBRName", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string CBRName { get; set; }
 
-        [Newtonsoft.Json.JsonProperty("CBRID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        [Newtonsoft.Json.JsonProperty("CBRID", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string CBRID { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
