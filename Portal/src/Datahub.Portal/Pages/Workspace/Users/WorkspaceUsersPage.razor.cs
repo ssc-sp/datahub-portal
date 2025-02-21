@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +10,8 @@ using MudBlazor.Utilities;
 
 namespace Datahub.Portal.Pages.Workspace.Users
 {
+    internal record WorkspaceUserInfo(int? PortalUserId, int? RoleId, bool IsDataSteward);
+
     public partial class WorkspaceUsersPage
     {
         protected override void OnInitialized()
@@ -30,58 +33,70 @@ namespace Datahub.Portal.Pages.Workspace.Users
         private async Task InitializedProjectMembers()
         {
             _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
-            ProjectMemberRoleFilter();
+            _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
+            ProjectMemberRoleFilter(_currentRoleFilter);
         }
 
-        private bool SearchFilter(Datahub_Project_User projectUser)
+        private bool CombinedFilter(Datahub_Project_User projectUser)
         {
-            if (string.IsNullOrWhiteSpace(_filterString))
-                return true;
-            if (projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true)
-                return true;
-            return projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
+            // use originalUser for role filtering to ensure users don't disappear from their corresponding role tab when changing role
+            var originalUser = _originalUserInfo.FirstOrDefault(u => u.PortalUserId == projectUser.PortalUserId);
+
+            var matchesSearch = string.IsNullOrWhiteSpace(_filterString) ||
+                projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true ||
+                projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
+            var matchesFilteredRole = _currentRoleFilter is null || originalUser?.RoleId == _currentRoleFilter;
+            var isNotRemoved = originalUser?.RoleId != (int)Project_Role.RoleNames.Remove;
+
+            return matchesSearch && matchesFilteredRole && isNotRemoved;
         }
 
         private void ProjectMemberRoleFilter(int? roleId = null)
         {
-            _filteredProjectUsers = _projectUsers
-                .Where(x => roleId is null || x.Role.Id == roleId)
-                .Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove)
-                .Where(SearchFilter)
-                .ToList();
+            _currentRoleFilter = roleId;
         }
 
-        private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
+        private static bool IsDataStewardHavingRole(bool isDataSteward, Datahub_Project_User projectUser) => isDataSteward && IsAllowedRoleForDataSteward(projectUser);
+
+        private static bool IsRevertUpdate(ProjectUserUpdateCommand command, WorkspaceUserInfo originalInfo) => command?.NewRoleId == originalInfo?.RoleId && command?.IsDataSteward == originalInfo?.IsDataSteward;
+
+        private void ManageUserUpdateCommand(Datahub_Project_User projectUser)
         {
-            var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
-            if (existingUser != null)
+            var existingUpdateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+            var originalUserInfo = _originalUserInfo.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
+
+            if (existingUpdateCommand != null)
             {
-                existingUser.NewRoleId = newRoleId;
-                var selectedUser = _currentlySelected.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
-                if (selectedUser != null)
+                existingUpdateCommand.NewRoleId = projectUser.RoleId ?? 0;
+                existingUpdateCommand.IsDataSteward = projectUser.IsDataSteward;
+
+                if (IsRevertUpdate(existingUpdateCommand, originalUserInfo))
                 {
-                    selectedUser.RoleId = newRoleId;
-                }
-                if (NothingChanged())
-                {
-                    _usersToUpdate.Remove(existingUser);
-                    _currentlySelected.RemoveAll(x => x.PortalUserId == projectUser.PortalUserId);
+                    _usersToUpdate.Remove(existingUpdateCommand);
                 }
             }
             else
             {
-                _usersToUpdate.Add(new ProjectUserUpdateCommand()
+                var updateCommand = new ProjectUserUpdateCommand()
                 {
                     ProjectUser = projectUser,
-                    NewRoleId = newRoleId
-                });
-                _currentlySelected.Add(new Datahub_Project_User()
+                    NewRoleId = projectUser.RoleId ?? 0,
+                    IsDataSteward = projectUser.IsDataSteward
+                };
+
+                if (!IsRevertUpdate(updateCommand, originalUserInfo))
                 {
-                    PortalUserId = projectUser.PortalUserId,
-                    IsDataSteward = projectUser.IsDataSteward,
-                    RoleId = newRoleId
-                });
+                    _usersToUpdate.Add(updateCommand);
+                }
             }
+        }
+
+        private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
+        {
+            projectUser.RoleId = newRoleId;
+            projectUser.IsDataSteward = IsDataStewardHavingRole(projectUser.IsDataSteward, projectUser);
+
+            ManageUserUpdateCommand(projectUser);
 
             InvokeAsync(StateHasChanged);
         }
@@ -105,54 +120,18 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             return projectUser.Role?.Id == 2 ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.WorkspaceAdmin;
         }
+
+        private static bool IsAllowedRoleForDataSteward(Datahub_Project_User projectUser) => RoleConstants.AllowedDataStewardRoleIds.Contains(projectUser.RoleId ?? 0);
+
+        private static bool IsDataStewardCheckboxDisabled(Datahub_Project_User projectUser) => !(projectUser.IsDataSteward || IsAllowedRoleForDataSteward(projectUser));
+
         private void ChangeDataStewardFlag(Datahub_Project_User projectUser, bool newValue)
         {
-            projectUser.IsDataSteward = newValue;
-            var existingUser = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
-            if (existingUser != null)
-            {
-                existingUser.ProjectUser.IsDataSteward = projectUser.IsDataSteward;
-                var selectedUser = _currentlySelected.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
-                if (selectedUser != null)
-                {
-                    selectedUser.IsDataSteward = projectUser.IsDataSteward;
-                }
-                if (NothingChanged())
-                {
-                    _usersToUpdate.Remove(existingUser);
-                    _currentlySelected.RemoveAll(x => x.PortalUserId == projectUser.PortalUserId);
-                }
-            }
-            else
-            {
-                _usersToUpdate.Add(new ProjectUserUpdateCommand()
-                {
-                    ProjectUser = projectUser,
-                    IsDataSteward = newValue,
-                    NewRoleId = (int)projectUser.RoleId
-                });
-                _currentlySelected.Add(new Datahub_Project_User()
-                {
-                    PortalUserId = projectUser.PortalUserId,
-                    IsDataSteward = projectUser.IsDataSteward,
-                    RoleId = projectUser.RoleId
-                });
-            }
+            projectUser.IsDataSteward = IsDataStewardHavingRole(newValue, projectUser);
+
+            ManageUserUpdateCommand(projectUser);
 
             InvokeAsync(StateHasChanged);
-        }
-
-        private bool NothingChanged()
-        {
-            foreach (var user in _currentlySelected)
-            {
-                var original = _projectUsers.FirstOrDefault(x => x.PortalUserId == user.PortalUserId);
-                if (original == null || original.IsDataSteward != user.IsDataSteward || original.RoleId != user.RoleId)
-                {
-                    return false;
-                }
-            }
-            return true;
         }
 
         private async Task OpenDialog()
