@@ -144,11 +144,15 @@ public class ProjectCreationService(
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
             await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
-            // await CreateNewTemplateProjectResourceAsync(acronym);
-            //
-            // var workspaceDefinition =
-            //     await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
-            // await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            // DISABLED resource group creation on project creation as this becomes done in the toolbox
+            // as part of their first request.
+            /*
+                await CreateNewTemplateProjectResourceAsync(acronym);
+            
+                var workspaceDefinition =
+                await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+                await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+             */
 
             return true;
         }

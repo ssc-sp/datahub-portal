@@ -1,4 +1,4 @@
-﻿<MudDialog Style="width: 50%; min-height: 50%">
+﻿<MudDialog Style="width: 50%;">
     <TitleContent>
         <MudStack Row AlignItems="AlignItems.Center">
             <DHIcon Icon="@Icon"/>
@@ -9,6 +9,8 @@
         <MudStack Class="pb-8">
             <MudText Typo="Typo.h3">@Localizer["Information"]</MudText>
             <MudText Typo="Typo.body1" Style="font-style: italic">@Localizer["Category: {0}", Category]</MudText>
+            <MudText Typo="Typo.body1"
+                     Style="font-style: italic">@Localizer["Availability: {0}", Availability]</MudText>
             <MudText>@Description</MudText>
             @if (Dependencies != null && Dependencies.Any())
             {
@@ -39,4 +41,5 @@
     [Parameter] public string Description { get; set; }
     [Parameter] public (string Icon, string Name)[] Dependencies { get; set; }
     [Parameter] public int Instances { get; set; }
+    [Parameter] public string Availability { get; set; }
 }

@@ -11,15 +11,14 @@
 
 @inherits ViewUserBase<WorkspaceToolboxPage>
 
-@inject IDbContextFactory<DatahubProjectDBContext> _contextFactory
-@inject IResourceMessagingService _resourceMessagingService
-@inject IRequestManagementService _requestManagementService
-@inject IUserInformationService _userInformationService
-@inject ILogger<WorkspaceToolboxPage> _logger
-@inject ISnackbar _snackbar
-@inject NavigationManager _navigationManager
-@inject IDialogService _dialogService
-@inject IToolboxService _toolboxService
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+@inject IResourceMessagingService ResourceMessagingService
+@inject IRequestManagementService RequestManagementService
+@inject IDatahubAuditingService AuditingService
+@inject ILogger<WorkspaceToolboxPage> Logger
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject IToolboxService ToolboxService
 
 @if (_initializing)
 {
@@ -41,7 +40,8 @@
                     }
                     else if (_completionSteps.Any(step => step.State == FailedState))
                     {
-                        @Localizer["Request failed. Please try again later."]
+                        @Localizer["Request failed. Please try again later, or "]
+                        <MudLink Href="@MetadataUrl">@Localizer["submit a support request."]</MudLink>
                     }
                     else
                     {
@@ -68,7 +68,7 @@
                                 <MudText Typo="Typo.body1">@Localizer[step.Label]</MudText>
                                 @if (step.Time is not 0)
                                 {
-                                    <MudText>@Localizer["{0:F2} seconds", (float)step.Time/1000]</MudText>
+                                    <MudText>@Localizer["{0:F2} seconds", (float)step.Time / 1000]</MudText>
                                 }
                             </MudStack>
                         }
@@ -235,7 +235,7 @@
                                     @foreach (var transaction in _transactions.Where(IsConfigurable))
                                     {
                                         <MudPaper Elevation="0" Outlined Class="py-4 px-8"
-                                                  Style=@_configurationFormStyle>
+                                                  Style=@ConfigurationFormStyle>
                                             <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
                                                 <DHIcon Icon="@ToolIcon(transaction.Tool)"/>
                                                 <MudText Typo="Typo.h3">
@@ -258,7 +258,7 @@
                                             </MudStack>
                                         </MudPaper>
                                         <MudPaper Elevation="0" Outlined Class="py-4 px-8"
-                                                  Style=@_configurationFormStyle>
+                                                  Style=@ConfigurationFormStyle>
                                             <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
                                                 <DHIcon Icon="@ToolIcon(transaction.Tool)"/>
                                                 <MudText Typo="Typo.h3">
@@ -451,10 +451,13 @@
             else
             {
                 @* Missing metadata *@
-                <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-                    @Localizer["Looks like you haven't added metadata to your workspace yet. Please add metadata to your workspace to be able to request tools."]
-                    <MudLink Href="@_metadataUrl">@Localizer["Go to metadata page"]</MudLink>
-                </MudAlert>
+                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Style="min-height:100px">
+                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined"
+                              Style="color: #000">
+                        @Localizer["Looks like you haven't added metadata to your workspace yet. Please add metadata to your workspace to be able to request tools."]
+                        <MudLink Href="@MetadataUrl">@Localizer["Go to metadata page"]</MudLink>
+                    </MudAlert>
+                </MudStack>
             }
         }
     </MudPaper>
@@ -535,7 +538,7 @@
                             </div>
                             <div style="width: 50%">
                                 <DHMarkdown
-                                    Content="@WorkspaceDefinitionMarkdown(_toolboxService.ApplyTransaction(_workspaceDefinition, _transactions))"
+                                    Content="@WorkspaceDefinitionMarkdown(ToolboxService.ApplyTransaction(_workspaceDefinition, _transactions))"
                                     LinkRewriter="@LinkRewriter"/>
                             </div>
                         </MudStack>
@@ -549,43 +552,44 @@
 @code {
 
     [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; }
 
     private Datahub_Project _workspace;
     private WorkspaceDefinition _workspaceDefinition;
+    private WorkspaceDefinition _builtWorkspaceDefinition;
     private PortalUser _viewedPortalUser;
     private List<ToolboxTransaction> _transactions;
     private DatahubProjectDBContext _context;
 
-    private List<string> _toolCatalog = [];
-    private List<string> _adminEventLogs = [];
+    private readonly List<string> _toolCatalog = [];
+    private readonly List<string> _adminEventLogs = [];
 
     private bool _metadataRequired = true;
     private bool _initializing = true;
     private bool _showAdminView;
     private bool _redirectOnCompletion = true;
-    private bool _mockRequest = false;
+    private bool _mockRequest;
     private bool _completed;
 
     private class CompletionStep
     {
-        public string Label { get; set; }
+        public string Label { get; init; }
         public string State { get; set; }
-        public Func<Task> Task { get; set; }
+        public Func<Task> Task { get; init; }
         public long Time { get; set; }
     }
 
-    private string ActiveState => "active";
-    private string CompletedState => "completed";
-    private string FailedState => "failed";
+    private static string ActiveState => "active";
+    private static string CompletedState => "completed";
+    private static string FailedState => "failed";
 
     private List<CompletionStep> _completionSteps = [];
 
     private int _activeIndex;
 
-    private string _metadataUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Metadata}";
+    private string MetadataUrl => $"{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Metadata}";
 
-    private string _configurationFormStyle => new StyleBuilder()
+    private static string ConfigurationFormStyle => new StyleBuilder()
         .AddStyle("border-top", "2px var(--mud-palette-divider) solid")
         .AddStyle("border-right", "2px var(--mud-palette-divider) solid")
         .AddStyle("border-bottom", "2px var(--mud-palette-divider) solid")
@@ -596,20 +600,20 @@
     {
         await base.OnInitializedAsync();
 
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        await using var context = await ContextFactory.CreateDbContextAsync();
         _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)
             .Include(w => w.Credits)
             .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
-        _workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
+        _workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
 
         _metadataRequired = _workspace.MetadataAdded != true;
         PopulateCatalog();
         Log("Beginning transaction");
-        _transactions = _toolboxService.BeginTransaction();
+        _transactions = ToolboxService.BeginTransaction();
         _initializing = false;
         await InvokeAsync(StateHasChanged);
     }

@@ -1,5 +1,4 @@
 ﻿using System.Reflection;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.Json;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Shared;
@@ -9,11 +8,13 @@ namespace Datahub.Infrastructure.Services.Toolbox
 {
     public class ToolboxService : IToolboxService
     {
+        /// <inheritdoc/>
         public List<ToolboxTransaction> BeginTransaction()
         {
             return new List<ToolboxTransaction>();
         }
 
+        /// <inheritdoc/>
         public WorkspaceDefinition ApplyTransaction(WorkspaceDefinition workspaceDefinition,
             List<ToolboxTransaction> transactions)
         {
@@ -45,6 +46,11 @@ namespace Datahub.Infrastructure.Services.Toolbox
             return newWorkspaceDefinition;
         }
 
+        /// <summary>
+        /// Swaps the workspace's definition tool-related configuration with the new configuration provided
+        /// </summary>
+        /// <param name="workspaceDefinition">Workspace definition to apply this switch to</param>
+        /// <param name="transaction">The transaction containing the new configuration information</param>
         private void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
         {
             switch (transaction.Tool)
@@ -56,6 +62,9 @@ namespace Datahub.Infrastructure.Services.Toolbox
         }
     }
 
+    /// <summary>
+    /// Various extensions to facilitate the use of ToolboxTransactions
+    /// </summary>
     public static class ToolboxTransactionExtensions
     {
         public static ToolboxTransaction AddTool(this List<ToolboxTransaction> transactions, string tool,
@@ -101,13 +110,24 @@ namespace Datahub.Infrastructure.Services.Toolbox
             transactions.Remove(transaction);
         }
 
+        /// <summary>
+        /// This method will diff the original and updated data of a transaction. This is very useful
+        /// to display the changes that were made to a workspace definition through either an Add or an Update.
+        /// This uses reflection to avoid having to write a diff method for each type of configuration.
+        /// </summary>
+        /// <param name="transaction">The transaction containing the config data</param>
+        /// <returns>
+        /// Dictionary of string with property names as keys and tuples of (original value, updated value) as values.
+        /// This dictionary will contain only the properties that have changed.
+        /// </returns>
+        /// <exception cref="InvalidOperationException">Throws an exception if UpdatedData is null or if OriginalData and UpdatedData are provided but not of the same type</exception>
         public static Dictionary<string, (object? Original, object Updated)> Diff(this ToolboxTransaction transaction)
         {
             if (transaction.OriginalData is null && transaction.UpdatedData is null)
             {
                 return new Dictionary<string, (object? Original, object Updated)>();
             }
-            
+
             if (transaction.UpdatedData == null)
             {
                 throw new InvalidOperationException("UpdatedData must not be null");
