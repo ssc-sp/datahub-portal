@@ -24,7 +24,7 @@
             {
                 <MudStack Row AlignItems="AlignItems.Center">
                     <MudElement>
-                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges">
+                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges" Tag=@("SaveChanges")>
                             @Localizer["Save Changes"]
                         </DHButton>
                     </MudElement>
@@ -192,6 +192,7 @@
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
                     Value="rowContext.IsDataSteward"
+                    Tag=@("DataSteward")
                     Disabled=@(IsDataStewardCheckboxDisabled(rowContext))
                     ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
             </MudTd>
