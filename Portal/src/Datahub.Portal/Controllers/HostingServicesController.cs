@@ -288,7 +288,6 @@ public class HostingServicesController : ControllerBase
         temp.LeadEmail = input.LeadEmail;
         temp.FinancialAuthorityFirstName = input.FinancialAuthorityFirstName;
         temp.FinancialAuthorityLastName = input.FinancialAuthorityLastName;
-        temp.FinancialAuthorityCostCentre = input.FinancialAuthorityCostCentre;
         temp.FinancialAuthorityCommitmentIsRef = input.FinancialAuthorityCommitmentIsRef;
         temp.FinancialAuthorityCommitmentIsOrg = input.FinancialAuthorityCommitmentIsOrg;
         temp.FinancialAuthorityEmail = input.FinancialAuthorityEmail;
@@ -337,9 +336,6 @@ public class HostingServicesController : ControllerBase
 
         [Newtonsoft.Json.JsonProperty("FinancialAuthorityLastName", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityLastName { get; set; }
-
-        [Newtonsoft.Json.JsonProperty("FinancialAuthorityCostCentre", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string FinancialAuthorityCostCentre { get; set; }
 
         [Newtonsoft.Json.JsonProperty("FinancialAuthorityCommitmentIsRef", Required = Newtonsoft.Json.Required.Always, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string FinancialAuthorityCommitmentIsRef { get; set; }

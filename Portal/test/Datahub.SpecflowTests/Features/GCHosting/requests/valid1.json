@@ -7,7 +7,6 @@
   "LeadEmail": "john.doe@example.com",
   "FinancialAuthorityFirstName": "Jane",
   "FinancialAuthorityLastName": "Smith",
-  "FinancialAuthorityCostCentre": "CC123",
   "FinancialAuthorityCommitmentIsRef": "Ref123",
   "FinancialAuthorityCommitmentIsOrg": "Org123",
   "FinancialAuthorityEmail": "jane.smith@example.com",
