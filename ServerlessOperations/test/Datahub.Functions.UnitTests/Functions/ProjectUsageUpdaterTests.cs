@@ -88,6 +88,7 @@ namespace Datahub.Functions.UnitTests
             // Assert
             await act.Should().NotThrowAsync();
         }
+
         [Test]
         public async Task Run_ShouldThrowError_WhenValidationFails()
         {
@@ -106,6 +107,27 @@ namespace Datahub.Functions.UnitTests
 
             // Assert
             await act.Should().ThrowAsync<Exception>().WithMessage("Validation failed: \r\n -- CostsBlobName: The specified condition was not met for 'Costs Blob Name'. Severity: Error");
+        }
+
+        [Test]
+        public async Task UpdateProjectCapacity_ShouldSucceed()
+        {
+            // Arrange
+            var projectUpdateMessage = new ProjectCapacityUpdateMessage("TEST", false);
+            var messageEnvelope = new
+            {
+                message = projectUpdateMessage
+            };
+            var messageBody = System.Text.Json.JsonSerializer.Serialize(messageEnvelope);
+            var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+                body: new BinaryData(messageBody));
+            _updater.Mock = true;
+
+            // Act
+            Func<Task> act = async () => await _updater.UpdateProjectCapacity(serviceBusReceivedMessage, CancellationToken.None);
+
+            // Assert
+            await act.Should().NotThrowAsync();
         }
 
         [OneTimeTearDown]

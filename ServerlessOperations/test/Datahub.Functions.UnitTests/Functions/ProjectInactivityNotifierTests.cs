@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Context;
@@ -10,10 +11,15 @@ using Datahub.Infrastructure.Services;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Moq;
 using NSubstitute;
+using System.Text.Json;
 
 namespace Datahub.Functions.UnitTests.Functions;
 
@@ -23,9 +29,6 @@ public class ProjectInactivityNotifierTests
 
     private readonly IDateProvider _dateProvider = Substitute.For<IDateProvider>();
     private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
-
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory =
-        Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
 
     private readonly IResourceMessagingService _resourceMessagingService = Substitute.For<IResourceMessagingService>();
 
@@ -40,15 +43,19 @@ public class ProjectInactivityNotifierTests
     private EmailValidator _emailValidator;
     private IEmailService _emailService;
     private ISendEndpointProvider _iSendEndpointProvider;
+    private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
 
     [SetUp]
-    public void Setup()
+    public async Task Setup()
     {
         _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _azConfig = new AzureConfig(_config);
         _pongService = new QueuePongService(_iSendEndpointProvider);
         _emailValidator = new EmailValidator();
         _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
+        _dbContextFactory = TestHelper.CreateMockDbContextFactory();
+        await TestHelper.SeedDatabase(_dbContextFactory);
+
         _sut = new ProjectInactivityNotifier(_loggerFactory, _dbContextFactory, _pongService, _iSendEndpointProvider,
             _projectInactivityNotificationService, _emailValidator, _dateProvider, _azConfig, _emailService);
     }
@@ -199,6 +206,49 @@ public class ProjectInactivityNotifierTests
 
         // Assert
         result.Body.Should().Contain("Your workspace <a href=\"https://federal-science-datahub.canada.ca/w/TEST\">TEST</a> has been inactive for 20 days");
+    }
+
+    [Test]
+    public async Task Run_ShouldReturnOkObjectResult_WhenRequestIsValid()
+    {
+        // Arrange
+        var request = new ProjectInactivityNotificationMessage(4);
+        
+        var messageEnvelope = new
+        {
+            message = request
+        };
+        var messageBody = JsonSerializer.Serialize(messageEnvelope);
+        var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: new BinaryData(messageBody));
+
+        // Act
+        Func<Task> act = async () => await _sut.Run(serviceBusReceivedMessage, CancellationToken.None);
+
+        // Assert
+        await act.Should().NotThrowAsync();
+    }
+
+    [Test]
+    public async Task Run_ShouldReturnBadRequestObjectResult_WhenRequestIsInvalid()
+    {
+        // Arrange
+        var request = new ProjectInactivityNotificationMessage(100);
+
+        var messageEnvelope = new
+        {
+            message = request
+        };
+        var messageBody = JsonSerializer.Serialize(messageEnvelope);
+        var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: new BinaryData(messageBody));
+      
+        // Act
+        Func<Task> act = async () => await _sut.Run(serviceBusReceivedMessage, CancellationToken.None);
+
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>();
     }
 
     [OneTimeTearDown]

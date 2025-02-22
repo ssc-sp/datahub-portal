@@ -45,7 +45,7 @@ namespace Datahub.Functions.UnitTests.Functions
             await TestHelper.SeedDatabase(dbContextFactory);
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
-            var webAppService = CreateMockWebAppManagementService();
+            var webAppService = TestHelper.CreateMockWebAppManagementService();
 
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider);
 
@@ -53,16 +53,6 @@ namespace Datahub.Functions.UnitTests.Functions
                 Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
-        }
-
-        private static IWorkspaceWebAppManagementService CreateMockWebAppManagementService()
-        {
-            var mockWebAppService = new Mock<IWorkspaceWebAppManagementService>();
-            mockWebAppService
-                .Setup(w => w.GetState(It.IsAny<string>()))
-                .ReturnsAsync((string s) => s == TestHelper.ACTIVE_WEB_APP_SERVICE_ID);
-
-            return mockWebAppService.Object;
         }
 
         [Test]

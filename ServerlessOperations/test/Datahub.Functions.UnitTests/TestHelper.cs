@@ -19,6 +19,11 @@ using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Core.Data.Databricks;
+using Datahub.Application.Services.WebApp;
+using Microsoft.Graph.Invitations;
+using Microsoft.Graph.Models;
+using MediatR;
 
 namespace Datahub.Functions.UnitTests
 {
@@ -27,6 +32,7 @@ namespace Datahub.Functions.UnitTests
         public const string TEST_PROJECT_ACRONYM = "TEST";
         public const string ACTIVE_WEB_APP_PROJECT_ACRONYM = "WAP";
         public const string INACTIVE_WEB_APP_PROJECT_ACRONYM = "IWAP";
+        public const string OVERBUDGET_WEB_APP_PROJECT_ACRONYM = "OVER";
         public const string ACTIVE_WEB_APP_SERVICE_ID = "active-webapp";
 
         /// <summary>
@@ -46,7 +52,21 @@ namespace Datahub.Functions.UnitTests
             _requestAdapterMock.Setup(adapter => adapter.EnableBackingStore(It.IsAny<IBackingStoreFactory>()));
             _requestAdapterMock.SetupGet(adapter => adapter.SerializationWriterFactory).Returns(_serializationWriterFactoryMock.Object);
 
-            // Initializing the GraphServiceClient using the mocked request adapter
+             // Mock SendAsync to return a fake Invitation when called by Invitations.PostAsync
+             _requestAdapterMock.Setup(adapter => adapter.SendAsync<Invitation>(
+                    It.IsAny<RequestInformation>(),
+                    It.IsAny<ParsableFactory<Invitation>>(),
+                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
+                    It.IsAny<CancellationToken>()
+            )).ReturnsAsync(new Invitation
+            {
+                Id = "mock-invitation-id",
+                InviteRedeemUrl = "https://mocked-invite-link.com",
+                Status = "Pending",
+                InvitedUser = new User { Id= "mockUser" } 
+                // "mockUser" is used in CreateGraphUser to skip hard-to-mock call like follows:
+                // await graphClient.Groups[$"{groupId}"].Members.Ref.PostAsync(requestBody);
+            });
             return new GraphServiceClient(_requestAdapterMock.Object);
         }
 
@@ -67,7 +87,7 @@ namespace Datahub.Functions.UnitTests
         }
 
 
-        public static IDbContextFactory<DatahubProjectDBContext> CreateMockDbContextFactory()
+        public static IDbContextFactory<DatahubProjectDBContext> CreateMockDbContextFactory(CancellationToken cancellationToken = default)
         {
             var optionsBuilder = new DbContextOptionsBuilder<SqlServerDatahubContext>().UseInMemoryDatabase(new Guid().ToString());
             // create a mock factory to return the db context when CreateDbContextAsync is called
@@ -82,10 +102,41 @@ namespace Datahub.Functions.UnitTests
             return mockFactory.Object;
         }
 
+
+        public static IWorkspaceWebAppManagementService CreateMockWebAppManagementService()
+        {
+            var mockWebAppService = new Mock<IWorkspaceWebAppManagementService>();
+            mockWebAppService
+                .Setup(w => w.GetState(It.IsAny<string>()))
+                .ReturnsAsync((string s) => s == TestHelper.ACTIVE_WEB_APP_SERVICE_ID);
+
+            return mockWebAppService.Object;
+        }
+
         public static async Task SeedDatabase(IDbContextFactory<DatahubProjectDBContext> contextFactory)
         {
             await using var context = await contextFactory.CreateDbContextAsync();
 
+            var users = new List<PortalUser>
+            {
+                new PortalUser
+                {
+                    Id=1,
+                    GraphGuid=Guid.NewGuid().ToString()
+                }
+            };
+            var portalUsers = new List<Datahub_Project_User>
+            {
+                new Datahub_Project_User
+                {
+                    ProjectUser_ID=1,
+                    PortalUser=new PortalUser
+                    {
+                        Id=1,
+                        GraphGuid=Guid.NewGuid().ToString()
+                    }
+                }
+            };
             var projects = new List<Datahub_Project>
             {
                 new Datahub_Project()
@@ -110,7 +161,7 @@ namespace Datahub.Functions.UnitTests
                     Project_Status_Desc = "Active",
                     Sector_Name = "Test Sector",
                     Deleted_DT = null,
-                    DatahubAzureSubscription = new DatahubAzureSubscription 
+                    DatahubAzureSubscription = new DatahubAzureSubscription
                     {
                         SubscriptionId = "test-subscription-id", SubscriptionName="test", TenantId="tenant-i"
                     },
@@ -150,17 +201,33 @@ namespace Datahub.Functions.UnitTests
                             Status = TerraformStatus.Completed
                         }
                     ]
+                }, new()
+                {
+                    Project_ID=4,
+                    Project_Acronym_CD = OVERBUDGET_WEB_APP_PROJECT_ACRONYM,
+                    Project_Name = "Overbudget WebApp Test Project",
+                    Project_Status_Desc = "Active",
+                    Sector_Name = "Test Sector",
+                    Credits = new Project_Credits{ Current = 300},
+                    Project_Budget = 200,
+                    Users = portalUsers
                 }
             };
-            var users = new List<PortalUser>
+            var resources = new List<Project_Resources2>
             {
-                new PortalUser
-                { 
-                    Id=1,
-                    GraphGuid=Guid.NewGuid().ToString()
+                new Project_Resources2
+                {
+                    Project = new Datahub_Project
+                    {
+                        Project_ID=5,
+                        Project_Acronym_CD=OVERBUDGET_WEB_APP_PROJECT_ACRONYM,
+                    },
+                    Status=TerraformStatus.Completed,
+                    ResourceType = "terraform:azure-app-service"
                 }
             };
             await context.Projects.AddRangeAsync(projects);
+            await context.Project_Resources2.AddRangeAsync(resources);
             await context.SaveChangesAsync();
         }
 

@@ -46,6 +46,20 @@ namespace Datahub.Functions.UnitTests
             _sendEndpointProvider.Received(3).SendDatahubServiceBusMessage(QueueConstants.ProjectInactivityNotificationQueueName, Arg.Any<ProjectInactivityNotificationMessage>());
         }
 
+        [Test]
+        public async Task Run_ShouldHandlePastDueProjectsAndUsers()
+        {
+            // Arrange
+            var timerInfo = new TimerInfo();
+            timerInfo.IsPastDue = true;
+
+            // Act
+            await _sut.Run(timerInfo);
+
+            // Assert
+            _sendEndpointProvider.Received(3).SendDatahubServiceBusMessage(QueueConstants.ProjectInactivityNotificationQueueName, Arg.Any<ProjectInactivityNotificationMessage>());
+        }
+
 #if DEBUG
         [Test]
         public async Task RunHttp_ShouldScheduleProjectsAndUsers()

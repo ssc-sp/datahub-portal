@@ -1,19 +1,25 @@
 using System.Text.Json;
+using Azure.Messaging.ServiceBus;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
+using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
+using NSubstitute;
 
 namespace Datahub.Functions.UnitTests.Functions;
 
 public class TerraformOutputHandlerTests
 {
+    private readonly ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
+
     private DatahubProjectDBContext _context;
 
     private TerraformOutputHandler _terraformOutputHandler;
@@ -30,17 +36,21 @@ public class TerraformOutputHandlerTests
 
         _context.Database.EnsureDeleted();
         _context.Database.EnsureCreated();
+         
 
-        var mockLogger = new Mock<ILoggerFactory>();
-
-        _terraformOutputHandler = new TerraformOutputHandler(mockLogger.Object, _context, null, null, null);
+        _terraformOutputHandler = new TerraformOutputHandler(_loggerFactory, _context, null, null, null);
     }
 
     [TearDown]
     public void TearDown()
-    {
+    { 
         _context.Database.EnsureDeleted();
         _context.Dispose();
+    }
+    [OneTimeTearDown]
+    public void OneTimeTearDown()
+    {
+        _loggerFactory?.Dispose(); 
     }
 
 
@@ -328,14 +338,22 @@ public class TerraformOutputHandlerTests
         Assert.That(processedResourceInputJsonContent, Is.Not.Null);
     }
 
-    [Test]
-    [Ignore("Needs to be fixed")]
+    [Test]    
     public async Task ShouldProcessWorkspaceTemplateOutputVariables()
     {
+
+        var resource = new Project_Resources2
+        {
+            ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
+        };
+
         var project = new Datahub_Project()
         {
             Project_Acronym_CD = "NEWWORKSPACE",
-            Resources = new List<Project_Resources2>()
+            Resources = new List<Project_Resources2>
+            {
+                resource
+            }
         };
 
         _context.Projects.Add(project);
@@ -349,6 +367,7 @@ public class TerraformOutputHandlerTests
 
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
+         
 
         var terraformOutput = TerraformOutputHelper.GetExpectedTerraformOutput(project);
         var deserializeOptions = new JsonSerializerOptions
@@ -368,5 +387,28 @@ public class TerraformOutputHandlerTests
 
 
         Assert.That(updatedProject, Is.Not.Null);
+    }
+
+    [Test]
+    public async Task Run_ShouldThrowOnBadParams()
+    {
+        // Arrange
+        var terraformMessage = new Dictionary<string, TerraformOutputVariable>
+        {
+            { TerraformVariables.OutputAzureAppServiceStatus, new TerraformOutputVariable() }
+        };
+        var messageEnvelope = new
+        {
+            message = terraformMessage
+        };
+        var messageBody = JsonSerializer.Serialize(messageEnvelope);
+        var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: new BinaryData(messageBody));
+
+        // Act
+        Func<Task> act = async () => await _terraformOutputHandler.RunAsync(serviceBusReceivedMessage);
+
+        // Assert
+        await act.Should().ThrowAsync<Exception>().WithMessage("The given key 'project_cd' was not present in the dictionary.");
     }
 }

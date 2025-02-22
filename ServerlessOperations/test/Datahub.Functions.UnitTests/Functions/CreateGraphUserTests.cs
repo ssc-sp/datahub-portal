@@ -75,6 +75,7 @@ namespace Datahub.Functions.UnitTests.Functions
             result.Should().BeOfType<BadRequestObjectResult>();
             ((BadRequestObjectResult)result).Value.Should().Be("Please pass a valid email address in the request body");
         }
+
         [Test]
         public async Task RunAsync_ShouldReturnOk_WhenMockInviteIsTrue()
         {
@@ -94,10 +95,28 @@ namespace Datahub.Functions.UnitTests.Functions
         }
 
         [Test]
+        public async Task RunAsync_ShouldReturnOk_WhenMockInviteIsFalse()
+        {
+            // Arrange
+            var request = new CreateUserRequest("mockuser@example.com", "false", "datahub");
+            var requestBody = JsonSerializer.Serialize(request);
+            var httpRequestData = TestHelper.CreateHttpRequestData(requestBody);
+
+            // Act
+            var result = await _function.RunAsync(httpRequestData);
+
+            // Assert
+            result.Should().BeOfType<OkObjectResult>();
+            var okResult = (OkObjectResult)result;
+            var response = JsonSerializer.Deserialize<JsonObject>(okResult.Value.ToString());
+            response["message"].ToString().Should().Contain("Successfully invited mockuser@example.com and added to group");
+        }
+
+        [Test]
         public async Task RunAsync_ShouldReturnBadRequest_WhenExceptionIsThrown()
         {
             // Arrange
-            var request = new CreateUserRequest("user@example.com", "false", "datahub");
+            var request = new CreateUserRequest("user_with_wrong_email", "false", "datahub");
             var requestBody = JsonSerializer.Serialize(request);
             var httpRequestData = TestHelper.CreateHttpRequestData(requestBody);
             
@@ -106,7 +125,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _function.RunAsync(httpRequestData);
 
             // Assert
-            result.Should().BeOfType<BadRequestResult>();
+            result.Should().BeOfType<BadRequestObjectResult>();
         }
 
         record CreateUserRequest(string email, string mockInvite, string inviter);

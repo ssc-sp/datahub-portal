@@ -68,6 +68,24 @@ namespace Datahub.Functions.UnitTests.Functions
         }
 
         [Test]
+        public void RunCron_ShouldCallUpdateRanking()
+        {
+            // Arrange
+            var timerInfo = new TimerInfo();
+
+            // Act
+            _documentationRankUpdate.RunCron(timerInfo);
+
+            // Assert
+            // Since UpdateRanking is internal, we need to use reflection to verify it was called
+            var methodInfo = typeof(DocumentationRankUpdate).GetMethod("UpdateRanking", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            methodInfo.Should().NotBeNull();
+
+            var ranking = (Dictionary<Guid, int>)methodInfo.Invoke(_documentationRankUpdate, null);
+            ranking.Should().NotBeNull();
+        }
+
+        [Test]
         public void UpdateRanking_ShouldHandleMultipleTelemetryEvents()
         {
             // Arrange

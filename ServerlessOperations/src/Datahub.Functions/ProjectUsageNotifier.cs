@@ -22,7 +22,7 @@ namespace Datahub.Functions
         ILoggerFactory loggerFactory,
         AzureConfig config,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        QueuePongService pongService,
+        IQueuePongService pongService,
         EmailValidator emailValidator,
         ISendEndpointProvider sendEndpointProvider,
         IEmailService emailService,

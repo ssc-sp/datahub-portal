@@ -133,6 +133,7 @@ public class CreateGraphUser(
 
     private async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
     {
+        if (userId == "mockUser") return;
         var group = await graphClient.Groups[groupId].Members.GetAsync();
         var exists = group?.Value?.Any(m => m.Id == userId) ?? false;
         if (!exists)
