@@ -1,5 +1,6 @@
 using Azure.Messaging.ServiceBus;
 using CommunityToolkit.Diagnostics;
+using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
@@ -13,7 +14,7 @@ namespace Datahub.Functions;
 
 public class ProjectInactiveHandler(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    QueuePongService pongService,
+    IQueuePongService pongService,
     ILoggerFactory loggerFactory)
 {
     
@@ -47,7 +48,7 @@ public class ProjectInactiveHandler(
         }
     }
 
-    private async Task HandleInactiveProject(ProjectInactiveMessage output)
+    internal virtual async Task HandleInactiveProject(ProjectInactiveMessage output)
     {
         _logger.LogInformation("This workspace should be set to be deleted, but functionality is not ready yet.");
 

@@ -35,9 +35,15 @@ namespace Datahub.Infrastructure.Services
             var client = _httpClientFactory.CreateClient();
             var result = await _retryPolicy.ExecuteAsync(() => client.GetAsync(url));
             var resultString = await result.Content.ReadAsStringAsync();
-            
-            var resultDict = JsonConvert.DeserializeObject<Dictionary<string,List<string>>>(resultString);
-            return resultDict;
+            try
+            {
+                var resultDict = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(resultString);
+                return resultDict;
+            }
+            catch (Exception)
+            {
+                return new Dictionary<string, List<string>>();
+            }
         }
     }
 }
