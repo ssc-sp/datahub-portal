@@ -292,7 +292,8 @@ public class Startup
         
         app.Use(async (context, next) =>
         {
-            context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
+            context.Response.Headers.Append("X-Frame-Options", "DENY");
+            //context.Response.Headers.Append("Content-Security-Policy", "frame-ancestors 'self';");
             await next();
         });
 
