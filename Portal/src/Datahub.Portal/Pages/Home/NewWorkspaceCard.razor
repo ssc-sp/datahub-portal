@@ -1,0 +1,80 @@
+﻿@using Datahub.Shared.Entities
+<MudPaper Outlined Elevation="0" Class="pa-4">
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.h3">
+            @Localizer["Looks like you have no workspaces yet"]
+        </MudText>
+        <MudText>
+            @Localizer["Workspaces are a collaborative environment designed to facilitate teamwork, data storage, and analysis. It serves as a central hub where users can manage access, share data, and utilize various tools and resources to perform their cloud tasks efficiently and across departments. "]
+        </MudText>
+        <MudStack AlignItems="AlignItems.Center" Class="my-2">
+            <MudStack Row Wrap="Wrap.Wrap" Style="width: 60%"
+                      Spacing="0" Justify="Justify.Center">
+                @foreach (var feature in _featureList)
+                {
+                    <MudChip T="string" Label="true" Variant="Variant.Outlined" Color="Color.Dark" Size="Size.Small"
+                             Icon="@Icon(feature)" Class="px-2">
+                        @Label(feature)
+                    </MudChip>
+                }
+            </MudStack>
+        </MudStack>
+        <MudStack Row Wrap="Wrap.Wrap" Justify="Justify.FlexEnd">
+            <DHButton Underline Color="Color.Primary"
+                      Href="@Localizer[PageRoutes.Explore]"
+                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Explore other workspaces and users"]</DHButton>
+            <DHButton Variant="Variant.Filled" Color="Color.Primary" Underline
+                      Href="@Localizer[PageRoutes.CreateWorkspace]"
+                      EndIcon="@Icons.Material.Filled.Add">@Localizer["Create new workspace"]</DHButton>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+
+@code {
+
+    private List<string> _featureList =
+    [
+        "access",
+        "report",
+        "manage",
+        "share",
+        TerraformTemplate.AzureStorageBlob,
+        TerraformTemplate.AzureDatabricks,
+        TerraformTemplate.AzurePostgres,
+        TerraformTemplate.AzureAppService
+    ];
+
+    private string Label(string content)
+    {
+        return (content) switch
+        {
+            "access" => Localizer["Access management"],
+            "report" => Localizer["Cost and usage report"],
+            "manage" => Localizer["Resource management"],
+            "share" => Localizer["Data and content sharing"],
+            TerraformTemplate.AzureStorageBlob => Localizer["Blob storage"],
+            TerraformTemplate.AzureDatabricks => Localizer["Databricks"],
+            TerraformTemplate.AzurePostgres => Localizer["PostgreSQL"],
+            TerraformTemplate.AzureAppService => Localizer["Web app"],
+            _ => content
+        };
+    }
+
+    private string Icon(string content)
+    {
+        return (content) switch
+        {
+            "access" => "fa-light fa-lock",
+            "report" => "fa-light fa-chart-line",
+            "manage" => "fa-light fa-cogs",
+            "share" => "fa-light fa-share-alt",
+            TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
+            TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
+            TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
+            TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
+            _ => content
+        };
+    }
+
+}

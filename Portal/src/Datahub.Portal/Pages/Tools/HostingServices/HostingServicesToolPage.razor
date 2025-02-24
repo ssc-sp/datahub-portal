@@ -22,13 +22,19 @@
     <MudTextField T="string" @bind-Value="FinancialAuthorityFirstName" Label="Financial Authority First Name" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="FinancialAuthorityLastName" Label="Financial Authority Last Name" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="FinancialAuthorityCostCentre" Label="Financial Authority Cost Centre" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityCommitmentIsRef" Label="Financial Authority Commitment Is Ref" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityCommitmentIsOrg" Label="Financial Authority Commitment Is Org" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityEmail" Label="Financial Authority Email" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceTitle" Label="Workspace Title" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceDescription" Label="Workspace Description" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceIdentifier" Label="Workspace Identifier" Variant="Variant.Outlined" />
+    <MudNumericField @bind-Value="WorkspaceBudget" Label="Workspace Budget" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="Subject" Label="Subject" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="Keywords" Label="Keywords" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="AreaOfScience" Label="Area Of Science" Variant="Variant.Outlined" />
     <MudNumericField @bind-Value="RetentionPeriodYears" Label="Retention Period Years" Variant="Variant.Outlined" />
+    <MudTextField T="DateTime" @bind-Value="RetentionPeriodStartDate" Label="Retention Period Start Date" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="RetentionValue" Label="Retention Value" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="SecurityClassification" Label="Security Classification" Variant="Variant.Outlined" />
     <MudCheckBox T="bool" @bind-Value="GeneratesInfoBusinessValue" Label="Generates Info Business Value" />
     <MudTextField T="string" @bind-Value="ProjectTitle" Label="Project Title" Variant="Variant.Outlined" />
@@ -67,13 +73,19 @@ else {
     public string FinancialAuthorityFirstName { get; set; }
     public string FinancialAuthorityLastName { get; set; }
     public string FinancialAuthorityCostCentre { get; set; }
+    public string FinancialAuthorityCommitmentIsRef { get; set; }
+    public string FinancialAuthorityCommitmentIsOrg { get; set; }
+    public string FinancialAuthorityEmail { get; set; }
     public string WorkspaceTitle { get; set; }
     public string WorkspaceDescription { get; set; }
     public string WorkspaceIdentifier { get; set; }
+    public decimal WorkspaceBudget { get; set; }
     public string Subject { get; set; }
     public string Keywords { get; set; }
     public string AreaOfScience { get; set; }
     public int RetentionPeriodYears { get; set; }
+    public DateTime RetentionPeriodStartDate { get; set; }
+    public string RetentionValue { get; set; }
     public string SecurityClassification { get; set; }
     public bool GeneratesInfoBusinessValue { get; set; } = false;
     public string ProjectTitle { get; set; }
@@ -128,6 +140,9 @@ else {
             FinancialAuthorityFirstName = FinancialAuthorityFirstName,
             FinancialAuthorityLastName = FinancialAuthorityLastName,
             FinancialAuthorityCostCentre = FinancialAuthorityCostCentre,
+            FinancialAuthorityCommitmentIsOrg = FinancialAuthorityCommitmentIsOrg,
+            FinancialAuthorityCommitmentIsRef = FinancialAuthorityCommitmentIsRef,
+            FinancialAuthorityEmail = FinancialAuthorityEmail,
             WorkspaceTitle = WorkspaceTitle,
             WorkspaceDescription = WorkspaceDescription,
             WorkspaceIdentifier = WorkspaceIdentifier,
@@ -135,6 +150,8 @@ else {
             Keywords = Keywords,
             AreaOfScience = AreaOfScience,
             RetentionPeriodYears = RetentionPeriodYears,
+            RetentionPeriodStartDate = RetentionPeriodStartDate,
+            RetentionValue = RetentionValue,
             SecurityClassification = SecurityClassification,
             GeneratesInfoBusinessValue = GeneratesInfoBusinessValue,
             ProjectTitle = ProjectTitle,
@@ -434,6 +451,15 @@ else {
         [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityCostCentre")]
         public string FinancialAuthorityCostCentre { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityCommitmentIsRef")]
+        public string FinancialAuthorityCommitmentIsRef { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityCommitmentIsOrg")]
+        public string FinancialAuthorityCommitmentIsOrg { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityEmail")]
+        public string FinancialAuthorityEmail { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("WorkspaceTitle")]
         public string WorkspaceTitle { get; set; }
 
@@ -442,6 +468,9 @@ else {
 
         [System.Text.Json.Serialization.JsonPropertyName("WorkspaceIdentifier")]
         public string WorkspaceIdentifier { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WorkspaceBudget")]
+        public decimal WorkspaceBudget { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Subject")]
         public string Subject { get; set; }
@@ -454,6 +483,12 @@ else {
 
         [System.Text.Json.Serialization.JsonPropertyName("RetentionPeriodYears")]
         public int RetentionPeriodYears { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("RetentionPeriodStartDate")]
+        public System.DateTimeOffset RetentionPeriodStartDate { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("RetentionValue")]
+        public string RetentionValue { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SecurityClassification")]
         public string SecurityClassification { get; set; }

@@ -15,15 +15,15 @@
                 @Localizer["SKU"]
             </td>
             <td>
-                <code>@dbServer?.SKU</code>
+                <code>@dbServer?.PostgresTier.SKUName</code>
             </td>
         </tr>
         <tr>
             <td>
-                @Localizer["InstanceType"]
+                @Localizer["Instance Type"]
             </td>
             <td>
-                <code>@dbServer?.Type</code>
+                <code>@dbServer?.PostgresTier.Type</code>
             </td>
         </tr>
         <tr>
@@ -31,7 +31,7 @@
                 @Localizer["vCores"]
             </td>
             <td>
-                <code>@dbServer?.vCores</code>
+                <code>@dbServer?.PostgresTier.Cores</code>
             </td>
         </tr>
         <tr>
@@ -39,7 +39,7 @@
                 @Localizer["Memory Size"]
             </td>
             <td>
-                <code>@dbServer?.MemorySize</code>
+                <code>@dbServer?.PostgresTier.MemorySize</code>
             </td>
         </tr>
         <tr>
@@ -47,7 +47,7 @@
                 @Localizer["MaxIOPS"]
             </td>
             <td>
-                <code>@dbServer?.MaxIOPS</code>
+                <code>@dbServer?.PostgresTier.MaxIOPS</code>
             </td>
         </tr>
         <tr>
@@ -55,7 +55,7 @@
                 @Localizer["MaxBandwidth"]
             </td>
             <td>
-                <code>@dbServer?.MaxBandwidth</code>
+                <code>@dbServer?.PostgresTier.MaxBandwidth</code>
             </td>
         </tr>
         <tr>
