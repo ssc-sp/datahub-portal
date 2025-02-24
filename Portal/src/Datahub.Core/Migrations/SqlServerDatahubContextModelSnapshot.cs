@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.12")
+                .HasAnnotation("ProductVersion", "8.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1257,10 +1257,20 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
 
+                    b.Property<string>("FinancialAuthorityCommitmentIsOrg")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FinancialAuthorityCommitmentIsRef")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("FinancialAuthorityCostCentre")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityCostCentre");
+
+                    b.Property<string>("FinancialAuthorityEmail")
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityEmail");
 
                     b.Property<string>("FinancialAuthorityFirstName")
                         .IsRequired()
@@ -1318,9 +1328,17 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasAnnotation("Relational:JsonPropertyName", "ProjectTitle");
 
+                    b.Property<DateTime>("RetentionPeriodStartDate")
+                        .HasColumnType("datetime2")
+                        .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodStartDate");
+
                     b.Property<int>("RetentionPeriodYears")
                         .HasColumnType("int")
                         .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodYears");
+
+                    b.Property<string>("RetentionValue")
+                        .HasColumnType("nvarchar(max)")
+                        .HasAnnotation("Relational:JsonPropertyName", "RetentionValue");
 
                     b.Property<string>("SecurityClassification")
                         .IsRequired()

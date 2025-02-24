@@ -257,6 +257,8 @@ namespace Datahub.Functions
                 return default;
 
             var contacts = project.Users
+                .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
+                            u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
                 .Where(emailValidator.IsValidEmail)
                 .ToList();

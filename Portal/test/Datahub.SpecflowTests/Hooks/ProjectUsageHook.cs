@@ -65,6 +65,7 @@ namespace Datahub.SpecflowTests.Hooks
                 .AddUserSecrets<Hooks>()
                 .AddJsonFile("appsettings.test.json", optional: true)
                 .Build();
+            configuration["EnableRollover"] = "true";
 
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
             configuration.Bind(datahubPortalConfiguration);

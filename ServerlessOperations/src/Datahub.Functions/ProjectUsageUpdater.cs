@@ -149,7 +149,7 @@ public class ProjectUsageUpdater(
         */
 
         // Check if the cost rollover is necessary
-        if (message.ForceRollover || costRollover)
+        if (message.ForceRollover || (_azConfig.EnableRollover && costRollover))
         {
             _logger.LogInformation("Rollover starting for {Acronym}...", message.ProjectAcronym);
             var rolloverTimer = Stopwatch.StartNew();

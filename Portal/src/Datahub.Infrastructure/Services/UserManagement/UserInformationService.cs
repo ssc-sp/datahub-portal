@@ -297,6 +297,7 @@ public class UserInformationService(
 
         try
         {
+            PrepareAuthenticatedClient();
             var graphUser = await graphServiceClient.Users[userGraphId].GetAsync();
             var portalUser = new PortalUser
             {
@@ -560,5 +561,14 @@ public class UserInformationService(
             .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;
+    }
+
+    public async Task<bool> CheckUserInTenant(string email)
+    {
+        PrepareAuthenticatedClient();
+        var users = await graphServiceClient.Users.GetAsync(
+            test => test.QueryParameters.Filter = $"mail eq '{email}'");
+        if (users?.Value != null) return users.Value.Count > 0;
+        return false;
     }
 }
