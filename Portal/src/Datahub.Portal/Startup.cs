@@ -108,9 +108,19 @@ public class Startup
         {
             // This lambda determines whether user consent for non-essential cookies is needed for a given request.
             options.CheckConsentNeeded = context => true;
-            options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+            options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
             // Handling SameSite cookie according to https://docs.microsoft.com/en-us/aspnet/core/security/samesite?view=aspnetcore-3.1
             options.HandleSameSiteCookieCompatibility();
+        });
+
+        services.AddSession(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.Name = ".FSDH.Session";
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
         });
 
         //required to access existing headers
