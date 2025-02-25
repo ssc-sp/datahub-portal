@@ -18,7 +18,7 @@ namespace Datahub.Functions.Services
         private const string RECEIVED_ALERTS_TABLE_NAME = "ReceivedAlerts";
         private const string BUG_REPORT_MESSAGES_TABLE_NAME = "BugReportMessages";
 
-        private async Task<TableClient> CreateTableClient(string tableName)
+        public virtual async Task<TableClient> CreateTableClient(string tableName)
         {
             var connString = _config.StorageQueueConnection;
             var client = new TableClient(connString, tableName);
