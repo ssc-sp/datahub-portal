@@ -107,6 +107,8 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
+    private static bool RoleBasedDataStewardFlag(ProjectUserUpdateCommand command) => command.IsDataSteward && RoleConstants.AllowedDataStewardRoleIds.Contains(command.NewRoleId);
+
     private async Task UpdateProjectUsersAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
@@ -120,16 +122,10 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
             }
 
-            //if (projectUserUpdateCommand.NewRoleId == (int)Project_Role.RoleNames.Remove)
-            //{
-            //    context.Project_Users.Remove(userToUpdate);
-            //}
-            //else
-            //{
-                userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
-                userToUpdate.IsDataSteward = projectUserUpdateCommand.IsDataSteward;
-                context.Update(userToUpdate);
-            //}
+            userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
+            userToUpdate.IsDataSteward = RoleBasedDataStewardFlag(projectUserUpdateCommand);
+            context.Update(userToUpdate);
+            
         }
 
         await context.TrackSaveChangesAsync(_datahubAuditingService);
