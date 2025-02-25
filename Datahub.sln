@@ -7,7 +7,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		Analyzers.ruleset = Analyzers.ruleset
 		bleach.ps1 = bleach.ps1
+		CleanCoverage.ps1 = CleanCoverage.ps1
 		COPYRIGHT.md = COPYRIGHT.md
+		coverage.runsettings = coverage.runsettings
 		dh-portal.ps1 = dh-portal.ps1
 		dotnet-upgrade.ps1 = dotnet-upgrade.ps1
 		gen-all-settings.ps1 = gen-all-settings.ps1
@@ -15,6 +17,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		LICENSE.md = LICENSE.md
 		nuget.config = nuget.config
 		README.md = README.md
+		RunTest.bat = RunTest.bat
 		stylecop.json = stylecop.json
 	EndProjectSection
 EndProject
@@ -147,13 +150,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{12002871-1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions.UnitTests", "ServerlessOperations\test\Datahub.Functions.UnitTests\Datahub.Functions.UnitTests.csproj", "{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Functions.Domain", "ServerlessOperations\src\Datahub.Functions.Domain\Datahub.Functions.Domain.csproj", "{DB462B58-CFC4-4AEE-920E-AA308F14029C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Datahub.Functions.Domain", "ServerlessOperations\src\Datahub.Functions.Domain\Datahub.Functions.Domain.csproj", "{DB462B58-CFC4-4AEE-920E-AA308F14029C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 	ProjectSection(SolutionItems) = preProject
 		pipelines\ado-dsd-fsdh-dev-ci-linux.yml = pipelines\ado-dsd-fsdh-dev-ci-linux.yml
 		pipelines\fsdh-portal-tests.yml = pipelines\fsdh-portal-tests.yml
 		pipelines\fsdh-resource-provisioner-tests.yml = pipelines\fsdh-resource-provisioner-tests.yml
+		pipelines\functions-test.yml = pipelines\functions-test.yml
 	EndProjectSection
 EndProject
 Global

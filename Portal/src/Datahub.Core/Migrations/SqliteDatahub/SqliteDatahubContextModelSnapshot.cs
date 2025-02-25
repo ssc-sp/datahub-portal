@@ -1214,6 +1214,12 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT")
                         .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
 
+                    b.Property<string>("FinancialAuthorityCommitmentIsOrg")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinancialAuthorityCommitmentIsRef")
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("FinancialAuthorityCostCentre")
                         .IsRequired()
                         .HasColumnType("TEXT")

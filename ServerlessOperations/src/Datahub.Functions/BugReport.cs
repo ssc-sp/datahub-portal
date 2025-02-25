@@ -12,7 +12,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Microsoft.VisualStudio.Services.WebApi.Patch;
 using Microsoft.VisualStudio.Services.WebApi.Patch.Json;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Datahub.Functions
 {
@@ -159,7 +158,7 @@ namespace Datahub.Functions
             return $"<strong>Issue submitted by:</strong> {bug.UserName}<br /><strong>Contact email:</strong> {bug.UserEmail}<br /><strong>Organization:</strong> {bug.UserOrganization}<br /><strong>Preferred Language:</strong> {bug.PreferredLanguage} <br /><strong>Time Zone:</strong> {bug.Timezone}<br /><br /><strong>Topics:</strong> {bug.Topics}<br /><strong>Workspace:</strong> {bug.Workspaces}<br /><strong>Description:</strong> {bug.Description}<br /><br /><strong>Portal Language:</strong> {bug.PortalLanguage}<br /><strong>Active URL:</strong> {bug.URL}<br /><strong>User Agent:</strong> {bug.UserAgent}<br /><strong>Resolution:</strong> {bug.Resolution}<br /><strong>Local Storage:</strong><br />{bug.LocalStorage}";
         }
 
-        private EmailRequestMessage? BuildEmail(BugReportMessage bug, WorkItem? workItem)
+        internal EmailRequestMessage? BuildEmail(BugReportMessage bug, WorkItem? workItem)
         {
             if (!_sendEmailNotification)
             {
