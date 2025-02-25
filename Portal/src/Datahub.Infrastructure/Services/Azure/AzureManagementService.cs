@@ -1,4 +1,7 @@
-﻿namespace Datahub.Infrastructure.Services.Azure;
+﻿using Azure.Identity;
+using Microsoft.Graph;
+
+namespace Datahub.Infrastructure.Services.Azure;
 
 public class AzureManagementService
 {
@@ -29,6 +32,20 @@ public class AzureManagementService
     public async Task<string?> GetAccessTokenAsync(CancellationToken cancellationToken)
     {
         return await GetAccessTokenAsync(default, AzureManagementUrls.ManagementUrl, cancellationToken);
+    }
+    public virtual GraphServiceClient GetGraphServiceClientFromEnvVariables()
+    {
+        var scopes = new[] { "https://graph.microsoft.com/.default" };
+
+        var options = new TokenCredentialOptions
+        {
+            AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
+        };
+
+        var clientSecretCredential = new ClientSecretCredential(_configuration.TenantId,
+            _configuration.ClientId, _configuration.ClientSecret, options);
+
+        return new GraphServiceClient(clientSecretCredential, scopes);
     }
 
     private async Task<string?> GetAccessTokenAsync(HttpClient? httpClient, string audience, CancellationToken cancellationToken)
