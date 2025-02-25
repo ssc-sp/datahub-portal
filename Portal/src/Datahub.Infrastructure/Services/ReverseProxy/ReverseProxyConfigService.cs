@@ -75,6 +75,7 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
         };
 
         var finalRoute = route.
+            WithTransformResponseHeader("X-Frame-Options", "SAMEORIGIN", append: false).
             WithTransformForwarded().
             WithTransformXForwarded().
             WithTransform(transform => {
