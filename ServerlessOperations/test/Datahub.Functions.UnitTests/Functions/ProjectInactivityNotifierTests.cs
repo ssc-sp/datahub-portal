@@ -136,7 +136,7 @@ public class ProjectInactivityNotifierTests
     public void CheckIfProjectToBeDeleted_IsNotOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
-        _dateProvider.ProjectDeletionDay().Returns(deletionDay);
+        _dateProvider.ProjectSoftDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
 
@@ -154,7 +154,7 @@ public class ProjectInactivityNotifierTests
     public void CheckIfProjectToBeDeleted_IsOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
     {
         // Arrange
-        _dateProvider.ProjectDeletionDay().Returns(deletionDay);
+        _dateProvider.ProjectSoftDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
 
@@ -172,7 +172,7 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(today);
-        _dateProvider.ProjectDeletionDay().Returns(10);
+        _dateProvider.ProjectSoftDeletionDay().Returns(10);
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
 
         // Act
@@ -186,7 +186,7 @@ public class ProjectInactivityNotifierTests
     {
         // Arrange
         _dateProvider.Today.Returns(DateTime.Today);
-        _dateProvider.ProjectDeletionDay().Returns(10);
+        _dateProvider.ProjectSoftDeletionDay().Returns(10);
         _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
 
         // Act
