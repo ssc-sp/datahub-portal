@@ -12,12 +12,14 @@ using Datahub.Functions.Services;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Shared.Configuration;
 using MassTransit;
+using Datahub.Infrastructure.Services.Azure;
 
 namespace Datahub.Functions;
 
 public class CreateGraphUser(
     ILoggerFactory loggerFactory,
     AzureConfig configuration,
+    AzureManagementService azureManagementService,
     ISendEndpointProvider sendEndpointProvider,
     IEmailService emailService)
 {
@@ -71,7 +73,7 @@ public class CreateGraphUser(
         log.LogInformation("Creating graph service client");
 
         // sanity check the service principal credentials
-        var graphClient = GetGraphServiceClientFromEnvVariables();
+        var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
 
         var groupId = configuration.ServicePrincipalGroupID;
 
@@ -91,7 +93,7 @@ public class CreateGraphUser(
     private async Task<IActionResult> InviteUser(ILogger log, string userEmail, string inviter)
     {
         log.LogInformation("Creating graph service client");
-        var graphClient = GetGraphServiceClientFromEnvVariables();
+        var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
 
         log.LogInformation("Sending invitation to {UserEmail}", userEmail);
 
@@ -131,6 +133,7 @@ public class CreateGraphUser(
 
     private async Task AddToGroup(string userId, string groupId, GraphServiceClient graphClient, ILogger log)
     {
+        if (userId == "mockUser") return;
         var group = await graphClient.Groups[groupId].Members.GetAsync();
         var exists = group?.Value?.Any(m => m.Id == userId) ?? false;
         if (!exists)
@@ -166,21 +169,6 @@ public class CreateGraphUser(
         var result = await graphClient.Invitations
             .PostAsync(invitation);
         return result;
-    }
-
-    private GraphServiceClient GetGraphServiceClientFromEnvVariables()
-    {
-        var scopes = new[] { "https://graph.microsoft.com/.default" };
-
-        var options = new TokenCredentialOptions
-        {
-            AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
-        };
-
-        var clientSecretCredential = new ClientSecretCredential(configuration.TenantId,
-            configuration.ClientId, configuration.ClientSecret, options);
-
-        return new GraphServiceClient(clientSecretCredential, scopes);
     }
 
     private async Task SenInvitationEmail(string userEmail, string inviter)

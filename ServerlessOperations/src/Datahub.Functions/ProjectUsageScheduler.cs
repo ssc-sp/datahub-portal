@@ -141,7 +141,7 @@ public class ProjectUsageScheduler(
         return (costMessages, storageMessages);
     }
 
-    internal async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage, DatahubProjectDBContext ctx)
+    internal virtual async Task<(bool, bool)> SendMessagesIfNeeded(ProjectUsageUpdateMessage usageMessage, DatahubProjectDBContext ctx)
     {
         try
         {
@@ -204,7 +204,7 @@ public class ProjectUsageScheduler(
         }
     }
 
-    internal async Task<(string, string)> PostToBlob(List<DailyServiceCost> costs, List<DailyServiceCost> totals)
+    internal virtual async Task<(string, string)> PostToBlob(List<DailyServiceCost> costs, List<DailyServiceCost> totals)
     {
         var guid = Guid.NewGuid();
         var date = DateTime.UtcNow.ToString("yyyy-MM-dd-HH-mm-ss");
