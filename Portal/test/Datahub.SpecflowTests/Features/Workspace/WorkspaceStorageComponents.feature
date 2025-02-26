@@ -1,5 +1,5 @@
 @IWebHostEnvironment
-Feature: WorkspaceStorage
+Feature: WorkspaceStorageComponents
 Validate access to the create storage button on Storage
     
     Scenario: User is listed on the page

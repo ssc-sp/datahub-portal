@@ -36,7 +36,7 @@ namespace Datahub.Functions
         }
 #endif
 
-        private async Task ScheduleProjects()
+        internal virtual async Task ScheduleProjects()
         {
             var projects = await GetProjects();
             
@@ -47,7 +47,7 @@ namespace Datahub.Functions
             }
         }
         
-        private async Task ScheduleUsers()
+        internal virtual async Task ScheduleUsers()
         {
             var users = await GetUsers();
 
@@ -60,8 +60,18 @@ namespace Datahub.Functions
 
         private async Task<List<int>> GetProjects()
         {
-            using var ctx = await dbContextFactory.CreateDbContextAsync();
-            return ctx.Projects.Where(w => !w.IsDeleted).AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
+            using var ctx = await dbContextFactory.CreateDbContextAsync(); 
+            var projects = await ctx.Projects
+                .AsNoTracking()
+                .Select(x => new { x.Project_ID, x.Deleted_DT })
+                .ToListAsync();
+
+            return projects
+                .Where(p => p.Deleted_DT == null || p.Deleted_DT >= DateTime.UtcNow)
+                .Select(p => p.Project_ID)
+                .Distinct()
+                .ToList();
+            //return ctx.Projects.Where(w => !w.IsDeleted).AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
         }
 
         private async Task<List<int>> GetUsers()

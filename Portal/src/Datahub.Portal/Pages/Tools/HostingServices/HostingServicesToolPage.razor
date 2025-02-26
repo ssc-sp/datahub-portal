@@ -22,6 +22,8 @@
     <MudTextField T="string" @bind-Value="FinancialAuthorityFirstName" Label="Financial Authority First Name" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="FinancialAuthorityLastName" Label="Financial Authority Last Name" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="FinancialAuthorityCostCentre" Label="Financial Authority Cost Centre" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityCommitmentIsRef" Label="Financial Authority Commitment Is Ref" Variant="Variant.Outlined" />
+    <MudTextField T="string" @bind-Value="FinancialAuthorityCommitmentIsOrg" Label="Financial Authority Commitment Is Org" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="FinancialAuthorityEmail" Label="Financial Authority Email" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceTitle" Label="Workspace Title" Variant="Variant.Outlined" />
     <MudTextField T="string" @bind-Value="WorkspaceDescription" Label="Workspace Description" Variant="Variant.Outlined" />
@@ -71,6 +73,8 @@ else {
     public string FinancialAuthorityFirstName { get; set; }
     public string FinancialAuthorityLastName { get; set; }
     public string FinancialAuthorityCostCentre { get; set; }
+    public string FinancialAuthorityCommitmentIsRef { get; set; }
+    public string FinancialAuthorityCommitmentIsOrg { get; set; }
     public string FinancialAuthorityEmail { get; set; }
     public string WorkspaceTitle { get; set; }
     public string WorkspaceDescription { get; set; }
@@ -136,6 +140,8 @@ else {
             FinancialAuthorityFirstName = FinancialAuthorityFirstName,
             FinancialAuthorityLastName = FinancialAuthorityLastName,
             FinancialAuthorityCostCentre = FinancialAuthorityCostCentre,
+            FinancialAuthorityCommitmentIsOrg = FinancialAuthorityCommitmentIsOrg,
+            FinancialAuthorityCommitmentIsRef = FinancialAuthorityCommitmentIsRef,
             FinancialAuthorityEmail = FinancialAuthorityEmail,
             WorkspaceTitle = WorkspaceTitle,
             WorkspaceDescription = WorkspaceDescription,
@@ -444,6 +450,12 @@ else {
 
         [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityCostCentre")]
         public string FinancialAuthorityCostCentre { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityCommitmentIsRef")]
+        public string FinancialAuthorityCommitmentIsRef { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityCommitmentIsOrg")]
+        public string FinancialAuthorityCommitmentIsOrg { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FinancialAuthorityEmail")]
         public string FinancialAuthorityEmail { get; set; }
