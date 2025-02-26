@@ -1,6 +1,5 @@
 {
   "GcHostingId": "12345",
-  "Id": 1,
   "LeadFirstName": "John",
   "LeadLastName": "Doe",
   "DepartmentName": "Department of Example",
@@ -11,7 +10,7 @@
   "FinancialAuthorityCommitmentIsOrg": "Org123",
   "FinancialAuthorityEmail": "jane.smith@example.com",
   "WorkspaceBudget": "10000.00",
-  "WorkspaceTitle": "Example Workspace",
+  "WorkspaceName": "Example Workspace",
   "WorkspaceDescription": "This is an example workspace description.",
   "Subject": "Example Subject",
   "Keywords": "example, sample, test",
