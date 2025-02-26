@@ -238,7 +238,8 @@ public class ProjectCreationService(
             Approved_DT = DateTime.Now,
             ApprovedPortalUserId = portalUser.Id,
             Project = project,
-            RoleId = role.Id
+            RoleId = role.Id,
+            IsDataSteward = true
         };
         await db.Project_Users.AddAsync(projectUser);
 
