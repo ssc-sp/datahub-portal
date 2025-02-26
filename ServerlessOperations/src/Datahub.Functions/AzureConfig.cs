@@ -36,8 +36,9 @@ public class AzureConfig : IAzureServicePrincipalConfig
     
     public string? UserInactivityNotificationDays => _config["UserInactivityNotificationDays"] ?? "7,2";
     public string? UserInactivityLockedDays => _config["UserInactivityLockedDays"] ?? "30";
-    public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"] ?? "90";
-    
+    public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"] ?? "30";
+    public string? UserInactivityHardDeletionDays => _config["UserInactivityHardDeletionDays"] ?? "90";
+
     #endregion
 
     #region Azure SP
