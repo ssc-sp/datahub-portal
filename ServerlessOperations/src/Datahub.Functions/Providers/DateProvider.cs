@@ -14,7 +14,7 @@
             return ParseProjectInactivityNotificationDays(_config.ProjectInactivityNotificationDays ?? "7,2");
         }
 
-        public int ProjectDeletionDay()
+        public int ProjectSoftDeletionDay()
         {
             return ParseProjectInactivityDeletionDay(_config.ProjectInactivityDeletionDays ?? "30");
         }
@@ -57,6 +57,11 @@
         private int ParseUserInactivityDeletionDay(string deletionDay)
         {
             return int.Parse(deletionDay);
+        }
+
+        public int ProjectHardDeletionDay()
+        {
+            return ParseProjectInactivityDeletionDay(_config.UserInactivityHardDeletionDays ?? "30");
         }
     }
 }
