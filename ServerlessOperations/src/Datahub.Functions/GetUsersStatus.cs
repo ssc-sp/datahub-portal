@@ -16,11 +16,11 @@ namespace Datahub.Functions
         
         public GetUsersStatus(ILoggerFactory loggerFactory, AzureConfig configuration)
         {
-            _logger = loggerFactory.CreateLogger<CreateGraphUser>();
+            _logger = loggerFactory.CreateLogger<GetUsersStatus>();
             _configuration = configuration;
         }
         
-        private GraphServiceClient GetAuthenticatedGraphClient()
+        internal virtual GraphServiceClient GetAuthenticatedGraphClient()
         {
             var scopes = new[] { "https://graph.microsoft.com/.default" };
 

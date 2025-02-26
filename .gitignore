@@ -64,3 +64,6 @@ Portal/src/Datahub.Portal/MessageFolder/
 ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/venv/*
 /Portal/utils/JsonTranslator/Properties/launchSettings.json
 /Portal/src/Datahub.Portal/MissingTranslations-default..json
+ServerlessOperations/test/CodeCoverage/
+ServerlessOperations/test/Datahub.Functions.UnitTests/TestResults/
+TestResults/
