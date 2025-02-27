@@ -61,7 +61,7 @@
 
         public int ProjectHardDeletionDay()
         {
-            return ParseProjectInactivityDeletionDay(_config.UserInactivityHardDeletionDays ?? "30");
+            return ParseProjectInactivityDeletionDay(_config.ProjectInactivityHardDeletionDays ?? "30");
         }
     }
 }
