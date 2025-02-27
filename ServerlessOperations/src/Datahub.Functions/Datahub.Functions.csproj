@@ -73,6 +73,10 @@
     <ItemGroup>
         <InternalsVisibleTo Include="Datahub.Functions.UnitTests" />
     </ItemGroup>
+	
+	<ItemGroup>
+		<InternalsVisibleTo Include="DynamicProxyGenAssembly2" />
+	</ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\..\Portal\src\Datahub.Core\Datahub.Core.csproj" />
