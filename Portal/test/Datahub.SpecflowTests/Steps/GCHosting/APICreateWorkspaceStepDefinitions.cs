@@ -112,7 +112,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             // Act
             var result = await _controller.PostCreateWorkspace();
             Assert.NotNull(result);
-            Assert.Equal(p0, (result as ObjectResult)?.StatusCode);
+            Assert.True(p0 == (result as ObjectResult)?.StatusCode, (result as ObjectResult)?.Value?.ToString());
             //var okResult = Assert.IsType<OkObjectResult>(result);
         }
     }
