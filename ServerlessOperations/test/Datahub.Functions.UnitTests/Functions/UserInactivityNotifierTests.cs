@@ -14,7 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 
-namespace Datahub.Functions.UnitTests
+namespace Datahub.Functions.UnitTests.Functions
 {
     public class UserInactivityNotifierTests
     {
@@ -31,7 +31,7 @@ namespace Datahub.Functions.UnitTests
             Substitute.For<IUserInactivityNotificationService>();
 
         private readonly IConfiguration _config = Substitute.For<IConfiguration>();
-        
+
 
         private AzureConfig _azConfig;
         private QueuePongService _pongService;
@@ -42,7 +42,7 @@ namespace Datahub.Functions.UnitTests
         [SetUp]
         public async Task Setup()
         {
-            
+
             _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _azConfig = new AzureConfig(_config);
             _pongService = new QueuePongService(_iSendEndpointProvider);
@@ -106,7 +106,7 @@ namespace Datahub.Functions.UnitTests
         {
             // Act
             var result = _sut.GetEmailRequestMessage(20, 10, "user_lock", "test@example.com");
-            
+
             // Assert
             result.Body.Should()
                 .Contain("If you do not login to your account in the next 10 day(s), your account will be locked.");
@@ -118,7 +118,7 @@ namespace Datahub.Functions.UnitTests
         {
             // Act
             var result = _sut.GetEmailRequestMessage(20, 10, "user_deletion", "test@example.com");
-            
+
             // Assert
             result.Body.Should()
                 .Contain("If you do not login to your account in the next 10 day(s), your account will be deleted.");

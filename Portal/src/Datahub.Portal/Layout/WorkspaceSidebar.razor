@@ -10,36 +10,73 @@
 @using Datahub.Shared.Entities
 @using MudBlazor.Utilities
 
+@inherits ViewUserBase<WorkspaceSidebar>
+
 @inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject ICultureService CultureService
+@inject NavigationManager _navigationManager
 
-<MudStack Class="px-4 mt-6" id="nav">
-    <MudDrawerHeader Style="padding: 0">
-        <MudStack Row AlignItems="AlignItems.Center">
-            <span>
-                <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
-                <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"/>
-            </span>
-            @if (Drawer.Open)
-            {
-                <MudAvatar Size="Size.Small">
-                    <MudImage Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg" Alt="@Localizer["Workspace Avatar"]"></MudImage>
-                </MudAvatar>
-                @* <MudIcon Icon="fa-light fa-display-code" Size="Size.Small" Class="mr-2" Style="font-size: 1rem;"/> *@
-                <MudText title="@_project?.Project_Name" Typo="Typo.h2" Style="@_workspaceTitleStyle">
-                    @_project?.Project_Acronym_CD
-                </MudText>
-            }
-        </MudStack>
-    </MudDrawerHeader>
-    <MudDrawerContainer Style="overflow: hidden auto">
-
+<MudDrawerContainer Style="overflow: hidden auto">
+    <MudStack Row Class="py-4 px-4" AlignItems="AlignItems.Center">
+        <SkipLink Type="SkipLinkType.Navigation" Anchor>
+            <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
+            <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu"
+                           Color="Color.Inherit" OnClick="@Drawer.ToggleDrawer" Size="Size.Medium"
+            />
+        </SkipLink>
         @if (Drawer.Open)
-        {            
+        {
+            @if (_allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
+            {
+                <span class="sr-only">
+                    @Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]
+                </span>
+                <MudSelect T="string" Value="@_project.Project_Acronym_CD"
+                           ValueChanged="@(projectAcronym => HandleProjectChange(projectAcronym))"
+                           Label="@Localizer["Current workspace"]"
+                           title="@Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]"
+                           Dense
+                           Variant="Variant.Outlined">
+                    @foreach (var project in _allProjects)
+                    {
+                        <MudSelectItem Value="@project.Project_Acronym_CD">
+                            <MudStack Row AlignItems="AlignItems.Center">
+                                <MudAvatar Size="Size.Small">
+                                    <MudImage
+                                        Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
+                                        Alt="@Localizer["Workspace avatar"]"></MudImage>
+                                </MudAvatar>
+                                <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
+                                    @project.Project_Acronym_CD
+                                </MudText>
+                            </MudStack>
+                        </MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <MudStack Row AlignItems="AlignItems.Center">
+                    <MudAvatar Size="Size.Small">
+                        <MudImage
+                            Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
+                            Alt="@Localizer["Workspace avatar"]"></MudImage>
+                    </MudAvatar>
+                    <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
+                        @WorkspaceAcronym
+                    </MudText>
+                </MudStack>
+            }
+        }
+    </MudStack>
+    <MudStack Class="px-4" id="nav">
+        @if (Drawer.Open)
+        {
             <MudStack Spacing="2" Class="ml-2">
+
                 <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                     <strong>
                         @Localizer["Workspace Tools"]
@@ -49,12 +86,17 @@
                     <ul>
                         @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                         {
-                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
+                                             ProjectAcronym="@WorkspaceAcronym"
+                                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
-                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Disabled="@IsDisabled(toolSection)">
+                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
+                                                Target="@GetTarget(toolSection)"
+                                                Disabled="@IsDisabled(toolSection)">
                                         <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
                                             <MudStack Row AlignItems="@AlignItems.Center">
-                                                <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small"
+                                                        Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                                                 <MudText Style="@_workspaceTitleStyle">
                                                     @GetLabel(toolSection)
                                                 </MudText>
@@ -69,7 +111,9 @@
             </MudStack>
             @if (_project != null && !_project.IsDeleted)
             {
-                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator"
+                                 ProjectAcronym="@WorkspaceAcronym"
+                                 ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                     <MudStack Spacing="2" Class="ml-2">
                         <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
                             <strong>
@@ -81,10 +125,14 @@
                                 @foreach (var toolSection in _workspaceAdministration)
                                 {
                                     <li>
-                                        <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                                            <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])" Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
+                                        <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
+                                                         ProjectAcronym="@WorkspaceAcronym"
+                                                         ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                                            <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
+                                                        Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                                                 <MudStack Row AlignItems="AlignItems.Center">
-                                                    <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small" Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                    <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small"
+                                                            Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
                                                     <MudText Style="@_workspaceTitleStyle">
                                                         @GetLabel(toolSection)
                                                     </MudText>
@@ -99,8 +147,8 @@
                 </DatahubAuthView>
             }
         }
-    </MudDrawerContainer>
-</MudStack>
+    </MudStack>
+</MudDrawerContainer>
 
 @code {
 
@@ -109,6 +157,8 @@
     [CascadingParameter] private DHSidebarDrawer Drawer { get; set; }
 
     private Datahub_Project _project;
+    private List<Datahub_Project> _allProjects;
+    private string _userProjectGuid;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -190,6 +240,30 @@
         // check the resources against what to display in the sidebar
     }
 
+    protected override async Task OnParametersSetAsync()
+    {
+        var viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        _userProjectGuid = viewedPortalUser.GraphGuid;
+        var userRoles = await dbContext.Project_Users
+            .Include(u => u.Role)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Users)
+            .Include(u => u.Project)
+            .ThenInclude(p => p.Credits) // Include the Credits table
+            .Include(u => u.PortalUser)
+            .Where(u => u.PortalUser.GraphGuid == _userProjectGuid)
+            .ToListAsync();
+
+        _allProjects = userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+    }
+
+    public async Task HandleProjectChange(string projectAcronym)
+    {
+        _navigationManager.NavigateTo($"/w/{projectAcronym}", true);
+    }
+
     public static DatahubAuthView.AuthLevels GetAuthLevel(string sectionView)
     {
         return sectionView switch
@@ -234,29 +308,29 @@
         switch (toolSection)
         {
             case SectionViews.Databricks:
-                {
-                    var userRecentLink = new UserRecentLink()
+            {
+                var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.Databricks,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                    break;
-                }
+                await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                break;
+            }
             case SectionViews.WebApp:
-                {
-                    var userRecentLink = new UserRecentLink()
+            {
+                var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.AzureWebApp,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                    break;
-                }
+                await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                break;
+            }
         }
     }
 
@@ -329,7 +403,7 @@
     {
         if (_project.IsDeleted)
         {
-            return toolSection == SectionViews.Dashboard;    
+            return toolSection == SectionViews.Dashboard;
         }
 
         return toolSection switch

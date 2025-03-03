@@ -32,7 +32,7 @@ public class DocumentationRankUpdate
     //    return new OkObjectResult(ordered);
     //}
 
-    private Dictionary<Guid, int> UpdateRanking()
+    internal Dictionary<Guid, int> UpdateRanking()
     {
         using var ctx = _dbContextFactory.CreateDbContext();
 

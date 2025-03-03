@@ -68,45 +68,66 @@ namespace Datahub.Functions
             // get project info
             var lastLoginDate = project?.LastLoginDate ?? project.Last_Updated_DT;
             var daysSinceLastLogin = (dateProvider.Today - lastLoginDate).Days;
-            var daysUntilDeletion = dateProvider.ProjectDeletionDay() - daysSinceLastLogin;
+            var daysUntilDeletion = dateProvider.ProjectSoftDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
             var hasCostRecovery = project.HasCostRecovery;
             var (contacts, acronym) = await GetProjectDetails(message.ProjectId, ct);
+
+            //var adminContact = new List<string>() { "datasolutions-solutiondedonnees@ssc-spc.gc.ca" };
+            var adminContact = new List<string>() { config.Email.AdminEmail };
 
             // check if project to be notified
             var email = await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow,
                 hasCostRecovery, acronym, contacts);
 
+            var adminEmailBodyText = await GetAdminEmailBodyText(daysSinceLastLogin, acronym);
+
+            var emailForAdmin = GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, adminContact, "project_inactive_alert_dhadmin.html", adminEmailBodyText);
             // if email is not null, send email
             if (email != null)
             {
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                    email, ct);
 
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,email, ct);
                 // add notification to db
                 var sentTo = string.Join(",", contacts);
-                await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId,
-                    dateProvider.Today, daysUntilDeletion, sentTo, ct);
-            }
+                await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
 
-            // check if project to be deleted
-            var projectToBeDeleted = CheckIfProjectToBeDeleted(daysSinceLastLogin, operationalWindow, hasCostRecovery);
-            if (projectToBeDeleted)
+                //notify admin to follow up
+                if (emailForAdmin != null)
+                {
+                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailForAdmin, ct);
+                    sentTo = adminContact[0];
+                    await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
+                }
+            }
+            else if (emailForAdmin != null && daysSinceLastLogin > dateProvider.ProjectSoftDeletionDay() && IsTodayMonday())
             {
-                _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is set to be deleted.");
-                _logger.LogInformation($"Workspace has not been logged into for {daysSinceLastLogin} days.");
+                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailForAdmin, ct);
+                var sentTo = adminContact[0];
+                await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
+            }
+            
+        }
+
+        private async Task<(string, string)> GetAdminEmailBodyText(int daysSinceLastLogin, string acronym)
+        {
+            (string, string) bodyText = ("", "");
+            if (daysSinceLastLogin > dateProvider.ProjectHardDeletionDay())
+            {
+                bodyText = ($"The workspace <a href=\"https://federal-science-datahub.canada.ca/w/{acronym}\">{acronym}</a> has been inactive for over {dateProvider.ProjectHardDeletionDay().ToString()} days. Assuming the workspace leads are unreachable, please consider deleting the workspace.",
+                            $"L'espace de travail <a href=\"https://federal-science-datahub.canada.ca/w/{acronym}\">{acronym}</a> est inactif depuis plus de {dateProvider.ProjectHardDeletionDay().ToString()} jours. En supposant que les responsables de l'espace de travail soient injoignables, veuillez envisager de supprimer l'espace de travail.");
+            }
+            else if (daysSinceLastLogin > dateProvider.ProjectSoftDeletionDay())
+            {
+                bodyText = ($"The workspace <a href=\"https://federal-science-datahub.canada.ca/w/{acronym}\">{acronym}</a> has been inactive for over {dateProvider.ProjectSoftDeletionDay().ToString()} days. Please contact the workspace leads to determine if the workspace can be deleted.",
+                    $"L'espace de travail <a href=\" https://federal-science-datahub.canada.ca/w/{acronym}\">{acronym}</a> est inactif depuis plus de {dateProvider.ProjectSoftDeletionDay().ToString()} jours. Veuillez contacter les responsables de l'espace de travail pour déterminer si l'espace de travail peut être supprimé.");
             }
             else
-            { 
-                _logger.LogInformation($"Workspace {project.Project_Acronym_CD} is safe from deletion");            
-            }
-            // if project to be deleted, send to terraform delete queue
-            if (projectToBeDeleted)
             {
-                var projectInactiveMessage = new ProjectInactiveMessage(acronym);
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectInactiveQueueName, projectInactiveMessage,
-                    ct);
+                bodyText = ($"The workspace <a href=\"https://federal-science-datahub.canada.ca/w/{acronym}\">{acronym}</a> has been inactive for {daysSinceLastLogin} days. The workspace leads have been alerted to login to the workspace to prevent the workspace from potentially being deleted.",
+                            $"L'espace de travail <a href=« https://federal-science-datahub.canada.ca/w/{acronym}\\ »>{acronym}</a> est inactif depuis {daysSinceLastLogin} jours. Les responsables de l'espace de travail ont été invités à se connecter à l'espace de travail pour éviter qu'il ne soit supprimé.");
             }
+            return bodyText;
         }
 
         public async Task<EmailRequestMessage?> CheckIfProjectToBeNotified(int daysUntilDeletion,
@@ -117,7 +138,7 @@ namespace Datahub.Functions
             if ((operationalWindow == null || operationalWindow < dateProvider.Today) && !hasCostRecovery &&
                 dateProvider.ProjectNotificationDays().Contains(daysUntilDeletion))
             {
-                return GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, contacts);
+                return GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, contacts, "project_inactive_alert.html", (string.Empty, string.Empty));
             }
 
             return null;
@@ -130,7 +151,7 @@ namespace Datahub.Functions
             // and that the project has no cost recovery
             // and that we are at or are past the deletion day
             return (operationalWindow == null || operationalWindow < dateProvider.Today) &&
-                   daysSinceLastLogin >= dateProvider.ProjectDeletionDay() &&
+                   daysSinceLastLogin >= dateProvider.ProjectSoftDeletionDay() &&
                    !hasCostRecovery;
         }
 
@@ -155,7 +176,7 @@ namespace Datahub.Functions
         }
 
         public EmailRequestMessage GetEmailRequestMessage(int daysUntilDeletion, int daysSinceLastLogin,
-            string acronym, List<string> contacts)
+            string acronym, List<string> contacts, string template, (string, string) bodytext)
         {
             List<string> bcc = new() { GetNotificationCCAddress() };
 
@@ -168,10 +189,12 @@ namespace Datahub.Functions
             {
                 { "{ws}", acronym },
                 { "{inactive}", daysSinceLastLogin.ToString() },
-                { "{remaining}", daysUntilDeletion.ToString() }
+                { "{remaining}", daysUntilDeletion.ToString() },
+                { "{bodytext}", bodytext.Item1 },
+                { "{bodytextFr}", bodytext.Item2 },
             };
 
-            var email = emailService.BuildEmail("project_inactive_alert.html", contacts, bcc, bodyArgs,
+            var email = emailService.BuildEmail(template, contacts, bcc, bodyArgs,
                 subjectArgs);
 
             return email;
@@ -180,6 +203,10 @@ namespace Datahub.Functions
         private string GetNotificationCCAddress()
         {
             return config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
+        }
+        private bool IsTodayMonday()
+        {
+            return DateTime.Now.DayOfWeek == DayOfWeek.Monday;
         }
     }
 }

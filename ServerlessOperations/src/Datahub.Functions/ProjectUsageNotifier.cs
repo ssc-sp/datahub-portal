@@ -22,7 +22,7 @@ namespace Datahub.Functions
         ILoggerFactory loggerFactory,
         AzureConfig config,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        QueuePongService pongService,
+        IQueuePongService pongService,
         EmailValidator emailValidator,
         ISendEndpointProvider sendEndpointProvider,
         IEmailService emailService,
@@ -57,7 +57,10 @@ namespace Datahub.Functions
             // run project verification
             await VerifyAndNotifyProject(message.ProjectAcronym, cancellationToken);
 
-            await VerifyOverBudgetIsDeleted(message.ProjectAcronym, cancellationToken);
+
+
+            //Remove the delete functionalilty, but keep the notification above (for now)
+            //await VerifyOverBudgetIsDeleted(message.ProjectAcronym, cancellationToken);
         }
 
         /// <summary>
@@ -254,6 +257,8 @@ namespace Datahub.Functions
                 return default;
 
             var contacts = project.Users
+                .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
+                            u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
                 .Where(emailValidator.IsValidEmail)
                 .ToList();

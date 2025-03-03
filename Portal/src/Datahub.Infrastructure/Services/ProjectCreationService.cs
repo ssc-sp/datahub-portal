@@ -14,6 +14,7 @@ using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -77,7 +78,7 @@ public class ProjectCreationService(
         return await CreateProjectAsync(projectName, acronym, organization);
     }
 
-    public async Task SaveProjectCreationDetailsAsync(string projectAcronym, string interestedFeatures)
+    public async Task SaveProjectCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null)
     {
         await using var context = await datahubProjectDbFactory.CreateDbContextAsync();
         var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
@@ -88,12 +89,23 @@ public class ProjectCreationService(
         }
         else
         {
-            var user = await userInformationService.GetCurrentPortalUserAsync();
+            int id = -1;
+            try
+            {
+                var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+                id = currentPortalUser.Id;
+            }
+            catch (Exception ex)
+            {
+                // Being called from the endpoint - no user context
+                id = 1;
+            }
+
             var newProjectCreationDetails = new ProjectCreationDetails
             {
                 ProjectId = project.Project_ID,
-                CreatedById = user.Id,
-                InterestedFeatures = interestedFeatures,
+                CreatedById = id,
+                InterestedFeatures = interestedFeatures ?? string.Empty,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -102,26 +114,18 @@ public class ProjectCreationService(
         }
     }
 
-    public async Task<bool> CreateProjectCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
+    public async Task CreateProjectCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
     {
-        try
-        {
-            acronym ??= await GenerateProjectAcronymAsync(projectName);
+        acronym ??= await GenerateProjectAcronymAsync(projectName);
 
-            await AddProjectToDb(portalUser, projectName, acronym, organization);
-            await CreateNewTemplateProjectResourceAsync(acronym);
+        await AddProjectToDb(portalUser, projectName, acronym, organization);
+        await CreateNewTemplateProjectResourceAsync(acronym);
 
-            var workspaceDefinition =
-                await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
-            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+        var workspaceDefinition =
+            await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
+        await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
-            return false;
-        }
+
     }
 
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
@@ -177,12 +181,23 @@ public class ProjectCreationService(
 
         var project = await context.Projects
             .FirstAsync(p => p.Project_ID == projectId);
-        var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+        int id = -1;
+
+        try
+        {
+            var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+            id = currentPortalUser.Id;
+        }
+        catch (Exception ex)
+        {
+            // Being called from the endpoint - no user context
+            id = 1;
+        }
 
         var newResource = new Project_Resources2
         {
             ProjectId = project.Project_ID,
-            RequestedById = currentPortalUser.Id,
+            RequestedById = id,
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
             Status = TerraformStatus.CreateRequested
         };

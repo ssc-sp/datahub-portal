@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "8.0.13");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1192,116 +1192,108 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasAnnotation("Relational:JsonPropertyName", "Id");
-
-                    b.Property<string>("AreaOfScience")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "AreaOfScience");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("CBRID")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "CBRID");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("CBRName")
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "CBRName");
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("FinancialAuthorityCostCentre")
+                    b.Property<string>("FinancialAuthorityCommitmentIsOrg")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityCostCentre");
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinancialAuthorityCommitmentIsRef")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FinancialAuthorityEmail")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FinancialAuthorityFirstName")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityFirstName");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("FinancialAuthorityLastName")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityLastName");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("GcHostingId")
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "GcHostingId");
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<bool>("GeneratesInfoBusinessValue")
-                        .HasColumnType("INTEGER")
-                        .HasAnnotation("Relational:JsonPropertyName", "GeneratesInfoBusinessValue");
+                        .HasColumnType("INTEGER");
 
                     b.Property<string>("Keywords")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "Keywords");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("LeadEmail")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "LeadEmail");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("LeadFirstName")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "LeadFirstName");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("LeadLastName")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "LeadLastName");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ProjectDescription")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectDescription");
-
-                    b.Property<DateTime>("ProjectEndDate")
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectEndDate");
-
-                    b.Property<DateTime>("ProjectStartDate")
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectStartDate");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("ProjectTitle")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectTitle");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("RetentionPeriodStartDate")
+                        .HasColumnType("TEXT");
 
                     b.Property<int>("RetentionPeriodYears")
-                        .HasColumnType("INTEGER")
-                        .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodYears");
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("RetentionValue")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("SecurityClassification")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "SecurityClassification");
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("Subject")
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "Subject");
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("WorkspaceBudget")
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("WorkspaceDescription")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceDescription");
+                        .HasColumnType("TEXT");
 
-                    b.Property<string>("WorkspaceIdentifier")
+                    b.Property<string>("WorkspaceName")
                         .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceIdentifier");
-
-                    b.Property<string>("WorkspaceTitle")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceTitle");
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
 
                     b.HasKey("Id");
 
@@ -1643,8 +1635,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("SectorId");
 
                     b.ToTable("Projects", (string)null);
-
-                    b.HasAnnotation("Relational:JsonPropertyName", "Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectApiUser", b =>
@@ -1919,6 +1909,45 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsUnique();
 
                     b.ToTable("Project_Credits", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DeletedById")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("DeletedDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("DoesDataNotHaveArchivalValue")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDataMigrated")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDataNotSubjectToLitigation")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDeletionConfirmed")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsWorkspaceNotRequired")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("Project_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeletedById");
+
+                    b.HasIndex("Project_ID");
+
+                    b.ToTable("Project_Delete_Questionnaires");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Resources2", b =>
@@ -2668,6 +2697,21 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasForeignKey("Datahub.Core.Model.Projects.Project_Credits", "ProjectId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "DeletedBy")
+                        .WithMany()
+                        .HasForeignKey("DeletedById");
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_ID");
+
+                    b.Navigation("DeletedBy");
 
                     b.Navigation("Project");
                 });

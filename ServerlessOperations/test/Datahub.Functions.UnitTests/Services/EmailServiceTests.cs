@@ -3,7 +3,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 
-namespace Datahub.Functions.UnitTests;
+namespace Datahub.Functions.UnitTests.Services;
 
 [TestFixture]
 public class EmailServiceTests
@@ -28,7 +28,7 @@ public class EmailServiceTests
         var subjectArgs = new Dictionary<string, string> { { "{key2}", "value2" } };
 
         var result = _emailService.BuildEmail(template, sendTo, bccTo, bodyArgs, subjectArgs);
-        
+
         result.Should().NotBeNull();
         result!.To.Should().BeEquivalentTo(sendTo);
         result!.BccTo.Should().BeEquivalentTo(bccTo);

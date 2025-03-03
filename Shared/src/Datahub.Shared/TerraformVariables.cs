@@ -7,6 +7,7 @@ public static class TerraformVariables
     public const string OutputNewProjectTemplate = "new_project_template";
     public const string OutputWorkspaceVersion = "workspace_version";
     public const string OutputAzureResourceGroupName = "azure_resource_group_name";
+    public const string OutputAzureResourceGroupStatus = "azure_resource_group_status";
 
     // Azure Storage output variables
     public const string AzureStorageType = "blob";
@@ -55,6 +56,9 @@ public static class TerraformVariables
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
     public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
     public const string AzureLogWorkspaceId = "log_workspace_id";
+
+    // Postgres related variables
+    public const string PsqlSku = "psql_sku";
 
     /// <summary>
     /// Default outbound IP address for the Datahub Portal

@@ -88,8 +88,16 @@ public class AzureAppServiceTemplateTests
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+            });
+
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, command);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -120,11 +128,19 @@ public class AzureAppServiceTemplateTests
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
 
+        var command = GenerateTestCreateResourceRunCommand(
+         workspaceAcronym, new List<string>()
+         {
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
+         });
+
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
-        await _terraformService.ExtractVariables(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
-        await _terraformService.ExtractVariables(module.Name, workspace);
+        await _terraformService.ExtractVariables(module.Name, command);
+        await _terraformService.ExtractVariables(module.Name, command);
+        await _terraformService.ExtractVariables(module.Name, command);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
