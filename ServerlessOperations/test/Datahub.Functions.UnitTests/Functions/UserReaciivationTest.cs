@@ -12,11 +12,11 @@ using Newtonsoft.Json;
 using NSubstitute;
 using System.Net.Sockets;
 
-namespace Datahub.Functions.UnitTests
+namespace Datahub.Functions.UnitTests.Functions
 {
     [TestFixture]
     public class UserReaciivationTest
-    {  
+    {
         private Mock<IEmailService> _emailServiceMock;
         private IConfiguration _config = Substitute.For<IConfiguration>();
         private ILoggerFactory _loggerFactory = Substitute.For<ILoggerFactory>();
@@ -26,8 +26,8 @@ namespace Datahub.Functions.UnitTests
         [SetUp]
         public void Setup()
         {
-            _emailServiceMock = new Mock<IEmailService>(); 
-             
+            _emailServiceMock = new Mock<IEmailService>();
+
             var inMemorySettings = new Dictionary<string, string?>
             {
                 {"EmailNotification:IsValid", "true"},
@@ -48,7 +48,7 @@ namespace Datahub.Functions.UnitTests
             _configuration.Bind("AzureAd", _azureConfig);
             _handler = new EmailNotificationHandler(
                 _loggerFactory,
-                _azureConfig, 
+                _azureConfig,
                 _emailServiceMock.Object);
         }
 
@@ -72,7 +72,7 @@ namespace Datahub.Functions.UnitTests
             {
                 message = emailRequestMessage
             };
-             
+
             var messageBody = System.Text.Json.JsonSerializer.Serialize(messageEnvelope);
             var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
                 body: new BinaryData(messageBody));
