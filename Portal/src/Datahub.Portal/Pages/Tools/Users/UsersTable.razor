@@ -1,3 +1,4 @@
+@using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 @using System.Text.Json.Nodes;
 @using Datahub.Application.Services
@@ -19,13 +20,17 @@
                 @_allButton
             </DHButton>
         </MudTooltip>
+        <MudTooltip Text=@Localizer["Download entire user table to CSV."]>
+            <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">
+                @Localizer["Download to CSV"]
+            </DHButton>
+        </MudTooltip>
 
-        <MudSpacer/>
+
         <MudTextField
         Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string" Immediate="true" Placeholder=@Localizer["Search by User or Workspace"]
-        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" Label="@Localizer["Search"]">
+        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-4" Label="@Localizer["Search"]">
         </MudTextField>
-
         <MudSpacer/>
         <MudNumericField Value="_numberWorkspaces"
         ValueChanged="NumberWorkspacesChanged"
@@ -50,12 +55,12 @@
                 @Localizer["User"]
             </MudTableSortLabel>
         </MudTh>
-        @if (!HideInfo)
+        @*         @if (!HideInfo)
         {
             <MudTh>
                 @Localizer["Status"]
             </MudTh>
-        }
+        } *@
         <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
@@ -71,10 +76,10 @@
             <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
             <MudText Typo="Typo.body2">@context.User.Email</MudText>
         </MudTd>
-        @if (!HideInfo)
+        @*         @if (!HideInfo)
         {
             <MudTd DataLabel="Status">
-                @* @switch(GetUserStatus(@context.User.Email))
+                @switch(GetUserStatus(@context.User.Email))
                 {
                     case "locked":
                         <DHIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"] />
@@ -84,9 +89,9 @@
                         break;
                     case "":
                         break;                        
-                } *@
+                }
             </MudTd>
-        }
+        } *@
         <MudTd DataLabel="Workspaces">
             <ul style="">
                 @foreach(var workspace in context.Workspaces)
@@ -112,32 +117,33 @@
     [Parameter]
     public ICollection<UserWorkspaces> UserWorkspaces { get; set; }
 
+    public IEnumerable<UserWorkspaces> _filteredData { get; set; }
+
     [Parameter]
     public bool HideInfo { get; set; }
+
+    private IJSObjectReference _module;
 
     private MudTable<UserWorkspaces> userTable;
 
     private string _searchString = "", _lastXDays = "";
     private int _numberWorkspaces = 0;
 
-    private string _allButton = "Copy";
+    private string _allButton = "Copy emails";
     private List<string> _filteredEmails;
 
     private string AcronymStyle => new StyleBuilder()
         .Build();
 
     public List<string> LockedUsers = new ();
-
     public List<string> AllUsers = new ();
-
     public bool LoadStatus = false;
 
     private List<string> lastXDaysOptions =
     [
-        // last 30 = < 30 days
         "Last 7 days",
     "Last 30 days",
-    "Last 90",
+    "Last 90 days",
     "Last 120 days",
     "Last 365 days",
     "> 1 year"
@@ -145,6 +151,7 @@
 
     protected override async Task OnInitializedAsync()
     {
+        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Tools/Users/UsersTable.razor.js");
         // var resultDict = await _userStatusService.GetUsersStatus();
         // if (resultDict != null)
         // {
@@ -170,7 +177,7 @@
     private async Task<TableData<UserWorkspaces>> SortUserTable(TableState state, CancellationToken cancellationToken)
     {
         var filteredData = UserWorkspaces.AsEnumerable();
-        _allButton = "Copy";
+        _allButton = "Copy emails";
 
         // Apply type filter
         // if (selectedType.HasValue)
@@ -195,8 +202,9 @@
         // Apply # of workspaces filter
         if (_numberWorkspaces > 0)
         {
-            filteredData = filteredData.Where(check => (check.Workspaces.Count() >= _numberWorkspaces));
+            filteredData = filteredData.Where(check => check.Workspaces.Count() >= _numberWorkspaces);
         }
+        Console.WriteLine(_numberWorkspaces);
 
         // Apply last X days filter
         if(_lastXDays != null)
@@ -248,6 +256,7 @@
             .ToList();
 
         _filteredEmails = filteredData.Where(x => x.User.Email?.Contains("@") ?? false).Select(x => x.User.Email).ToList();
+        _filteredData = filteredData;
 
         return await Task.FromResult(new TableData<UserWorkspaces> { TotalItems = totalItems, Items = pagedData });
     }
@@ -260,10 +269,11 @@
 
     private async Task NumberWorkspacesChanged(int num)
     {
+        Console.WriteLine(_numberWorkspaces);
         _numberWorkspaces = num;
         await ReloadWorkspaceHealthCheckTableAsync();
     }
-    
+
     private async Task LastXDaysChanged(string days)
     {
         _lastXDays = days;
@@ -295,5 +305,46 @@
             result = true;
         }
         return result;
+    }
+
+    // CSV download
+    private async Task HandleDownload()
+    {
+        var fileStream = GenerateCsvStream();
+        var fileName = $"UserInfo_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+        using var streamReference = new DotNetStreamReference(stream: fileStream);
+        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+    }
+
+    private Stream GenerateCsvStream()
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+        writer.WriteLine("Name,Email,Workspaces,Last Login");
+        foreach (var cost in _filteredData)
+        {
+            writer.WriteLine($"\"{cost.User.DisplayName}\",\"{cost.User.Email}\",\"{AllWorkspaces(cost.Workspaces)}\",{cost.User.LastLoginDateTime?.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"))}");
+        }
+
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+    }
+
+    private string AllWorkspaces(List<Datahub_Project> workspaces)
+    {
+        string allWorkspaces = "";
+        foreach(var space in workspaces)
+        {
+            if(space.Equals(workspaces.Last()))
+            {
+                allWorkspaces += space.ProjectName + "(" + space.Project_Acronym_CD + ")";
+            }
+            else
+            {
+                allWorkspaces += space.ProjectName + "(" + space.Project_Acronym_CD + "), ";
+            }
+        }
+        return allWorkspaces;
     }
 }
