@@ -14,7 +14,6 @@
   "WorkspaceDescription": "This is an example workspace description.",
   "Subject": "Example Subject",
   "Keywords": "example, sample, test",
-  "AreaOfScience": "Computer Science",
   "RetentionPeriodYears": 5,
   "RetentionPeriodStartDate": "2025-02-20T00:00:00Z",
   "RetentionValue": "High",
@@ -22,8 +21,6 @@
   "GeneratesInfoBusinessValue": true,
   "ProjectTitle": "Example Project",
   "ProjectDescription": "This is an example project description.",
-  "ProjectStartDate": "2025-02-20T00:00:00Z",
-  "ProjectEndDate": "2026-02-20T00:00:00Z",
   "CBRName": "Example CBR",
   "CBRID": "1234"
 }
