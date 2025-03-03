@@ -25,17 +25,20 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public AzureDevOpsConfiguration AzureDevOpsConfiguration => _azureDevOpsConfiguration;
 
     public string? NotificationPercents => _config["ProjectUsageNotificationPercents"];
+
+    public bool EnableRollover => _config.GetValue<bool>("EnableRollover", false);
     
     #region Inactivity
     
     public string? ProjectInactivityNotificationDays => _config["ProjectInactivityNotificationDays"] ?? "7,2";
     
-    public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"] ?? "180";
+    public string? ProjectInactivityDeletionDays => _config["ProjectInactivityDeletionDays"] ?? "30";
+    public string? ProjectInactivityHardDeletionDays => _config["ProjectInactivityHardDeletionDays"] ?? "90";
     
     public string? UserInactivityNotificationDays => _config["UserInactivityNotificationDays"] ?? "7,2";
     public string? UserInactivityLockedDays => _config["UserInactivityLockedDays"] ?? "30";
-    public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"] ?? "90";
-    
+    public string? UserInactivityDeletionDays => _config["UserInactivityDeletionDays"] ?? "30";
+
     #endregion
 
     #region Azure SP

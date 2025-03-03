@@ -8,8 +8,8 @@
 
         public int[] ProjectNotificationDays();
         
-        public int ProjectDeletionDay();
-
+        public int ProjectSoftDeletionDay();
+        public int ProjectHardDeletionDay();
         public int[] UserInactivityNotificationDays();
 
         public int UserInactivityLockedDay();

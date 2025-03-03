@@ -149,7 +149,7 @@ public class ProjectUsageUpdater(
         */
 
         // Check if the cost rollover is necessary
-        if (message.ForceRollover || costRollover)
+        if (message.ForceRollover || (_azConfig.EnableRollover && costRollover))
         {
             _logger.LogInformation("Rollover starting for {Acronym}...", message.ProjectAcronym);
             var rolloverTimer = Stopwatch.StartNew();
@@ -159,9 +159,11 @@ public class ProjectUsageUpdater(
                 rolloverTimer.Elapsed.TotalSeconds);
             rolledOver = true;
         }
-
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName,
-            new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        if (Mock == false)
+        {
+            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectUsageNotificationQueueName,
+                new ProjectUsageNotificationMessage(message.ProjectAcronym), cancellationToken);
+        }
         return rolledOver;
     }
 

@@ -78,7 +78,7 @@ public class ProjectCreationService(
         return await CreateProjectAsync(projectName, acronym, organization);
     }
 
-    public async Task SaveProjectCreationDetailsAsync(string projectAcronym, string interestedFeatures)
+    public async Task SaveProjectCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null)
     {
         await using var context = await datahubProjectDbFactory.CreateDbContextAsync();
         var project = await context.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
@@ -105,7 +105,7 @@ public class ProjectCreationService(
             {
                 ProjectId = project.Project_ID,
                 CreatedById = id,
-                InterestedFeatures = interestedFeatures,
+                InterestedFeatures = interestedFeatures ?? string.Empty,
                 CreatedAt = DateTime.UtcNow
             };
 
@@ -114,26 +114,18 @@ public class ProjectCreationService(
         }
     }
 
-    public async Task<bool> CreateProjectCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
+    public async Task CreateProjectCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
     {
-        try
-        {
-            acronym ??= await GenerateProjectAcronymAsync(projectName);
+        acronym ??= await GenerateProjectAcronymAsync(projectName);
 
-            await AddProjectToDb(portalUser, projectName, acronym, organization);
-            await CreateNewTemplateProjectResourceAsync(acronym);
+        await AddProjectToDb(portalUser, projectName, acronym, organization);
+        await CreateNewTemplateProjectResourceAsync(acronym);
 
-            var workspaceDefinition =
-                await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
-            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+        var workspaceDefinition =
+            await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
+        await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
 
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, $"Error creating project {projectName} - {acronym} - {organization}");
-            return false;
-        }
+
     }
 
     public async Task<bool> CreateProjectAsync(string projectName, string? acronym, string organization)
