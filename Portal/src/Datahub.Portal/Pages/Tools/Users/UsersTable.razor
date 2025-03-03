@@ -55,12 +55,6 @@
                 @Localizer["User"]
             </MudTableSortLabel>
         </MudTh>
-        @*         @if (!HideInfo)
-        {
-            <MudTh>
-                @Localizer["Status"]
-            </MudTh>
-        } *@
         <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
@@ -76,22 +70,6 @@
             <MudText Typo="Typo.h6">@context.User.DisplayName</MudText>
             <MudText Typo="Typo.body2">@context.User.Email</MudText>
         </MudTd>
-        @*         @if (!HideInfo)
-        {
-            <MudTd DataLabel="Status">
-                @switch(GetUserStatus(@context.User.Email))
-                {
-                    case "locked":
-                        <DHIcon Icon="@Icons.Material.Filled.Lock" Title=@Localizer["Account locked"] />
-                        break;
-                    case "missing":
-                        <DHIcon Icon="@Icons.Material.Filled.QuestionMark" Title=@Localizer["Account missing from MSGraph"] />
-                        break;
-                    case "":
-                        break;                        
-                }
-            </MudTd>
-        } *@
         <MudTd DataLabel="Workspaces">
             <ul style="">
                 @foreach(var workspace in context.Workspaces)
@@ -152,43 +130,12 @@
     protected override async Task OnInitializedAsync()
     {
         _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Tools/Users/UsersTable.razor.js");
-        // var resultDict = await _userStatusService.GetUsersStatus();
-        // if (resultDict != null)
-        // {
-        //     AllUsers = resultDict["all"];
-        //     LockedUsers = resultDict["locked"];
-        //     LoadStatus = true;
-        // }
     }
-
-    // private string GetUserStatus(string email)
-    // {
-    //     var status = "";
-    //     if (LockedUsers.Contains(email) && !LockedUsers.Any())
-    //     {
-    //         status = "locked";
-    //     } else if (!AllUsers.Contains(email) && !AllUsers.Any())
-    //     {
-    //         status = "missing";
-    //     }
-    //     return status;
-    // }
 
     private async Task<TableData<UserWorkspaces>> SortUserTable(TableState state, CancellationToken cancellationToken)
     {
         var filteredData = UserWorkspaces.AsEnumerable();
         _allButton = "Copy emails";
-
-        // Apply type filter
-        // if (selectedType.HasValue)
-        // {
-        //     filteredData = filteredData.Where(check => check.ResourceType == selectedType.Value);
-        // }
-
-        // if (statusFilter.Any())
-        // {
-        //     filteredData = filteredData.Where(check => statusFilter.Contains(HealthCheckPageUtil.GetDisplayStatus(check)));
-        // }
 
         // Apply search filter
         if (!string.IsNullOrEmpty(_searchString))
