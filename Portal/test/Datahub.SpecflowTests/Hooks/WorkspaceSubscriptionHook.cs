@@ -95,7 +95,7 @@ public class WorkspaceSubscriptionHook
 
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
-        objectContainer.RegisterInstanceAs<IProjectCreationService>(projectCreationService);
+        objectContainer.RegisterInstanceAs<IWorkspaceCreationService>(projectCreationService);
         objectContainer.RegisterInstanceAs<IDatahubAzureSubscriptionService>(datahubAzureSubscriptionService);
     }
 }

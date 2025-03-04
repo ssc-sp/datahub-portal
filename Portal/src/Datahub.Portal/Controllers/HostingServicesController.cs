@@ -26,13 +26,13 @@ public class HostingServicesController : ControllerBase
 {
     private readonly ILogger<HostingServicesController> _logger;
     private readonly DatahubProjectDBContext _context;
-    private readonly IProjectCreationService _projectCreationService;
+    private readonly IWorkspaceCreationService _projectCreationService;
     private readonly IUserInformationService _userInformationService;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly ISendEndpointProvider _sendEndpointProvider;
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;    
 
-    public HostingServicesController(DatahubProjectDBContext context, IProjectCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration)
+    public HostingServicesController(DatahubProjectDBContext context, IWorkspaceCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration)
     {
         _context = context;
         _projectCreationService = projectCreationService;
@@ -115,7 +115,7 @@ public class HostingServicesController : ControllerBase
             var workspaceDetails1 = JsonConvert.DeserializeObject<HostingServiceInfo>(body);
             var workspaceDetails = ConvertInputToGCHostingObject(workspaceDetails1);
 
-            string acronym = await _projectCreationService.GenerateProjectAcronymAsync(workspaceDetails.WorkspaceName);
+            string acronym = await _projectCreationService.GenerateWorkspaceAcronymAsync(workspaceDetails.WorkspaceName);
             _logger.LogInformation("Generated acronym: {0}", acronym);
 
             // Attempt to find the user in the database.
@@ -250,11 +250,11 @@ public class HostingServicesController : ControllerBase
             return BadRequest("Security classification must be unclassified");
         try
         {
-            await _projectCreationService.CreateProjectCloudHostingEndPointAsync(workspaceDetails.WorkspaceName, acronym, "Shared Services Canada", user);
+            await _projectCreationService.CreateWorkspaceCloudHostingEndPointAsync(workspaceDetails.WorkspaceName, acronym, "Shared Services Canada", user);
 
 
             _logger.LogInformation("Project created successfully, saving project creation details.");
-            await _projectCreationService.SaveProjectCreationDetailsAsync(acronym);
+            await _projectCreationService.SaveWorkspaceCreationDetailsAsync(acronym);
 
             // Retrieve the workspace details.
             var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);

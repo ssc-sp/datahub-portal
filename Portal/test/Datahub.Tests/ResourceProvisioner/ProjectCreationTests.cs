@@ -38,7 +38,7 @@ public class ProjectCreationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddPooledDbContextFactory<DatahubProjectDBContext>(options => options.UseInMemoryDatabase("datahubProjects"));
-        services.AddScoped<IProjectCreationService, ProjectCreationService>();
+        services.AddScoped<IWorkspaceCreationService, ProjectCreationService>();
         
         //dependency for ProjectCreationService
         services.AddSingleton(Configuration);
@@ -58,11 +58,11 @@ public class ProjectCreationTests
         };
         var acronyms = new List<string>();
         var projectCreationService =
-            SetupServices().GetRequiredService<IProjectCreationService>();
+            SetupServices().GetRequiredService<IWorkspaceCreationService>();
         //var acronyms = projects.Select(p => p.Split(' ').Select(w => w[0]).Aggregate("", (a, b) => a + b));
         foreach (var project in projects)
         {
-            var acronym = await projectCreationService.GenerateProjectAcronymAsync(project, acronyms);
+            var acronym = await projectCreationService.GenerateWorkspaceAcronymAsync(project, acronyms);
             acronyms.Add(acronym);
         }
         // ReSharper disable StringLiteralTypo
@@ -76,9 +76,9 @@ public class ProjectCreationTests
         const string projectName = "Datahub Unit Testing";
         const string organization = "Unit Testing";
         var serviceProvider = SetupServices();
-        var projectCreationService = serviceProvider.GetRequiredService<IProjectCreationService>();
+        var projectCreationService = serviceProvider.GetRequiredService<IWorkspaceCreationService>();
         var config = serviceProvider.GetRequiredService<IConfiguration>();
-        var isAdded = await projectCreationService.CreateProjectAsync(projectName, organization);
+        var isAdded = await projectCreationService.CreateWorkspaceAsync(projectName, organization);
         Assert.True(isAdded);
         var projects = LoadCollectionGeneric<DatahubProjectDBContext, Datahub_Project>(SetupServices(), d => d.Projects);
         Assert.Single(projects);
