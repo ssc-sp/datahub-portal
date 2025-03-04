@@ -257,29 +257,6 @@
                                                 }
                                             </MudStack>
                                         </MudPaper>
-                                        <MudPaper Elevation="0" Outlined Class="py-4 px-8"
-                                                  Style=@ConfigurationFormStyle>
-                                            <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
-                                                <DHIcon Icon="@ToolIcon(transaction.Tool)"/>
-                                                <MudText Typo="Typo.h3">
-                                                    @ToolLabel(transaction.Tool) configuration
-                                                </MudText>
-                                            </MudStack>
-                                            <MudStack Spacing="2">
-                                                @switch (transaction.Tool)
-                                                {
-                                                    case TerraformTemplate.AzurePostgres:
-                                                        <PostgresConfigurationForm
-                                                            Configuration="@(transaction.UpdatedData!)"/>
-                                                        break;
-                                                    default:
-                                                        <MudText Style="font-style: italic">
-                                                            @Localizer["No configuration available for this tool"]
-                                                        </MudText>
-                                                        break;
-                                                }
-                                            </MudStack>
-                                        </MudPaper>
                                     }
                                 </MudStack>
                             </MudStep>
