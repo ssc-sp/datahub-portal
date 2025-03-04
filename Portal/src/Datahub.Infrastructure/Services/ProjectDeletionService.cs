@@ -19,7 +19,7 @@ namespace Datahub.Infrastructure.Services
 {
     public class ProjectDeletionService(
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<ProjectCreationService> logger,
+        ILogger<WorkspaceCreationService> logger,
         IUserInformationService userInformationService,
         IResourceMessagingService resourceMessagingService
         ) : IProjectDeletionService
