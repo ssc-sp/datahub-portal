@@ -365,92 +365,98 @@ public class UserInformationService(
 
     public async Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email)
     {
-        ExtendedPortalUser? extendedPortalUser = new ExtendedPortalUser { Email = email };
-        //PortalUser? portalUser;
-        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
+        var matchingUsers = await ctx.PortalUsers
+            .AsNoTracking()
+            .Where(p => p.Email.ToLower() == email.ToLower())
+            .ToListAsync();
+        List<ExtendedPortalUser> extendedUsers = [];
+
+        PrepareAuthenticatedClient();
+
+        // Check the state of each matching user accounts
+        foreach (var portalUser in matchingUsers)
         {
-            //portalUser = await ctx.PortalUsers
-            //    .AsNoTracking()
-            //    .Include(u => u.UserSettings)
-            //    .FirstOrDefaultAsync(p => p.Email.ToLower() == email.ToLower());
-
-            var matchingUsers = await ctx.PortalUsers
-                .AsNoTracking()
-                .Where(p => p.Email.ToLower() == email.ToLower())
-                .ToListAsync();
-
-            foreach (PortalUser portalUser in matchingUsers)
+            var extendedPortalUser = new ExtendedPortalUser(portalUser);
+            if (extendedPortalUser == null)
             {
-                if (portalUser is not null)
+                logger.LogError("Unable to cast portalUser to ExtendedPortalUser");
+                throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
+            }
+
+            try
+            {
+                logger.LogInformation("Making MS graph request...");
+                var graphUser = await graphServiceClient.Users[portalUser.GraphGuid].GetAsync(
+                    request => request.QueryParameters.Select = ["accountEnabled"]);
+                if (graphUser is not null)
                 {
-                    extendedPortalUser = new ExtendedPortalUser(portalUser);
-                    if (extendedPortalUser == null)
-                    {
-                        throw new InvalidCastException("The portal user is not of type ExtendedPortalUser.");
-                    }
-
-                    PrepareAuthenticatedClient();
-
-                    try
-                    {
-                        var graphUser = await graphServiceClient.Users[portalUser.GraphGuid].GetAsync();
-                        if (graphUser is not null)
-                        {
-                            extendedPortalUser.IsLocked =
-                                graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
-                        }
-                    }
-                    catch (ODataError e)
-                    {
-                        if (e.ResponseStatusCode == 404)
-                        {
-                            extendedPortalUser.IsDeleted = true;
-                        }
-                        else
-                        {
-                            logger.LogError(e, "Could not find user with GraphGuid. Continuing to load user...");
-                            continue;
-                        }
-                    }
-                    catch (ServiceException e)
-                    {
-                        if (e.InnerException is MsalUiRequiredException ||
-                            e.InnerException is MicrosoftIdentityWebChallengeUserException)
-                            throw;
-
-                        logger.LogError(e, "Error Loading User");
-                        extendedPortalUser.IsDeleted = true;
-                    }
-                    catch (Exception e)
-                    {
-                        logger.LogError(e, "Error Loading User");
-                        extendedPortalUser.IsDeleted = true;
-                    }
-
-                    return extendedPortalUser;
+                    extendedPortalUser.IsLocked =
+                        graphUser.AccountEnabled.HasValue && !graphUser.AccountEnabled.Value;
+                    logger.LogInformation("Found user. Account enabled: {AccountEnabled}",
+                        !extendedPortalUser.IsLocked);
+                }
+            }
+            catch (ODataError e)
+            {
+                if (e.ResponseStatusCode == 404)
+                {
+                    logger.LogWarning("User with provided GraphGUID not found. User account was deleted");
+                    extendedPortalUser.IsDeleted = true;
+                }
+                else
+                {
+                    logger.LogError(e, "Unexpected error occurred");
+                    throw;
+                }
+            }
+            catch (ServiceException e)
+            {
+                if (e.InnerException is MsalUiRequiredException ||
+                    e.InnerException is MicrosoftIdentityWebChallengeUserException)
+                {
+                    logger.LogError(e, "Unexpected error occurred");
+                    throw;
                 }
 
-                return null;
+                logger.LogWarning(e, "Error loading user, marking user as deleted");
+                extendedPortalUser.IsDeleted = true;
             }
+            catch (Exception e)
+            {
+                logger.LogWarning(e, "Error loading user, marking user as deleted");
+                extendedPortalUser.IsDeleted = true;
+            }
+            finally
+            {
+                extendedUsers.Add(extendedPortalUser);
+            }
+        }
 
+        // If there is no matching accounts, return null
+        if (extendedUsers.Count == 0)
+        {
             return null;
         }
+
+        // If all matching accounts were deleted, return the one with the latest sign-in
+        if (extendedUsers.All(u => u.IsDeleted))
+        {
+            return extendedUsers.OrderByDescending(u => u.LastLoginDateTime).First();
+        }
+
+        // If one or more of the accounts is not deleted, return the one with the latest sign-in
+        return extendedUsers.Where(u => !u.IsDeleted).OrderByDescending(u => u.LastLoginDateTime).First();
     }
 
-    public async Task HandleDeletedUserRegistration(string email, string graphId)
+    public async Task HandleDeletedUserRegistration(string email, string graphId, int portalUserId)
     {
         // update portal user with new graph id
-        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
-        {
-            var portalUser = await ctx.PortalUsers.FirstOrDefaultAsync(p => p.Email == email);
-            if (portalUser != null)
-            {
-                portalUser.GraphGuid = graphId;
-                ctx.Update(portalUser);
-            }
-
-            await ctx.SaveChangesAsync();
-        }
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
+        var portalUser = await ctx.PortalUsers.FirstAsync(p => p.Id == portalUserId);
+        portalUser.GraphGuid = graphId;
+        ctx.Update(portalUser);
+        await ctx.SaveChangesAsync();
     }
 
     public async Task RegisterAuthenticatedPortalUser()
@@ -567,7 +573,7 @@ public class UserInformationService(
     {
         PrepareAuthenticatedClient();
         var users = await graphServiceClient.Users.GetAsync(
-            test => test.QueryParameters.Filter = $"mail eq '{email}'");
+            request => request.QueryParameters.Filter = $"mail eq '{email}'");
         if (users?.Value != null) return users.Value.Count > 0;
         return false;
     }
