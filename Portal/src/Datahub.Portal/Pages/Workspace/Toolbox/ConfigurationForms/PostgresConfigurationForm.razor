@@ -1,0 +1,43 @@
+﻿@namespace Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms
+@using Datahub.Shared.Entities
+@using Datahub.Portal.Pages.Account
+
+<SettingsField Label="@Localizer["Database tier"]"
+               Description="@Localizer["Choose a tier for the compute of your database. This will affect the performance and cost of your database."]">
+    <MudSelect T="string" Label="@Localizer["Database tier"]" @bind-Value="@Configuration.PSQL_SKU">
+        @foreach (var tier in AvailableTiers)
+        {
+            <MudSelectItem Value="@tier.PSQL_SKU">
+                @TierLabel(tier.PSQL_SKU)
+            </MudSelectItem>
+        }
+    </MudSelect>
+</SettingsField>
+
+
+@code {
+    [Parameter] public PostgresConfiguration Configuration { get; set; }
+
+    private List<PostgresTier> AvailableTiers { get; set; }
+    private PostgresTier DefaultTier => AvailableTiers.First(t => t.PSQL_SKU == "B_Standard_B1ms");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        AvailableTiers = PostgresTier.GetPostgresTiers().Where(t => t.IsAvailable).ToList();
+        Configuration ??= new PostgresConfiguration();
+        Configuration.PSQL_SKU ??= DefaultTier.PSQL_SKU;
+    }
+
+    private string TierLabel(string sku)
+    {
+        var skuTier = AvailableTiers.FirstOrDefault(t => t.PSQL_SKU == sku);
+        if (skuTier == null)
+        {
+            return sku;
+        }
+
+        return Localizer["{0} - {1} vCores, {2} RAM, {3}", skuTier.SKUName, skuTier.Cores, skuTier.MemorySize, skuTier.Cost];
+    }
+
+}
