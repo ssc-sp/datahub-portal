@@ -131,10 +131,11 @@ public class OfflineUserInformationService : IUserInformationService
         return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
     }
 
-    public async Task HandleDeletedUserRegistration(string email, string graphId)
+    public Task HandleDeletedUserRegistration(string email, string graphId, int portalUserId)
     {
-        return;
+        throw new NotImplementedException();
     }
+
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
