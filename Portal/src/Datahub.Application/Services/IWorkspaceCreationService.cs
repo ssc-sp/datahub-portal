@@ -9,7 +9,7 @@ public interface IWorkspaceCreationService
     public Task<string> GenerateWorkspaceAcronymAsync(string projectName, IEnumerable<string> existingAcronyms);
     //token needs to be acquired by component so that exception handling can be done there
     //(handling exception causes force refresh through navigation manager)
-    public Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string acronym, string organization, PortalUser portalUser);
+    public Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string acronym, string organization, PortalUser portalUser, decimal budget, string cbrId);
     public Task<bool> CreateWorkspaceAsync(string projectName, string acronym, string organization); 
     public Task<bool> CreateWorkspaceAsync(string projectName, string organization);
     

@@ -59,7 +59,7 @@ namespace Datahub.Functions.UnitTests.Providers
         public void ProjectDeletionDay_ShouldReturnParsedDay()
         {
             // Act
-            var result = _dateProvider.ProjectDeletionDay();
+            var result = _dateProvider.ProjectSoftDeletionDay();
 
             // Assert
             result.Should().Be(30);

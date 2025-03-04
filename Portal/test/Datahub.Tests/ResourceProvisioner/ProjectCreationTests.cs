@@ -38,7 +38,7 @@ public class ProjectCreationTests
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddPooledDbContextFactory<DatahubProjectDBContext>(options => options.UseInMemoryDatabase("datahubProjects"));
-        services.AddScoped<IWorkspaceCreationService, ProjectCreationService>();
+        services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
         
         //dependency for ProjectCreationService
         services.AddSingleton(Configuration);

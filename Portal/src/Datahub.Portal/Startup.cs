@@ -385,7 +385,7 @@ public class Startup
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
-            services.AddScoped<IWorkspaceCreationService, ProjectCreationService>();
+            services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
             services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
@@ -416,7 +416,7 @@ public class Startup
             
             
         }
-        services.AddScoped<IWorkspaceCreationService, ProjectCreationService>();
+        services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
 
         services.AddSingleton<IExternalSearchService, ExternalSearchService>();
         services.AddHttpClient<IExternalSearchService, ExternalSearchService>();

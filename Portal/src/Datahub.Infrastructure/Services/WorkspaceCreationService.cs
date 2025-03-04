@@ -18,10 +18,10 @@ using Microsoft.Graph.Models.Security;
 
 namespace Datahub.Infrastructure.Services;
 
-public class ProjectCreationService(
+public class WorkspaceCreationService(
     DatahubPortalConfiguration portalConfiguration,
     IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-    ILogger<ProjectCreationService> logger,
+    ILogger<WorkspaceCreationService> logger,
     IServiceAuthManager serviceAuthManager,
     IUserInformationService userInformationService,
     IResourceMessagingService resourceMessagingService,
@@ -40,7 +40,7 @@ public class ProjectCreationService(
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
         var existingAcronyms = db.Projects.Select(p => p.Project_Acronym_CD).ToArray();
-        return await GenerateProjectAcronymAsync(projectName, existingAcronyms);
+        return await GenerateWorkspaceAcronymAsync(projectName, existingAcronyms);
     }
 
     public async Task<string> GenerateWorkspaceAcronymAsync(string projectName, IEnumerable<string> existingAcronyms)
@@ -114,15 +114,15 @@ public class ProjectCreationService(
         }
     }
 
-    public async Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser)
+    public async Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser, decimal budget, string cbrID)
     {
         acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
 
-        await AddProjectToDb(portalUser, projectName, acronym, organization);
+        await AddProjectToDb(portalUser, projectName, acronym, organization, budget);
         await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
         var workspaceDefinition =
-            await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email);
+            await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email, cbrID);
         await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
 
 
@@ -164,7 +164,7 @@ public class ProjectCreationService(
         }
         else
         {
-            await CreateNewTemplateProjectResourceAsync(project.Project_ID);
+            await CreateNewTemplateWorkspaceResourceAsync(project.Project_ID);
         }
     }
 
@@ -206,7 +206,7 @@ public class ProjectCreationService(
         await context.TrackSaveChangesAsync(auditingService);
     }
 
-    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization)
+    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null)
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
@@ -224,7 +224,7 @@ public class ProjectCreationService(
             Project_Phase = TerraformStatus.CreateRequested,
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
-            Project_Budget = portalConfiguration.DefaultProjectBudget,
+            Project_Budget = budget ?? portalConfiguration.DefaultProjectBudget,
             DatahubAzureSubscriptionId = subscription.Id
         };
         await db.Projects.AddAsync(project);

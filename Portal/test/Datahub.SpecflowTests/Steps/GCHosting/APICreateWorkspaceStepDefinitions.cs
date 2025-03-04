@@ -106,7 +106,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 HttpContext = context
             };
 
-            _projectCreationService.GenerateProjectAcronymAsync(Arg.Any<string>())
+            _projectCreationService.GenerateWorkspaceAcronymAsync(Arg.Any<string>())
                 .Returns("TEST");
 
             // Act
