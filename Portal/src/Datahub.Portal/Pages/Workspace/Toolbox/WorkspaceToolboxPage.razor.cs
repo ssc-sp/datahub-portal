@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Infrastructure.Services.Toolbox;
@@ -191,9 +192,113 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <returns>An array of tuples containing the icon and name of each dependency.</returns>
         private (string Icon, string Name)[] ToolDependencies(string tool)
         {
-            var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
-            return dependencies.Select(dependency => (ToolIcon(dependency.Name), ToolLabel(dependency.Name)))
-                .ToArray();
+            try
+            {
+                var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
+                return dependencies.Select(dependency => (ToolIcon(dependency.Name), ToolLabel(dependency.Name)))
+                    .ToArray();
+            }
+            catch
+            {
+                return [];
+            }
+        }
+
+        /// <summary>
+        /// Long form cost information for each resource
+        /// </summary>
+        /// <param name="tool">The tool to get cost information for</param>
+        /// <returns>A localized string providing cost information</returns>
+        private string ToolCostInformation(string tool)
+        {
+            return tool switch
+            {
+                TerraformTemplate.NewProjectTemplate => Localizer[
+                    "Workspace essentials are the backbone of your workspace in the cloud, and costs related to the various resources this includes sum up to less than {0:C2} per month.",
+                    1.0],
+                TerraformTemplate.AzureDatabricks => Localizer[
+                    "The cost of Databricks is completely dependent on your usage. The idle costs of Databricks when not using it at all are nearly $0. Small compute clusters will cost about {0:C2} to {1:C2} per hour of usage, regular compute clusters will cost about {2:C2} to {3:C2} per hour of usage and large compute clusters will cost {4:C2} to {5:C2} per hour of usage. Additional costs may be incurred by other usage (data catalog, compute creation, etc.) and prices mentioned refer to default configurations. Make sure to read the additional information below for more details on costs.",
+                    0.80, 2.40, 1.60, 4.80, 3.20, 9.60],
+                TerraformTemplate.AzureStorageBlob => Localizer[
+                    "Storage costs are about {0:C2} per terabyte of hot storage per month. Uploading and downloading to cloud storage also incurs bandwidth costs. See additional information below for details on costing.",
+                    30.0],
+                TerraformTemplate.AzurePostgres => Localizer[
+                    "The default Postgres offered costs about {0:C2} per month plus {1:C2} per month per GB of storage, regardless of usage. Changing configurations will affect the cost of this resource. Read more about this resource below.",
+                    20.0, 0.18],
+                TerraformTemplate.AzureAppService => Localizer[
+                    "The default App Service offered costs about {0:C2} per month, regardless of usage. Changing configurations will affect the cost of this resource. Stopping the web application does not stop the costs. Read more about this resource below.",
+                    60.0],
+                _ => Localizer["No cost information available for this resource."]
+            };
+        }
+
+        /// <summary>
+        /// Short form cost calculation for each transaction
+        /// </summary>
+        /// <param name="transaction">The transaction to calculate the costs for</param>
+        /// <returns>A localized summary for costs for the tool</returns>
+        private string ToolCostSummary(ToolboxTransaction transaction)
+        {
+            if (transaction.Type == ToolboxTransactionType.Remove) return string.Empty;
+
+            switch (transaction.Tool)
+            {
+                case TerraformTemplate.NewProjectTemplate:
+                    return Localizer["< {0:C2}/month", 1.0m];
+                case TerraformTemplate.AzureStorageBlob:
+                    return Localizer["~ {0:C2}/month, more per download/upload", 30.0m];
+                case TerraformTemplate.AzurePostgres:
+                    var postgresConfig = (PostgresConfiguration)transaction.UpdatedData;
+                    var postgresCost = PostgresTier.GetPostgresTiers()
+                        .First(t => t.PSQL_SKU == postgresConfig!.PSQL_SKU)
+                        .Cost;
+                    return Localizer["~ {0:C2} plus {1:C2}/month per GB of storage", postgresCost, 0.18m];
+                case TerraformTemplate.AzureAppService:
+                    return Localizer["~ {0:C2}/month", 60.0m];
+                default:
+                    return string.Empty;
+            }
+        }
+
+        /// <summary>
+        /// List of additional links for each tool
+        /// </summary>
+        /// <param name="tool">The tool to get additional links for</param>
+        /// <returns>A list of tuples of text/URL for additional info on each tool</returns>
+        private (string Text, string URL)[] ToolAdditionalLinks(string tool)
+        {
+            return tool switch
+            {
+                TerraformTemplate.AzureStorageBlob =>
+                [
+                    (Localizer["Introduction to Azure Storage"],
+                        Localizer["https://learn.microsoft.com/en-us/azure/storage/common/storage-introduction"]),
+                    (Localizer["Azure Storage pricing"],
+                        Localizer["https://azure.microsoft.com/en-us/pricing/details/storage/blobs/"]),
+                ],
+                TerraformTemplate.AzurePostgres =>
+                [
+                    (Localizer["Azure Database for PostgreSQL documentation"],
+                        Localizer["https://docs.microsoft.com/en-us/azure/postgresql/"]),
+                    (Localizer["Azure Database for PostgreSQL pricing"],
+                        Localizer["https://azure.microsoft.com/en-us/pricing/details/postgresql/"]),
+                ],
+                TerraformTemplate.AzureDatabricks =>
+                [
+                    (Localizer["Azure Databricks documentation"],
+                        Localizer["https://docs.microsoft.com/en-us/azure/databricks/"]),
+                    (Localizer["Azure Databricks pricing"],
+                        Localizer["https://azure.microsoft.com/en-us/pricing/details/databricks/"]),
+                ],
+                TerraformTemplate.AzureAppService =>
+                [
+                    (Localizer["Azure App Service documentation"],
+                        Localizer["https://docs.microsoft.com/en-us/azure/app-service/"]),
+                    (Localizer["Azure App Service pricing"],
+                        Localizer["https://azure.microsoft.com/en-us/pricing/details/app-service/"]),
+                ],
+                _ => Array.Empty<(string, string)>()
+            };
         }
 
         /// <summary>
@@ -210,11 +315,11 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 var updatedValue = value.Updated;
                 if (originalValue == null)
                 {
-                    diffString += Localizer["Added {0}: {1}\n", PropertyLabel(key), updatedValue];
+                    diffString += Localizer["Selected {0}: {1}\n", PropertyLabel(key).ToLower(), updatedValue];
                 }
                 else
                 {
-                    diffString += Localizer["Updated {0}: {1} -> {2}\n", PropertyLabel(key), originalValue,
+                    diffString += Localizer["Updated {0}: {1} -> {2}\n", PropertyLabel(key).ToLower(), originalValue,
                         updatedValue];
                 }
             }
@@ -280,7 +385,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             [
                 new CompletionStep { Label = Localizer["Verifying request"], State = "", Task = VerifyRequest },
                 new CompletionStep { Label = Localizer["Creating local records"], State = "", Task = LocalRecords },
-                new CompletionStep { Label = Localizer["Requesting cloud provisioning"], State = "", Task = CloudRequest }
+                new CompletionStep
+                    { Label = Localizer["Requesting cloud provisioning"], State = "", Task = CloudRequest }
             ];
 
             _context = await ContextFactory.CreateDbContextAsync();
@@ -410,7 +516,32 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             foreach (var template in _builtWorkspaceDefinition.Templates)
             {
                 Log($"Scaffolding local changes for {template.Name}");
+                // Create project resource records for each template
                 await RequestManagementService.ScaffoldLocalChanges(_workspace, _viewedPortalUser, template, _context);
+
+                // Apply tool specific changes
+                switch (template.Name)
+                {
+                    case TerraformTemplate.AzurePostgres:
+                        Log("Applying postgres configuration to database");
+                        _context.Projects.Attach(_workspace);
+
+                        await _context.Entry(_workspace)
+                            .Collection(p => p.Resources)
+                            .LoadAsync();
+
+                        var postgresResource = _workspace.Resources.First(r =>
+                            r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name) &&
+                            r.ProjectId == _workspace.Project_ID);
+
+                        var inputJson = new JsonObject
+                        {
+                            ["postgres_sku"] = _builtWorkspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
+                        };
+                        postgresResource.InputJsonContent = inputJson.ToString();
+                        _context.Update(postgresResource);
+                        break;
+                }
             }
         }
 
@@ -569,7 +700,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 { "Category", ToolCategory(tool) },
                 { "Dependencies", ToolDependencies(tool) },
                 { "Instances", await ToolInstances(tool) },
-                { "Availability", AvailabilityLabel(_toolAvailabilityStatusMap[tool]) }
+                { "Availability", AvailabilityLabel(_toolAvailabilityStatusMap[tool]) },
+                { "CostInformation", ToolCostInformation(tool) },
+                { "AdditionalLinks", ToolAdditionalLinks(tool) }
             };
 
             var infoOptions = new DialogOptions
@@ -579,6 +712,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 CloseButton = true,
                 MaxWidth = MaxWidth.Large
             };
+
             await DialogService.ShowAsync<InfoSheet>(ToolLabel(tool), infoParams, infoOptions);
         }
 

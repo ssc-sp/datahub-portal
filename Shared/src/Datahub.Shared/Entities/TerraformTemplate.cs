@@ -117,9 +117,6 @@ public class TerraformTemplate(string name, string status)
             AzurePostgres => [
                 new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
             ],
-            VariableUpdate => [],
-            AzureAPI => [],
-            AzureArcGis => [],
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }

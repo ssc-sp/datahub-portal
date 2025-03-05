@@ -8,9 +8,8 @@
     <DialogContent>
         <MudStack Class="pb-8">
             <MudText Typo="Typo.h3">@Localizer["Information"]</MudText>
-            <MudText Typo="Typo.body1" Style="font-style: italic">@Localizer["Category: {0}", Category]</MudText>
             <MudText Typo="Typo.body1"
-                     Style="font-style: italic">@Localizer["Availability: {0}", Availability]</MudText>
+                     Style="font-style: italic">@Localizer["Availability: {0}, Category: {1}", Availability, Category]</MudText>
             <MudText>@Description</MudText>
             @if (Dependencies != null && Dependencies.Any())
             {
@@ -30,6 +29,21 @@
             <MudText Typo="Typo.h3">@Localizer["Cost & usage"]</MudText>
             <MudText
                 Typo="Typo.body1">@Localizer["{0} is currently used in {1} workspaces.", Title, Instances]</MudText>
+            <MudText>
+                @CostInformation
+            </MudText>
+            @if (AdditionalLinks.Length != 0)
+            {
+                <MudText Typo="Typo.h3">@Localizer["Read more"]</MudText>
+                <MudList T="MudLink" >
+                    @foreach (var link in AdditionalLinks)
+                    {
+                        <MudListItem>
+                            <MudLink Href="@link.URL" Target="_blank">@link.Text</MudLink>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
         </MudStack>
     </DialogContent>
 </MudDialog>
@@ -42,4 +56,6 @@
     [Parameter] public (string Icon, string Name)[] Dependencies { get; set; }
     [Parameter] public int Instances { get; set; }
     [Parameter] public string Availability { get; set; }
+    [Parameter] public string CostInformation { get; set; }
+    [Parameter] public (string Text, string URL)[] AdditionalLinks { get; set; }
 }

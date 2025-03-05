@@ -41,7 +41,7 @@
                     else if (_completionSteps.Any(step => step.State == FailedState))
                     {
                         @Localizer["Request failed. Please try again later, or "]
-                        <MudLink Href="@MetadataUrl">@Localizer["submit a support request."]</MudLink>
+                        <MudLink Typo="Typo.h2" Href="@MetadataUrl">@Localizer["submit a support request."]</MudLink>
                     }
                     else
                     {
@@ -161,7 +161,7 @@
                                     }
                                 </MudStack>
                                 <MudText Class="mb-4" Style="font-style: italic">
-                                    @Localizer["Certain tools have dependencies. As you add tools, they will automatically add their dependencies to your request."]
+                                    @Localizer["Certain tools have dependencies. As you add tools, they will automatically add their dependencies to your request. Clicking on the name of a tool will show more information about the tool."]
                                 </MudText>
                                 <MudStack Row>
                                     <MudText Typo="Typo.h3" Class="mb-2">
@@ -223,13 +223,16 @@
                                     }
                                 </MudStack>
                                 <MudText Style="font-style: italic">
-                                    @Localizer["Some tools may not be configurable or removable through the toolbox just yet. For more information, please submit a support request."]
+                                    @Localizer["Some tools may not be configurable or removable through the toolbox just yet. For more information, please submit a support request. Clicking on the name of a tool will show more information about the tool."]
                                 </MudText>
                             </MudStep>
                             <MudStep Title=@Localizer["Configure"]
                                      Disabled="@(!_transactions.Any(IsConfigurable))">
-                                <MudText Typo="Typo.h2" Class="mb-4">
+                                <MudText Typo="Typo.h2" Class="mb-2">
                                     @Localizer["Configure the tools you have added to your workspace"]
+                                </MudText>
+                                <MudText Class="mb-4">
+                                    @Localizer["You can configure the tools you have added to your workspace here."]
                                 </MudText>
                                 <MudStack Spacing="4">
                                     @foreach (var transaction in _transactions.Where(IsConfigurable))
@@ -260,7 +263,8 @@
                                     }
                                 </MudStack>
                             </MudStep>
-                            <MudStep Title=@Localizer["Review"] Disabled="@(!_transactions.Any())"
+                            <MudStep Title=@Localizer["Review"]
+                                     Disabled="@(!_transactions.Any())"
                                      @bind-Completed="@_completed">
                                 <MudStack>
                                     <MudText Typo="Typo.h2">
@@ -272,13 +276,24 @@
                                     <MudTable Outlined Striped Dense T="ToolboxTransaction" Items="_transactions">
                                         <HeaderContent>
                                             <MudTh>
-                                                @Localizer["Action"]
+                                                <strong>
+                                                    @Localizer["Action"]
+                                                </strong>
                                             </MudTh>
                                             <MudTh>
-                                                @Localizer["Tool"]
+                                                <strong>
+                                                    @Localizer["Tool"]
+                                                </strong>
                                             </MudTh>
                                             <MudTh>
-                                                @Localizer["Details"]
+                                                <strong>
+                                                    @Localizer["Configuration"]
+                                                </strong>
+                                            </MudTh>
+                                            <MudTh>
+                                                <strong>
+                                                    @Localizer["Cost summary"]
+                                                </strong>
                                             </MudTh>
                                         </HeaderContent>
                                         <RowTemplate>
@@ -303,7 +318,11 @@
                                                 }
                                             </MudTd>
                                             <MudTd>
-                                                @ToolLabel(context.Tool)
+                                                <DHButton EndIcon="@Icons.Material.Outlined.Info" Underline NoWrap
+                                                          OnClick="@(_ => ShowInfoSheet(context.Tool))" DisableRipple
+                                                          HtmlTag="button">
+                                                    @ToolLabel(context.Tool)
+                                                </DHButton>
                                             </MudTd>
                                             <MudTd>
                                                 @switch (context.Type)
@@ -314,15 +333,42 @@
                                                             @DisplayDiff(context.Diff())
                                                         </MudText>
                                                         break;
-                                                    default:
+                                                    case ToolboxTransactionType.Remove:
                                                         <MudText>
-                                                            @Localizer["No details"]
+                                                            @Localizer["N/A"]
+                                                        </MudText>
+                                                        break;
+                                                }
+                                            </MudTd>
+                                            <MudTd>
+                                                @switch (context.Type)
+                                                {
+                                                    case ToolboxTransactionType.Add:
+                                                    case ToolboxTransactionType.Update:
+                                                        @ToolCostSummary(context)
+                                                        break;
+                                                    case ToolboxTransactionType.Remove:
+                                                        <MudText>
+                                                            @Localizer["N/A"]
                                                         </MudText>
                                                         break;
                                                 }
                                             </MudTd>
                                         </RowTemplate>
                                     </MudTable>
+                                    <MudStack Spacing="0">
+                                        <MudText>
+                                            <strong>
+                                                @Localizer["Current cost information"]
+                                            </strong>
+                                        </MudText>
+                                        <MudText>
+                                            @Localizer["{0:C2} spent of {1:C2} budget ({2:F2}%)", _workspaceCosts.Spent, _workspaceCosts.Budget, _workspaceCosts.Spent / _workspaceCosts.Budget * 100]
+                                        </MudText>
+                                        <MudText>
+                                            @Localizer["{0:C2} monthly spend ({1:F2}% of budget)", _workspaceCosts.Monthly, _workspaceCosts.Monthly / _workspaceCosts.Budget * 100]
+                                        </MudText>
+                                    </MudStack>
                                     <MudText>
                                         @Localizer["By clicking complete, you are confirming that the information above is correct and that you understand the cost implications of your request."]
                                     </MudText>
@@ -421,6 +467,18 @@
                                     }
                                 </MudStack>
                             }
+                            <MudSpacer/>
+                            <MudText>
+                                <strong>
+                                    @Localizer["Current cost information"]
+                                </strong>
+                            </MudText>
+                            <MudText>
+                                @Localizer["{0:C2} spent of {1:C2} budget ({2:F2}%)", _workspaceCosts.Spent, _workspaceCosts.Budget, _workspaceCosts.Spent / _workspaceCosts.Budget * 100]
+                            </MudText>
+                            <MudText>
+                                @Localizer["{0:C2} monthly spend ({1:F2}% of budget)", _workspaceCosts.Monthly, _workspaceCosts.Monthly / _workspaceCosts.Budget * 100]
+                            </MudText>
                         </MudStack>
                     }
                 </MudStack>
@@ -538,6 +596,8 @@
     private List<ToolboxTransaction> _transactions;
     private DatahubProjectDBContext _context;
 
+    private (decimal Spent, decimal Budget, decimal Monthly) _workspaceCosts;
+
     private readonly List<string> _toolCatalog = [];
     private readonly List<string> _adminEventLogs = [];
 
@@ -585,6 +645,9 @@
             .Include(w => w.Credits)
             .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
         _workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
+        _workspaceCosts.Spent = (decimal)(_workspace.Credits?.Current ?? 0);
+        _workspaceCosts.Budget = _workspace.Project_Budget ?? 100;
+        _workspaceCosts.Monthly = (decimal)(_workspace.Credits?.YesterdayCredits ?? 0) * 30;
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
 
         _metadataRequired = _workspace.MetadataAdded != true;
