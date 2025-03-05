@@ -67,6 +67,7 @@ namespace Datahub.Portal.Controllers
 
         [HttpGet("webapplogstream")]
         [Authorize]
+        [AllowIFrame]
         public async Task<IActionResult> GetKuduLogStreamForUser([FromQuery] string ws)
         {
             if (!User.Identity.IsAuthenticated)
@@ -119,6 +120,7 @@ namespace Datahub.Portal.Controllers
                 {
                     var stream = await response.Content.ReadAsStreamAsync();
                     Response.ContentType = "text/event-stream";
+                    Response.Headers["X-Frame-Options"] = "SAMEORIGIN";
 
                     using (var streamReader = new StreamReader(stream))
                     using (var writer = new StreamWriter(Response.Body))

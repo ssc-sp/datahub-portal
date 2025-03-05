@@ -69,6 +69,7 @@ using Datahub.Application.Services.Cost;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
+using Datahub.Portal.Controllers;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -300,12 +301,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
         
-        app.Use(async (context, next) =>
-        {
-            context.Response.Headers.Append("X-Frame-Options", "DENY");
-            //context.Response.Headers.Append("Content-Security-Policy", "frame-ancestors 'self';");
-            await next();
-        });
+        app.UseMiddleware<IFrameMiddleware>();
 
         app.UseEndpoints(endpoints =>
         {
