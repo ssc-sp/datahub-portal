@@ -67,6 +67,7 @@ namespace Datahub.Portal.Controllers
 
         [HttpGet("webapplogstream")]
         [Authorize]
+        [AllowIFrame]
         public async Task<IActionResult> GetKuduLogStreamForUser([FromQuery] string ws)
         {
             if (!User.Identity.IsAuthenticated)
