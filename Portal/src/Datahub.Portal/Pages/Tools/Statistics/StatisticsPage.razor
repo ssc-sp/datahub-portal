@@ -14,7 +14,9 @@
     <MudText Typo="Typo.h2">DataHub Statistics</MudText>
     <MudText>This page shows statistics about the DataHub.</MudText>
     <MudSpacer />
-    <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">@Localizer["Download to CSV"]</DHButton>
+    <MudTooltip Text=@Localizer["Download filtered user table to CSV."]>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">@Localizer["Download to CSV"]</DHButton>
+    </MudTooltip>
 
     <MudTable Sortable="true" T="DatahubProjectStatsRow" Striped="true" Loading="_isLoading" LoadingProgressColor="Color.Info" ServerData="LoadWorkspaceChecks" @ref="workspaceStatsTable">
         <ToolBarContent>
@@ -23,12 +25,21 @@
             Placeholder=@Localizer["Search by workspace name or acronym"]
             Adornment="Adornment.Start"
             AdornmentIcon="@Icons.Material.Filled.Search"
-            IconSize="Size.Medium" Class="mt-0"
+            IconSize="Size.Medium" Class="mt-4"
             ValueChanged="SearchAcronymChanged"
             DebounceInterval="300"
             Label=""
             T="string"
             Immediate="true" />
+
+            <MudSpacer />
+            <MudSelect T="string" Value="percentBudget" ValueChanged=PercentBudgetChanged Variant="Variant.Text" Label="Percent of budget used" Dense="true">
+                <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
+                @foreach (var percent in _percentBudgets)
+                {
+                    <MudSelectItem T="string" Value="percent">@Localizer[percent]</MudSelectItem>
+                }
+            </MudSelect>
 
             <MudSpacer />
             <MudSelect T="string" SelectedValues="selectedResources" SelectedValuesChanged=SelectedResourcesChanged Variant="Variant.Text" Label="Provisioned tools" Dense="true" MultiSelection="true">
@@ -48,14 +59,6 @@
             Immediate="true"
             Min="0"/>
 
-            <MudSpacer />
-            <MudSelect T="string" Value="percentString" ValueChanged=PercentBudgetChanged Variant="Variant.Text" Label="Percent of budget used" Dense="true">
-                <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
-                @foreach (var percent in _percentBudgets)
-                {
-                    <MudSelectItem T="string" Value="percent">@Localizer[percent]</MudSelectItem>
-                }
-            </MudSelect>
         </ToolBarContent>
 
         <HeaderContent>
@@ -193,15 +196,15 @@
                                             </MudTh>
                                         </HeaderContent>
                                         <RowTemplate>
-                                                <MudTd DataLabel="AllUsers" Style="background-color: lightgrey;">
-                                                    @AllUsersContext.PortalUser.DisplayName
-                                                </MudTd>
-                                                <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
-                                                    @AllUsersContext.PortalUser.Email
-                                                </MudTd>
-                                                <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
-                                                    @GetRole(AllUsersContext.RoleId)
-                                                </MudTd>
+                                            <MudTd DataLabel="AllUsers" Style="background-color: lightgrey;">
+                                                @AllUsersContext.PortalUser.DisplayName
+                                            </MudTd>
+                                            <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
+                                                @AllUsersContext.PortalUser.Email
+                                            </MudTd>
+                                            <MudTd DataLabel="Leads" Style="background-color: lightgrey;">
+                                                @GetRole(AllUsersContext.RoleId)
+                                            </MudTd>
                                         </RowTemplate>
                                     </MudTable>
                                 }
@@ -220,19 +223,18 @@
 
 @code {
 
-        [Parameter]
-        public Datahub_Project Project { get; set; }
+    [Parameter]
+    public Datahub_Project Project { get; set; }
 
     private bool _isLoading = true;
     private bool _isReadOnly = true;
     private IJSObjectReference _module;
 
     private List<DatahubProjectStatsRow> _statsRows = new();
-    private List<DatahubProjectStatsRow> _filteredItems = new();
-    private List<DatahubProjectStatsRow> _workspaceStatsData = new();
+    private List<DatahubProjectStatsRow> _filteredRows = new();
 
-    private string searchAcronym = "", searchLead = "", percentString = "";
-    private int percentBudget = 0, numberUsers = 0;
+    private string searchAcronym = "", searchLead = "", percentBudget = "";
+    private int numberUsers = 0;
 
     private IEnumerable<string> selectedResources = new HashSet<string>();
 
@@ -241,19 +243,20 @@
     private List<string> _resources =
     [
         "new-project-template",
-        "azure-storage-blob",
-        "azure-databricks",
-        "azure-app-service",
-        "azure-postgres"
+    "azure-storage-blob",
+    "azure-databricks",
+    "azure-app-service",
+    "azure-postgres"
     ];
     private List<string> _percentBudgets =
     [
         "0%",
-        "25%",
-        "50%",
-        "75%",
-        "100%",
-        "> 100%"
+    "1%-25%",
+    "26%-50%",
+    "51%-75%",
+    "76%-99%",
+    "100%",
+    "> 100%"
     ];
 
 
@@ -269,14 +272,9 @@
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             const int numberOfDays = 7;
 
-
-
-
             _statsRows = context.Projects
                 .Include(p => p.Credits)
-                //.Include(p => p.Users)
                 .Include(p => p.Resources)
-                // .Include(p => p.ProjectRequestAudits)
                 .AsEnumerable()
                 .Select(p => new DatahubProjectStatsRow()
                 {
@@ -287,36 +285,17 @@
                     BudgetLimit = p.Project_Budget ?? 0,
                     BudgetSpent = p.Credits?.Current ?? 0,
                     CostOfLastXDays = GetLastXDaysOfCosts(p.Credits, numberOfDays),
-
-                        //AllUsers = p.Users?.ToList(),
-                        ProvisionedResources = p.Resources?.ToList(),
-                        IsDeleted = p.IsDeleted,
-                        Department = p.Sector_Name,
-                        LastLogin = p.LastLoginDate
-
-                    // Leads = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.WorkspaceLead).Select(u => u.User_Name).ToList(),
-                    // Admins = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Admin).Select(u => u.User_Name).ToList(),
-                    // Collaborators = p.Users?.Where(u => u.RoleId == (int) Project_Role.RoleNames.Collaborator).Select(u => u.User_Name).ToList(),
-                    // StorageStatus = p.Resources?
-                    //     .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureStorageBlob))
-                    //     .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
-                    //     .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None,
-                    // DatabricksStatus = p.Resources?
-                    //     .Where(sr => sr.ResourceType.Contains(TerraformTemplate.AzureDatabricks))
-                    //     .Select(sr => sr.CreatedAt.HasValue ? DatahubProjectStatsRow.ResourceStatus.Complete : DatahubProjectStatsRow.ResourceStatus.Requested)
-                    //     .FirstOrDefault() ?? DatahubProjectStatsRow.ResourceStatus.None
+                    ProvisionedResources = p.Resources?.ToList(),
+                    IsDeleted = p.IsDeleted,
+                    Department = p.Sector_Name,
+                    LastLogin = p.LastLoginDate
                 })
                 .ToList();
-
-            Console.WriteLine("-----------------------------------------------------");
 
             foreach (var row in _statsRows)
             {
                 row.AllUsers = (await _projectUserManagementService.GetProjectUsersAsync(row.Acronym)).Where(r => r.RoleId != 1).OrderBy(u => u.RoleId).ToList();
-                // Console.WriteLine(row.BudgetRemaining / row.BudgetLimit);
             }
-
-            _workspaceStatsData = _statsRows;
 
             await ReloadWorkspaceStatsTableAsync();
 
@@ -345,31 +324,7 @@
 
     private async Task PercentBudgetChanged(string percent)
     {
-        switch(percent)
-        {
-            case ("0%"):
-                percentBudget = 0;
-                break;
-            case("25%"):
-                percentBudget = 25;
-                break;
-            case("50%"):
-                percentBudget = 50;
-                break;
-            case("75%"):
-                percentBudget = 75;
-                break;
-            case("100%"):
-                percentBudget = 100;
-                break;
-            case("> 100%"):
-                percentBudget = 101;
-                break;
-            default:
-                percentBudget = -1;
-                break;
-
-        }
+        percentBudget = percent;
         await ReloadWorkspaceStatsTableAsync();
     }
 
@@ -389,7 +344,7 @@
 
     private async Task<TableData<DatahubProjectStatsRow>> LoadWorkspaceChecks(TableState state, CancellationToken cancellationToken)
     {
-        var filteredData = _workspaceStatsData.AsEnumerable();
+        var filteredData = _statsRows.AsEnumerable();
 
         // Apply type filter
         if (selectedResources.Any())
@@ -399,9 +354,7 @@
                 filteredData = filteredData.Where(check => check.ProvisionedResources.Any(resource => resource.ResourceType.Contains(tool)));
 
             }
-
         }
-
 
         // Apply search filter
         if (!string.IsNullOrEmpty(searchAcronym))
@@ -410,29 +363,36 @@
         }
 
         // Apply budget filter
-        if (percentBudget == 101)// More than 100% of budget used
+        if (percentBudget != null)
         {
-            filteredData = filteredData.Where(check => check.BudgetRemaining < 0);
-        }
-        else if (percentBudget == 100)
-        {
-            filteredData = filteredData.Where(check => check.BudgetRemaining == 0);
-        }
-        else if (percentBudget == 75)
-        {
-            filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 1.00 && (check.BudgetSpent / (double)check.BudgetLimit) >= 0.75));
-        }
-        else if (percentBudget == 50)
-        {
-            filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 0.75 && (check.BudgetSpent / (double)check.BudgetLimit) >= 0.50));
-        }
-        else if (percentBudget == 25)
-        {
-            filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 0.50 && (check.BudgetSpent / (double)check.BudgetLimit) >= 0.25));
-        }
-        else if (percentBudget == 0)// None of budget used
-        {
-            filteredData = filteredData.Where(check => check.BudgetSpent == 0);
+            if (percentBudget.Contains("> 100"))
+            {
+                filteredData = filteredData.Where(check => check.BudgetRemaining < 0);
+            }
+            else if (percentBudget.Contains("100"))
+            {
+                filteredData = filteredData.Where(check => check.BudgetRemaining == 0);
+            }
+            else if (percentBudget.Contains("76"))
+            {
+                filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) < 1.00 && (check.BudgetSpent / (double)check.BudgetLimit) > 0.75));
+            }
+            else if (percentBudget.Contains("75"))
+            {
+                filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) <= 0.75 && (check.BudgetSpent / (double)check.BudgetLimit) > 0.50));
+            }
+            else if (percentBudget.Contains("50"))
+            {
+                filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) <= 0.50 && (check.BudgetSpent / (double)check.BudgetLimit) > 0.25));
+            }
+            else if (percentBudget.Contains("25"))
+            {
+                filteredData = filteredData.Where(check => (check.BudgetLimit > 0 && (check.BudgetSpent / (double)check.BudgetLimit) <= 0.25 && (check.BudgetSpent / (double)check.BudgetLimit) > 0.00));
+            }
+            else if (percentBudget.Contains("0"))// None of budget used
+            {
+                filteredData = filteredData.Where(check => check.BudgetSpent == 0);
+            }
         }
 
         // Apply users filter
@@ -457,6 +417,8 @@
             filteredData = filteredData.OrderByDirection(state.SortDirection, sortBy);
         }
 
+        _filteredRows = filteredData.ToList();
+
         // Apply pagination
         var totalItems = filteredData.Count();
         var pagedData = filteredData
@@ -469,7 +431,6 @@
 
     private async void ShowUsersPressed(int projectId, string acronym)
     {
-        //PopulateUserList(acronym);
         var row = _statsRows.First(r => r.ProjectId == projectId);
         row.ShowUserDetails = !row.ShowUserDetails;
     }
@@ -554,15 +515,55 @@
     {
         var stream = new MemoryStream();
         var writer = new StreamWriter(stream);
-        writer.WriteLine("Acroynm,Name,Lead,Budget Remaining");
-        foreach (var cost in _statsRows)
+        writer.WriteLine("Acroynm,Name,Lead,Budget Remaining,Cost of Last 7 Days,Metadata Status,Users (Names),Users (Emails)");
+        foreach (var cost in _filteredRows)
         {
-            writer.WriteLine($"{cost.Acronym},{cost.Name},{cost.Leads},{cost.BudgetRemaining}");
+            writer.WriteLine($"{cost.Acronym},{cost.Name},{cost.Department},{cost.BudgetRemaining},{cost.CostOfLastXDays},{cost.MetadataComplete},\"{AllUserNames(cost.AllUsers)}\",\"{AllUserEmails(cost.AllUsers)}\"");
         }
 
         writer.Flush();
         stream.Position = 0;
         return stream;
+    }
+
+    private string AllUserNames(List<Datahub_Project_User> users)
+    {
+        string allUsers = "";
+        if (users != null)
+        {
+            foreach (var user in users)
+            {
+                if (user.Equals(users.Last()))
+                {
+                    allUsers += user.PortalUser.DisplayName;
+                }
+                else
+                {
+                    allUsers += user.PortalUser.DisplayName + ", ";
+                }
+            }
+        }
+        return allUsers;
+    }
+    private string AllUserEmails(List<Datahub_Project_User> users)
+    {
+        string allEmails = "";
+        if (users != null)
+        {
+            foreach (var user in users)
+            {
+                if (user.Equals(users.Last()))
+                {
+                    allEmails += user.PortalUser.Email;
+                }
+                else
+                {
+                    allEmails += user.PortalUser.Email + ", ";
+                }
+            }
+        }
+        return allEmails;
+
     }
 
 
