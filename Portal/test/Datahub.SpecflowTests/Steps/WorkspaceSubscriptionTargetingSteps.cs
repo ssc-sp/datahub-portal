@@ -15,7 +15,7 @@ namespace Datahub.SpecflowTests.Steps;
 public sealed class WorkspaceSubscriptionTargetingSteps(
     IResourceMessagingService resourceMessagingService,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    IProjectCreationService projectCreationService,
+    IWorkspaceCreationService projectCreationService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace that has a subscription id")]
@@ -53,7 +53,7 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     [Given(@"a new workspace is created")]
     public async Task GivenANewWorkspaceIsCreated()
     {
-        await projectCreationService.CreateProjectAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
+        await projectCreationService.CreateWorkspaceAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
     }
 
     [Given(@"the next available subscription id is ""(.*)""")]
@@ -77,8 +77,8 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     [When(@"a two workspaces are created")]
     public async Task WhenATwoWorkspacesAreCreated()
     {
-        await projectCreationService.CreateProjectAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
-        await projectCreationService.CreateProjectAsync(Testing.WorkspaceName2, Testing.WorkspaceAcronym2, "Unspecified");
+        await projectCreationService.CreateWorkspaceAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
+        await projectCreationService.CreateWorkspaceAsync(Testing.WorkspaceName2, Testing.WorkspaceAcronym2, "Unspecified");
     }
 
     [Then(@"they should have different subscriptions")]
