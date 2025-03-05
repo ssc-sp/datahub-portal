@@ -69,6 +69,7 @@ using Datahub.Application.Services.Cost;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
+using Datahub.Portal.Controllers;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -300,12 +301,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
         
-        app.Use(async (context, next) =>
-        {
-            context.Response.Headers.Append("X-Frame-Options", "DENY");
-            //context.Response.Headers.Append("Content-Security-Policy", "frame-ancestors 'self';");
-            await next();
-        });
+        app.UseMiddleware<IFrameMiddleware>();
 
         app.UseEndpoints(endpoints =>
         {
@@ -385,7 +381,7 @@ public class Startup
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
-            services.AddScoped<IProjectCreationService, ProjectCreationService>();
+            services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
             services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
@@ -416,7 +412,7 @@ public class Startup
             
             
         }
-        services.AddScoped<IProjectCreationService, ProjectCreationService>();
+        services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
 
         services.AddSingleton<IExternalSearchService, ExternalSearchService>();
         services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
