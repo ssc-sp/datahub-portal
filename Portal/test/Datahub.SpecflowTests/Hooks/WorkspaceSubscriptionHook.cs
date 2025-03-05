@@ -81,10 +81,10 @@ public class WorkspaceSubscriptionHook
         var datahubAzureSubscriptionService =
             new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
 
-        var projectCreationService = new ProjectCreationService(
+        var projectCreationService = new WorkspaceCreationService(
             datahubPortalConfiguration,
             dbContextFactory,
-            Substitute.For<ILogger<ProjectCreationService>>(),
+            Substitute.For<ILogger<WorkspaceCreationService>>(),
             Substitute.For<IServiceAuthManager>(),
             userInformationService,
             resourceMessagingSubstitute,
@@ -95,7 +95,7 @@ public class WorkspaceSubscriptionHook
 
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
-        objectContainer.RegisterInstanceAs<IProjectCreationService>(projectCreationService);
+        objectContainer.RegisterInstanceAs<IWorkspaceCreationService>(projectCreationService);
         objectContainer.RegisterInstanceAs<IDatahubAzureSubscriptionService>(datahubAzureSubscriptionService);
     }
 }
