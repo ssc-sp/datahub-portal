@@ -130,6 +130,7 @@
     protected override async Task OnInitializedAsync()
     {
         _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Tools/Users/UsersTable.razor.js");
+        LoadStatus = true;
     }
 
     private async Task<TableData<UserWorkspaces>> SortUserTable(TableState state, CancellationToken cancellationToken)
