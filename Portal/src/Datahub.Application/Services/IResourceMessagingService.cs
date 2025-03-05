@@ -8,5 +8,5 @@ public interface IResourceMessagingService
     
     public Task SendToUserQueue(WorkspaceDefinition workspaceDefinition);
     
-    public Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = null);
+    public Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = null, string? cbrId = null);
 }
