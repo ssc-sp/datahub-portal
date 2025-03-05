@@ -11,7 +11,7 @@
 
 @inject IResourceMessagingService _resourceMessagingService
 @inject IDatabricksApiService _databricksApiService
-@inject IProjectCreationService _projectCreationService
+@inject IWorkspaceCreationService _projectCreationService
 @inject IUserInformationService _userInformationService
 @inject ILogger<WorkspaceSudoPage> _logger
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -123,7 +123,7 @@
     {
         await base.OnInitializedAsync();
 
-        await _projectCreationService.CreateNewTemplateProjectResourceAsync(WorkspaceAcronym);
+        await _projectCreationService.CreateNewTemplateWorkspaceResourceAsync(WorkspaceAcronym);
 
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);

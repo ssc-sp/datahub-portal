@@ -29,7 +29,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
     {
 
         private readonly ILogger<HostingServicesController> _logger;
-        private readonly IProjectCreationService _projectCreationService;
+        private readonly IWorkspaceCreationService _projectCreationService;
         private readonly IUserInformationService _userInformationService;
         private readonly IUserEnrollmentService _userEnrollmentService;
         private readonly ISendEndpointProvider _sendEndpointProvider;
@@ -46,7 +46,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
 
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             _logger = Substitute.For<ILogger<HostingServicesController>>();
-            _projectCreationService = Substitute.For<IProjectCreationService>();
+            _projectCreationService = Substitute.For<IWorkspaceCreationService>();
             _userInformationService = Substitute.For<IUserInformationService>();
             _userEnrollmentService = Substitute.For<IUserEnrollmentService>();
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
@@ -106,7 +106,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 HttpContext = context
             };
 
-            _projectCreationService.GenerateProjectAcronymAsync(Arg.Any<string>())
+            _projectCreationService.GenerateWorkspaceAcronymAsync(Arg.Any<string>())
                 .Returns("TEST");
 
             // Act
