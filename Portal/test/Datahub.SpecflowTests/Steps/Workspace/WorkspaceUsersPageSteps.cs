@@ -8,25 +8,20 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.Projects;
-using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Layout;
-using Datahub.Portal.Pages.Workspace.Settings;
 using Datahub.Portal.Pages.Workspace.Users;
-using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
-using System.Reflection;
 
 namespace Datahub.SpecflowTests.Steps
 {
@@ -39,26 +34,72 @@ namespace Datahub.SpecflowTests.Steps
 
         private const string RelativePathToSrc = "../../../../../src";
         private SpecFlowDbContextFactory dbContextFactory;
-        private IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage;
 
         private readonly ISnackbar _snackBar = Substitute.For<ISnackbar>();
         private readonly IStringLocalizer _stringLocalizer = Substitute.For<IStringLocalizer>();
 
+        private static readonly string WORKSPACE_USERS_PAGE_CTX_KEY = "workspaceUsersPage";
+
+        private static IEnumerable<Datahub_Project_User> SetupProjectUsers()
+        {
+            var workspaceLeadRole = new Project_Role()
+            {
+                Id = (int)Project_Role.RoleNames.WorkspaceLead,
+                Name = RoleConstants.WORKSPACE_LEAD_ROLE,
+                Description = RoleConstants.WORKSPACE_LEAD_ROLE
+            };
+            var adminRole = new Project_Role()
+            {
+                Id = (int)Project_Role.RoleNames.Admin,
+                Name = RoleConstants.ADMIN_ROLE,
+                Description = RoleConstants.ADMIN_ROLE
+            };
+            var guestRole = new Project_Role()
+            {
+                Id = (int)Project_Role.RoleNames.Guest,
+                Name = RoleConstants.GUEST_ROLE,
+                Description = RoleConstants.GUEST_ROLE
+            };
+
+            yield return new Datahub_Project_User()
+            {
+                PortalUserId = 1,
+                PortalUser = new PortalUser() { Id = 1, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Walter Lead", Email = "wlead@example.com" },
+                Role = workspaceLeadRole,
+                RoleId = workspaceLeadRole.Id,
+                IsDataSteward = true
+            };
+
+            yield return new Datahub_Project_User()
+            {
+                PortalUserId = 2,
+                PortalUser = new PortalUser() { Id = 2, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Nathan Admi", Email = "admin@example.com" },
+                Role = adminRole,
+                RoleId = adminRole.Id
+            };
+
+            yield return new Datahub_Project_User()
+            {
+                PortalUserId = 3,
+                PortalUser = new PortalUser() { Id = 3, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Gary Guest", Email = "guest@example.com" },
+                Role = guestRole,
+                RoleId = guestRole.Id
+            };
+        }
+
         [Given("the user is on the workspace users page")]
         public async Task GivenTheUserIsOnTheWorkspaceUsersPage()
         {
-            if (hostingEnvironment == null)
-            {
-                throw new ArgumentNullException(nameof(hostingEnvironment));
-            }
+            ArgumentNullException.ThrowIfNull(hostingEnvironment);
+
             Services.AddSingleton(hostingEnvironment);
             var portalConfiguration = new DatahubPortalConfiguration()
             {
                 CultureSettings =
-            {
-                ResourcesPath = $"{RelativePathToSrc}/Datahub.Portal/i18n",
-                AdditionalResourcePaths = []
-            }
+                {
+                    ResourcesPath = $"{RelativePathToSrc}/Datahub.Portal/i18n",
+                    AdditionalResourcePaths = []
+                }
             };
 
             Services.AddMudServices();
@@ -67,7 +108,8 @@ namespace Datahub.SpecflowTests.Steps
 
             Services.AddStub<ICultureService>();
             Services.AddStub<IDatahubAuditingService>();
-            Services.AddStub<IUserInformationService>();
+            var userInfoService = Substitute.For<IUserInformationService>();
+            Services.AddSingleton(userInfoService);
 
             var mockRequestManagementService = Substitute.For<IRequestManagementService>();
             Services.AddSingleton(mockRequestManagementService);
@@ -75,25 +117,14 @@ namespace Datahub.SpecflowTests.Steps
             var mockProjectUserManagementService = Substitute.For<IProjectUserManagementService>();
             Services.AddSingleton(mockProjectUserManagementService);
 
-            var mockProjectUsers = new List<Datahub_Project_User>
-            {
-                new Datahub_Project_User
-                {
-                    PortalUserId = 1,
-                    Role = new Project_Role  { Name = RoleConstants.GUEST_ROLE, Id=1, Description=RoleConstants.GUEST_ROLE },
-                    PortalUser = new PortalUser { DisplayName = "User1", Email = "dataSteward@example.com", GraphGuid=Guid.NewGuid().ToString() }
-                },
-                new Datahub_Project_User
-                {
-                    PortalUserId = 2,
-                    Role = new Project_Role  { Name = RoleConstants.ADMIN_ROLE, Id=2, Description=RoleConstants.ADMIN_ROLE },
-                    PortalUser = new PortalUser { DisplayName = "User2", Email = "user2@example.com", GraphGuid=Guid.NewGuid().ToString() }
-                }
-            };
+            var mockProjectUsers = SetupProjectUsers();
 
             // Set up the mock to return the mock data
             mockProjectUserManagementService.GetProjectUsersAsync(Arg.Any<string>())
                 .Returns(Task.FromResult(mockProjectUsers.ToList()));
+
+            userInfoService.GetCurrentPortalUserAsync()
+                .Returns(mockProjectUsers.First().PortalUser);
 
             _stringLocalizer[Arg.Any<string>()].Returns(new LocalizedString("test", "test")); 
 
@@ -113,15 +144,8 @@ namespace Datahub.SpecflowTests.Steps
 
             await using var context = await dbContextFactory.CreateDbContextAsync();
             context.Projects.Add(workspace);
-            context.Project_Users.Add(new Datahub_Project_User()
-            {
-                Role = new Project_Role() { Name = RoleConstants.GUEST_ROLE, Id=1, Description=RoleConstants.GUEST_ROLE },
-                PortalUser = new PortalUser()
-                {
-                    GraphGuid = Guid.NewGuid().ToString(),
-                    Email = "dataSteward@example.com"
-                }
-            });
+            context.Project_Users.AddRange(mockProjectUsers);
+
             foreach (var role in context.Project_Roles)
             {
                 if (string.IsNullOrWhiteSpace(role.Description))
@@ -138,7 +162,7 @@ namespace Datahub.SpecflowTests.Steps
 
             var authContext = this.AddTestAuthorization();
             authContext.SetAuthorized("TEST USER");
-            authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN);
+            authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN, $"{workspace.Project_Acronym_CD}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
 
             Services.AddSingleton(mockAuthorizationPolicyProvider);
             Services.AddMudServices();
@@ -150,123 +174,188 @@ namespace Datahub.SpecflowTests.Steps
                 .SetResult(module);
             module.SetupVoid("styleCodeblocks");
             JSInterop.Mode = JSRuntimeMode.Loose;
-            workspaceUsersPage = RenderComponent<WorkspaceUsersPage>(parameterCollection =>
+            var workspaceUsersPage = RenderComponent<WorkspaceUsersPage>(parameterCollection =>
                 parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
-            if (workspaceUsersPage == null)
-            {
-                throw new Exception("workspaceUsersPage is null");
-            }
-            scenarioContext["workspaceUsersPage"] = workspaceUsersPage;
+            
+            workspaceUsersPage.Should().NotBeNull();
+
+            scenarioContext[WORKSPACE_USERS_PAGE_CTX_KEY] = workspaceUsersPage;
+        }
+
+        private IRenderedComponent<WorkspaceUsersPage> GetWorkspaceUserPageFromContext()
+        {
+            var userPage = scenarioContext[WORKSPACE_USERS_PAGE_CTX_KEY] as IRenderedComponent<WorkspaceUsersPage>;
+            userPage.Should().NotBeNull();
+            return userPage!;
+        }
+
+        private static IRenderedComponent<MudTr>? FindUserTableRowWithGivenEmail(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage, string userEmail)
+        {
+            var usersTable = workspaceUsersPage.FindComponent<MudTable<Datahub_Project_User>>();
+            var rows = usersTable.FindComponents<MudTr>();
+            var userRow = rows.FirstOrDefault(r => r.Instance.Item is Datahub_Project_User user && user.PortalUser.Email == userEmail);
+            return userRow;
+        }
+
+        private static IRenderedComponent<MudCheckBox<bool>> FindDataStewardCheckboxInRow(IRenderedComponent<MudTr> userRow)
+        {
+            // currently there's only one checkbox, but to be safe we'll make sure to get the right one
+            var checkboxes = userRow.FindComponents<MudCheckBox<bool>>();
+            var dataStewardCheckbox = checkboxes.FirstOrDefault(c => c.Instance.Tag is string tagStr && tagStr == "DataSteward");
+            dataStewardCheckbox.Should().NotBeNull();
+            return dataStewardCheckbox!;
+        }
+
+        private static IRenderedComponent<ProjectMembersRoleSelect> FindProjectMemberRoleSelector(IRenderedComponent<MudTr> userRow)
+        {
+            // there should only ever be one role selector component in each user row
+            var roleSelector = userRow.FindComponent<ProjectMembersRoleSelect>();
+            roleSelector.Should().NotBeNull();
+            return roleSelector!;
+        }
+
+        private static IRenderedComponent<MudButton>? FindSaveChangesButton(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage)
+        {
+            var allButtons = workspaceUsersPage.FindComponents<MudButton>();
+            var saveChangesButton = allButtons.FirstOrDefault(b => b.Instance.Tag is string tagStr && tagStr == "SaveChanges");
+            return saveChangesButton;
+        }
+
+        private async Task ToggleDataStewardRole(string email, bool desiredStatus)
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
+            userRow.Should().NotBeNull();
+
+            var dsCheck = FindDataStewardCheckboxInRow(userRow!);
+            dsCheck.Instance.Disabled.Should().BeFalse();
+            dsCheck.Instance.Value.Should().Be(!desiredStatus);
+
+            await usersPage.InvokeAsync(async () => await dsCheck.Instance.ValueChanged.InvokeAsync(desiredStatus));
+
+            usersPage.Render();
         }
 
         [When("the user sets the Data Steward role for the user with email {string}")]
         public async Task WhenTheUserSetsTheDataStewardRoleForTheUserWithEmail(string email)
         {
-            await using var context = await dbContextFactory.CreateDbContextAsync();
-            var user = await context.Project_Users
-                .Include(pu => pu.PortalUser)
-                .Include(pu => pu.Role)
-                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
-
-            SetPrivateField(workspaceUsersPage, "_currentlySelected", new List<Datahub_Project_User> { user });
-            var result = InvokePrivateMethodAsync(workspaceUsersPage, "ChangeDataStewardFlag", user, true);
-
-        }
-
-        [When("the user clicks the \"Save\" button")]
-        public void WhenTheUserClicksTheSaveButton()
-        {
-            InvokePrivateMethod(workspaceUsersPage, "SaveChanges");
-        }
-        [Then("specified user should appear on the page")]
-        public async Task ThenSpecifiedUserShouldAppearOnThePage()
-        {
-            var email = "dataSteward@example.com";
-            await using var context = await dbContextFactory.CreateDbContextAsync();
-            var user = await context.Project_Users
-                .Include(pu => pu.PortalUser)
-                .Include(pu => pu.Role)
-                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
-
-            user.Should().NotBeNull();
-        }
-
-        [Then("user with email {string} should appear on the page")]
-        public async Task ThenTheUserWithEmailShouldAppearOnThePage(string email)
-        {
-            await using var context = await dbContextFactory.CreateDbContextAsync();
-            var user = await context.Project_Users
-                .Include(pu => pu.PortalUser)
-                .Include(pu => pu.Role)
-                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
-
-            user.Should().NotBeNull();
-        }
-
-        [Then("the user with email {string} should have the Data Steward role")] 
-        public async Task ThenTheUserWithEmailShouldHaveTheDataStewardRole(string email)
-        {
-            await using var context = await dbContextFactory.CreateDbContextAsync();
-            var user = await context.Project_Users
-                .Include(pu => pu.PortalUser)
-                .Include(pu => pu.Role)
-                .FirstOrDefaultAsync(pu => pu.PortalUser.Email == email);
-
-            user.Should().NotBeNull();
-            //user.IsDataSteward.Should().BeTrue();
+            await ToggleDataStewardRole(email, true);
         }
 
         [When("the user removes the Data Steward role from the user with email {string}")]
-        public void WhenTheUserRemovesTheDataStewardRoleFromTheUserWithEmail(string email)
+        public async Task WhenTheUserRemovesTheDataStewardRoleFromTheUserWithEmail(string email)
         {
-            // scenarioContext.Pending();
+            await ToggleDataStewardRole(email, false);
+        }
+
+        [When("the Save Changes button is visible")]
+        public void WhenTheSaveChangesButtonIsVisible()
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var saveChangesButton = FindSaveChangesButton(usersPage);
+            saveChangesButton.Should().NotBeNull();
+        }
+
+        [When("the user clicks the \"Save\" button")]
+        public async Task WhenTheUserClicksTheSaveButton()
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var saveChangesButton = FindSaveChangesButton(usersPage);
+            saveChangesButton.Should().NotBeNull();
+
+            await usersPage.InvokeAsync(async () => await saveChangesButton!.Instance.OnClick.InvokeAsync());
+
+            usersPage.Render();
+        }
+
+        [Then("user with email {string} should appear on the page")]
+        public void ThenTheUserWithEmailShouldAppearOnThePage(string email)
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
+            userRow.Should().NotBeNull();
+        }
+
+        [Then("user with email {string} should not appear on the page")]
+        public void ThenTheUserWithEmailShouldNotAppearOnThePage(string email)
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
+            userRow.Should().BeNull();
+        }
+
+        private void UserShouldHaveTheGivenDataStewardStatus(string email, bool status)
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
+            userRow.Should().NotBeNull();
+
+            var user = userRow!.Instance.Item as Datahub_Project_User;
+            user.Should().NotBeNull();
+            user!.IsDataSteward.Should().Be(status);
+        }
+
+        [Then("the user with email {string} should have the Data Steward role")]
+        [Given("the user with email {string} has the Data Steward role")]
+        public void ThenTheUserWithEmailShouldHaveTheDataStewardRole(string email)
+        {
+            UserShouldHaveTheGivenDataStewardStatus(email, true);
         }
 
         [Then("the user with email {string} should not have the Data Steward role")]
+        [Given("the user with email {string} doesn't have the Data Steward role")]
         public void ThenTheUserWithEmailShouldNotHaveTheDataStuartRole(string email)
         {
-            // scenarioContext.Pending();
+            UserShouldHaveTheGivenDataStewardStatus(email, false);
         }
 
-        private void SetPrivateField(IRenderedComponent<WorkspaceUsersPage> component, string fieldName, object value)
+        private void DataStewardCheckboxEnabledStatus(string email, bool enabled)
         {
-            var obj = component.Instance;
-            if (obj != null)
-            {
-                var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
-                if (field != null)
-                {
-                    field.SetValue(obj, value);
-                }
-            }
-        }
-        private object InvokePrivateMethod(IRenderedComponent<WorkspaceUsersPage> component, string methodName, params object[] parameters)
-        {
-            var obj = component.Instance; 
-            if (obj != null)
-            {
-                var method = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-                if (method != null)
-                {
-                    return method.Invoke(obj, parameters);
-                }
-            }
-              
-            return null;
-        }
-        private async Task<object> InvokePrivateMethodAsync(IRenderedComponent<WorkspaceUsersPage> component, string methodName, params object[] parameters)
-        {
-            var obj = component.Instance;
-            if (obj != null)
-            {
-                var method = obj.GetType().GetMethod(methodName, BindingFlags.NonPublic | BindingFlags.Instance);
-                if (method != null)
-                {
-                    return await component.InvokeAsync(() => method.Invoke(obj, parameters));
-                }
-            }
-            throw new InvalidOperationException($"Method '{methodName}' not found in type '{obj.GetType().FullName}'.");
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
+            userRow.Should().NotBeNull();
+
+            var dsCheckbox = FindDataStewardCheckboxInRow(userRow!);
+            dsCheckbox.Should().NotBeNull();
+            dsCheckbox.Instance.Disabled.Should().NotBe(enabled);
         }
 
+        [Then("the Data Steward checkbox should be enabled for user {string}")]
+        [Given("the Data Steward checkbox is enabled for user {string}")]
+        public void ThenTheDataStewardCheckboxShouldBeEnabledForUser(string email)
+        {
+            DataStewardCheckboxEnabledStatus(email, true);
+        }
+
+        [Then("the Data Steward checkbox should be disabled for user {string}")]
+        [Given("the Data Steward checkbox is disabled for user {string}")]
+        public void ThenTheDataStewardCheckboxShouldBeDisabledForUser(string email)
+        {
+            DataStewardCheckboxEnabledStatus(email, false);
+        }
+
+        private async Task UpdateGivenUsersRole(string email, int roleId)
+        {
+            var usersPage = GetWorkspaceUserPageFromContext();
+            var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
+            userRow.Should().NotBeNull();
+
+            var roleSelector = FindProjectMemberRoleSelector(userRow!);
+            await usersPage.InvokeAsync(async () => await roleSelector.Instance.OnRoleChanged.InvokeAsync(roleId));
+
+            usersPage.Render();
+        }
+
+        [When("the user updates the role of user with email {string} to Guest")]
+        public async Task WhenTheUserUpdatesSomeonesRoleToGuest(string email)
+        {
+            await UpdateGivenUsersRole(email, (int)Project_Role.RoleNames.Guest);
+        }
+
+        [When("the user updates the role of user with email {string} to Collaborator")]
+        public async Task WhenTheUserUpdatesSomeonesRoleToCollaborator(string email)
+        {
+            await UpdateGivenUsersRole(email, (int)Project_Role.RoleNames.Collaborator);
+        }
     }
 }
