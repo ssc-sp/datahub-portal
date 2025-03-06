@@ -201,7 +201,7 @@ public class DocumentationService
         AddStatusMessage("Loading resources");
 
         // Load file mappings from Azure
-        var fileMappings = await LoadDocsFromAzure($"{guide.GetStringValue()}/{FileMappings}", useCache);
+        var fileMappings = await LoadDocsFromAzure($"{FileMappings}", useCache);
         _docFileMappings = new DocumentationFileMapper(fileMappings);
 
         // Load sidebars from Azure
