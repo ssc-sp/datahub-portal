@@ -28,6 +28,7 @@ public class DocumentationService
 
     private DocumentationFileMapper _docFileMappings = null!;
     private IList<TimeStampedStatus> _statusMessages;
+    private BlobServiceClient _blobServiceClient;
     private DocItem? _enOutline;
     private DocItem? _frOutline;
     private DocItem _cachedDocs;
@@ -44,6 +45,18 @@ public class DocumentationService
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
         _cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
+
+        var connectionString = _config["Media:StorageConnectionString"];
+        _blobServiceClient = new(connectionString);
+    }
+
+    /// <summary>
+    /// Overwrite BlobServiceClient.
+    /// </summary>
+    /// <param name="blobServiceClient"></param>
+    internal void InitBlobClient(BlobServiceClient blobServiceClient)
+    {
+        _blobServiceClient = blobServiceClient;
     }
 
     /// <summary>
@@ -348,14 +361,14 @@ public class DocumentationService
     {
         try
         {
-            var connectionString = _config["Media:StorageConnectionString"];
             var sasToken = _config["Media:SasToken"];
-            BlobServiceClient blobServiceClient = new(connectionString);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("docs");
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient("docs");
 
             // Construct the BlobClient URI with the SAS token
             var blobUri = new Uri($"{containerClient.Uri}/{path}?{sasToken}");
-            BlobClient blobClient = new BlobClient(blobUri);
+
+            BlobClient blobClient = containerClient.GetBlobClient($"{path}?{sasToken}");
+            // BlobClient blobClient = new BlobClient(blobUri);
 
             if (await blobClient.ExistsAsync())
             {
@@ -401,14 +414,12 @@ public class DocumentationService
     {
         try
         {
-            var connectionString = _config["Media:StorageConnectionString"];
             var sasToken = _config["Media:SasToken"];
-            BlobServiceClient blobServiceClient = new(connectionString);
-            BlobContainerClient containerClient = blobServiceClient.GetBlobContainerClient("docs");
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient("docs");
 
             // Construct the BlobClient URI with the SAS token
             var blobUri = new Uri($"{containerClient.Uri}/UserGuide/_sidebar.md?{sasToken}");
-            BlobClient blobClient = new BlobClient(blobUri);
+            BlobClient blobClient = containerClient.GetBlobClient($"UserGuide/_sidebar.md?{sasToken}");
 
             var properties = await blobClient.GetPropertiesAsync();
 
@@ -418,59 +429,6 @@ public class DocumentationService
         {
             _logger.LogWarning($"Cannot load last commit timestamp for user docs: {ex.Message}");
             return null;
-        }
-    }
-
-    /// <summary>
-    /// Loads the documentation page with a specified path from the standard blob storage.
-    /// </summary>
-    /// <param name="path">The path of the page to load.</param>
-    /// <returns>The loaded documentation page if found, otherwise null.</returns>
-    private async Task<string?> LoadDocs(string path)
-    {
-        try
-        {
-            var connectionString = _config["Media:StorageConnectionString"];
-            BlobServiceClient blobServiceClient = new BlobServiceClient(connectionString);
-
-            return await LoadDocs(path, blobServiceClient);
-        }
-        catch (Exception e)
-        {
-            AddStatusMessage($"Error loading {path}: {e.Message}");
-            return e.Message;
-        }
-    }
-
-    /// <summary>
-    /// Loads the documentation page with the specified path from the given blob storage.
-    /// </summary>
-    /// <param name="path">The path of the page to load.</param>
-    /// <param name="blobServiceClient">The blob service client to use for loading the documentation page.</param>
-    /// <returns>The loaded documentation page content if found, otherwise null.</returns>
-    private async Task<string?> LoadDocs(string path, BlobServiceClient blobServiceClient)
-    {
-        try
-        {
-            var storageContainerClient = blobServiceClient.GetBlobContainerClient(ContainerName);
-            var documentBlobClient = storageContainerClient.GetBlobClient(path);
-
-            if (await documentBlobClient.ExistsAsync())
-            {
-                var documentResponse = await documentBlobClient.DownloadContentAsync();
-                var documentContent = documentResponse.Value.Content.ToString();
-                documentContent = MarkdownHelper.RemoveFrontMatter(documentContent);
-                return documentContent;
-            }
-            else
-            {
-                return null;
-            }
-        }
-        catch (Exception e)
-        {
-            AddStatusMessage($"Error loading {path}: {e.Message}");
-            return e.Message;
         }
     }
 
