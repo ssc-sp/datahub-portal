@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Projects;
+﻿using System.Collections.Immutable;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Data;
 
@@ -32,4 +33,10 @@ public static class RoleConstants
             _ => "role not found"
         };
     }
+
+    public static readonly ImmutableHashSet<int> AllowedDataStewardRoleIds = [
+        (int)Project_Role.RoleNames.WorkspaceLead,
+        (int)Project_Role.RoleNames.Collaborator,
+        (int)Project_Role.RoleNames.Admin
+    ];
 }
