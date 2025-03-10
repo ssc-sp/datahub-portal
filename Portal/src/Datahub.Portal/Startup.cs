@@ -69,6 +69,7 @@ using Datahub.Application.Services.Cost;
 using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
+using Datahub.Portal.Controllers;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -108,9 +109,19 @@ public class Startup
         {
             // This lambda determines whether user consent for non-essential cookies is needed for a given request.
             options.CheckConsentNeeded = context => true;
-            options.MinimumSameSitePolicy = SameSiteMode.Unspecified;
+            options.MinimumSameSitePolicy = SameSiteMode.Strict;
+            options.HttpOnly = Microsoft.AspNetCore.CookiePolicy.HttpOnlyPolicy.Always;
             // Handling SameSite cookie according to https://docs.microsoft.com/en-us/aspnet/core/security/samesite?view=aspnetcore-3.1
             options.HandleSameSiteCookieCompatibility();
+        });
+
+        services.AddSession(options =>
+        {
+            options.Cookie.HttpOnly = true;
+            options.Cookie.IsEssential = true;
+            options.Cookie.SameSite = SameSiteMode.Strict;
+            options.Cookie.Name = ".FSDH.Session";
+            options.IdleTimeout = TimeSpan.FromMinutes(30);
         });
 
         //required to access existing headers
@@ -290,11 +301,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
         
-        app.Use(async (context, next) =>
-        {
-            context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
-            await next();
-        });
+        app.UseMiddleware<IFrameMiddleware>();
 
         app.UseEndpoints(endpoints =>
         {
@@ -374,7 +381,7 @@ public class Startup
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
-            services.AddScoped<IProjectCreationService, ProjectCreationService>();
+            services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
             services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
@@ -405,7 +412,7 @@ public class Startup
             
             
         }
-        services.AddScoped<IProjectCreationService, ProjectCreationService>();
+        services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
 
         services.AddSingleton<IExternalSearchService, ExternalSearchService>();
         services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
