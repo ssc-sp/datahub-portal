@@ -1536,6 +1536,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<DateTime?>("OperationalWindow")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ParentGCHostingBudgetId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
                         .HasColumnType("TEXT");
@@ -1628,6 +1631,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("DatahubAzureSubscriptionId");
 
                     b.HasIndex("DivisionId");
+
+                    b.HasIndex("ParentGCHostingBudgetId");
 
                     b.HasIndex("Project_Acronym_CD")
                         .IsUnique();
@@ -2607,6 +2612,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasForeignKey("DivisionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "ParentGCHostingBudget")
+                        .WithMany("WorkspacesInBudget")
+                        .HasForeignKey("ParentGCHostingBudgetId");
+
                     b.HasOne("Datahub.Core.Model.Datahub.Organization_Level", "Sector")
                         .WithMany("Sectors")
                         .HasForeignKey("SectorId")
@@ -2617,6 +2626,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("DatahubAzureSubscription");
 
                     b.Navigation("Division");
+
+                    b.Navigation("ParentGCHostingBudget");
 
                     b.Navigation("Sector");
                 });
@@ -2867,6 +2878,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm", b =>
                 {
                     b.Navigation("Fields");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
+                {
+                    b.Navigation("WorkspacesInBudget");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>
