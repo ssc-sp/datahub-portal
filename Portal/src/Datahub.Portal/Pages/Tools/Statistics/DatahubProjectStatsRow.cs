@@ -1,3 +1,5 @@
+using Datahub.Core.Model.Projects;
+
 namespace Datahub.Portal.Pages.Tools.Statistics;
 
 public class DatahubProjectStatsRow
@@ -7,18 +9,12 @@ public class DatahubProjectStatsRow
     public string Name { get; set; }
     public string Acronym { get; set; }
     
-    public List<string> Leads { get; set; }
-    public List<string> Admins { get; set; }
-    public List<string> Collaborators { get; set; }
-    
-    public List<string> UniqueDepartments => 
-        Leads
-            .Select(x => x?.Split('@')[1] ?? string.Empty)
-            .Union(Admins
-                .Select(x => x?.Split('@')[1] ?? string.Empty))
-            .Union(Collaborators
-                .Select(x => x?.Split('@')[1] ?? string.Empty))
-            .ToList();
+    public List<Datahub_Project_User> AllUsers { get; set; }
+    public List<Project_Resources2> ProvisionedResources { get; set; }
+    public string Department { get; set; }
+    public DateTime? LastLogin { get; set; }
+
+    public bool IsDeleted { get; set; }
     
     public decimal BudgetLimit { get; set; }
     public double BudgetSpent { get; set; }
@@ -28,9 +24,6 @@ public class DatahubProjectStatsRow
     public decimal CostOfLastXDays { get; set; }
     
     public bool MetadataComplete { get; set; }
-    
-    public ResourceStatus StorageStatus { get; set; }
-    public ResourceStatus DatabricksStatus { get; set; }
     
     public bool ShowUserDetails { get; set; }
     
