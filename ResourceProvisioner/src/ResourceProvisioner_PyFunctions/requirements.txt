@@ -13,3 +13,4 @@ azure-mgmt-storage==21.*
 msgraph-sdk==1.*
 databricks-sdk
 websocket-client==1.*
+cryptography==44.0.1
