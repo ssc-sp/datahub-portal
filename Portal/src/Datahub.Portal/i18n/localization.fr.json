@@ -3142,5 +3142,6 @@
   "{0} credits consumed yesterday": "{0} crédits consommés hier",
   "{0} is already added to your workspace": "{0} est déjà ajouté à votre espace de travail",
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
-  "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail"
+  "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
+  "There are no users matching the current filter.": "Aucun utilisateur ne correspond au filtre actuel."
 }
