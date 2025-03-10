@@ -377,6 +377,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public GCHostingWorkspaceDetails GCHostingWorkspaceDetails { get; set; }
 
+    public int? ParentGCHostingBudgetId { get; set; }
+
+    public GCHostingWorkspaceDetails ParentGCHostingBudget { get; set; }
+
     /// <summary>
     /// Converts a Datahub_Project object to a TerraformWorkspace object.
     /// </summary>
