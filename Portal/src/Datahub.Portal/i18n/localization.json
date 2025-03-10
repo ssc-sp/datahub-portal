@@ -2149,5 +2149,6 @@
   "{0} credits consumed yesterday": "{0} credits consumed yesterday",
   "{0} is already added to your workspace": "{0} is already added to your workspace",
   "{0} remaining credits of {1}": "{0} remaining credits of {1}",
-  "{0} successfully added to your workspace": "{0} successfully added to your workspace"
+  "{0} successfully added to your workspace": "{0} successfully added to your workspace",
+  "There are no users matching the current filter.": "There are no users matching the current filter."
 }
