@@ -88,5 +88,9 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
             .WithOne(l => l.GCHostingWorkspaceDetails)
             .HasForeignKey<GCHostingWorkspaceDetails>(l => l.Id)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasMany(e => e.WorkspacesInBudget)
+            .WithOne(w => w.ParentGCHostingBudget)
+            .HasForeignKey(w => w.ParentGCHostingBudgetId);
     }
 }
