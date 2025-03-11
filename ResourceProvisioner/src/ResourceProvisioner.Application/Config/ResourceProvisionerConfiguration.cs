@@ -30,7 +30,7 @@ public class InfrastructureRepositoryConfiguration
 
 public class ModuleRepositoryConfiguration
 {
-    public const string DefaultBranch = "dev";
+    public const string DefaultBranch = "main";
     public string Url { get; set; }
     public string LocalPath { get; set; }
 
@@ -38,7 +38,7 @@ public class ModuleRepositoryConfiguration
     public string TemplatePathPrefix { get; set; }
     public string ModulePathPrefix { get; set; } = "modules/";
 
-    public string Branch { get; set; } = "dev";
+    public string Branch { get; set; } = "main";
 }
 
 public class ResourceProvisionerConfiguration
