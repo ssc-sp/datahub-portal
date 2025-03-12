@@ -1,5 +1,12 @@
 # Resource Provisioner Python Functions
 
+## Prerequisites
+
+Before running the functions locally, you need to install the Azure Functions Core Tools. You can use `winget` to install it:
+
+```powershell
+winget install Microsoft.Azure.FunctionsCoreTools
+```
 
 ## Overview
 
@@ -33,7 +40,6 @@ func start --python
 ```
 
 > Note: The functions will not run locally without the required environment variables set and azurite running.
-
 
 ## SynchronizeWorkspaceUsersHttpTrigger
 
