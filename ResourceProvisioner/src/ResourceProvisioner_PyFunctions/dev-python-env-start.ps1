@@ -15,7 +15,7 @@ if (Test-Path .venv) {
 
 # Create a virtual environment and install the required packages
 Write-Host "Creating a new virtual environment"
-py -3.11 -m venv .venv
+py -3.12 -m venv .venv
 if (-not $?) { Write-Host "Failed to create virtual environment"; exit 1 }
 
 # Activate the virtual environment
