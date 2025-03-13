@@ -1,6 +1,6 @@
 import azure.functions as func
 import logging
-import lib.databricks_utils as dtb_utils
+#import lib.databricks_utils as dtb_utils
 import lib.azkeyvault_utils as azkv_utils
 import lib.azstorage_utils as azsg_utils
 import azure.servicebus as servicebus
