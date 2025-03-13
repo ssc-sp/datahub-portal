@@ -108,8 +108,6 @@ docker build --tag fsdh-pyfunction:latest .
 
 ### Running docker image
 
-
-
 ```bash
 docker run -p 8080:80 \
 -e AzureClientId=$AzureClientId \
@@ -121,3 +119,18 @@ docker run -p 8080:80 \
 -e Datahub_ENVNAME=$Datahub_ENVNAME \
  fsdh-pyfunction:latest
 ```
+
+```bash
+docker run -p 8080:80 -e AzureClientId=$env:AzureClientId -e AzureClientId=$env:AzureClientId -e AzureClientSecret=$env:AzureClientSecret -e AzureTenantId=$env:AzureTenantId -e AzureSubscriptionId=$env:AzureSubscriptionId -e DatahubServiceBus=$env:DatahubServiceBus -e Datahub_ENVNAME=$env:Datahub_ENVNAME fsdh-pyfunction:latest
+ ```
+
+### Running docker image from ACR
+
+```bash
+docker pull fsdhacrdev.azurecr.io/fsdh/user-py:latest
+```
+
+```bash
+docker run -p 8080:80 -e AzureClientId=$AzureClientId -e AzureClientId=$AzureClientId -e AzureClientSecret=$AzureClientSecret -e AzureTenantId=$AzureTenantId -e AzureSubscriptionId=$AzureSubscriptionId -e DatahubServiceBus=$DatahubServiceBus -e Datahub_ENVNAME=$Datahub_ENVNAME  fsdhacrdev.azurecr.io/fsdh/user-py:latest
+```
+
