@@ -135,5 +135,7 @@ public class GCHostingWorkspaceDetails
     /// Gets or sets the project that the workspace is associated with.
     /// </summary>
     public Datahub_Project Datahub_Project { get; set; } = null!;
+
+    public IEnumerable<Datahub_Project> WorkspacesInBudget { get; set; } = [];
 }
 #nullable disable
