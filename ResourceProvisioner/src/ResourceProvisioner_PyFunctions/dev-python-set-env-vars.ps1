@@ -11,6 +11,7 @@ if (-not (Get-Module -ListAvailable -Name Az.KeyVault)) {
 
 #check if user is signed in on azure
 Import-Module Az.KeyVault -Force -NoClobber
+
 $domain = "163oxygen.onmicrosoft.com"
 $context = Get-AzContext
 if ($null -eq $context) {
@@ -36,5 +37,20 @@ $env:AzureSubscriptionId = (Read-VaultSecret "fsdh-key-dev" "datahub-portal-subs
 $env:DatahubServiceBus = (Read-VaultSecret "fsdh-key-dev" "service-bus-connection-string")
 $env:DataHub_ENVNAME = "dev"
 
-Write-Output "Environment variables set"
+Write-Output "Environment variables set - service bus is $($env:DatahubServiceBus)"
+Write-Output "Logging to ACR"
+
+# Check if the Az.ContainerRegistry module is installed
+if (-not (Get-Module -ListAvailable -Name Az.ContainerRegistry)) {
+    Write-Output "Az.ContainerRegistry module not found. Installing..."
+    Install-Module -Name Az.ContainerRegistry -Force -Scope CurrentUser
+} else {
+    Write-Output "Az.ContainerRegistry module is already installed."
+}
+
+#check if user is signed in on azure
+Import-Module Az.ContainerRegistry -Force -NoClobber
+
+Connect-AzContainerRegistry -Name fsdhacrdev
 Write-Output "Use 'func start' to start the function app locally"
+
