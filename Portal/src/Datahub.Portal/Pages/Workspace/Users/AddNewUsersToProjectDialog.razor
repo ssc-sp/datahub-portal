@@ -9,19 +9,15 @@
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
 
-<MudDialog>
+<MudDialog Style="min-width: 30vw; max-width: 50vw;">
     <DialogContent>
-        <MudStack>
+@*         <MudStack>
             <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
+        </MudStack> *@
 
+        <MudStack>
+            <MudText Class="py-2">Type in the user's email below.</MudText>
         </MudStack>
-        <MudList ReadOnly="false" T="string">
-            @foreach (var user in _usersToAdd)
-            {
-                <MudListItem T="string" Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
-                             OnClick="() => RemoveUser(user)"/>
-            }
-        </MudList>
         <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
                          DebounceInterval="500" SearchFunc="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@Icons.Material.Outlined.Search"
                          Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
@@ -39,6 +35,23 @@
                 </MudStack>
             </ItemTemplate>
         </MudAutocomplete>
+        <MudStack>
+            <MudText Class="py-2">Select the role to assign to the user.</MudText>
+        </MudStack>
+        <MudList ReadOnly="false" T="string">
+            @foreach (var user in _usersToAdd)
+            {
+                <MudListItem T="string" Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
+                             OnClick="() => RemoveUser(user)">
+                    <MudSelect T="int" Label="@Localizer["Role"]" Value="@user.RoleId">
+                        @foreach (var role in _projectRoles)
+                        {
+                            <MudSelectItem T="int" Value="@role.Id">@Localizer[role.Name]</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudListItem>
+            }
+        </MudList>
     </DialogContent>
 
     <DialogActions>
@@ -72,12 +85,17 @@
     private string _errorMessage = string.Empty;
 
     private List<GraphUser> _searchResultUsers = new();
+    private IEnumerable<Project_Role> _projectRoles = Enumerable.Empty<Project_Role>();
 
-        private const string AddUserIcon = "fa-duotone fa-user-plus";
-        private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-        private const string UserExistsError = "The user is already a member of this workspace";
-        private const string NotValidEmailError = "Please enter a valid GC email address";
+    private const string AddUserIcon = "fa-duotone fa-user-plus";
+    private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
+    private const string UserExistsError = "The user is already a member of this workspace";
+    private const string NotValidEmailError = "Please enter a valid GC email address";
 
+    protected override void OnInitialized()
+    {
+        _projectRoles = Project_Role.GetAll().ToList();
+    }
 
     private async Task<IEnumerable<string>> SearchUsers(string search, CancellationToken cancellationToken)
     {
@@ -95,7 +113,7 @@
                         || _usersToAdd.Any(user => user.GraphGuid == u.Id))
             .ToList();
 
-    // If an exact match is found, put it at the top of the list, otherwise add an add user option
+        // If an exact match is found, put it at the top of the list, otherwise add an add user option
         var matchIndex = _searchResultUsers.FindIndex(u => u.Mail.Equals(search, StringComparison.InvariantCultureIgnoreCase));
 
         ClearError();
