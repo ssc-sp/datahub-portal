@@ -60,6 +60,9 @@ public static class TerraformVariables
     // Postgres related variables
     public const string PsqlSku = "psql_sku";
 
+    // App service related variables
+    public const string AppServiceNameSuffix = "resource_name_suffix";
+
     /// <summary>
     /// Default outbound IP address for the Datahub Portal
     /// </summary>

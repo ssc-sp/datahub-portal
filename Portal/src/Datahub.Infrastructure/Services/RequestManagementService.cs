@@ -108,6 +108,8 @@ public class RequestManagementService : IRequestManagementService
                 .ThenInclude(u => u.PortalUser)
                 .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
 
+            var resourceNameSuffix = string.Empty;
+
             if (project == null)
             {
                 return false;
@@ -128,11 +130,20 @@ public class RequestManagementService : IRequestManagementService
                         await ProcessRequest(project, requestingUser, template);
                     }
                 }
+
+                if(terraformTemplate.Name == TerraformTemplate.AzureAppService || terraformTemplate.Name == TerraformTemplate.AzurePostgres)
+                {
+                   resourceNameSuffix = GetResourceNameSuffix(terraformTemplate.Name, project);
+                }
             }
+
+
 
             var workspaceDefinition =
                 await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
+
+            workspaceDefinition.AppData.ResourceNameSuffix = resourceNameSuffix;
 
             await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
@@ -143,6 +154,31 @@ public class RequestManagementService : IRequestManagementService
                 terraformTemplate, datahubProject.Project_Acronym_CD);
             return false;
         }
+    }
+
+    private string GetResourceNameSuffix(string templatetype, Datahub_Project project)
+    {
+        var resourceNumber = 0;
+
+        //get total resources of template type
+        switch (templatetype)
+        {
+            case TerraformTemplate.AzureAppService:
+                resourceNumber = project.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)));
+                break;
+            case TerraformTemplate.AzurePostgres:
+                resourceNumber = project.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)));
+                break;
+            default:
+                throw new ArgumentException("Invalid template type", nameof(templatetype));
+        }
+
+        //get next iteration for suffix
+        resourceNumber++;
+
+        // format resourceNumber to three digits
+        return resourceNumber.ToString("D3");
+
     }
 
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
