@@ -9,36 +9,61 @@
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
 
-<MudDialog>
+<MudDialog Style="min-width: 40vw; max-width: 50vw;">
     <DialogContent>
         <MudStack>
-            <MudText Class="py-2">@Localizer["Search for new users below using their email address. New users will be added as collaborators."]</MudText>
-
+            <MudText Class="py-2">@Localizer["Type in the user's email below and select the role to assign."]</MudText>
         </MudStack>
-        <MudList ReadOnly="false" T="string">
-            @foreach (var user in _usersToAdd)
-            {
-                <MudListItem T="string" Text="@GetListText(user)" Icon="@RemoveUserIcon" IconColor="Color.Primary"
-                             OnClick="() => RemoveUser(user)"/>
-            }
-        </MudList>
-        <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
-                         DebounceInterval="500" SearchFunc="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@Icons.Material.Outlined.Search"
-                         Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
-                         Value="_userSearch">
-            <ItemTemplate>
-                <MudStack Class="px-2" Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                    <MudStack Spacing="0">
-                        @{
-                            var user = _searchResultUsers.FirstOrDefault(u => u.Mail == context);
-                        }
-                        <MudText Typo="Typo.h6">@user?.DisplayName</MudText>
-                        <MudText Typo="Typo.h6">@user?.Mail</MudText>
+        <MudStack Row AlignItems="AlignItems.Center">
+            <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
+                             DebounceInterval="500" SearchFunc="@SearchUsers" AdornmentColor="Color.Primary" AdornmentIcon="@Icons.Material.Outlined.Search"
+                             Error="@_error" ErrorText="@_errorMessage" ShowProgressIndicator="@_searchingForUsers" ResetValueOnEmptyText
+                             Value="_userSearch" Class="flex-grow-1">
+                <ItemTemplate>
+                    <MudStack Class="px-2" Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                        <MudStack Spacing="0">
+                            @{
+                                var user = _searchResultUsers.FirstOrDefault(u => u.Mail == context);
+                            }
+                            <MudText Typo="Typo.h6">@user?.DisplayName</MudText>
+                            <MudText Typo="Typo.h6">@user?.Mail</MudText>
+                        </MudStack>
+                        <DHIcon Icon="@AddUserIcon" Color="Color.Primary" Class="px-2" />
                     </MudStack>
-                    <DHIcon Icon="@AddUserIcon" Color="Color.Primary" Class="px-2" />
-                </MudStack>
-            </ItemTemplate>
-        </MudAutocomplete>
+                </ItemTemplate>
+            </MudAutocomplete>
+        </MudStack>
+        <MudStack>
+            <MudText Class="py-2">@Localizer["Users to be added:"]</MudText>
+        </MudStack>
+        <table class="user-table">
+            <thead>
+                <tr>
+                    <th>@Localizer["User"]</th>
+                    <th>@Localizer["Role"]</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in _usersToAdd)
+                {
+                    <tr>
+                        <td>@GetListText(user)</td>
+                        <td>
+                            <MudSelect T="int" Label="@Localizer["Role"]" @bind-Value="user.RoleId" Class="role-dropdown">
+                                @foreach (var role in _projectRoles)
+                                {
+                                    <MudSelectItem T="int" Value="@role.Id">@Localizer[role.Name]</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </td>
+                        <td>
+                            <MudIconButton Icon="@RemoveUserIcon" Color="Color.Primary" OnClick="() => RemoveUser(user)" />
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </DialogContent>
 
     <DialogActions>
@@ -48,6 +73,28 @@
         </MudButton>
     </DialogActions>
 </MudDialog>
+
+
+<style>
+    .role-dropdown {
+        min-width: 150px;
+        max-width: 200px;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .user-table th, .user-table td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .user-table th {
+            background-color: #f2f2f2;
+        }
+</style>
 
 @code {
 #nullable enable
@@ -70,14 +117,21 @@
     private bool _searchingForUsers;
     private bool _error;
     private string _errorMessage = string.Empty;
+    private int _selectedRoleId;
 
     private List<GraphUser> _searchResultUsers = new();
+    private IEnumerable<Project_Role> _projectRoles = Enumerable.Empty<Project_Role>();
 
-        private const string AddUserIcon = "fa-duotone fa-user-plus";
-        private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
-        private const string UserExistsError = "The user is already a member of this workspace";
-        private const string NotValidEmailError = "Please enter a valid GC email address";
+    private const string AddUserIcon = "fa-duotone fa-user-plus";
+    private const string RemoveUserIcon = "fa-duotone fa-trash-can-slash";
+    private const string UserExistsError = "The user is already a member of this workspace";
+    private const string NotValidEmailError = "Please enter a valid GC email address";
 
+    protected override void OnInitialized()
+    {
+        _projectRoles = Project_Role.GetAll().ToList();
+        _selectedRoleId = (int)Project_Role.RoleNames.Guest;
+    }
 
     private async Task<IEnumerable<string>> SearchUsers(string search, CancellationToken cancellationToken)
     {
@@ -85,6 +139,13 @@
         {
             return new List<string>();
         }
+
+        // ignore invalid emails and do not perform GetUsersListAsync at all
+        if (!_emailValidator.IsValid(search) || !search.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
+        {
+            return new List<string>();
+        }
+
         _searchingForUsers = true;
         StateHasChanged();
 
@@ -95,7 +156,7 @@
                         || _usersToAdd.Any(user => user.GraphGuid == u.Id))
             .ToList();
 
-    // If an exact match is found, put it at the top of the list, otherwise add an add user option
+        // If an exact match is found, put it at the top of the list, otherwise add an add user option
         var matchIndex = _searchResultUsers.FindIndex(u => u.Mail.Equals(search, StringComparison.InvariantCultureIgnoreCase));
 
         ClearError();
@@ -179,7 +240,7 @@
             GraphGuid = user.Id,
             Email = user.Mail,
             DisplayName = user.DisplayName,
-            RoleId = (int)Project_Role.RoleNames.Guest,
+            RoleId = _selectedRoleId,
         };
 
         if (!user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID))
@@ -202,7 +263,7 @@
     {
         return projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID 
             ? projectUserAddUserCommand.Email 
-            : $"{projectUserAddUserCommand.DisplayName} ({projectUserAddUserCommand.Email})";
+            : $"{projectUserAddUserCommand.DisplayName}";
     }
 
     private void UpdateProject()
