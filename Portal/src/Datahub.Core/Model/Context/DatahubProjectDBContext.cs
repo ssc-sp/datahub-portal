@@ -135,6 +135,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<Project_Delete_Questionnaire> Project_Delete_Questionnaires { get; set; }
 
+    /// <summary>
+    /// Gets or sets datahub versions
+    /// </summary>
+    public DbSet<VersionTag> VersionTags { get; set; }
+
 #pragma warning disable SX1309
     private readonly DbContextOptions<DatahubProjectDBContext> options;
 #pragma warning restore SX1309
