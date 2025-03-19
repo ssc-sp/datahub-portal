@@ -12,7 +12,7 @@
 <MudDialog Style="min-width: 40vw; max-width: 50vw;">
     <DialogContent>
         <MudStack>
-            <MudText Class="py-2">Type in the user's email below and select the role to assign.</MudText>
+            <MudText Class="py-2">@Localizer["Type in the user's email below and select the role to assign."]</MudText>
         </MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
             <MudAutocomplete T="string" @ref="@_autocomplete" Label="@Localizer["User's GC Email"]" ValueChanged="AddUser"
@@ -34,7 +34,7 @@
             </MudAutocomplete>
         </MudStack>
         <MudStack>
-            <MudText Class="py-2">Users to be added:</MudText>
+            <MudText Class="py-2">@Localizer["Users to be added:"]</MudText>
         </MudStack>
         <table class="user-table">
             <thead>
@@ -73,6 +73,7 @@
         </MudButton>
     </DialogActions>
 </MudDialog>
+
 
 <style>
     .role-dropdown {
