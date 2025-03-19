@@ -6,7 +6,7 @@
         </MudStack>
     </TitleContent>
     <DialogContent>
-        <MudStack Class="pb-8">
+        <MudStack Class="pb-8" id=@WorkspaceToolboxPage.ElementId([Id, InfoSheetId])>
             <MudText Typo="Typo.h3">@Localizer["Information"]</MudText>
             <MudText Typo="Typo.body1"
                      Style="font-style: italic">@Localizer["Availability: {0}, Category: {1}", Availability, Category]</MudText>
@@ -58,4 +58,6 @@
     [Parameter] public string Availability { get; set; }
     [Parameter] public string CostInformation { get; set; }
     [Parameter] public (string Text, string URL)[] AdditionalLinks { get; set; }
+    [Parameter] public string Id { get; set; }
+    public static string InfoSheetId => "info-sheet";
 }

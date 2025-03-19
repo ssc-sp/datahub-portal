@@ -689,8 +689,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <summary>
         /// Shows the information sheet for a tool.
         /// </summary>
-        /// <param name="tool">The tool identifier.</param>
-        private async Task ShowInfoSheet(string tool)
+        /// <param name="tool">The tool.</param>
+        /// <param name="id">The HTML id to use in the dialog</param>
+        private async Task ShowInfoSheet(string tool, string id)
         {
             var infoParams = new DialogParameters
             {
@@ -702,7 +703,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 { "Instances", await ToolInstances(tool) },
                 { "Availability", AvailabilityLabel(_toolAvailabilityStatusMap[tool]) },
                 { "CostInformation", ToolCostInformation(tool) },
-                { "AdditionalLinks", ToolAdditionalLinks(tool) }
+                { "AdditionalLinks", ToolAdditionalLinks(tool) },
+                { "Id", id }
             };
 
             var infoOptions = new DialogOptions

@@ -1,11 +1,11 @@
 ﻿@using MudBlazor.Utilities
-<MudPaper Elevation="0" Outlined>
+<MudPaper Elevation="0" Outlined id=@ToolId>
     <MudGrid Style="align-items: center" Class="px-4 py-2">
         <MudItem xs="1">
             <DHIcon Icon="@ToolIcon"/>
         </MudItem>
         <MudItem sm="6" lg="4" Style="justify-self: start">
-            <DHButton EndIcon="@Icons.Material.Outlined.Info" Underline NoWrap OnClick="@ShowDetails" DisableRipple HtmlTag="button">
+            <DHButton EndIcon="@Icons.Material.Outlined.Info" Underline NoWrap OnClick="@ShowDetails" DisableRipple HtmlTag="button" id=@WorkspaceToolboxPage.ElementId([ToolId, InfoSheetButtonId])>
                 @Localizer[ToolName]
             </DHButton>
         </MudItem>
@@ -27,9 +27,11 @@
     [Parameter] public string ToolName { get; set; }
     [Parameter] public string ToolIcon { get; set; }
     [Parameter] public string ToolCategory { get; set; }
+    [Parameter] public string ToolId { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
     [Parameter] public EventCallback ShowDetails { get; set; }
 
+    public static string InfoSheetButtonId => "info-sheet-button";
     private StyleBuilder StyleBuilder => new();
 
     private string CardStyle => StyleBuilder
