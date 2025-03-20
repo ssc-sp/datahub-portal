@@ -198,23 +198,29 @@
     {
         await Task.Delay(3000);
 
-        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
-        if (existingUser != null)
-        {
-            _wasDeleted = existingUser.IsDeleted;
-        }
+        var userId = string.Empty;
 
         _logger.LogInformation("Saving registration details for user");
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
-        _logger.LogInformation("Attempting to register user");
-        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, null);
+        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
+        if (existingUser != null)
+        {
+            userId = existingUser.GraphGuid;
+            _wasDeleted = existingUser.IsDeleted;
+        }
+        else
+        {
+            _logger.LogInformation("Attempting to register user");
+            userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, null);
+        }
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
             if (_wasDeleted)
             {
                 await _userInformationService.HandleDeletedUserRegistration(_email, userId, existingUser!.Id);
+                await NotifyWorkspaceUser(_email, existingUser.DisplayName);
                 var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser!.Id);
                 if (projectList.Count > 0)
                 {
@@ -273,4 +279,30 @@
         }
     }
 
+    private async Task NotifyWorkspaceUser(string Email, string userName)
+    {
+        var parameters = new Dictionary<string, string>
+        {
+            { "WorkspaceAcronym", string.Empty },
+            { "LeadName", string.Empty },
+            { "UserName", userName }
+        };
+
+        var request = new EmailRequestMessage
+            {
+                To = [Email],
+                Subject = "FSDH Account Reactivation Notification",
+                Body = JsonConvert.SerializeObject(parameters)
+            };
+
+        try
+        {
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.EmailNotificationQueueName, request);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Sending email notification to previously deleted user {UserName} failed. Error: {Ex}", userName, ex.Message);
+        }
+    }
 }

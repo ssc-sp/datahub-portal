@@ -87,8 +87,8 @@ public class EmailNotificationHandler
                 { "{leadName}", parameters["LeadName"] },
                 { "{userName}", parameters["UserName"] }
         };
-
-        var email = _emailService.BuildEmail("user_reactivation.html", contacts, bcc, bodyArgs,
+        var template = string.IsNullOrEmpty(parameters["LeadName"]) ? "user_reactivation.html" : "user_reactivation_lead.html";
+        var email = _emailService.BuildEmail(template, contacts, bcc, bodyArgs,
             subjectArgs);
 
         return email;
