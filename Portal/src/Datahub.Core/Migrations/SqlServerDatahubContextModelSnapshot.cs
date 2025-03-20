@@ -1062,8 +1062,8 @@ namespace Datahub.Core.Migrations
 
                     b.Property<string>("Tag")
                         .IsRequired()
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("VersionTagId");
 
