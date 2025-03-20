@@ -12,7 +12,7 @@ namespace Datahub.Core.Model.Datahub
         [Key]
         public int VersionTagId { get; set; }
         [Required]
-        [StringLength(6)]
+        [StringLength(20)]
         public string Tag { get; set; }
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; }
