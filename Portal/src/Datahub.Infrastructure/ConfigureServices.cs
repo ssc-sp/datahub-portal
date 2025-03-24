@@ -10,6 +10,7 @@ using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Subscriptions;
+using Datahub.Application.Services.Toolbox;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
@@ -23,6 +24,7 @@ using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
+using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Infrastructure.Services.UserManagement;
 using MassTransit;
 using Microsoft.Extensions.Azure;
@@ -54,6 +56,7 @@ public static class ConfigureServices
         services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
+        services.AddSingleton<IToolboxService, ToolboxService>();
 
 
         services.AddAzureResourceManager(configuration);
