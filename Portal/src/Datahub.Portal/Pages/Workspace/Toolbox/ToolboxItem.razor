@@ -1,0 +1,44 @@
+﻿@using MudBlazor.Utilities
+<MudPaper Elevation="0" Outlined id=@ToolId>
+    <MudGrid Style="align-items: center" Class="px-4 py-2">
+        <MudItem xs="1">
+            <DHIcon Icon="@ToolIcon"/>
+        </MudItem>
+        <MudItem sm="6" lg="4" Style="justify-self: start">
+            <DHButton EndIcon="@Icons.Material.Outlined.Info" Underline NoWrap OnClick="@ShowDetails" DisableRipple HtmlTag="button" id=@WorkspaceToolboxPage.ElementId([ToolId, InfoSheetButtonId])>
+                @Localizer[ToolName]
+            </DHButton>
+        </MudItem>
+        <MudItem sm="5" lg="2">
+            <MudText Style="font-style: italic">
+                @Localizer[ToolCategory]
+            </MudText>
+        </MudItem>
+        <MudItem sm="12" lg="5">
+            <MudStack Row Justify="Justify.FlexEnd">
+                @ChildContent
+            </MudStack>
+        </MudItem>
+    </MudGrid>
+
+</MudPaper>
+
+@code {
+    [Parameter] public string ToolName { get; set; }
+    [Parameter] public string ToolIcon { get; set; }
+    [Parameter] public string ToolCategory { get; set; }
+    [Parameter] public string ToolId { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback ShowDetails { get; set; }
+
+    public static string InfoSheetButtonId => "info-sheet-button";
+    private StyleBuilder StyleBuilder => new();
+
+    private string CardStyle => StyleBuilder
+        .AddStyle("display", "grid")
+        .AddStyle("grid-template-columns", "0.5fr 5fr 5fr 5fr")
+        .AddStyle("column-gap", "8px")
+        .AddStyle("align-items", "center")
+        .Build();
+
+}

@@ -1,0 +1,260 @@
+﻿@toolbox
+Feature: WorkspaceToolbox
+The workspace toolbox page should allow adding, configuring and removing tools properly while displaying
+the correct information in the page.
+
+# RENDER TOOLBOX
+
+    Scenario: User is on the workspace toolbox page
+        Given the user is on the workspace toolbox page
+        Then the user should see the toolbox
+
+    Scenario: User goes on the workspace toolbox page with invalid credits
+        Given the workspace has <invalid> credits
+        And the user is on the workspace toolbox page
+        Then the user should see the toolbox
+
+    Examples:
+      | invalid  |
+      | negative |
+      | null     |
+
+    Scenario: User goes on the workspace toolbox page with invalid budget
+        Given the workspace has <invalid> budget
+        And the user is on the workspace toolbox page
+        Then the user should see the toolbox
+
+    Examples:
+      | invalid  |
+      | negative |
+      | null     |
+
+    Scenario: User goes on the workspace toolbox page with existing tools in varying states
+        Given the workspace has <existing-tool> in <state>
+        And the user is on the workspace toolbox page
+        Then the user should see the toolbox
+        And the <existing-tool> should show the correct <state> in the toolbox
+
+    Examples:
+      | existing-tool        | state            |
+      | new-project-template | completed        |
+      | new-project-template | in-progress      |
+      | new-project-template | create-requested |
+      | new-project-template | delete-requested |
+      | new-project-template | deleted          |
+      | new-project-template | failed           |
+      | azure-storage-blob   | completed        |
+      | azure-storage-blob   | in-progress      |
+      | azure-storage-blob   | create-requested |
+      | azure-storage-blob   | delete-requested |
+      | azure-storage-blob   | deleted          |
+      | azure-storage-blob   | failed           |
+      | azure-databricks     | completed        |
+      | azure-databricks     | in-progress      |
+      | azure-databricks     | create-requested |
+      | azure-databricks     | delete-requested |
+      | azure-databricks     | deleted          |
+      | azure-databricks     | failed           |
+      | azure-app-service    | completed        |
+      | azure-app-service    | in-progress      |
+      | azure-app-service    | create-requested |
+      | azure-app-service    | delete-requested |
+      | azure-app-service    | deleted          |
+      | azure-app-service    | failed           |
+      | azure-postgres       | completed        |
+      | azure-postgres       | in-progress      |
+      | azure-postgres       | create-requested |
+      | azure-postgres       | delete-requested |
+      | azure-postgres       | deleted          |
+      | azure-postgres       | failed           |
+
+      # SELECTION
+
+    Scenario: User sees the appropriate tools in the existing tools
+        Given the workspace has the <existing-tool> tool
+        And the user is on the workspace toolbox page
+        Then <existing-tool> should be in the Existing Tools section
+        And <existing-tool> should not be in the Catalog section
+
+    Examples:
+      | existing-tool        |
+      | new-project-template |
+      | azure-storage-blob   |
+      | azure-databricks     |
+      | azure-app-service    |
+      | azure-postgres       |
+
+    Scenario: User sees a metadata warning instead of the toolbox if the workspace has no metadata
+        Given a workspace with no metadata
+        And the user is on the workspace toolbox page
+        Then they should not see the toolbox
+        And they should instead see a metadata warning
+
+    Scenario: User sees the appropriate tools in the catalog
+        Given the workspace does not have <catalog-tool>
+        And the user is on the workspace toolbox page
+        Then <catalog-tool> should be in the Catalog section
+        And <catalog-tool> should not be in the Existing Tools section
+
+    Examples:
+      | catalog-tool         |
+      | new-project-template |
+      | azure-storage-blob   |
+      | azure-databricks     |
+      | azure-app-service    |
+      | azure-postgres       |
+
+    Scenario: User sees the appropriate tools in the summary after selecting them
+        Given the workspace does not have <catalog-tool>
+        And the user is on the workspace toolbox page
+        When the user clicks the Add button for <catalog-tool>, if it is <available>
+        Then <catalog-tool> should be in the Summary section as an added tool
+        And there should be an underlying Add transaction for <catalog-tool>
+        And the underlying Add transaction should have the correct <configuration-type> if the tool is <configurable>
+        When the user clicks the Cancel button for <catalog-tool> in the Add section
+        Then <catalog-tool> should not be in the Summary Add section
+        And <catalog-tool> should be back in the Catalog section
+        And there should be no underlying Add transaction for <catalog-tool>
+
+    Examples:
+      | catalog-tool         | available | configurable | configuration-type                            |
+      | new-project-template | true      | false        | null                                          |
+      | azure-storage-blob   | true      | false        | null                                          |
+      | azure-databricks     | true      | false        | null                                          |
+      | azure-app-service    | true      | false        | null                                          |
+      | azure-postgres       | true      | true         | Datahub.Shared.Entities.PostgresConfiguration |
+      | azure-arcgis         | false     | false        | null                                          |
+      | azure-api            | false     | false        | null                                          |
+
+    Scenario: User sees the appropriate tools in the summary after removing them
+        Given the workspace has the <existing-tool> tool
+        And the user is on the workspace toolbox page
+        When the user clicks the Remove button for <existing-tool>, if it is <removable>
+        Then <existing-tool> should be in the Summary section as a removed tool
+        And there should be an underlying Remove transaction for <existing-tool>
+        When the user clicks the Cancel button for <existing-tool> in the Remove section
+        Then <existing-tool> should not be in the Remove section of the Summary
+        And should instead be back in the Existing Tools section
+        And there should be no underlying Remove transaction for <existing-tool>
+
+    Examples:
+      | existing-tool        | removable |
+      | new-project-template | false     |
+      | azure-storage-blob   | false     |
+      | azure-databricks     | false     |
+      | azure-app-service    | true      |
+      | azure-postgres       | true      |
+
+    Scenario: User sees the appropriate tools in the summary after configuring them
+        Given the workspace has the <existing-tool> tool
+        And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
+        And the user is on the workspace toolbox page
+        When the user clicks the Configure button for <existing-tool>, if it is <configurable>
+        Then <existing-tool> should be in the Summary section as a configured tool
+        And there should be an underlying Configure transaction for <existing-tool>
+        And the underlying Configure transaction should have the correct <configuration-type> with the correct <configuration-parameter> and <existing-configuration>
+        When the user clicks the Cancel button for <existing-tool> in the Configure section
+        Then <existing-tool> should not be in the Configure section of the Summary
+        And should instead be back in the Existing Tools section
+        And there should be no underlying Configure transaction for <existing-tool>
+
+    Examples:
+      | existing-tool        | configurable | configuration-type                            | configuration-parameter | db-name      | existing-configuration |
+      | new-project-template | false        | null                                          | null                    | null         | null                   |
+      | azure-storage-blob   | false        | null                                          | null                    | null         | null                   |
+      | azure-databricks     | false        | null                                          | null                    | null         | null                   |
+      | azure-app-service    | false        | null                                          | null                    | null         | null                   |
+      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration | PSQL_SKU                | postgres_sku | B_Standard_B1ms        |
+      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration | PSQL_SKU                | postgres_sku | null                   |
+
+    Scenario: User sees the appropriate dependencies in the summary after selecting a tool
+        Given the workspace does not have <catalog-tool>
+        And the user is on the workspace toolbox page
+        When the user clicks the Add button for <catalog-tool>, if it is <available>
+        Then <dependency-count> dependencies for <catalog-tool> should be in the Summary section as added tools
+        And <catalog-tool> and its <dependency-count> dependencies should not be in the Catalog section as available tools
+        When the user clicks the Cancel button for an <example-dependency> of <catalog-tool>
+        Then <catalog-tool> and the one canceled dependency should not be in the Summary section
+        And should instead be back in the Catalog section
+        And any additional dependencies should still be in the Summary section
+
+    Examples:
+      | catalog-tool       | available | dependency-count | example-dependency   |
+      | azure-storage-blob | true      | 1                | new-project-template |
+      | azure-databricks   | true      | 2                | azure-storage-blob   |
+      | azure-app-service  | true      | 2                | azure-storage-blob   |
+      | azure-postgres     | true      | 1                | new-project-template |
+
+    Scenario: User cannot proceed if there are no tools being added, removed, or configured
+        Given the user is on the workspace toolbox page
+        And there are no tools being added, removed, or configured
+        When the user clicks the Next button
+        Then the user should not be able to proceed
+
+    Scenario: User can proceed if there are tools being added, removed or configured, and returning to the selection step
+    maintains the selected tools
+        Given the workspace has <tool> if it is not being added (<action>)
+        Given the user is on the workspace toolbox page
+        And they have done an <action> on a <tool>
+        When the user clicks the Next button
+        And the user clicks the Previous button
+        Then the selected tool should still be selected
+
+    Examples:
+      | action     | tool                 |
+      | added      | new-project-template |
+      | removed    | azure-app-service    |
+      | configured | azure-postgres       |
+
+    Scenario: Users proceeding after having a configurable tool should go to configuration step, and proceeding with no configurable tools
+    should go to the review step
+        Given the workspace has <tool> if it is not being added (<action>)
+        And the user is on the workspace toolbox page
+        And they have done an <action> on a <tool>
+        When the user clicks the Next button
+        Then they should reach the <expected-step> step
+        When the user clicks the Previous button
+        Then they should be back on the selection step
+
+    Examples:
+      | action     | tool                 | expected-step |
+      | added      | new-project-template | 2             |
+      | removed    | azure-app-service    | 2             |
+      | configured | azure-postgres       | 1             |
+      | removed    | azure-postgres       | 2             |
+      | added      | azure-postgres       | 1             |
+
+    Scenario: Users click on the various information sheets for each tool
+        Given the user is on the workspace toolbox page
+        When the user clicks on the information sheet for <tool>
+        Then the user should see the information sheet for <tool>
+
+    Examples:
+      | tool                 |
+      | new-project-template |
+      | azure-storage-blob   |
+      | azure-databricks     |
+      | azure-app-service    |
+      | azure-postgres       |
+      | azure-arcgis         |
+      | azure-api            |
+
+      # CONFIGURE AND REVIEW
+
+    Scenario: Users see the correct configuration form for configurable tools
+        Given the workspace has the <configurable-tool> tool
+        And the <configurable-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
+        And the user is on the workspace toolbox page
+        When the user clicks the Configure button for <configurable-tool>, if it is <configurable>
+        And the user clicks the Next button
+        Then the user should see the configuration form for <configurable-tool> with <form-id>
+        And the <example-form-input> should have <existing-configuration> as its value
+        When the user sets <example-form-input> in the form to <new-configuration>
+        Then the underlying Configure transaction should show the correct <existing-configuration> and <new-configuration> values for <configuration-parameter>
+        When the user clicks the Next button
+        Then the user should see review information for <configurable-tool> with the <existing-configuration> and <new-configuration>
+
+    Examples:
+      | configurable-tool | configurable | form-id                     | example-form-input  | existing-configuration | new-configuration | configuration-parameter | db-name      |
+      | azure-postgres    | true         | postgres-configuration-form | postgres-sku-select | B_Standard_B1ms        | B_Standard_B2s    | PSQL_SKU                | postgres_sku |
+      | azure-postgres    | true         | postgres-configuration-form | postgres-sku-select | null                   | B_Standard_B1ms   | PSQL_SKU                | postgres_sku |
