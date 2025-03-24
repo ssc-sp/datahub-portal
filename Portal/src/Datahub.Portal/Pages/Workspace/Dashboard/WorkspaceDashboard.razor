@@ -17,115 +17,103 @@
     return;
 }
 
-@if (_project.IsDeleted || _isDeleteRequested)
-{
-    <MudItem xs="12" sm="8">
-        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym" />
-    </MudItem>
-    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Style="color: #000;" Class="mb-6">
-        @Localizer["This workspace has been deleted"] 
-    </MudAlert>
-    return;
-}
-
-@if (_project.IsOverBudget)
-{
-    <MudItem xs="12" sm="8">
-        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym" />
-    </MudItem>    
-    return;
-}
-
 <MudGrid>
     <MudItem xs="12" sm="8">
-        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"/>
-    </MudItem>
-    <MudItem xs="12" sm="4">
+        <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"
+                       ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled"/>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubApprover">
-            <MudText Typo="Typo.h2">Support Access Controls (Approver Only)</MudText>
-            <WorkspaceGrantSupportAccessControl WorkspaceAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled" />
+            <ApproverActionsCard WorkspaceAcronym="@WorkspaceAcronym"
+                                 ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled"/>
         </DatahubAuthView>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-            <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
-        </DatahubAuthView>
-    </MudItem>
-    <MudItem xs="12" sm="8">
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-            <Authorized>
-                @if (_resources.Any())
-                {
-                    <h2 class="sr-only">
-                        @Localizer["Workspace tools"]
-                    </h2>
-                    <ul style="display:grid;gap: 25px">
-                        @foreach (var resource in _resources)
-                        {
-                            var found = _cardComponents.ContainsKey(resource.ResourceType);
-                            
-                            var deletedStatuses = new[] { TerraformStatus.Deleted, TerraformStatus.DeleteInProgress, TerraformStatus.DeleteRequested };
-                            var isDeleted = deletedStatuses.Contains(resource.Status);
-                            
-                            if (found && !isDeleted)
+        @if (!_isDeleteRequestedOrDeleted)
+        {
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym"
+                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <Authorized>
+                    @if (_resources.Any())
+                    {
+                        <h2 class="sr-only">
+                            @Localizer["Workspace tools"]
+                        </h2>
+                        <ul style="display:grid;gap: 25px">
+                            @foreach (var resource in _resources)
                             {
-                                var parameters = new Dictionary<string, object>
+                                var found = _cardComponents.ContainsKey(resource.ResourceType);
+
+                                var deletedStatuses = new[] { TerraformStatus.Deleted, TerraformStatus.DeleteInProgress, TerraformStatus.DeleteRequested };
+                                var isDeleted = deletedStatuses.Contains(resource.Status);
+
+                                if (found && !isDeleted)
                                 {
-                                    { "ProjectResource", resource },
-                                    { "WorkspaceAcronym", WorkspaceAcronym }
-                                };
-                                <li>
-                                    <MudItem>
-                                        <DynamicComponent Type="@_cardComponents[resource.ResourceType]" Parameters="@parameters"/>
-                                    </MudItem>
-                                </li>
+                                    var parameters = new Dictionary<string, object>
+                                    {
+                                        { "ProjectResource", resource },
+                                        { "WorkspaceAcronym", WorkspaceAcronym }
+                                    };
+                                    <li>
+                                        <MudItem>
+                                            <DynamicComponent Type="@_cardComponents[resource.ResourceType]"
+                                                              Parameters="@parameters"/>
+                                        </MudItem>
+                                    </li>
+                                }
+                                else
+                                {
+                                    _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                                }
+                            }
+                        </ul>
+                    }
+                    else
+                    {
+                        <MudItem>
+                            <MudStack Justify="Justify.Center">
+                                <MudText>
+                                    @Localizer["It looks like you don't have any workspace tools yet."]
+                                </MudText>
+                                <MudText>
+                                    @Localizer["You can request workspace tools from the 'Toolbox' tab."]
+                                </MudText>
+                                <MudElement HtmlTag="div">
+                                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@_toolboxLink">
+                                        @Localizer["View Toolbox"]
+                                    </DHButton>
+                                </MudElement>
+                            </MudStack>
+                        </MudItem>
+                    }
+                </Authorized>
+                <NotAuthorized>
+                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
+                        <MudStack>
+                            <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
+                            @if (_projectRepositories != null && _projectRepositories.Any())
+                            {
+                                @foreach (var projectRepository in _projectRepositories)
+                                {
+                                    <RepositoryCard ProjectRepository="@projectRepository"/>
+                                }
                             }
                             else
                             {
-                                _logger.LogError("Unknown resource type: {ResourceResourceType}", resource.ResourceType);
+                                <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                                <MudText
+                                    Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
                             }
-                        }
-                    </ul>
-                }
-                else
-                {
-                    <MudItem>
-                        <MudStack Justify="Justify.Center">
-                            <MudText >
-                                @Localizer["It looks like you don't have any workspace tools yet."]
-                            </MudText>
-                            <MudText >
-                                @Localizer["You can request workspace tools from the 'Toolbox' tab."]
-                            </MudText>
-                            <MudElement HtmlTag="div">
-                                <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@_toolboxLink">
-                                    @Localizer["View Toolbox"]
-                                </DHButton>
-                            </MudElement>
                         </MudStack>
-                    </MudItem>
-                }
-            </Authorized>
-            <NotAuthorized>
-                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-                    <MudStack>
-                        <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
-                        @if (_projectRepositories != null && _projectRepositories.Any())
-                        {
-                            @foreach (var projectRepository in _projectRepositories)
-                            {
-                                <RepositoryCard ProjectRepository="@projectRepository"/>
-                            }
-                        }
-                        else
-                        {
-                            <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
-                            <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
-                        }
-                    </MudStack>
-                </DatahubAuthView>
-            </NotAuthorized>
-        </DatahubAuthView>
+                    </DatahubAuthView>
+                </NotAuthorized>
+            </DatahubAuthView>
+        }
     </MudItem>
     <MudItem xs="12" sm="4">
+        @if (!_isDeleteRequestedOrDeleted)
+        {
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym"
+                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
+            </DatahubAuthView>
+        }
         <WorkspaceUserCardList ProjectAcronym="@WorkspaceAcronym"/>
     </MudItem>
 </MudGrid>
@@ -137,7 +125,7 @@
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project _project;
-    private bool _isDeleteRequested;
+    private bool _isDeleteRequestedOrDeleted;
     private List<Project_Resources2> _resources;
     private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
 
@@ -167,12 +155,13 @@
             .ToList();
 
         var newTemplateResource = _project.Resources.Where(
-                    r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
-                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
-               .FirstOrDefault();
-        
-        _isDeleteRequested = newTemplateResource != null && newTemplateResource.Status == TerraformStatus.DeleteRequested;
-        
+                r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
+                     r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+            .FirstOrDefault();
+
+        _isDeleteRequestedOrDeleted = _project.IsDeleted || (newTemplateResource != null && newTemplateResource.Status == TerraformStatus.DeleteRequested);
+
+
         _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(WorkspaceAcronym);
     }
 
@@ -181,4 +170,5 @@
         // if it's in the dictionary, return the type otherwise return null
         return _cardComponents.ContainsKey(resourceType) ? resourceType : null;
     }
+
 }

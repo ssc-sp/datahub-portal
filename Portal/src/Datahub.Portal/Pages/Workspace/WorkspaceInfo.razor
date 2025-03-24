@@ -1,6 +1,7 @@
 @using Datahub.Application.Services.Metadata
 @using Datahub.Core.Model.Projects
 @using Datahub.Metadata.DTO
+@using Datahub.Portal.Pages.Workspace.Settings
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IMetadataBrokerService _metadataBrokerService
@@ -14,7 +15,7 @@
         </MudText>
     </DHMainContentTitle>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
-        <WorkspaceBudgetAlert PercentBudgetSpent="@_percentBudgetSpent"/>
+        <WorkspaceAlerts WorkspaceAcronym=@WorkspaceAcronym View="@WorkspaceSidebar.SectionViews.Dashboard"/>
     </DatahubAuthView>
     <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
@@ -22,11 +23,11 @@
 @code {
 
     [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; }
 
     private Datahub_Project _project;
     private FieldValueContainer _projectMetadata;
     private string _projectDescription;
-    private decimal _percentBudgetSpent;
 
     protected override async Task OnInitializedAsync()
     {
@@ -41,11 +42,6 @@
 
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
         _projectDescription = LoadProjectDescription();
-
-        var currentSpend = Convert.ToDecimal(_project?.Credits?.Current ?? 0);
-        var maximumSpend = Convert.ToDecimal(_project?.Project_Budget ?? 0);
-        
-        _percentBudgetSpent = maximumSpend > 0 ? Math.Min(100, currentSpend / maximumSpend * 100) : 0;
     }
 
     private string LoadProjectDescription()

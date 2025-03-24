@@ -32,6 +32,7 @@
     <MudStack Row Justify="Justify.SpaceBetween">
         <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]"/>
     </MudStack>
+    <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Storage"/>
     <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="GraphUser">
