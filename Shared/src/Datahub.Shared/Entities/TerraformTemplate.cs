@@ -101,6 +101,7 @@ public class TerraformTemplate(string name, string status)
         return name switch
         {
             NewProjectTemplate => [],
+            VariableUpdate => [],
             AzureStorageBlob => [
                 new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
             ],
