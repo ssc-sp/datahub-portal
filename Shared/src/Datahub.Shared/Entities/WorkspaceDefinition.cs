@@ -11,4 +11,5 @@ public class WorkspaceDefinition
     public string RequestingUserEmail { get; set; }
 
     public string ResourceGroupName { get; set; } = string.Empty;
+    public string CBRID { get; set; } = string.Empty;
 }

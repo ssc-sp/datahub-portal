@@ -208,26 +208,26 @@
         await _userEnrollmentService.SaveRegistrationDetails(_email, _comment);
 
         _logger.LogInformation("Attempting to register user");
-        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, default);
+        var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(_email, null);
 
         if (!string.IsNullOrWhiteSpace(userId))
         {
             if (_wasDeleted)
             {
-                await _userInformationService.HandleDeletedUserRegistration(_email, userId);
-                var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser.Id);
-                if (projectList != null && projectList.Count > 0)
+                await _userInformationService.HandleDeletedUserRegistration(_email, userId, existingUser!.Id);
+                var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser!.Id);
+                if (projectList.Count > 0)
                 {
                     foreach (var projectAcronym in projectList)
                     {
                         var projectLead = _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
-                        if (projectLead?.Result != null)
+                        if (projectLead.Result != null)
                         {
                             await NotifyWorkspaceAdmin(projectLead.Result?.PortalUser, projectAcronym, existingUser.DisplayName);
                         }
                         else
                         {
-                            _logger.LogInformation("Could not find workspace lead for workspace {projectAcronym}", projectAcronym);
+                            _logger.LogInformation("Could not find workspace lead for workspace {ProjectAcronym}", projectAcronym);
                         }
 
                         await _projectUserManagementService.RunWorkspaceSync(projectAcronym);
@@ -257,7 +257,7 @@
 
         var request = new EmailRequestMessage
         {
-            To = new List<string> { workspaceLead.Email },
+            To = [workspaceLead.Email],
             Subject = "FSDH Account Reactivation Notification",
             Body = JsonConvert.SerializeObject(parameters)
         };
@@ -269,7 +269,7 @@
         }
         catch (Exception ex)
         {
-            _logger.LogError("Sending email notification to workspace lead {leadName} failed for user {userName}. Error: {ex}", workspaceLead.DisplayName, userName, ex.Message);
+            _logger.LogError("Sending email notification to workspace lead {LeadName} failed for user {UserName}. Error: {Ex}", workspaceLead.DisplayName, userName, ex.Message);
         }
     }
 

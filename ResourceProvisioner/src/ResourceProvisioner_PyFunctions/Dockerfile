@@ -1,9 +1,11 @@
-FROM python:3.11 AS build
+FROM python:3.12 AS build
 
 COPY requirements.txt /
-RUN pip install --target="/home/site/wwwroot/.python_packages/lib/site-packages" -r ./requirements.txt --upgrade --no-cache-dir
 
-FROM mcr.microsoft.com/azure-functions/python:4-python3.11
+RUN pip install --upgrade pip
+RUN pip install -r ./requirements.txt  --target="/home/.local/lib/python3.12/site-packages" --no-cache-dir --upgrade
+
+FROM mcr.microsoft.com/azure-functions/python:4-python3.12
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true \
@@ -20,6 +22,6 @@ ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureSubscriptionId= \
     AzureWebJobsFeatureFlags=EnableWorkerIndexing
 
-COPY --from=build /home/site/wwwroot /home/site/wwwroot
+COPY --from=build /home/.local/lib/python3.12/site-packages /home/.local/lib/python3.12/site-packages
 
 COPY . /home/site/wwwroot

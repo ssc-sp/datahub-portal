@@ -8,10 +8,10 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
 using NSubstitute;
 
 namespace Datahub.Functions.UnitTests
@@ -23,33 +23,31 @@ namespace Datahub.Functions.UnitTests
         private readonly ILogger<ProjectUsageNotifier> _logger = Substitute.For<ILogger<ProjectUsageNotifier>>();
 
         private ProjectUsageNotifier _notifier;
-        private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory; 
-        private Mock<EmailValidator> _emailValidatorMock;
-        private Mock<ISendEndpointProvider> _sendEndpointProviderMock;
-        private Mock<IEmailService> _emailServiceMock;
-        private Mock<IResourceMessagingService> _resourceMessagingServiceMock; 
+        private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
+        private EmailValidator _emailValidatorMock;
+        private ISendEndpointProvider _sendEndpointProviderMock;
+        private IEmailService _emailServiceMock;
+        private IResourceMessagingService _resourceMessagingServiceMock;
         private IConfiguration _config = Substitute.For<IConfiguration>();
         private AzureConfig _azureConfig;
 
-        private Mock<IQueuePongService> _pongService = null!;
+        private IQueuePongService _pongService = null!;
 
         [SetUp]
         public async Task Setup()
         {
             _loggerFactory.CreateLogger<ProjectUsageNotifier>().Returns(_logger);
-            _pongService = new Mock<IQueuePongService>();
-             
-            _emailValidatorMock = new Mock<EmailValidator>();
-            _sendEndpointProviderMock = new Mock<ISendEndpointProvider>();
-            _emailServiceMock = new Mock<IEmailService>();
-            _resourceMessagingServiceMock = new Mock<IResourceMessagingService>();
+            _pongService = Substitute.For<IQueuePongService>();
 
-            var sendEndpointMock = new Mock<ISendEndpoint>();
-            sendEndpointMock.Setup(endpoint => endpoint.Send(It.IsAny<object>(), It.IsAny<CancellationToken>()))
-                .Returns(Task.CompletedTask);
+            _emailValidatorMock = Substitute.For<EmailValidator>();
+            _sendEndpointProviderMock = Substitute.For<ISendEndpointProvider>();
+            _emailServiceMock = Substitute.For<IEmailService>();
+            _resourceMessagingServiceMock = Substitute.For<IResourceMessagingService>();
 
-            _sendEndpointProviderMock.Setup(provider => provider.GetSendEndpoint(It.IsAny<Uri>()))
-                .ReturnsAsync(sendEndpointMock.Object);
+            var sendEndpointMock = Substitute.For<ISendEndpoint>();
+            sendEndpointMock.Send(Arg.Any<object>(), Arg.Any<CancellationToken>()).Returns(Task.CompletedTask);
+
+            _sendEndpointProviderMock.GetSendEndpoint(Arg.Any<Uri>()).Returns(Task.FromResult(sendEndpointMock));
 
             var datahubConfig = new DatahubPortalConfiguration();
             datahubConfig.AzureAd = new AzureAd
@@ -70,11 +68,11 @@ namespace Datahub.Functions.UnitTests
                 _loggerFactory,
                 _azureConfig,
                 _dbContextFactory,
-                _pongService.Object,
-                _emailValidatorMock.Object,
-                _sendEndpointProviderMock.Object,
-                _emailServiceMock.Object,
-                _resourceMessagingServiceMock.Object
+                _pongService,
+                _emailValidatorMock,
+                _sendEndpointProviderMock,
+                _emailServiceMock,
+                _resourceMessagingServiceMock
             );
         }
 
@@ -122,15 +120,15 @@ namespace Datahub.Functions.UnitTests
             var projectAcronym = TestHelper.OVERBUDGET_WEB_APP_PROJECT_ACRONYM;
             var cancellationToken = CancellationToken.None;
 
-            _resourceMessagingServiceMock.Setup(service => service.GetWorkspaceDefinition(It.IsAny<string>(), It.IsAny<string>()))
-                .ReturnsAsync(new WorkspaceDefinition());           
+            _resourceMessagingServiceMock.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
+                .Returns(new WorkspaceDefinition());
 
             // Act
             Func<Task> act = async () => await _notifier.VerifyOverBudgetIsDeleted(projectAcronym, cancellationToken);
 
             // Assert
             await act.Should().NotThrowAsync();
-            _resourceMessagingServiceMock.Verify(service => service.SendToTerraformQueue(It.IsAny<WorkspaceDefinition>()), Times.Once);
+            _resourceMessagingServiceMock.Received(1).SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
         }
 
         [Test]
@@ -144,8 +142,8 @@ namespace Datahub.Functions.UnitTests
             Func<Task> act = async () => await _notifier.VerifyOverBudgetIsDeleted(projectAcronym, cancellationToken);
 
             // Assert
-            await act.Should().NotThrowAsync(); 
-            _resourceMessagingServiceMock.Verify(service => service.SendToTerraformQueue(It.IsAny<WorkspaceDefinition>()), Times.Never);
+            await act.Should().NotThrowAsync();
+            _resourceMessagingServiceMock.DidNotReceive().SendToTerraformQueue(Arg.Any<WorkspaceDefinition>());
         }
 
         [OneTimeTearDown]

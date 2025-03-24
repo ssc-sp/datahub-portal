@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "8.0.13")
+                .HasAnnotation("ProductVersion", "8.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1043,6 +1043,33 @@ namespace Datahub.Core.Migrations
                     b.ToTable("SystemNotifications");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Datahub.VersionTag", b =>
+                {
+                    b.Property<int>("VersionTagId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VersionTagId"));
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Tag")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.HasKey("VersionTagId");
+
+                    b.ToTable("VersionTags");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm", b =>
                 {
                     b.Property<int>("WebForm_ID")
@@ -1235,138 +1262,108 @@ namespace Datahub.Core.Migrations
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "Id");
-
-                    b.Property<string>("AreaOfScience")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "AreaOfScience");
+                        .HasColumnType("int");
 
                     b.Property<string>("CBRID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "CBRID");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CBRName")
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "CBRName");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "DepartmentName");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FinancialAuthorityCommitmentIsOrg")
-                        .HasColumnType("nvarchar(max)");
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("FinancialAuthorityCommitmentIsRef")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FinancialAuthorityCostCentre")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityCostCentre");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("FinancialAuthorityEmail")
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityEmail");
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FinancialAuthorityFirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityFirstName");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("FinancialAuthorityLastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "FinancialAuthorityLastName");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("GcHostingId")
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "GcHostingId");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("GeneratesInfoBusinessValue")
-                        .HasColumnType("bit")
-                        .HasAnnotation("Relational:JsonPropertyName", "GeneratesInfoBusinessValue");
+                        .HasColumnType("bit");
 
                     b.Property<string>("Keywords")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "Keywords");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LeadEmail")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "LeadEmail");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("LeadFirstName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "LeadFirstName");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("LeadLastName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "LeadLastName");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<string>("ProjectDescription")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectDescription");
-
-                    b.Property<DateTime>("ProjectEndDate")
-                        .HasColumnType("datetime2")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectEndDate");
-
-                    b.Property<DateTime>("ProjectStartDate")
-                        .HasColumnType("datetime2")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectStartDate");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProjectTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "ProjectTitle");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<DateTime>("RetentionPeriodStartDate")
-                        .HasColumnType("datetime2")
-                        .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodStartDate");
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("RetentionPeriodYears")
-                        .HasColumnType("int")
-                        .HasAnnotation("Relational:JsonPropertyName", "RetentionPeriodYears");
+                        .HasColumnType("int");
 
                     b.Property<string>("RetentionValue")
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "RetentionValue");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SecurityClassification")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "SecurityClassification");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Subject")
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "Subject");
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("WorkspaceBudget")
-                        .HasColumnType("decimal(18,2)")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceBudget");
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("WorkspaceDescription")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceDescription");
+                        .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("WorkspaceIdentifier")
+                    b.Property<string>("WorkspaceName")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceIdentifier");
-
-                    b.Property<string>("WorkspaceTitle")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)")
-                        .HasAnnotation("Relational:JsonPropertyName", "WorkspaceTitle");
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
 
@@ -1617,6 +1614,9 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTime?>("OperationalWindow")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("ParentGCHostingBudgetId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PowerBI_URL")
                         .HasMaxLength(400)
                         .HasColumnType("nvarchar(400)");
@@ -1710,14 +1710,14 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("DivisionId");
 
+                    b.HasIndex("ParentGCHostingBudgetId");
+
                     b.HasIndex("Project_Acronym_CD")
                         .IsUnique();
 
                     b.HasIndex("SectorId");
 
                     b.ToTable("Projects", (string)null);
-
-                    b.HasAnnotation("Relational:JsonPropertyName", "Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_ProjectApiUser", b =>
@@ -2716,6 +2716,10 @@ namespace Datahub.Core.Migrations
                         .HasForeignKey("DivisionId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "ParentGCHostingBudget")
+                        .WithMany("WorkspacesInBudget")
+                        .HasForeignKey("ParentGCHostingBudgetId");
+
                     b.HasOne("Datahub.Core.Model.Datahub.Organization_Level", "Sector")
                         .WithMany("Sectors")
                         .HasForeignKey("SectorId")
@@ -2726,6 +2730,8 @@ namespace Datahub.Core.Migrations
                     b.Navigation("DatahubAzureSubscription");
 
                     b.Navigation("Division");
+
+                    b.Navigation("ParentGCHostingBudget");
 
                     b.Navigation("Sector");
                 });
@@ -2976,6 +2982,11 @@ namespace Datahub.Core.Migrations
             modelBuilder.Entity("Datahub.Core.Model.Datahub.WebForm", b =>
                 {
                     b.Navigation("Fields");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
+                {
+                    b.Navigation("WorkspacesInBudget");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project", b =>

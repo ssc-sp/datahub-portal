@@ -28,7 +28,7 @@ public class ResourceMessagingService(
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition);
     }
 
-    public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = "system-generated")
+    public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = "system-generated", string? cbrId = null)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var project = await ctx.Projects
@@ -43,8 +43,8 @@ public class ResourceMessagingService(
         {
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }
-            
-       
+        // TODO: Add handling for CBRs
+
         var users = project.Users
             .Where(u => u.PortalUser != null)
             .Select(u => new TerraformUser
@@ -71,7 +71,7 @@ public class ResourceMessagingService(
                 AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project),
                 PostgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project)
             },
-            RequestingUserEmail = requestingUserEmail,
+            RequestingUserEmail = requestingUserEmail
         };
     }
 }
