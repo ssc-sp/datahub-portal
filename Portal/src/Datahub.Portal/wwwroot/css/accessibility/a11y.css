@@ -3,6 +3,10 @@
     outline-offset: -2px !important;
 }
 
+.mud-stepper-content:focus {
+    outline: none !important;
+}
+
 .mud-checkbox-input:hover {
     outline: 2px solid black !important;
     outline-offset: -2px !important;

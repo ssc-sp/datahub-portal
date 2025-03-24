@@ -1,9 +1,6 @@
-﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Services;
-using Datahub.Core.Services.Projects;
+﻿using Datahub.Core.Services.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Transactions;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
@@ -14,44 +11,31 @@ using Datahub.Shared;
 
 namespace Datahub.Infrastructure.Services;
 
-public class RequestManagementService : IRequestManagementService
+public class RequestManagementService(
+    ILogger<RequestManagementService> logger,
+    IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    IDatahubAuditingService datahubAuditingService,
+    IResourceMessagingService resourceMessagingService)
+    : IRequestManagementService
 {
-    private readonly ILogger<RequestManagementService> _logger;
-    private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-    private readonly IDatahubAuditingService _datahubAuditingService;
-    private readonly IResourceMessagingService _resourceMessagingService;
-
-    public RequestManagementService(
-        ILogger<RequestManagementService> logger,
-        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        IDatahubAuditingService datahubAuditingService,
-        IResourceMessagingService resourceMessagingService)
-    {
-        _logger = logger;
-        _dbContextFactory = dbContextFactory;
-        _datahubAuditingService = datahubAuditingService;
-        _resourceMessagingService = resourceMessagingService;
-    }
-
-
     public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentPortalUser)
     {
         var workspaceDefinition =
-            await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
-        await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
+            await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
+        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
     }
 
     /// <summary>
-    /// Processes the given request for a specific project asynchronously.
+    /// Scaffold local changes for the given project asynchronously.
     /// </summary>
-    /// <param name="project">The project for which the request is being processed.</param>
-    /// <param name="requestingUser">The user making the request.</param>
-    /// <param name="requestedTemplate">The template requested for the project.</param>
-    /// <returns>A task representing the asynchronous operation.</returns>
-    private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
-        TerraformTemplate requestedTemplate)
+    /// <param name="project">The project to scaffold for</param>
+    /// <param name="requestingUser">The requesting user</param>
+    /// <param name="requestedTemplate">The template to scaffold</param>
+    /// <param name="ctx">The db context to use</param>
+    public async Task ScaffoldLocalChanges(Datahub_Project project, PortalUser requestingUser,
+        TerraformTemplate requestedTemplate,
+        DatahubProjectDBContext ctx)
     {
-        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         ctx.Projects.Attach(project);
 
         await ctx.Entry(project)
@@ -62,15 +46,19 @@ public class RequestManagementService : IRequestManagementService
             .FirstOrDefault(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name));
 
         if (resource is not null)
-        {            
+        {
             if (requestedTemplate.Status == TerraformStatus.DeleteRequested)
-            { 
-                resource.Status = TerraformStatus.DeleteRequested;  
+            {
+                resource.Status = TerraformStatus.DeleteRequested;
             }
             else
             {
-                resource.Status = TerraformStatus.ExistsOrInAnyProcess(resource.Status) ? resource.Status : requestedTemplate.Status;
+                resource.Status = TerraformStatus.ExistsOrInAnyProcess(resource.Status)
+                    ? resource.Status
+                    : requestedTemplate.Status;
             }
+
+            ctx.Project_Resources2.Update(resource);
         }
         else
         {
@@ -84,8 +72,21 @@ public class RequestManagementService : IRequestManagementService
 
             await ctx.Project_Resources2.AddAsync(resource);
         }
+    }
 
-        await ctx.TrackSaveChangesAsync(_datahubAuditingService);
+    /// <summary>
+    /// Processes the given request for a specific project asynchronously.
+    /// </summary>
+    /// <param name="project">The project for which the request is being processed.</param>
+    /// <param name="requestingUser">The user making the request.</param>
+    /// <param name="requestedTemplate">The template requested for the project.</param>
+    /// <returns>A task representing the asynchronous operation.</returns>
+    private async Task ProcessRequest(Datahub_Project project, PortalUser requestingUser,
+        TerraformTemplate requestedTemplate)
+    {
+        await using var ctx = await dbContextFactory.CreateDbContextAsync();
+        await ScaffoldLocalChanges(project, requestingUser, requestedTemplate, ctx);
+        await ctx.TrackSaveChangesAsync(datahubAuditingService);
     }
 
     /// <summary>
@@ -101,7 +102,7 @@ public class RequestManagementService : IRequestManagementService
     {
         try
         {
-            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Resources)
                 .Include(p => p.Users)
@@ -131,19 +132,20 @@ public class RequestManagementService : IRequestManagementService
             }
 
             var workspaceDefinition =
-                await _resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
+                await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
 
-            await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating resource {TerraformTemplate} for {DatahubProjectProjectAcronymCd}",
+            logger.LogError(ex, "Error creating resource {@TerraformTemplate} for {DatahubProjectProjectAcronymCd}",
                 terraformTemplate, datahubProject.Project_Acronym_CD);
             return false;
         }
     }
+
 
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {

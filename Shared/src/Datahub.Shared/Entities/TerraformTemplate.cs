@@ -101,17 +101,22 @@ public class TerraformTemplate(string name, string status)
         return name switch
         {
             NewProjectTemplate => [],
-            AzureStorageBlob => [],
+            AzureStorageBlob => [
+                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
+            ],
             AzureDatabricks =>
             [
+                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
                 new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
             ],
             AzureAppService =>
             [
+                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
                 new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
             ],
-            AzurePostgres => [],
-            VariableUpdate => [],
+            AzurePostgres => [
+                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
+            ],
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
