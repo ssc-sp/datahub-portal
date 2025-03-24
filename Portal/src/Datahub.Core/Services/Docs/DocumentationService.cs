@@ -8,7 +8,6 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Azure.Storage.Blobs;
 using Microsoft.Extensions.Logging;
-using Datahub.Core.Data.Databricks;
 
 namespace Datahub.Core.Services.Docs;
 
@@ -28,7 +27,7 @@ public class DocumentationService
 
     private DocumentationFileMapper _docFileMappings = null!;
     private IList<TimeStampedStatus> _statusMessages;
-    private BlobServiceClient _blobServiceClient;
+    private BlobServiceClient? _blobServiceClient;
     private DocItem? _enOutline;
     private DocItem? _frOutline;
     private DocItem _cachedDocs;
@@ -45,9 +44,16 @@ public class DocumentationService
         _statusMessages = new List<TimeStampedStatus>();
         _cache = docCache;
         _cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
-
         var connectionString = _config["Media:StorageConnectionString"];
-        _blobServiceClient = new(connectionString);
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            _logger.LogWarning("Storage connection string is not set in the configuration.");
+            _blobServiceClient = null;
+        }
+        else
+        {
+            _blobServiceClient = new BlobServiceClient(connectionString);
+        }
     }
 
     /// <summary>
@@ -359,10 +365,15 @@ public class DocumentationService
     /// <returns>The loaded documentation page if found, otherwise null.</returns>
     private async Task<string?> LoadDocsFromAzure(string path, bool useCache = false)
     {
+        if (_blobServiceClient == null)
+        {
+            _logger.LogError("BlobServiceClient is not initialized. Cannot load document from Azure.");
+            return null;
+        }
         try
         {
             var sasToken = _config["Media:SasToken"];
-            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient("docs");
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
 
             // Construct the BlobClient URI with the SAS token
             var blobUri = new Uri($"{containerClient.Uri}/{path}?{sasToken}");
@@ -392,7 +403,7 @@ public class DocumentationService
 
     public string BuildAbsoluteUrl(string relativePath)
     {
-        string storageBaseUrl = _config["Media:StorageBaseUrl"] ?? "https://fsdhstaticassetstorage.blob.core.windows.net/static/docs/";
+        string storageBaseUrl = _config["Media:StorageBaseUrl"] ?? $"https://fsdhstaticassetstorage.blob.core.windows.net/static/{ContainerName}/";
         if (relativePath.StartsWith("/"))
             relativePath = relativePath.TrimStart('/');
 
@@ -412,10 +423,15 @@ public class DocumentationService
     /// <returns>The last commit timestamp if available, otherwise null.</returns>
     public async Task<DateTime?> LastRepoCommitTs(bool useCache = true)
     {
+        if (_blobServiceClient == null)
+        {
+            _logger.LogError("BlobServiceClient is not initialized. Cannot retrieves the last timestamp.");
+            return null;
+        }
         try
         {
             var sasToken = _config["Media:SasToken"];
-            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient("docs");
+            BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
 
             // Construct the BlobClient URI with the SAS token
             var blobUri = new Uri($"{containerClient.Uri}/UserGuide/_sidebar.md?{sasToken}");
