@@ -68,7 +68,8 @@ public class ResourceMessagingService(
             AppData = new WorkspaceAppData
             {
                 DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null),
-                AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project)
+                AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project),
+                PostgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project)
             },
             RequestingUserEmail = requestingUserEmail,
             CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty
