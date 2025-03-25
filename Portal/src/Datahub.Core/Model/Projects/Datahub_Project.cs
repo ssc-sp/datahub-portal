@@ -159,6 +159,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
+    [AeFormIgnore]
+    public DateTime Created_DT { get; set; }
 
     /// <summary>
     /// Gets or sets the Id of the Azure subscription of the workspace in Datahub.
