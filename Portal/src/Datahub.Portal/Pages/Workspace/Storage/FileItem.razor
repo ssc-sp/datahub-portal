@@ -22,7 +22,7 @@
             <i class="fas fa-check-circle checked"></i>
         </span>
     }
-    <AeTypography class="file-item-name">
+    <MudText class="file-item-name">
         <span class="file-item-icon">
             @if (Icon != null)
             {
@@ -34,12 +34,9 @@
             }
         </span>
         @Name
-    </AeTypography>
-    <AeTypography class="file-item-size">@(ByteSize ?? "")</AeTypography>
-    <AeTypography class="file-item-modified">@(Modified?.ToString("r") ?? "")</AeTypography>
-    <span class="more-actions">
-        <i class="fas fa-ellipsis-h"></i>
-    </span>
+    </MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "")</MudText>
+    <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
 </div>
 
     @code {
