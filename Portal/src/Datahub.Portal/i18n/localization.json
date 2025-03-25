@@ -2150,5 +2150,7 @@
   "{0} is already added to your workspace": "{0} is already added to your workspace",
   "{0} remaining credits of {1}": "{0} remaining credits of {1}",
   "{0} successfully added to your workspace": "{0} successfully added to your workspace",
-  "There are no users matching the current filter.": "There are no users matching the current filter."
+  "There are no users matching the current filter.": "There are no users matching the current filter.",
+  "GC Hosting CBR": "GC Hosting CBR",
+  "Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information.": "Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information."
 }
