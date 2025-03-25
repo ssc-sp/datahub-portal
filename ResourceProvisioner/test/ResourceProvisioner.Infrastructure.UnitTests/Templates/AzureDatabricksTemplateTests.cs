@@ -2,8 +2,6 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
-using Microsoft.TeamFoundation.SourceControl.WebApi.Legacy;
-using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
@@ -75,8 +73,8 @@ public class AzureDatabricksTemplateTests
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var expectedContent = sourceFileContent
-                .Replace(TerraformService.TerraformTagToken,
-               $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspace.Version}");
+                .Replace(TerraformService.TerraformVersionToken, workspace.Version)
+                .Replace(TerraformService.TerraformBranchToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}");
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));

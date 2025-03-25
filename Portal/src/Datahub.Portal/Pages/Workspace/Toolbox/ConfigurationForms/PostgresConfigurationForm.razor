@@ -1,0 +1,52 @@
+﻿@namespace Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms
+@using Datahub.Shared.Entities
+@using Datahub.Portal.Pages.Account
+
+<div id=@PostgresConfigurationFormId>
+    <SettingsField Label="@Localizer["Database tier"]"
+                   Description="@Localizer["Choose a tier for the compute of your database. This will affect the performance and cost of your database."]">
+        <MudSelect T="string" Label="@Localizer["Database tier"]" @bind-Value="@Configuration.PSQL_SKU" id=@PostgresSkuSelectId >
+            @foreach (var tier in AvailableTiers)
+            {
+                <MudSelectItem Value="@tier.PSQL_SKU" >
+                    <MudStack Row id="@WorkspaceToolboxPage.ElementId([PostgresSkuSelectId, tier.PSQL_SKU])">
+                        @TierLabel(tier.PSQL_SKU)
+                        <MudSpacer/>
+                        <MudText Style="font-style: italic">
+                            @tier.PSQL_SKU
+                        </MudText>
+                    </MudStack>
+                </MudSelectItem>
+            }
+        </MudSelect>
+    </SettingsField>
+</div>
+
+
+@code {
+    [Parameter] public PostgresConfiguration Configuration { get; set; }
+    public static string PostgresConfigurationFormId => "postgres-configuration-form";
+    public static string PostgresSkuSelectId => "postgres-sku-select";
+    private List<PostgresTier> AvailableTiers { get; set; }
+    private PostgresTier DefaultTier => AvailableTiers.First(t => t.PSQL_SKU == "B_Standard_B1ms");
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        AvailableTiers = PostgresTier.GetPostgresTiers().Where(t => t.IsAvailable).ToList();
+        Configuration ??= new PostgresConfiguration();
+        Configuration.PSQL_SKU ??= DefaultTier.PSQL_SKU;
+    }
+
+    private string TierLabel(string sku)
+    {
+        var skuTier = AvailableTiers.FirstOrDefault(t => t.PSQL_SKU == sku);
+        if (skuTier == null)
+        {
+            return sku;
+        }
+
+        return Localizer["{0} - {1} vCores, {2} RAM, {3}", skuTier.SKUName, skuTier.Cores, skuTier.MemorySize, skuTier.Cost];
+    }
+
+}
