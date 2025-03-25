@@ -40,16 +40,15 @@
             <div class="file-list">
                 <div class="file-list-header">
                     <div></div>
-                    <AeTypography>
+                    <MudText>
                         @Localizer["Name"]
                         @* <AeSearchInput *@
                         @*     SearchIconFAClass="fas fa-search" *@
                         @*     OnInputChangeWithLastKey="HandleSearch" *@
                         @*     style="margin: 0 1rem;"/> *@
-                    </AeTypography>
-                    <AeTypography>@Localizer["Size"]</AeTypography>
-                    <AeTypography>@Localizer["Last Modified"]</AeTypography>
-                    <i class="fas fa-sort-alpha-down"></i>
+                    </MudText>
+                    <MudText>@Localizer["Size"]</MudText>
+                    <MudText>@Localizer["Last Modified"]</MudText>
                 </div>
 
                 @if (_loading)
