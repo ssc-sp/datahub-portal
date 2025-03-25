@@ -2,36 +2,40 @@
 @using Datahub.Application.Services.Metadata
 
 <div style="margin: 2rem">
-    <AeCard>
-        <Header>
-            <h2>Metadata</h2>
-        </Header>
-        <ChildContent>
-            <input class="ae input"
-                   type="text"
-                   @bind="BoundValue"
-                   @bind:event="oninput"
-                   style="width: 100%;" />
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+        <Authorized>
+            <AeCard>
+                <Header>
+                    <h2>Metadata</h2>
+                </Header>
+                <ChildContent>
+                    <input class="ae input"
+                           type="text"
+                           @bind="BoundValue"
+                           @bind:event="oninput"
+                           style="width: 100%;" />
 
-            <div>
-                <ul>
-                    @foreach (var kw in _keywords)
-                    {
-                        <li>@kw</li>
-                    }
-                </ul>
-            </div>
+                    <div>
+                        <ul>
+                            @foreach (var kw in _keywords)
+                            {
+                                <li>@kw</li>
+                            }
+                        </ul>
+                    </div>
 
-            <div>
-                <AeTypography>Queries: @_queryCount</AeTypography>
-            </div>
+                    <div>
+                        <AeTypography>Queries: @_queryCount</AeTypography>
+                    </div>
 
-            <div>
-                <AeButton @onclick="ErrorClick" >Error Now!</AeButton>
-            </div>
+                    <div>
+                        <AeButton @onclick="ErrorClick" >Error Now!</AeButton>
+                    </div>
 
-        </ChildContent>
-    </AeCard>
+                </ChildContent>
+            </AeCard>
+        </Authorized>
+    </DatahubAuthView>
 </div>
 
 @code {

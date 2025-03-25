@@ -13,7 +13,7 @@
 
 <DHPageTitle PageTitleKey=@Localizer["Edit Field Definition"] />
 <div style="margin: 2rem">
-    <AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
         <Authorized>
             <h2>Edit Field Definition</h2>
             <AeCard>
@@ -31,9 +31,9 @@
             </AeCard>
         </Authorized>
         <NotAuthorized>
-            @Localizer["You are not authorized to edit metadata."]
+            @Localizer["You are not authorized to view this page."]
         </NotAuthorized>
-    </AuthorizeView>
+    </DatahubAuthView>
 </div>
 
 @code {

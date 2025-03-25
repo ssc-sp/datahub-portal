@@ -2,19 +2,26 @@
 @using Datahub.Application.Services.Metadata
 
 <div style="margin: 2rem">
-    <AeCard>
-        <Header>
-            <h2>Metadata</h2>
-        </Header>
-        <ChildContent>
-            <ObjectMetadataEditor 
-                @ref="_objectMetadataEditor" 
-                ObjectId=@ObjectId 
-                ProfileName="catalog" 
-                UpdateCatalog="false"
-                Preview />
-        </ChildContent>
-    </AeCard>
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+        <Authorized>
+            <AeCard>
+                <Header>
+                    <h2>Metadata</h2>
+                </Header>
+                <ChildContent>
+                    <ObjectMetadataEditor 
+                        @ref="_objectMetadataEditor" 
+                        ObjectId=@ObjectId 
+                        ProfileName="catalog" 
+                        UpdateCatalog="false"
+                        Preview />
+                </ChildContent>
+            </AeCard>
+        </Authorized>
+        <NotAuthorized>
+            <AeTypography Variant="h3">You are not authorized to view this page.</AeTypography>
+            </NotAuthorized>
+     </DatahubAuthView>
 </div>
 
 @code {
