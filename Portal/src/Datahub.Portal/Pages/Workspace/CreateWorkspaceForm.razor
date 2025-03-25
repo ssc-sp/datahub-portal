@@ -1,4 +1,5 @@
 ﻿@using Datahub.Application.Services
+@using Datahub.Core.Model.Onboarding
 @using Datahub.Portal.Components
 @using static Datahub.Core.DevTools
 @inject IWorkspaceCreationService _projectCreationService
@@ -12,6 +13,20 @@
     </MudText>
 
     <MudForm Class="mb-4" @bind-IsValid="@_success">
+        <MudSelect T="GCHostingWorkspaceDetails"
+            @bind-Value="_currentGcHostingPlan"
+            Label=@Localizer["GC Hosting CBR"]
+            ToStringFunc="GenerateGcHostingPlanLabel">
+
+            <MudSelectItem Value="default(GCHostingWorkspaceDetails)" Disabled/>
+            <MudDivider />
+            @foreach(var cbr in gcHostingPlans)
+            {
+                <MudSelectItem Value="cbr" />
+            }
+
+        </MudSelect>
+
         <MudTextField T="string"
                       @bind-Value="_projectTitle"
                       Label="@Localizer["Workspace Title"]" Required
@@ -81,7 +96,7 @@
         <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
             @Localizer["Cancel"]
         </MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_success" OnClick="CreateProject" Class="ml-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_canCreate" OnClick="CreateProject" Class="ml-2">
             @if (_isCreating)
             {
                 <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
@@ -95,6 +110,9 @@
 @code {
     public bool ShowCancel { get; set; } = true;
 
+    [Parameter]
+    public bool ShowAllCBRs { get; set; } = false;
+
 #nullable enable
     private const int MaxAcronymLength = 7;
     private const int MaxTitleLength = 100;
@@ -107,8 +125,13 @@
     private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
     private List<TopBarEnvironments> _environmentsToAllowCreation = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl };
 
+    private IEnumerable<GCHostingWorkspaceDetails> gcHostingPlans = [];
+    private GCHostingWorkspaceDetails? _currentGcHostingPlan = default;
+
     private bool _success;
     private bool _isCreating;
+
+    private bool _canCreate => _success && _currentGcHostingPlan is not null;
 
     private bool _githubIntegration;
     private bool _createRepository;
@@ -166,7 +189,9 @@
         _success = string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym)); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
         _success = _success && string.IsNullOrWhiteSpace(await ValidateTitle(_projectTitle));
 
-        if (_success)
+        // _canCreate is based on _success and a valid CBR selection
+
+        if (_canCreate)
         {
             if (_isCreating)
                 return;
@@ -176,7 +201,9 @@
             await Task.Delay(1);
             // TODO: Get Organization name?
 
-            var isAdded = await _projectCreationService.CreateWorkspaceAsync(_projectTitle, _projectAcronym, "Unspecified");
+            var gcHostingId = _currentGcHostingPlan?.Id;
+
+            var isAdded = await _projectCreationService.CreateWorkspaceAsync(_projectTitle, _projectAcronym, "Unspecified", gcHostingId);
             _isCreating = false;
             if (isAdded)
             {
@@ -202,6 +229,16 @@
         _createRepository = value;
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        gcHostingPlans = ShowAllCBRs ?
+            await _projectCreationService.GetAllGCHostingWorkspaceDetails() :
+            await _projectCreationService.GetGCHostingWorkspaceDetailsForCurrentUser();
+
+        await base.OnInitializedAsync();
+    }
+
+    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d) => d is null? Localizer["N/A"] : $"{d.CBRID} - {d.CBRName} ({d.Datahub_Project.Project_Acronym_CD})";
 
 #nullable disable
 }

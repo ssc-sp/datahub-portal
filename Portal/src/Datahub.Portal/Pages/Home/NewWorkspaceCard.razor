@@ -23,9 +23,12 @@
             <DHButton Underline Color="Color.Primary"
                       Href="@Localizer[PageRoutes.Explore]"
                       EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">@Localizer["Explore other workspaces and users"]</DHButton>
-            <DHButton Variant="Variant.Filled" Color="Color.Primary" Underline
-                      Href="@Localizer[PageRoutes.CreateWorkspace]"
-                      EndIcon="@Icons.Material.Filled.Add">@Localizer["Create new workspace"]</DHButton>
+            
+            <DatahubAuthView AuthLevel="@DatahubAuthView.AuthLevels.CbrOwner">
+                <DHButton Variant="Variant.Filled" Color="Color.Primary" Underline
+                          Href="@Localizer[PageRoutes.CreateWorkspace]"
+                          EndIcon="@Icons.Material.Filled.Add">@Localizer["Create new workspace"]</DHButton>
+            </DatahubAuthView>          
         </MudStack>
     </MudStack>
 </MudPaper>
