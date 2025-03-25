@@ -8,7 +8,7 @@
 <MudStack>
     @if (_isDeleted)
     {
-        <DHAlert>
+        <DHAlert Severity="Severity.Error" Dense>
             <p>
                 <strong>
                     @Localizer["This workspace has been deleted."]

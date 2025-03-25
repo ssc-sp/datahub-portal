@@ -13,7 +13,7 @@
         <MudSpacer/>
         <MudPaper Class="pa-0 mt-20" Style="background-color: var(--mud-palette-background-gray)">
 
-            <MudPaper Class="pa-10" Elevation=2>
+            <MudPaper Class="pa-10" Elevation="0" Outlined>
                 <MudStack>
                     <span class="sr-only" translate="no">
                         <DHMainContentTitle Title="Federal Science DataHub - Language Selection / Plateforme fédérale de données scientifiques - Sélection de la langue" />
@@ -24,10 +24,12 @@
                         <MudSpacer/>
                         <MudStack lang="en" Style="max-width: 50%">
                             <MudText translate="no" Align=@Align.Right Typo=@Typo.h2 Style="font-size: 24px">Federal Science DataHub</MudText>
+                            <MudSpacer/>
                             <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
                         </MudStack>
                         <MudStack lang="fr"Style="max-width: 50%">
                             <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">Plateforme fédérale de données scientifiques</MudText>
+                            <MudSpacer/>
                             <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>
                                 Français
                             </MudButton>
