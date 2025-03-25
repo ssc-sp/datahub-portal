@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Datahub.Core.Migrations
+namespace Datahub.Core.Migrations.SqliteDatahub
 {
     /// <inheritdoc />
     public partial class WorkspaceCreationTime : Migration
@@ -14,9 +14,9 @@ namespace Datahub.Core.Migrations
             migrationBuilder.AddColumn<DateTime>(
                 name: "Created_DT",
                 table: "Projects",
-                type: "datetime2",
+                type: "TEXT",
                 nullable: false,
-                defaultValue: new DateTime(2025, 3, 25, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValueSql: "GETUTCDATE()");
         }
 
         /// <inheritdoc />

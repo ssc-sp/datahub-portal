@@ -1536,7 +1536,7 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTime>("Created_DT")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValue(new DateTime(2025, 3, 25, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("DB_Name")
                         .HasMaxLength(128)

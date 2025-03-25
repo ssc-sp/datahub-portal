@@ -12,7 +12,8 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
             .ToTable("Projects");
         builder
             .Property(p => p.Created_DT)
-            .HasDefaultValue(new DateTime(2025, 3, 25));
+            .ValueGeneratedOnAdd()
+            .HasDefaultValueSql("GETUTCDATE()");
         // builder.HasOne(e => e.DatahubAzureSubscription)
         //     .WithMany(s => s.Workspaces)
         //     .HasForeignKey(e => e.DatahubAzureSubscriptionId)

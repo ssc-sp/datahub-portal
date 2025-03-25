@@ -1483,7 +1483,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<DateTime>("Created_DT")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("TEXT")
-                        .HasDefaultValue(new DateTime(2025, 3, 25, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("DB_Name")
                         .HasMaxLength(128)
