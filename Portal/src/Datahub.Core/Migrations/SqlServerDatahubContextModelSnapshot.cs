@@ -1533,6 +1533,11 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("Contact_List")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("Created_DT")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValue(new DateTime(2025, 3, 25, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
                     b.Property<string>("DB_Name")
                         .HasMaxLength(128)
                         .HasColumnType("nvarchar(128)");

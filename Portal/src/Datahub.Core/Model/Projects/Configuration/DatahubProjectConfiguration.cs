@@ -8,7 +8,11 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
 {
     public void Configure(EntityTypeBuilder<Datahub_Project> builder)
     {
-        builder.ToTable("Projects");
+        builder
+            .ToTable("Projects");
+        builder
+            .Property(p => p.Created_DT)
+            .HasDefaultValue(new DateTime(2025, 3, 25));
         // builder.HasOne(e => e.DatahubAzureSubscription)
         //     .WithMany(s => s.Workspaces)
         //     .HasForeignKey(e => e.DatahubAzureSubscriptionId)
