@@ -136,6 +136,6 @@ public class GCHostingWorkspaceDetails
     /// </summary>
     public Datahub_Project Datahub_Project { get; set; } = null!;
 
-    public IEnumerable<Datahub_Project> WorkspacesInBudget { get; set; } = [];
+    public IEnumerable<Datahub_Project> WorkspacesInBudget { get; set; } = new List<Datahub_Project>();
 }
 #nullable disable
