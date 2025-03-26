@@ -15,4 +15,5 @@ public interface IServiceAuthManager
     List<string> GetProjectMailboxEmails(string projectAcronym);
     Task<Dictionary<string, List<string>>> CheckCacheForAdmins();
     Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetUserAuthorizations(string userGraphId);
+    Task<bool> IsUserCbrOwner(string userEmail);
 }
