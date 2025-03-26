@@ -29,6 +29,16 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                 claims.AddClaim(new Claim(ClaimTypes.Role, "default"));
                 claims.AddClaim(new Claim(ClaimTypes.Role, userId));
 
+                var userEmail = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+                if (userEmail is null)
+                {
+                    logger.LogError($"email not available for user with uid {userId}");
+                }
+                else if (await serviceAuthManager.IsUserCbrOwner(userEmail))
+                {
+                    claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.CBR_OWNER_ROLE));
+                }
+
                 // Ensure that the user can't be both approver and admin
                 bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
 
