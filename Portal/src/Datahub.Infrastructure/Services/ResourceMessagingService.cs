@@ -37,14 +37,14 @@ public class ResourceMessagingService(
             .ThenInclude(u => u.PortalUser)
             .Include(p => p.Resources)
             .Include(p => p.DatahubAzureSubscription)
+            .Include(p => p.ParentGCHostingBudget)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
         
         if(project == null)
         {
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }
-        // TODO: Add handling for CBRs
-
+        
         var users = project.Users
             .Where(u => u.PortalUser != null)
             .Select(u => new TerraformUser
@@ -71,7 +71,8 @@ public class ResourceMessagingService(
                 AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project),
                 PostgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project)
             },
-            RequestingUserEmail = requestingUserEmail
+            RequestingUserEmail = requestingUserEmail,
+            CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty
         };
     }
 }

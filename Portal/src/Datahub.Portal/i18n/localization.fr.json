@@ -3142,5 +3142,7 @@
   "{0} is already added to your workspace": "{0} est déjà ajouté à votre espace de travail",
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
-  "There are no users matching the current filter.": "Aucun utilisateur ne correspond au filtre actuel."
+  "There are no users matching the current filter.": "Aucun utilisateur ne correspond au filtre actuel.",
+  "GC Hosting CBR": "BOI d'hébergement du GC",
+  "Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information.": "Les espaces de travail ne peuvent être créés que par les services d'hébergement du GC ou avec un BOI existant. Veuillez contacter votre responsable d'espace de travail ou l'équipe de soutien de la PFDS pour plus d'informations."
 }
