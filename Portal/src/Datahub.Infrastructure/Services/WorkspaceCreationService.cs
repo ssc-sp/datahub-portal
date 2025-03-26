@@ -36,7 +36,7 @@ public class WorkspaceCreationService(
         return await db.Projects.AnyAsync(p => p.Project_Acronym_CD == acronym);
     }
 
-    public async Task<string> GenerateWorkspaceAcronymAsync(string projectName)
+    public virtual async Task<string> GenerateWorkspaceAcronymAsync(string projectName)
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
         var existingAcronyms = db.Projects.Select(p => p.Project_Acronym_CD).ToArray();
