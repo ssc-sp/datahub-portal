@@ -166,6 +166,7 @@
         public const string AzureSubscriptions = "azure-subscriptions";
         public const string AzureSubscriptions_FR = "abonnements-azure";
         public const string HostingServices_FR = "services-hebergement";
+        public const string MetadataDefinitions = "metadata/definitions";
     }
 
 
@@ -187,7 +188,8 @@
         SectionViews.Users,
         SectionViews.Email,
         SectionViews.AzureSubscriptions,
-        SectionViews.HostingServices
+        SectionViews.HostingServices,
+        SectionViews.MetadataDefinitions
     };
 
 
@@ -265,6 +267,7 @@
             SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
             SectionViews.SupportRequests => SidebarIcons.SupportRequests,
             SectionViews.HostingServices => SidebarIcons.HostingServices,
+            SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
 
             _ => SidebarIcons.Profile
         };
@@ -288,6 +291,7 @@
             SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
             SectionViews.SupportRequests => Localizer["Support Requests"],
             SectionViews.HostingServices => Localizer["Hosting Services"],
+            SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
 
             _ => Localizer["Public Profile"]
         };
