@@ -513,33 +513,28 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task LocalRecords()
         {
+            var workspace = await _context
+                .Projects
+                .Include(p => p.Resources)
+                .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
             foreach (var template in _builtWorkspaceDefinition.Templates)
             {
                 Log($"Scaffolding local changes for {template.Name}");
                 // Create project resource records for each template
-                await RequestManagementService.ScaffoldLocalChanges(_workspace, _viewedPortalUser, template, _context);
+                await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context);
 
                 // Apply tool specific changes
                 switch (template.Name)
                 {
                     case TerraformTemplate.AzurePostgres:
-                        Log("Applying postgres configuration to database");
-                        _context.Projects.Attach(_workspace);
-
-                        await _context.Entry(_workspace)
-                            .Collection(p => p.Resources)
-                            .LoadAsync();
-
-                        var postgresResource = _workspace.Resources.First(r =>
-                            r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name) &&
-                            r.ProjectId == _workspace.Project_ID);
-
+                        var resource = workspace.Resources.First(r =>
+                            r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));
                         var inputJson = new JsonObject
                         {
                             ["postgres_sku"] = _builtWorkspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
                         };
-                        postgresResource.InputJsonContent = inputJson.ToString();
-                        _context.Update(postgresResource);
+                        resource.InputJsonContent = inputJson.ToString();
                         break;
                 }
             }
