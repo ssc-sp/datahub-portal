@@ -453,6 +453,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task VerifyRequest()
         {
+            await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2))); // Small delay to make it look better
+
             var workspace = await _context
                 .Projects
                 .AsNoTracking()
@@ -513,6 +515,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task LocalRecords()
         {
+            await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2))); // Random delay to make it look better
             var workspace = await _context
                 .Projects
                 .Include(p => p.Resources)
@@ -545,6 +548,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task CloudRequest()
         {
+            await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2)));
             Log("Sending workspace definition to Terraform queue");
             if (!_mockRequest)
             {
