@@ -21,7 +21,9 @@
     }
     else
     {
-        <WorkspaceBudgetAlert PercentBudgetSpent=@_percentBudgetSpent View="@View"/>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+            <WorkspaceBudgetAlert PercentBudgetSpent=@_percentBudgetSpent View="@View"/>
+        </DatahubAuthView>
     }
 </MudStack>
 
@@ -49,7 +51,7 @@
         _isDeleted = _project.IsDeleted;
         var currentSpend = Convert.ToDecimal(_project?.Credits?.Current ?? 0);
         var maximumSpend = Convert.ToDecimal(_project?.Project_Budget ?? 0);
-        
+
         _percentBudgetSpent = maximumSpend > 0 ? Math.Min(100, currentSpend / maximumSpend * 100) : 0;
         _isLoading = false;
     }

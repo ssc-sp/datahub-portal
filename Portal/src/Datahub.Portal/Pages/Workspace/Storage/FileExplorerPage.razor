@@ -163,9 +163,10 @@
         _projectId = _project?.Project_ID;
         try
         {
+            _isProjectKeyEnabled = await IsProjectKeyEnabled();
+            if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
             await keyVaultUserService.Authenticate();
             await LoadContainersAsync();
-            _isProjectKeyEnabled = await IsProjectKeyEnabled();
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {

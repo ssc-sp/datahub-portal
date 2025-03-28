@@ -74,11 +74,11 @@
         switch (PercentBudgetSpent)
         {
             case < 75:
-                return Localizer["It is recommended to monitor the usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+                return Localizer["It is recommended to monitor the usage as the workspace and its tools will become inaccessible if the budget is exceeded.", PercentBudgetSpent];
             case < 90:
-                return Localizer["It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+                return Localizer["It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace and its tools will become inaccessible if the budget is exceeded.", PercentBudgetSpent];
             case < 100:
-                return Localizer["Please contact the workspace lead immediately to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+                return Localizer["Please contact the workspace lead immediately to discuss the budget usage as the workspace and its tools will become inaccessible if the budget is exceeded.", PercentBudgetSpent];
             case 100:
                 return Localizer["To increase your budget, please submit a request through the GC Hosting Services Portal."];
             default:

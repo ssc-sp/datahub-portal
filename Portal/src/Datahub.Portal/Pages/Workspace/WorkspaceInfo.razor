@@ -14,9 +14,7 @@
             @_project?.ProjectName
         </MudText>
     </DHMainContentTitle>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
-        <WorkspaceAlerts WorkspaceAcronym=@WorkspaceAcronym View="@WorkspaceSidebar.SectionViews.Dashboard"/>
-    </DatahubAuthView>
+    <WorkspaceAlerts WorkspaceAcronym=@WorkspaceAcronym View="@WorkspaceSidebar.SectionViews.Dashboard"/>
     <DHMarkdown class="description" Content="@_projectDescription"/>
 </MudStack>
 
