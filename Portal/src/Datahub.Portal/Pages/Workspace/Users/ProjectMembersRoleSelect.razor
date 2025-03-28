@@ -50,10 +50,10 @@
 </MudMenu>
 
 @code {
-
     [Parameter] public int InitialValue { get; set; }
-
     [Parameter] public EventCallback<int> OnRoleChanged { get; set; }
+
+    public IEnumerable<Project_Role> ProjectRoles => _projectRoles;
 
     private Project_Role _currentRole;
     private IEnumerable<Project_Role> _projectRoles;
@@ -68,12 +68,10 @@
     {
         _projectRoles = Project_Role.GetAll().ToList();
         _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Remove);
-        // _projectRoles = _projectRoles.Where(r => r.Id != (int)Project_Role.RoleNames.Remove);
-
         _currentRole = _projectRoles.FirstOrDefault(r => r.Id == InitialValue);
     }
 
-    private async Task RoleChanged(int newRoleId)
+    public async Task RoleChanged(int newRoleId)
     {
         if (newRoleId == (int)Project_Role.RoleNames.Remove)
         {
@@ -87,5 +85,4 @@
 
         await OnRoleChanged.InvokeAsync(newRoleId);
     }
-
 }
