@@ -55,6 +55,17 @@
                         </li>
                     }
                 }
+                @if (ShowCost && CostBarColor() != Color.Primary)
+                {
+                    <li style=@CardActionStyle>
+                        <DHButton Underline NoWrap FullWidth
+                                  Color="Color.Primary"
+                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                            @Localizer["Reports"]
+                        </DHButton>
+                    </li>
+                }
                 <li style=@CardMainActionStyle>
                     <DHButton Underline NoWrap FullWidth
                               Color="Color.Primary"
@@ -122,7 +133,7 @@
         .AddStyle("flex-wrap", "wrap")
         .AddStyle("list-style-type", "none")
         .AddStyle("row-gap", "5px")
-        .AddStyle("justify-content", "space-between")
+        .AddStyle("justify-content", "space-evenly")
         .AddStyle("align-items", "center")
         .Build();
 
