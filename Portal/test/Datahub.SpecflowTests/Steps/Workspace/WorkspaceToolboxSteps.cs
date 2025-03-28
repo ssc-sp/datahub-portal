@@ -38,7 +38,8 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 [Binding]
 public class WorkspaceToolboxSteps(
     ScenarioContext scenarioContext,
-    IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : TestContext
+    IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    DatahubPortalConfiguration datahubPortalConfiguration) : TestContext
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -85,6 +86,7 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IToolboxService>(toolboxService);
         var dialogService = new DialogService();
         Services.AddSingleton<IDialogService>(dialogService);
+        Services.AddSingleton(datahubPortalConfiguration);
         Services.AddStub<IDatahubAuditingService>();
         Services.AddStub<IRequestManagementService>();
         Services.AddStub<IWebHostEnvironment>();
@@ -208,12 +210,21 @@ public class WorkspaceToolboxSteps(
     public void ThenShouldNotBeInTheExistingToolsSection(string tool)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var existing = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ExistingId}");
-        existing.Should().NotBeNull();
-        existing.Children.Where(e =>
-                e.Attributes["id"]!.Value ==
-                WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ExistingId, tool]))
-            .Should().HaveCount(0);
+        try
+        {
+            // The below line should fail, since the existing section won't exist when there are no existing tools
+            var existing = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ExistingId}");
+            // But if it does not fail, then it should not contain the element
+            existing.Should().NotBeNull();
+            existing.Children.Where(e =>
+                    e.Attributes["id"]!.Value ==
+                    WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ExistingId, tool]))
+                .Should().HaveCount(0);
+        }
+        catch (ElementNotFoundException e)
+        {
+            // Nothing to do here
+        }
     }
 
     [When(@"the user clicks the Add button for (.*), if it is (.*)")]
@@ -923,7 +934,8 @@ public class WorkspaceToolboxSteps(
     }
 
     [Then(@"the underlying Configure transaction should show the correct (.*) and (.*) values for (.*)")]
-    public void ThenTheUnderlyingConfigureTransactionShouldShowTheCorrectAndValuesFor(string existingValue, string newValue, string fieldName)
+    public void ThenTheUnderlyingConfigureTransactionShouldShowTheCorrectAndValuesFor(string existingValue,
+        string newValue, string fieldName)
     {
         var workspaceToolboxContainer =
             scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
@@ -951,7 +963,9 @@ public class WorkspaceToolboxSteps(
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
         workspaceToolbox!.Render();
-        var reviewInfo = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ReviewConfigurationId, tool])}");
+        var reviewInfo =
+            workspaceToolbox!.Find(
+                $"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ReviewConfigurationId, tool])}");
         reviewInfo.TextContent.Should().Contain(existingValue);
         reviewInfo.TextContent.Should().Contain(newValue);
     }
