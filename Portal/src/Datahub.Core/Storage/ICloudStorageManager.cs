@@ -26,6 +26,8 @@ public interface ICloudStorageManager
 
     List<(string Placeholder, string Replacement)> GetSubstitutions(string projectAcronym, CloudStorageContainer container);
 
+    Task<Dictionary<string, int>> ListFilesAsync(string container, string prefix = "");
+
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
     CloudStorageProviderType ProviderType { get; }

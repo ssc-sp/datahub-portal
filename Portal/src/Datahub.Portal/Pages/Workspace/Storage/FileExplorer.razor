@@ -20,19 +20,18 @@
 
 <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
     <div class="file-explorer-layout">
-        <Heading
-            CurrentFolder="@_currentFolder"
-            SelectedItems="@_selectedItems"
-            Files="@_files"
-            Folders="@_folders"
-            MetadataSignature=@_metadataSignature
-            OnNewFolder="HandleNewFolder"
-            SetCurrentFolder="SetCurrentFolder"
-            OnFileDelete="HandleFileDelete"
-            OnFileDownload="HandleFileDownload"
-            OnPublishFiles="HandlePublishFiles"
-            OnFileRename="HandleFileRename"
-            OnDeleteFolder="HandleDeleteFolder" />
+        <Heading CurrentFolder="@_currentFolder"
+                 SelectedItems="@_selectedItems"
+                 Files="@_files"
+                 Folders="@_folders"
+                 MetadataSignature=@_metadataSignature
+                 OnNewFolder="HandleNewFolder"
+                 OnFileDelete="HandleFileDelete"
+                 OnFileDownload="HandleFileDownload"
+                 OnPublishFiles="HandlePublishFiles"
+                 OnFileRename="HandleFileRename"
+                 OnDeleteFolder="HandleDeleteFolder"
+                 CanDeleteFolder="CanDeleteFolder" />
 
         <div class="file-list">
             <div class="file-list-header">
@@ -50,7 +49,7 @@
 
             @if (_loading)
             {
-                <LoadingFileList/>
+                <LoadingFileList />
             }
             else
             {
@@ -175,6 +174,8 @@
 
     private IJSObjectReference _module;
 
+    private Dictionary<string, int> _folderList;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -184,6 +185,8 @@
             if (StorageManager != null)
             {
                 StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
+                _folderList = await GetFileCountAsync(_currentFolder);
+                StateHasChanged();
             }
         }
     }
@@ -206,6 +209,31 @@
     private void HandleMetadataChanged()
     {
         _metadataSignature = Guid.NewGuid();
+    }
+
+    private async Task<Dictionary<string, int>> GetFileCountAsync(string folderPath)
+    {
+        Dictionary<string, int> folders = new();
+        if (StorageManager != null)
+        {
+            folders = await StorageManager.ListFilesAsync(ContainerName, folderPath);
+        }
+        return folders;
+    }
+
+    private bool CanDeleteFolder(string folderName)
+    {
+        if (_folders.Contains(folderName) && _folderList != null)
+        {
+            return _folderList.TryGetValue($"{folderName}/", out int fileCount) && fileCount == 0;
+        }
+        return false;
+    }
+
+    private void SelectItem(string item)
+    {
+        _selectedItems = new HashSet<string> { item };
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()
