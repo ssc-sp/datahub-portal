@@ -181,8 +181,9 @@ public class ProjectUsageScheduler(
             var projects = ctx.Projects
                 .Include(p => p.DatahubAzureSubscription)
                 .Include(p => p.Credits)
-                .Where(p => !p.IsDeleted)
                 .AsNoTracking()
+                .ToList()
+                .Where(p => !p.IsDeleted)
                 .ToList();
 
             if (acronyms.Any())
