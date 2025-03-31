@@ -33,7 +33,8 @@
         {
             @* Completed request content *@
             <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 500px">
-                <MudText Typo="Typo.h2">
+                <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Toolbox"/>
+    <MudText Typo="Typo.h2">
                     @if (_completionSteps.All(step => step.State == CompletedState))
                     {
                         @Localizer["Request submitted successfully, redirecting you..."]
