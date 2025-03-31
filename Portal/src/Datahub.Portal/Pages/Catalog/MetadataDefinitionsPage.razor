@@ -1,4 +1,5 @@
 ﻿@page "/metadata/definitions"
+@page "/tool/metadata/definitions"
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
@@ -10,7 +11,7 @@
 @inject NavigationManager navigationManager
 
 <DHPageTitle PageTitleKey=@Localizer["Metadata Definitions"] />
-<AuthorizeView Roles="@string.Join(',', _authorizedRoles)">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
     <Authorized>
         <div style="margin: 2rem">
             <AeTypography Variant="h2">Metadata</AeTypography>
@@ -59,9 +60,9 @@
         </div>
     </Authorized>
     <NotAuthorized>
-        @Localizer["You are not authorized to edit metadata."]
+        @Localizer["You are not authorized to view this page."]
     </NotAuthorized>
-</AuthorizeView>
+</DatahubAuthView>
 
 @code {
 
