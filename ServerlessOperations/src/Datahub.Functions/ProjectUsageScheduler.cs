@@ -182,6 +182,8 @@ public class ProjectUsageScheduler(
                 .Include(p => p.DatahubAzureSubscription)
                 .Include(p => p.Credits)
                 .AsNoTracking()
+                .ToList()
+                .Where(p => !p.IsDeleted)
                 .ToList();
 
             if (acronyms.Any())
