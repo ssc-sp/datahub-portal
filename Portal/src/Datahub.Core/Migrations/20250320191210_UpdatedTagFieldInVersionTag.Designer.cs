@@ -4,6 +4,7 @@ using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    partial class SqlServerDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20250320191210_UpdatedTagFieldInVersionTag")]
+    partial class UpdatedTagFieldInVersionTag
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1532,11 +1535,6 @@ namespace Datahub.Core.Migrations
 
                     b.Property<string>("Contact_List")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("Created_DT")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("DB_Name")
                         .HasMaxLength(128)
