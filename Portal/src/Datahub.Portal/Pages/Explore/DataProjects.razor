@@ -96,7 +96,7 @@
         </PagerContent>
     </MudTable>
     <MudText Typo="Typo.h2" Class="mt-6 mb-3">@Localizer["All Users"]</MudText>
-    <UsersTable UserWorkspaces="_userWorkspaces" HideInfo="true" @ref="_usersTable"/>
+    <UsersTable UserWorkspaces="_userWorkspaces"/>
 </MudStack>
 
 @code {
@@ -111,7 +111,6 @@
     private string _projectSearchFilter = string.Empty;
     private readonly Dictionary<string, string> _departments = new();
 
-    private UsersTable _usersTable;
     private List<UserWorkspaces> _userWorkspaces;
     private List<PortalUser> _portalUsers;
 

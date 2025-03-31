@@ -6,6 +6,7 @@
 @inject IUserInformationService _userInformationService
 @inject ILogger<UserCard> _logger;
 @inject IPortalUserTelemetryService _telemetryService;
+@inject IJSRuntime _jsRuntime;
 @implements IDisposable
 
 @if (_viewedUser is null)
@@ -29,7 +30,7 @@
             <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">
                 @if (_lastLogin != null)
                 {
-                    @Localizer["Last login: {0}", _lastLogin.ToString()]
+                    @Localizer["Last login: {0} {1}", $"{ConvertToLocalTime(_lastLogin!.Value):yyyy-MM-dd HH:mm}", _timezone]
                 }
             </MudText>
         }
@@ -67,6 +68,8 @@
 
     private PortalUser _viewedUser;
     private DateTime? _lastLogin;
+    private IJSObjectReference _module;
+    private string _timezone;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -79,6 +82,23 @@
         await base.OnInitializedAsync();
         _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
         _lastLogin = _telemetryService.GetUserLastLogin();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/User/UserCard.razor.js");
+            }
+            catch (Exception e)
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/User/UserCard.razor.js");
+            }
+            // Eastern Standard Time => EST
+            _timezone = string.Concat((await _module.InvokeAsync<string>("retrieveTimeZone")).Split(" ").Select(word => word.ToUpperInvariant().First()));
+        }
     }
 
     private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
@@ -95,6 +115,12 @@
     public void Dispose()
     {
         _userInformationService.PortalUserUpdated -= OnViewedUserUpdated;
+    }
+
+    private DateTime ConvertToLocalTime(DateTime UTCTime)
+    {
+        TimeZone localZone = TimeZone.CurrentTimeZone;
+        return localZone.ToLocalTime(UTCTime);
     }
 
 }
