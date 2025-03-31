@@ -46,6 +46,7 @@ namespace Datahub.SpecflowTests.Hooks
             await SeedDb(ctx);
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
         }
         
         [AfterScenario("toolbox")]

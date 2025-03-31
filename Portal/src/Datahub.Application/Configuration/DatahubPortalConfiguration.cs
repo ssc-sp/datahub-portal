@@ -52,6 +52,7 @@ public class DatahubPortalConfiguration
     public CkanConfiguration CkanConfiguration { get; set; } = new();
     public int DefaultProjectBudget { get; set; } = 100;
     public DatahubServiceBus DatahubServiceBus { get; set; } = new();
+    public ToolboxConfig ToolboxConfig { get; set; } = new();
 }
 
 public class Achievements
@@ -267,4 +268,10 @@ public class CkanConfiguration
             return Enabled && baseUrlConfigured;
         }
     }
+}
+
+public class ToolboxConfig
+{
+    public bool DisableOnOverBudget { get; set; } = true;
+    public bool DisableOnActiveRequest { get; set; } = false;
 }
