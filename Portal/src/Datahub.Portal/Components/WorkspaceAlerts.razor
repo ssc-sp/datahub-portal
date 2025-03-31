@@ -1,0 +1,59 @@
+﻿@using Datahub.Core.Model.Projects
+@using Microsoft.AspNetCore.Components.RenderTree
+@using Datahub.Portal.Pages.Workspace
+
+@inject IDbContextFactory<DatahubProjectDBContext> DbContextFactory
+
+@if (_isLoading) return;
+<MudStack>
+    @if (_isDeleted)
+    {
+        <DHAlert Severity="Severity.Error" Dense>
+            <p>
+                <strong>
+                    @Localizer["This workspace has been deleted."]
+                </strong>
+            </p>
+            <p>
+                @Localizer["Please contact the workspace lead for details."]
+            </p>
+        </DHAlert>
+    }
+    else
+    {
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym">
+            <WorkspaceBudgetAlert PercentBudgetSpent=@_percentBudgetSpent View="@View"/>
+        </DatahubAuthView>
+    }
+</MudStack>
+
+@code {
+
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string View { get; set; }
+    private Datahub_Project _project;
+    private decimal _percentBudgetSpent;
+    private bool _isLoading = true;
+    private bool _isDeleted;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var db = await DbContextFactory.CreateDbContextAsync();
+        _project = await db.Projects
+            .AsNoTracking()
+            .AsSingleQuery()
+            .Include(p => p.Credits)
+            .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+
+        _isDeleted = _project.IsDeleted;
+        var currentSpend = Convert.ToDecimal(_project?.Credits?.Current ?? 0);
+        var maximumSpend = Convert.ToDecimal(_project?.Project_Budget ?? 0);
+
+        _percentBudgetSpent = maximumSpend > 0 ? Math.Min(100, currentSpend / maximumSpend * 100) : 0;
+        _isLoading = false;
+    }
+
+}
