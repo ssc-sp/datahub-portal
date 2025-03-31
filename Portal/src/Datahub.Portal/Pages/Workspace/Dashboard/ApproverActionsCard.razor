@@ -1,0 +1,18 @@
+﻿@using Datahub.Portal.Pages.Workspace.Settings
+<MudPaper Outlined Elevation="0" Class="pa-4" Style="margin-bottom: 25px">
+    <MudStack>
+        <MudStack Row AlignItems="AlignItems.Center">
+            <DHIcon Icon="@Icons.Material.Outlined.Lock" Size="Size.Medium"/>
+            <MudText Typo="Typo.h3">@Localizer["Approver actions"]</MudText>
+            <MudSpacer/>
+
+        </MudStack>
+        <WorkspaceGrantSupportAccessControl ElevatedWorkspaceAccessEnabled=@ElevatedWorkspaceAccessEnabled
+                                            WorkspaceAcronym=@WorkspaceAcronym/>
+    </MudStack>
+</MudPaper>
+
+@code {
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; }
+}

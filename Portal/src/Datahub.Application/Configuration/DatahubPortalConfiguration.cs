@@ -210,6 +210,7 @@ public class Hosting
 public class KeyVault
 {
     public string UserName { get; set; } = null!;
+    public string ProjectKey { get; set; } = "project-cmk";
 }
 
 /// <summary>

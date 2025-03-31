@@ -966,7 +966,10 @@ public class WorkspaceToolboxSteps(
         var reviewInfo =
             workspaceToolbox!.Find(
                 $"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ReviewConfigurationId, tool])}");
-        reviewInfo.TextContent.Should().Contain(existingValue);
+        if (existingValue != "null")
+        {
+            reviewInfo.TextContent.Should().Contain(existingValue);
+        }
         reviewInfo.TextContent.Should().Contain(newValue);
     }
 }
