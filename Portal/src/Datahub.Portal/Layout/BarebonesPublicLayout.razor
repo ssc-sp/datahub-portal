@@ -14,7 +14,7 @@
 
 @code {
     private readonly string _backgroundStyle = new StyleBuilder()
-                .AddStyle("background-image", "url('/img/signup-bg-blur.jpg')")
+                .AddStyle("background-image", "url('/img/home-hero.jpg')")
                 .AddStyle("background-size", "cover")
                 .AddStyle("background-position", "center")
                 .AddStyle("background-repeat", "no-repeat")
@@ -24,6 +24,6 @@
                 .AddStyle("right", "0")
                 .AddStyle("top", "0")
                 .AddStyle("z-index", "-100")
+                .AddStyle("filter", "blur(8px)")
                 .Build();
-
 }
