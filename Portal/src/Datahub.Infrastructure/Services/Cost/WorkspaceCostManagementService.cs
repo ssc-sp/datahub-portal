@@ -101,11 +101,12 @@ namespace Datahub.Infrastructure.Services.Cost
             var workspaceAzureTotal = workspaceCosts.TotalAmount();
 
             using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var projectCredits = await ctx.Project_Credits
-                .Include(c => c.Project)
-                .FirstOrDefaultAsync(c => c.Project.Project_Acronym_CD == workspaceAcronym);
-            if (projectCredits is null) return false;
-            var workspaceDbTotal = (decimal)projectCredits.Current;
+            var workspace = ctx.Projects.First(p => p.Project_Acronym_CD == workspaceAcronym);
+            var workspaceDbCosts = ctx.Project_Costs.Where(c => c.Project_ID == workspace.Project_ID).ToList();
+            var workspaceFyDbCosts = workspaceDbCosts.Where(c =>
+                c.Date > CostManagementUtilities.CurrentFiscalYear.StartDate &&
+                c.Date < CostManagementUtilities.CurrentFiscalYear.EndDate).ToList();
+            var workspaceDbTotal = (decimal)workspaceFyDbCosts.Sum(c => c.CadCost);
             var diff = Math.Abs(workspaceAzureTotal - workspaceDbTotal);
 
             if (diff > REFRESH_THRESHOLD)
