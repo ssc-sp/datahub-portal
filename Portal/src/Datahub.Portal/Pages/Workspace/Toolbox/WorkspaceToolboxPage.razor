@@ -130,7 +130,7 @@
                                 </MudText>
                                 @if (_disableActiveRequest || _disableOverBudget)
                                 {
-                                    <MudAlert Dense Severity="Severity.Info" Class="mb-2">
+                                    <DHAlert Class="mb-2">
                                         <MudText>
                                             @if (_disableOverBudget)
                                             {
@@ -141,7 +141,7 @@
                                                 @Localizer["This workspace currently has an active request. You may not make new requests while there is an active request. Come back later, or submit a support request if your active request is taking longer than ususal."]
                                             }
                                         </MudText>
-                                    </MudAlert>
+                                    </DHAlert>
                                 }
                                 <MudText Class="mb-4">
                                     @Localizer["The tool catalog will list tools that are not yet in your workspace. You will be able to select from those which you would like to add to your workspace."]
