@@ -127,30 +127,58 @@ public partial class Heading
             await OnNewFolder.InvokeAsync(newFolderName.Trim());
         }
     }
-
     private async Task HandleDeleteFolder()
     {
         if (IsActionDisabled(ButtonAction.DeleteFolder))
             return;
+
+        var folderName = SelectedItems?.FirstOrDefault();
+        if (folderName is null)
+        {
+            folderName = CurrentFolder;
+        }
+        if (folderName.Length < CurrentFolder.Length)  // delete from inside folder
+        {
+            await OnDeleteFolder.InvokeAsync(CurrentFolder);
+            return;
+        }
         
-        await OnDeleteFolder.InvokeAsync();
+        if (folderName != "/")
+        {
+            await OnDeleteFolder.InvokeAsync(folderName);
+        }
     }
+
+    private bool CanDeleteCurrentFolder()
+    {
+        var folderName = SelectedItems?.FirstOrDefault();
+        if (folderName is null)
+        {
+            folderName = CurrentFolder;
+        }
+        if (folderName.Length < CurrentFolder.Length)
+        {
+            return !Files.Any() && !Folders.Any();
+        }
+        return CanDeleteFolder(folderName);
+    }
+
 
     private bool IsActionDisabled(ButtonAction buttonAction)
     {
         if (_currentUserRole is null)
             return true;
-        
+
         return buttonAction switch
         {
-            ButtonAction.Upload   => !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.AzSync   => !_isElectron,
+            ButtonAction.Upload => !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.AzSync => !_isElectron,
             ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastGuest,
-            ButtonAction.Share    => !_isUnclassifiedSingleFile,
-            ButtonAction.Delete   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Rename   => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
+            ButtonAction.Share => !_isUnclassifiedSingleFile,
+            ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.DeleteFolder => Files.Any() || Folders.Any() || CurrentFolder == "/" || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
             _ => false
         };
