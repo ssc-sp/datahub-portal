@@ -88,8 +88,9 @@ public class WorkspaceToolboxSteps(
         Services.AddStub<IDatahubAuditingService>();
         Services.AddStub<IRequestManagementService>();
         Services.AddStub<IWebHostEnvironment>();
+
         var resourceMessagingService =
-            new ResourceMessagingService(dbContextFactory, Substitute.For<ISendEndpointProvider>());
+            new ResourceMessagingService(dbContextFactory, Substitute.For<ISendEndpointProvider>(), Substitute.For<WorkspaceVersionService>());
         Services.AddSingleton<IResourceMessagingService>(resourceMessagingService);
         var logger = new Logger<WorkspaceToolboxPage>(new LoggerFactory());
         Services.AddSingleton(logger);

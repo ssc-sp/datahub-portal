@@ -15,7 +15,8 @@ namespace Datahub.Infrastructure.Services;
 
 public class ResourceMessagingService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    ISendEndpointProvider sendEndpointProvider)
+    ISendEndpointProvider sendEndpointProvider,
+    WorkspaceVersionService workspaceVersionService)
     : IResourceMessagingService
 {
     public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
@@ -61,7 +62,7 @@ public class ResourceMessagingService(
             .Select(r => r.ToTerraformTemplate())
             .ToList();
 
-        workspace.Version = ctx.VersionTags.OrderByDescending(v => v.VersionTagId).First().Tag ?? "latest";
+        workspace.Version = await workspaceVersionService.GetLatestVersion();
 
         return new WorkspaceDefinition
         {

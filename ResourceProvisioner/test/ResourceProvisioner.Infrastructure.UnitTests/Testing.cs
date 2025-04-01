@@ -112,7 +112,7 @@ public class Testing
 
     internal static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
     {
-        var latestVersion = "5.0.2";
+        var latestVersion = "latest";
         var workspace = new TerraformWorkspace
         {
             Acronym = workspaceAcronym,
