@@ -216,7 +216,7 @@
         Dictionary<string, int> folders = new();
         if (StorageManager != null)
         {
-            folders = await StorageManager.ListFilesAsync(ContainerName, folderPath);
+            folders = await StorageManager.ListFoldersAsync(ContainerName, folderPath);
         }
         return folders;
     }

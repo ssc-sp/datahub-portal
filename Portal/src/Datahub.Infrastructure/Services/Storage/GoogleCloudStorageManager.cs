@@ -246,7 +246,7 @@ namespace Datahub.Infrastructure.Services.Storage
             return Task.FromResult(metadata);
         }
 
-        public async Task<Dictionary<string, int>> ListFilesAsync(string container, string prefix = "")
+        public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
         {
             throw new NotImplementedException();
         }

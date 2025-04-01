@@ -179,7 +179,13 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return storageMetadata;
     }
 
-    public async Task<Dictionary<string, int>> ListFilesAsync(string container, string prefix = "")
+    /// <summary>
+    /// Collects list of folders with number of files in each folder
+    /// </summary>
+    /// <param name="container"></param>
+    /// <param name="prefix"></param>
+    /// <returns></returns>
+    public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
     {
         ValidateContainerName(container);
 
