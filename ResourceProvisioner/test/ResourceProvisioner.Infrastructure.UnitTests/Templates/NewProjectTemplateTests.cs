@@ -29,7 +29,7 @@ public class NewProjectTemplateTests
         {
             Acronym = workspaceAcronym
         };
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
@@ -78,7 +78,7 @@ public class NewProjectTemplateTests
 
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
@@ -158,7 +158,7 @@ public class NewProjectTemplateTests
 
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
 
@@ -220,7 +220,7 @@ public class NewProjectTemplateTests
         expectedConfig["key"] = $"{expectedVar.resource_prefix}-ShouldExtractBackendConfiguration.tfstate";
         expectedConfig["subscription_id"] = $"{expectedVar.az_subscription_id}";
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
         var expectedConfigurationFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -253,7 +253,7 @@ public class NewProjectTemplateTests
             Version = "latest"
         };
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, workspace);
 
         // Write a fake backend config before extracting
@@ -276,10 +276,15 @@ public class NewProjectTemplateTests
     public async Task ShouldCheckoutVersionCorrectly(string version)
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
+        var workspace = new TerraformWorkspace
+        {
+            Acronym = workspaceAcronym,
+            Version = "latest"
+        };
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _repositoryService.ExecuteResourceRuns(command, RequestingUser);
     
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);

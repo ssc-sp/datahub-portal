@@ -28,7 +28,7 @@ public class AzureStorageBlobTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace =  GenerateTestTerraformWorkspace(workspaceAcronym);
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {

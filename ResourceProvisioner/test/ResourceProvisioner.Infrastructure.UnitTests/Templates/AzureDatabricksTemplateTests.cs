@@ -32,7 +32,7 @@ public class AzureDatabricksTemplateTests
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
@@ -52,7 +52,7 @@ public class AzureDatabricksTemplateTests
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
-        _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository(string.Empty);
 
         var moduleSourcePath =
             DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureDatabricks);

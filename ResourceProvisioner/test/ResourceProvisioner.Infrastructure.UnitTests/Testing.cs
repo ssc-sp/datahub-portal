@@ -112,12 +112,7 @@ public class Testing
 
     internal static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
     {
-        var versions = await _repositoryService.GetModuleVersions();
-        var latestVersion = versions.Max();
-        
-        if(latestVersion == null)
-            throw new Exception("No versions found for module repository");
-        
+        var latestVersion = "5.0.2";
         var workspace = new TerraformWorkspace
         {
             Acronym = workspaceAcronym,
@@ -125,13 +120,13 @@ public class Testing
         };
         try
         {
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         }
         catch (IOException)
         {
             await Task.Delay(1000);
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        }
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        }   
 
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>()

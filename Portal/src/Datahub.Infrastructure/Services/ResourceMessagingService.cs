@@ -61,6 +61,8 @@ public class ResourceMessagingService(
             .Select(r => r.ToTerraformTemplate())
             .ToList();
 
+        workspace.Version = ctx.VersionTags.OrderByDescending(v => v.VersionTagId).First().Tag ?? "latest";
+
         return new WorkspaceDefinition
         {
             Workspace = workspace,

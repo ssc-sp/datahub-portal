@@ -146,7 +146,7 @@ public class RequestManagementService(
 
             workspaceDefinition.AppData.ResourceNameSuffix = resourceNameSuffix;
 
-            await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
         }
         catch (Exception ex)

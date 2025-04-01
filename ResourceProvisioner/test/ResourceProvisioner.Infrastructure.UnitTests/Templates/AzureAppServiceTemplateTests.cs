@@ -29,7 +29,7 @@ public class AzureAppServiceTemplateTests
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
@@ -47,7 +47,7 @@ public class AzureAppServiceTemplateTests
 
         await _terraformService.CopyTemplateAsync(module.Name, workspace);
 
-        _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository(string.Empty);
 
         var moduleSourcePath =
             DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureAppService);

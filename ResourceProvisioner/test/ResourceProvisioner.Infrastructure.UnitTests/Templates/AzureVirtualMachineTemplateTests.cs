@@ -23,7 +23,7 @@ public class AzureVirtualMachineTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
