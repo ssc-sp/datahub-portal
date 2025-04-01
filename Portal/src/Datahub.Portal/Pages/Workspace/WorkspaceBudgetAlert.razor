@@ -6,22 +6,33 @@
     return;
 }
 
-<MudAlert Severity="@SeverityLevel()" Dense Square>
-    @BudgetMessage()
-</MudAlert>
+<DHAlert Severity="@SeverityLevel()" Dense>
+    <p>
+        <strong>
+            @Title()
+        </strong>
+    </p>
+    <p>
+        @BudgetMessage()
+    </p>
+    <p>
+        @ContextMessage()
+    </p>
+</DHAlert>
 
 @code {
 
     [Parameter, EditorRequired] public decimal PercentBudgetSpent { get; set; }
+    [Parameter] public string View { get; set; }
 
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
         if (PercentBudgetSpent <= 100) return;
-        
-        _logger.LogWarning("PercentBudgetSpent is greater than 100. Setting to 100.");
+
         PercentBudgetSpent = 100;
+        _logger.LogWarning("PercentBudgetSpent is greater than 100. Setting to 100.");
     }
 
     private Severity SeverityLevel()
@@ -41,20 +52,56 @@
         }
     }
 
+    private string Title()
+    {
+        switch (PercentBudgetSpent)
+        {
+            case < 75:
+                return Localizer["This workspace has consumed {0:F2}% of its budget.", PercentBudgetSpent];
+            case < 90:
+                return Localizer["This workspace has consumed {0:F2}% of its budget.", PercentBudgetSpent];
+            case < 100:
+                return Localizer["This workspace has consumed {0:F2}% of its budget.", PercentBudgetSpent];
+            case 100:
+                return Localizer["Your workspace has consumed 100% of its budget."];
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
     private string BudgetMessage()
     {
         switch (PercentBudgetSpent)
         {
             case < 75:
-                return Localizer["This workspace has consumed {0:F2}% of its budget. It is recommended to monitor the usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+                return Localizer["It is recommended to monitor the usage as the workspace and its tools will become inaccessible if the budget is exceeded.", PercentBudgetSpent];
             case < 90:
-                return Localizer["This workspace has consumed {0:F2}% of its budget. It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+                return Localizer["It is strongly recommended to reach out to the workspace lead to discuss the budget usage as the workspace and its tools will become inaccessible if the budget is exceeded.", PercentBudgetSpent];
             case < 100:
-                return Localizer["This workspace has consumed {0:F2}% of its budget. Please contact the workspace lead immediately to discuss the budget usage as the workspace resources will be deleted if the budget is exceeded.", PercentBudgetSpent];
+                return Localizer["Please contact the workspace lead immediately to discuss the budget usage as the workspace and its tools will become inaccessible if the budget is exceeded.", PercentBudgetSpent];
             case 100:
-                return Localizer["Your workspace has consumed 100% of its budget. To increase your budget, please submit a request through the GC Hosting Services Portal."];
+                return Localizer["To increase your budget, please submit a request through the GC Hosting Services Portal."];
             default:
                 throw new ArgumentOutOfRangeException();
+        }
+    }
+
+    private string ContextMessage()
+    {
+        switch (View)
+        {
+            case WorkspaceSidebar.SectionViews.Storage:
+                return Localizer["Access to storage is disabled when going over budget. You will no longer be able to access any data or make any changes to the files."];
+            case WorkspaceSidebar.SectionViews.SqlDatabase:
+                return Localizer["Access to PostgreSQL is disabled when going over budget. You will no longer be able to access any data or make any changes to the database."];
+            case WorkspaceSidebar.SectionViews.Dashboard:
+            case WorkspaceSidebar.SectionViews.Dashboard_FR:
+                return Localizer["Compute in Databricks is disabled when going over budget. You will no longer be able to run any notebooks or jobs."];
+            case WorkspaceSidebar.SectionViews.Toolbox:
+            case WorkspaceSidebar.SectionViews.Toolbox_FR:
+                return Localizer["Access to the toolbox is disabled when going over budget. You will no longer be able to request or configure tools."];
+            default:
+                return string.Empty;
         }
     }
 
