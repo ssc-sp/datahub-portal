@@ -367,19 +367,13 @@ public class DocumentationService
     {
         if (_blobServiceClient == null)
         {
-            _logger.LogError("BlobServiceClient is not initialized. Cannot load document from Azure.");
-            return null;
+            throw new Exception("BlobServiceClient is not initialized. Cannot load document from Azure.");
         }
         try
         {
             var sasToken = _config["Media:SasToken"];
             BlobContainerClient containerClient = _blobServiceClient.GetBlobContainerClient(ContainerName);
-
-            // Construct the BlobClient URI with the SAS token
-            var blobUri = new Uri($"{containerClient.Uri}/{path}?{sasToken}");
-
-            BlobClient blobClient = containerClient.GetBlobClient($"{path}?{sasToken}");
-            // BlobClient blobClient = new BlobClient(blobUri);
+            BlobClient blobClient = containerClient.GetBlobClient($"{path}");
 
             if (await blobClient.ExistsAsync())
             {
@@ -390,14 +384,12 @@ public class DocumentationService
             }
             else
             {
-                _logger.LogWarning($"Document not found in Azure Storage: {path}");
-                return null;
+                throw new Exception($"Document not found in Azure Storage: {path}");
             }
         }
         catch (Exception e)
         {
-            _logger.LogError($"Error loading {path} from Azure: {e.Message}");
-            return null;
+            throw new Exception($"Error loading {path} from Azure: {e.Message}");
         }
     }
 
