@@ -258,3 +258,28 @@ the correct information in the page.
       | configurable-tool | configurable | form-id                     | example-form-input  | existing-configuration | new-configuration | configuration-parameter | db-name      |
       | azure-postgres    | true         | postgres-configuration-form | postgres-sku-select | B_Standard_B1ms        | B_Standard_B2s    | PSQL_SKU                | postgres_sku |
       | azure-postgres    | true         | postgres-configuration-form | postgres-sku-select | null                   | B_Standard_B1ms   | PSQL_SKU                | postgres_sku |
+
+      # SUBMISSION
+
+    Scenario: Users see the correct submission process information in the UI, the appropriate changes are applied to the database and the request is correctly sent to the RP
+        Given the workspace does not have <catalog-tool>
+        And the user is on the workspace toolbox page
+        When the user clicks the Add button for <catalog-tool>, if it is <available>
+        And the user clicks the Next button
+        And the user clicks the Next button again, if it is <configurable>
+        Then at this stage, the generated workspace definition should be correct, with the correct <configuration> value
+        When the user clicks the Complete button
+        Then the user should see the request submission steps
+        When the user waits for  2 sec
+        Then the user should see the completed submission steps
+        And the database should contain the corresponding changes
+        And the request should have been properly sent to the resource provisioner
+        And the user should be redirected to the workspace dashboard
+
+    Examples:
+      | catalog-tool         | available | configurable | configuration   |
+      | new-project-template | true      | false        | null            |
+      | azure-storage-blob   | true      | false        | null            |
+      | azure-databricks     | true      | false        | null            |
+      | azure-app-service    | true      | false        | null            |
+      | azure-postgres       | true      | true         | B_Standard_B1ms |

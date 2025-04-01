@@ -29,13 +29,13 @@
 
 <MudStack>
     <DHMainContentTitle Title="@Localizer["Toolbox"]"/>
+    <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Toolbox"/>
     <MudPaper Elevation="0" Outlined>
         @if (_completed)
         {
             @* Completed request content *@
-            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 500px">
-                <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Toolbox"/>
-    <MudText Typo="Typo.h2">
+            <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="min-height: 500px" >
+                <MudText Typo="Typo.h2" id=@CompletionStepTitleId>
                     @if (_completionSteps.All(step => step.State == CompletedState))
                     {
                         @Localizer["Request submitted successfully, redirecting you..."]
@@ -51,21 +51,21 @@
                     }
                 </MudText>
                 <MudStack>
-                    <MudStack Justify="Justify.FlexStart">
+                    <MudStack Justify="Justify.FlexStart" id=@CompletionStepsId>
                         @foreach (var step in _completionSteps)
                         {
                             <MudStack Row AlignItems="AlignItems.Center">
                                 @if (step.State == ActiveState)
                                 {
-                                    <MudProgressCircular Indeterminate Color="Color.Primary" Size="Size.Small"/>
+                                    <MudProgressCircular Indeterminate Color="Color.Primary" Size="Size.Small" id=@ElementId([CompletionStepsId, step.State])/>
                                 }
                                 @if (step.State == CompletedState)
                                 {
-                                    <MudIcon Icon="@Icons.Material.Outlined.Check" Color="Color.Primary"/>
+                                    <MudIcon Icon="@Icons.Material.Outlined.Check" Color="Color.Primary" id=@ElementId([CompletionStepsId, step.State])/>
                                 }
                                 @if (step.State == FailedState)
                                 {
-                                    <MudIcon Icon="@Icons.Material.Outlined.Close" Color="Color.Primary"/>
+                                    <MudIcon Icon="@Icons.Material.Outlined.Close" Color="Color.Primary" id=@ElementId([CompletionStepsId, step.State])/>
                                 }
                                 <MudText Typo="Typo.body1">@Localizer[step.Label]</MudText>
                                 @if (step.Time is not 0)
@@ -650,6 +650,9 @@
     private bool _completed;
     private bool _disableOverBudget;
     private bool _disableActiveRequest;
+    private bool _disableSubmissionDelays;
+    private bool _disableSubmissions;
+    private bool _sentToTerraform;
 
     private class CompletionStep
     {
@@ -659,9 +662,9 @@
         public long Time { get; set; }
     }
 
-    private static string ActiveState => "active";
-    private static string CompletedState => "completed";
-    private static string FailedState => "failed";
+    public static string ActiveState => "active";
+    public static string CompletedState => "completed";
+    public static string FailedState => "failed";
     public static string CatalogId => "tool-catalog";
     public static string ExistingId => "tool-existing";
     public static string ConfigurationFormsId => "configuration-forms";
@@ -680,6 +683,8 @@
     public static string ReviewTableId => "review-table";
     public static string ReviewActionId => "review-action";
     public static string ReviewConfigurationId => "review-configuration";
+    public static string CompletionStepTitleId => "completion-step-title";
+    public static string CompletionStepsId => "completion-steps";
     public static string ElementId(string[] sections) => string.Join("-", sections);
 
     private List<CompletionStep> _completionSteps = [];
@@ -714,6 +719,8 @@
         _workspaceCosts.Monthly = (decimal)(_workspace.Credits?.YesterdayCredits ?? 0) * 30;
         _disableOverBudget = DatahubPortalConfiguration.ToolboxConfig.DisableOnOverBudget && _workspaceCosts.Spent > _workspaceCosts.Budget;
         _disableActiveRequest = DatahubPortalConfiguration.ToolboxConfig.DisableOnActiveRequest && _workspace.Resources.Any(r => TerraformStatus.RequestedOrInProcessOf(r.Status));
+        _disableSubmissionDelays = DatahubPortalConfiguration.ToolboxConfig.DisableSubmissionDelays;
+        _disableSubmissions = DatahubPortalConfiguration.ToolboxConfig.DisableSubmissions;
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
 
         _metadataRequired = _workspace.MetadataAdded != true;

@@ -59,7 +59,6 @@ public class Achievements
 {
     public bool Enabled { get; set; } = false;
     public bool LocalAchievementsOnly { get; set; } = false;
-
 }
 
 public class Media
@@ -67,11 +66,15 @@ public class Media
     public string StorageConnectionString { get; set; } = null!;
     public string StaticAssetsUrl { get; set; } = "https://fsdhstaticassetstorage.blob.core.windows.net";
 
-    public string GetAchievementThumbnailUrl(string? code) => $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
-    public string GetAchievementPortraitUrl(string? code) => $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
-    public string GetAchievementImageUrl(string? code) => $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
-}
+    public string GetAchievementThumbnailUrl(string? code) =>
+        $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
 
+    public string GetAchievementPortraitUrl(string? code) =>
+        $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
+
+    public string GetAchievementImageUrl(string? code) =>
+        $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
+}
 
 public class TermsAndConditionsUrl
 {
@@ -227,6 +230,7 @@ public class PublicFileSharing
     public string OpenDataApprovalPdfFormIdParam { get; set; } = null!;
     public string PublicFileSharingDomain { get; set; } = null!;
 }
+
 public class ReverseProxy
 {
     public bool Enabled { get; set; } = true;
@@ -274,4 +278,6 @@ public class ToolboxConfig
 {
     public bool DisableOnOverBudget { get; set; } = true;
     public bool DisableOnActiveRequest { get; set; } = false;
+    public bool DisableSubmissionDelays { get; set; } = false;
+    public bool DisableSubmissions { get; set; } = false;
 }

@@ -1,19 +1,18 @@
-﻿using Datahub.Application.Configuration;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Services.Projects;
-using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
+using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using MassTransit;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.Extensions;
 using Reqnroll;
 using Reqnroll.BoDi;
 
@@ -32,6 +31,8 @@ namespace Datahub.SpecflowTests.Hooks
                 .Build();
 
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            datahubPortalConfiguration.ToolboxConfig.DisableSubmissionDelays = true;
+            datahubPortalConfiguration.ToolboxConfig.DisableSubmissions = true;
             configuration.Bind(datahubPortalConfiguration);
 
             // setup in memory provider ef core context
@@ -40,21 +41,17 @@ namespace Datahub.SpecflowTests.Hooks
                 .Options;
 
             var dbContextFactory = new SpecFlowDbContextFactory(options);
-
-
             var ctx = await dbContextFactory.CreateDbContextAsync();
             await SeedDb(ctx);
+
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
         }
-        
+
         [AfterScenario("toolbox")]
         public async Task AfterScenarioRequiringQueue(IObjectContainer objectContainer)
         {
-            var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
-            var ctx = await dbContextFactory.CreateDbContextAsync();
-            await ctx.Database.EnsureDeletedAsync();
         }
 
         private async Task SeedDb(DatahubProjectDBContext context)
@@ -67,7 +64,7 @@ namespace Datahub.SpecflowTests.Hooks
                 SubscriptionName = "Test",
             };
             context.AzureSubscriptions.Add(sub);
-            
+
             var project = new Datahub_Project
             {
                 Project_Acronym_CD = Testing.WorkspaceAcronym,
@@ -76,7 +73,7 @@ namespace Datahub.SpecflowTests.Hooks
                 Project_Budget = 100.0M
             };
             context.Projects.Add(project);
-            
+
             var credits = new Project_Credits
             {
                 ProjectId = project.Project_ID,

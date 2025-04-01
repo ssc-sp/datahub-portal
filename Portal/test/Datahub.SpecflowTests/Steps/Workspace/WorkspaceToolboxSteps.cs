@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+﻿using System.Diagnostics;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Bunit;
@@ -10,15 +11,18 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.Projects;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Pages.Workspace.Toolbox;
 using Datahub.Shared;
+using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using MassTransit;
+using MassTransit.Transports;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Components;
@@ -31,7 +35,9 @@ using Microsoft.Graph.Models.Security;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
+using NSubstitute.Extensions;
 using Reqnroll;
+using ResourceMessagingService = Datahub.Infrastructure.Services.ResourceMessagingService;
 
 namespace Datahub.SpecflowTests.Steps.Workspace;
 
@@ -42,6 +48,7 @@ public class WorkspaceToolboxSteps(
     DatahubPortalConfiguration datahubPortalConfiguration) : TestContext
 {
     private const string RelativePathToSrc = "../../../../../src";
+
 
     [Given(@"the user is on the workspace toolbox page")]
     public void GivenTheUserIsOnTheWorkspaceToolboxPage()
@@ -88,10 +95,19 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IDialogService>(dialogService);
         Services.AddSingleton(datahubPortalConfiguration);
         Services.AddStub<IDatahubAuditingService>();
-        Services.AddStub<IRequestManagementService>();
+
+        var requestLogger = new Logger<RequestManagementService>(new LoggerFactory());
+
+        var endpointProvider = Substitute.For<ISendEndpointProvider>();
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider);
+        var requestManagementService = new RequestManagementService(
+            requestLogger,
+            dbContextFactory,
+            Substitute.For<IDatahubAuditingService>(),
+            resourceMessagingService
+        );
+        Services.AddSingleton<IRequestManagementService>(requestManagementService);
         Services.AddStub<IWebHostEnvironment>();
-        var resourceMessagingService =
-            new ResourceMessagingService(dbContextFactory, Substitute.For<ISendEndpointProvider>());
         Services.AddSingleton<IResourceMessagingService>(resourceMessagingService);
         var logger = new Logger<WorkspaceToolboxPage>(new LoggerFactory());
         Services.AddSingleton(logger);
@@ -970,7 +986,154 @@ public class WorkspaceToolboxSteps(
         {
             reviewInfo.TextContent.Should().Contain(existingValue);
         }
+
         reviewInfo.TextContent.Should().Contain(newValue);
+    }
+
+    [When(@"the user clicks the Next button again, if it is (.*)")]
+    public void WhenTheUserClicksTheNextButtonAgainIfItIs(bool configurable)
+    {
+        if (configurable)
+        {
+            var workspaceToolbox =
+                scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+            workspaceToolbox!.Render();
+            var nextButton =
+                workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.NextButtonId])}");
+            nextButton.Click();
+        }
+
+        scenarioContext["configurable"] = configurable;
+    }
+
+    [Then(@"at this stage, the generated workspace definition should be correct, with the correct (.*) value")]
+    public void ThenAtThisStageTheGeneratedWorkspaceDefinitionShouldBeCorrect(string configVal)
+    {
+        var workspaceToolboxContainer =
+            scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var workspaceToolbox = workspaceToolboxContainer!.FindComponent<WorkspaceToolboxPage>();
+        var tool = scenarioContext["tool"] as string;
+        var configurable = scenarioContext.Get<bool>("configurable");
+        workspaceToolbox!.Render();
+        Testing.GetPrivateField(workspaceToolbox!, "_transactions", out var transactions);
+        Testing.GetPrivateField(workspaceToolbox!, "_workspaceDefinition", out var workspaceDefinition);
+        var toolboxService = Services.GetService<IToolboxService>();
+        var generatedDefinition = toolboxService.ApplyTransaction(workspaceDefinition as WorkspaceDefinition,
+            transactions as List<ToolboxTransaction>);
+        var dependencies = TerraformTemplate.GetDependenciesToCreate(tool) ?? [];
+
+        generatedDefinition.Should().NotBeNull();
+        generatedDefinition.Templates.Should().HaveCount(dependencies.Count + 1);
+        generatedDefinition.Templates.All(t =>
+            dependencies.Select(d => d.Name).Contains(t.Name) ||
+            t.Name == tool).Should().BeTrue();
+        generatedDefinition.Templates.All(r => r.Status == TerraformStatus.CreateRequested).Should().BeTrue();
+
+        if (configurable)
+        {
+            switch (tool)
+            {
+                case TerraformTemplate.AzurePostgres:
+                    generatedDefinition.AppData.PostgresConfiguration.Should().NotBeNull();
+                    generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().NotBeNull();
+                    generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().Be(configVal);
+                    break;
+            }
+        }
+
+        scenarioContext["configVal"] = configVal;
+    }
+
+    [When(@"the user clicks the Complete button")]
+    public void WhenTheUserClicksTheCompleteButton()
+    {
+        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        workspaceToolbox!.Render();
+        var completeButton =
+            workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.CompleteButtonId])}");
+        completeButton.Click();
+    }
+
+    [Then(@"the user should see the request submission steps")]
+    public void ThenTheUserShouldSeeTheRequestSubmissionSteps()
+    {
+        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        workspaceToolbox!.Render();
+        var completionSteps =
+            workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.CompletionStepsId])}");
+        completionSteps.Children.Length.Should().Be(3);
+    }
+
+    [When(@"the user waits for  (.*) sec")]
+    public async Task WhenTheUserWaitsForSec(int seconds)
+    {
+        await Task.Delay(TimeSpan.FromSeconds(seconds));
+    }
+
+    [Then(@"the user should see the completed submission steps")]
+    public void ThenTheUserShouldSeeTheCompletedSubmissionSteps()
+    {
+        var workspaceToolboxContainer =
+            scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var workspaceToolbox = workspaceToolboxContainer!.FindComponent<WorkspaceToolboxPage>();
+        workspaceToolbox!.Render();
+        Testing.GetPrivateField(workspaceToolbox!, "_adminEventLogs", out var eventLogsObj);
+        var eventLogs = eventLogsObj as List<string>;
+        var completionSteps =
+            workspaceToolbox!.FindAll(
+                $"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.CompletionStepsId, WorkspaceToolboxPage.CompletedState])}");
+        var completionStepsTitle =
+            workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.CompletionStepTitleId])}")
+                .TextContent;
+        completionSteps.Count.Should().Be(3);
+        completionStepsTitle.Should().Contain("Request submitted successfully");
+    }
+
+    [Then(@"the database should contain the corresponding changes")]
+    public async Task ThenTheDatabaseShouldContainTheCorrespondingChanges()
+    {
+        var configurable = scenarioContext.Get<bool>("configurable");
+        var configValue = scenarioContext.Get<string>("configVal");
+        var tool = scenarioContext["tool"] as string;
+        var dependencies = TerraformTemplate.GetDependenciesToCreate(tool) ?? [];
+        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var resources = ctx.Project_Resources2.ToList();
+        resources.Should().HaveCount(dependencies.Count + 1);
+        resources.All(r =>
+            dependencies.Select(d => TerraformTemplate.GetTerraformServiceType(d.Name)).Contains(r.ResourceType) ||
+            r.ResourceType == TerraformTemplate.GetTerraformServiceType(tool)).Should().BeTrue();
+        resources.All(r => r.Status == TerraformStatus.CreateRequested).Should().BeTrue();
+
+        if (configurable)
+        {
+            switch (tool)
+            {
+                case TerraformTemplate.AzurePostgres:
+                    var toolResource = resources.FirstOrDefault(r =>
+                        r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres));
+                    toolResource.Should().NotBeNull();
+                    toolResource.InputJsonContent.Should().NotBeNull();
+                    var inputJsonContent = toolResource.InputJsonContent.ToString();
+                    inputJsonContent.Should().Contain(configValue);
+                    break;
+            }
+        }
+    }
+
+    [Then(@"the request should have been properly sent to the resource provisioner")]
+    public void ThenTheRequestShouldHaveBeenProperlySentToTheResourceProvisioner()
+    {
+        var workspaceToolboxContainer =
+            scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var workspaceToolbox = workspaceToolboxContainer!.FindComponent<WorkspaceToolboxPage>();
+        Testing.GetPrivateField(workspaceToolbox!, "_sentToTerraform", out var sentToTerraform);
+        var isSentToTerraform = sentToTerraform is bool ? (bool)sentToTerraform : false;
+        isSentToTerraform.Should().BeTrue();
+    }
+
+    [Then(@"the user should be redirected to the workspace dashboard")]
+    public void ThenTheUserShouldBeRedirectedToTheWorkspaceDashboard()
+    {
     }
 }
 
