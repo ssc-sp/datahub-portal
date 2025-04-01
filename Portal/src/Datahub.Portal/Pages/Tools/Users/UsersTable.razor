@@ -15,54 +15,67 @@
 
 <MudTable Striped Items="@UserWorkspaces" ServerData="SortUserTable" @ref="userTable">
     <ToolBarContent>
-        <MudTooltip Text=@Localizer["Copy the emails of all users in the current table (includes filtering)."]>
-            <DHButton Color="Color.Primary" OnClick="@CopyUsersToClipboard">
-                @_allButton
-            </DHButton>
-        </MudTooltip>
-        <MudTooltip Text=@Localizer["Download entire user table to CSV."]>
-            <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" OnClick="HandleDownload" Class="mr-4">
-                @Localizer["Download to CSV"]
-            </DHButton>
-        </MudTooltip>
-
-
+        @if (AdminView)
+        {
+            <MudTooltip Text=@Localizer["Copy the emails of all users in the current table (includes filtering)."]>
+                <DHButton Color="Color.Primary" OnClick="@CopyUsersToClipboard">
+                    @_allButton
+                </DHButton>
+            </MudTooltip>
+            <MudTooltip Text=@Localizer["Download entire user table to CSV."]>
+                <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download"
+                          OnClick="HandleDownload" Class="mr-4">
+                    @Localizer["Download to CSV"]
+                </DHButton>
+            </MudTooltip>
+        }
         <MudTextField
-        Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string" Immediate="true" Placeholder=@Localizer["Search by User or Workspace"]
-        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-4" Label="@Localizer["Search"]">
+            Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string" Immediate="true"
+            Placeholder=@Localizer["Search by User or Workspace"]
+            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+            Class="mt-4" Label="@Localizer["Search"]">
         </MudTextField>
-        <MudSpacer/>
-        <MudNumericField Value="_numberWorkspaces"
-        ValueChanged="NumberWorkspacesChanged"
-        DebounceInterval="300"
-        Label="Minimum number of workspaces"
-        T="int"
-        Immediate="true"
-        Min="0" />
+        @if (AdminView)
+        {
+            <MudSpacer/>
+            <MudNumericField Value="_numberWorkspaces"
+                             ValueChanged="NumberWorkspacesChanged"
+                             DebounceInterval="300"
+                             Label="Minimum number of workspaces"
+                             T="int"
+                             Immediate="true"
+                             Min="0"/>
 
-        <MudSpacer />
-        <MudSelect T="string" Value="_lastXDays" ValueChanged=LastXDaysChanged Variant="Variant.Text" Label="Time of last login" Dense="true">
-            <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
-            @foreach (var days in lastXDaysOptions)
-            {
-                <MudSelectItem T="string" Value="days">@Localizer[days]</MudSelectItem>
-            }
-        </MudSelect>
+            <MudSpacer/>
+            <MudSelect T="string" Value="_lastXDays" ValueChanged=LastXDaysChanged Variant="Variant.Text"
+                       Label="Time of last login" Dense="true">
+                <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
+                @foreach (var days in lastXDaysOptions)
+                {
+                    <MudSelectItem T="string" Value="days">@Localizer[days]</MudSelectItem>
+                }
+            </MudSelect>
+        }
     </ToolBarContent>
     <HeaderContent>
         <MudTh>
-            <MudTableSortLabel SortLabel="User" SortBy="new Func<UserWorkspaces, object>(x => x.User.DisplayName)" InitialDirection="SortDirection.Ascending">
+            <MudTableSortLabel SortLabel="User" SortBy="new Func<UserWorkspaces, object>(x => x.User.DisplayName)"
+                               InitialDirection="SortDirection.Ascending">
                 @Localizer["User"]
             </MudTableSortLabel>
         </MudTh>
         <MudTh>
             @Localizer["Workspaces"]
         </MudTh>
-        <MudTh>
-            <MudTableSortLabel SortLabel="LastLoginDateTime" SortBy="new Func<UserWorkspaces, object>(x => x.User.LastLoginDateTime)">
-                @Localizer["Last login date"]
-            </MudTableSortLabel>
-        </MudTh>
+        @if (AdminView)
+        {
+            <MudTh>
+                <MudTableSortLabel SortLabel="LastLoginDateTime"
+                                   SortBy="new Func<UserWorkspaces, object>(x => x.User.LastLoginDateTime)">
+                    @Localizer["Last login date"]
+                </MudTableSortLabel>
+            </MudTh>
+        }
 
     </HeaderContent>
     <RowTemplate>
@@ -72,19 +85,24 @@
         </MudTd>
         <MudTd DataLabel="Workspaces">
             <ul style="">
-                @foreach(var workspace in context.Workspaces)
+                @foreach (var workspace in context.Workspaces)
                 {
                     <li>
-                        <MudLink Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
-                            <MudText>@workspace.ProjectName <span style="@AcronymStyle">(@workspace.Project_Acronym_CD)</span></MudText>
+                        <MudLink
+                            Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
+                            <MudText>@workspace.ProjectName <span
+                                    style="@AcronymStyle">(@workspace.Project_Acronym_CD)</span></MudText>
                         </MudLink>
                     </li>
                 }
             </ul>
         </MudTd>
-        <MudTd DataLabel="Workspaces">
-            <MudText>@context.User.LastLoginDateTime</MudText>
-        </MudTd>
+        @if (AdminView)
+        {
+            <MudTd DataLabel="Workspaces">
+                <MudText>@context.User.LastLoginDateTime</MudText>
+            </MudTd>
+        }
     </RowTemplate>
     <PagerContent>
         <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"/>
@@ -92,13 +110,12 @@
 </MudTable>
 
 @code {
-    [Parameter]
-    public ICollection<UserWorkspaces> UserWorkspaces { get; set; }
+    [Parameter] public ICollection<UserWorkspaces> UserWorkspaces { get; set; }
+
+    [Parameter] public bool AdminView { get; set; }
 
     public IEnumerable<UserWorkspaces> _filteredData { get; set; }
 
-    [Parameter]
-    public bool HideInfo { get; set; }
 
     private IJSObjectReference _module;
 
@@ -113,18 +130,18 @@
     private string AcronymStyle => new StyleBuilder()
         .Build();
 
-    public List<string> LockedUsers = new ();
-    public List<string> AllUsers = new ();
+    public List<string> LockedUsers = new();
+    public List<string> AllUsers = new();
     public bool LoadStatus = false;
 
     private List<string> lastXDaysOptions =
     [
         "Last 7 days",
-    "Last 30 days",
-    "Last 90 days",
-    "Last 120 days",
-    "Last 365 days",
-    "> 1 year"
+        "Last 30 days",
+        "Last 90 days",
+        "Last 120 days",
+        "Last 365 days",
+        "> 1 year"
     ];
 
     protected override async Task OnInitializedAsync()
@@ -141,7 +158,7 @@
         // Apply search filter
         if (!string.IsNullOrEmpty(_searchString))
         {
-            filteredData = filteredData.Where(check => ((check.User.DisplayName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false) 
+            filteredData = filteredData.Where(check => ((check.User.DisplayName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)
                                                         || (check.User.Email?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)
                                                         || check.Workspaces.Any(x => x.Project_Acronym_CD?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)
                                                         || check.Workspaces.Any(x => x.ProjectName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false)));
@@ -152,11 +169,12 @@
         {
             filteredData = filteredData.Where(check => check.Workspaces.Count() >= _numberWorkspaces);
         }
+
         Console.WriteLine(_numberWorkspaces);
 
         // Apply last X days filter
-        if(_lastXDays != null)
-        {        
+        if (_lastXDays != null)
+        {
             if (_lastXDays.Contains("7 days"))
             {
                 filteredData = filteredData.Where(check => check.User.LastLoginDateTime.HasValue && check.User.LastLoginDateTime.Value >= DateTime.UtcNow.AddDays(-7) && check.User.LastLoginDateTime.Value <= DateTime.UtcNow);
@@ -252,6 +270,7 @@
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
             result = true;
         }
+
         return result;
     }
 
@@ -282,9 +301,9 @@
     private string AllWorkspaces(List<Datahub_Project> workspaces)
     {
         string allWorkspaces = "";
-        foreach(var space in workspaces)
+        foreach (var space in workspaces)
         {
-            if(space.Equals(workspaces.Last()))
+            if (space.Equals(workspaces.Last()))
             {
                 allWorkspaces += space.ProjectName + "(" + space.Project_Acronym_CD + ")";
             }
@@ -293,6 +312,8 @@
                 allWorkspaces += space.ProjectName + "(" + space.Project_Acronym_CD + "), ";
             }
         }
+
         return allWorkspaces;
     }
+
 }
