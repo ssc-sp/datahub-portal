@@ -10,27 +10,26 @@
 @inject IJSRuntime jsRuntime
 @inject NavigationManager navigationManager
 
-<DHPageTitle PageTitleKey=@Localizer["Metadata Definitions"] />
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <Authorized>
         <div style="margin: 2rem">
-            <AeTypography Variant="h2">Metadata</AeTypography>
-            <AeCard>
-                <ChildContent>
-                    <AeTypography Variant="h3">@Localizer["Definitions"]</AeTypography>
+            <MudText Typo="Typo.h2">Metadata</MudText>
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h3">@Localizer["Definitions"]</MudText>
                     <MetadataDefinitionList />
-                </ChildContent>
-            </AeCard>
+                </MudCardContent>
+            </MudCard>
             <div>&nbsp;</div>
-            <AeCard>
-                <ChildContent>
-                    <AeTypography Variant="h3">@Localizer["Profiles"]</AeTypography>
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h3">@Localizer["Profiles"]</MudText>
                     <MetadataProfileList />
-                </ChildContent>
-            </AeCard>
-            <AeCard>
-                <ChildContent>
-                    <AeTypography Variant="h3">@Localizer["Upload Metadata"]</AeTypography>
+                </MudCardContent>
+            </MudCard>
+            <MudCard>
+                <MudCardContent>
+                    <MudText Typo="Typo.h3">@Localizer["Upload Metadata"]</MudText>
                     <MudStack>
                         <MudText>
                             @Localizer["Since you are an Admin in Datahub use the Upload button below to import a valid Metadata definition file."]
@@ -54,9 +53,9 @@
                                 </MudButton>
                             </MudStack>
                         </MudStack>
-                    </MudStack>                    
-                </ChildContent>
-            </AeCard>
+                    </MudStack>
+                </MudCardContent>
+            </MudCard>
         </div>
     </Authorized>
     <NotAuthorized>
