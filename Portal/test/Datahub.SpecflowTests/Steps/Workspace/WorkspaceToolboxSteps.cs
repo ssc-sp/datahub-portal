@@ -923,7 +923,8 @@ public class WorkspaceToolboxSteps(
     }
 
     [Then(@"the underlying Configure transaction should show the correct (.*) and (.*) values for (.*)")]
-    public void ThenTheUnderlyingConfigureTransactionShouldShowTheCorrectAndValuesFor(string existingValue, string newValue, string fieldName)
+    public void ThenTheUnderlyingConfigureTransactionShouldShowTheCorrectAndValuesFor(string existingValue,
+        string newValue, string fieldName)
     {
         var workspaceToolboxContainer =
             scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
@@ -951,8 +952,14 @@ public class WorkspaceToolboxSteps(
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
         workspaceToolbox!.Render();
-        var reviewInfo = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ReviewConfigurationId, tool])}");
-        reviewInfo.TextContent.Should().Contain(existingValue);
+        var reviewInfo =
+            workspaceToolbox!.Find(
+                $"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.ReviewConfigurationId, tool])}");
+        if (existingValue != "null")
+        {
+            reviewInfo.TextContent.Should().Contain(existingValue);
+        }
+
         reviewInfo.TextContent.Should().Contain(newValue);
     }
 }
