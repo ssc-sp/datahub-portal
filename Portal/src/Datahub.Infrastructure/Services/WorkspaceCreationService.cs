@@ -1,6 +1,7 @@
 #nullable enable
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
@@ -10,6 +11,8 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Metadata.DTO;
+using Datahub.Metadata.Utils;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +30,8 @@ public class WorkspaceCreationService(
     IResourceMessagingService resourceMessagingService,
     IDatahubAuditingService auditingService,
     IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
-    IDatahubCatalogSearch datahubCatalogSearch)
+    IDatahubCatalogSearch datahubCatalogSearch,
+    IMetadataBrokerService metadataBrokerService)
     : IWorkspaceCreationService
 {
     public async Task<bool> AcronymExists(string acronym)
@@ -298,5 +302,90 @@ public class WorkspaceCreationService(
     public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetAllGCHostingWorkspaceDetails()
     {
         return await GetGCHostingDetailsInternal(default, true);
+    }
+
+    private static IEnumerable<(string Key, string Value)> GenerateMetadataValuesFromGCHosting(GCHostingWorkspaceDetails details, FieldDefinitions fieldDefinitions)
+    {
+        // basic values: strings straight from the api input
+        if (!string.IsNullOrWhiteSpace(details.WorkspaceName))
+        {
+            yield return (FieldNames.name_en, details.WorkspaceName);
+            yield return (FieldNames.name_fr, details.WorkspaceName);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.WorkspaceDescription))
+        {
+            yield return (FieldNames.description_en, details.WorkspaceDescription);
+            yield return (FieldNames.description_fr, details.WorkspaceDescription);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.Keywords))
+        {
+            yield return (FieldNames.keywords_en, details.Keywords);
+            yield return (FieldNames.keywords_fr, details.Keywords);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.LeadEmail))
+        {
+            yield return (FieldNames.contact_email, details.LeadEmail);
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.LeadFirstName) && !string.IsNullOrWhiteSpace(details.LeadLastName))
+        {
+            yield return (FieldNames.creator, $"{details.LeadLastName}, {details.LeadFirstName}");
+        }
+        else if (!string.IsNullOrWhiteSpace(details.LeadLastName))
+        {
+            yield return (FieldNames.creator, details.LeadLastName);
+        }
+
+        // easy lookups
+        var securityClassFD = fieldDefinitions.Get(FieldNames.security_classification);
+        var securityClassChoice = securityClassFD.Choices.FirstOrDefault(c => details.SecurityClassification.ToString().Equals(c.Label_English_TXT, StringComparison.InvariantCultureIgnoreCase));
+        if (securityClassChoice != null)
+        {
+            yield return (FieldNames.security_classification, securityClassChoice.Value_TXT);
+        }
+
+        var accessRestrictionFD = fieldDefinitions.Get(FieldNames.access_restrictions);
+        var accessRestrictionChoice = accessRestrictionFD.Choices.FirstOrDefault();
+        if (accessRestrictionChoice != null)
+        {
+            yield return (FieldNames.access_restrictions, accessRestrictionChoice.Value_TXT);
+        }
+
+        // our metadata supports multiple subjects; if the API can support it, this could be updated to handle that
+        if (!string.IsNullOrWhiteSpace(details.Subject))
+        {
+            var subjectFD = fieldDefinitions.Get(FieldNames.subject);
+            var subjectChoice = subjectFD.Choices.FirstOrDefault(c => c.Label_English_TXT.Equals(details.Subject, StringComparison.InvariantCultureIgnoreCase));
+            if (subjectChoice != null)
+            {
+                yield return (FieldNames.subject, subjectChoice.Value_TXT);
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(details.DepartmentName))
+        {
+            var orgFD = fieldDefinitions.Get(FieldNames.organization_name);
+            var orgChoice = orgFD.Choices.FirstOrDefault(c => c.Label_English_TXT.Equals(details.DepartmentName, StringComparison.InvariantCultureIgnoreCase));
+            if (orgChoice != null)
+            {
+                yield return (FieldNames.organization_name, orgChoice.Value_TXT);
+            }
+        }
+    }
+
+    public async Task SaveWorkspaceMetadataFromGCHostingDetails(string projectAcronym, GCHostingWorkspaceDetails workspaceDetails)
+    {
+        var definitions = await metadataBrokerService.GetFieldDefinitions();
+        var metadataValues = await metadataBrokerService.GetObjectMetadataValues(projectAcronym);
+
+        foreach (var (key, value) in GenerateMetadataValuesFromGCHosting(workspaceDetails, definitions))
+        {
+            metadataValues.SetValue(key, value);
+        }
+
+        await metadataBrokerService.SaveMetadata(metadataValues, true);
     }
 }

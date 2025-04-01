@@ -266,6 +266,8 @@ public class HostingServicesController : ControllerBase
             project.ParentGCHostingBudget = workspaceDetails;
             await _context.SaveChangesAsync();
 
+            await _workspaceCreationService.SaveWorkspaceMetadataFromGCHostingDetails(acronym, workspaceDetails);
+
             // Return the workspace acronym, resource group name, and tenant ID.
             return Ok(new object[] { acronym, rg });
         }

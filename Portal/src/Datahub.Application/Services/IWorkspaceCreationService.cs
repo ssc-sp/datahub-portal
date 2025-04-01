@@ -32,4 +32,6 @@ public interface IWorkspaceCreationService
     /// <param name="projectAcronym"></param>
     /// <returns></returns>
     public Task CreateNewTemplateWorkspaceResourceAsync(string projectAcronym);
+
+    public Task SaveWorkspaceMetadataFromGCHostingDetails(string projectAcronym, GCHostingWorkspaceDetails workspaceDetails);
 }
