@@ -3,7 +3,7 @@
 @if (IsOpen)
 {
     <MudAlert ShowCloseIcon CloseIconClicked="@(_ => IsOpen = false)" Severity="@Severity" Dense="@Dense"
-              UserAttributes="@UserAttributes" Variant="@Variant" Style="@_style" Square="@Square">
+              UserAttributes="@UserAttributes" Variant="@Variant" Style="@_style" Square="@Square" Class="@Class">
         @ChildContent
     </MudAlert>
 }
@@ -13,6 +13,7 @@
     [Parameter] public RenderFragment ChildContent { get; set; }
     [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
     [Parameter] public string Style { get; set; }
+    [Parameter] public string Class { get; set; }
     [Parameter] public bool Dense { get; set; } = true;
     [Parameter] public bool Square { get; set; } = false;
     private bool IsOpen { get; set; } = true;
