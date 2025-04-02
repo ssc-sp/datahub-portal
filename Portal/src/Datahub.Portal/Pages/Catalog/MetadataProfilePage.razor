@@ -35,13 +35,16 @@
                             <div>
                                 @*section list*@
                                 <MudText>@Localizer["Section"]</MudText>
-                                <MudSelect T="string" Value=@SelectedSessionId ValueChanged=@OnSelectedSectionChanged Disabled=@_addingSection FullWidth="true">
+                                <MudSelect T="MetadataSectionDetails" @bind-Value=@_selectedSection
+                                           Comparer="new MetadataSectionDetailsComparer()" 
+                                           Disabled=@_addingSection FullWidth="true">
                                     @foreach (var s in _sections)
                                     {
-                                        <MudSelectItem Value="@s.ListId">@s.English / @s.French</MudSelectItem>
+                                        <MudSelectItem T="MetadataSectionDetails" Value="@s">
+                                            @s.ToString()
+                                        </MudSelectItem>
                                     }
                                 </MudSelect>
-
 
                                 @if (_selectedSection is not null)
                                 {
@@ -90,18 +93,12 @@
     private string SelectedSessionId
     {
         get => _selectedSectionId;
-        set
-        {
-            if (value != _selectedSectionId)
-            {
-                _selectedSectionId = value;
-                _selectedSection = _sections.FirstOrDefault(s => s.ListId == value);
-                RefreshAvailableFields(value);
-            }
-        }
+        set => _selectedSectionId = value;
     }
 
     private Dictionary<string, HashSet<int>> _fieldSelection = new();
+
+    Func<MetadataSectionDetails, MetadataSectionDetails, bool> SectionComparer = (a, b) => a?.ListId == b?.ListId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -134,20 +131,10 @@
         }
         _profile ??= newProfile;
 
-        if (_sections.Count > 0)
+        if (_sections.Any())
         {
-            SelectedSessionId = _sections[0].ListId;
-        }
-    }
-
-    private async Task OnSelectedSectionChanged(string newValue)
-    {
-        if (newValue != _selectedSectionId)
-        {
-            _selectedSectionId = newValue;
-            _selectedSection = _sections.FirstOrDefault(s => s.ListId == newValue);
-            RefreshAvailableFields("");
-            StateHasChanged(); // Ensure the state is updated
+            _selectedSection = _sections.First();
+            _selectedSectionId = _selectedSection.ListId;
         }
     }
 
@@ -163,23 +150,37 @@
                 Fields = new HashSet<int>()
             };
         RefreshAvailableFields("");
-        StateHasChanged(); // Ensure the state is updated
+        StateHasChanged();  
     }
 
     private async void HandleAddSection()
-    {
-        _sections.Add(_selectedSection);
+    { 
+        _sections = new List<MetadataSectionDetails>(_sections) { _selectedSection };
         _addingSection = false;
         SelectedSessionId = _selectedSection.ListId;
-        await OnSelectedSectionChanged(SelectedSessionId);
-        RefreshAvailableFields(SelectedSessionId);
-        StateHasChanged(); // Ensure the state is updated
+        _selectedSection = _sections.FirstOrDefault(s => s.ListId == SelectedSessionId);
+        RefreshAvailableFields("");
+        await InvokeAsync(StateHasChanged);  
     }
 
     private void HandleDeleteSection()
     {
-        _sections.Remove(_selectedSection);
-        SelectedSessionId = _sections.Count > 0 ? _sections[0].ListId : string.Empty;
+        if (_selectedSection != null)
+        {
+            _sections.Remove(_selectedSection);
+            if (_sections.Any())
+            {
+                _selectedSection = _sections.First();
+                _selectedSectionId = _selectedSection.ListId;
+            }
+            else
+            {
+                _selectedSection = null;
+                _selectedSectionId = string.Empty;
+            }
+            RefreshAvailableFields(_selectedSectionId);
+            StateHasChanged(); // Trigger a re-render
+        }
     }
 
     private void HandleIgnoreSection()
