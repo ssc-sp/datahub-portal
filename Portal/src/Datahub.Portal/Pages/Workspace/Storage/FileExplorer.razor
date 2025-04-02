@@ -35,7 +35,8 @@
                 OnFileDownload="HandleFileDownload"
                 OnPublishFiles="HandlePublishFiles"
                 OnFileRename="HandleFileRename"
-                OnDeleteFolder="HandleDeleteFolder"/>
+                OnDeleteFolder="HandleDeleteFolder"
+                CanDeleteFolder="CanDeleteFolder" />
 
             <div class="file-list">
                 <div class="file-list-header">
@@ -185,6 +186,8 @@ else
 
     private IJSObjectReference _module;
 
+    private Dictionary<string, int> _folderList;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -194,6 +197,8 @@ else
             if (StorageManager != null)
             {
                 StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
+                _folderList = await GetFileCountAsync(_currentFolder);
+                StateHasChanged();
             }
         }
     }
@@ -218,6 +223,31 @@ else
         _metadataSignature = Guid.NewGuid();
     }
 
+    private async Task<Dictionary<string, int>> GetFileCountAsync(string folderPath)
+    {
+        Dictionary<string, int> folders = new();
+        if (StorageManager != null)
+        {
+            folders = await StorageManager.ListFoldersAsync(ContainerName, folderPath);
+        }
+        return folders;
+    }
+
+    private bool CanDeleteFolder(string folderName)
+    {
+        if (_folders.Contains(folderName) && _folderList != null)
+        {
+            return _folderList.TryGetValue($"{folderName}/", out int fileCount) && fileCount == 0;
+        }
+        return false;
+    }
+
+    private void SelectItem(string item)
+    {
+        _selectedItems = new HashSet<string> { item };
+        StateHasChanged();
+    }
+
     public async ValueTask DisposeAsync()
     {
         try
@@ -232,5 +262,4 @@ else
             // ignored
         }
     }
-
 }
