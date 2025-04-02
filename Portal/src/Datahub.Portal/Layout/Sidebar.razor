@@ -85,10 +85,10 @@
     {
         try {
             var lastCommitGit = await documentationService.LastRepoCommitTs();
-            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.CommitApiUrl) ?? DateTime.MinValue;
-            //await localStorage.SetItemAsync(DocumentationService.COMMIT_API_URL, lastCommitGit);
+            var lastCommitUser = await localStorage.GetItemAsync<DateTime?>(DocumentationService.Sidebar) ?? DateTime.MinValue;
             return lastCommitGit.HasValue && lastCommitGit.Value > lastCommitUser;
-        } catch (Exception ex)
+        } 
+        catch (Exception ex)
         {
             logger.LogWarning($"Error checking resource badge", ex);
             return false;
