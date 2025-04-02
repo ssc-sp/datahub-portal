@@ -20,32 +20,12 @@
     <MudItem xs="_headings.Any() ? 9 : 0" style="order: -1;">
         @if (ShowPaper)
         {
-            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <DHButton Style="@_editButtonStyle" Href="@_docService.EditUrl(DocumentItem)"
-                           OnClick="@HandleRemoveFromCache"
-                           Color="@Color.Primary"
-                           Variant="@Variant.Filled"
-                           StartIcon="@Icons.Material.Filled.Launch"
-                           Target="_blank">
-                    @Localizer["Edit"]
-                </DHButton>
-            </AuthorizeView>
             <DHMarkdown Content="@_markdownContent"
                         LinkRewriter="@RewriteLink"
                         Substitutions="@Substitutions"/>
         }
         else
         {
-            <AuthorizeView Roles="@RoleConstants.DATAHUB_ROLE_ADMIN">
-                <DHButton Style="@_editButtonStyle" Href="@_docService.EditUrl(DocumentItem)"
-                           OnClick="@HandleRemoveFromCache"
-                           Color="@Color.Primary"
-                           Variant="@Variant.Filled"
-                           StartIcon="@Icons.Material.Filled.Launch"
-                           Target="_blank">
-                    @Localizer["Edit"]
-                </DHButton>
-            </AuthorizeView>
             <DHMarkdown Content="@_markdownContent"
                         LinkRewriter="@RewriteLink"
                         Substitutions="@Substitutions"/>
