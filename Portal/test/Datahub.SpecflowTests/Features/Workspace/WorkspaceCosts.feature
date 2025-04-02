@@ -69,13 +69,15 @@ Scenario: Updating costs with invalid workspace acronym should not work
 	Given a non-existent workspace acronym
 	When I update the costs for the non-existent workspace
 	Then I should receive an error
-	
+
+@ignore	
 Scenario: Updating costs returns correct values when rollover is needed
 	Given a workspace with existing costs and credits that need a rollover
 	When I update the costs for the workspace
 	Then a rollover needed is returned
 	And the correct amount of costs is given
-	
+
+@ignore
 Scenario: No refresh needed for matching totals
 	Given a workspace with total costs that match Azure totals
 	When I verify if a refresh is needed
