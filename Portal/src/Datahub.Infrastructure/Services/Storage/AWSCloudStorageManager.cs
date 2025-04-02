@@ -184,7 +184,12 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		return Task.FromResult(metadata);
 	}
 
-	public Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
+    public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
+	{
+		throw new NotImplementedException();
+	}
+
+    public Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
 	{
 		// not supported for now..
 		return Task.FromResult(false);
