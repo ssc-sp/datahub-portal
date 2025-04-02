@@ -52,13 +52,13 @@ public class DatahubPortalConfiguration
     public CkanConfiguration CkanConfiguration { get; set; } = new();
     public int DefaultProjectBudget { get; set; } = 100;
     public DatahubServiceBus DatahubServiceBus { get; set; } = new();
+    public ToolboxConfig ToolboxConfig { get; set; } = new();
 }
 
 public class Achievements
 {
     public bool Enabled { get; set; } = false;
     public bool LocalAchievementsOnly { get; set; } = false;
-
 }
 
 public class Media
@@ -66,11 +66,15 @@ public class Media
     public string StorageConnectionString { get; set; } = null!;
     public string StaticAssetsUrl { get; set; } = "https://fsdhstaticassetstorage.blob.core.windows.net";
 
-    public string GetAchievementThumbnailUrl(string? code) => $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
-    public string GetAchievementPortraitUrl(string? code) => $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
-    public string GetAchievementImageUrl(string? code) => $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
-}
+    public string GetAchievementThumbnailUrl(string? code) =>
+        $"{StaticAssetsUrl}/achievements/thumbnails/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
 
+    public string GetAchievementPortraitUrl(string? code) =>
+        $"{StaticAssetsUrl}/achievements/portraits/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
+
+    public string GetAchievementImageUrl(string? code) =>
+        $"{StaticAssetsUrl}/achievements/backgrounds/{(string.IsNullOrWhiteSpace(code) ? "DHA-001" : code)}.jpg";
+}
 
 public class TermsAndConditionsUrl
 {
@@ -209,6 +213,7 @@ public class Hosting
 public class KeyVault
 {
     public string UserName { get; set; } = null!;
+    public string ProjectKey { get; set; } = "project-cmk";
 }
 
 /// <summary>
@@ -225,6 +230,7 @@ public class PublicFileSharing
     public string OpenDataApprovalPdfFormIdParam { get; set; } = null!;
     public string PublicFileSharingDomain { get; set; } = null!;
 }
+
 public class ReverseProxy
 {
     public bool Enabled { get; set; } = true;
@@ -266,4 +272,12 @@ public class CkanConfiguration
             return Enabled && baseUrlConfigured;
         }
     }
+}
+
+public class ToolboxConfig
+{
+    public bool DisableOnOverBudget { get; set; } = true;
+    public bool DisableOnActiveRequest { get; set; } = false;
+    public bool DisableSubmissionDelays { get; set; } = false;
+    public bool DisableSubmissions { get; set; } = false;
 }

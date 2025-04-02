@@ -1023,7 +1023,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("Tag")
                         .IsRequired()
-                        .HasMaxLength(6)
+                        .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
                     b.HasKey("VersionTagId");
@@ -1479,6 +1479,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("Contact_List")
                         .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("Created_DT")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("DB_Name")
                         .HasMaxLength(128)

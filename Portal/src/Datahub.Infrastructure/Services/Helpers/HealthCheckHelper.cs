@@ -23,6 +23,7 @@ using MassTransit;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MudBlazor;
 
 namespace Datahub.Infrastructure.Services.Helpers
 {
@@ -796,6 +797,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             // TODO check AzureSqlDatabase first and exclude these checks if it fails
             var projects = await ctx.Projects
                 .AsNoTracking()
+                .Where(p => !p.IsDeleted)
                 .ToListAsync();
             var workspaceChecks = projects
                 .SelectMany(p => WorkspaceHealthChecks

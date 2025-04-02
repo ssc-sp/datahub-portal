@@ -82,5 +82,10 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             return new List<(string, string)>();
         }
+
+        public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
+        {
+            throw new NotImplementedException();
+        }
     }
 }

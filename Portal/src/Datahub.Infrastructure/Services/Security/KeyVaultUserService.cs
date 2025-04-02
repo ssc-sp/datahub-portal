@@ -32,6 +32,7 @@ namespace Datahub.Infrastructure.Services.Security
             _logger = logger;
         }
 
+
         public async Task Authenticate()
         {
             var user = await _userInfoService.GetAuthenticatedUser();
