@@ -224,7 +224,7 @@ public class HostingServicesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error registering user: {0}", email);
+            _logger.LogError(ex, "Error registering user");
             return null;
         }
     }

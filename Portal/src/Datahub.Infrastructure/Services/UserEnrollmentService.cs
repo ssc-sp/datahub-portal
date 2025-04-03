@@ -65,8 +65,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         {
             throw new InvalidOperationException("Invalid email address. Must be a valid GC email address");
         }
-        
-        _logger.LogInformation("Sending invite to {Email}", registrationRequestEmail);
+        _logger.LogInformation("Sending invite");
 
         var payload = new Dictionary<string, JsonNode>
         {
@@ -114,7 +113,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
             throw new InvalidOperationException($"No ID available in response '{resultString}' from {url}");
         }
         
-        _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
+        _logger.LogInformation("Invite sent and received id {Id}",  id);
         return id;
     }
 
