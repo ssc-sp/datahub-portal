@@ -8,6 +8,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Cosmos.Storage.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
@@ -78,23 +79,33 @@ public partial class UserEnrollmentService : IUserEnrollmentService
 
         var numberOfRetries = 0;
         const int maxNumberOfRetries = 5;
-        string id, resultString;
+        string id = string.Empty, resultString = string.Empty;
         
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         do
         {
-            using var client = _httpClientFactory.CreateClient();
-            var result = await client.PostAsync(url, content);
-
-            resultString = await result.Content.ReadAsStringAsync();
-        
-            var resultJson = JsonNode.Parse(resultString);
-            id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
-        
-            // try to see if function wrapped it in a "Value" object
-            if (string.IsNullOrWhiteSpace(id))
+            try
             {
-                id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+                using var client = _httpClientFactory.CreateClient();
+                var result = await client.PostAsync(url, content);
+                // ensure the result is ok
+                result.EnsureSuccessStatusCode();
+
+                resultString = await result.Content.ReadAsStringAsync();
+
+                var resultJson = JsonNode.Parse(resultString);
+                id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
+
+                // try to see if function wrapped it in a "Value" object
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+                }
+            }
+            catch (HttpException ex)
+            {
+                _logger.LogWarning(ex, "Failed to send invite to {Email} - retrying", registrationRequestEmail);
+                await Task.Delay(1000);
             }
         } while (string.IsNullOrWhiteSpace(id) && numberOfRetries++ < maxNumberOfRetries);
 
