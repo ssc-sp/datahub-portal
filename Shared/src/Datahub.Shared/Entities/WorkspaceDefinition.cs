@@ -1,5 +1,6 @@
 namespace Datahub.Shared.Entities;
 
+[Serializable]
 public class WorkspaceDefinition
 {
     public List<TerraformTemplate> Templates { get; set; }

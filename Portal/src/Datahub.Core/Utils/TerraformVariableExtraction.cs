@@ -111,8 +111,8 @@ public static class TerraformVariableExtraction
             "app_service_git_repo");
         var appServiceGitRepoVisibility = bool.TryParse(
             ExtractStringVariable(
-            projectResource?.InputJsonContent,
-            "app_service_git_repo_visibility"),
+                projectResource?.InputJsonContent,
+                "app_service_git_repo_visibility"),
             out var visibility) && visibility;
         var appServiceGitTokenSecretName = ExtractStringVariable(
             projectResource?.InputJsonContent,
@@ -131,6 +131,35 @@ public static class TerraformVariableExtraction
     }
 
     /// <summary>
+    /// Extracts the postgres configuration from a Datahub Project.
+    /// </summary>
+    /// <param name="project">The Datahub_Project record to extract from</param>
+    /// <returns>A PostgresConfiguration object if the resource exists, null otherwise</returns>
+    public static PostgresConfiguration? ExtractPostgresConfiguration(Datahub_Project? project)
+    {
+        var postgresTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
+        var postgresResource = project?.Resources?.FirstOrDefault(r =>
+            r.ResourceType == postgresTemplateName);
+        return postgresResource == null ? null : ExtractPostgresConfiguration(postgresResource);
+    }
+
+    /// <summary>
+    /// Extracts the postgres configuration from a postgres project resource.
+    /// </summary>
+    /// <param name="projectResource">The terraform:azure-postgres resource to extract from</param>
+    /// <returns>A PostgresConfiguration object</returns>
+    public static PostgresConfiguration ExtractPostgresConfiguration(Project_Resources2? projectResource)
+    {
+        var postgresSku = ExtractStringVariable(
+            projectResource?.InputJsonContent, "postgres_sku");
+
+        return new PostgresConfiguration
+        {
+            PSQL_SKU = postgresSku
+        };
+    }
+
+    /// <summary>
     /// Extracts the environment variable keys from a project resource. This is made generic,
     /// so that it can be used on any resource
     /// </summary>
@@ -138,7 +167,8 @@ public static class TerraformVariableExtraction
     /// <returns>A list of string, corresponding to the keys of the environment variables stored in the workspace keyvault</returns>
     public static IList<string> ExtractEnvironmentVariableKeys(Project_Resources2 projectResources)
     {
-        var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ?? "[]";
+        var envVarsString = ExtractStringVariable(projectResources?.InputJsonContent, "environment_variables_keys") ??
+                            "[]";
         var envVars = JsonSerializer.Deserialize<List<string>>(envVarsString);
         return envVars ?? new List<string>();
     }

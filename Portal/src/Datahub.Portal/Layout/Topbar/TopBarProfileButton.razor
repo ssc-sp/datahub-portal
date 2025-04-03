@@ -13,36 +13,6 @@
     return;
 }
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    @* <div class="sr-only"><p>@Localizer["Your profile"]</p></div>
-    <MudMenu AnchorOrigin="Origin.BottomRight" TransformOrigin="Origin.TopRight" FullWidth>
-        <ActivatorContent>
-            <DHButton HtmlTag="button" Class="ml-2">
-                <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Medium"/>
-                <DHIcon Icon="@Icons.Material.Filled.ArrowDropDown" Size="@Size.Medium" />
-            </DHButton>
-        </ActivatorContent>
-        <ChildContent>
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubAdminGuestView">
-                <MudMenuItem OnClick="@ToggleAdminMode">
-                    <MudSwitch
-                        T="bool"
-                        Color="Color.Primary"
-                        Value="@_isViewAsAdmin"
-                        Label="@Localizer["Admin Access Enabled"]"/>
-                </MudMenuItem>
-                <MudDivider/>
-            </DatahubAuthView>
-            <MudMenuItem Href="@($"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Customization}")">@Localizer["Settings"]</MudMenuItem>
-            <MudMenuItem OnClick="@HandleLanguageToggle">
-                <LanguageToggle @ref="_languageToggle"/>
-            </MudMenuItem>
-            <MudMenuItem Href="@PageRoutes.TermsAndConditions">@Localizer["Terms and Conditions"]</MudMenuItem>
-            <MudDivider/>
-            <MudMenuItem OnClick="@HandleLogOut">
-                @Localizer["Sign Out"]
-            </MudMenuItem>
-        </ChildContent>
-    </MudMenu> *@
     <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Settings"]</MudText>
         <DHButton Style="margin-top: 20px;" Size="Size.Small" Href="@Localizer[PageRoutes.AccountDefault]">

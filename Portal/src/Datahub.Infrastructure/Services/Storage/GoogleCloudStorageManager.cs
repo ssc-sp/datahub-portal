@@ -246,6 +246,11 @@ namespace Datahub.Infrastructure.Services.Storage
             return Task.FromResult(metadata);
         }
 
+        public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
         {
             using var client = await CreateStorageClientAsync();

@@ -1062,8 +1062,8 @@ namespace Datahub.Core.Migrations
 
                     b.Property<string>("Tag")
                         .IsRequired()
-                        .HasMaxLength(6)
-                        .HasColumnType("nvarchar(6)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.HasKey("VersionTagId");
 
@@ -1532,6 +1532,11 @@ namespace Datahub.Core.Migrations
 
                     b.Property<string>("Contact_List")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("Created_DT")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<string>("DB_Name")
                         .HasMaxLength(128)

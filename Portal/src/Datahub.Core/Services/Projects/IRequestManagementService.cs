@@ -1,6 +1,5 @@
-﻿using Datahub.Metadata.DTO;
-using Datahub.Metadata.Model;
-using Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 
@@ -25,4 +24,15 @@ public interface IRequestManagementService
     /// <param name="currentUser">The current portal user making the updates.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentUser);
+
+    /// <summary>
+    /// Scaffolds database changes required for the terraform template using the given context.
+    /// </summary>
+    /// <param name="project">The project to scaffold the changes for.</param>
+    /// <param name="requestingUser">The current portal user making the request.</param>
+    /// <param name="requestedTemplate">The terraform template to scaffold for.</param>
+    /// <param name="ctx">The db context to use to scaffold the changes</param>
+    /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+    Task ScaffoldLocalChanges(Datahub_Project project, PortalUser requestingUser, TerraformTemplate requestedTemplate,
+        DatahubProjectDBContext ctx);
 }
