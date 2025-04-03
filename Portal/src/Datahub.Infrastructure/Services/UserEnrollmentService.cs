@@ -104,7 +104,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
             }
             catch (HttpException ex)
             {
-                _logger.LogWarning(ex, "Failed to send invite to {Email} - retrying", registrationRequestEmail);
+                _logger.LogWarning(ex, "Failed to send invite - retrying");
                 await Task.Delay(1000);
             }
         } while (string.IsNullOrWhiteSpace(id) && numberOfRetries++ < maxNumberOfRetries);
