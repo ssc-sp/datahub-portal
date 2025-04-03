@@ -227,7 +227,7 @@ public class DocumentationService
         _enOutline = SidebarParser.ParseSidebar(guide, await LoadDocsFromAzure($"{guide.GetStringValue()}/{Sidebar}", useCache), _docFileMappings.GetEnglishDocumentId);
         if (_enOutline is null) throw new InvalidOperationException("Cannot load sidebar and content");
 
-        _frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsFromAzure($"{guide.GetStringValue()}/{Sidebar}", useCache), _docFileMappings.GetFrenchDocumentId);
+        _frOutline = SidebarParser.ParseSidebar(guide, await LoadDocsFromAzure($"fr/{guide.GetStringValue()}/{Sidebar}", useCache), _docFileMappings.GetFrenchDocumentId);
         if (_frOutline is null) throw new InvalidOperationException("Cannot load sidebar and content");
 
         _cachedDocs = DocItem.MakeRoot(DocumentationGuideRootSection.Hidden, "Cached");
@@ -367,7 +367,8 @@ public class DocumentationService
     {
         if (_blobServiceClient == null)
         {
-            throw new Exception("BlobServiceClient is not initialized. Cannot load document from Azure.");
+            AddStatusMessage("BlobServiceClient is not initialized. Cannot load document from Azure.");
+            return null;
         }
         try
         {
@@ -384,12 +385,14 @@ public class DocumentationService
             }
             else
             {
-                throw new Exception($"Document not found in Azure Storage: {path}");
+                AddStatusMessage($"Document not found in Azure Storage: {path}");
+                return null;
             }
         }
         catch (Exception e)
         {
-            throw new Exception($"Error loading {path} from Azure: {e.Message}");
+            AddStatusMessage($"Error loading {path} from Azure: {e.Message}");
+            return null;
         }
     }
 
