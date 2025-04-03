@@ -8,6 +8,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Cosmos.Storage.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
@@ -64,8 +65,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         {
             throw new InvalidOperationException("Invalid email address. Must be a valid GC email address");
         }
-        
-        _logger.LogInformation("Sending invite to {Email}", registrationRequestEmail);
+        _logger.LogInformation("Sending invite");
 
         var payload = new Dictionary<string, JsonNode>
         {
@@ -78,23 +78,33 @@ public partial class UserEnrollmentService : IUserEnrollmentService
 
         var numberOfRetries = 0;
         const int maxNumberOfRetries = 5;
-        string id, resultString;
+        string id = string.Empty, resultString = string.Empty;
         
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         do
         {
-            using var client = _httpClientFactory.CreateClient();
-            var result = await client.PostAsync(url, content);
-
-            resultString = await result.Content.ReadAsStringAsync();
-        
-            var resultJson = JsonNode.Parse(resultString);
-            id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
-        
-            // try to see if function wrapped it in a "Value" object
-            if (string.IsNullOrWhiteSpace(id))
+            try
             {
-                id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+                using var client = _httpClientFactory.CreateClient();
+                var result = await client.PostAsync(url, content);
+                // ensure the result is ok
+                result.EnsureSuccessStatusCode();
+
+                resultString = await result.Content.ReadAsStringAsync();
+
+                var resultJson = JsonNode.Parse(resultString);
+                id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
+
+                // try to see if function wrapped it in a "Value" object
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+                }
+            }
+            catch (HttpException ex)
+            {
+                _logger.LogWarning(ex, "Failed to send invite - retrying");
+                await Task.Delay(1000);
             }
         } while (string.IsNullOrWhiteSpace(id) && numberOfRetries++ < maxNumberOfRetries);
 
@@ -103,7 +113,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
             throw new InvalidOperationException($"No ID available in response '{resultString}' from {url}");
         }
         
-        _logger.LogInformation("Invite sent to {Email} and received id {Id}", registrationRequestEmail, id);
+        _logger.LogInformation("Invite sent and received id {Id}",  id);
         return id;
     }
 
