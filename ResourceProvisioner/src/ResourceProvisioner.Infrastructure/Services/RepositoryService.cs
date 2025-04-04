@@ -472,7 +472,7 @@ public partial class RepositoryService(
             }
             else if (resourceTemplate.Status == TerraformStatus.CreateRequested)
             {
-                await terraformService.CopyTemplateAsync(resourceTemplate.Name, command.Workspace);
+                await terraformService.CopyTemplateAsync(resourceTemplate.Name, command);
                 await ExtractVariables(resourceTemplate, command);
             }
             else

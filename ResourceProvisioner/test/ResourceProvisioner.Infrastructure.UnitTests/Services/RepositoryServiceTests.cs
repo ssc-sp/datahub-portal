@@ -345,7 +345,7 @@ public class RepositoryServiceTests
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
                 It.IsAny<string>(),
-                It.IsAny<TerraformWorkspace>()))
+                It.IsAny<CreateResourceRunCommand>()))
             .Returns(() =>
             {
                 if (doNothing)

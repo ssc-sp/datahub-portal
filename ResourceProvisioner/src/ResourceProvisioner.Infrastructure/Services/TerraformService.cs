@@ -25,7 +25,7 @@ public class TerraformService(
 
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
-    public async Task CopyTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
+    public async Task CopyTemplateAsync(string templateName, CreateResourceRunCommand workspaceDefinition)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
@@ -33,7 +33,7 @@ public class TerraformService(
         }
 
         var templateSourcePath = DirectoryUtils.GetTemplatePath(resourceProvisionerConfiguration, templateName);
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, workspaceDefinition.Workspace.Acronym);
 
         logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
             projectPath);
@@ -66,7 +66,7 @@ public class TerraformService(
             var fileContent = await File.ReadAllTextAsync(file);
             
             fileContent = fileContent.Replace(TerraformTagToken,
-                $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}-{terraformWorkspace.Version}");
+                $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspaceDefinition.Workspace.Version}");
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }

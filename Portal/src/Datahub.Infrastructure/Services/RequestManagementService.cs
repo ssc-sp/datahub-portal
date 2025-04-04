@@ -146,7 +146,7 @@ public class RequestManagementService(
 
             workspaceDefinition.AppData.ResourceNameSuffix = resourceNameSuffix;
 
-            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            //await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
         }
         catch (Exception ex)
@@ -157,30 +157,7 @@ public class RequestManagementService(
         }
     }
 
-    private string GetResourceNameSuffix(string templatetype, Datahub_Project project)
-    {
-        var resourceNumber = 0;
 
-        //get total resources of template type
-        switch (templatetype)
-        {
-            case TerraformTemplate.AzureAppService:
-                resourceNumber = project.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)));
-                break;
-            case TerraformTemplate.AzurePostgres:
-                resourceNumber = project.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)));
-                break;
-            default:
-                throw new ArgumentException("Invalid template type", nameof(templatetype));
-        }
-
-        //get next iteration for suffix
-        resourceNumber++;
-
-        // format resourceNumber to three digits
-        return resourceNumber.ToString("D3");
-
-    }
 
 
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
