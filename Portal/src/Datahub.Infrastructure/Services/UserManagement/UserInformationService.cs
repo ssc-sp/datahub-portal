@@ -246,13 +246,12 @@ public class UserInformationService(
 
     public async Task<bool> IsUserProjectAdmin(string projectAcronym)
     {
-        return await Task.FromResult(true);
-        //if (string.IsNullOrWhiteSpace(projectAcronym))
-        //    throw new ArgumentException("projectAcronym expected");
+        if (string.IsNullOrWhiteSpace(projectAcronym))
+            throw new ArgumentException("projectAcronym expected");
 
-        //if (await IsUserInDataHubAdminRole())
-        //    return true;
-        //return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}{RoleConstants.ADMIN_SUFFIX}");
+        if (await IsUserInDataHubAdminRole())
+            return true;
+        return (await GetAuthenticatedUser()).IsInRole($"{projectAcronym}{RoleConstants.ADMIN_SUFFIX}");
     }
 
     public async Task<bool> IsUserProjectWorkspaceLead(string projectAcronym)
@@ -267,9 +266,7 @@ public class UserInformationService(
 
     public async Task<bool> IsUserDatahubAdmin()
     {
-
-        return await Task.FromResult(true);
-        // return (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
+        return (await GetAuthenticatedUser()).IsInRole(RoleConstants.DATAHUB_ROLE_ADMIN);
     }
 
     public async Task<bool> IsUserProjectMember(string projectAcronym)
