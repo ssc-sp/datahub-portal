@@ -88,6 +88,9 @@
     public List<FileMetaData> Files { get; set; }
 
     [Parameter]
+    public Func<string, bool> CanDeleteFolder { get; set; } = _ => true;
+
+    [Parameter]
     public EventCallback<string> SetCurrentFolder { get; set; }
 
     [Parameter]
