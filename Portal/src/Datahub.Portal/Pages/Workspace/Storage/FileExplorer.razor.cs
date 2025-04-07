@@ -25,7 +25,7 @@ public partial class FileExplorer
         _files = dfsPage.Files;
         _folders = dfsPage.Folders;
 
-        _loading = false;       
+        _loading = false;
 
         StateHasChanged();
     }
@@ -34,8 +34,16 @@ public partial class FileExplorer
     {
         if (_lastContainer != Container)
         {
-            await SetCurrentFolder(_root);
-        }            
+            try
+            {
+                await SetCurrentFolder(_root);
+            }
+            catch (Exception e)
+            {
+                _failed = true;
+                _logger.LogError(e, "Failed to load file explorer");
+            }
+        }
     }
 
     private async Task HandleNewFolder(string folderName)
@@ -49,6 +57,8 @@ public partial class FileExplorer
             return;
 
         _folders.Add(newFolderPath);
+
+        _folderList = await GetFileCountAsync("/");
 
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserCreateFolder);
     }
@@ -64,7 +74,7 @@ public partial class FileExplorer
 
         _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
 
-        _selectedItems = new HashSet<string> {_currentFolder};
+        _selectedItems = new HashSet<string> { _currentFolder };
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserDeleteFile);
     }
 
@@ -82,7 +92,7 @@ public partial class FileExplorer
 
         if (!await StorageManager.RenameFileAsync(ContainerName, oldFileName, newFileName))
             return;
-        
+
         _files.RemoveAll(f => f.name == fileName);
     }
 
@@ -90,7 +100,7 @@ public partial class FileExplorer
     {
         if (string.IsNullOrWhiteSpace(fileRename))
             return;
-        
+
         var currentFileName = GetFileName(_selectedItem);
 
         var oldFileName = JoinPath(_currentFolder, currentFileName);
@@ -115,15 +125,38 @@ public partial class FileExplorer
 
     private async Task HandleDeleteFolder()
     {
-        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"].ToString(), _currentFolder);
+        var folderName = _selectedItems?.FirstOrDefault();
+        if (folderName is null)
+        {
+            folderName = _currentFolder;
+        }
+
+        if (folderName.Length < _currentFolder.Length)  // delete from inside folder
+        {
+            folderName = _currentFolder;
+        }
+
+        var folderNameOnly = folderName.TrimEnd('/').Split('/').Last();
+
+        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"], folderNameOnly);
+      
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        if (!await StorageManager.DeleteFolderAsync(ContainerName, _currentFolder))
+        if (!await StorageManager.DeleteFolderAsync(ContainerName, folderName))
             return;
 
-        await SetCurrentFolder(GetDirectoryName(_currentFolder));
+        if (folderName == _currentFolder)
+        {
+            await SetCurrentFolder(GetDirectoryName(_currentFolder));
+        }
+        else
+        {
+            _folders.Remove(folderName);
+        }
+        StateHasChanged();
     }
+
 
     private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
     {
@@ -171,7 +204,7 @@ public partial class FileExplorer
         lock (this)
         {
             _uploadingFiles.Add(fileMetadata);
-        }                
+        }
 
         _ = InvokeAsync(async () =>
         {
@@ -198,20 +231,21 @@ public partial class FileExplorer
                     {
                         _files.RemoveAll(f => f.name == fileMetadata.name);
                     }
+
                     _files.Add(fileMetadata);
                 }
             }
 
             await InvokeAsync(StateHasChanged);
-        });        
+        });
     }
 
     private async Task HandleFileDownload(string filename)
-    {   
+    {
         var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
-    
+
     private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
     {
         if (!_config.CkanConfiguration.IsFeatureEnabled)
@@ -229,7 +263,9 @@ public partial class FileExplorer
 
         var options = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true, CloseOnEscapeKey = true };
 
-        var dialog = await _dialogService.ShowAsync<PublishNewDatasetDialog>(Localizer["Add Files To Dataset"], dialogParams, options);
+        var dialog =
+            await _dialogService.ShowAsync<PublishNewDatasetDialog>(Localizer["Add Files To Dataset"], dialogParams,
+                options);
         var result = await dialog.Result;
 
         if (!result.Canceled)
@@ -244,7 +280,7 @@ public partial class FileExplorer
                 {
                     throw new OpenDataPublishingException("Could not get submission information");
                 }
-                
+
                 submission = await _publishingService.CreateOpenDataSubmission(submissionInfo);
             }
 
@@ -256,7 +292,8 @@ public partial class FileExplorer
 
             await _publishingService.AddFilesToSubmission(submission, files, Container.Id, ContainerName);
 
-            _navManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Publishing}/{submission.Id}");
+            _navManager.NavigateTo(
+                $"/{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Publishing}/{submission.Id}");
         }
 
         await Task.CompletedTask;
@@ -305,7 +342,7 @@ public partial class FileExplorer
     private void HandleFileSelectionClick(string filename)
     {
         _selectedItems.RemoveWhere(i => i.EndsWith("/", StringComparison.InvariantCulture));
-        
+
         if (_selectedItems.Contains(filename))
         {
             _selectedItems.Remove(filename);

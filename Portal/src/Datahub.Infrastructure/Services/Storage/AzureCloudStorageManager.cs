@@ -179,6 +179,55 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return storageMetadata;
     }
 
+    /// <summary>
+    /// Collects list of folders with number of files in each folder
+    /// </summary>
+    /// <param name="container"></param>
+    /// <param name="prefix"></param>
+    /// <returns></returns>
+    public async Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "")
+    {
+        ValidateContainerName(container);
+
+        var containerClient = GetBlobContainerClient(container);
+        var result = new Dictionary<string, int>();
+
+        await TraverseFolderTreeAsync(containerClient, prefix, result);
+
+        return result;
+    }
+
+    private async Task TraverseFolderTreeAsync(BlobContainerClient containerClient, string prefix, Dictionary<string, int> result)
+    {
+        var blobs = containerClient.GetBlobsByHierarchyAsync(prefix: prefix, delimiter: "/");
+
+        int fileCount = 0;
+        var subFolders = new List<string>();
+
+        await foreach (var blobHierarchyItem in blobs)
+        {
+            if (blobHierarchyItem.IsPrefix)
+            {
+                // It's a folder, add to subFolders list
+                subFolders.Add(blobHierarchyItem.Prefix);
+            }
+            else
+            {
+                // It's a file, count it
+                fileCount++;
+            }
+        }
+
+        // Add the current folder to the result dictionary
+        result[prefix] = fileCount;
+
+        // Traverse subfolders
+        foreach (var subFolder in subFolders)
+        {
+            await TraverseFolderTreeAsync(containerClient, subFolder, result);
+        }
+    }
+
     public async Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
     {
         var fs = GetFileSystemClient(container);

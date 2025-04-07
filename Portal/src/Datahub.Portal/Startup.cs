@@ -26,7 +26,6 @@ using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Search;
 using Datahub.Core.Services.Storage;
 using Datahub.Core.Services.UserManagement;
-using Datahub.Core.Services.Wiki;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
@@ -184,7 +183,6 @@ public class Startup
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
 
         // TODO FIXME this will likely change when proper caching is implemented
-        services.AddSingleton<IWikiService, WikiService>();
         services.AddSingleton<DocumentationService>();
 
         services.AddScoped<ICultureService, UserCultureService>();

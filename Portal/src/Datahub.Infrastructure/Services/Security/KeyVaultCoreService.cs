@@ -4,6 +4,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Azure.KeyVault.WebKey;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
@@ -25,6 +26,28 @@ public class KeyVaultCoreService : IKeyVaultService
         _targets = targets;
     }
 
+    public async Task<KeyBundle> GetKey(string keyName)
+    {
+        try
+        {
+            if (_keyVaultClient == null)
+            {
+                SetKeyVaultClient();
+            }
+
+            var keyVaultName = _targets.Value.KeyVaultName;
+            var keyValueKey = await _keyVaultClient.GetKeyAsync("https://" + keyVaultName + ".vault.azure.net", keyName);
+            if (keyValueKey == null) throw new KeyNotFoundException($"Key {keyName} not found");
+            return keyValueKey;
+
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Could not retrieve: {keyName}");
+            throw;
+        }
+    }
+ 
     public async Task<string> GetSecret(string secretName)
     {
         try
