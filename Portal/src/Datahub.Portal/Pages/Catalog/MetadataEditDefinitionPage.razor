@@ -15,20 +15,18 @@
 <div style="margin: 2rem">
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
         <Authorized>
-            <h2>Edit Field Definition</h2>
-            <AeCard>
-                <ChildContent>
-                    <AeModelForm 
-                        Model="_form"
-                        T=@Data.Forms.Metadata.FieldDefinitionForm
-                        OnValidSubmit=@HandleValidSubmit
-                        OnCancel="ClearForm"
-                        CancelLabel="Cancel"
-                        LabelForPropertyFunc="@GetDataLabel"
-                        LabelsOnTop 
-                    />
-                </ChildContent>
-            </AeCard>
+            <MudText Typo="Typo.h2">Edit Field Definition</MudText>
+            <MudCard>
+                <MudCardContent>
+                    <AeModelForm Model="_form"
+                                 T=@Data.Forms.Metadata.FieldDefinitionForm
+                                 OnValidSubmit=@HandleValidSubmit
+                                 OnCancel="ClearForm"
+                                 CancelLabel="Cancel"
+                                 LabelForPropertyFunc="@GetDataLabel"
+                                 LabelsOnTop />
+                </MudCardContent>
+            </MudCard>
         </Authorized>
         <NotAuthorized>
             @Localizer["You are not authorized to view this page."]
@@ -105,7 +103,7 @@
         }
         catch (Exception)
         {
-            transation.Rollback();            
+            transation.Rollback();
         }
 
         NavigationManager.NavigateTo("/metadata/definitions");
@@ -113,7 +111,7 @@
 
     /// <summary>
     /// Expected format: id:eng:fre|id:eng:fre|...
-    /// </summary>    
+    /// </summary>
     private IEnumerable<FieldChoice> ParseChoices(string choices, int definitionId)
     {
         return choices.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(c => CreateChoice(definitionId, c));
@@ -123,12 +121,12 @@
     {
         var choice = ParseChoiceData(data);
         return new FieldChoice()
-        {
-            FieldDefinitionId = definitionId,
-            Label_English_TXT = choice.English.Trim(),
-            Label_French_TXT = choice.French.Trim(),
-            Value_TXT = choice.Id.Trim()
-        };
+            {
+                FieldDefinitionId = definitionId,
+                Label_English_TXT = choice.English.Trim(),
+                Label_French_TXT = choice.French.Trim(),
+                Value_TXT = choice.Id.Trim()
+            };
     }
 
     static ChoiceData ParseChoiceData(string data)

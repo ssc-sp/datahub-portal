@@ -16,57 +16,55 @@
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
         <Authorized>
             <div style="margin: 2rem">
-                <AeTypography Variant="h2">Metadata Profile</AeTypography>
-                <AeCard>
-                    <ChildContent>
+                <MudText Typo="Typo.h2">Metadata Profile</MudText>
+                <MudCard>
+                    <MudCardContent>
                         <div>
                             <div>
-                                <AeTypography>@Localizer["Name"]</AeTypography>
+                                <MudText>@Localizer["Name"]</MudText>
                             </div>
                             <div>
-                                <input 
-                                    class="ae input"
-                                    placeholder=@Localizer["Enter profile name..."]
-                                    @bind=@_profile.Name
-                                    style="width: 100%"
-                                />
+                                <MudTextField T="string"
+                                              Placeholder=@Localizer["Enter profile name..."]
+                                              @bind-Value=@_profile.Name
+                                              FullWidth="true" />
                             </div>
                         </div>
                         <div>&nbsp;</div>
                         <div>
                             <div>
                                 @*section list*@
-                                <AeTypography>@Localizer["Section"]</AeTypography>
-                                <AeFlex Vertical="false">
-                                    <select class="ae input" style="width: 100%" @bind=@SelectedSessionId disabled=@_addingSection>
-                                        @foreach (var s in _sections)
-                                        {
-                                            <option value="@s.ListId">@s.English / @s.French</option>
-                                        }
-                                    </select>
-                                </AeFlex>
-                                
+                                <MudText>@Localizer["Section"]</MudText>
+                                <MudSelect T="MetadataSectionDetails" @bind-Value=@_selectedSection
+                                           Comparer="new MetadataSectionDetailsComparer()" 
+                                           Disabled=@_addingSection FullWidth="true">
+                                    @foreach (var s in _sections)
+                                    {
+                                        <MudSelectItem T="MetadataSectionDetails" Value="@s">
+                                            @s.ToString()
+                                        </MudSelectItem>
+                                    }
+                                </MudSelect>
+
                                 @if (_selectedSection is not null)
                                 {
-                                    <MetadataSectionEditor 
-                                        IsNew=_addingSection
-                                        Section=@_selectedSection  
-                                        AvailableFields=@_availableFields
-                                        OnSaveNew=@HandleAddSection
-                                        OnDiscardNew=@HandleIgnoreSection
-                                    />
+                                    <MetadataSectionEditor IsNew=_addingSection
+                                                           Section=@_selectedSection
+                                                           AvailableFields=@_availableFields
+                                                           OnSaveNew=@HandleAddSection
+                                                           OnDiscardNew=@HandleIgnoreSection />
                                 }
                             </div>
                         </div>
                         <div style="margin: 8px 0px 8px 0px;">
-                            <AeButton OnClickEvent=@SaveProfile Disabled=@_addingSection>@Localizer["Save Profile"]</AeButton>
-                            <AeButton OnClickEvent=@DiscardProfileChanges Disabled=@_addingSection>@Localizer["Discard Changes"]</AeButton>
+                            <MudButton OnClick="@SaveProfile" Disabled=@_addingSection>@Localizer["Save Profile"]</MudButton>
+                            <MudButton OnClick="@DiscardProfileChanges" Disabled=@_addingSection>@Localizer["Discard Changes"]</MudButton>
                             <span style="margin-left: 2rem;">&nbsp;</span>
-                            <AeButton OnClickEvent=@HandleStartAddingSection Disabled="_addingSection">@Localizer["Add Section"]</AeButton>
-                            <AeButton OnClickEvent=@HandleDeleteSection Disabled="_addingSection" style="background-color: red;" >@Localizer["Remove Section"]</AeButton>
+                            <MudButton OnClick="@HandleStartAddingSection" Disabled=@_addingSection>@Localizer["Add Section"]</MudButton>
+                            <MudButton OnClick="@HandleDeleteSection" Disabled=@_addingSection Color="Color.Error">@Localizer["Remove Section"]</MudButton>
                         </div>
-                    </ChildContent>
-                </AeCard>
+                    </MudCardContent>
+                </MudCard>
             </div>
         </Authorized>
         <NotAuthorized>
@@ -95,26 +93,20 @@
     private string SelectedSessionId
     {
         get => _selectedSectionId;
-        set
-        {
-            if (value != _selectedSectionId)
-            {
-                _selectedSectionId = value;
-                _selectedSection = _sections.FirstOrDefault(s => s.ListId == value);
-                RefreshAvailableFields(value);
-            }
-        }
+        set => _selectedSectionId = value;
     }
 
     private Dictionary<string, HashSet<int>> _fieldSelection = new();
 
+    Func<MetadataSectionDetails, MetadataSectionDetails, bool> SectionComparer = (a, b) => a?.ListId == b?.ListId;
+
     protected override async Task OnInitializedAsync()
     {
-        
+
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
-        using var ctx = ContextFactory.CreateDbContext();        
+        using var ctx = ContextFactory.CreateDbContext();
 
         _fieldDefinitions = await ctx.FieldDefinitions
             .OrderBy(d => d.Sort_Order_NUM)
@@ -122,7 +114,7 @@
             .ToListAsync();
 
         // load or create new profile
-        MetadataProfile newProfile = new() { Sections = new List<MetadataSection>() }; 
+        MetadataProfile newProfile = new() { Sections = new List<MetadataSection>() };
         if (!string.IsNullOrEmpty(ProfileId))
         {
             var id = int.Parse(ProfileId);
@@ -139,9 +131,10 @@
         }
         _profile ??= newProfile;
 
-        if (_sections.Count > 0)
+        if (_sections.Any())
         {
-            SelectedSessionId = _sections[0].ListId;
+            _selectedSection = _sections.First();
+            _selectedSectionId = _selectedSection.ListId;
         }
     }
 
@@ -149,27 +142,45 @@
     {
         _addingSection = true;
         _selectedSection = new MetadataSectionDetails()
-        {
-            ListId = GetListId(),
-            SectionId = 0,
-            English = "New Section",
-            French = "Nouvelle section",
-            Fields = new HashSet<int>()
-        };
+            {
+                ListId = GetListId(),
+                SectionId = 0,
+                English = "New Section",
+                French = "Nouvelle section",
+                Fields = new HashSet<int>()
+            };
         RefreshAvailableFields("");
+        StateHasChanged();  
     }
 
-    private void HandleAddSection()
-    {
-        _sections.Add(_selectedSection);
+    private async void HandleAddSection()
+    { 
+        _sections = new List<MetadataSectionDetails>(_sections) { _selectedSection };
         _addingSection = false;
         SelectedSessionId = _selectedSection.ListId;
+        _selectedSection = _sections.FirstOrDefault(s => s.ListId == SelectedSessionId);
+        RefreshAvailableFields("");
+        await InvokeAsync(StateHasChanged);  
     }
 
     private void HandleDeleteSection()
     {
-        _sections.Remove(_selectedSection);
-        SelectedSessionId = _sections.Count > 0 ? _sections[0].ListId : string.Empty;
+        if (_selectedSection != null)
+        {
+            _sections.Remove(_selectedSection);
+            if (_sections.Any())
+            {
+                _selectedSection = _sections.First();
+                _selectedSectionId = _selectedSection.ListId;
+            }
+            else
+            {
+                _selectedSection = null;
+                _selectedSectionId = string.Empty;
+            }
+            RefreshAvailableFields(_selectedSectionId);
+            StateHasChanged(); // Trigger a re-render
+        }
     }
 
     private void HandleIgnoreSection()
@@ -195,13 +206,13 @@
     {
         HashSet<int> fields = new(section.Fields.Select(s => s.FieldDefinitionId));
         return new MetadataSectionDetails()
-        {
-            ListId = GetListId(),
-            SectionId = section.SectionId,
-            English = section.Name_English_TXT,
-            French = section.Name_French_TXT,
-            Fields = fields
-        };
+            {
+                ListId = GetListId(),
+                SectionId = section.SectionId,
+                English = section.Name_English_TXT,
+                French = section.Name_French_TXT,
+                Fields = fields
+            };
     }
 
     private async Task SaveProfile()
@@ -240,12 +251,12 @@
 
                     foreach (var fieldId in s.Fields)
                     {
-                        ctx.SectionFields.Add(new SectionField() 
-                        { 
-                            SectionId = section.SectionId, 
-                            FieldDefinitionId = fieldId, 
-                            Required_FLAG = true 
-                        });    
+                        ctx.SectionFields.Add(new SectionField()
+                            {
+                                SectionId = section.SectionId,
+                                FieldDefinitionId = fieldId,
+                                Required_FLAG = true
+                            });
                     }
                 }
                 else
@@ -264,14 +275,14 @@
                     HashSet<int> newFields = new(s.Fields.Except(oldFields));
                     foreach (var fieldId in newFields)
                     {
-                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId, Required_FLAG = true });    
+                        ctx.SectionFields.Add(new SectionField() { SectionId = section.SectionId, FieldDefinitionId = fieldId, Required_FLAG = true });
                     }
 
                     HashSet<int> removedFields = new(oldFields.Except(s.Fields));
                     foreach (var fieldId in removedFields)
                     {
                         var field = section.Fields.FirstOrDefault(f => f.FieldDefinitionId == fieldId);
-                        ctx.SectionFields.Remove(field);    
+                        ctx.SectionFields.Remove(field);
                     }
                 }
                 await ctx.SaveChangesAsync();
@@ -296,10 +307,10 @@
     private MetadataSection CreateSection(MetadataSectionDetails option, int profileId)
     {
         return new MetadataSection()
-        {
-            ProfileId = profileId,
-            Name_English_TXT = option.English,
-            Name_French_TXT = option.French
-        };
+            {
+                ProfileId = profileId,
+                Name_English_TXT = option.English,
+                Name_French_TXT = option.French
+            };
     }
 }
