@@ -33,7 +33,7 @@ please add links to any relevant follow up issues.*
 I have...
 
 - [ ] Included the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
-- [ ] Added `!` to the type prefix if API, client, or state breaking change (i.e., requires minor or major version bump)
+- [ ] Added `!` to the type prefix if change is a breaking change (i.e., requires minor or major version bump)
 - [ ] Targeted the correct branch (see [PR Targeting](https://github.com/atomone-hub/atomone/blob/main/CONTRIBUTING.md#pr-targeting))
 - [ ] ensured that my code follows coding standards
 - [ ] written tests and theyre passing
