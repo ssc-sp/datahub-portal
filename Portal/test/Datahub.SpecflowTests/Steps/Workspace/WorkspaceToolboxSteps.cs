@@ -95,11 +95,11 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IDialogService>(dialogService);
         Services.AddSingleton(datahubPortalConfiguration);
         Services.AddStub<IDatahubAuditingService>();
-
         var requestLogger = new Logger<RequestManagementService>(new LoggerFactory());
 
+        var workspaceVersionService = Substitute.For<WorkspaceVersionService>();
         var endpointProvider = Substitute.For<ISendEndpointProvider>();
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider);
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, workspaceVersionService);
         var requestManagementService = new RequestManagementService(
             requestLogger,
             dbContextFactory,
