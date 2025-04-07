@@ -101,11 +101,12 @@ namespace Datahub.Infrastructure.Services.Cost
             var workspaceAzureTotal = workspaceCosts.TotalAmount();
 
             using var ctx = await dbContextFactory.CreateDbContextAsync();
-            var projectCredits = await ctx.Project_Credits
-                .Include(c => c.Project)
-                .FirstOrDefaultAsync(c => c.Project.Project_Acronym_CD == workspaceAcronym);
-            if (projectCredits is null) return false;
-            var workspaceDbTotal = (decimal)projectCredits.Current;
+            var workspace = ctx.Projects.First(p => p.Project_Acronym_CD == workspaceAcronym);
+            var workspaceDbCosts = ctx.Project_Costs.Where(c => c.Project_ID == workspace.Project_ID).ToList();
+            var workspaceFyDbCosts = workspaceDbCosts.Where(c =>
+                c.Date > CostManagementUtilities.CurrentFiscalYear.StartDate &&
+                c.Date < CostManagementUtilities.CurrentFiscalYear.EndDate).ToList();
+            var workspaceDbTotal = (decimal)workspaceFyDbCosts.Sum(c => c.CadCost);
             var diff = Math.Abs(workspaceAzureTotal - workspaceDbTotal);
 
             if (diff > REFRESH_THRESHOLD)
@@ -350,7 +351,7 @@ namespace Datahub.Infrastructure.Services.Cost
             var queryWorkspaceTodayCosts = azureWorkspaceCosts.FilterDateRange(DateTime.UtcNow.Date);
             var dbWorkspaceCosts = await GetWorkspaceCosts(workspaceAcronym);
             var dbWorkspaceCurrentFYCosts = dbWorkspaceCosts.FilterCurrentFiscalYear();
-            var workspaceCurrentFYCosts = dbWorkspaceCurrentFYCosts.Concat(queryWorkspaceTodayCosts).ToList();
+            var workspaceCurrentCosts = dbWorkspaceCosts.Concat(queryWorkspaceTodayCosts).ToList();
             var workspaceYesterdayCosts = dbWorkspaceCosts.FilterDateRange(DateTime.UtcNow.Date.AddDays(-1));
             var workspaceLastFYCosts = dbWorkspaceCosts.FilterLastFiscalYear();
 
@@ -374,10 +375,10 @@ namespace Datahub.Infrastructure.Services.Cost
             var workspaceLastFYTotal = workspaceLastFYCosts.TotalAmount();
 
             // Update the Project_Credits entry
-            projectCredits.Current = (double)workspaceCurrentFYCosts.TotalAmount();
+            projectCredits.Current = (double)workspaceCurrentCosts.TotalAmount();
             projectCredits.YesterdayCredits = (double)workspaceYesterdayCosts.TotalAmount();
-            projectCredits.CurrentPerDay = JsonSerializer.Serialize(workspaceCurrentFYCosts.GroupByDate());
-            projectCredits.CurrentPerService = JsonSerializer.Serialize(workspaceCurrentFYCosts.GroupBySource());
+            projectCredits.CurrentPerDay = JsonSerializer.Serialize(workspaceCurrentCosts.GroupByDate());
+            projectCredits.CurrentPerService = JsonSerializer.Serialize(workspaceCurrentCosts.GroupBySource());
             projectCredits.YesterdayPerService = JsonSerializer.Serialize(workspaceYesterdayCosts.GroupBySource());
             projectCredits.LastUpdate = DateTime.UtcNow;
             ctx.Project_Credits.Update(projectCredits);

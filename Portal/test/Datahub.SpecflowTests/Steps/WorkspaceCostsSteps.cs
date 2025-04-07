@@ -20,7 +20,6 @@ namespace Datahub.SpecflowTests.Steps
         [Given(@"a workspace with known costs")]
         public void GivenAWorkspaceWithKnownCosts()
         {
-
             scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
         }
 
@@ -462,7 +461,10 @@ namespace Datahub.SpecflowTests.Steps
             credits.LastUpdate = DateTime.UtcNow.AddYears(-1);
             ctx.Project_Credits.Update(credits);
             await ctx.SaveChangesAsync();
-            scenarioContext.Set((decimal)100.0, "lastYearTotal");
+            var (lastFYStart, lastFYEnd) = CostManagementUtilities.LastFiscalYear;
+            var lastYearTotal = ctx.Project_Costs.Where(c =>
+                c.Project_ID == project.Project_ID && c.Date >= lastFYStart && c.Date <= lastFYEnd).Sum(c => c.CadCost);
+            scenarioContext.Set((decimal)lastYearTotal, "lastYearTotal");
         }
 
         [Then(@"a rollover needed is returned")]
@@ -520,7 +522,8 @@ namespace Datahub.SpecflowTests.Steps
             {
                 var cost = expectedCosts
                     .FirstOrDefault(ec =>
-                    ec.Date == ac.Date && ec.ResourceGroupName == ac.ResourceGroupName && ec.Source == ac.Source && ec.Amount == ac.Amount);
+                        ec.Date == ac.Date && ec.ResourceGroupName == ac.ResourceGroupName && ec.Source == ac.Source &&
+                        ec.Amount == ac.Amount);
                 cost.Should().NotBeNull();
                 expectedCosts.Remove(cost);
             });
