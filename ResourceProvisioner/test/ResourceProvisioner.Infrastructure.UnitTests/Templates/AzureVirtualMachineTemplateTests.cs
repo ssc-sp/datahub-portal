@@ -25,10 +25,16 @@ public class AzureVirtualMachineTemplateTests
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
-
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate
+            });
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(module.Name, workspace);
+            await _terraformService.CopyTemplateAsync(module.Name, command);
         });
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
@@ -43,11 +49,17 @@ public class AzureVirtualMachineTemplateTests
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
-
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate
+            });
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
         
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);

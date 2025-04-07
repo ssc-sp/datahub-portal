@@ -2,6 +2,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Shared;
@@ -64,8 +65,10 @@ public class ResourceMessagingService(
             .ToList();
 
 
+
         workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersion() : workspace.Version;
 
+        
 
         return new WorkspaceDefinition
         {
@@ -81,28 +84,5 @@ public class ResourceMessagingService(
         };
     }
 
-    private string GetResourceNameSuffix(string templatetype, Datahub_Project project)
-    {
-        var resourceNumber = 0;
-
-        //get total resources of template type
-        switch (templatetype)
-        {
-            case TerraformTemplate.AzureAppService:
-                resourceNumber = project.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)));
-                break;
-            case TerraformTemplate.AzurePostgres:
-                resourceNumber = project.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)));
-                break;
-            default:
-                throw new ArgumentException("Invalid template type", nameof(templatetype));
-        }
-
-        //get next iteration for suffix
-        resourceNumber++;
-
-        // format resourceNumber to three digits
-        return resourceNumber.ToString("D3");
-
-    }
+    
 }

@@ -31,9 +31,17 @@ public class AzureAppServiceTemplateTests
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
+        var command = GenerateTestCreateResourceRunCommand(
+         workspaceAcronym, new List<string>()
+         {
+                        TerraformTemplate.NewProjectTemplate,
+                        TerraformTemplate.NewProjectTemplate,
+                        TerraformTemplate.NewProjectTemplate
+         });
+
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, workspace);
+            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, command);
         });
     }
 
@@ -44,8 +52,15 @@ public class AzureAppServiceTemplateTests
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
+        var command = GenerateTestCreateResourceRunCommand(
+              workspaceAcronym, new List<string>()
+              {
+                        TerraformTemplate.NewProjectTemplate,
+                        TerraformTemplate.NewProjectTemplate,
+                        TerraformTemplate.NewProjectTemplate
+              });
 
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
 
         _repositoryService.FetchModuleRepository(string.Empty);
 
@@ -92,9 +107,9 @@ public class AzureAppServiceTemplateTests
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
-            });
+            });        
 
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
 
         var expectedVariablesFilename = Path.Join(
@@ -134,7 +149,7 @@ public class AzureAppServiceTemplateTests
                 TerraformTemplate.NewProjectTemplate
          });
 
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
 
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);

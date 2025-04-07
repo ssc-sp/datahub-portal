@@ -139,7 +139,7 @@ public class Testing
         var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
             TerraformStatus.CreateRequested);
 
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 

@@ -131,14 +131,8 @@ public class RequestManagementService(
                         await ProcessRequest(project, requestingUser, template);
                     }
                 }
-
-                if(terraformTemplate.Name == TerraformTemplate.AzureAppService || terraformTemplate.Name == TerraformTemplate.AzurePostgres)
-                {
-                   resourceNameSuffix = GetResourceNameSuffix(terraformTemplate.Name, project);
-                }
+            
             }
-
-
 
             var workspaceDefinition =
                 await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
@@ -146,7 +140,7 @@ public class RequestManagementService(
 
             workspaceDefinition.AppData.ResourceNameSuffix = resourceNameSuffix;
 
-            //await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
         }
         catch (Exception ex)

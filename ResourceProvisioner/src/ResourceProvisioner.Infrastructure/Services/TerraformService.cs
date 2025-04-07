@@ -250,7 +250,7 @@ public class TerraformService(
             foreach (var (key, (value, isRequired)) in missingVariables)
             {
                 preExistingVariables.Remove(key);
-                var variableValue = ComputeVariableValue(terraformWorkspace, workspaceAppData, key, value, isRequired);
+                var variableValue = ComputeVariableValue(terraformWorkspace, workspaceAppData, key, value, templateName, isRequired);
                 if (variableValue != null)
                 {
                     preExistingVariables.TryAdd(key, variableValue);
@@ -265,7 +265,7 @@ public class TerraformService(
                 JsonSerializer.Serialize(missingVariables
                     .Select(missingVariable => (
                         missingVariable.Key,
-                        ComputeVariableValue(terraformWorkspace, workspaceAppData, missingVariable.Key, missingVariable.Value.Value,
+                        ComputeVariableValue(terraformWorkspace, workspaceAppData, missingVariable.Key, missingVariable.Value.Value, templateName,
                             missingVariable.Value.isRequired)))
                     .Where(mv => mv.Item2 != null)
                     .ToDictionary(mv => mv.Key, mv => mv.Item2))
@@ -276,7 +276,7 @@ public class TerraformService(
     // ReSharper disable once ReturnTypeCanBeNotNullable
     // This can return null if the variable is not required
     private JsonNode? ComputeVariableValue(TerraformWorkspace terraformWorkspace, WorkspaceAppData workspaceAppData, string variableName,
-        string variableType, bool isRequired = false)
+        string variableType, string templateName, bool isRequired = false)
     {
         if (variableType.StartsWith(TerraformVariables.MapType, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -298,7 +298,9 @@ public class TerraformService(
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
             TerraformVariables.PsqlSku => workspaceAppData.PostgresConfiguration?.PSQL_SKU ?? "B_Standard_B1ms",
-            TerraformVariables.ResourceNameSuffix => workspaceAppData.ResourceNameSuffix,
+            TerraformVariables.PsqlNameSuffix => workspaceAppData.PostgresConfiguration?.ResourceNameSuffix ?? string.Empty,
+            TerraformVariables.AppServiceNameSuffix => workspaceAppData.AppServiceConfiguration?.ResourceNameSuffix ?? string.Empty,
+            
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,
