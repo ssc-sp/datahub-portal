@@ -4,16 +4,15 @@
 <div style="margin: 2rem">
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
         <Authorized>
-            <AeCard>
-                <Header>
-                    <h2>Metadata</h2>
-                </Header>
-                <ChildContent>
-                    <input class="ae input"
-                           type="text"
-                           @bind="BoundValue"
-                           @bind:event="oninput"
-                           style="width: 100%;" />
+            <MudCard>
+                <MudCardHeader>
+                    <MudText Typo="Typo.h2">Metadata</MudText>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudTextField T="string"
+                                  @bind-Value="BoundValue"
+                                  Placeholder="Enter text..."
+                                  FullWidth="true" />
 
                     <div>
                         <ul>
@@ -25,15 +24,14 @@
                     </div>
 
                     <div>
-                        <AeTypography>Queries: @_queryCount</AeTypography>
+                        <MudText Typo="Typo.body1">Queries: @_queryCount</MudText>
                     </div>
 
                     <div>
-                        <AeButton @onclick="ErrorClick" >Error Now!</AeButton>
+                        <MudButton OnClick="ErrorClick" Color="Color.Error">Error Now!</MudButton>
                     </div>
-
-                </ChildContent>
-            </AeCard>
+                </MudCardContent>
+            </MudCard>
         </Authorized>
     </DatahubAuthView>
 </div>
@@ -42,7 +40,6 @@
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
-
 
     protected override void OnInitialized()
     {

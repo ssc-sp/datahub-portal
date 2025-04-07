@@ -78,6 +78,8 @@
             ctx.Profiles.Remove(entity);
             await ctx.TrackSaveChangesAsync(auditingService);
             _profiles.Remove(profile);
+            _profiles = await GetProfiles(ctx); // Reload the profiles list
+            StateHasChanged(); // Trigger a re-render
         }
     }
 
