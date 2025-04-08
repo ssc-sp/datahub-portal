@@ -36,7 +36,7 @@ public class WorkspaceCreationService(
         return await db.Projects.AnyAsync(p => p.Project_Acronym_CD == acronym);
     }
 
-    public async Task<string> GenerateWorkspaceAcronymAsync(string projectName)
+    public virtual async Task<string> GenerateWorkspaceAcronymAsync(string projectName)
     {
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
         var existingAcronyms = db.Projects.Select(p => p.Project_Acronym_CD).ToArray();
@@ -75,10 +75,10 @@ public class WorkspaceCreationService(
         return await Task.FromResult(acronym);
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string organization)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string organization, int? gcHostingDetailsId = null)
     {
         var acronym = await GenerateWorkspaceAcronymAsync(projectName);
-        return await CreateWorkspaceAsync(projectName, acronym, organization);
+        return await CreateWorkspaceAsync(projectName, acronym, organization, gcHostingDetailsId);
     }
 
     public async Task SaveWorkspaceCreationDetailsAsync(string projectAcronym, string? interestedFeatures = null)
@@ -134,14 +134,14 @@ public class WorkspaceCreationService(
         */
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null)
     {
         try
         {
             acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
-            await AddProjectToDb(currentPortalUser, projectName, acronym, organization);
+            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, gcHostingId: gcHostingDetailsId);
             // DISABLED resource group creation on project creation as this becomes done in the toolbox
             // as part of their first request.
             /*
@@ -216,8 +216,7 @@ public class WorkspaceCreationService(
         await context.TrackSaveChangesAsync(auditingService);
     }
 
-    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization,
-        decimal? budget = null)
+    private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null)
     {
         var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
@@ -236,6 +235,7 @@ public class WorkspaceCreationService(
             Project_Status_Desc = "Ongoing",
             Project_Status = (int)ProjectStatus.InProgress,
             Project_Budget = budget ?? portalConfiguration.DefaultProjectBudget,
+            ParentGCHostingBudgetId = gcHostingId,
             DatahubAzureSubscriptionId = subscription.Id,
             Created_DT = DateTime.UtcNow
         };
@@ -278,5 +278,32 @@ public class WorkspaceCreationService(
         };
 
         await datahubCatalogSearch.AddCatalogObject(catalogObject);
+    }
+
+    private async Task<IEnumerable<GCHostingWorkspaceDetails>> GetGCHostingDetailsInternal(string? userEmail, bool includeAll)
+    {
+        using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
+
+        return await ctx.GCHostingWorkspaceDetails
+            .Where(d => includeAll || d.LeadEmail == userEmail)
+            .Include(d => d.Datahub_Project)
+            .AsNoTracking()
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetGCHostingWorkspaceDetailsForUser(PortalUser user)
+    {
+        return await GetGCHostingDetailsInternal(user.Email, false);
+    }
+
+    public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetGCHostingWorkspaceDetailsForCurrentUser()
+    {
+        var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
+        return await GetGCHostingWorkspaceDetailsForUser(currentPortalUser);
+    }
+
+    public async Task<IEnumerable<GCHostingWorkspaceDetails>> GetAllGCHostingWorkspaceDetails()
+    {
+        return await GetGCHostingDetailsInternal(default, true);
     }
 }
