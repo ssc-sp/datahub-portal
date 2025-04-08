@@ -58,6 +58,8 @@ public partial class FileExplorer
 
         _folders.Add(newFolderPath);
 
+        _folderList = await GetFileCountAsync("/");
+
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserCreateFolder);
     }
 
@@ -123,16 +125,38 @@ public partial class FileExplorer
 
     private async Task HandleDeleteFolder()
     {
-        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"].ToString(),
-            _currentFolder);
+        var folderName = _selectedItems?.FirstOrDefault();
+        if (folderName is null)
+        {
+            folderName = _currentFolder;
+        }
+
+        if (folderName.Length < _currentFolder.Length)  // delete from inside folder
+        {
+            folderName = _currentFolder;
+        }
+
+        var folderNameOnly = folderName.TrimEnd('/').Split('/').Last();
+
+        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"], folderNameOnly);
+      
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        if (!await StorageManager.DeleteFolderAsync(ContainerName, _currentFolder))
+        if (!await StorageManager.DeleteFolderAsync(ContainerName, folderName))
             return;
 
-        await SetCurrentFolder(GetDirectoryName(_currentFolder));
+        if (folderName == _currentFolder)
+        {
+            await SetCurrentFolder(GetDirectoryName(_currentFolder));
+        }
+        else
+        {
+            _folders.Remove(folderName);
+        }
+        StateHasChanged();
     }
+
 
     private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
     {

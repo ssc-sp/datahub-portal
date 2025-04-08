@@ -9,6 +9,7 @@ using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
+using Random = System.Random;
 
 namespace Datahub.Portal.Pages.Workspace.Toolbox
 {
@@ -394,7 +395,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
             foreach (var step in _completionSteps)
             {
-                await Task.Delay(1000);
+                if (!_disableSubmissionDelays) await Task.Delay(1000);
                 Log($"Beginning completion step: {step.Label}");
                 var timer = new Stopwatch();
                 timer.Start();
@@ -428,8 +429,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 return;
             }
 
-            Log("Request completed successfully");
-            await Task.Delay(4000);
 
             if (!_mockRequest)
             {
@@ -442,6 +441,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             }
 
             await _context.DisposeAsync();
+            Log("Request completed successfully");
+            await Task.Delay(4000);
             if (_redirectOnCompletion)
             {
                 NavigationManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}");
@@ -453,6 +454,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task VerifyRequest()
         {
+            if (!_disableSubmissionDelays)
+                await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2))); // Small delay to make it look better
+
             var workspace = await _context
                 .Projects
                 .AsNoTracking()
@@ -513,33 +517,30 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task LocalRecords()
         {
+            if (!_disableSubmissionDelays)
+                await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2))); // Random delay to make it look better
+            var workspace = await _context
+                .Projects
+                .Include(p => p.Resources)
+                .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
             foreach (var template in _builtWorkspaceDefinition.Templates)
             {
                 Log($"Scaffolding local changes for {template.Name}");
                 // Create project resource records for each template
-                await RequestManagementService.ScaffoldLocalChanges(_workspace, _viewedPortalUser, template, _context);
+                await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context);
 
                 // Apply tool specific changes
                 switch (template.Name)
                 {
                     case TerraformTemplate.AzurePostgres:
-                        Log("Applying postgres configuration to database");
-                        _context.Projects.Attach(_workspace);
-
-                        await _context.Entry(_workspace)
-                            .Collection(p => p.Resources)
-                            .LoadAsync();
-
-                        var postgresResource = _workspace.Resources.First(r =>
-                            r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name) &&
-                            r.ProjectId == _workspace.Project_ID);
-
+                        var resource = workspace.Resources.First(r =>
+                            r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));
                         var inputJson = new JsonObject
                         {
                             ["postgres_sku"] = _builtWorkspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
                         };
-                        postgresResource.InputJsonContent = inputJson.ToString();
-                        _context.Update(postgresResource);
+                        resource.InputJsonContent = inputJson.ToString();
                         break;
                 }
             }
@@ -550,10 +551,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task CloudRequest()
         {
+            if (!_disableSubmissionDelays) await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2)));
             Log("Sending workspace definition to Terraform queue");
             if (!_mockRequest)
             {
-                await ResourceMessagingService.SendToTerraformQueue(_builtWorkspaceDefinition);
+                if (!_disableSubmissions) await ResourceMessagingService.SendToTerraformQueue(_builtWorkspaceDefinition);
+                _sentToTerraform = true;
             }
             else
             {
