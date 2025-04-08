@@ -1,8 +1,12 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Services.CatalogSearch;
+using Datahub.Infrastructure.Services;
 using Datahub.Portal.Controllers;
 using Datahub.Shared.Configuration;
 using DocumentFormat.OpenXml.Wordprocessing;
@@ -46,11 +50,11 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
 
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             _logger = Substitute.For<ILogger<HostingServicesController>>();
-            _projectCreationService = Substitute.For<IWorkspaceCreationService>();
             _userInformationService = Substitute.For<IUserInformationService>();
             _userEnrollmentService = Substitute.For<IUserEnrollmentService>();
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _datahubPortalConfiguration = Substitute.For<DatahubPortalConfiguration>();
+            _projectCreationService = CreateMockedWorkspaceCreationService(_datahubPortalConfiguration, dbContextFactory, _userInformationService);
             _scenarioContext = scenarioContext;
             _dbContext = dbContextFactory.CreateDbContext();
             _controller = new HostingServicesController(
@@ -62,6 +66,40 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 _sendEndpointProvider,
                 _datahubPortalConfiguration
             );
+        }
+
+        private static IWorkspaceCreationService CreateMockedWorkspaceCreationService(
+            DatahubPortalConfiguration datahubPortalConfiguration,
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory, 
+            IUserInformationService userInformationService)
+        {
+            var logger = Substitute.For<ILogger<WorkspaceCreationService>>();
+            var serviceAuthManager = Substitute.For<IServiceAuthManager>();
+            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+            var auditingService = Substitute.For<IDatahubAuditingService>();
+            var azureSubService = Substitute.For<IDatahubAzureSubscriptionService>();
+            var catalogSearch = Substitute.For<IDatahubCatalogSearch>();
+
+            azureSubService.NextSubscriptionAsync()
+                .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1 });
+
+            var mockedWorkspaceCreationService = Substitute.ForPartsOf<WorkspaceCreationService>(
+                        datahubPortalConfiguration,
+                        dbContextFactory,
+                        logger,
+                        serviceAuthManager,
+                        userInformationService,
+                        resourceMessagingService,
+                        auditingService,
+                        azureSubService,
+                        catalogSearch);
+
+            mockedWorkspaceCreationService.When(c => c.GenerateWorkspaceAcronymAsync(Arg.Any<string>())).DoNotCallBase();
+
+            mockedWorkspaceCreationService.GenerateWorkspaceAcronymAsync(Arg.Any<string>())
+                .Returns("TEST");
+
+            return mockedWorkspaceCreationService;
         }
 
         [Given("a request with (.*)")]
@@ -84,11 +122,20 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             var requestString = (string)_scenarioContext["requestBody"];
             var cGuid = Guid.NewGuid().ToString();
             string currentEmail = null!;
+
             _userEnrollmentService.SendUserDatahubPortalInvite(Arg.Any<string>(), Arg.Any<string>())
                 .ReturnsForAnyArgs(e => {
                     currentEmail = (string)e[0];
                     return cGuid;
                 });
+
+            _userInformationService.GetCurrentPortalUserAsync()
+                .Returns(new PortalUser
+                {
+                    Email = currentEmail,
+                    GraphGuid = cGuid
+                });
+
             _userInformationService.CreatePortalUserAsync(Arg.Any<string>())
                 .ReturnsForAnyArgs(async userName => {
                     Assert.Equal(cGuid, userName[0]);
@@ -105,9 +152,6 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             {
                 HttpContext = context
             };
-
-            _projectCreationService.GenerateWorkspaceAcronymAsync(Arg.Any<string>())
-                .Returns("TEST");
 
             // Act
             var result = await _controller.PostCreateWorkspace();
