@@ -4,8 +4,8 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ISnackbar _snackbar
 
-<SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
-    <MudSwitch T="bool" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Value="@ElevatedWorkspaceAccessEnabled" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
+<SettingsField Label="@Localizer["Support access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
+    <MudSwitch T="bool" Label="@Localizer["Enable temporary administrative access to FSDH Support Team"]" Value="@ElevatedWorkspaceAccessEnabled" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
     @if (ElevatedWorkspaceAccessEnabled)
     {
         <MudText Typo="Typo.body2">

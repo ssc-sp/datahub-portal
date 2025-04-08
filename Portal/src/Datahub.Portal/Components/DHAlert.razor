@@ -1,0 +1,31 @@
+﻿@using MudBlazor.Utilities
+
+@if (IsOpen)
+{
+    <MudAlert ShowCloseIcon CloseIconClicked="@(_ => IsOpen = false)" Severity="@Severity" Dense="@Dense"
+              UserAttributes="@UserAttributes" Variant="@Variant" Style="@_style" Square="@Square" Class="@Class">
+        @ChildContent
+    </MudAlert>
+}
+
+@code {
+    [Parameter] public Severity Severity { get; set; } = Severity.Info;
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    [Parameter] public string Style { get; set; }
+    [Parameter] public string Class { get; set; }
+    [Parameter] public bool Dense { get; set; } = true;
+    [Parameter] public bool Square { get; set; } = false;
+    private bool IsOpen { get; set; } = true;
+
+    private string _style => new StyleBuilder()
+        .AddStyle(Style)
+        .AddStyle("color", "var(--mud-palette-dark) !important")
+        .AddStyle("background-color", "var(--mud-palette-" + Severity.ToDescriptionString() + "-hover) !important")
+        .Build();
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object> UserAttributes { get; set; } = null;
+
+
+}

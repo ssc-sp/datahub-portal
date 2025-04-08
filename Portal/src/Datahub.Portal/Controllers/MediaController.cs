@@ -31,7 +31,6 @@ public class MediaController : Controller
     /// </summary>
     /// <returns></returns>
     [HttpGet("api/media/{**filePath}")]
-    [Authorize]
     public IActionResult GetMedia(string filePath)
     {
         if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
@@ -58,7 +57,6 @@ public class MediaController : Controller
     /// </summary>
     /// <returns></returns>
     [HttpGet("api/docs/{**filePath}")]
-    [Authorize]
     public IActionResult GetDocs(string filePath)
     {
         if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)

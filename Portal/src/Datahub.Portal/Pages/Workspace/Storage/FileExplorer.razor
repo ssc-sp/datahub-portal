@@ -13,127 +13,139 @@
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDialogService _dialogService
 @inject IOpenDataPublishingService _publishingService;
+@inject ILogger<FileExplorer> _logger;
 @inject NavigationManager _navManager;
 @inject DatahubPortalConfiguration _config;
 
 @implements IAsyncDisposable
 
-<CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
-    <div class="file-explorer-layout">
-        <Heading
-            CurrentFolder="@_currentFolder"
-            SelectedItems="@_selectedItems"
-            Files="@_files"
-            Folders="@_folders"
-            MetadataSignature=@_metadataSignature
-            OnNewFolder="HandleNewFolder"
-            SetCurrentFolder="SetCurrentFolder"
-            OnFileDelete="HandleFileDelete"
-            OnFileDownload="HandleFileDownload"
-            OnPublishFiles="HandlePublishFiles"
-            OnFileRename="HandleFileRename"
-            OnDeleteFolder="HandleDeleteFolder" />
+@if (!_failed)
+{
+    <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
+        <div class="file-explorer-layout">
+            <Heading
+                CurrentFolder="@_currentFolder"
+                SelectedItems="@_selectedItems"
+                Files="@_files"
+                Folders="@_folders"
+                MetadataSignature=@_metadataSignature
+                OnNewFolder="HandleNewFolder"
+                SetCurrentFolder="SetCurrentFolder"
+                OnFileDelete="HandleFileDelete"
+                OnFileDownload="HandleFileDownload"
+                OnPublishFiles="HandlePublishFiles"
+                OnFileRename="HandleFileRename"
+                OnDeleteFolder="HandleDeleteFolder"
+                CanDeleteFolder="CanDeleteFolder" />
 
-        <div class="file-list">
-            <div class="file-list-header">
-                <div></div>
-                <MudText>
-                    @Localizer["Name"]
-                    @* <AeSearchInput *@
-                    @*     SearchIconFAClass="fas fa-search" *@
-                    @*     OnInputChangeWithLastKey="HandleSearch" *@
-                    @*     style="margin: 0 1rem;"/> *@
-                </MudText>
-                <MudText>@Localizer["Size"]</MudText>
-                <MudText>@Localizer["Last Modified"]</MudText>
+            <div class="file-list">
+                <div class="file-list-header">
+                    <div></div>
+                    <MudText>
+                        @Localizer["Name"]
+                        @* <AeSearchInput *@
+                        @*     SearchIconFAClass="fas fa-search" *@
+                        @*     OnInputChangeWithLastKey="HandleSearch" *@
+                        @*     style="margin: 0 1rem;"/> *@
+                    </MudText>
+                    <MudText>@Localizer["Size"]</MudText>
+                    <MudText>@Localizer["Last Modified"]</MudText>
+                </div>
+
+                @if (_loading)
+                {
+                    <LoadingFileList/>
+                }
+                else
+                {
+                    <UploadSnackbar UploadingFiles="_uploadingFiles">
+                        <DropZone MaxHeight OnFilesDrop="UploadFiles">
+                            @if (_currentFolder != _root)
+                            {
+                                var parentFolder = GetDirectoryName(_currentFolder);
+                                <DropZone
+                                    OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
+                                    OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
+                                    <FileItem
+                                        Name="[..]"
+                                        Folder
+                                        @onclick="@(() => _selectedItems = new HashSet<string> { parentFolder })"
+                                        @ondblclick="async () => await SetCurrentFolder(parentFolder)">
+                                        <Icon>
+                                            <i class="fas fa-folder"></i>
+                                        </Icon>
+                                    </FileItem>
+                                </DropZone>
+                            }
+                            @foreach (var folderName in _folders
+                                              .Where(f => f?.Contains(_filterValue) ?? false)
+                                              .OrderBy(f => f.ToLower()))
+                            {
+                                <DropZone
+                                    OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
+                                    OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
+                                    <FileItem
+                                        Name="@GetFileName(folderName)"
+                                        Highlighted="_selectedItems.Contains(folderName)"
+                                        Folder
+                                        @onclick="@(() => _selectedItems = new HashSet<string> { folderName })"
+                                        @ondblclick="async () => await SetCurrentFolder(folderName)">
+                                        <Icon>
+                                            <i class="fas fa-folder"></i>
+                                        </Icon>
+                                    </FileItem>
+                                </DropZone>
+                            }
+                            @foreach (var file in _files
+                                              .Where(f => f?.name?.Contains(_filterValue) ?? false)
+                                              .OrderBy(f => f.name.ToLower()))
+                            {
+                                <FileItem
+                                    Name="@GetFileName(file.name)"
+                                    Modified="@file.Modified"
+                                    Size="@file.filesize"
+                                    @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
+                                    OnSelectionClick="() => HandleFileSelectionClick(file.name)"
+                                    Highlighted="_selectedItems.Contains(file.name)">
+                                    <Icon>
+                                        <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                                    </Icon>
+                                </FileItem>
+                            }
+                        </DropZone>
+                    </UploadSnackbar>
+                }
             </div>
-
-            @if (_loading)
-            {
-                <LoadingFileList/>
-            }
-            else
-            {
-                <UploadSnackbar UploadingFiles="_uploadingFiles">
-                    <DropZone MaxHeight OnFilesDrop="UploadFiles">
-                        @if (_currentFolder != _root)
+            <div class="item-details">
+                <div class="details-sticky">
+                    <div class="details-container">
+                        @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                         {
-                            var parentFolder = GetDirectoryName(_currentFolder);
-                            <DropZone
-                                OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
-                                OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
-                                <FileItem
-                                    Name="[..]"
-                                    Folder
-                                    @onclick="@(() => _selectedItems = new HashSet<string> { parentFolder })"
-                                    @ondblclick="async () => await SetCurrentFolder(parentFolder)">
-                                    <Icon>
-                                        <i class="fas fa-folder"></i>
-                                    </Icon>
-                                </FileItem>
-                            </DropZone>
+                            <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container="@Container"/>
                         }
-                        @foreach (var folderName in _folders
-                            .Where(f => f?.Contains(_filterValue) ?? false)
-                            .OrderBy(f => f.ToLower()))
+                        else
                         {
-                            <DropZone
-                                OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
-                                OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
-                                <FileItem
-                                    Name="@GetFileName(folderName)"
-                                    Highlighted="_selectedItems.Contains(folderName)"
-                                    Folder
-                                    @onclick="@(() => _selectedItems = new HashSet<string> { folderName })"
-                                    @ondblclick="async () => await SetCurrentFolder(folderName)">
-                                    <Icon>
-                                        <i class="fas fa-folder"></i>
-                                    </Icon>
-                                </FileItem>
-                            </DropZone>
+                            var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                            <FileProperties @key=@_selectedItem
+                                            ProjectId=@ProjectId
+                                            File=@file
+                                            Readonly="!OwnsFile(file)"
+                                            OnMetadataChanged=@HandleMetadataChanged/>
                         }
-                        @foreach (var file in _files
-                            .Where(f => f?.name?.Contains(_filterValue) ?? false)
-                            .OrderBy(f => f.name.ToLower()))
-                        {
-                            <FileItem
-                                Name="@GetFileName(file.name)"
-                                Modified="@file.Modified"
-                                Size="@file.filesize"
-                                @onclick="@(() => _selectedItems = new HashSet<string> {file.name})"
-                                OnSelectionClick="() => HandleFileSelectionClick(file.name)"
-                                Highlighted="_selectedItems.Contains(file.name)">
-                                <Icon>
-                                    <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
-                                </Icon>
-                            </FileItem>
-                        }
-                    </DropZone>
-                </UploadSnackbar>
-            }
-        </div>
-        <div class="item-details">
-            <div class="details-sticky">
-                <div class="details-container">
-                    @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
-                    {
-                        <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container="@Container" />
-                    }
-                    else
-                    {
-                        var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
-                        <FileProperties @key=@_selectedItem
-                                        ProjectId=@ProjectId 
-                                        File=@file 
-                                        Readonly="!OwnsFile(file)" 
-                                        OnMetadataChanged=@HandleMetadataChanged />
-                    }
+                    </div>
                 </div>
             </div>
         </div>
-
-    </div>
-</CascadingValue>
+    </CascadingValue>
+}
+else
+{
+    <MudPaper Class="pa-4" Outlined Elevation="0">
+        <MudText>
+            @Localizer["Failed to load file explorer"]
+        </MudText>
+    </MudPaper>
+}
 
 @code {
 
@@ -143,11 +155,9 @@
     [CascadingParameter(Name = "GraphUser")]
     public Microsoft.Graph.Models.User GraphUser { get; set; }
 
-    [Parameter]
-    public int? ProjectId { get; set; }
+    [Parameter] public int? ProjectId { get; set; }
 
-    [Parameter]
-    public CloudStorageContainer Container { get; set; }
+    [Parameter] public CloudStorageContainer Container { get; set; }
 
     public StorageMetadata StorageAccountMetadata { get; set; }
 
@@ -160,6 +170,7 @@
     private string _userId;
 
     private bool _loading = true;
+    private bool _failed = false;
     private List<FileMetaData> _uploadingFiles;
     private string _continuationToken;
 
@@ -175,6 +186,8 @@
 
     private IJSObjectReference _module;
 
+    private Dictionary<string, int> _folderList;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         await base.OnAfterRenderAsync(firstRender);
@@ -184,6 +197,8 @@
             if (StorageManager != null)
             {
                 StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
+                _folderList = await GetFileCountAsync(_currentFolder);
+                StateHasChanged();
             }
         }
     }
@@ -206,6 +221,31 @@
     private void HandleMetadataChanged()
     {
         _metadataSignature = Guid.NewGuid();
+    }
+
+    private async Task<Dictionary<string, int>> GetFileCountAsync(string folderPath)
+    {
+        Dictionary<string, int> folders = new();
+        if (StorageManager != null)
+        {
+            folders = await StorageManager.ListFoldersAsync(ContainerName, folderPath);
+        }
+        return folders;
+    }
+
+    private bool CanDeleteFolder(string folderName)
+    {
+        if (_folders.Contains(folderName) && _folderList != null)
+        {
+            return _folderList.TryGetValue($"{folderName}/", out int fileCount) && fileCount == 0;
+        }
+        return false;
+    }
+
+    private void SelectItem(string item)
+    {
+        _selectedItems = new HashSet<string> { item };
+        StateHasChanged();
     }
 
     public async ValueTask DisposeAsync()

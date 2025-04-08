@@ -16,14 +16,14 @@ A component displayed on the workspace dashboard to alert all users of current b
         Then the alert should be rendered with <percent> budget and <class> class
 
     Examples:
-      | percent | class                  |
-      | 50.00   | mud-alert-text-info    |
-      | 50.01   | mud-alert-text-info    |
-      | 74.99   | mud-alert-text-info    |
-      | 75.00   | mud-alert-text-warning |
-      | 75.01   | mud-alert-text-warning |
-      | 89.99   | mud-alert-text-warning |
-      | 90.00   | mud-alert-text-error   |
-      | 90.01   | mud-alert-text-error   |
-      | 99.99   | mud-alert-text-error   |
-      | 100.00  | mud-alert-text-error   |
+      | percent | class                      |
+      | 50.00   | mud-alert-outlined-info    |
+      | 50.01   | mud-alert-outlined-info    |
+      | 74.99   | mud-alert-outlined-info    |
+      | 75.00   | mud-alert-outlined-warning |
+      | 75.01   | mud-alert-outlined-warning |
+      | 89.99   | mud-alert-outlined-warning |
+      | 90.00   | mud-alert-outlined-error   |
+      | 90.01   | mud-alert-outlined-error   |
+      | 99.99   | mud-alert-outlined-error   |
+      | 100     | mud-alert-outlined-error   |

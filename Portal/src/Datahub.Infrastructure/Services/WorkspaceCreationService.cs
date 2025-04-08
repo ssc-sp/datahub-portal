@@ -60,14 +60,17 @@ public class WorkspaceCreationService(
         {
             acronym = acronym.Substring(0, 7);
         }
+
         if (!enumerable.Contains(acronym)) return acronym;
         var largestNumber = enumerable.Where(a => a.StartsWith(acronym)).Select(
             a => a.Length > acronym.Length && int.TryParse(a[acronym.Length..], out var n) ? n : 0
         ).Max();
-        if (acronym.Length > 7 - (largestNumber + 1).ToString().Length) // If acronym would be too long with a number, shorten it
+        if (acronym.Length >
+            7 - (largestNumber + 1).ToString().Length) // If acronym would be too long with a number, shorten it
         {
             acronym = acronym.Substring(0, 7 - (largestNumber + 1).ToString().Length);
         }
+
         acronym += (largestNumber + 1).ToString();
         return await Task.FromResult(acronym);
     }
@@ -114,18 +117,21 @@ public class WorkspaceCreationService(
         }
     }
 
-    public async Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string? acronym, string organization, PortalUser portalUser, decimal budget, string cbrID)
+    public async Task CreateWorkspaceCloudHostingEndPointAsync(string projectName, string? acronym, string organization,
+        PortalUser portalUser, decimal budget, string cbrID)
     {
         acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
 
         await AddProjectToDb(portalUser, projectName, acronym, organization, budget);
-        await CreateNewTemplateWorkspaceResourceAsync(acronym);
+        // DISABLED resource group creation on project creation as this becomes done in the toolbox
+        // as part of their first request.
+        /*
+            await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
-        var workspaceDefinition =
-            await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email, cbrID);
-        await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-
-
+            var workspaceDefinition =
+                await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email, cbrID);
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+        */
     }
 
     public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null)
@@ -140,7 +146,7 @@ public class WorkspaceCreationService(
             // as part of their first request.
             /*
                 await CreateNewTemplateWorkspaceResourceAsync(acronym);
-            
+
                 var workspaceDefinition =
                 await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
                 await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
@@ -230,7 +236,8 @@ public class WorkspaceCreationService(
             Project_Status = (int)ProjectStatus.InProgress,
             Project_Budget = budget ?? portalConfiguration.DefaultProjectBudget,
             ParentGCHostingBudgetId = gcHostingId,
-            DatahubAzureSubscriptionId = subscription.Id
+            DatahubAzureSubscriptionId = subscription.Id,
+            Created_DT = DateTime.UtcNow
         };
         await db.Projects.AddAsync(project);
 
