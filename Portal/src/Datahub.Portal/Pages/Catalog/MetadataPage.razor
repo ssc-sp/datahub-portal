@@ -1,27 +1,27 @@
 ﻿@page "/metadata/{ObjectId}"
 @using Datahub.Application.Services.Metadata
+@using MudBlazor
 
 <div style="margin: 2rem">
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
         <Authorized>
-            <AeCard>
-                <Header>
+            <MudCard>
+                <MudCardHeader>
                     <h2>Metadata</h2>
-                </Header>
-                <ChildContent>
-                    <ObjectMetadataEditor 
-                        @ref="_objectMetadataEditor" 
-                        ObjectId=@ObjectId 
-                        ProfileName="catalog" 
-                        UpdateCatalog="false"
-                        Preview />
-                </ChildContent>
-            </AeCard>
+                </MudCardHeader>
+                <MudCardContent>
+                    <ObjectMetadataEditor @ref="_objectMetadataEditor"
+                                          ObjectId=@ObjectId
+                                          ProfileName="catalog"
+                                          UpdateCatalog="false"
+                                          Preview />
+                </MudCardContent>
+            </MudCard>
         </Authorized>
         <NotAuthorized>
-            <AeTypography Variant="h3">You are not authorized to view this page.</AeTypography>
-            </NotAuthorized>
-     </DatahubAuthView>
+            <MudText Typo="Typo.h3">You are not authorized to view this page.</MudText>
+        </NotAuthorized>
+    </DatahubAuthView>
 </div>
 
 @code {
