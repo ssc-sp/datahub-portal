@@ -227,6 +227,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 valueObj.Should().NotBeNull();
                 valueObj.Should().HaveCount(2);
                 var acronym = valueObj![0] as string;
+                acronym.Should().NotBeNullOrEmpty();
                 _scenarioContext[CREATED_WORKSPACE_ACRONYM_CONTEXT_KEY] = acronym;
             }
 
