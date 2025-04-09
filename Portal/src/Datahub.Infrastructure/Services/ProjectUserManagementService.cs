@@ -124,6 +124,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
             userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
             userToUpdate.IsDataSteward = RoleBasedDataStewardFlag(projectUserUpdateCommand);
+            userToUpdate.Approved_DT = DateTime.UtcNow;
             context.Update(userToUpdate);
             
         }
