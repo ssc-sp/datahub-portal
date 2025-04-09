@@ -223,4 +223,10 @@ public class ServiceAuthManager : IServiceAuthManager
         return usersAuthorization[userGraphId]
             .ToImmutableList();
     }
+
+    public async Task<bool> IsUserCbrOwner(string userEmail)
+    {
+        using var ctx = await dbFactory.CreateDbContextAsync();
+        return await ctx.GCHostingWorkspaceDetails.AnyAsync(d => d.LeadEmail == userEmail);
+    }
 }
