@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 
 namespace Datahub.Metadata.DTO;
+
 public class MetadataSectionDetails
 {
     public string ListId { get; set; }
