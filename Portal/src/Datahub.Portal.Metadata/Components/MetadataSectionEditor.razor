@@ -1,49 +1,44 @@
 ﻿@using Datahub.Metadata.DTO
 @using Datahub.Metadata.Model
+@using MudBlazor
 
 <div>
     <div>
         <div style="margin: 8px 0px 8px 0px;">
             <div>
-                <AeTypography>Name English</AeTypography>
+                <MudText Typo="Typo.h6">Name English</MudText>
             </div>
             <div>
-                <input 
-                    class="ae input"
-                    placeholder="Enter section name (english)..."
-                    @bind=@Section.English
-                    style="width: 100%"
-                />
+                <MudTextField T="string"
+                              Placeholder="Enter section name (english)..."
+                              @bind-Value="Section.English"
+                              FullWidth="true" />
             </div>
         </div>
 
         <div style="margin: 8px 0px 8px 0px;">
             <div>
-                <AeTypography>Name French</AeTypography>
+                <MudText Typo="Typo.h6">Name French</MudText>
             </div>
             <div>
-                <input 
-                    class="ae input"
-                    placeholder="Enter section name (french)..."
-                    @bind=@Section.French
-                    style="width: 100%"
-                />
+                <MudTextField T="string"
+                              Placeholder="Enter section name (french)..."
+                              @bind-Value="Section.French"
+                              FullWidth="true" />
             </div>
         </div>
     </div>
 
     <div>
-        <MetadataSectionFields 
-            @key=@Section.ListId
-            Fields=@AvailableFields
-            Selection=@Section.Fields 
-        />
+        <MetadataSectionFields @key=@Section.ListId
+                               Fields=@AvailableFields
+                               Selection=@Section.Fields />
     </div>
 
     @if (IsNew)
     {
-        <AeButton OnClickEvent=@OnSaveNew Disabled=@InvalidSection>Save</AeButton>
-        <AeButton OnClickEvent=@OnDiscardNew>Cancel</AeButton>
+        <MudButton OnClick="@OnSaveNew" Disabled="@InvalidSection" Variant="Variant.Filled" Color="Color.Primary">Save</MudButton>
+        <MudButton OnClick="@OnDiscardNew" Variant="Variant.Outlined" Color="Color.Secondary">Cancel</MudButton>
     }
 </div>
 

@@ -4,6 +4,8 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Metadata.Model
+@using Datahub.Portal.Data.Forms.Metadata
+@using MudBlazor
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
@@ -15,20 +17,26 @@
 <div style="margin: 2rem">
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
         <Authorized>
-            <h2>Edit Field Definition</h2>
-            <AeCard>
-                <ChildContent>
-                    <AeModelForm 
-                        Model="_form"
-                        T=@Data.Forms.Metadata.FieldDefinitionForm
-                        OnValidSubmit=@HandleValidSubmit
-                        OnCancel="ClearForm"
-                        CancelLabel="Cancel"
-                        LabelForPropertyFunc="@GetDataLabel"
-                        LabelsOnTop 
-                    />
-                </ChildContent>
-            </AeCard>
+            <MudText Typo="Typo.h2">Edit Field Definition</MudText>
+            <MudCard>
+                <MudCardContent>
+                    <MudForm Model="@_form" @ref="_formRef" OnValidSubmit="@HandleValidSubmit">
+                        <MudTextField @bind-Value="_form.Field_Name_TXT" Label="@GetDataLabel(nameof(_form.Field_Name_TXT))" Required="true" />
+                        <MudTextField @bind-Value="_form.Name_English_TXT" Label="@GetDataLabel(nameof(_form.Name_English_TXT))" Required="true" />
+                        <MudTextField @bind-Value="_form.Name_French_TXT" Label="@GetDataLabel(nameof(_form.Name_French_TXT))" Required="true" />
+                        <MudTextField @bind-Value="_form.English_DESC" Label="@GetDataLabel(nameof(_form.English_DESC))" />
+                        <MudTextField @bind-Value="_form.French_DESC" Label="@GetDataLabel(nameof(_form.French_DESC))" />
+                        <MudCheckBox @bind-Checked="_form.Required_FLAG" Label="@GetDataLabel(nameof(_form.Required_FLAG))" T="bool" />
+                        <MudCheckBox @bind-Checked="_form.MultiSelect_FLAG" Label="@GetDataLabel(nameof(_form.MultiSelect_FLAG))" T="bool" />
+                        <MudTextField @bind-Value="_form.Default_Value_TXT" Label="@GetDataLabel(nameof(_form.Default_Value_TXT))" />
+                        <MudNumericField @bind-Value="_form.Sort_Order_NUM" Label="@GetDataLabel(nameof(_form.Sort_Order_NUM))" T="int" />
+                        <MudTextField @bind-Value="_form.Choices_TXT" Label="@GetDataLabel(nameof(_form.Choices_TXT))" Placeholder="Enter choice list separated by | characters. (new definitions)" />
+
+                        <MudButton Type="submit" Color="Color.Primary">Submit</MudButton>
+                        <MudButton OnClick="ClearForm" Color="Color.Secondary">Cancel</MudButton>
+                    </MudForm>
+                </MudCardContent>
+            </MudCard>
         </Authorized>
         <NotAuthorized>
             @Localizer["You are not authorized to view this page."]
@@ -37,11 +45,11 @@
 </div>
 
 @code {
-
     [Parameter]
     public string Id { get; set; } = "0";
 
-    private Data.Forms.Metadata.FieldDefinitionForm _form { get; set; }
+    private FieldDefinitionForm _form { get; set; } = new FieldDefinitionForm();
+    private MudForm _formRef;
 
     private FieldDefinition FieldDefinition { get; set; }
 
@@ -49,11 +57,9 @@
 
     protected override async Task OnInitializedAsync()
     {
-
         var user = await _userInformationService.GetCurrentGraphUserAsync();
         _authorizedRoles = ServiceAuthManager.GetAdminProjectRoles(user.Id);
 
-        _form = new();
         var defId = Id is not null ? int.Parse(Id) : 0;
         if (defId != 0)
         {
@@ -67,11 +73,11 @@
     {
         var isNewDefinition = FieldDefinition is null;
 
-        var def = FieldDefinition ?? new();
+        var def = FieldDefinition ?? new FieldDefinition();
         _form.CopyPublicPropertiesTo(def);
 
         using var ctx = ContextFactory.CreateDbContext();
-        var transation = ctx.Database.BeginTransaction();
+        var transaction = ctx.Database.BeginTransaction();
         try
         {
             if (isNewDefinition)
@@ -101,19 +107,16 @@
 
             await AuditingService.TrackAdminEvent("metadata", "MetadataDefinitions", AuditChangeType.Edit);
 
-            transation.Commit();
+            transaction.Commit();
         }
         catch (Exception)
         {
-            transation.Rollback();            
+            transaction.Rollback();
         }
 
         NavigationManager.NavigateTo("/metadata/definitions");
     }
 
-    /// <summary>
-    /// Expected format: id:eng:fre|id:eng:fre|...
-    /// </summary>    
     private IEnumerable<FieldChoice> ParseChoices(string choices, int definitionId)
     {
         return choices.Split('|', StringSplitOptions.RemoveEmptyEntries).Select(c => CreateChoice(definitionId, c));
@@ -123,26 +126,26 @@
     {
         var choice = ParseChoiceData(data);
         return new FieldChoice()
-        {
-            FieldDefinitionId = definitionId,
-            Label_English_TXT = choice.English.Trim(),
-            Label_French_TXT = choice.French.Trim(),
-            Value_TXT = choice.Id.Trim()
-        };
+            {
+                FieldDefinitionId = definitionId,
+                Label_English_TXT = choice.English.Trim(),
+                Label_French_TXT = choice.French.Trim(),
+                Value_TXT = choice.Id.Trim()
+            };
     }
 
     static ChoiceData ParseChoiceData(string data)
     {
         var cols = data.Split(':', StringSplitOptions.RemoveEmptyEntries);
         if (cols.Length == 3)
-            return new(cols[0], cols[1], cols[2]);
-        return new(data, data, data);
+            return new ChoiceData(cols[0], cols[1], cols[2]);
+        return new ChoiceData(data, data, data);
     }
 
-    private async Task<Data.Forms.Metadata.FieldDefinitionForm> ClearForm()
+    private async Task ClearForm()
     {
         NavigationManager.NavigateTo("/metadata/definitions");
-        return await Task.FromResult(_form);
+        await Task.CompletedTask;
     }
 
     private string GetDataLabel(string propName)

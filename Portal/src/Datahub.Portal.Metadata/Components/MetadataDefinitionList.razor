@@ -2,20 +2,21 @@
 @inject NavigationManager NavigationManager
 @using Datahub.Metadata.Model
 @using Datahub.Metadata.DTO
+@using MudBlazor
+@using System.Timers
 
 <div>
-    <div style="margin-top: 16px; margin-bottom: 16px;">
-        <AeSearchInput 
-            id="search"
-            SearchIconFAClass="fas fa-search"
-            Placeholder=@Localizer["Search..."]
-            OnInputChangeWithLastKey=@HandleSearch 
-        />
+    <div style="display: flex; align-items: center;">
+        <MudTextField T="string" @bind-Value="LastSearch" Placeholder="Search" Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Search" Immediate="true" />
+
+        @if (!string.IsNullOrEmpty(_lastSearch))
+        {
+            <MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="ClearSearch" />
+        }
     </div>
 
-    <MudTable T=@FieldDefinition
-        Items=@_filteredDefinitions
-        >
+    <MudTable T="FieldDefinition" Items="@_filteredDefinitions" Hover="true" Bordered="true" Striped="true">
         <HeaderContent>
             <MudTh>@Localizer["Order"]</MudTh>
             <MudTh>@Localizer["ID"]</MudTh>
@@ -31,35 +32,32 @@
             <MudTd>@GetNameEnglish(context)</MudTd>
             <MudTd>@GetNameFrench(context)</MudTd>
             <MudTd>@GetHasChoices(context)</MudTd>
-            <MudTd>@GetEditFragment(context)</MudTd>
+            <MudTd DataLabel=""><MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => HandleEdit(context))" /></MudTd>
         </RowTemplate>
-
     </MudTable>
 
-    @if (_table != null)
-    {
-        <AePagination 
-            Pageable=@_table
-            OnPageClick="OnPageClick"> 
-            <LeftIcon><i class='fad fa-chevron-double-left'></i></LeftIcon> 
-            <RightIcon><i class='fad fa-chevron-double-right'></i></RightIcon>
-        </AePagination>                 
-    }
     <div style="margin-top: 16px;">
-        <AeButton To="/metadata/newdefinition">@Localizer["Add Definition"]</AeButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/metadata/newdefinition"))">@Localizer["Add Definition"]</MudButton>
     </div>
 </div>
 
 @code {
-
     private List<FieldDefinition> _fieldDefinitions = new();
     private List<FieldDefinition> _filteredDefinitions = new();
 
-    private IPageableComponent _table;
-    private int _pageSize = 8;
-    private int _lastClicked = 0;
     private string _lastSearch;
-    private QueryThrottler<string> _searchThrottler;
+    private System.Timers.Timer _debounceTimer;
+
+    private string GetOrder(FieldDefinition result) => result.Sort_Order_NUM.ToString();
+    private string GetName(FieldDefinition result) => result.Field_Name_TXT;
+    private string GetNameEnglish(FieldDefinition result) => result.Name_English_TXT;
+    private string GetNameFrench(FieldDefinition result) => result.Name_French_TXT;
+
+    private RenderFragment GetHasChoices(FieldDefinition result)
+    => result.HasChoices ? @<span>Yes</span> : @<span>No</span>;
+
+    private RenderFragment GetEditFragment(FieldDefinition result)
+    => @<div style="cursor: pointer;" onclick=@(() => HandleEdit(result))><i class="far fa-edit sm-icon"></i></div>;
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,39 +69,41 @@
             .ToListAsync();
 
         ApplyFilter();
-
-        _searchThrottler = new(TimeSpan.FromSeconds(0.5), ThrottleSearch);
     }
 
-    protected override void OnAfterRender(bool firstRender)
+    private string LastSearch
     {
-        // You must re-render after the components are initialized in order for the 
-        // component reference to not be null
-        if (firstRender) 
+        get => _lastSearch;
+        set
         {
-            StateHasChanged();
+            _lastSearch = value;
+            DebounceSearch();
         }
     }
 
-    private string GetOrder(FieldDefinition result) => result.Sort_Order_NUM.ToString();
-    private string GetName(FieldDefinition result) => result.Field_Name_TXT;
-    private string GetNameEnglish(FieldDefinition result) => result.Name_English_TXT;
-    private string GetNameFrench(FieldDefinition result) => result.Name_French_TXT;
-
-    private RenderFragment GetHasChoices(FieldDefinition result) 
-        => result.HasChoices ? @<span>Yes</span> : @<span>No</span>;
-
-    private RenderFragment GetEditFragment(FieldDefinition result) 
-        => @<div style="cursor: pointer;" onclick=@(() => HandleEdit(result)) ><i class="far fa-edit sm-icon"></i></div>;
-
-    private async void HandleSearch(string newValue, KeyboardEventArgs ev)
+    private void DebounceSearch()
     {
-        await _searchThrottler.SetQuery(newValue);
+        if (_debounceTimer != null)
+        {
+            _debounceTimer.Stop();
+            _debounceTimer.Dispose();
+        }
+
+        _debounceTimer = new System.Timers.Timer(300); // 300ms debounce time
+        _debounceTimer.Elapsed += async (sender, e) =>
+        {
+            _debounceTimer.Stop();
+            _debounceTimer.Dispose();
+            _debounceTimer = null;
+            await InvokeAsync(() => ApplyFilter());
+        };
+        _debounceTimer.Start();
     }
 
-    private void OnPageClick(int pageIndex)
+    private void ClearSearch()
     {
-        _lastClicked = pageIndex;
+        _lastSearch = string.Empty;
+        ApplyFilter();
     }
 
     private void HandleEdit(FieldDefinition definition)
@@ -111,33 +111,20 @@
         NavigationManager.NavigateTo($"/metadata/definition/{definition.FieldDefinitionId}");
     }
 
-    private async Task ThrottleSearch(string searchText)
-    {
-        if (_lastSearch != searchText)
-        {
-            _lastSearch = searchText;
-            try
-            {
-                ApplyFilter();
-            }
-            finally
-            {
-                await InvokeAsync(StateHasChanged);
-            }
-        }            
-    }
-
     private void ApplyFilter()
     {
         if (string.IsNullOrEmpty(_lastSearch))
         {
-            _filteredDefinitions = new(_fieldDefinitions);
+            _filteredDefinitions = new List<FieldDefinition>(_fieldDefinitions);
         }
         else
         {
             _filteredDefinitions = _fieldDefinitions
-                .Where(d => d.Field_Name_TXT.Contains(_lastSearch) || d.Name_English_TXT.Contains(_lastSearch) || d.Name_French_TXT.Contains(_lastSearch))
+                .Where(d => d.Field_Name_TXT.Contains(_lastSearch, StringComparison.OrdinalIgnoreCase) ||
+                            d.Name_English_TXT.Contains(_lastSearch, StringComparison.OrdinalIgnoreCase) ||
+                            d.Name_French_TXT.Contains(_lastSearch, StringComparison.OrdinalIgnoreCase))
                 .ToList();
-        }        
+        }
+        StateHasChanged();
     }
 }
