@@ -60,15 +60,13 @@ public class ResourceMessagingService(
 
         var workspace = project.ToResourceWorkspace(users);
         var templates = project.Resources
-            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && !TerraformStatus.DeletedOrInProcessOf(r.Status))
+            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && r.Status != TerraformStatus.Deleted)
             .Select(r => r.ToTerraformTemplate())
             .ToList();
 
 
 
         workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersion() : workspace.Version;
-
-        
 
         return new WorkspaceDefinition
         {

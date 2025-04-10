@@ -54,6 +54,7 @@ public class TerraformService(
             }
         }
 
+        await DeletedAnyOldDeletedFiles(projectPath, templateName);
 
         var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly)
             .Where(filename => !EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)));
@@ -175,8 +176,11 @@ public class TerraformService(
     }
 
     private async Task RenameTemplateAsDeleted(string projectPath, string templateName, TerraformWorkspace terraformWorkspace)
-    {            
-        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
+    {
+        // check if the project directory exists
+        await DeletedAnyOldDeletedFiles(projectPath, templateName);
+
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf", SearchOption.AllDirectories)
             .ToArray();
 
         if (matchingFiles.Length > 0)
@@ -187,7 +191,22 @@ public class TerraformService(
                 File.Move(file, newFileName);
                 logger.LogInformation("Renamed file {File} to {NewFileName}", file, newFileName);
             }
-        }        
+        }
+    }
+
+    private async Task DeletedAnyOldDeletedFiles(string projectPath, string templateName)
+    {        
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf.deleted", SearchOption.AllDirectories)
+            .ToArray();
+
+        if (matchingFiles.Length > 0)
+        {
+            foreach (var file in matchingFiles)
+            {
+                File.Delete(file);
+                logger.LogInformation("Deleted file {DeletedFilePath}", file);
+            }
+        }
     }
 
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)

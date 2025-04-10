@@ -104,14 +104,15 @@ public partial class RepositoryService(
         Directory.CreateDirectory(tempPath);
     }
 
-    public void FetchModuleRepository(string version)
+    public async Task FetchModuleRepository(string version)
     {
         _moduleSemaphore.Wait();
         try
         {
             var repositoryUrl = resourceProvisionerConfiguration.ModuleRepository.Url;
             var localPath = resourceProvisionerConfiguration.ModuleRepository.LocalPath;
-
+            var branch = resourceProvisionerConfiguration.ModuleRepository.Branch;
+            version = $"{branch}-{version}";
             logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
