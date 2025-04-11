@@ -13,14 +13,28 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <FSDHEnvironment Environments="@_environmentsToAllowCreation">
-        <CreateWorkspaceForm />
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ElevatedWorkspaceAccessEnabled="true">
+            <Authorized>
+                <CreateWorkspaceForm ShowAllCBRs />
+            </Authorized>
+            <NotAuthorized>
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.CbrOwner">
+                    <Authorized>
+                        <CreateWorkspaceForm />
+                    </Authorized>
+                    <NotAuthorized>
+                        @Localizer["Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information."]
+                    </NotAuthorized>
+                </DatahubAuthView>
+            </NotAuthorized>
+        </DatahubAuthView>
     </FSDHEnvironment>
     <FSDHEnvironment Environments="@_environmentsToShowDisabledMessage">
         <MudAlert Severity="Severity.Warning" Dense="true" Class="my-2">
             @Localizer["Workspace creation is disabled in this environment. Please contact FSDH support to create a workspace."]
         </MudAlert>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ElevatedWorkspaceAccessEnabled="true">
-            <CreateWorkspaceForm />
+            <CreateWorkspaceForm ShowAllCBRs />
         </DatahubAuthView>
     </FSDHEnvironment>
 </DatahubAuthView>
