@@ -263,7 +263,10 @@ public class HostingServicesController : ControllerBase
             _logger.LogInformation("Creating GC Hosting workspace record.");
             workspaceDetails.Datahub_Project = project;
             _context.GCHostingWorkspaceDetails.Add(workspaceDetails);
+            project.ParentGCHostingBudget = workspaceDetails;
             await _context.SaveChangesAsync();
+
+            await _workspaceCreationService.SaveWorkspaceMetadataFromGCHostingDetails(acronym, workspaceDetails);
 
             // Return the workspace acronym, resource group name, and tenant ID.
             return Ok(new object[] { acronym, rg });
