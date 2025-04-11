@@ -2,8 +2,10 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
+using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
@@ -15,7 +17,8 @@ namespace Datahub.Infrastructure.Services;
 
 public class ResourceMessagingService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    ISendEndpointProvider sendEndpointProvider)
+    ISendEndpointProvider sendEndpointProvider,
+    WorkspaceVersionService workspaceVersionService)
     : IResourceMessagingService
 {
     public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
@@ -57,9 +60,13 @@ public class ResourceMessagingService(
 
         var workspace = project.ToResourceWorkspace(users);
         var templates = project.Resources
-            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate)
+            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && r.Status != TerraformStatus.Deleted)
             .Select(r => r.ToTerraformTemplate())
             .ToList();
+
+
+
+        workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersion() : workspace.Version;
 
         return new WorkspaceDefinition
         {
@@ -75,4 +82,6 @@ public class ResourceMessagingService(
             CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty
         };
     }
+
+    
 }
