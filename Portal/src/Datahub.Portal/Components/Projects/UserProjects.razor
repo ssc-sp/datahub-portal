@@ -25,14 +25,16 @@
         </MudText>
         @if (HasWorkspaces)
         {
-            <DHButton Variant="Variant.Filled"
-                      Color="Color.Primary"
-                      Underline
-                      NoWrap
-                      Href="@Localizer[PageRoutes.CreateWorkspace]"
-                      EndIcon="@Icons.Material.Filled.Add">
-                @Localizer["Create new workspace"]
-            </DHButton>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.CbrOwner">
+                <DHButton Variant="Variant.Filled"
+                          Color="Color.Primary"
+                          Underline
+                          NoWrap
+                          Href="@Localizer[PageRoutes.CreateWorkspace]"
+                          EndIcon="@Icons.Material.Filled.Add">
+                    @Localizer["Create new workspace"]
+                </DHButton>
+            </DatahubAuthView>
             <MudChipSet T="string"
                         SelectionMode="SelectionMode.ToggleSelection"
                         Ripple="false"

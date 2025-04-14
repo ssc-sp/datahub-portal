@@ -1,4 +1,5 @@
 ﻿using Datahub.Core.Model.Onboarding;
+using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -69,7 +70,7 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
             .IsRequired();
 
         builder.Property(e => e.SecurityClassification)
-            .HasConversion<string>()
+            .HasConversion(new SecurityClassificationStringConverter())
             .IsRequired();
 
         builder.Property(e => e.GeneratesInfoBusinessValue);

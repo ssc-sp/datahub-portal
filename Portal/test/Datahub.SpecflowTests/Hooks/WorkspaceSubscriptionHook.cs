@@ -1,5 +1,6 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
@@ -92,7 +93,8 @@ public class WorkspaceSubscriptionHook
             resourceMessagingSubstitute,
             Substitute.For<IDatahubAuditingService>(),
             datahubAzureSubscriptionService,
-            Substitute.For<IDatahubCatalogSearch>());
+            Substitute.For<IDatahubCatalogSearch>(),
+            Substitute.For<IMetadataBrokerService>());
 
 
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);
