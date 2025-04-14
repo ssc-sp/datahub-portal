@@ -50,7 +50,7 @@ public partial class RepositoryService(
             var user = command.RequestingUserEmail ??
                        throw new NullReferenceException("Requesting user's email is null");
             logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace.Acronym!);
+            await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
             logger.LogInformation(
                 "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
@@ -96,37 +96,6 @@ public partial class RepositoryService(
         }
     }
 
-    /// <summary>
-    /// Retrieves a list of module versions from the module repository.
-    ///
-    /// Note: That the directory structure of the module repository must be in the format vX.Y.Z for it to be recognized as a version.
-    /// </summary>
-    /// <returns>A list of <see cref="Version"/> representing the available module versions.</returns>
-    public async Task<List<Version>> GetModuleVersions()
-    {
-        var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
-        var modulePath = Path.Combine(repositoryPath,
-            resourceProvisionerConfiguration.ModuleRepository.ModulePathPrefix);
-
-        // check if module path exists
-        if (!Directory.Exists(modulePath))
-        {
-            logger.LogInformation("Module path {ModulePath} does not exist, fetching module repository", modulePath);
-            FetchModuleRepository();
-        }
-
-        var versions = Directory.GetDirectories(modulePath)
-            .Where(x => ModuleRegex().IsMatch(x))
-            .Select(x =>
-                new Version(x
-                        .Replace('/', Path.DirectorySeparatorChar)
-                        .Split(Path.DirectorySeparatorChar)
-                        .Last()[1..] // remove the v prefix
-                ))
-            .ToList();
-        return versions;
-    }
-
     private void CreateTemporaryDirectory()
     {
         CleanUpEnvironment();
@@ -135,14 +104,15 @@ public partial class RepositoryService(
         Directory.CreateDirectory(tempPath);
     }
 
-    public void FetchModuleRepository()
+    public async Task FetchModuleRepository(string version)
     {
         _moduleSemaphore.Wait();
         try
         {
             var repositoryUrl = resourceProvisionerConfiguration.ModuleRepository.Url;
             var localPath = resourceProvisionerConfiguration.ModuleRepository.LocalPath;
-
+            var branch = resourceProvisionerConfiguration.ModuleRepository.Branch;
+            version = $"{branch}-{version}";
             logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
@@ -150,19 +120,19 @@ public partial class RepositoryService(
             logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
             Repository.Clone(repositoryUrl, repositoryPath);
 
-            if (resourceProvisionerConfiguration.ModuleRepository.Branch != ModuleRepositoryConfiguration.DefaultBranch)
-            {
-                using var repo = new Repository(repositoryPath);
-                var branch =
-                    repo.Branches[$"refs/remotes/origin/{resourceProvisionerConfiguration.ModuleRepository.Branch}"];
-                if (branch == null)
-                {
-                    logger.LogInformation("Branch {Branch} does not exist, checking out default branch",
-                        resourceProvisionerConfiguration.ModuleRepository.Branch);
-                    branch = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
-                }
+            using var repo = new Repository(repositoryPath);
+            var repoTag = string.IsNullOrWhiteSpace(version) ? null : repo.Tags[version];
 
-                Commands.Checkout(repo, branch);
+            if (repoTag == null)
+            {
+                logger.LogInformation("Tag {BranchOrTag} does not exist, checking out default branch",
+                    repoTag);
+                var branchTag = repo.Branches[ModuleRepositoryConfiguration.DefaultBranch];
+                Commands.Checkout(repo, branchTag);
+            }
+            else
+            {
+                Commands.Checkout(repo, repoTag.Target.Sha);
             }
 
             logger.LogInformation("Repository {RepositoryUrl} cloned to {LocalPath}", repositoryUrl, repositoryPath);
@@ -459,18 +429,18 @@ public partial class RepositoryService(
         return postBody;
     }
 
-    public async Task FetchRepositoriesAndCheckoutProjectBranch(string workspaceAcronym)
+    public async Task FetchRepositoriesAndCheckoutProjectBranch(TerraformWorkspace terraformWorkspace)
     {
-        FetchModuleRepository();
+        FetchModuleRepository(terraformWorkspace.Version);
         await FetchInfrastructureRepository();
-        await CheckoutInfrastructureBranch(workspaceAcronym);
+        await CheckoutInfrastructureBranch(terraformWorkspace.Acronym!);
     }
 
     public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
-        await ValidateWorkspaceVersion(command.Workspace);
+        //await ValidateWorkspaceVersion(command.Workspace);
 
 
         // Execute each module but make sure the `new-project-template` module is first for creation
@@ -485,22 +455,7 @@ public partial class RepositoryService(
         return repositoryUpdateEvents;
     }
 
-    public async Task ValidateWorkspaceVersion(TerraformWorkspace terraformWorkspace)
-    {
-        // Old behavior, to maintain existing versions
-        // if (terraformWorkspace.Version == TerraformWorkspace.DefaultVersion)
-        // {
-        //     var versions = await GetModuleVersions();
-        //     var latestVersion = versions.Max();
-        //     terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
-        // }
-
-        // new behavior to always update the version
-        var versions = await GetModuleVersions();
-        var latestVersion = versions.Max();
-        terraformWorkspace.Version = $"v{latestVersion!.ToString()}";
-    }
-
+    
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
     {
         try
@@ -518,7 +473,7 @@ public partial class RepositoryService(
             }
             else if (resourceTemplate.Status == TerraformStatus.CreateRequested)
             {
-                await terraformService.CopyTemplateAsync(resourceTemplate.Name, command.Workspace);
+                await terraformService.CopyTemplateAsync(resourceTemplate.Name, command);
                 await ExtractVariables(resourceTemplate, command);
             }
             else
