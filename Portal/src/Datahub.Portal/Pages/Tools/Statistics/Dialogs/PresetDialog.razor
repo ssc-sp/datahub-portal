@@ -1,0 +1,48 @@
+﻿@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@typeparam TData where TData : Datahub.Portal.Pages.Tools.Statistics.Objects.IDHTableData
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h2">
+            @Localizer["Select preset"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="4" Class="mb-4">
+            <MudText Style="font-size: 18px">
+                <strong>
+                    @Localizer["Presets"]
+                </strong>
+            </MudText>
+            <MudText>
+                @Localizer["Select the preset you want to apply"]
+            </MudText>
+            <MudList T="string" Dense Style="height: 300px; overflow-y: scroll">
+                @foreach (var preset in TData.Presets())
+                {
+                    <MudListItem T="DHTablePreset" Dense="true" OnClick="@(() => ApplyPreset(preset))">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>
+                                @preset.Name
+                            </MudText>
+                            <MudSpacer/>
+                            <MudText Typo="Typo.caption" Style="font-style: italic">
+                                @preset.Description
+                            </MudText>
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+
+    private void ApplyPreset(DHTablePreset preset)
+    {
+        MudDialog.Close(DialogResult.Ok(preset));
+    }
+
+}
