@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -46,7 +47,7 @@ namespace Datahub.Functions.UnitTests.Functions
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
             var webAppService = TestHelper.CreateMockWebAppManagementService();
-            var workspaceVersionService = Substitute.For<WorkspaceVersionService>(); 
+            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,

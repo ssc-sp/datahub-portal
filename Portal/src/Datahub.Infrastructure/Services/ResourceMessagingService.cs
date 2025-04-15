@@ -18,7 +18,7 @@ namespace Datahub.Infrastructure.Services;
 public class ResourceMessagingService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
-    WorkspaceVersionService workspaceVersionService)
+    IWorkspaceVersionService workspaceVersionService)
     : IResourceMessagingService
 {
     public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)

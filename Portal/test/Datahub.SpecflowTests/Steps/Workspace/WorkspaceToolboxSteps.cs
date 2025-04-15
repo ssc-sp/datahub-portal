@@ -97,7 +97,7 @@ public class WorkspaceToolboxSteps(
         Services.AddStub<IDatahubAuditingService>();
         var requestLogger = new Logger<RequestManagementService>(new LoggerFactory());
 
-        var workspaceVersionService = Substitute.For<WorkspaceVersionService>();
+        var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var endpointProvider = Substitute.For<ISendEndpointProvider>();
         var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, workspaceVersionService);
         var requestManagementService = new RequestManagementService(
@@ -857,6 +857,9 @@ public class WorkspaceToolboxSteps(
             case "deleted":
                 resource.Status = TerraformStatus.Deleted;
                 break;
+            case "del-in-progress":
+                resource.Status = TerraformStatus.DeleteInProgress;
+                break;
             case "failed":
                 resource.Status = TerraformStatus.Failed;
                 break;
@@ -874,7 +877,8 @@ public class WorkspaceToolboxSteps(
             "completed" => "Completed",
             "in-progress" => "In Progress",
             "create-requested" => "In Progress",
-            "delete-requested" => "Deleted",
+            "delete-requested" => "Deleting...",
+            "del-in-progress" => "Deleting...",
             "deleted" => "Deleted",
             "failed" => "Failed",
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)

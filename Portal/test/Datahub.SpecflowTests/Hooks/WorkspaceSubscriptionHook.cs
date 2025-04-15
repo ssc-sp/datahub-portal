@@ -60,7 +60,7 @@ public class WorkspaceSubscriptionHook
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
         var mockISendEndpointProvider = Substitute.For<ISendEndpointProvider>();
-        var workspaceVersionService = Substitute.For<WorkspaceVersionService>(); 
+        var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
 
         var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, workspaceVersionService);
         var resourceMessagingSubstitute = Substitute.For<IResourceMessagingService>();

@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Context;
+﻿using Datahub.Application.Services;
+using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,7 +12,7 @@ namespace Datahub.Infrastructure.Services
 {
     public class WorkspaceVersionService(
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<WorkspaceCreationService> logger)
+        ILogger<WorkspaceCreationService> logger) : IWorkspaceVersionService
     {
         public async Task<string> GetLatestVersion()
         {
