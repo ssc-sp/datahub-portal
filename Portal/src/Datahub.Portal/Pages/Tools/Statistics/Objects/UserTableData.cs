@@ -8,7 +8,9 @@ namespace Datahub.Portal.Pages.Tools.Statistics.Objects
         public string GraphGuid { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
+        public string RegistrationComment { get; set; }
         public DHTableLinkList Workspaces { get; set; } = new();
+        public DateTime RegistrationDate { get; set; }
         public DateTime LastLogin { get; set; }
         public DateTime FirstLogin { get; set; }
 

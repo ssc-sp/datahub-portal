@@ -5,6 +5,7 @@
 @using Color = MudBlazor.Color
 @using Datahub.Application.Services.Cost
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Workspace.Reports.Charts
 @using Datahub.Portal.Pages.Tools.Users
@@ -44,7 +45,9 @@
             <MudStack Row Wrap="Wrap.Wrap">
                 <ValueCard Value="@(_userCount.ToString())" Label="@Localizer["Users"]"/>
                 <ValueCard Value="@(_activeUserCount.ToString())" Label="@Localizer["Active users"]"/>
+                <ValueCard Value="@(_registrationCount.ToString())" Label="@Localizer["Registrations"]"/>
             </MudStack>
+            <RegistrationsBarChart Registrations="@(_allRegistrations)"/>
             <UsersTable TData="@UserTableData" Items="@_users" Title="@Localizer["Users"]"/>
         </MudTabPanel>
         <MudTabPanel Text="@Localizer["Costs"]">
@@ -69,12 +72,14 @@
     private List<DailyServiceCost> _platformCosts = [];
     private List<Project_Storage> _platformStorage = [];
     private List<UserTableData> _users = [];
+    private List<SelfRegistrationDetails> _allRegistrations = [];
     private decimal _totalCosts = 0;
     private decimal _totalBudget = 0;
     private int _workspaceCount = 0;
     private int _userCount = 0;
     private int _activeUserCount = 0;
     private int _resourcesCount = 0;
+    private int _registrationCount = 0;
     private List<ChartLocale> Locales => WorkspaceReports.Locales;
 
     protected override async Task OnInitializedAsync()
@@ -94,6 +99,8 @@
         var allWorkspaceMembers = ctx.Project_Users;
         var allResources = ctx.Project_Resources2;
         var allStorage = ctx.Project_Storage_Avgs;
+        var allRegistrations = ctx.SelfRegistrationDetails;
+        _allRegistrations = allRegistrations.ToList();
 
         _platformCosts = allCosts
             .GroupBy(c => c.Date.Date)
@@ -119,6 +126,14 @@
             Id = u.Id,
             Name = u.DisplayName,
             Email = u.Email,
+            RegistrationComment = allRegistrations
+                .Where(r => u.Email.ToLower() == r.Email.ToLower())
+                .Select(r => r.Comment)
+                .FirstOrDefault(),
+            RegistrationDate = allRegistrations
+                .Where(r => u.Email.ToLower() == r.Email.ToLower())
+                .Select(r => r.CreatedAt)
+                .FirstOrDefault(),
             LastLogin = u.LastLoginDateTime ?? default,
             FirstLogin = u.FirstLoginDateTime ?? default,
             GraphGuid = u.GraphGuid,
@@ -129,11 +144,12 @@
                     .Include(m => m.Project)
                     .Where(m => m.PortalUser.GraphGuid == u.GraphGuid)
                     .Select(m => ValueTuple.Create(
-                        $"{m.Project.Project_Name} ({m.Project.Project_Acronym_CD})", 
+                        $"{m.Project.Project_Name} ({m.Project.Project_Acronym_CD})",
                         $"{PageRoutes.WorkspacePrefix}/{m.Project.Project_Acronym_CD}"
                     )).ToList()
             }
         }).ToList();
+        _registrationCount = allRegistrations.Count();
         _userCount = allUsers.Count();
         _activeUserCount = allUsers.Count(u => u.LastLoginDateTime > DateTime.UtcNow.AddDays(-90));
         _resourcesCount = allResources.Count();
