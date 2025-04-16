@@ -411,6 +411,7 @@ public class Startup
             
         }
         services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
+        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
 
         services.AddSingleton<IExternalSearchService, ExternalSearchService>();
         services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
