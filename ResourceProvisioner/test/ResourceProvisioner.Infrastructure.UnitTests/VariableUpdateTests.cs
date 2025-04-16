@@ -60,14 +60,20 @@ public class VariableUpdateTests
         var terraformWorkspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         await SetupNewProjectTemplate(workspaceAcronym);
         var template = GenerateTerraformTemplate(TerraformTemplate.VariableUpdate);
-
+        var command = GenerateTestCreateResourceRunCommand(
+        workspaceAcronym, new List<string>()
+        {
+               TerraformTemplate.NewProjectTemplate,
+               TerraformTemplate.NewProjectTemplate,
+               TerraformTemplate.NewProjectTemplate
+        });
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
         // get all the files and their last modified dates
         var files = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories);
         var fileDates = files.ToDictionary(file => file, File.GetLastWriteTime);
 
-        await _terraformService.CopyTemplateAsync(template.Name, terraformWorkspace);
+        await _terraformService.CopyTemplateAsync(template.Name, command);
 
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);

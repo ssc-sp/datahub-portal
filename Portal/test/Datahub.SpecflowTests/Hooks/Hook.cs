@@ -39,7 +39,8 @@ public class Hooks
 
         var datahubAuditingService = new OfflineDatahubTelemetryAuditingService();
         var mockSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
-        var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider);
+        var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
+        var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, workspaceVersionService);
 
         var substituteResourceMessageService = Substitute.For<IResourceMessagingService>();
         substituteResourceMessageService.SendToTerraformQueue(Arg.Any<WorkspaceDefinition>())

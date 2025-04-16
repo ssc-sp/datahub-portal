@@ -41,31 +41,31 @@ the correct information in the page.
       | new-project-template | in-progress      |
       | new-project-template | create-requested |
       | new-project-template | delete-requested |
-      | new-project-template | deleted          |
+      | new-project-template | del-in-progress  |
       | new-project-template | failed           |
       | azure-storage-blob   | completed        |
       | azure-storage-blob   | in-progress      |
       | azure-storage-blob   | create-requested |
       | azure-storage-blob   | delete-requested |
-      | azure-storage-blob   | deleted          |
+      | azure-storage-blob   | del-in-progress  |
       | azure-storage-blob   | failed           |
       | azure-databricks     | completed        |
       | azure-databricks     | in-progress      |
       | azure-databricks     | create-requested |
       | azure-databricks     | delete-requested |
-      | azure-databricks     | deleted          |
+      | azure-databricks     | del-in-progress  |
       | azure-databricks     | failed           |
       | azure-app-service    | completed        |
       | azure-app-service    | in-progress      |
       | azure-app-service    | create-requested |
       | azure-app-service    | delete-requested |
-      | azure-app-service    | deleted          |
+      | azure-app-service    | del-in-progress  |         
       | azure-app-service    | failed           |
       | azure-postgres       | completed        |
       | azure-postgres       | in-progress      |
       | azure-postgres       | create-requested |
       | azure-postgres       | delete-requested |
-      | azure-postgres       | deleted          |
+      | azure-postgres       | del-in-progress  |
       | azure-postgres       | failed           |
 
       # SELECTION

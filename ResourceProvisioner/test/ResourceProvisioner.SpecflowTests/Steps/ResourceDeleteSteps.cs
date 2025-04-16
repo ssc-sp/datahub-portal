@@ -81,7 +81,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     public async Task ThenTheCopyTemplateAsyncMethodShouldNotBeInvoked()
     {
         var terraformService = scenarioContext.Get<ITerraformService>("terraformService");
-        await terraformService.DidNotReceive().CopyTemplateAsync(Arg.Any<string>(), Arg.Any<TerraformWorkspace>());
+        await terraformService.DidNotReceive().CopyTemplateAsync(Arg.Any<string>(), Arg.Any<CreateResourceRunCommand>());
     }
 
     [Then(@"the result should be a successful RepositoryUpdateEvent")]

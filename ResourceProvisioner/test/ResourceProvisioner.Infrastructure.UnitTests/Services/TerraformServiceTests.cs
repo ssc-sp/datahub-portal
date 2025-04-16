@@ -21,11 +21,19 @@ public class TerraformServiceTests
     [Test]
     public void ShouldThrowExceptionWhenProjectNotInitialized()
     {
+        var workspaceAcronym = GenerateWorkspaceAcronym();
+        var command = GenerateTestCreateResourceRunCommand(
+         workspaceAcronym, new List<string>()
+         {
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate,
+                       TerraformTemplate.NewProjectTemplate
+         });
         var moduleDestinationPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, DirectoryUtils.tempDirectory, _resourceProvisionerConfiguration.ModuleRepository.Name);
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, TestingWorkspace);
+            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
         });
     }
 
