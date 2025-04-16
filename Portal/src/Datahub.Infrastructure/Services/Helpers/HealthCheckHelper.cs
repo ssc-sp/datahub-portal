@@ -795,11 +795,12 @@ namespace Datahub.Infrastructure.Services.Helpers
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             // TODO check AzureSqlDatabase first and exclude these checks if it fails
-            var projects = ctx.Projects
-                .AsNoTracking()
-                .AsEnumerable()
-                .Where(p => !p.IsDeleted)
-                .ToList();
+            var projects = await ctx.Projects
+              .AsNoTracking()
+              .AsAsyncEnumerable()
+              .Where(p => !p.IsDeleted)
+              .ToListAsync();
+
             var workspaceChecks = projects
                 .SelectMany(p => WorkspaceHealthChecks
                     .Select(c => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)));
