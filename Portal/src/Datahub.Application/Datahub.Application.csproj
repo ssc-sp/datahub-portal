@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>enable</ImplicitUsings>
 	</PropertyGroup>
@@ -12,7 +12,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="Azure.ResourceManager" Version="1.12.*" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="8.0.*" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.*" />
 		<PackageReference Include="Yarp.ReverseProxy" Version="2.1.0" />
 	</ItemGroup>
 </Project>
