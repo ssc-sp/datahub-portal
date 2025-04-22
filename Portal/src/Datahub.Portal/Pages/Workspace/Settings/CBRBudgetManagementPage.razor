@@ -1,0 +1,200 @@
+﻿@* CBRBudgetManagementPage.razor *@
+
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Onboarding
+@using Datahub.Core.Services.Projects
+@using Datahub.Shared
+@using Datahub.Shared.Entities
+@using MudBlazor.Utilities
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDatahubAuditingService _auditingService
+@inject IUserInformationService _userInformationService
+@inject IRequestManagementService _requestManagementService
+@inject ISnackbar _snackbar
+@inject NavigationManager _navManager
+
+
+
+<DHMainContentTitle Title="@Localizer["CBR Budget Management"]" />
+
+@if(_loading)
+{
+    <MudProgressCircular Indeterminate Size=@Size.Large />
+}
+else
+{
+    <MudCard Class="pa-8">
+        <MudTable Items="@_budgetItems"
+            Class="mb-4"
+            CanCancelEdit
+            EditButtonPosition=@TableEditButtonPosition.End
+            ApplyButtonPosition=@TableApplyButtonPosition.End
+            EditTrigger=TableEditTrigger.EditButton RowEditCancel="HandleCancelEdit" >
+
+            <ColGroup>
+                <col />
+                <col style="width:30em" />
+                <col style="width:6em" />
+            </ColGroup>
+
+            <HeaderContent>
+                <MudTh>@WorkspaceDataLabel</MudTh>
+                <MudTh>@BudgetDataLabel</MudTh>
+            </HeaderContent>
+
+            <RowTemplate>
+                <MudTd DataLabel=@WorkspaceDataLabel>@WorkspaceRepresentation(context)</MudTd>
+                <MudTd DataLabel=@BudgetDataLabel Style=@GetCellStyle(context)>@context.Budget.ToString("C2")</MudTd>
+            </RowTemplate>
+
+            <RowEditingTemplate>
+                <MudTd DataLabel=@WorkspaceDataLabel>@WorkspaceRepresentation(context)</MudTd>
+                <MudTd DataLabel=@BudgetDataLabel><MudTextField T="decimal" @bind-Value=@context.Budget/></MudTd>
+            </RowEditingTemplate>
+
+            <FooterContent>
+                <MudTd>
+                    <MudStack Row>
+                        <MudText>@Localizer["Available CBR Budget: "]</MudText>
+                        <MudText>@_gcHostingBudget.WorkspaceBudget.ToString("C2")</MudText>
+                    </MudStack>
+                </MudTd>
+                <MudTd>
+                    <MudStack Row>
+                        <MudText>@Localizer["Total: "]</MudText>
+                        <MudText Color=@(IsOverBudget? Color.Error : Color.Default)>@TotalUsedBudget.ToString("C2")</MudText>
+                        @if(IsOverBudget)
+                        {
+                            <MudTooltip Text=@OverBudgetError>
+                                <MudIcon Icon=@Icons.Material.Filled.Error />
+                            </MudTooltip>
+                        }
+                    </MudStack>
+                </MudTd>
+            </FooterContent>
+
+        </MudTable>
+
+        <MudTooltip Disabled=@IsValid Text=@OverBudgetError>
+            <MudButton OnClick="HandleSubmit" Disabled=@SubmitDisabled Color="Color.Primary" Variant="Variant.Filled">
+                @if (_saving)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate />
+                }
+                <MudText>@Localizer["Submit"]</MudText>
+            </MudButton>
+        </MudTooltip>
+    </MudCard>
+
+}
+
+@code {
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+    [Parameter] public string SubSection { get; set; }
+
+    private bool _loading = true;
+    private bool _saving = false;
+
+    private GCHostingWorkspaceDetails _gcHostingBudget;
+    private ICollection<WorkspaceBudgetManagementItem> _budgetItems = [];
+
+    private decimal TotalUsedBudget => _budgetItems.Sum(b => b.Budget);
+
+    private bool IsOverBudget => TotalUsedBudget > _gcHostingBudget.WorkspaceBudget;
+    private bool IsValid => !IsOverBudget;
+    private bool HasAnyChanges => _budgetItems.Any(b => b.HasChanged);
+    private bool SubmitDisabled => _saving || !IsValid || !HasAnyChanges;
+
+    private string ModifiedCellStyle = new StyleBuilder()
+                .AddStyle("background-color", $"{Colors.Amber.Default}4D")
+                .Build();
+    private string GetCellStyle(WorkspaceBudgetManagementItem b) => b.HasChanged ? ModifiedCellStyle : string.Empty;
+
+    private string WorkspaceDataLabel => Localizer["Workspace"];
+    private string BudgetDataLabel => Localizer["Allocated Budget"];
+    private string OverBudgetError => Localizer["Total workspace budgets must not exceed available CBR budget"];
+
+    private string WorkspaceRepresentation(WorkspaceBudgetManagementItem b) => $"{b.Workspace.Project_Acronym_CD} - {b.Workspace.ProjectName}";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var workspace = await context.Projects
+            .AsNoTracking()
+            .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        if (workspace.ParentGCHostingBudgetId.HasValue)
+        {
+            _gcHostingBudget = await context.GCHostingWorkspaceDetails
+                .AsNoTracking()
+                .Include(b => b.WorkspacesInBudget)
+                .FirstOrDefaultAsync(b => b.Id == workspace.ParentGCHostingBudgetId);
+
+            _budgetItems = _gcHostingBudget.WorkspacesInBudget
+                .Select(w => new WorkspaceBudgetManagementItem(w))
+                .ToList();
+
+            _loading = false;
+        }
+        else
+        {
+            _navManager.NavigateTo($"/w/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Settings}");
+        }
+
+    }
+
+    private void HandleCancelEdit(object item)
+    {
+        (item as WorkspaceBudgetManagementItem)?.ResetBudget();
+        StateHasChanged();
+    }
+
+    private async Task HandleSubmit()
+    {
+        _saving = true;
+        await InvokeAsync(StateHasChanged);
+
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+        foreach (var b in _budgetItems.Where(b => b.HasChanged))
+        {
+            ctx.Attach(b.Workspace);
+            b.Workspace.Project_Budget = b.Budget;
+        }
+
+        await ctx.TrackSaveChangesAsync(_auditingService);
+        _snackbar.Add(Localizer["Changes to workspace have been saved"], Severity.Info);
+
+        await QueueTerraformUpdates();
+
+        _saving = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task QueueTerraformUpdates()
+    {
+        if (!_budgetItems.Any(b => b.RequiresTerraformUpdate))
+        {
+            return;
+        }
+
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested);
+
+        foreach (var b in _budgetItems.Where(b => b.RequiresTerraformUpdate))
+        {
+            var success = await _requestManagementService.HandleTerraformRequestServiceAsync(b.Workspace, template, currentUser);
+            if (success)
+            {
+                b.TerraformUpdated();
+            }
+        }
+
+        _snackbar.Add(Localizer["Queued Terraform update(s) for workspace changes"], Severity.Info);
+    }
+}
