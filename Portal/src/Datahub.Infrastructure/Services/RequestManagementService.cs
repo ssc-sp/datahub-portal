@@ -109,6 +109,8 @@ public class RequestManagementService(
                 .ThenInclude(u => u.PortalUser)
                 .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
 
+            var resourceNameSuffix = string.Empty;
+
             if (project == null)
             {
                 return false;
@@ -129,11 +131,14 @@ public class RequestManagementService(
                         await ProcessRequest(project, requestingUser, template);
                     }
                 }
+            
             }
 
             var workspaceDefinition =
                 await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
+
+            workspaceDefinition.AppData.ResourceNameSuffix = resourceNameSuffix;
 
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
@@ -145,6 +150,8 @@ public class RequestManagementService(
             return false;
         }
     }
+
+
 
 
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)

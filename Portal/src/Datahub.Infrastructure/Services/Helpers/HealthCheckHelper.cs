@@ -796,9 +796,11 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             // TODO check AzureSqlDatabase first and exclude these checks if it fails
             var projects = await ctx.Projects
-                .AsNoTracking()
-                .Where(p => !p.IsDeleted)
-                .ToListAsync();
+              .AsNoTracking()
+              .AsAsyncEnumerable()
+              .Where(p => !p.IsDeleted)
+              .ToListAsync();
+
             var workspaceChecks = projects
                 .SelectMany(p => WorkspaceHealthChecks
                     .Select(c => new InfrastructureHealthCheckMessage(c, InfrastructureHealthCheckConstants.WorkspacesRequestGroup, p.Project_Acronym_CD)));
