@@ -1,0 +1,150 @@
+@using Datahub.Core.Storage
+@using Datahub.Core.Data
+@inject ILogger<SearchResultsExplorer> Logger
+@inject IJSRuntime JSRuntime
+
+<MudStack>
+    @if (IsLoading)
+    {
+        <div class="file-explorer-layout" style="width: 100%; border-collapse: collapse;">
+            <div class="file-list-header" style="display: table-header-group; background-color: #f5f5f5; font-weight: bold;">
+                <div class="file-list-cell" style="display: table-cell; padding: 8px 16px;">@Localizer["Name"]</div>
+                <div class="file-list-cell" style="display: table-cell; padding: 8px 16px;">@Localizer["Path"]</div>
+            </div>
+            @for (int i = 0; i < 2; i++)
+            {
+                <div class="file-list-row" style="display: table-row;">
+                    <div class="file-list-cell" style="display: table-cell; padding: 8px 16px; border-bottom: 1px solid #ddd;">
+                        <MudSkeleton Width="200px" Height="1.5rem" />
+                    </div>
+                    <div class="file-list-cell" style="display: table-cell; padding: 8px 16px; border-bottom: 1px solid #ddd;">
+                        <MudSkeleton Width="300px" Height="1.5rem" />
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else if (SearchResults == null || !SearchResults.Any())
+    {
+        <MudText>@Localizer["No results found."]</MudText>
+    }
+    else
+    {
+        <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
+            <div class="file-explorer-layout-wrapper">
+                <div class="file-explorer-layout">
+                    <MudTable Items="SearchResults" Class="file-list" Hover="true" @bind-SelectedItem="SelectedFile" RowClassFunc="GetRowClass">
+                        <HeaderContent>
+                            <MudTh>@Localizer["Name"]</MudTh>
+                            <MudTh>@Localizer["Path"]</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
+                            <MudTd DataLabel="@Localizer["Path"]">@context.Path</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+
+                    <div class="item-details">
+                        <div class="details-sticky">
+                            <div class="details-container">
+                                @if (SelectedFile == null)
+                                {
+                                    <MudText>@Localizer["Select a file to view its details."]</MudText>
+                                }
+                                else
+                                {
+                                    var file = _files.FirstOrDefault(f => f.name.Equals(SelectedFile.Name, StringComparison.OrdinalIgnoreCase));
+                                    file.folderpath = @SelectedFile.Path;
+                                    <FileProperties @key=@SelectedFile.Name
+                                                    ProjectId=@ProjectId
+                                                    File=@file
+                                                    FolderName=@SelectedFile.Path
+                                                    Readonly="true" />
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </CascadingValue>
+    }
+</MudStack>
+
+@code {
+    [Parameter] public List<FileSearchResult> SearchResults { get; set; }
+    [Parameter] public CloudStorageContainer Container { get; set; }
+    [Parameter] public int? ProjectId { get; set; }
+
+    public StorageMetadata StorageAccountMetadata { get; set; }
+
+    private FileSearchResult SelectedFile { get; set; }
+    private List<FileMetaData> _files = new();
+
+    private string _continuationToken;
+    private bool IsLoading { get; set; } = true; // Default to true to show the loading indicator initially
+    private int? SelectedFileIndex { get; set; }
+
+    private ICloudStorageManager StorageManager => Container?.StorageManager;
+    private string ContainerName => Container?.Name;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            if (StorageManager != null)
+            {
+                StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(ContainerName);
+                var dfsPage = await StorageManager.GetDfsPagesAsync(Container.Name, "", _continuationToken);
+
+                _continuationToken = dfsPage.ContinuationToken;
+                _files = dfsPage.Files;
+                StateHasChanged();
+            }
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        IsLoading = true; // Start loading
+        await base.OnParametersSetAsync();
+
+        // Simulate loading delay or fetch search results
+        await Task.Delay(500); // Replace with actual data fetching logic if needed
+
+        if (SearchResults != null && SearchResults.Any())
+        {
+            SelectedFile = SearchResults.First();
+        }
+        else
+        {
+            SelectedFile = null;
+        }
+
+        IsLoading = false; // Stop loading
+    }
+
+    private FileMetaData MapToFileMetaData(FileSearchResult fileSearchResult)
+    {
+        if (fileSearchResult == null)
+        {
+            return null;
+        }
+
+        return new FileMetaData
+            {
+                filename = fileSearchResult.Name,
+                folderpath = fileSearchResult.Path,
+                filesize = fileSearchResult.Size.ToString(),
+                lastmodifiedts = fileSearchResult.LastModified
+            };
+    }
+
+    private string GetRowClass(FileSearchResult file, int index)
+    {
+        // Return the "file-row-selected" class if the row corresponds to the selected file
+        return SelectedFile != null && file.Name == SelectedFile.Name && file.Path == SelectedFile.Path
+            ? "file-row-selected"
+            : "file-row";
+    }
+}
