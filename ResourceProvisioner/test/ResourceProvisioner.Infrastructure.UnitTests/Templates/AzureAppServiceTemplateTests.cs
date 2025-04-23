@@ -50,7 +50,6 @@ public class AzureAppServiceTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
         var command = GenerateTestCreateResourceRunCommand(
               workspaceAcronym, new List<string>()
@@ -59,10 +58,9 @@ public class AzureAppServiceTemplateTests
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate
               });
-
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
-        _repositoryService.FetchModuleRepository(string.Empty);
+        _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var moduleSourcePath =
             DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureAppService);
@@ -84,7 +82,7 @@ public class AzureAppServiceTemplateTests
         foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
-            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspace.Version}");
+            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
@@ -107,10 +105,13 @@ public class AzureAppServiceTemplateTests
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
-            });        
-
+            });
+        
+        
         await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
+
+        _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -148,12 +149,12 @@ public class AzureAppServiceTemplateTests
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
          });
-
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
+        _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -179,6 +180,7 @@ public class AzureAppServiceTemplateTests
         return new JsonObject
         {
             [TerraformVariables.AllowSourceIp] = _resourceProvisionerConfiguration.Terraform.Variables.allow_source_ip,
+            [TerraformVariables.AppServiceNameSuffix] = string.Empty
         };
     }
 }

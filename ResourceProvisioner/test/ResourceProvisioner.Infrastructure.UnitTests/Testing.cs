@@ -30,6 +30,7 @@ public class Testing
     internal static TerraformWorkspace TestingWorkspace => new()
     {
         Acronym = ProjectAcronym,
+        Version = "v5.0.4",
     };
 
     internal const string RequestingUser = "Unit Test User";
@@ -153,16 +154,17 @@ public class Testing
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
     
-    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true, string version = "latest")
+    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
     {
         return new CreateResourceRunCommand
         {
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested))
                 .ToList(),
-            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, version),
+            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestingWorkspace.Version),
             RequestingUserEmail = RequestingUser,
-            ResourceGroupName = ResourceGroup
+            ResourceGroupName = ResourceGroup,
+            AppData = new WorkspaceAppData()            
         };
     }
 

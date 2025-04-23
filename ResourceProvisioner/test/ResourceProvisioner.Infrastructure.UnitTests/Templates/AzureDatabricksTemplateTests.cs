@@ -53,7 +53,6 @@ public class AzureDatabricksTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var command = GenerateTestCreateResourceRunCommand(
              workspaceAcronym, new List<string>()
@@ -62,10 +61,10 @@ public class AzureDatabricksTemplateTests
                             TerraformTemplate.NewProjectTemplate,
                             TerraformTemplate.NewProjectTemplate
              });
-
+        
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
-        _repositoryService.FetchModuleRepository(string.Empty);
+        _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var moduleSourcePath =
             DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureDatabricks);
@@ -89,7 +88,7 @@ public class AzureDatabricksTemplateTests
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var expectedContent = sourceFileContent
                 .Replace(TerraformService.TerraformTagToken,
-               $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspace.Version}");
+               $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));

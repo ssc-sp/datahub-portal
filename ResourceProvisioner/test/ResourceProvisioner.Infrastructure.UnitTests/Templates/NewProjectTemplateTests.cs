@@ -68,11 +68,7 @@ public class NewProjectTemplateTests
     public async Task ShouldExtractNewProjectTemplateVariables()
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariables";
-        var workspace = new TerraformWorkspace
-        {
-            Acronym = workspaceAcronym
-        };
-
+        
         var command = GenerateTestCreateResourceRunCommand(
                workspaceAcronym, new List<string>()
                {
@@ -81,10 +77,11 @@ public class NewProjectTemplateTests
                        TerraformTemplate.NewProjectTemplate
                });
 
-        workspace = command.Workspace;
+        
+        command.Workspace.Acronym = workspaceAcronym;
         var expectedVariables = GenerateExpectedVariablesJsonObject(workspaceAcronym);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, command);
 
 
@@ -307,7 +304,7 @@ public class NewProjectTemplateTests
             Version = "latest"
         };
         var command = GenerateTestCreateResourceRunCommand(
-            workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true, version);
+            workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _repositoryService.ExecuteResourceRuns(command, RequestingUser);

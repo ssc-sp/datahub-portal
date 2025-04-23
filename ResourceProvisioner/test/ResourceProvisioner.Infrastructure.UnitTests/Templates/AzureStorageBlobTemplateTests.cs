@@ -59,7 +59,8 @@ public class AzureStorageBlobTemplateTests
                    TerraformTemplate.NewProjectTemplate,
                    TerraformTemplate.NewProjectTemplate
             });
-
+        workspace.Version = TestingWorkspace.Version;
+        command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
 
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureStorageBlob);
