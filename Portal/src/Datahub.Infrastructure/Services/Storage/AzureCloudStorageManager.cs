@@ -485,9 +485,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
     {
         using var pdfReader = new PdfReader(stream);
         using var pdfDoc = new PdfDocument(pdfReader);
+        var strategy = new iText.Kernel.Pdf.Canvas.Parser.Listener.SimpleTextExtractionStrategy();
+
         for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
         {
-            var pageText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i));
+            var pageText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i), strategy);
             if (pageText.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
             {
                 return true;
