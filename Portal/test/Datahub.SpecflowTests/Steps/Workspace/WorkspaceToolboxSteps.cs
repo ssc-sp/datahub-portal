@@ -943,6 +943,8 @@ public class WorkspaceToolboxSteps(
         workspaceToolbox!.Render();
         var newValueItem = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([selectFieldId, newValue])}");
         newValueItem.Click();
+        workspaceToolbox!.Render();
+        scenarioContext["workspaceToolbox"] = workspaceToolbox;
     }
 
     [Then(@"the (.*) should have (.*) as its value")]
