@@ -189,6 +189,11 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		throw new NotImplementedException();
 	}
 
+	public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+	{
+		throw new NotImplementedException();
+	}
+
     public Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
 	{
 		// not supported for now..
