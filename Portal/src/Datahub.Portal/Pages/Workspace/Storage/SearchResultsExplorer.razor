@@ -33,7 +33,7 @@
         <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
             <div class="file-explorer-layout-wrapper">
                 <div class="file-explorer-layout">
-                    <MudTable Items="SearchResults" Class="file-list" Hover="true" @bind-SelectedItem="SelectedFile">
+                    <MudTable Items="SearchResults" Class="file-list" Hover="true" @bind-SelectedItem="SelectedFile" RowClassFunc="GetRowClass">
                         <HeaderContent>
                             <MudTh>@Localizer["Name"]</MudTh>
                             <MudTh>@Localizer["Path"]</MudTh>
@@ -43,6 +43,7 @@
                             <MudTd DataLabel="@Localizer["Path"]">@context.Path</MudTd>
                         </RowTemplate>
                     </MudTable>
+
                     <div class="item-details">
                         <div class="details-sticky">
                             <div class="details-container">
@@ -53,6 +54,7 @@
                                 else
                                 {
                                     var file = _files.FirstOrDefault(f => f.name.Equals(SelectedFile.Name, StringComparison.OrdinalIgnoreCase));
+                                    file.folderpath = @SelectedFile.Path;
                                     <FileProperties @key=@SelectedFile.Name
                                                     ProjectId=@ProjectId
                                                     File=@file
@@ -66,10 +68,9 @@
             </div>
         </CascadingValue>
     }
-    </MudStack>
+</MudStack>
 
-
-    @code {
+@code {
     [Parameter] public List<FileSearchResult> SearchResults { get; set; }
     [Parameter] public CloudStorageContainer Container { get; set; }
     [Parameter] public int? ProjectId { get; set; }
@@ -81,6 +82,7 @@
 
     private string _continuationToken;
     private bool IsLoading { get; set; } = true; // Default to true to show the loading indicator initially
+    private int? SelectedFileIndex { get; set; }
 
     private ICloudStorageManager StorageManager => Container?.StorageManager;
     private string ContainerName => Container?.Name;
@@ -136,5 +138,13 @@
                 filesize = fileSearchResult.Size.ToString(),
                 lastmodifiedts = fileSearchResult.LastModified
             };
+    }
+
+    private string GetRowClass(FileSearchResult file, int index)
+    {
+        // Return the "file-row-selected" class if the row corresponds to the selected file
+        return SelectedFile != null && file.Name == SelectedFile.Name && file.Path == SelectedFile.Path
+            ? "file-row-selected"
+            : "file-row";
     }
 }

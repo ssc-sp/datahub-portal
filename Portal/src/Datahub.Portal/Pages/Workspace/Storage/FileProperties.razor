@@ -24,7 +24,7 @@
         <div class="access-container">
             <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
             <span class="circle-item">
-                <ProfileCircle FullName="@ProjectAcronym"/>
+                <ProfileCircle FullName="@ProjectAcronym" />
                 <AeTypography>@ProjectAcronym</AeTypography>
             </span>
         </div>
@@ -42,13 +42,13 @@
 
             <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
             <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
-            
+
             <AeTypography class="label">@Localizer["File URL"]</AeTypography>
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
-
         </div>
     </div>
 }
+
 
 @code {
 
@@ -68,7 +68,7 @@
     public string ContainerName { get; set; } = "datahub";
 
     [Parameter]
-    public string FolderName { get; set; } 
+    public string FolderName { get; set; }
 
     [Parameter]
     public bool Readonly { get; set; }
@@ -86,11 +86,10 @@
 
         if (File == null)
             return;
-        if (string.IsNullOrEmpty(FolderName) == false && FolderName != "/")
-        {
-            File.folderpath = FolderName + File.folderpath + "/";
-        }
-        File.folderpath = File.folderpath.Replace("//", "/");
+
+        // Generate the correct path dynamically without modifying File.folderpath
+        var effectiveFolderPath = GenerateEffectiveFolderPath();
+
         _properties = File.GetMetadataProperties()
             .Where(p => p.IsVisible)
             .Select(p => (p.Key, Value: File.GetMetadataPropertyValue(p.Key)))
@@ -99,9 +98,19 @@
         if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
         {
             var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
-            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}/{File.filename}".Replace("//","/");
-            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}/{File.filename}".Replace("//", "/");
+            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
+            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
         }
+    }
+
+    private string GenerateEffectiveFolderPath()
+    {
+        if (string.IsNullOrEmpty(FolderName) || FolderName == "/")
+        {
+            return "/";
+        }
+
+        return $"{FolderName}/{File.folderpath}".Replace("//", "/");
     }
 }
 
