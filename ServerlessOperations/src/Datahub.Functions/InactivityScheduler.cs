@@ -60,13 +60,15 @@ namespace Datahub.Functions
 
         private async Task<List<int>> GetProjects()
         {
-            using var ctx = await dbContextFactory.CreateDbContextAsync(); 
+            using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-            return ctx.Projects
+            return await ctx.Projects
+                .AsNoTracking()
+                .AsAsyncEnumerable()
                 .Where(p => !p.IsDeleted)
                 .Select(p => p.Project_ID)
                 .Distinct()
-                .ToList();
+                .ToListAsync();
             //return ctx.Projects.Where(w => !w.IsDeleted).AsNoTracking().Select(x => x.Project_ID).Distinct().ToList();
         }
 
