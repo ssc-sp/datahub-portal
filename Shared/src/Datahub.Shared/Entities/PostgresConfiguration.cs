@@ -7,5 +7,6 @@ namespace Datahub.Shared.Entities
     public class PostgresConfiguration
     {
         public string PSQL_SKU { get; set; }
+        public string ResourceNameSuffix { get; set; }
     }
 }
