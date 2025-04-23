@@ -68,6 +68,9 @@
     public string ContainerName { get; set; } = "datahub";
 
     [Parameter]
+    public string FolderName { get; set; } 
+
+    [Parameter]
     public bool Readonly { get; set; }
 
     [Parameter]
@@ -83,7 +86,11 @@
 
         if (File == null)
             return;
-
+        if (string.IsNullOrEmpty(FolderName) == false && FolderName != "/")
+        {
+            File.folderpath = FolderName + File.folderpath + "/";
+        }
+        File.folderpath = File.folderpath.Replace("//", "/");
         _properties = File.GetMetadataProperties()
             .Where(p => p.IsVisible)
             .Select(p => (p.Key, Value: File.GetMetadataPropertyValue(p.Key)))
@@ -92,8 +99,8 @@
         if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
         {
             var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
-            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}{File.filename}";
-            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}{File.filename}";
+            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{File.folderpath}/{File.filename}".Replace("//","/");
+            _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{File.folderpath}/{File.filename}".Replace("//", "/");
         }
     }
 }
