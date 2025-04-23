@@ -68,11 +68,11 @@
                     @if (HasEmailColumn())
                     {
                         <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy"
-                                     OnClick="@(() => { CopyUsersToClipboard(true); })">
+                                     OnClick="@(() => { CopyUsersToClipboard(false); })">
                             @Localizer["Copy all emails"]
                         </MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy"
-                                     OnClick="@(() => { CopyUsersToClipboard(false); })">
+                                     OnClick="@(() => { CopyUsersToClipboard(true); })">
                             @Localizer["Copy filtered emails"]
                         </MudMenuItem>
                     }

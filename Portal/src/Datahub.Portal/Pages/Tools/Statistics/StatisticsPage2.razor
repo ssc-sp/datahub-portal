@@ -185,11 +185,11 @@
             Id = w.Project_ID,
             Acronym = w.Project_Acronym_CD,
             Title = w.Project_Name,
-            Department = allMetadata
-                .Where(o => o.ObjectMetadataId == allMetadataObjects.FirstOrDefault(obj => obj.ObjectId_TXT == w.Project_Acronym_CD).ObjectMetadataId)
-                .Where(o => o.FieldDefinitionId == 6)
-                .Select(o => o.Value_TXT)
-                .FirstOrDefault(),
+            // Department = allMetadata
+            //     .Where(o => o.ObjectMetadataId == allMetadataObjects.FirstOrDefault(obj => obj.ObjectId_TXT == w.Project_Acronym_CD).ObjectMetadataId)
+            //     .Where(o => o.FieldDefinitionId == 6)
+            //     .Select(o => o.Value_TXT)
+            //     .FirstOrDefault(),
             Description = w.ProjectDescription,
             Budget = w.Project_Budget ?? 0,
             Spent = (decimal)allCredits
