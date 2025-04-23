@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 
-namespace Datahub.Portal.Pages.Tools.Statistics.Objects
+namespace Datahub.Portal.Components.Tables
 {
     public class DHTableLinkList : IDHTableCell
     {

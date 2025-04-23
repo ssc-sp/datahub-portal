@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 
-namespace Datahub.Portal.Pages.Tools.Statistics.Objects;
+namespace Datahub.Portal.Components.Tables;
 
 public interface IDHTableData
 {

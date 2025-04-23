@@ -1,0 +1,63 @@
+﻿@using Datahub.Core.Model.Achievements
+@using ApexCharts
+
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
+    <ApexChart TItem="DomainCount" Title="@Title" Height="300">
+        <ApexPointSeries
+            TItem="DomainCount"
+            Items="@(_domainCounts)"
+            Name="@Localizer["Users"]"
+            XValue="@(c => c.Domain)"
+            YValue="@(e => e.Count)"
+            OrderBy="@(c => c.X)"
+            SeriesType="SeriesType.Donut" ShowDataLabels/>
+    </ApexChart>
+</MudPaper>
+
+@code {
+    [Parameter] public List<PortalUser> Users { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+    private List<DomainCount> _domainCounts = new();
+    private ApexChart<DomainCount> _domainDonutChart = new();
+    private readonly ApexChartOptions<DomainCount> _domainDonutChartOptions = new();
+    
+    private record DomainCount
+    {
+        public string Domain { get; set; }
+        public int Count { get; set; }
+    }
+    
+    private string Domain(string email) 
+    {
+        var atIndex = email.IndexOf('@');
+        return atIndex == -1 ? email : email[(atIndex + 1)..];
+    }
+    
+    
+    protected override void OnParametersSet()
+    {
+        DefineOptions();
+        _domainCounts = Users
+            .GroupBy(u => Domain(u.Email ?? string.Empty))
+            .Select(g => new DomainCount { Domain = g.Key, Count = g.Count() })
+            .ToList();
+        _domainCounts.RemoveAll(d => string.IsNullOrEmpty(d.Domain));
+        Refresh();
+    }
+    
+    public async Task Refresh()
+    {
+        await _domainDonutChart.UpdateSeriesAsync();
+        await _domainDonutChart.UpdateOptionsAsync(true, true, true);
+    }
+    
+    private void DefineOptions()
+    {
+        _domainDonutChartOptions.Chart = new Chart
+        {
+            Locales = Locales,
+            DefaultLocale = "en-CA",
+        };
+    }
+}

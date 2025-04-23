@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using Datahub.Portal.Components.Tables;
 
 namespace Datahub.Portal.Pages.Tools.Statistics.Objects
 {

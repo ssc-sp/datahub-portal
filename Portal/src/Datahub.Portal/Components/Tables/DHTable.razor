@@ -1,12 +1,7 @@
 @using System.Reflection
-@using Datahub.Application.Services
-@using Datahub.Portal.Pages.Tools.Statistics.Dialogs
-@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Datahub.Portal.Components.Dialogs
 
-@inject IUsersStatusService _userStatusService;
 @inject IDialogService _dialogService;
-@inject DatahubPortalConfiguration _datahubPortalConfiguration
-@inject IHttpClientFactory _httpClientFactory
 @inject IJSRuntime _jsRuntime
 
 @typeparam TData where TData : IDHTableData
@@ -31,12 +26,11 @@
                 Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string"
                 Immediate="true"
                 Style="width: 400px;"
-                Placeholder=@Localizer["User or workspace"]
                 Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
                 Label="@Localizer["Search"]" Clearable>
             </MudTextField>
             <MudHidden Breakpoint="Breakpoint.MdAndDown">
-                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" PageSizeOptions="@( [5, 10, 100])"
+                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" PageSizeOptions="@( [10, 20, 100])"
                                Style="border-top-width: 0px" HideRowsPerPage/>
             </MudHidden>
             <MudSpacer/>
@@ -148,7 +142,7 @@
         }
     </RowTemplate>
     <PagerContent>
-        <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" PageSizeOptions="@( [5, 10, 100])"/>
+        <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" PageSizeOptions="@( [10, 20, 100])"/>
     </PagerContent>
 </MudTable>
 
@@ -174,7 +168,15 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Tools/Users/UsersTable.razor.js");
+        try
+        {
+
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/Tables/DHTable.razor.js");
+        }
+        catch
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/Tables/DHTable.razor.js");
+        }
         _columns = (Preset is null) ? TData.DefaultPreset().Columns : Preset.Columns;
     }
 
@@ -298,12 +300,12 @@
         if (filtered)
         {
             await CopyToClipboard(
-                _filteredData.Select(x => x.GetType().GetProperty(emailColumn.Name)?.GetValue(x)?.ToString()).ToList());
+                _filteredData.Select(x => x.GetType().GetProperty(emailColumn.Name)?.GetValue(x)?.ToString()).Distinct().ToList());
         }
         else
         {
             await CopyToClipboard(
-                Items.Select(x => x.GetType().GetProperty(emailColumn.Name)?.GetValue(x)?.ToString()).ToList());
+                Items.Select(x => x.GetType().GetProperty(emailColumn.Name)?.GetValue(x)?.ToString()).Distinct().ToList());
         }
     }
 
@@ -324,7 +326,7 @@
     private async Task HandleDownload(bool filtered = false)
     {
         var fileStream = GenerateCsvStream(filtered);
-        var fileName = $"UserInfo_{DateTime.Now:yyyy-MM-dd}.csv";
+        var fileName = $"{typeof(TData).Name}_{DateTime.Now:yyyy-MM-dd}.csv";
         using var streamReference = new DotNetStreamReference(stream: fileStream);
         await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
     }
