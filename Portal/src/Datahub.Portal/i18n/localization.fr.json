@@ -811,6 +811,7 @@
   "Delete environment variable": "Supprimer la variable d'environnement",
   "Delete your workspace and all associated data. This action cannot be undone.": "Supprimez votre espace de travail et toutes les données associées. Cette action ne peut pas être annulée.",
   "Deleted": "Supprimé",
+  "Deleting...": "suppression...",
   "Deletion has been requested": "La suppression a été demandée",
   "Deletion request has been sent.": "La demande de suppression a été envoyée.",
   "Demand Policy and Analysis": "Élaboration de la politique et de l'analyse",

@@ -19,12 +19,13 @@ public class TerraformService(
     IConfiguration configuration)
     : ITerraformService
 {
-    public const string TerraformVersionToken = "{{version}}";
-    public const string TerraformBranchToken = "{{branch}}";
+    //public const string TerraformVersionToken = "{{version}}";
+    //public const string TerraformBranchToken = "{{branch}}";
+    public const string TerraformTagToken = "{{tag}}";
 
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
-    public async Task CopyTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
+    public async Task CopyTemplateAsync(string templateName, CreateResourceRunCommand workspaceDefinition)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
@@ -32,7 +33,7 @@ public class TerraformService(
         }
 
         var templateSourcePath = DirectoryUtils.GetTemplatePath(resourceProvisionerConfiguration, templateName);
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, workspaceDefinition.Workspace.Acronym);
 
         logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
             projectPath);
@@ -53,6 +54,7 @@ public class TerraformService(
             }
         }
 
+        await DeletedAnyOldDeletedFiles(projectPath, templateName);
 
         var files = Directory.GetFiles(templateSourcePath, "*.*", SearchOption.TopDirectoryOnly)
             .Where(filename => !EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)));
@@ -63,9 +65,9 @@ public class TerraformService(
             var destinationFilename = Path.Combine(projectPath, sourceFilename);
 
             var fileContent = await File.ReadAllTextAsync(file);
-            fileContent = fileContent.Replace(TerraformVersionToken, terraformWorkspace.Version);
-            fileContent = fileContent.Replace(TerraformBranchToken,
-                $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}");
+            
+            fileContent = fileContent.Replace(TerraformTagToken,
+                $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspaceDefinition.Workspace.Version}");
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }
@@ -174,8 +176,11 @@ public class TerraformService(
     }
 
     private async Task RenameTemplateAsDeleted(string projectPath, string templateName, TerraformWorkspace terraformWorkspace)
-    {            
-        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf")
+    {
+        // check if the project directory exists
+        await DeletedAnyOldDeletedFiles(projectPath, templateName);
+
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf", SearchOption.AllDirectories)
             .ToArray();
 
         if (matchingFiles.Length > 0)
@@ -186,7 +191,22 @@ public class TerraformService(
                 File.Move(file, newFileName);
                 logger.LogInformation("Renamed file {File} to {NewFileName}", file, newFileName);
             }
-        }        
+        }
+    }
+
+    private async Task DeletedAnyOldDeletedFiles(string projectPath, string templateName)
+    {        
+        var matchingFiles = Directory.GetFiles(projectPath, $"{templateName}.tf.deleted", SearchOption.AllDirectories)
+            .ToArray();
+
+        if (matchingFiles.Length > 0)
+        {
+            foreach (var file in matchingFiles)
+            {
+                File.Delete(file);
+                logger.LogInformation("Deleted file {DeletedFilePath}", file);
+            }
+        }
     }
 
     public virtual async Task WriteDeletedFile(string templateName, string projectPath)
@@ -249,7 +269,7 @@ public class TerraformService(
             foreach (var (key, (value, isRequired)) in missingVariables)
             {
                 preExistingVariables.Remove(key);
-                var variableValue = ComputeVariableValue(terraformWorkspace, workspaceAppData, key, value, isRequired);
+                var variableValue = ComputeVariableValue(terraformWorkspace, workspaceAppData, key, value, templateName, isRequired);
                 if (variableValue != null)
                 {
                     preExistingVariables.TryAdd(key, variableValue);
@@ -264,7 +284,7 @@ public class TerraformService(
                 JsonSerializer.Serialize(missingVariables
                     .Select(missingVariable => (
                         missingVariable.Key,
-                        ComputeVariableValue(terraformWorkspace, workspaceAppData, missingVariable.Key, missingVariable.Value.Value,
+                        ComputeVariableValue(terraformWorkspace, workspaceAppData, missingVariable.Key, missingVariable.Value.Value, templateName,
                             missingVariable.Value.isRequired)))
                     .Where(mv => mv.Item2 != null)
                     .ToDictionary(mv => mv.Key, mv => mv.Item2))
@@ -275,7 +295,7 @@ public class TerraformService(
     // ReSharper disable once ReturnTypeCanBeNotNullable
     // This can return null if the variable is not required
     private JsonNode? ComputeVariableValue(TerraformWorkspace terraformWorkspace, WorkspaceAppData workspaceAppData, string variableName,
-        string variableType, bool isRequired = false)
+        string variableType, string templateName, bool isRequired = false)
     {
         if (variableType.StartsWith(TerraformVariables.MapType, StringComparison.InvariantCultureIgnoreCase))
         {
@@ -297,6 +317,9 @@ public class TerraformService(
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
             TerraformVariables.PsqlSku => workspaceAppData.PostgresConfiguration?.PSQL_SKU ?? "B_Standard_B1ms",
+            TerraformVariables.PsqlNameSuffix => workspaceAppData.PostgresConfiguration?.ResourceNameSuffix ?? string.Empty,
+            TerraformVariables.AppServiceNameSuffix => workspaceAppData.AppServiceConfiguration?.ResourceNameSuffix ?? string.Empty,
+            
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,
