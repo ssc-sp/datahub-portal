@@ -16,6 +16,7 @@ using JsonSerializer = System.Text.Json.JsonSerializer;
 using Version = System.Version;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using Datahub.Shared;
+using NUnit.Framework.Internal.Execution;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -42,7 +43,7 @@ public class RepositoryServiceTests
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
-        _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository(string.Empty);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.True);
     }
@@ -55,7 +56,7 @@ public class RepositoryServiceTests
 
         Assert.That(Directory.Exists(expectedClonePath), Is.False);
 
-        _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository(string.Empty);
 
         Assert.That(Directory.Exists(expectedClonePath), Is.True);
 
@@ -67,7 +68,7 @@ public class RepositoryServiceTests
         Assert.That(File.Exists(Path.Combine(repository.Info.WorkingDirectory, fileName)), Is.True);
 
         // Overwrite the existing repository with a new one
-        _repositoryService.FetchModuleRepository();
+        _repositoryService.FetchModuleRepository(string.Empty);
         Assert.Multiple(() =>
         {
             Assert.That(File.Exists(Path.Combine(repository.Info.WorkingDirectory, fileName)), Is.False);
@@ -118,7 +119,7 @@ public class RepositoryServiceTests
         Assert.That(Directory.Exists(moduleRepositoryPath), Is.False);
         Assert.That(Directory.Exists(infrastructureRepositoryPath), Is.False);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(ProjectAcronym);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
         Assert.That(Directory.Exists(moduleRepositoryPath), Is.True);
         Assert.That(Directory.Exists(infrastructureRepositoryPath), Is.True);
@@ -262,7 +263,7 @@ public class RepositoryServiceTests
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration, mockTerraformService);
 
-        await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(ProjectAcronym);
+        await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
         await Task.Run(DeleteAllFilesInTestProject);
 
@@ -310,16 +311,6 @@ public class RepositoryServiceTests
         Assert.That(result.WorkspaceAcronym, Is.EqualTo(ProjectAcronym));
     }
 
-    [Test]
-    public async Task ShouldBeAbleToGetModuleVersions()
-    {
-        var result = await _repositoryService.GetModuleVersions();
-
-        Assert.That(result, Is.Not.Null);
-        Assert.That(result, Is.Not.Empty);
-        Assert.That(result, Is.All.InstanceOf<Version>());
-    }
-
     private static StringContent ExpectedPullRequestResponse(int fakePullRequestId)
     {
         var data = new JsonObject
@@ -354,7 +345,7 @@ public class RepositoryServiceTests
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
                 It.IsAny<string>(),
-                It.IsAny<TerraformWorkspace>()))
+                It.IsAny<CreateResourceRunCommand>()))
             .Returns(() =>
             {
                 if (doNothing)

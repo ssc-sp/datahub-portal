@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
 using Datahub.Core.Model.Health;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
@@ -53,12 +54,12 @@ namespace Datahub.Functions.UnitTests
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
             var webAppService = TestHelper.CreateMockWebAppManagementService();
+            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
 
-            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider);
+            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
                 Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig);
-
 
             _checkInfrastructureStatus = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
