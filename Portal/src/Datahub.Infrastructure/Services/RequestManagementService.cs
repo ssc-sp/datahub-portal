@@ -109,8 +109,6 @@ public class RequestManagementService(
                 .ThenInclude(u => u.PortalUser)
                 .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
 
-            var resourceNameSuffix = string.Empty;
-
             if (project == null)
             {
                 return false;
@@ -138,8 +136,7 @@ public class RequestManagementService(
                 await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
 
-            workspaceDefinition.AppData.ResourceNameSuffix = resourceNameSuffix;
-
+            
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             return true;
         }

@@ -17,7 +17,16 @@ namespace Datahub.Infrastructure.Services
         public async Task<string> GetLatestVersion()
         {
             await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            return db.VersionTags.OrderByDescending(v => v.VersionTagId).First().Tag ?? "latest";
+            var versionTags = await db.VersionTags
+                                .Select(t => t.Tag)
+                                .ToListAsync();
+         
+            var latest = versionTags
+                 .Select(v => Version.Parse(v))
+                 .OrderByDescending(v => v)
+                 .First();
+
+            return $"v{latest.ToString()}";
         }
     }
 }
