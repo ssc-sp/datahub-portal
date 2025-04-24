@@ -30,15 +30,24 @@ namespace Datahub.Portal.Pages.Tools.Statistics.Objects
                 {
                     Name = "Default",
                     Description = "Default preset for workspace data",
-                    Columns = new List<PropertyInfo>
-                    {
+                    Columns =
+                    [
                         typeof(WorkspaceTableData).GetProperty(nameof(Title))!,
                         typeof(WorkspaceTableData).GetProperty(nameof(Acronym))!,
                         typeof(WorkspaceTableData).GetProperty(nameof(Description))!,
                         typeof(WorkspaceTableData).GetProperty(nameof(CreatedAt))!,
                         typeof(WorkspaceTableData).GetProperty(nameof(UpdatedAt))!
-                    },
-                    Filters = new List<FilterData>()
+                    ],
+                    Filters =
+                    [
+                        new FilterData
+                        {
+                            ColumnName = nameof(DeletedAt),
+                            ColumnType = typeof(DateTime),
+                            FilterType = FilterType.Equals,
+                            Value = DateTime.MinValue.ToString()
+                        }
+                    ]
                 },
                 new DHTablePreset
                 {

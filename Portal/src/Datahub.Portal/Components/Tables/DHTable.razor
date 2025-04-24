@@ -170,14 +170,15 @@
     {
         try
         {
-
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/Tables/DHTable.razor.js");
         }
         catch
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/Tables/DHTable.razor.js");
         }
+
         _columns = (Preset is null) ? TData.DefaultPreset().Columns : Preset.Columns;
+        _filters = (Preset is null) ? TData.DefaultPreset().Filters : Preset.Filters;
     }
 
     private async Task AddFilter()
@@ -241,27 +242,7 @@
         // Apply additional filters
         foreach (var filter in _filters)
         {
-            filteredData = filter.FilterType switch
-            {
-                FilterType.Equals => filteredData.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString() == filter.Value),
-                FilterType.NotEquals => filteredData.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString() != filter.Value),
-                FilterType.GreaterThan => filteredData.Where(u =>
-                    DateTime.TryParse(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), out var dateVal) &&
-                    DateTime.TryParse(filter.Value, out var filterDate) &&
-                    dateVal > filterDate ||
-                    double.TryParse(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), out var val) &&
-                    val > double.Parse(filter.Value)),
-                FilterType.LessThan => filteredData.Where(u =>
-                    DateTime.TryParse(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), out var dateVal) &&
-                    DateTime.TryParse(filter.Value, out var filterDate) &&
-                    dateVal < filterDate ||
-                    double.TryParse(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), out var val) &&
-                    val < double.Parse(filter.Value)),
-                FilterType.Contains => filteredData.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
-                FilterType.StartsWith => filteredData.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.StartsWith(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
-                FilterType.EndsWith => filteredData.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.EndsWith(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
-                _ => filteredData
-            };
+            filteredData = ApplyFilter(filteredData, filter);
         }
 
         var totalItems = filteredData.Count();
@@ -275,6 +256,42 @@
         return await Task.FromResult(new TableData<TData> { TotalItems = totalItems, Items = pagedData });
     }
 
+    private IEnumerable<TData> ApplyFilter(IEnumerable<TData> data, FilterData filter)
+    {
+        return filter.FilterType switch
+        {
+            FilterType.Equals => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result == 0),
+            FilterType.NotEquals => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result != 0),
+            FilterType.GreaterThan => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result > 0),
+            FilterType.LessThan => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result < 0),
+            FilterType.Contains => data.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
+            FilterType.StartsWith => data.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.StartsWith(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
+            FilterType.EndsWith => data.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.EndsWith(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
+            _ => data
+        };
+    }
+
+    private bool TryParseDateOrNumber(string? value, string filterValue, out int result)
+    {
+        result = 0;
+        if (DateTime.TryParse(value, out var dateVal) && DateTime.TryParse(filterValue, out var filterDate))
+        {
+            result = DateTime.Compare(dateVal, filterDate);
+            return true;
+        }
+
+        if (double.TryParse(value, out var numVal) && double.TryParse(filterValue, out var filterNum))
+        {
+            result = numVal.CompareTo(filterNum);
+            return true;
+        }
+
+        return false;
+    }
 
     private async Task SearchStringChanged(string search)
     {

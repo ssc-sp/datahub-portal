@@ -12,16 +12,22 @@ namespace Datahub.Portal.Components.Tables
             {
                 int sequence = 0;
                 builder.OpenElement(sequence++, "div"); // Open a container element
-                builder.AddAttribute(sequence++, "style", "display: flex; flex-direction: column;"); // Apply vertical stacking
+                builder.AddAttribute(sequence++, "style",
+                    "display: flex; flex-direction: column;"); // Apply vertical stacking
                 foreach (var link in Links)
                 {
                     builder.OpenComponent<MudBlazor.MudLink>(sequence++);
-                    builder.AddAttribute(sequence++, "Href", link.Url);
-                    builder.AddAttribute(sequence++, "Target", "_blank");
+                    if (!string.IsNullOrWhiteSpace(link.Url))
+                    {
+                        builder.AddAttribute(sequence++, "Href", link.Url);
+                        builder.AddAttribute(sequence++, "Target", "_blank");
+                    }
+
                     builder.AddAttribute(sequence++, "ChildContent",
                         (RenderFragment)(childBuilder => { childBuilder.AddContent(0, link.Name); }));
                     builder.CloseComponent();
                 }
+
                 builder.CloseElement(); // Close the container element
             };
         }
