@@ -30,6 +30,7 @@ public class Testing
     internal static TerraformWorkspace TestingWorkspace => new()
     {
         Acronym = ProjectAcronym,
+        Version = "v5.0.4",
     };
 
     internal const string RequestingUser = "Unit Test User";
@@ -112,12 +113,7 @@ public class Testing
 
     internal static async Task<int> SetupNewProjectTemplate(string workspaceAcronym)
     {
-        var versions = await _repositoryService.GetModuleVersions();
-        var latestVersion = versions.Max();
-        
-        if(latestVersion == null)
-            throw new Exception("No versions found for module repository");
-        
+        var latestVersion = "latest";
         var workspace = new TerraformWorkspace
         {
             Acronym = workspaceAcronym,
@@ -125,13 +121,13 @@ public class Testing
         };
         try
         {
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         }
         catch (IOException)
         {
             await Task.Delay(1000);
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
-        }
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        }   
 
         var command = GenerateTestCreateResourceRunCommand(
             workspaceAcronym, new List<string>()
@@ -144,7 +140,7 @@ public class Testing
         var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
             TerraformStatus.CreateRequested);
 
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractBackendConfig(workspaceAcronym);
 
@@ -158,16 +154,17 @@ public class Testing
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
     
-    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true, string version = "latest")
+    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
     {
         return new CreateResourceRunCommand
         {
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested))
                 .ToList(),
-            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, version),
+            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestingWorkspace.Version),
             RequestingUserEmail = RequestingUser,
-            ResourceGroupName = ResourceGroup
+            ResourceGroupName = ResourceGroup,
+            AppData = new WorkspaceAppData()            
         };
     }
 
