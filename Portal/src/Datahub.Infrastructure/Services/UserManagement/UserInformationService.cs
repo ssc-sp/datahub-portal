@@ -2,6 +2,7 @@
 using System.Net.Mail;
 using System.Security.Claims;
 using Azure.Identity;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
@@ -10,7 +11,6 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
-using J2N.Numerics;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +29,7 @@ public class UserInformationService(
     IConfiguration configureOptions,
     IServiceAuthManager serviceAuthManager,
     IDatahubCatalogSearch datahubCatalogSearch,
+    IUserEnrollmentService userEnrollmentService,
     IDbContextFactory<DatahubProjectDBContext> datahubContextFactory)
     : IUserInformationService
 {
@@ -321,6 +322,7 @@ public class UserInformationService(
             };
 
             await datahubCatalogSearch.AddCatalogObject(catalogObject);
+            await userEnrollmentService.InviteUserToGroup(userGraphId);
         }
         catch (Exception e)
         {
