@@ -3,6 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Toolbox;
+using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Layout;
 using Datahub.Shared;
@@ -641,10 +642,18 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     if (_workspaceDefinition.AppData.PostgresConfiguration == null)
                     {
                         Log("No original configuration found for Azure Postgres. Creating new configuration.");
-                        return new PostgresConfiguration();
+                        return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
                     }
-
+                    _workspaceDefinition.AppData.PostgresConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
                     return _workspaceDefinition.AppData.PostgresConfiguration;
+                case TerraformTemplate.AzureAppService:
+                    if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
+                    {
+                        Log("No original configuration found for Azure App Service. Creating new configuration.");
+                        return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
+                    }
+                    _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
+                    return _workspaceDefinition.AppData.AppServiceConfiguration;
                 default:
                     return null;
             }
@@ -663,16 +672,54 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     if (_workspaceDefinition.AppData.PostgresConfiguration?.PSQL_SKU == null)
                     {
                         Log("No original configuration found for Azure Postgres. Creating new configuration.");
-                        return new PostgresConfiguration();
+                        return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
                     }
 
                     return new PostgresConfiguration
                     {
-                        PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
+                        PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU,
+                        ResourceNameSuffix = GetResourceNameSuffix(tool)
                     };
+                case TerraformTemplate.AzureAppService:
+                    if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
+                    {
+                        Log("No original configuration found for Azure App Service. Creating new configuration.");
+                        return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
+                    }
+                    _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
+                    return _workspaceDefinition.AppData.AppServiceConfiguration;
                 default:
                     return null;
             }
+        }
+        /// <summary>
+        /// Returns the resource name suffix that will be appended to the resource name for a given template type on the cloud
+        /// </summary>
+        /// <param name="tool">The tool identifier.</param>
+        /// <returns>The resource name suffix for the tool.</returns>
+        private string GetResourceNameSuffix(string tool)
+        {
+            var resourceNumber = 0;
+
+            //get total resources of template type
+            switch (tool)
+            {
+                case TerraformTemplate.AzureAppService:
+                    resourceNumber = _workspace.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)));
+                    break;
+                case TerraformTemplate.AzurePostgres:
+                    resourceNumber = _workspace.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)));
+                    break;
+                default:
+                    throw new ArgumentException("Invalid template type", nameof(tool));
+            }
+
+            //get next iteration for suffix
+            resourceNumber++;
+
+            // format resourceNumber to three digits
+            return resourceNumber.ToString("D3");
+
         }
 
         /// <summary>
