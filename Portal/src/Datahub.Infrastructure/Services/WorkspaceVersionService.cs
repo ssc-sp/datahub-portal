@@ -22,11 +22,11 @@ namespace Datahub.Infrastructure.Services
                                 .ToListAsync();
          
             var latest = versionTags
-                 .Select(v => Version.Parse(v))
+                 .Select(v => Version.Parse(v.TrimStart('v')))
                  .OrderByDescending(v => v)
                  .First();
 
-            return $"v{latest.ToString()}";
+            return latest.ToString();
         }
     }
 }

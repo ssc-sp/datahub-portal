@@ -50,12 +50,12 @@ public class WorkspaceVersionTests
     [Fact]
     public async Task GivenListOfVersionTagsThenGetLatestVersion()
     {
-        var versions = new List<string> { "1.4", "8.3.6", "2.0.1", "10.3.4", "4.13.6", "3.0.1" };
+        var versions = new List<string> { "v1.4", "v8.3.6", "v2.0.1", "v10.3.4", "v4.13.6", "v3.0.1" };
 
         var latest = versions
-            .Select(v => Version.Parse(v))
-            .OrderByDescending(v => v)
-            .First();
+           .Select(v => Version.Parse(v.TrimStart('v')))
+           .OrderByDescending(v => v)
+           .First();
 
         Assert.True(latest.ToString() == "10.3.4", $"Latest version should be 10.3.4 but was {latest}");
 
