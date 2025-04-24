@@ -1,0 +1,228 @@
+﻿@using ApexCharts
+@using Datahub.Portal.Pages.Workspace.Reports
+@using Color = MudBlazor.Color
+@using Datahub.Application.Services.Cost
+@using Datahub.Application.Services.Metadata
+@using Datahub.Core.Extensions
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Onboarding
+@using Datahub.Core.Model.Projects
+@using Datahub.Metadata.Model
+@using Datahub.Portal.Pages.Workspace.Reports.Charts
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Datahub.Portal.Pages.Tools.Statistics.Charts
+@using Datahub.Shared
+@using Datahub.Shared.Entities
+@using Datahub.Portal.Components.Tables
+
+@inject IDbContextFactory<DatahubProjectDBContext> DbContextFactory
+@inject IMetadataBrokerService MetadataBrokerService
+@inject ICultureService CultureService
+
+<DHMainContentTitle Title="@Localizer["Statistics & reports"]"/>
+<MudTabs Elevation="0" Outlined ApplyEffectsToContainer Class="mt-4" PanelClass="pa-6" Rounded="true"
+         SliderColor="Color.Primary">
+    <CascadingValue Value="Locales">
+        <MudTabPanel Text="@Localizer["Summary"]">
+            <MudStack Spacing="2">
+                <MudStack Row Wrap="Wrap.Wrap">
+                    <ValueCard Value="@(_workspaceCount.ToString())" Label="@Localizer["Workspaces"]"/>
+                    <ValueCard Value="@(_resourcesCount.ToString())" Label="@Localizer["Resources"]"/>
+                    <ValueCard Value="@(_userCount.ToString())" Label="@Localizer["Users"]"/>
+                    <ValueCard Value="@(_activeUserCount.ToString())" Label="@Localizer["Active users"]"/>
+                    <ValueCard Value="@(_totalBudget.ToString("C2"))" Label="@Localizer["Total budget"]"/>
+                    <ValueCard Value="@(_totalCosts.ToString("C2"))" Label="@Localizer["Total costs"]"/>
+                </MudStack>
+                <MudStack Style="width: 100%">
+                    <MudPaper Outlined Elevation="0" Class="pa-4">
+                        <AccumulatedCostsArea Costs="_platformCosts" Title="@Localizer["Platform costs"]"/>
+                    </MudPaper>
+                    <MudPaper Outlined Elevation="0" Class="pa-4">
+                        <AccumulatedStorageArea Storage="_platformStorage" Title="@Localizer["Platform storage"]"/>
+                    </MudPaper>
+                </MudStack>
+            </MudStack>
+        </MudTabPanel>
+        <MudTabPanel Text="@Localizer["Departments"]">
+
+        </MudTabPanel>
+        <MudTabPanel Text="@Localizer["Workspaces"]">
+            <MudStack>
+                <MudStack Row Wrap="Wrap.Wrap">
+                    <ValueCard Value="@(_workspaceCount.ToString())" Label="@Localizer["Workspaces"]"/>
+                </MudStack>
+                <DHTable TData="WorkspaceTableData" Items="@_workspaces" HideTitle/>
+            </MudStack>
+        </MudTabPanel>
+        <MudTabPanel Text="@Localizer["Users"]">
+            <MudStack Spacing="4">
+                <MudStack Row Wrap="Wrap.Wrap" Spacing="4">
+                    <ValueCard Value="@(_userCount.ToString())" Label="@Localizer["Users"]"/>
+                    <ValueCard Value="@(_activeUserCount.ToString())" Label="@Localizer["Active users"]"/>
+                    <ValueCard Value="@(_registrationCount.ToString())" Label="@Localizer["Registrations"]"/>
+                </MudStack>
+                <MudStack Row Style="width: 100%">
+                    <RegistrationsBar Title="@Localizer["Self registrations"]" Registrations="@(_allRegistrations)"/>
+                </MudStack>
+                <MudStack Row>
+                    <UsersDomainDonut Title="@Localizer["User domains"]" Users="@(_portalUsers)"/>
+                    <UserActivityFunnel Title="@Localizer["User activity"]" Users="@(_portalUsers)"/>
+                </MudStack>
+                <DHTable TData="@UserTableData" Items="@_users" HideTitle/>
+            </MudStack>
+        </MudTabPanel>
+        <MudTabPanel Text="@Localizer["Costs"]">
+            <MudStack>
+                <MudStack Row Wrap="Wrap.Wrap">
+                    <ValueCard Value="@(_totalBudget.ToString("C2"))" Label="@Localizer["Total budget"]"/>
+                    <ValueCard Value="@(_totalCosts.ToString("C2"))" Label="@Localizer["Total costs"]"/>
+                </MudStack>
+                <MudStack Style="width: 100%">
+                    <MudPaper Outlined Elevation="0" Class="pa-4">
+                        <AccumulatedCostsArea Costs="_platformCosts" Title="@Localizer["Platform costs"]"/>
+                    </MudPaper>
+                </MudStack>
+            </MudStack>
+        </MudTabPanel>
+        <MudTabPanel Text="@Localizer["Storage"]">
+            <MudStack Style="width: 100%">
+                <MudPaper Elevation="0" Outlined Class="pa-4">
+                    <AccumulatedStorageArea Storage="_platformStorage" Title="@Localizer["Platform storage"]"/>
+                </MudPaper>
+            </MudStack>
+        </MudTabPanel>
+    </CascadingValue>
+</MudTabs>
+
+@code {
+
+    private List<DailyServiceCost> _platformCosts = [];
+    private List<Project_Storage> _platformStorage = [];
+    private List<PortalUser> _portalUsers = [];
+    private List<UserTableData> _users = [];
+    private List<WorkspaceTableData> _workspaces = [];
+    private List<SelfRegistrationDetails> _allRegistrations = [];
+    private decimal _totalCosts;
+    private decimal _totalBudget;
+    private int _workspaceCount;
+    private int _userCount;
+    private int _activeUserCount;
+    private int _resourcesCount;
+    private int _registrationCount;
+    private static List<ChartLocale> Locales => WorkspaceReports.Locales;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        await using var ctx = await DbContextFactory.CreateDbContextAsync();
+
+        var allCosts = ctx.Project_Costs.Select(c => new DailyServiceCost
+        {
+            Date = c.Date,
+            Amount = (decimal)c.CadCost,
+            Source = c.ServiceName
+        });
+        var allCredits = ctx.Project_Credits;
+        var allWorkspaces = ctx.Projects
+            .Include(w => w.Users)
+            .ThenInclude(pu => pu.PortalUser)
+            .Include(w => w.Resources);
+        var allUsers = ctx.PortalUsers;
+        var allWorkspaceMembers = ctx.Project_Users;
+        var allResources = ctx.Project_Resources2;
+        var allStorage = ctx.Project_Storage_Avgs;
+        var allRegistrations = ctx.SelfRegistrationDetails;
+        var workspaceDepartments = await MetadataBrokerService.ListObjectFieldValues("organization_name");
+
+        _allRegistrations = allRegistrations.ToList();
+        _platformCosts = allCosts
+            .GroupBy(c => c.Date.Date)
+            .Select(g => new DailyServiceCost
+            {
+                Date = g.Key,
+                Amount = g.Sum(c => c.Amount),
+                Source = ""
+            }).ToList();
+        _platformStorage = allStorage
+            .GroupBy(c => c.Date.Date)
+            .Select(g => new Project_Storage
+            {
+                Date = g.Key,
+                AverageCapacity = g.Sum(c => c.AverageCapacity / (1024 * 1024 * 1024))
+            })
+            .ToList();
+        _totalCosts = allCosts.Sum(c => c.Amount);
+        _totalBudget = allWorkspaces.Sum(w => w.Project_Budget!) ?? 0;
+        _workspaceCount = allWorkspaces.Count();
+        _portalUsers = allUsers.ToList();
+        _users = allUsers.Select(u => new UserTableData
+        {
+            Id = u.Id,
+            Name = u.DisplayName,
+            Email = u.Email,
+            RegistrationComment = allRegistrations
+                .Where(r => u.Email.ToLower() == r.Email.ToLower())
+                .Select(r => r.Comment)
+                .FirstOrDefault(),
+            RegistrationDate = allRegistrations
+                .Where(r => u.Email.ToLower() == r.Email.ToLower())
+                .Select(r => r.CreatedAt)
+                .FirstOrDefault(),
+            LastLogin = u.LastLoginDateTime ?? default,
+            FirstLogin = u.FirstLoginDateTime ?? default,
+            GraphGuid = u.GraphGuid,
+            Workspaces = new DHTableLinkList
+            {
+                Links = allWorkspaceMembers
+                    .Include(m => m.PortalUser)
+                    .Include(m => m.Project)
+                    .Where(m => m.PortalUser.GraphGuid == u.GraphGuid)
+                    .Select(m => ValueTuple.Create(
+                        $"{m.Project.Project_Name} ({m.Project.Project_Acronym_CD})",
+                        $"{PageRoutes.WorkspacePrefix}/{m.Project.Project_Acronym_CD}"
+                    )).ToList()
+            }
+        }).ToList();
+        _workspaces = allWorkspaces.Select(w => new WorkspaceTableData
+        {
+            Id = w.Project_ID,
+            Acronym = w.Project_Acronym_CD,
+            Title = w.Project_Name,
+            Description = w.ProjectDescription,
+            Budget = w.Project_Budget ?? 0,
+            Spent = (decimal)allCredits
+                .Where(c => c.ProjectId == w.Project_ID).Select(c => c.Current)
+                .FirstOrDefault(),
+            ResourceCount = allResources
+                .Count(r => r.ProjectId == w.Project_ID && r.Status != TerraformStatus.Deleted),
+            Resources = new DHTableLinkList
+            {
+                Links = w.Resources.Where(r => r.Status != TerraformStatus.Deleted)
+                    .Select(r => ValueTuple.Create(TerraformTemplate.ConvertTemplateNameToReadableName(r.ResourceType, CultureService.IsFrench), string.Empty))
+                    .ToList()
+            },
+            MemberCount = allWorkspaceMembers
+                .Count(m => m.Project_ID == w.Project_ID && m.RoleId != (int)Project_Role.RoleNames.Remove),
+            Members = new DHTableLinkList()
+            {
+                Links = w.Users.Select(u => ValueTuple.Create(u.PortalUser.DisplayName, $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.GraphGuid.Base64Encode()}")).ToList()
+            },
+            CreatedAt = w.Created_DT,
+            UpdatedAt = w.Last_Updated_DT,
+            DeletedAt = w.Deleted_DT ?? DateTime.MinValue,
+            WorkspaceLeadEmail = w.Project_Admin,
+            WorkspaceLead = allUsers
+                .Where(u => u.Email.ToLower() == w.Project_Admin)
+                .Select(u => u.DisplayName)
+                .FirstOrDefault(),
+        }).ToList();
+        _workspaces.ForEach(w => { w.Department = workspaceDepartments.FirstOrDefault(d => d.Name.Equals(w.Acronym, StringComparison.InvariantCultureIgnoreCase))?.Value; });
+        _registrationCount = allRegistrations.Count();
+        _userCount = allUsers.Count();
+        _activeUserCount = allUsers.Count(u => u.LastLoginDateTime > DateTime.UtcNow.AddDays(-90));
+        _resourcesCount = allResources.Count();
+        StateHasChanged();
+    }
+
+}
