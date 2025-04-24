@@ -74,6 +74,12 @@ jobs:
     clean: true
     lfs: true
     fetchTags: false
+  - task: UseDotNet@2
+    displayName: Use .NET Core sdk 9.0.x
+    inputs:
+      version: 9.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
   - task: PowerShell@2
     displayName: PowerShell Script - copy appsettings
     inputs:
@@ -112,6 +118,12 @@ jobs:
     clean: true
     lfs: true
     fetchTags: false
+  - task: UseDotNet@2
+    displayName: Use .NET Core sdk 9.0.x
+    inputs:
+      version: 9.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
   - task: DotNetCoreCLI@2
     displayName: dotnet restore
     inputs:
@@ -144,6 +156,12 @@ jobs:
     clean: true
     lfs: true
     fetchTags: false
+  - task: UseDotNet@2
+    displayName: Use .NET Core sdk 9.0.x
+    inputs:
+      version: 9.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
   - task: DotNetCoreCLI@2
     displayName: dotnet restore
     inputs:
@@ -175,6 +193,12 @@ jobs:
     clean: true
     lfs: true
     fetchTags: false
+  - task: UseDotNet@2
+    displayName: Use .NET Core sdk 9.0.x
+    inputs:
+      version: 9.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
   - task: DotNetCoreCLI@2
     displayName: dotnet restore
     inputs:
