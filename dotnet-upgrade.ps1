@@ -14,11 +14,11 @@ $csprojFiles = Get-ChildItem $Directory -Recurse -Filter *.csproj
 # Loop through each csproj file and replace dotnet 7 with dotnet 8
 if (-not $WhatIf)
 {
-	Write-Host "Replacing dotnet 7 with dotnet 8"
+	Write-Host "Replacing dotnet 8 with dotnet 9"
 	foreach ($file in $csprojFiles) {
 		Write-Host "Processing $file"
 		(Get-Content $file.FullName) | ForEach-Object {
-			$_ -replace 'net7.0', 'net8.0'
+			$_ -replace 'net8.0', 'net9.0'
 		} | Set-Content $file.FullName
 	}
 }
@@ -45,11 +45,11 @@ foreach ($file in $csprojFiles) {
 			$line = $_
 			ForEach ($pattern in $patternList)
 			{
-				if ($line -match "PackageReference Include=`"$pattern`" Version=`"(7\..*)`"") {
-					Write-Host "Found 7.x package: $($Matches[1]) - $($Matches[2]) - searching for 8.x version on nuget"
-					$latestVersion = (Find-Package -Name $Matches[1] -AllVersions | Where-Object { $_.Version -like "8.*" } | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
+				if ($line -match "PackageReference Include=`"$pattern`" Version=`"(8\..*)`"") {
+					Write-Host "Found 8.x package: $($Matches[1]) - $($Matches[2]) - searching for 9.x version on nuget"
+					$latestVersion = (Find-Package -Name $Matches[1] -AllVersions | Where-Object { $_.Version -like "9.*" } | Sort-Object -Property Version -Descending | Select-Object -First 1).Version
 					$tgtVersion = Replace-LastNumberWithStar($latestVersion)
-					Write-Host "Found 8.x package: $latestVersion - Target is $tgtVersion"
+					Write-Host "Found 9.x package: $latestVersion - Target is $tgtVersion"
 					return $line -replace "Version=`".*`"", "Version=`"$tgtVersion`""
 				}
 			}
