@@ -95,6 +95,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "scripts", "scripts", "{A8C7
 		scripts\appsettings.psm1 = scripts\appsettings.psm1
 		bleach.ps1 = bleach.ps1
 		scripts\ConfigureAZCert.ps1 = scripts\ConfigureAZCert.ps1
+		dotnet-upgrade.ps1 = dotnet-upgrade.ps1
 		scripts\find-translations.ps1 = scripts\find-translations.ps1
 		scripts\fix_CS8981.ps1 = scripts\fix_CS8981.ps1
 		scripts\initLocalDev.ps1 = scripts\initLocalDev.ps1
@@ -158,6 +159,20 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{
 		pipelines\fsdh-portal-tests.yml = pipelines\fsdh-portal-tests.yml
 		pipelines\fsdh-resource-provisioner-tests.yml = pipelines\fsdh-resource-provisioner-tests.yml
 		pipelines\functions-test.yml = pipelines\functions-test.yml
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{3D033E58-9544-4099-AFF1-C820B0C28F7C}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\apply-rulesets.yml = .github\workflows\apply-rulesets.yml
+		.github\workflows\code-linting.yml = .github\workflows\code-linting.yml
+		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\dataportal-translation-linting.yml = .github\workflows\dataportal-translation-linting.yml
+		.github\workflows\docker-image.yml = .github\workflows\docker-image.yml
+		.github\workflows\pr-build.yml = .github\workflows\pr-build.yml
+		.github\workflows\pr-commit-linting.yml = .github\workflows\pr-commit-linting.yml
+		.github\workflows\refresh-stale-prs.yml = .github\workflows\refresh-stale-prs.yml
+		.github\workflows\trivy.yml = .github\workflows\trivy.yml
+		.github\workflows\update-trivy-cache.yml = .github\workflows\update-trivy-cache.yml
 	EndProjectSection
 EndProject
 Global
@@ -357,6 +372,7 @@ Global
 		{12002871-163E-49CD-93DE-FBED9F5573E1} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
+		{3D033E58-9544-4099-AFF1-C820B0C28F7C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True
