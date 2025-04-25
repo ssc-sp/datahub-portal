@@ -36,7 +36,7 @@
                 </DHButton>
             </DatahubAuthView>
             <MudChipSet T="string"
-                        SelectionMode="SelectionMode.ToggleSelection"
+                        SelectionMode="SelectionMode.MultiSelection"
                         Ripple="false"
                         CheckMark>
                 @foreach (var group in WorkspaceDisplayGroups)
@@ -320,27 +320,24 @@ else
             return Localizer["No workspaces match the filter"];
         }
 
-        if (Show(_leadGroup))
+        string label = Localizer["Showing workspaces where you are a "];
+        bool anyCondition = false;
+
+        foreach (var group in WorkspaceDisplayGroups)
         {
-            return Localizer["Showing workspaces where you are a lead ({0})", FilteredWorkspacesCount];
+            if (Show(group))
+            {
+                if (anyCondition)
+                {
+                    label += Localizer[", "];
+                }
+                label += group.Label;
+                label += Localizer[" ({0})", group.Workspaces.Count];
+                anyCondition = true;
+            }
         }
 
-        if (Show(_adminGroup))
-        {
-            return Localizer["Showing workspaces where you are an admin ({0})", FilteredWorkspacesCount];
-        }
-
-        if (Show(_collaboratorGroup))
-        {
-            return Localizer["Showing workspaces where you are a collaborator ({0})", FilteredWorkspacesCount];
-        }
-
-        if (Show(_guestGroup))
-        {
-            return Localizer["Showing workspaces where you are a guest ({0})", FilteredWorkspacesCount];
-        }
-
-        return Localizer["No filter"];
+        return label;
     }
 
     private bool Show(WorkspaceDisplayGroup group)
