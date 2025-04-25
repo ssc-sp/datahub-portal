@@ -38,6 +38,7 @@ public class DatahubPortalConfiguration
     public string AllowedHosts { get; set; } = null!;
     public string[] AllowedUserEmailDomains { get; set; } = [".gc.ca"];
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
+    public string DatahubAddUserToGroupFunctionUrl { get; set; } = null!;
     public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
     public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
     public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl { get; set; } = new();
