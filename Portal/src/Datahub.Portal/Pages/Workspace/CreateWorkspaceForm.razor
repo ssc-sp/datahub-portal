@@ -12,7 +12,7 @@
         @Localizer["Please complete the following information to create a new workspace"]
     </MudText>
 
-    <MudForm Class="mb-4" @bind-IsValid="@_success">
+    <MudForm Class="mb-4" @bind-IsValid="@_success" ValidationDelay="50">
         <MudSelect T="GCHostingWorkspaceDetails"
             @bind-Value="_currentGcHostingPlan"
             Label=@Localizer["GC Hosting CBR"]
@@ -65,6 +65,38 @@
             <MudSelectItem T="string" Value="@("Collaboration")">@Localizer["Collaboration"]</MudSelectItem>
             <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
         </MudSelect>
+
+        @if (GCHostingPlanSelected)
+        {
+            <MudTextField @bind-Value=@_workspaceBudget 
+                          Label="@Localizer["Workspace Budget"]" 
+                          Immediate
+                          Validation="new Func<decimal, string>(BudgetValidation)"/>
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudAlert Severity=@_availableBudgetSeverity NoIcon>
+                    <MudStack Row>
+                        <MudText>@Localizer["Available:"]</MudText>
+                        <MudText>@_availableBudget.ToString("C2")</MudText>
+                    </MudStack>
+                </MudAlert>
+                <MudAlert Severity="Severity.Normal" NoIcon>
+                    <MudStack Row>
+                        <MudText>@Localizer["Already allocated:"]</MudText>
+                        <MudText>@_budgetAlreadyAllocated.ToString("C2")</MudText>
+                    </MudStack>
+                </MudAlert>
+                <MudAlert Severity="Severity.Normal" NoIcon>
+                    <MudStack Row>
+                        <MudText>@Localizer["Total in CBR:"]</MudText>
+                        <MudText>@_totalCbrBudget.ToString("C2")</MudText>
+                    </MudStack>
+                </MudAlert>
+                @if (_isOverBudget)
+                {
+                    <MudButton Href="@CbrSettingsUrl" Variant="@Variant.Outlined" Color="@Color.Primary">@Localizer["Open CBR Budget"]</MudButton>
+                }
+            </MudStack>
+        }
 
         @if (_portalConfiguration.Github.Enabled)
         {
@@ -127,25 +159,30 @@
 
     private IEnumerable<GCHostingWorkspaceDetails> gcHostingPlans = [];
     private GCHostingWorkspaceDetails? _currentGcHostingPlan = default;
+    private bool GCHostingPlanSelected => _currentGcHostingPlan is not null;
+    private decimal _workspaceBudget;
+    private decimal _totalCbrBudget => _currentGcHostingPlan?.WorkspaceBudget ?? 0;
+    private decimal _budgetAlreadyAllocated => _currentGcHostingPlan?.WorkspacesInBudget.Sum(w => w.Project_Budget) ?? 0;
+    private decimal _availableBudget => _totalCbrBudget - _budgetAlreadyAllocated;
+    private bool _isOverBudget => _workspaceBudget > _availableBudget;
+    private Severity _availableBudgetSeverity => _isOverBudget ? Severity.Error : Severity.Info;
+    private string _overBudgetError => Localizer["Workspace must not exceed available budget in CBR"];
+    private string? BudgetValidation(decimal b) => b > _availableBudget ? _overBudgetError : null;
+    private string CbrSettingsUrl => $"/w/{_currentGcHostingPlan!.Datahub_Project.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
 
     private bool _success;
     private bool _isCreating;
 
-    private bool _canCreate => _success && _currentGcHostingPlan is not null;
+    private bool _canCreate => _success && GCHostingPlanSelected;
 
     private bool _githubIntegration;
     private bool _createRepository;
 
-    private async Task GenerateAcronym()
+    private async Task GenerateAcronym(MouseEventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(_projectTitle))
-        {
-            _errorMessage = Localizer["Workspace Title is required to generate an acronym"];
-            return;
-        }
-        _projectAcronym = await _projectCreationService.GenerateWorkspaceAcronymAsync(_projectTitle);
-        _success = true;
-        _acronymField?.ResetValidation();
+        // There must be a clean way to get the validation/update to work without this arbitrary delay, but for now this hack works
+        await Task.Delay(1);
+        await UpdateProjectAcronym();
     }
 
     private void CloseAlert()
@@ -180,8 +217,19 @@
 
     private async Task UpdateProjectAcronym()
     {
-        if (string.IsNullOrWhiteSpace(_projectTitle)) return;
+        if (string.IsNullOrWhiteSpace(_projectTitle))
+        {
+            _errorMessage = Localizer["Workspace Title is required to generate an acronym"];
+            return;
+        }
+        else
+        {
+            CloseAlert();
+        }
         _projectAcronym = await _projectCreationService.GenerateWorkspaceAcronymAsync(_projectTitle);
+        await _acronymField!.ValueChanged.InvokeAsync(_projectAcronym);
+        await _acronymField!.ForceUpdate();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task CreateProject()
@@ -203,7 +251,7 @@
 
             var gcHostingId = _currentGcHostingPlan?.Id;
 
-            var isAdded = await _projectCreationService.CreateWorkspaceAsync(_projectTitle, _projectAcronym, "Unspecified", gcHostingId);
+            var isAdded = await _projectCreationService.CreateWorkspaceAsync(_projectTitle, _projectAcronym, "Unspecified", gcHostingId, _workspaceBudget);
             _isCreating = false;
             if (isAdded)
             {
@@ -234,6 +282,8 @@
         gcHostingPlans = ShowAllCBRs ?
             await _projectCreationService.GetAllGCHostingWorkspaceDetails() :
             await _projectCreationService.GetGCHostingWorkspaceDetailsForCurrentUser();
+
+        _workspaceBudget = _portalConfiguration.DefaultProjectBudget;
 
         await base.OnInitializedAsync();
     }
