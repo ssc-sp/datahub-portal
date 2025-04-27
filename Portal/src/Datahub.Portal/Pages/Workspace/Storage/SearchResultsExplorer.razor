@@ -10,6 +10,8 @@
             <div class="file-list-header" style="display: table-header-group; background-color: #f5f5f5; font-weight: bold;">
                 <div class="file-list-cell" style="display: table-cell; padding: 8px 16px;">@Localizer["Name"]</div>
                 <div class="file-list-cell" style="display: table-cell; padding: 8px 16px;">@Localizer["Path"]</div>
+                <div class="file-list-cell" style="display: table-cell; padding: 8px 16px;">@Localizer["Size"]</div>
+                <div class="file-list-cell" style="display: table-cell; padding: 8px 16px;">@Localizer["Last Modified"]</div>
             </div>
             @for (int i = 0; i < 2; i++)
             {
@@ -19,6 +21,12 @@
                     </div>
                     <div class="file-list-cell" style="display: table-cell; padding: 8px 16px; border-bottom: 1px solid #ddd;">
                         <MudSkeleton Width="300px" Height="1.5rem" />
+                    </div>
+                    <div class="file-list-cell" style="display: table-cell; padding: 8px 16px; border-bottom: 1px solid #ddd;">
+                        <MudSkeleton Width="100px" Height="1.5rem" />
+                    </div>
+                    <div class="file-list-cell" style="display: table-cell; padding: 8px 16px; border-bottom: 1px solid #ddd;">
+                        <MudSkeleton Width="150px" Height="1.5rem" />
                     </div>
                 </div>
             }
@@ -33,16 +41,28 @@
         <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
             <div class="file-explorer-layout-wrapper">
                 <div class="file-explorer-layout">
-                    <MudTable Items="SearchResults" Class="file-list" Hover="true" @bind-SelectedItem="SelectedFile" RowClassFunc="GetRowClass">
-                        <HeaderContent>
-                            <MudTh>@Localizer["Name"]</MudTh>
-                            <MudTh>@Localizer["Path"]</MudTh>
-                        </HeaderContent>
-                        <RowTemplate>
-                            <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
-                            <MudTd DataLabel="@Localizer["Path"]">@context.Path</MudTd>
-                        </RowTemplate>
-                    </MudTable>
+                    <div class="file-list">
+                        <div class="file-list-header">
+                            <MudText>@Localizer["Name"]</MudText>
+                            <MudText>@Localizer["Path"]</MudText>
+                            <MudText>@Localizer["Size"]</MudText>
+                            <MudText>@Localizer["Last Modified"]</MudText>
+                        </div>
+
+                        @foreach (var result in SearchResults)
+                        {
+                            <FileItem Name="@result.Name"
+                                      Modified="@result.LastModified"
+                                      Size="@FormatSize(result.Size)"
+                                      @onclick="@(() => HandleFileSelectionClick(result))"
+                                      OnSelectionClick="() => HandleFileSelectionClick(result)"
+                                      Highlighted="SelectedFile != null && SelectedFile.Name == result.Name && SelectedFile.Path == result.Path">
+                                <Icon>
+                                    <i class="@DatahubTools.GetFileTypeIcon(result.Name)"></i>
+                                </Icon>
+                            </FileItem>                             
+                        }
+                    </div>
 
                     <div class="item-details">
                         <div class="details-sticky">
@@ -68,9 +88,9 @@
             </div>
         </CascadingValue>
     }
-</MudStack>
+    </MudStack>
 
-@code {
+    @code {
     [Parameter] public List<FileSearchResult> SearchResults { get; set; }
     [Parameter] public CloudStorageContainer Container { get; set; }
     [Parameter] public int? ProjectId { get; set; }
@@ -124,27 +144,18 @@
         IsLoading = false; // Stop loading
     }
 
-    private FileMetaData MapToFileMetaData(FileSearchResult fileSearchResult)
+    private void HandleFileSelectionClick(FileSearchResult file)
     {
-        if (fileSearchResult == null)
-        {
-            return null;
-        }
-
-        return new FileMetaData
-            {
-                filename = fileSearchResult.Name,
-                folderpath = fileSearchResult.Path,
-                filesize = fileSearchResult.Size.ToString(),
-                lastmodifiedts = fileSearchResult.LastModified
-            };
+        SelectedFile = file;
+        StateHasChanged();
     }
 
-    private string GetRowClass(FileSearchResult file, int index)
+    private string FormatSize(long size)
     {
-        // Return the "file-row-selected" class if the row corresponds to the selected file
-        return SelectedFile != null && file.Name == SelectedFile.Name && file.Path == SelectedFile.Path
-            ? "file-row-selected"
-            : "file-row";
+        // Format file size (e.g., KB, MB, GB)
+        if (size < 1024) return $"{size} B";
+        if (size < 1024 * 1024) return $"{size / 1024.0:F2} KB";
+        if (size < 1024 * 1024 * 1024) return $"{size / (1024.0 * 1024):F2} MB";
+        return $"{size / (1024.0 * 1024 * 1024):F2} GB";
     }
 }
