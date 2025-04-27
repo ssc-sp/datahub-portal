@@ -51,17 +51,20 @@
 
                         @foreach (var result in SearchResults)
                         {
+                            var file = _files.FirstOrDefault(f => f.name.Equals(result.Name, StringComparison.OrdinalIgnoreCase));
+
                             <FileItem Name="@result.Name"
-                                      Modified="@result.LastModified"
-                                      Size="@FormatSize(result.Size)"
+                                      Modified="@(file?.lastmodifiedts ?? DateTime.MinValue)"
+                                      Size="@(file?.filesize)"
                                       @onclick="@(() => HandleFileSelectionClick(result))"
                                       OnSelectionClick="() => HandleFileSelectionClick(result)"
                                       Highlighted="SelectedFile != null && SelectedFile.Name == result.Name && SelectedFile.Path == result.Path">
                                 <Icon>
                                     <i class="@DatahubTools.GetFileTypeIcon(result.Name)"></i>
                                 </Icon>
-                            </FileItem>                             
+                            </FileItem>
                         }
+
                     </div>
 
                     <div class="item-details">
@@ -152,10 +155,16 @@
 
     private string FormatSize(long size)
     {
-        // Format file size (e.g., KB, MB, GB)
+        if (size <= 0) return "Unknown"; // Handle 0 size
         if (size < 1024) return $"{size} B";
         if (size < 1024 * 1024) return $"{size / 1024.0:F2} KB";
         if (size < 1024 * 1024 * 1024) return $"{size / (1024.0 * 1024):F2} MB";
         return $"{size / (1024.0 * 1024 * 1024):F2} GB";
+    }
+
+    private string FormatTimestamp(DateTime? timestamp)
+    {
+        if (timestamp == null || timestamp == default) return "Unknown"; // Handle invalid timestamps
+        return timestamp.Value.ToString("r"); // Format as RFC1123
     }
 }

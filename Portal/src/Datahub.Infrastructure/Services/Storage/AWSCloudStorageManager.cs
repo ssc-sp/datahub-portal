@@ -43,60 +43,60 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		return await Task.FromResult(new List<string>() { _containerName });
 	}
 
-	public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
-	{
-		var folders = new List<string>();
-		var files = new List<FileMetaData>();
+    public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
+    {
+        var folders = new List<string>();
+        var files = new List<FileMetaData>();
 
-		// correct folder path
-		folderPath = ToAWSFolder(folderPath);
+        // Correct folder path
+        folderPath = ToAWSFolder(folderPath);
 
-		// ignore the container
-		using var s3Client = GetClient();
+        using var s3Client = GetClient();
 
-		var request = new ListObjectsV2Request()
-		{
-			BucketName = _bucketName
-		};
+        var request = new ListObjectsV2Request()
+        {
+            BucketName = _bucketName
+        };
 
-		ListObjectsV2Response response;
-		do
-		{
-			response = await s3Client.ListObjectsV2Async(request);
-			foreach (S3Object entry in response.S3Objects)
-			{
-				var (belongsToFolder, isFolder, relativePath) = AnalyseFolderItem(folderPath, entry.Key);
+        ListObjectsV2Response response;
+        do
+        {
+            response = await s3Client.ListObjectsV2Async(request);
+            foreach (S3Object entry in response.S3Objects)
+            {
+                var (belongsToFolder, isFolder, relativePath) = AnalyseFolderItem(folderPath, entry.Key);
 
-				if (!belongsToFolder || string.IsNullOrEmpty(relativePath))
-				{
-					continue;
-				}
+                if (!belongsToFolder || string.IsNullOrEmpty(relativePath))
+                {
+                    continue;
+                }
 
-				if (isFolder)
-				{
-					folders.Add(RemoveSlash(entry.Key));
-					continue;
-				}
+                if (isFolder)
+                {
+                    folders.Add(RemoveSlash(entry.Key));
+                    continue;
+                }
 
+                // Validate and populate FileMetaData
                 FileMetaData fileMetaData = new()
                 {
                     id = entry.ETag,
                     name = relativePath,
-                    lastmodifiedts = entry.LastModified,
-                    filesize = entry.Size.ToString()
+                    lastmodifiedts = entry.LastModified != default ? entry.LastModified : DateTime.UtcNow, // Default to current time if invalid
+                    filesize = entry.Size > 0 ? entry.Size.ToString() : "Unknown" // Handle 0 size gracefully
                 };
 
-				files.Add(fileMetaData);
-			}
+                files.Add(fileMetaData);
+            }
 
-			request.ContinuationToken = response.NextContinuationToken;
+            request.ContinuationToken = response.NextContinuationToken;
 
-		} while (response.IsTruncated);
+        } while (response.IsTruncated);
 
-		return new DfsPage(folders, files, continuationToken!);
-	}
+        return new DfsPage(folders, files, continuationToken!);
+    }
 
-	public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string folderName)
+    public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string folderName)
 	{
 		using var s3Client = GetClient();
 		try
