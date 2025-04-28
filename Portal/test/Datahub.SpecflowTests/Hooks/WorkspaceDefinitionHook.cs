@@ -33,8 +33,8 @@ public class WorkspaceDefinitionHook
         
         var mockSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var dbContextFactory = new SpecFlowDbContextFactory(options);
-
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider);
+        var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, workspaceVersionService);
         
         objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);

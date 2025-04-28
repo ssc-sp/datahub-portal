@@ -10,7 +10,7 @@
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<MetadataDbContext> ContextFactory
 
-<DHPageTitle PageTitleKey=@Localizer["Metadata Profile"] />
+<PageTitle>@Localizer["Metadata Profile"]</PageTitle>
 @if (_profile is not null)
 {
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
