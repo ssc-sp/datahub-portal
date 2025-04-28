@@ -45,6 +45,7 @@ else
                     {
                         <th>@role.Name (id: @role.Id)</th>
                     }
+                    <th>CBR Owner</th>
                 </tr>
                 </thead>
                 <tbody>
@@ -56,6 +57,7 @@ else
                         {
                             <td>@(userRole.Value.FirstOrDefault(r => r.Value.Contains(RoleConstants.GetRoleConstants(role)))?.Value ?? "-")</td>
                         }
+                        <td>@(userRole.Value.FirstOrDefault(r => r.Value.Contains(RoleConstants.CBR_OWNER_SUFFIX))?.Value ?? "-")</td>
                     </tr>
                 }
                 </tbody>
