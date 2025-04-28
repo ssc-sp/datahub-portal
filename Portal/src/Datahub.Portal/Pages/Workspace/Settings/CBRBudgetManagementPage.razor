@@ -56,13 +56,13 @@ else
             <FooterContent>
                 <MudTd>
                     <MudStack Row>
-                        <MudText>@Localizer["Available CBR Budget: "]</MudText>
+                        <MudText>@Localizer["Available CBR Budget:"]</MudText>
                         <MudText>@_gcHostingBudget.WorkspaceBudget.ToString("C2")</MudText>
                     </MudStack>
                 </MudTd>
                 <MudTd>
                     <MudStack Row>
-                        <MudText>@Localizer["Total: "]</MudText>
+                        <MudText>@Localizer["Total:"]</MudText>
                         <MudText Color=@(IsOverBudget? Color.Error : Color.Default)>@TotalUsedBudget.ToString("C2")</MudText>
                         @if(IsOverBudget)
                         {
