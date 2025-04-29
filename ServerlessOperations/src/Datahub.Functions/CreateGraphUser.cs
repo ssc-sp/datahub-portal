@@ -65,6 +65,37 @@ public class CreateGraphUser(
             return new BadRequestResult();
         }
     }
+    
+    [Function("AddUserToGroup")]
+    public async Task<IActionResult> AddUserToGroup(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
+        HttpRequestData req)
+    {
+        _logger.LogInformation("C# HTTP trigger function processed a request");
+
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        var data = JsonSerializer.Deserialize<AddUserToGroupRequest>(requestBody);
+
+        var userId = data?.userId;
+        if (string.IsNullOrEmpty(userId))
+        {
+            return new BadRequestObjectResult("Please pass a valid user ID in the request body");
+        }
+
+        try
+        {
+            var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
+            var groupId = configuration.ServicePrincipalGroupID;
+
+            await AddToGroup(userId, groupId!, graphClient, _logger);
+            return new OkResult();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error adding user to group: {e.Message},\n Trace: {e.StackTrace}");
+            return new BadRequestResult();
+        }
+    }
 
     private IActionResult MockInviteUser(string userEmail, ILogger log)
     {
@@ -209,4 +240,5 @@ public class CreateGraphUser(
     }
 
     record CreateUserRequest(string email, string mockInvite, string inviter);
+    record AddUserToGroupRequest(string userId);
 }
