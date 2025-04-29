@@ -12,12 +12,12 @@
             <div class="upload-snack">
                 <i class="fas fa-file-alt"></i>
                 <span class="upload-text">
-                    <AeTypography class="snack-file-name">
+                    <MudText>
                         @file.filename
-                    </AeTypography>
-                    <AeTypography class="file-upload-bytes">
+                    </MudText>
+                    <MudText>
                         @UploadedByteSize(file.uploadedBytes)
-                    </AeTypography>
+                    </MudText>
                 </span>
                 <div class="snack-file-progress">
                     <div class="file-progress-bar" style="width: @CalculateProgress(file)%;">@CalculateProgress(file).ToString("0.00")%</div>
