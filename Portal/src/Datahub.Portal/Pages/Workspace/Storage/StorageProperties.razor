@@ -20,31 +20,31 @@ else
     <div class="storage-properties">
         <div class="title-container">
             <i class="fas fa-folder"></i>
-            <AeTypography Variant="h3" class="details-title-text">
+            <MudText Typo="Typo.h3" class="details-title-text">
                 @DisplayName
-            </AeTypography>
+            </MudText>
         </div>
 
         <div class="access-container">
-            <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
+            <MudText Typo="Typo.h4">@Localizer["Who has access"]</MudText>
             <span class="circle-item">
                 <ProfileCircle FullName="@ProjectAcronym"/>
-                <AeTypography>@ProjectAcronym</AeTypography>
+                <MudText>@ProjectAcronym</MudText>
             </span>
         </div>
 
         <div class="properties">
-            <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
+            <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
             @foreach (var (key, (value, fragment)) in _properties)
             {
-                <AeTypography class="label">@Localizer[key]</AeTypography>
+                <MudText class="label">@Localizer[key]</MudText>
                 @if (fragment != null)
                 {
                     @fragment
                 }
                 else
                 {
-                    <AeTypography class="text">@value</AeTypography>
+                    <MudText class="text">@value</MudText>
                 }
             }
         </div>

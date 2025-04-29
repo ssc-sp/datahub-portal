@@ -3,6 +3,7 @@ This is the feature that will update the terraform files to delete the workspace
 
     Scenario: The repository service should invoke the DeleteTemplateAsync method when a template is set to be deleted
         Given a repository service with a stubbed CommitTerraformTemplate method
+        And a terraform workspace with acronym "ACRO"
         And a template is set to be deleted
         When the ExecuteResourceRun method is invoked
         Then the DeleteTemplateAsync method should be invoked
@@ -23,12 +24,12 @@ This is the feature that will update the terraform files to delete the workspace
       | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
-      | azure-postgres       |
+      | azure-postgresql     |
       | new-project-template |
 
     Scenario: The terraform service should write a file with the deleted template name for the output status
         Given a terraform service
-        And a template name of <templateName>
+        And a template name of <templateName>        
         And a project path of "testpath"
         When the WriteDeletedFile method is invoked
         Then a .tf file with the template name should be written to the project path
@@ -39,5 +40,5 @@ This is the feature that will update the terraform files to delete the workspace
       | azure-storage-blob   |
       | azure-databricks     |
       | azure-app-service    |
-      | azure-postgres       |
+      | azure-postgresql     |
       | new-project-template |
