@@ -90,5 +90,6 @@
     "ConnectionString": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=appinsights-connection)"
   },
   "DatahubGraphInviteFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-create-graph-user-url)",
+  "DatahubAddUserToGroupFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-add-to-group-url)",
   "DatahubGraphUsersStatusFunctionUrl": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-status-graph-user-url)"
 }
