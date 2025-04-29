@@ -117,7 +117,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         return id;
     }
 
-    public Task<string> InviteUserToGroup(string userId)
+    public async Task<string> InviteUserToGroup(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
         {
@@ -135,12 +135,12 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         
         using var client = _httpClientFactory.CreateClient();
-        var result = client.PostAsync(url, content).Result;
+        var result = await client.PostAsync(url, content);
         
         // ensure the result is ok
         result.EnsureSuccessStatusCode();
 
-        return Task.FromResult(result.Content.ReadAsStringAsync().Result);
+        return await result.Content.ReadAsStringAsync();
     }
 
     public async Task SaveRegistrationDetails(string? registrationRequestEmail, string? comment)
