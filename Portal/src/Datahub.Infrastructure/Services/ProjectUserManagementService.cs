@@ -122,6 +122,12 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
             }
 
+            // If a user was previously removed from the project, we reset the Approved_DT to update the added date.
+            if (userToUpdate.RoleId == (int)Project_Role.RoleNames.Remove)
+            {
+                userToUpdate.Approved_DT = DateTime.UtcNow;
+            }
+
             userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
             userToUpdate.IsDataSteward = RoleBasedDataStewardFlag(projectUserUpdateCommand);
             context.Update(userToUpdate);
