@@ -52,10 +52,11 @@
                         @foreach (var result in SearchResults)
                         {
                             var file = _files.FirstOrDefault(f => f.name.Equals(result.Name, StringComparison.OrdinalIgnoreCase));
+                            var fileSize = file?.filesize ?? "0";
 
                             <FileItem Name="@result.Name"
                                       Modified="@(file?.lastmodifiedts ?? DateTime.MinValue)"
-                                      Size="@(file?.filesize)"
+                                      Size="@fileSize"
                                       @onclick="@(() => HandleFileSelectionClick(result))"
                                       OnSelectionClick="() => HandleFileSelectionClick(result)"
                                       Highlighted="SelectedFile != null && SelectedFile.Name == result.Name && SelectedFile.Path == result.Path">
