@@ -329,26 +329,45 @@ public class HostingServicesController : ControllerBase
 
     private void FailSafeLogInfo(string message, params object[] args)
     {
+        var actionName = ControllerContext.ActionDescriptor.ActionName;  
+        var customDimensions = new Dictionary<string, string>
+        {
+            { "ActionName", actionName },
+            { "ControllerName", nameof(HostingServicesController) }
+        };
+
         _logger.LogInformation(message, args);
-        _telemetryClient.TrackTrace(string.Format(message, args));
+        _telemetryClient.TrackTrace(string.Format(message, args), customDimensions);
         _telemetryClient.Flush();
     }
 
     private void FailSafeErrorLog(Exception ex, string message, params object[] args)
     {
+        var actionName = ControllerContext.ActionDescriptor.ActionName; 
+        var customDimensions = new Dictionary<string, string>
+        {
+            { "ActionName", actionName },
+            { "ControllerName", nameof(HostingServicesController) },
+            { "Path", Request?.Path }
+        };
+
         _logger.LogError(ex, message, args);
-        _telemetryClient.TrackException(ex, new Dictionary<string, string>
-    {
-        { "Path", Request?.Path }
-    });
-        _telemetryClient.TrackTrace(string.Format(message, args));
+        _telemetryClient.TrackException(ex, customDimensions);
+        _telemetryClient.TrackTrace(string.Format(message, args), customDimensions);
         _telemetryClient.Flush();
     }
 
     private void FailSafeErrorLog(string message, params object[] args)
     {
+        var actionName = ControllerContext.ActionDescriptor.ActionName;  
+        var customDimensions = new Dictionary<string, string>
+        {
+            { "ActionName", actionName },
+            { "ControllerName", nameof(HostingServicesController) }
+        };
+
         _logger.LogError(message, args);
-        _telemetryClient.TrackTrace(string.Format(message, args));
+        _telemetryClient.TrackTrace(string.Format(message, args), customDimensions);
         _telemetryClient.Flush();
     }
 
