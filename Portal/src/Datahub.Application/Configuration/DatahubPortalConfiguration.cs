@@ -132,6 +132,7 @@ public class APITargets
 public class ApplicationInsights
 {
     public string InstrumentationKey { get; set; } = null!;
+    public string ConnectionString { get; set; } = null!;
 }
 
 public class AzureAd
