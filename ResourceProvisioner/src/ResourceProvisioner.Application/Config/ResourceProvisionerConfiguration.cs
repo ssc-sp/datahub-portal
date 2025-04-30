@@ -38,7 +38,7 @@ public class ModuleRepositoryConfiguration
     public string TemplatePathPrefix { get; set; }
     public string ModulePathPrefix { get; set; } = "modules/";
 
-    public string Branch { get; set; } = "main";
+    public string Branch { get; set; } = "dev";
 }
 
 public class ResourceProvisionerConfiguration

@@ -16,34 +16,33 @@
     <div class="storage-properties">
         <div class="title-container">
             <i class="@DatahubTools.GetFileTypeIcon(File.fileformat)"></i>
-            <AeTypography Variant="h3" class="details-title-text">
+            <MudText Typo="Typo.h3" class="details-title-text">
                 @Path.GetFileName(File.name)
-            </AeTypography>
+            </MudText>
         </div>
 
         <div class="access-container">
-            <AeTypography Variant="h4">@Localizer["Who has access"]</AeTypography>
+            <MudText Typo="Typo.h4">@Localizer["Who has access"]</MudText>
             <span class="circle-item">
-                <ProfileCircle FullName="@ProjectAcronym" />
-                <AeTypography>@ProjectAcronym</AeTypography>
+                <ProfileCircle FullName="@ProjectAcronym"/>
+                <MudText>@ProjectAcronym</MudText>
             </span>
         </div>
 
         <div class="properties">
-            <AeTypography class="properties-title" Variant="h4">@Localizer["Storage Properties"]</AeTypography>
+            <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
             @foreach (var (key, value) in _properties)
             {
                 if (!string.IsNullOrEmpty(value) && value != "[]")
                 {
-                    <AeTypography class="label">@Localizer[key]</AeTypography>
-                    <AeTypography class="text">@value</AeTypography>
+                    <MudText class="label">@Localizer[key]</MudText>
+                    <MudText class="text">@value</MudText>
                 }
             }
 
-            <AeTypography class="label">@Localizer["Power BI URL"]</AeTypography>
+            <MudText class="label">@Localizer["Power BI URL"]</MudText>
             <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
-
-            <AeTypography class="label">@Localizer["File URL"]</AeTypography>
+            <MudText class="label">@Localizer["File URL"]</MudText>
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
         </div>
     </div>
