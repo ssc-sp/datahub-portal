@@ -329,7 +329,7 @@ public class HostingServicesController : ControllerBase
 
     private void FailSafeLogInfo(string message, params object[] args)
     {
-        var actionName = ControllerContext.ActionDescriptor.ActionName;  
+        var actionName = ControllerContext.ActionDescriptor?.ActionName ?? "Internal call";  
         var customDimensions = new Dictionary<string, string>
         {
             { "ActionName", actionName },
