@@ -43,8 +43,8 @@
                 <div class="file-explorer-layout">
                     <div class="file-list">
                         <div class="file-list-header">
+                            <MudText>&nbsp;</MudText>
                             <MudText>@Localizer["Name"]</MudText>
-                            <MudText>@Localizer["Path"]</MudText>
                             <MudText>@Localizer["Size"]</MudText>
                             <MudText>@Localizer["Last Modified"]</MudText>
                         </div>
@@ -56,7 +56,7 @@
 
                             <FileItem Name="@result.Name"
                                       Modified="@(file?.lastmodifiedts ?? DateTime.MinValue)"
-                                      Size="@fileSize"
+                                      Size="@fileSize" 
                                       @onclick="@(() => HandleFileSelectionClick(result))"
                                       OnSelectionClick="() => HandleFileSelectionClick(result)"
                                       Highlighted="SelectedFile != null && SelectedFile.Name == result.Name && SelectedFile.Path == result.Path">

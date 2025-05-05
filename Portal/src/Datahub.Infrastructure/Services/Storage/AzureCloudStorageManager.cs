@@ -8,10 +8,7 @@ using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Microsoft.VisualStudio.Services.Common;
-using System.IO;
-using DocumentFormat.OpenXml.Packaging;
-using iText.Kernel.Pdf;
-using iText.Kernel.Pdf.Canvas.Parser; 
+using Datahub.Infrastructure.Services.Helpers;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -464,37 +461,14 @@ public class AzureCloudStorageManager : ICloudStorageManager
         }
         else if (filePath.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
         {
-            return SearchWordDocument(memoryStream, searchTerm);
+            return SearchFileContentHelper.SearchWordDocument(memoryStream, searchTerm);
         }
         else if (filePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
         {
-            return SearchPdfDocument(memoryStream, searchTerm);
+            return SearchFileContentHelper.SearchPdfDocument(memoryStream, searchTerm);
         }
 
         return false;
     }
 
-    private bool SearchWordDocument(Stream stream, string searchTerm)
-    {
-        using var wordDoc = WordprocessingDocument.Open(stream, false);
-        var bodyText = wordDoc.MainDocumentPart?.Document.Body?.InnerText;
-        return bodyText != null && bodyText.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
-    }
-
-    private bool SearchPdfDocument(Stream stream, string searchTerm)
-    {
-        using var pdfReader = new PdfReader(stream);
-        using var pdfDoc = new PdfDocument(pdfReader);
-        var strategy = new iText.Kernel.Pdf.Canvas.Parser.Listener.SimpleTextExtractionStrategy();
-
-        for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
-        {
-            var pageText = PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i), strategy);
-            if (pageText.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
-            }
-        }
-        return false;
-    }
 }
