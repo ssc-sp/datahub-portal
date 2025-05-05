@@ -87,19 +87,44 @@ public class WorkspaceSettingsSteps(
         mockAuthorizationPolicyProvider.GetDefaultPolicyAsync()
             .Returns(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
-        var authContext = this.AddTestAuthorization();
-        authContext.SetAuthorized("TEST USER");
-        authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN);
-
         Services.AddSingleton(mockAuthorizationPolicyProvider);
 
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
         JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
 
         var workspaceSettingsPage = RenderComponent<WorkspaceSettingsPage>(parameterCollection =>
-            parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
+        {
+            parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym);
+            parameterCollection.Add(p => p.ElevatedWorkspaceAccessEnabled, true);
+        });
 
         scenarioContext["workspaceSettingsPage"] = workspaceSettingsPage;
+    }
+
+    [Given("default authorization for settings")]
+    public void GivenDefaultAuthorizationForSettings()
+    {
+        var authContext = this.AddTestAuthorization();
+        authContext.SetAuthorized("TEST USER");
+        authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN);
+    }
+
+    [Given("authorization for settings as a CBR owner")]
+    public void GivenAuthorizationForSettingsAsACBROwner()
+    {
+        CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, true, false);
+    }
+
+    [Given("authorization for settings as a non-CBR owner")]
+    public void GivenAuthorizationForSettingsAsANonCBROwner()
+    {
+        CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, false, false);
+    }
+
+    [Given("authorization for settings as a Datahub admin")]
+    public void GivenAuthorizationForSettingsAsADatahubAdmin()
+    {
+        CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, false, true);
     }
 
     [When(@"the prevent auto delete is toggled")]
@@ -195,5 +220,27 @@ public class WorkspaceSettingsSteps(
             scenarioContext["workspaceSettingsPage"] as IRenderedComponent<WorkspaceSettingsPage>;
         workspaceSettingsPage!.Render();
         workspaceSettingsPage!.Find(".mud-button-label").TextContent.Should().Be("Save Changes");
+    }
+
+    private IRenderedComponent<WorkspaceCbrSettingsLinkControl>? FindCbrSettingsControl()
+    {
+        var workspaceSettingsPage = scenarioContext["workspaceSettingsPage"] as IRenderedComponent<WorkspaceSettingsPage>;
+        workspaceSettingsPage!.Render();
+        var cbrControls = workspaceSettingsPage!.FindComponents<WorkspaceCbrSettingsLinkControl>();
+        return cbrControls.FirstOrDefault();
+    }
+
+    [Then("the Open CBR Budget button should be shown")]
+    public void ThenTheOpenCBRBudgetButtonShouldBeShown()
+    {
+        var cbrControl = FindCbrSettingsControl();
+        cbrControl.Should().NotBeNull();
+    }
+
+    [Then("the Open CBR Budget button should not be shown")]
+    public void ThenTheOpenCBRBudgetButtonShouldNotBeShown()
+    {
+        var cbrControl = FindCbrSettingsControl();
+        cbrControl.Should().BeNull();
     }
 }
