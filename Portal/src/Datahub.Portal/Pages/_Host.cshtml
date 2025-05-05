@@ -94,6 +94,8 @@
     <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/markdownEditor.js"></script>
     <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"></script>
 
+    @* https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/ *@
+    <script src="/_content/Toolbelt.Blazor.LocalTimeText/initialize-local-timezone.min.js"></script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-87JM90X2QF"></script>
@@ -231,11 +233,7 @@
         }
     </script>
 
-<script>
-function blazorGetTimezoneOffset() {
-    return new Date().getTimezoneOffset();
-}
-</script>
+
 <script src="_framework/blazor.server.js"></script>
 <script src="_content/MudBlazor/MudBlazor.min.js"></script>
 <script defer src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>

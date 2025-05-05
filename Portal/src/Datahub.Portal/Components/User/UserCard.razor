@@ -2,11 +2,13 @@
 @using Microsoft.Graph.Models
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Extensions
+@using Toolbelt.Blazor.Globalization
 
 @inject IUserInformationService _userInformationService
 @inject ILogger<UserCard> _logger;
 @inject IPortalUserTelemetryService _telemetryService;
 @inject IJSRuntime _jsRuntime;
+@inject ILocalTimeZone _localTz;
 @implements IDisposable
 
 @if (_viewedUser is null)
@@ -30,7 +32,7 @@
             <MudText Typo="Typo.body2" Class="px-4 mud-text-secondary">
                 @if (_lastLogin != null)
                 {
-                    @Localizer["Last login: {0} {1}", $"{ConvertToLocalTime(_lastLogin!.Value):yyyy-MM-dd HH:mm}", _timezone]
+                    @Localizer["Last login: {0} {1}", $"{_lastLogin!.Value:yyyy-MM-dd HH:mm}", _timezone]
                 }
             </MudText>
         }
@@ -81,7 +83,24 @@
     {
         await base.OnInitializedAsync();
         _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
-        _lastLogin = _telemetryService.GetUserLastLogin();
+        DateTime? lastLoginDt = null;
+        if ((lastLoginDt ??= _telemetryService.GetUserLastLogin()) is not null)
+        {
+            var localTz = await _localTz.GetLocalTimeZoneAsync(null);
+            _timezone = GetTimeZoneShortCode(localTz);
+            _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
+        }
+    }
+
+    private string GetTimeZoneShortCode(TimeZoneInfo timeZoneInfo)
+    {
+        // Use StandardName or DaylightName to derive the short code
+        var name = timeZoneInfo.IsDaylightSavingTime(DateTime.UtcNow)
+            ? timeZoneInfo.DaylightName
+            : timeZoneInfo.StandardName;
+
+        // Extract the first letter of each word
+        return string.Concat(name.Split(' ').Select(word => word[0])).ToUpperInvariant();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -96,8 +115,6 @@
             {
                 _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/User/UserCard.razor.js");
             }
-            // Eastern Standard Time => EST
-            _timezone = string.Concat((await _module.InvokeAsync<string>("retrieveTimeZone")).Split(" ").Select(word => word.ToUpperInvariant().First()));
         }
     }
 
@@ -115,12 +132,6 @@
     public void Dispose()
     {
         _userInformationService.PortalUserUpdated -= OnViewedUserUpdated;
-    }
-
-    private DateTime ConvertToLocalTime(DateTime UTCTime)
-    {
-        TimeZone localZone = TimeZone.CurrentTimeZone;
-        return localZone.ToLocalTime(UTCTime);
     }
 
 }
