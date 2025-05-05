@@ -8,6 +8,7 @@ using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Microsoft.VisualStudio.Services.Common;
+using Datahub.Infrastructure.Services.Helpers;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -398,4 +399,76 @@ public class AzureCloudStorageManager : ICloudStorageManager
             };
         }
     }
+
+    public async Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+    {
+        ValidateContainerName(container);
+
+        var dirClient = GetDirectoryClient(container, folderPath);
+        var matchingFiles = new List<FileMetaData>();
+
+        // Recursively iterate through all paths (files and folders) in the directory
+        await foreach (var path in dirClient.GetPathsAsync(recursive: true))
+        {
+            // Skip directories
+            if (path.IsDirectory.HasValue && path.IsDirectory.Value)
+                continue;
+
+            // Extract the file name from the full path
+            var fileName = Path.GetFileName(path.Name);
+
+            // Construct the full path of the file
+            string fullPath = path.Name;
+
+            // Retrieve metadata for the file
+            var fileMetadata = await GetFileMetadataAsync(dirClient, fullPath);
+
+            if (fileMetadata == null)
+                continue;
+
+            // Check if the file name contains the search term
+            if (fileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            {
+                matchingFiles.Add(fileMetadata);
+                continue;
+            }
+
+            // If content search is enabled, check the file content
+            if (searchInContent && await FileContentContainsTermAsync(container, fullPath, searchTerm))
+            {
+                matchingFiles.Add(fileMetadata);
+            }
+        }
+
+        return matchingFiles;
+    }
+
+    private async Task<bool> FileContentContainsTermAsync(string container, string filePath, string searchTerm)
+    {
+        var blobClient = GetBlobContainerClient(container).GetBlobClient(filePath);
+
+        // Download the file content
+        using var memoryStream = new MemoryStream();
+        await blobClient.DownloadToAsync(memoryStream);
+        memoryStream.Position = 0;
+
+        // Determine file type and search content
+        if (filePath.EndsWith(".txt", StringComparison.OrdinalIgnoreCase))
+        {
+            using var reader = new StreamReader(memoryStream);
+            var content = await reader.ReadToEndAsync();
+            return content.Contains(searchTerm, StringComparison.OrdinalIgnoreCase);
+        }
+        else if (filePath.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+        {
+            return SearchFileContentHelper.SearchWordDocument(memoryStream, searchTerm);
+        }
+        else if (filePath.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase))
+        {
+            return SearchFileContentHelper.SearchPdfDocument(memoryStream, searchTerm);
+        }
+
+        return false;
+    }
+
 }

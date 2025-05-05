@@ -27,15 +27,14 @@
 
 @if (_loading)
 {
-    <DHLoadingInitializer/>
+    <DHLoadingInitializer />
     return;
 }
-
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
-        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]"/>
+        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
     </MudStack>
-    <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Storage"/>
+    <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Storage" />
     @if (_isProjectKeyEnabled)
     {
         <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
@@ -46,20 +45,18 @@
                         <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
                             <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
                                 <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
-                                <StorageContainerSelector
-                                    @bind-SelectedContainer=@SelectedContainer
-                                    CloudContainers=_cloudContainers
-                                    OnAddProviderClicked=@AddCloudStorageAccount
-                                    OnEditProviderClicked=@EditCloudStorageAccount
-                                    OnRemoveProviderClicked=@RemoveCloudStorageAccount/>
+                                <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
+                                                          CloudContainers=_cloudContainers
+                                                          OnAddProviderClicked=@AddCloudStorageAccount
+                                                          OnEditProviderClicked=@EditCloudStorageAccount
+                                                          OnRemoveProviderClicked=@RemoveCloudStorageAccount />
                             </MudStack>
                         </MudStack>
                     }
                     <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
                         <MudTabs Elevation="0">
-                            <MudTabPanel
-                                Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["File Explorer"])"
-                                Icon="fas fa-hdd">
+                            <MudTabPanel Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["File Explorer"])"
+                                         Icon="fas fa-hdd">
                                 @if (_failedToLoadContainers)
                                 {
                                     <MudAlert Severity="Severity.Error">
@@ -68,7 +65,41 @@
                                 }
                                 else
                                 {
-                                    <FileExplorer ProjectId=@_projectId Container="@_selectedContainer"/>
+                                    <!-- Search Section -->
+                                    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-4">
+                                        <MudTextField @bind-Value="_searchQuery" Placeholder="@Localizer["Search files or folders"]" Class="mx-2" Adornment="Adornment.End" AdornmentIcon="fas fa-times" OnAdornmentClick="ClearSearch" />
+                                        <MudButton OnClick="SearchFiles" Color="Color.Primary">@Localizer["Search"]</MudButton>
+                                    </MudStack>
+
+                                    <!-- Search Results -->
+@*                                     @if (_searchResults?.Any() == true)
+                                    {
+                                        <MudTable Items="_searchResults" Class="file-list">
+                                            <HeaderContent>
+                                                <MudTh>@Localizer["Name"]</MudTh>
+                                                <MudTh>@Localizer["Path"]</MudTh>
+                                            </HeaderContent>
+                                            <RowTemplate>
+                                                <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
+                                                <MudTd DataLabel="@Localizer["Path"]">@context.Path</MudTd>
+                                            </RowTemplate>
+                                        </MudTable>
+                                    }
+                                    else if (_searchPerformed)
+                                    {
+                                        <MudText>@Localizer["No results found."]</MudText>
+                                    } *@
+
+                                    @if (string.IsNullOrWhiteSpace(_searchQuery))
+                                    {
+                                        <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                    }
+                                    else
+                                    {
+                                        <SearchResultsExplorer ProjectId=@_projectId 
+                                            Container="@_selectedContainer" SearchResults="_searchResults" />
+                                    }
+
                                 }
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator"
@@ -79,7 +110,7 @@
                                         <MudStack Class="py-6 px-2">
                                             <AzCopy Container=@SelectedContainer
                                                     TermsAcknowledged=@_tokenTermsAcknowledged
-                                                    OnTermsAccepted=@AgreeToAccessTokenTerms/>
+                                                    OnTermsAccepted=@AgreeToAccessTokenTerms />
                                         </MudStack>
                                     </MudTabPanel>
                                 }
@@ -87,7 +118,7 @@
                                 {
                                     <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
-                                            <Databricks Container="@SelectedContainer"/>
+                                            <Databricks Container="@SelectedContainer" />
                                         </MudStack>
                                     </MudTabPanel>
                                 }
@@ -97,7 +128,7 @@
                                         <MudStack Class="py-6 px-2">
                                             <UploaderCode Container=@SelectedContainer
                                                           TermsAcknowledged=@_tokenTermsAcknowledged
-                                                          OnTermsAccepted=@AgreeToAccessTokenTerms/>
+                                                          OnTermsAccepted=@AgreeToAccessTokenTerms />
                                         </MudStack>
                                     </MudTabPanel>
                                 }
@@ -143,6 +174,10 @@
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
     private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
+
+    private string _searchQuery = string.Empty;
+    private List<FileSearchResult> _searchResults = new();
+    private bool _searchPerformed = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -230,6 +265,52 @@
         }
 
         _selectedContainer = _cloudContainers.FirstOrDefault();
+    }
+
+    private async Task SearchFiles()
+    {
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            _searchResults = new();
+            _searchPerformed = true;
+            return;
+        }
+
+        try
+        {
+            _selectedContainer = _cloudContainers.FirstOrDefault();
+            var results = await _selectedContainer.StorageManager.SearchFilesAsync(
+                _selectedContainer.ContainerName,
+                "",
+                _searchQuery,
+                true
+            );
+
+            _searchResults = results
+                .Select(file => new FileSearchResult
+                    {
+                        Name = file.filename.Split('/').Last(), // Extract the file name from the path
+                        Path = string.Join("/", file.filename.Split('/').SkipLast(1)) // Extract the directory path
+                    })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching files");
+            _searchResults = new();
+        }
+        finally
+        {
+            _searchPerformed = true;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void ClearSearch()
+    {
+        _searchQuery = string.Empty;
+        _searchResults = new();
+        _searchPerformed = false;
     }
 
     public CloudStorageContainer SelectedContainer
@@ -368,9 +449,9 @@
         // but we don't exactly have a good way to use portal credentials to query workspace KV, which is needed to check project key
         // so I am doing a workaround here to force the core KV service to target the workspace KV
         var apiTarget = new APITarget
-        {
-            KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
-        };
+            {
+                KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
+            };
         var options = Options.Create<APITarget>(apiTarget);
 
         var logger = (new LoggerFactory()).CreateLogger<KeyVaultCoreService>();
