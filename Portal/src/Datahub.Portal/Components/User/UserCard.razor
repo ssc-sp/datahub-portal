@@ -103,21 +103,6 @@
         return string.Concat(name.Split(' ').Select(word => word[0])).ToUpperInvariant();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/User/UserCard.razor.js");
-            }
-            catch (Exception e)
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/User/UserCard.razor.js");
-            }
-        }
-    }
-
     private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
     {
         if (_viewedUser.Id != e.UpdatedUser.Id)
