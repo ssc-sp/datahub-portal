@@ -22,12 +22,18 @@ public class ContactUsTemplateTests
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspaceAcronym);
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate
+            });
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
 
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
 
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
@@ -41,11 +47,17 @@ public class ContactUsTemplateTests
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
-
+        var command = GenerateTestCreateResourceRunCommand(
+            workspaceAcronym, new List<string>()
+            {
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate,
+                   TerraformTemplate.NewProjectTemplate
+            });
         var module = GenerateTerraformTemplate(TerraformTemplate.ContactUs);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
         
-        await _terraformService.CopyTemplateAsync(module.Name, workspace);
+        await _terraformService.CopyTemplateAsync(module.Name, command);
         
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);

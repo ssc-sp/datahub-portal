@@ -112,18 +112,21 @@ namespace ResourceProvisioner.SpecflowTests.Features
         await testRunner.GivenAsync("a repository service with a stubbed CommitTerraformTemplate method", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
 #line 6
-        await testRunner.AndAsync("a template is set to be deleted", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.AndAsync("a terraform workspace with acronym \"ACRO\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 7
-        await testRunner.WhenAsync("the ExecuteResourceRun method is invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
+        await testRunner.AndAsync("a template is set to be deleted", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
 #line 8
-        await testRunner.ThenAsync("the DeleteTemplateAsync method should be invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
+        await testRunner.WhenAsync("the ExecuteResourceRun method is invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
 #line 9
-        await testRunner.AndAsync("the CopyTemplateAsync method should not be invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.ThenAsync("the DeleteTemplateAsync method should be invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 10
+        await testRunner.AndAsync("the CopyTemplateAsync method should not be invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+#line hidden
+#line 11
         await testRunner.AndAsync("the result should be a successful RepositoryUpdateEvent", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -138,7 +141,7 @@ namespace ResourceProvisioner.SpecflowTests.Features
         [Xunit.InlineDataAttribute("azure-storage-blob", new string[0])]
         [Xunit.InlineDataAttribute("azure-databricks", new string[0])]
         [Xunit.InlineDataAttribute("azure-app-service", new string[0])]
-        [Xunit.InlineDataAttribute("azure-postgres", new string[0])]
+        [Xunit.InlineDataAttribute("azure-postgresql", new string[0])]
         [Xunit.InlineDataAttribute("new-project-template", new string[0])]
         public async System.Threading.Tasks.Task TheTerraformServiceShouldDeleteAllTheFilesThatBelongToTheWorkspaceResource(string templateName, string[] exampleTags)
         {
@@ -147,7 +150,7 @@ namespace ResourceProvisioner.SpecflowTests.Features
             argumentsOfScenario.Add("templateName", templateName);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The terraform service should delete all the files that belong to the workspace re" +
                     "source", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 12
+#line 13
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -157,25 +160,25 @@ namespace ResourceProvisioner.SpecflowTests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 13
+#line 14
         await testRunner.GivenAsync("a terraform service with a stubbed WriteDeletedFile method", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 14
+#line 15
         await testRunner.AndAsync(string.Format("a template name of {0}", templateName), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 15
+#line 16
         await testRunner.AndAsync("a terraform workspace with acronym \"ACRO\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 16
+#line 17
         await testRunner.AndAsync("a few files starting with the template name exist in the project path", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 17
+#line 18
         await testRunner.WhenAsync("the DeleteTemplateAsync method is invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 18
+#line 19
         await testRunner.ThenAsync("the files starting with the template name should be deleted", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 19
+#line 20
         await testRunner.AndAsync("the WriteDeletedFile method should be invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
@@ -190,7 +193,7 @@ namespace ResourceProvisioner.SpecflowTests.Features
         [Xunit.InlineDataAttribute("azure-storage-blob", new string[0])]
         [Xunit.InlineDataAttribute("azure-databricks", new string[0])]
         [Xunit.InlineDataAttribute("azure-app-service", new string[0])]
-        [Xunit.InlineDataAttribute("azure-postgres", new string[0])]
+        [Xunit.InlineDataAttribute("azure-postgresql", new string[0])]
         [Xunit.InlineDataAttribute("new-project-template", new string[0])]
         public async System.Threading.Tasks.Task TheTerraformServiceShouldWriteAFileWithTheDeletedTemplateNameForTheOutputStatus(string templateName, string[] exampleTags)
         {
@@ -199,7 +202,7 @@ namespace ResourceProvisioner.SpecflowTests.Features
             argumentsOfScenario.Add("templateName", templateName);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The terraform service should write a file with the deleted template name for the " +
                     "output status", null, tagsOfScenario, argumentsOfScenario, featureTags);
-#line 29
+#line 30
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
             if ((global::Reqnroll.TagHelper.ContainsIgnoreTag(scenarioInfo.CombinedTags) || global::Reqnroll.TagHelper.ContainsIgnoreTag(featureTags)))
@@ -209,22 +212,22 @@ namespace ResourceProvisioner.SpecflowTests.Features
             else
             {
                 await this.ScenarioStartAsync();
-#line 30
+#line 31
         await testRunner.GivenAsync("a terraform service", ((string)(null)), ((global::Reqnroll.Table)(null)), "Given ");
 #line hidden
-#line 31
+#line 32
         await testRunner.AndAsync(string.Format("a template name of {0}", templateName), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 32
+#line 33
         await testRunner.AndAsync("a project path of \"testpath\"", ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
-#line 33
+#line 34
         await testRunner.WhenAsync("the WriteDeletedFile method is invoked", ((string)(null)), ((global::Reqnroll.Table)(null)), "When ");
 #line hidden
-#line 34
+#line 35
         await testRunner.ThenAsync("a .tf file with the template name should be written to the project path", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
-#line 35
+#line 36
         await testRunner.AndAsync(string.Format("the file contents should have the module status variable of {0} and the value of " +
                             "\"deleted\"", templateName), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden

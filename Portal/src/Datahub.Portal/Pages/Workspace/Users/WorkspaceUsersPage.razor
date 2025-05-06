@@ -199,7 +199,7 @@
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 @if (rowContext.Approved_DT != null)
                 {
-                    @rowContext.Approved_DT.Value.ToString("MMMM dd, yyyy")
+                    @rowContext.Approved_DT.Value.ToString("yyyy-MM-dd")
                 }
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">

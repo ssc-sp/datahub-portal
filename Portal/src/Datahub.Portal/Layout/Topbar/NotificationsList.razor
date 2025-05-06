@@ -1,7 +1,7 @@
-@inject TimeZoneService _timezoneService
 @inject ISystemNotificationService _systemNotificationService
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
+@inject ILocalTimeZone _localTz;
 
 @implements IDisposable
 @using System.Globalization
@@ -11,6 +11,7 @@
 @using Datahub.Core.Services.Notification
 @using Datahub.Core.Services.UserManagement;
 @using MudBlazor.Utilities
+@using Toolbelt.Blazor.Globalization
 
 <span>
     @if (_unreadNotificationCount > 0)
@@ -167,16 +168,6 @@
 
         // prepare the timezone service so timestamps get rendered properly right away
         _systemNotificationService.Notify += OnNotify;
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        
-        if (firstRender)
-        {
-            await _timezoneService.LocalDateTime(DateTime.UtcNow);
-        }
     }
 
     protected override async Task OnParametersSetAsync()

@@ -69,6 +69,7 @@ using Tewr.Blazor.FileReader;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 using Datahub.Portal.Controllers;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -160,8 +161,6 @@ public class Startup
         services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
-        //TimeZoneService provides the user time zone to the server using JS Interop
-        services.AddScoped<TimeZoneService>();
 
         services.AddUserAchievementServices();
         services.AddSecurityServices();
@@ -191,6 +190,9 @@ public class Startup
         services.AddSingleton<AzureManagementService>();
         services.AddSingleton<ProjectUsageService>();
         services.AddScoped<ProjectStorageConfigurationService>();
+
+        //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
+        services.AddLocalTimeZoneServer();
 
         services.AddSignalRCore();
 
@@ -411,6 +413,7 @@ public class Startup
             
         }
         services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
+        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
 
         services.AddSingleton<IExternalSearchService, ExternalSearchService>();
         services.AddHttpClient<IExternalSearchService, ExternalSearchService>();
