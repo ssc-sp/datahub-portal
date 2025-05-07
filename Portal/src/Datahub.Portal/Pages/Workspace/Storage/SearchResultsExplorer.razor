@@ -49,22 +49,29 @@
                             <MudText>@Localizer["Last Modified"]</MudText>
                         </div>
 
-                        @foreach (var result in SearchResults)
+                        @if (SearchResults != null && SearchResults.Any())
                         {
-                            var file = _files.FirstOrDefault(f => f.name.Equals(result.Name, StringComparison.OrdinalIgnoreCase));
-                            var fileSize = file?.filesize ?? "0";
+                            @foreach (var result in SearchResults.Where(r => r != null))
+                            {
+                                var file = _files.FirstOrDefault(f => f.name.Equals(result.Name, StringComparison.OrdinalIgnoreCase));
+                                if (file != null)
+                                {
+                                    var fileSize = file.filesize ?? "0";
 
-                            <FileItem Name="@result.Name"
-                                      Modified="@(file?.lastmodifiedts ?? DateTime.MinValue)"
-                                      Size="@fileSize" 
-                                      @onclick="@(() => HandleFileSelectionClick(result))"
-                                      OnSelectionClick="() => HandleFileSelectionClick(result)"
-                                      Highlighted="SelectedFile != null && SelectedFile.Name == result.Name && SelectedFile.Path == result.Path">
-                                <Icon>
-                                    <i class="@DatahubTools.GetFileTypeIcon(result.Name)"></i>
-                                </Icon>
-                            </FileItem>
+                                    <FileItem Name="@result.Name"
+                                              Modified="@(file?.lastmodifiedts ?? DateTime.MinValue)"
+                                              Size="@fileSize"
+                                              @onclick="@(() => HandleFileSelectionClick(result))"
+                                              OnSelectionClick="() => HandleFileSelectionClick(result)"
+                                              Highlighted="SelectedFile != null && SelectedFile.Name == result.Name && SelectedFile.Path == result.Path">
+                                        <Icon>
+                                            <i class="@DatahubTools.GetFileTypeIcon(result.Name)"></i>
+                                        </Icon>
+                                    </FileItem>
+                                }                                
+                            }
                         }
+
 
                     </div>
 
