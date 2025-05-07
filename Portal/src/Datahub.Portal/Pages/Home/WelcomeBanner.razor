@@ -6,7 +6,6 @@
 @implements IAsyncDisposable
 @implements IDisposable
 
-@inject TimeZoneService _timeZoneService
 @inject IConfiguration _configuration
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -90,7 +89,17 @@ else
 
     async ValueTask IAsyncDisposable.DisposeAsync()
     {
-        if (_module != null) await _module.DisposeAsync();
+        if (_module != null)
+        {
+            try
+            {
+                await _module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Circuit is already disconnected; no further action needed
+            }
+        }
     }
     
     public void Dispose()
