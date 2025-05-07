@@ -2,16 +2,13 @@
 @inject IUserCircuitCounterService UserCircuitCounterService
 @inject IStringLocalizer Localizer
 
-<AeCard style="margin: 2rem;">
-    <Header>
-        <h3>@Localizer["TooManyTabs"]</h3>
-    </Header>
-    <ChildContent>
+<MudCard style="margin: 2rem;">
+    <MudCardContent>
         <div style="margin: 1rem;">
-            <AeTypography>@ContentMessage()</AeTypography>
+            <MudText>@ContentMessage()</MudText>
         </div>            
-    </ChildContent>
-</AeCard>
+    </MudCardContent>
+</MudCard>
 
 @code {
 
