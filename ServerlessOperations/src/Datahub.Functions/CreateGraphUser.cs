@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Datahub.Infrastructure.Queues.Messages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
@@ -13,6 +12,7 @@ using Datahub.Infrastructure.Extensions;
 using Datahub.Shared.Configuration;
 using MassTransit;
 using Datahub.Infrastructure.Services.Azure;
+using static System.Guid;
 
 namespace Datahub.Functions;
 
@@ -62,6 +62,36 @@ public class CreateGraphUser(
                 throw new Exception(e.Message);
             }
 
+            return new BadRequestResult();
+        }
+    }
+
+    [Function("AddUserToGroup")]
+    public async Task<IActionResult> AddUserToGroup(
+        [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)]
+        HttpRequestData req)
+    {
+        _logger.LogInformation("C# HTTP trigger function processed a request");
+
+        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+        var data = JsonSerializer.Deserialize<AddUserToGroupRequest>(requestBody);
+        try
+        {
+            ValidateAddUserRequest(data);
+            var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
+            var groupId = configuration.ServicePrincipalGroupID;
+
+            await AddToGroup(data.userId, groupId!, graphClient, _logger);
+            return new OkResult();
+        }
+        catch (ArgumentException e)
+        {
+            _logger.LogError(e, $"Error validating adding request: {e.Message},\n Trace: {e.StackTrace}");
+            return new BadRequestObjectResult("Please pass a valid user ID in the request body");
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, $"Error adding user to group: {e.Message},\n Trace: {e.StackTrace}");
             return new BadRequestResult();
         }
     }
@@ -205,8 +235,16 @@ public class CreateGraphUser(
             Body = body
         };
 
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, notificationEmail);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
+            notificationEmail);
     }
 
     record CreateUserRequest(string email, string mockInvite, string inviter);
+
+    record AddUserToGroupRequest(string userId);
+
+    private void ValidateAddUserRequest(AddUserToGroupRequest data)
+    {
+        if (!TryParse(data.userId, out var userId) || userId == Empty) throw new ArgumentException("Invalid user ID");
+    }
 }

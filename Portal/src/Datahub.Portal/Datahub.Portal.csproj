@@ -47,7 +47,8 @@
 		<PackageReference Include="Octokit" Version="12.0.0" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="8.0.0" />
 		<PackageReference Include="MudBlazor" Version="7.13.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="*" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
+		<PackageReference Include="Toolbelt.Blazor.LocalTimeText.Server" Version="1.0.1" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Update="wwwroot\infinite-scrolling.js">

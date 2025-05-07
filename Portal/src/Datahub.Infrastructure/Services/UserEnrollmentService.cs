@@ -117,6 +117,32 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         return id;
     }
 
+    public async Task<string> InviteUserToGroup(string userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new InvalidOperationException("User ID must be provided");
+        }
+
+        var payload = new Dictionary<string, JsonNode>
+        {
+            ["userId"] = userId,
+        };
+
+        var jsonBody = new JsonObject(payload!);
+        var url = _datahubPortalConfiguration.DatahubAddUserToGroupFunctionUrl;
+
+        var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
+        
+        using var client = _httpClientFactory.CreateClient();
+        var result = await client.PostAsync(url, content);
+        
+        // ensure the result is ok
+        result.EnsureSuccessStatusCode();
+
+        return await result.Content.ReadAsStringAsync();
+    }
+
     public async Task SaveRegistrationDetails(string? registrationRequestEmail, string? comment)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
