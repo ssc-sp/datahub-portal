@@ -71,33 +71,23 @@
                                         <MudButton OnClick="SearchFiles" Color="Color.Primary">@Localizer["Search"]</MudButton>
                                     </MudStack>
 
-                                    <!-- Search Results -->
-@*                                     @if (_searchResults?.Any() == true)
+                                    @if (IsLoading)
                                     {
-                                        <MudTable Items="_searchResults" Class="file-list">
-                                            <HeaderContent>
-                                                <MudTh>@Localizer["Name"]</MudTh>
-                                                <MudTh>@Localizer["Path"]</MudTh>
-                                            </HeaderContent>
-                                            <RowTemplate>
-                                                <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
-                                                <MudTd DataLabel="@Localizer["Path"]">@context.Path</MudTd>
-                                            </RowTemplate>
-                                        </MudTable>
+                                        <DHLoadingInitializer />
+                                    }
+                                    else if (_searchPerformed && !_searchResults.Any())
+                                    {
+                                        <MudText>@Localizer["No results found."]</MudText>
                                     }
                                     else if (_searchPerformed)
                                     {
-                                        <MudText>@Localizer["No results found."]</MudText>
-                                    } *@
-
-                                    @if (string.IsNullOrWhiteSpace(_searchQuery))
-                                    {
-                                        <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                        <SearchResultsExplorer ProjectId=@_projectId 
+                                                               Container="@_selectedContainer" 
+                                                               SearchResults="_searchResults" />
                                     }
                                     else
                                     {
-                                        <SearchResultsExplorer ProjectId=@_projectId 
-                                            Container="@_selectedContainer" SearchResults="_searchResults" />
+                                        <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
                                     }
 
                                 }
@@ -178,6 +168,7 @@
     private string _searchQuery = string.Empty;
     private List<FileSearchResult> _searchResults = new();
     private bool _searchPerformed = false;
+    private bool IsLoading { get; set; } = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -266,59 +257,6 @@
 
         _selectedContainer = _cloudContainers.FirstOrDefault();
     }
-
-    private async Task SearchFiles()
-    {
-        if (string.IsNullOrWhiteSpace(_searchQuery))
-        {
-            _searchResults = new();
-            _searchPerformed = true;
-            return;
-        }
-
-        try
-        {
-            _selectedContainer = _cloudContainers.FirstOrDefault();
-            var results = await _selectedContainer.StorageManager.SearchFilesAsync(
-                _selectedContainer.ContainerName,
-                "",
-                _searchQuery,
-                true
-            );
-
-            _searchResults = results
-                .Select(file => new FileSearchResult
-                    {
-                        Name = file.filename.Split('/').Last(), // Extract the file name from the path
-                        Path = string.Join("/", file.filename.Split('/').SkipLast(1)) // Extract the directory path
-                    })
-                .ToList();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error searching files");
-            _searchResults = new();
-        }
-        finally
-        {
-            _searchPerformed = true;
-            await InvokeAsync(StateHasChanged);
-        }
-    }
-
-    private void ClearSearch()
-    {
-        _searchQuery = string.Empty;
-        _searchResults = new();
-        _searchPerformed = false;
-    }
-
-    public CloudStorageContainer SelectedContainer
-    {
-        get { return _selectedContainer; }
-        set { _selectedContainer = value; }
-    }
-
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
     {
@@ -458,6 +396,59 @@
         var keyVaultService = new KeyVaultCoreService(options, logger, _datahubPortalConfiguration);
         var projectKey = await keyVaultService.GetKey(_datahubPortalConfiguration.KeyVault.ProjectKey);
         return projectKey.Attributes.Enabled ?? false;
+    }
+
+    public CloudStorageContainer SelectedContainer
+    {
+        get => _selectedContainer;
+        set => _selectedContainer = value;
+    }
+
+    private void ClearSearch()
+    {
+        _searchQuery = string.Empty;
+        _searchResults = new();
+        _searchPerformed = false;
+    }
+
+    private async Task SearchFiles()
+    {
+        if (string.IsNullOrWhiteSpace(_searchQuery))
+        {
+            _searchResults = new();
+            _searchPerformed = true;
+            return;
+        }
+
+        IsLoading = true;
+        try
+        {
+            var results = await SelectedContainer.StorageManager.SearchFilesAsync(
+                SelectedContainer.ContainerName,
+                "",
+                _searchQuery,
+                true
+            );
+
+            _searchResults = results
+                .Select(file => new FileSearchResult
+                {
+                    Name = file.filename.Split('/').Last(),
+                    Path = string.Join("/", file.filename.Split('/').SkipLast(1))
+                })
+                .ToList();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error searching files");
+            _searchResults = new();
+        }
+        finally
+        {
+            IsLoading = false;
+            _searchPerformed = true;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
 }
