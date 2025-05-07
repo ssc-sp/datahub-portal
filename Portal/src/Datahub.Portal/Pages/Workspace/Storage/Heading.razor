@@ -1,5 +1,4 @@
 @using Datahub.Application.Services.Publishing
-@using Datahub.Core.Components.Common
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model;
@@ -20,49 +19,46 @@
 @inject IOpenDataPublishingService _openDataPublishingService
 @inject DatahubPortalConfiguration _config
 
-<Toaster Toasts="_toasts" >
     
-    <div class="heading">
-        <div class="actions">
-            <DHButton class="button-tool" @onclick="HandleUpload" StartIcon="fas fa-upload" Disabled="IsActionDisabled(ButtonAction.Upload)">
-                @Localizer["Upload"]
-            </DHButton>
+<div class="heading">
+    <div class="actions">
+        <DHButton class="button-tool" @onclick="HandleUpload" StartIcon="fas fa-upload" Disabled="IsActionDisabled(ButtonAction.Upload)">
+            @Localizer["Upload"]
+        </DHButton>
 
-            <DHButton class="button-tool" @onclick="HandleDownload" StartIcon="fas fa-download" Disabled="IsActionDisabled(ButtonAction.Download)">
-                @Localizer["Download"]
-            </DHButton>
+        <DHButton class="button-tool" @onclick="HandleDownload" StartIcon="fas fa-download" Disabled="IsActionDisabled(ButtonAction.Download)">
+            @Localizer["Download"]
+        </DHButton>
 
-            <DHButton class="button-tool" @onclick="HandleRename" StartIcon="fas fa-edit" Disabled="IsActionDisabled(ButtonAction.Rename)">
-                @Localizer["Rename"]
-            </DHButton>
+        <DHButton class="button-tool" @onclick="HandleRename" StartIcon="fas fa-edit" Disabled="IsActionDisabled(ButtonAction.Rename)">
+            @Localizer["Rename"]
+        </DHButton>
 
-            <span class="tool-divider"></span>
+        <span class="tool-divider"></span>
 
-            <DHButton class="button-tool" @onclick="HandleDelete" StartIcon="fas fa-trash-alt" Disabled="IsActionDisabled(ButtonAction.Delete)">
-                @Localizer["Delete"]
-            </DHButton>
+        <DHButton class="button-tool" @onclick="HandleDelete" StartIcon="fas fa-trash-alt" Disabled="IsActionDisabled(ButtonAction.Delete)">
+            @Localizer["Delete"]
+        </DHButton>
 
-            <span class="tool-divider"></span>
+        <span class="tool-divider"></span>
 
-            <DHButton class="button-tool" @onclick="HandleNewFolder" StartIcon="fas fa-folder-plus" Disabled="IsActionDisabled(ButtonAction.NewFolder)">
-                @Localizer["New Folder"]
-            </DHButton>
+        <DHButton class="button-tool" @onclick="HandleNewFolder" StartIcon="fas fa-folder-plus" Disabled="IsActionDisabled(ButtonAction.NewFolder)">
+            @Localizer["New Folder"]
+        </DHButton>
 
-            <DHButton class="button-tool" @onclick="HandleDeleteFolder" StartIcon="fas fa-folder-minus" Disabled="IsActionDisabled(ButtonAction.DeleteFolder)">
-                @Localizer["Delete Folder"]
-            </DHButton>
+        <DHButton class="button-tool" @onclick="HandleDeleteFolder" StartIcon="fas fa-folder-minus" Disabled="IsActionDisabled(ButtonAction.DeleteFolder)">
+            @Localizer["Delete Folder"]
+        </DHButton>
 
-            <span class="tool-divider"></span>
+        <span class="tool-divider"></span>
 
-            <DHButton class="button-tool" @onclick="HandlePublish" StartIcon="fas fa-bullhorn" Disabled="IsActionDisabled(ButtonAction.Publish)">
-                @Localizer["Publish"]
-            </DHButton>
-        </div>
-
-        <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
-
+        <DHButton class="button-tool" @onclick="HandlePublish" StartIcon="fas fa-bullhorn" Disabled="IsActionDisabled(ButtonAction.Publish)">
+            @Localizer["Publish"]
+        </DHButton>
     </div>
-</Toaster>
+
+    <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
+</div>
 
 @code {
 
@@ -125,8 +121,6 @@
     // private bool _isProjectMember;
 
     private Project_Role _currentUserRole;
-
-    private List<Toast> _toasts = new();
     private DotNetObjectReference<Heading> _dotNetHelper;
 
     protected override async Task OnInitializedAsync()
@@ -175,39 +169,6 @@
                 _isUnclassifiedSingleFile = false;
             }
             await InvokeAsync(StateHasChanged);
-        }
-    }
-    
-    [JSInvokable]
-    public async Task AzCopyProgress(string jobStatus, string percentComplete)
-    {
-        var toast = new Toast();
-
-        if (_toasts.Any())
-        {
-            toast = _toasts.First();
-        }
-        else  
-        {
-            // sanity check in case IPC message gets delayed or
-            // comes out of order and it's already been removed
-            if (jobStatus != JobStatusComplete && percentComplete != "100")
-            {
-                _toasts.Add(toast);
-            }
-        }
-        
-        toast.Title = "Azure Copy";
-        toast.Subtitle = jobStatus;
-        toast.Progress = float.Parse(percentComplete);
-        
-        StateHasChanged();
-        
-        if(jobStatus == JobStatusComplete && percentComplete == "100")
-        {
-            _toasts.Remove(toast);
-            await Task.Delay(500);
-            StateHasChanged();
         }
     }
 
