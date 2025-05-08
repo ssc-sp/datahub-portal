@@ -17,6 +17,9 @@ using Datahub.Application.Configuration;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Datahub.Metadata.Model;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Extensibility;
+using System;
 
 
 namespace Datahub.Portal.Controllers;
@@ -30,7 +33,8 @@ public class HostingServicesController : ControllerBase
     private readonly IUserInformationService _userInformationService;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly ISendEndpointProvider _sendEndpointProvider;
-    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;    
+    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+    private readonly TelemetryClient _telemetryClient;
 
     public HostingServicesController(DatahubProjectDBContext context, IWorkspaceCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration)
     {
@@ -41,6 +45,16 @@ public class HostingServicesController : ControllerBase
         _logger = logger;
         _sendEndpointProvider = sendEndpointProvider;
         _datahubPortalConfiguration = datahubPortalConfiguration;
+
+        // Initialize TelemetryClient using the ConnectionString
+        if (!string.IsNullOrEmpty(datahubPortalConfiguration.ApplicationInsights.ConnectionString))
+        {
+            var telemetryConfig = TelemetryConfiguration.CreateDefault();
+            telemetryConfig.ConnectionString = datahubPortalConfiguration.ApplicationInsights.ConnectionString;
+            _telemetryClient = new TelemetryClient(telemetryConfig);
+        }
+
+        FailSafeLogInfo("HostingServicesController initialized.");
     }
 
     /// <summary>
@@ -51,7 +65,7 @@ public class HostingServicesController : ControllerBase
     [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     public async Task<IActionResult> PostAuth()
     {
-        _logger.LogInformation("Received authenticated request.");
+        FailSafeLogInfo("Received authenticated request.");
         return await ProcessRequest(Request);
     }
 
@@ -63,7 +77,7 @@ public class HostingServicesController : ControllerBase
     [AllowAnonymous]
     public async Task<IActionResult> PostAnon()
     {
-        _logger.LogInformation("Received anonymous request.");
+        FailSafeLogInfo("Received anonymous request.");
         return await ProcessRequest(Request);
     }
 
@@ -78,12 +92,12 @@ public class HostingServicesController : ControllerBase
         try
         {
             var body = await new StreamReader(request.Body).ReadToEndAsync();
-            _logger.LogInformation("Received echo request body: {0}", SanitizeHtml(body));
+            FailSafeLogInfo("Received echo request body: {0}", SanitizeHtml(body));
             return Ok(body);
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error processing echo request: {0}", ex.Message);
+            FailSafeErrorLog("Error processing echo request: {0}", ex.Message);
             return Ok(ex.Message);
         }
     }
@@ -105,10 +119,10 @@ public class HostingServicesController : ControllerBase
 
             if (savedToBlob is UnauthorizedResult)
             {
-                _logger.LogError($"Failed to save request to blob storage. request id {requestId}");
+                FailSafeErrorLog($"Failed to save request to blob storage. request id {requestId}");
                 return savedToBlob;
             }
-            _logger.LogInformation("Saved request to blob storage.");
+            FailSafeLogInfo("Saved request to blob storage.");
             
             _logger.LogDebug("Received create workspace request body: {0}", SanitizeHtml(body));
 
@@ -116,7 +130,7 @@ public class HostingServicesController : ControllerBase
             var workspaceDetails = ConvertInputToGCHostingObject(workspaceDetails1);
 
             string acronym = await _workspaceCreationService.GenerateWorkspaceAcronymAsync(workspaceDetails.WorkspaceName);
-            _logger.LogInformation("Generated acronym: {0}", acronym);
+            FailSafeLogInfo("Generated acronym: {0}", acronym);
 
             // Attempt to find the user in the database.
             var users = _context.PortalUsers.ToListAsync();
@@ -124,14 +138,14 @@ public class HostingServicesController : ControllerBase
 
             if (user == null) // If the user is not found, register the user.
             {
-                _logger.LogInformation("User not found, registering user.");
+                FailSafeLogInfo("User not found, registering user.");
                 user = await RegisterUser(workspaceDetails.LeadEmail);
                 int attempt = 0;
 
                 while (user == null && attempt < 5)
                 {
                     await Task.Delay(2000);
-                    _logger.LogInformation("Attempt {0} to find user.", attempt);
+                    FailSafeLogInfo("Attempt {0} to find user.", attempt);
                     user = await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == workspaceDetails.LeadEmail);
                     attempt++;
                 }
@@ -140,7 +154,7 @@ public class HostingServicesController : ControllerBase
             // If the user is found or registered successfully, create the project.
             if (user != null)
             {
-                _logger.LogInformation("User found, creating project.");
+                FailSafeLogInfo("User found, creating project.");
                 string rg = $"fsdh_proj_{acronym.ToLower()}_dev_rg";
                 return await CreateProject(workspaceDetails, acronym, rg, user);
             }
@@ -184,7 +198,7 @@ public class HostingServicesController : ControllerBase
     {
         string description = $"Failed to create workspace {workspaceDetails.WorkspaceName} with workspace lead {workspaceDetails.LeadEmail}";
 
-        _logger.LogError(SanitizeHtml(description));
+        FailSafeErrorLog(SanitizeHtml(description));
 
         var bugReport = new BugReportMessage(
             UserName: "Datahub Portal",
@@ -218,13 +232,13 @@ public class HostingServicesController : ControllerBase
         {
             await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
             var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
-            _logger.LogInformation("User invite sent, user ID is {0}", userId);
+            FailSafeLogInfo("User invite sent, user ID is {0}", userId);
             await _userInformationService.CreatePortalUserAsync(userId);
             return await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email); ;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error registering user");
+            FailSafeErrorLog(ex, "Error registering user");
             return null;
         }
     }
@@ -245,7 +259,7 @@ public class HostingServicesController : ControllerBase
     private async Task<IActionResult> CreateProject(GCHostingWorkspaceDetails workspaceDetails, string acronym, string rg, PortalUser user)
     {
         var sanitizedWorkspaceTitle = SanitizeHtml(workspaceDetails.WorkspaceName);
-        _logger.LogInformation("Creating project for workspace {0}", sanitizedWorkspaceTitle);
+        FailSafeLogInfo("Creating project for workspace {0}", sanitizedWorkspaceTitle);
         if (workspaceDetails.SecurityClassification != ClassificationType.Unclassified)
             return BadRequest("Security classification must be unclassified");
         try
@@ -253,14 +267,14 @@ public class HostingServicesController : ControllerBase
             await _workspaceCreationService.CreateWorkspaceCloudHostingEndPointAsync(workspaceDetails.WorkspaceName, acronym, "Shared Services Canada", user, workspaceDetails.WorkspaceBudget, workspaceDetails.CBRID);
 
 
-            _logger.LogInformation("Project created successfully, saving project creation details.");
+            FailSafeLogInfo("Project created successfully, saving project creation details.");
             await _workspaceCreationService.SaveWorkspaceCreationDetailsAsync(acronym);
 
             // Retrieve the workspace details.
             var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
 
             // Create a new GC Hosting workspace record using the given details.
-            _logger.LogInformation("Creating GC Hosting workspace record.");
+            FailSafeLogInfo("Creating GC Hosting workspace record.");
             workspaceDetails.Datahub_Project = project;
             _context.GCHostingWorkspaceDetails.Add(workspaceDetails);
             project.ParentGCHostingBudget = workspaceDetails;
@@ -277,7 +291,7 @@ public class HostingServicesController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error creating project {workspaceDetails.WorkspaceName} - {acronym}");
+            FailSafeErrorLog(ex, $"Error creating project {workspaceDetails.WorkspaceName} - {acronym}");
             return BadRequest($"Error creating project {workspaceDetails.WorkspaceName} - {acronym}: {ex.Message}");
         }
     }
@@ -315,6 +329,50 @@ public class HostingServicesController : ControllerBase
         temp.CBRName = input.CBRName;
         temp.CBRID = input.CBRID;
         return temp;
+    }
+
+    private void FailSafeLogInfo(string message, params object[] args)
+    {
+        var actionName = ControllerContext.ActionDescriptor?.ActionName ?? "Internal call";  
+        var customDimensions = new Dictionary<string, string>
+        {
+            { "ActionName", actionName },
+            { "ControllerName", nameof(HostingServicesController) }
+        };
+
+        _logger.LogInformation(message, args);
+        _telemetryClient.TrackTrace(string.Format(message, args), customDimensions);
+        _telemetryClient.Flush();
+    }
+
+    private void FailSafeErrorLog(Exception ex, string message, params object[] args)
+    {
+        var actionName = ControllerContext.ActionDescriptor.ActionName; 
+        var customDimensions = new Dictionary<string, string>
+        {
+            { "ActionName", actionName },
+            { "ControllerName", nameof(HostingServicesController) },
+            { "Path", Request?.Path }
+        };
+
+        _logger.LogError(ex, message, args);
+        _telemetryClient.TrackException(ex, customDimensions);
+        _telemetryClient.TrackTrace(string.Format(message, args), customDimensions);
+        _telemetryClient.Flush();
+    }
+
+    private void FailSafeErrorLog(string message, params object[] args)
+    {
+        var actionName = ControllerContext.ActionDescriptor.ActionName;  
+        var customDimensions = new Dictionary<string, string>
+        {
+            { "ActionName", actionName },
+            { "ControllerName", nameof(HostingServicesController) }
+        };
+
+        _logger.LogError(message, args);
+        _telemetryClient.TrackTrace(string.Format(message, args), customDimensions);
+        _telemetryClient.Flush();
     }
 
     public partial class HostingServiceInfo

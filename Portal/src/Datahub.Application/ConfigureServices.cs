@@ -10,6 +10,8 @@ public static class ConfigureServices
     {
         var datahubConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubConfiguration);
+        configuration.GetSection("ApplicationInsights").Bind(datahubConfiguration.ApplicationInsights);
+
         services.AddSingleton(datahubConfiguration);
 
         return services;
