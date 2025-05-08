@@ -85,12 +85,15 @@
                                 else
                                 {
                                     var file = _files.FirstOrDefault(f => f.name.Equals(SelectedFile.Name, StringComparison.OrdinalIgnoreCase));
-                                    file.folderpath = @SelectedFile.Path;
-                                    <FileProperties @key=@SelectedFile.Name
-                                                    ProjectId=@ProjectId
-                                                    File=@file
-                                                    FolderName=@SelectedFile.Path
-                                                    Readonly="true" />
+                                    if (file != null)
+                                    {
+                                        file.folderpath = @SelectedFile.Path;
+                                        <FileProperties @key=@SelectedFile.Name
+                                                        ProjectId=@ProjectId
+                                                        File=@file
+                                                        FolderName=@SelectedFile.Path
+                                                        Readonly="true" />
+                                    }
                                 }
                             </div>
                         </div>
