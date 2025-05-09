@@ -283,7 +283,11 @@ public class HostingServicesController : ControllerBase
             await _workspaceCreationService.SaveWorkspaceMetadataFromGCHostingDetails(acronym, workspaceDetails);
 
             // Return the workspace acronym, resource group name, and tenant ID.
-            return Ok(new object[] { acronym, rg });
+            return Ok(new Dictionary<string, string>
+            {
+                { "Acronym", acronym },
+                { "ResourceGroup", rg }
+            });
         }
         catch (Exception ex)
         {

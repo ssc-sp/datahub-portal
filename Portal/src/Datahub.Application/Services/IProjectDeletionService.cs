@@ -1,8 +1,6 @@
 ﻿
 using Datahub.Core.Model.Projects;
 
-using Datahub.Core.Components.Resources;
-
 namespace Datahub.Application.Services
 {
     public interface IProjectDeletionService

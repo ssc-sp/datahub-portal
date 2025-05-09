@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using Datahub.Shared.Entities;
 using Datahub.Shared;
 using Google.Api.Gax.ResourceNames;
-using Datahub.Core.Components.Resources;
 using Microsoft.Graph.Models.Search;
 using Datahub.Core.Components;
 using Datahub.Core.Model.Projects;
