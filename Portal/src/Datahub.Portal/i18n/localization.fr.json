@@ -3256,5 +3256,6 @@
   "Available CBR Budget:": "Budget BOI disponible:",
   "Allocated Budget": "Budget alloué",
   "Total workspace budgets must not exceed available CBR budget": "Le budget total de l'espace de travail ne doit pas dépasser le budget BOI disponible",
-  "Manage budget allocation for workspaces under this workspace's CBR": "Gérer l'allocation du budget pour les espaces de travail dans le cadre du BOI de cet espace de travail"
+  "Manage budget allocation for workspaces under this workspace's CBR": "Gérer l'allocation du budget pour les espaces de travail dans le cadre du BOI de cet espace de travail",
+  "CBR must be selected to create a workspace": "BOI doit être sélectionné pour créer un espace de travail"
 }

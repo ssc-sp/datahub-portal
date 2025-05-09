@@ -248,8 +248,8 @@
 
     private async Task CreateProject()
     {
-        await InvokeAsync(_creationForm!.Validate);
-        _success = _success && string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym)); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
+        await InvokeAsync(_creationForm!.Validate); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
+        _success = _success && string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym));
         _success = _success && string.IsNullOrWhiteSpace(await ValidateTitle(_projectTitle));
 
         if (_success)

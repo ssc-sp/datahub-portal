@@ -2270,5 +2270,6 @@
   "Available CBR Budget:": "Available CBR Budget:",
   "Allocated Budget": "Allocated Budget",
   "Total workspace budgets must not exceed available CBR budget": "Total workspace budgets must not exceed available CBR budget",
-  "Manage budget allocation for workspaces under this workspace's CBR": "Manage budget allocation for workspaces under this workspace's CBR"
+  "Manage budget allocation for workspaces under this workspace's CBR": "Manage budget allocation for workspaces under this workspace's CBR",
+  "CBR must be selected to create a workspace": "CBR must be selected to create a workspace"
 }
