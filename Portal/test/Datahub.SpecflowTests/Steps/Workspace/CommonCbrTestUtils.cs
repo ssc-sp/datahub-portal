@@ -116,7 +116,8 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         {
             var roleNames = new List<string>
             {
-                $"{workspaceName}{RoleConstants.WORKSPACE_LEAD_SUFFIX}"
+                $"{workspaceName}{RoleConstants.WORKSPACE_LEAD_SUFFIX}",
+                "default"
             };
 
             if (isCbrOwner)

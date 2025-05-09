@@ -12,11 +12,13 @@
         @Localizer["Please complete the following information to create a new workspace"]
     </MudText>
 
-    <MudForm Class="mb-4" @bind-IsValid="@_success" ValidationDelay="50">
+    <MudForm Class="mb-4" @bind-IsValid="@_success" ValidationDelay="50" @ref=@_creationForm>
         <MudSelect T="GCHostingWorkspaceDetails"
             @bind-Value="_currentGcHostingPlan"
             Label=@Localizer["GC Hosting CBR"]
-            ToStringFunc="GenerateGcHostingPlanLabel">
+            Validation="new Func<GCHostingWorkspaceDetails, string>(CbrValidation)"
+            ToStringFunc="GenerateGcHostingPlanLabel"
+            Tag=CBR_DROPDOWN_TAG>
 
             <MudSelectItem Value="default(GCHostingWorkspaceDetails)" Disabled/>
             <MudDivider />
@@ -35,6 +37,7 @@
                       DebounceInterval="500"
                       OnDebounceIntervalElapsed="UpdateProjectAcronym"
                       Validation="@(new Func<string, Task<string>>(ValidateTitle))"
+                      Tag=WORKSPACE_TITLE_INPUT_TAG
                       MaxLength="@MaxTitleLength" />
 
         <MudTextField T="string"
@@ -50,6 +53,7 @@
                       @ref="_acronymField"
                       alt=@Localizer["A unique alphanumeric acronym to identify the workspace. Click the icon to generate an acronym based on the title."]
                       Required
+                      Tag=WORKSPACE_ACRONYM_INPUT_TAG
                       Validation="@(new Func<string, Task<string>>(ValidateAcronym))"
                       MaxLength="@MaxAcronymLength" />
 
@@ -71,7 +75,8 @@
             <MudTextField @bind-Value=@_workspaceBudget 
                           Label="@Localizer["Workspace Budget"]" 
                           Immediate
-                          Validation="new Func<decimal, string>(BudgetValidation)"/>
+                          Validation="new Func<decimal, string>(BudgetValidation)"
+                          Tag=BUDGET_INPUT_TAG />
             <MudStack Row AlignItems="AlignItems.Center">
                 <MudAlert Severity=@_availableBudgetSeverity NoIcon>
                     <MudStack Row>
@@ -128,7 +133,7 @@
         <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Href="@PageRoutes.Home" Class="mr-2">
             @Localizer["Cancel"]
         </MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_canCreate" OnClick="CreateProject" Class="ml-2">
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="!_canCreate" OnClick="CreateProject" Class="ml-2" Tag=@CREATE_WORKSPACE_BUTTON_TAG>
             @if (_isCreating)
             {
                 <MudProgressCircular Class="ms-n1 mr-2" Size="Size.Small" Indeterminate="true" />
@@ -145,6 +150,12 @@
     [Parameter]
     public bool ShowAllCBRs { get; set; } = false;
 
+    public const string CREATE_WORKSPACE_BUTTON_TAG = "CreateWorkspace";
+    public const string WORKSPACE_TITLE_INPUT_TAG = "WorkspaceTitle";
+    public const string WORKSPACE_ACRONYM_INPUT_TAG = "WorkspaceAcronym";
+    public const string CBR_DROPDOWN_TAG = "CbrSelect";
+    public const string BUDGET_INPUT_TAG = "WorkspaceBudget";
+
 #nullable enable
     private const int MaxAcronymLength = 7;
     private const int MaxTitleLength = 100;
@@ -153,6 +164,7 @@
     private string _projectAcronym = string.Empty;
     private string _interestedFeatures = string.Empty;
     private MudTextField<string>? _acronymField;
+    private MudForm? _creationForm;
 
     private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
     private List<TopBarEnvironments> _environmentsToAllowCreation = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl };
@@ -168,9 +180,11 @@
     private Severity _availableBudgetSeverity => _isOverBudget ? Severity.Error : Severity.Info;
     private string _overBudgetError => Localizer["Workspace must not exceed available budget in CBR"];
     private string? BudgetValidation(decimal b) => b > _availableBudget ? _overBudgetError : null;
+    private string _cbrNotSelectedError => Localizer["CBR must be selected to create a workspace"];
+    private string? CbrValidation(GCHostingWorkspaceDetails d) => d is null ? _cbrNotSelectedError : null;
     private string CbrSettingsUrl => $"/w/{_currentGcHostingPlan!.Datahub_Project.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
 
-    private bool _success;
+    private bool _success = false;
     private bool _isCreating;
 
     private bool _canCreate => _success && GCHostingPlanSelected;
@@ -228,18 +242,17 @@
         }
         _projectAcronym = await _projectCreationService.GenerateWorkspaceAcronymAsync(_projectTitle);
         await _acronymField!.ValueChanged.InvokeAsync(_projectAcronym);
-        await _acronymField!.ForceUpdate();
+        await InvokeAsync(_acronymField!.ForceUpdate);
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task CreateProject()
     {
-        _success = string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym)); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
+        await InvokeAsync(_creationForm!.Validate);
+        _success = _success && string.IsNullOrWhiteSpace(await ValidateAcronym(_projectAcronym)); // Force validation - users can avoid otherwise by clicking the button while the field is selected.
         _success = _success && string.IsNullOrWhiteSpace(await ValidateTitle(_projectTitle));
 
-        // _canCreate is based on _success and a valid CBR selection
-
-        if (_canCreate)
+        if (_success)
         {
             if (_isCreating)
                 return;
