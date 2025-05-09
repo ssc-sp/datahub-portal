@@ -12,6 +12,7 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Portal.Pages.Workspace;
 using FluentAssertions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
@@ -33,6 +34,9 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         private const string RelativePathToSrc = "../../../../../src";
 
         private const string CREATE_WORKSPACE_PAGE_CTX_KEY = "createWorkspaceForm";
+        private const string WORKSPACE_ACRONYM_CTX_KEY = "workspaceAcronym";
+        private const string CBR_ID_CTX_KEY = "cbrId";
+        private const string WORKSPACE_BUDGET_CTX_KEY = "workspaceBudget";
 
         private IUserInformationService userInfoService;
         private DatahubPortalConfiguration portalConfiguration;
@@ -356,5 +360,66 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             CheckIfNonCbrErrorIsShown(false);
         }
 
+        [When("the user clicks the create workspace button")]
+        public async Task WhenTheUserClicksTheCreateWorkspaceButton()
+        {
+            var page = GetCreateWorkspacePageFromContext();
+            var form = FindCreateWorkspaceForm(page);
+            form.Should().NotBeNull();
+
+            var cbrDropdown = FindCbrDropdownInForm(form!);
+            cbrDropdown.Should().NotBeNull();
+            var selectedCbr = cbrDropdown!.Instance.Value;
+            selectedCbr.Should().NotBeNull();
+            scenarioContext[CBR_ID_CTX_KEY] = selectedCbr!.Id;
+
+            var budgetInput = FindBudgetInput(form!);
+            budgetInput.Should().NotBeNull();
+            scenarioContext[WORKSPACE_BUDGET_CTX_KEY] = budgetInput!.Instance.Value;
+
+            var acronymTextbox = FindWorkspaceAcronymTextField(form!);
+            acronymTextbox.Should().NotBeNull();
+            scenarioContext[WORKSPACE_ACRONYM_CTX_KEY] = acronymTextbox!.Instance.Value;
+
+            var createWorkspaceButton = FindCreateWorkspaceButtonInNewWorkspaceForm(page);
+            createWorkspaceButton.Should().NotBeNull();
+            createWorkspaceButton!.Instance.Disabled.Should().BeFalse();
+
+            await page.InvokeAsync(createWorkspaceButton.Instance.OnClick.InvokeAsync);
+
+        }
+
+        [Then("the workspace should be created with the correct parent CBR ID and budget")]
+        public async Task ThenTheWorkspaceShouldBeCreatedWithTheCorrectParentCbrIdAndBudget()
+        {
+            var dbContextFactory = Services.GetService<IDbContextFactory<DatahubProjectDBContext>>();
+
+            var workspaceAcronym = scenarioContext[WORKSPACE_ACRONYM_CTX_KEY] as string;
+            var cbrId = scenarioContext[CBR_ID_CTX_KEY] as int?;
+            var workspaceBudget = scenarioContext[WORKSPACE_BUDGET_CTX_KEY] as decimal?;
+
+            await using var ctx = await dbContextFactory!.CreateDbContextAsync();
+            var createdWorkspace = await ctx.Projects.FirstOrDefaultAsync(w => w.Project_Acronym_CD == workspaceAcronym);
+
+            createdWorkspace.Should().NotBeNull();
+            cbrId.Should().NotBeNull();
+            createdWorkspace!.ParentGCHostingBudgetId.Should().Be(cbrId);
+            workspaceBudget.Should().NotBeNull();
+            createdWorkspace!.Project_Budget.Should().Be(workspaceBudget);
+        }
+
+        [Then("the navigation manager should be redirected to the created workspace")]
+        public void ThenTheNavigationManagerShouldBeRedirectedToTheCreatedWorkspace()
+        {
+            var navManager = Services.GetService<NavigationManager>();
+            var bunitNavObject = navManager as Bunit.TestDoubles.FakeNavigationManager;
+            bunitNavObject.Should().NotBeNull();
+
+            var workspaceAcronym = scenarioContext[WORKSPACE_ACRONYM_CTX_KEY] as string;
+
+            var workspaceUrl = $"/w/{workspaceAcronym}";
+            bunitNavObject!.History.Count.Should().Be(1);
+            bunitNavObject!.History.First().Uri.Should().Be(workspaceUrl);
+        }
     }
 }
