@@ -1,0 +1,33 @@
+---
+name: 3. Release to Prod branch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Convert App token
+        id: create_token 
+        uses: getsentry/action-github-app-token@v3.0.0
+        with:
+          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+
+      - name: Checkout release branch
+        uses: actions/checkout@v4
+        with:
+          ref: release
+          token: ${{ steps.create_token.outputs.token }}
+
+      - name: Fetch latest proof-of-concept commit
+        run: git fetch origin proof-of-concept --depth=1
+
+      - name: Hard‑reset release to proof-of-concept
+        run: |
+          git reset --hard FETCH_HEAD
+          git push origin release --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ steps.create_token.outputs.token }}

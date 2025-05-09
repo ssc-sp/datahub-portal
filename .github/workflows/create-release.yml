@@ -1,6 +1,7 @@
 ---
+name: 1. Create Release
+
 on:
-  workflow_dispatch:
   push:
     branches:
       - develop
@@ -8,8 +9,6 @@ on:
 permissions:
   contents: write
   pull-requests: write
-
-name: Release-Manager
 
 jobs:
   release-please:
