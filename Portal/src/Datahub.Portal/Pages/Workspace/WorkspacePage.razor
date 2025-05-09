@@ -123,6 +123,7 @@
             (WorkspaceSidebar.SectionViews.Publishing, "") => defaultSectionType,
             (WorkspaceSidebar.SectionViews.Publishing, null) => defaultSectionType,
             (WorkspaceSidebar.SectionViews.Publishing, _) => typeof(PublishingSubmissionPage),
+            (WorkspaceSidebar.SectionViews.Settings, "cbr") => typeof(CBRBudgetManagementPage),
             _ => defaultSectionType
         };
     }
