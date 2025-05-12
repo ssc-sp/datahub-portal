@@ -13,27 +13,31 @@
 
 @if (_updateInProgress)
 {
-    <DHLoadingInitializer/>
+    <DHLoadingInitializer />
 }
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+    @if (_usersToAdd.Any() || _usersToUpdate.Any())
+    {
+        <MudStack Class="sticky-stack">
+            <MudStack Row AlignItems="AlignItems.Center">
+                <MudElement>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges" Tag=@("SaveChanges")>
+                        @Localizer["Save Changes"]
+                    </DHButton>
+                </MudElement>
+                <MudAlert Severity="Severity.Info" Class="my-3">
+                    <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
+                </MudAlert>
+            </MudStack>
+        </MudStack>
+    }
+</DatahubAuthView>
 
 <MudStack>
 
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
         <MudStack>
-            @if (_usersToAdd.Any() || _usersToUpdate.Any())
-            {
-                <MudStack Row AlignItems="AlignItems.Center" Class="sticky-stack">
-                    <MudElement>
-                        <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges" Tag=@("SaveChanges")>
-                            @Localizer["Save Changes"]
-                        </DHButton>
-                    </MudElement>
-                    <MudAlert Severity="Severity.Info" Class="my-3">
-                        <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                    </MudAlert>
-                </MudStack>
-            }
-
             @if (_usersToAdd.Any())
             {
                 <MudStack>
@@ -52,12 +56,12 @@
                                         @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
                                         {
                                             <MudAvatar>
-                                                <DHIcon Icon="@Icons.Material.Outlined.PersonAdd"/>
+                                                <DHIcon Icon="@Icons.Material.Outlined.PersonAdd" />
                                             </MudAvatar>
                                         }
                                         else
                                         {
-                                            <UserAvatar ViewedUser="@userToBeAdded.PortalUser" Size="@Size.Medium"/>
+                                            <UserAvatar ViewedUser="@userToBeAdded.PortalUser" Size="@Size.Medium" />
                                         }
                                         <MudText>
                                             @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
@@ -77,7 +81,7 @@
                                         <MudText Typo="Typo.body2">
                                             @Localizer["will be added as a"]
                                         </MudText>
-                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRoleCommand(userToBeAdded, newRoleId))"/>
+                                        <ProjectMembersRoleSelect InitialValue="@userToBeAdded.RoleId" OnRoleChanged="@(newRoleId => UpdateProjectMemberRoleCommand(userToBeAdded, newRoleId))" />
                                     </MudStack>
                                 </MudItem>
 
@@ -90,7 +94,7 @@
     </DatahubAuthView>
     <MudStack Row Class="mt-6 mb-4">
         <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
-        <MudSpacer/>
+        <MudSpacer />
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
             <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
                 @Localizer["Invite New User"]
@@ -105,39 +109,39 @@
                                  BadgeData="@_allCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
-                                 OnClick="@(() => ProjectMemberRoleFilter(null))"/>
+                                 OnClick="@(() => ProjectMemberRoleFilter(null))" />
                     <MudTabPanel Text="@Localizer["Workspace Leads"]"
                                  BadgeData="@_workspaceLeadCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
                                  OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.WorkspaceLead))"
-                                 Disabled="@(_workspaceLeadCount == 0)"/>
+                                 Disabled="@(_workspaceLeadCount == 0)" />
                     <MudTabPanel Text="@Localizer["Admins"]"
                                  BadgeData="@_adminCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
                                  OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Admin))"
-                                 Disabled="@(_adminCount == 0)"/>
+                                 Disabled="@(_adminCount == 0)" />
                     <MudTabPanel Text="@Localizer["Collaborators"]"
                                  BadgeData="@_contributorCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
                                  OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Collaborator))"
-                                 Disabled="@(_contributorCount == 0)"/>
+                                 Disabled="@(_contributorCount == 0)" />
                     <MudTabPanel Text="@Localizer["Guests"]"
                                  BadgeData="@_guestCount"
                                  BadgeColor="Color.Transparent"
                                  Style="@_tabStyle"
                                  OnClick="@(() => ProjectMemberRoleFilter((int)Project_Role.RoleNames.Guest))"
-                                 Disabled="@(_guestCount == 0)"/>
+                                 Disabled="@(_guestCount == 0)" />
                 </MudTabs>
                 <MudStack AlignItems="AlignItems.Center">
-                    <MudTextField @bind-Value="_filterString" 
-                        Placeholder="@Localizer["Search"]" 
-                        Immediate
-                        Adornment="Adornment.Start" 
-                        AdornmentIcon="@Icons.Material.Filled.Search" 
-                        IconSize="Size.Medium"/>
+                    <MudTextField @bind-Value="_filterString"
+                                  Placeholder="@Localizer["Search"]"
+                                  Immediate
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  IconSize="Size.Medium" />
                 </MudStack>
             </MudStack>
         </ToolBarContent>
@@ -166,7 +170,7 @@
         <RowTemplate Context="rowContext">
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 <MudStack Row AlignItems="AlignItems.Center">
-                    <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Medium"/>
+                    <UserAvatar ViewedUser="@rowContext.PortalUser" Size="@Size.Medium" />
                     <MudText>
                         @rowContext.PortalUser?.DisplayName
                     </MudText>
@@ -176,13 +180,13 @@
                 @rowContext.PortalUser.Email
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                
+
                 <DatahubAuthView AuthLevel="@GetAuthLevel(rowContext)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                     <Authorized>
                         @{
                             var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
                         }
-                        <ProjectMembersRoleSelect InitialValue="@(updateCommand?.NewRoleId ?? rowContext.RoleId ?? 0)" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))"/>
+                        <ProjectMembersRoleSelect InitialValue="@(updateCommand?.NewRoleId ?? rowContext.RoleId ?? 0)" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))" />
                     </Authorized>
                     <NotAuthorized>
                         <MudText>@Localizer[rowContext.Role.Name]</MudText>
@@ -191,10 +195,10 @@
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
-                    Value="rowContext.IsDataSteward"
-                    Tag=@("DataSteward")
-                    Disabled=@(IsDataStewardCheckboxDisabled(rowContext))
-                    ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
+                             Value="rowContext.IsDataSteward"
+                             Tag=@("DataSteward")
+                             Disabled=@(IsDataStewardCheckboxDisabled(rowContext))
+                             ValueChanged="@(newValue => ChangeDataStewardFlag(rowContext, newValue))" />
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 @if (rowContext.Approved_DT != null)
@@ -203,7 +207,7 @@
                 }
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                <UserViewProfileIconButton ViewedUserGraphId="@rowContext.PortalUser.GraphGuid"/>
+                <UserViewProfileIconButton ViewedUserGraphId="@rowContext.PortalUser.GraphGuid" />
             </MudTd>
         </RowTemplate>
 
@@ -213,7 +217,7 @@
 
         <PagerContent>
             <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"
-                           InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")"/>
+                           InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
         </PagerContent>
     </MudTable>
 </MudStack>
@@ -245,5 +249,5 @@
 
     private string _modifiedCellStyle;
 
-    
+
 }

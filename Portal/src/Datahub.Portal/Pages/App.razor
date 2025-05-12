@@ -58,6 +58,7 @@
 
     @* <link href="/_content/Datahub.Core/css/third-party/normalize.css" rel="stylesheet" /> *@
     <link href="/css/site.min.css" rel="stylesheet"/>
+    <link href="/css/common.css" rel="stylesheet" />
     
     @* Accessibility CSS *@
     <link href="/css/accessibility/a11y.css" rel="stylesheet"/>
@@ -66,7 +67,7 @@
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
     <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet"/>
     @* dotnet 9 <link href="@Assets["{ASSEMBLY NAME}.styles.css"]" rel="stylesheet" /> *@
-    <link href="@($"{typeof(App).Assembly.GetName()}.styles.css")" rel="stylesheet" />
+    <link href="@($"{typeof(App).Assembly.GetName().Name}.styles.css")" rel="stylesheet" />
     <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
 
      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>

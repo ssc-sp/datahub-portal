@@ -64,7 +64,7 @@
     {
         if (firstRender)
         {
-            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./{nameof(Routes)}.razor.js");
 
             var language = CultureOverride ?? await CultureService.GetLanguageFromLocalStorageAsync();
 
