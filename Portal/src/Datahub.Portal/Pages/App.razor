@@ -1,11 +1,6 @@
-﻿@page "/"
-@using Datahub.Portal
+﻿@using Datahub.Portal
 @using Microsoft.AspNetCore.Components.Web
 
-@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
-@{
-    Layout = null;
-}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -70,7 +65,8 @@
 
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
     <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet"/>
-
+    @* dotnet 9 <link href="@Assets["{ASSEMBLY NAME}.styles.css"]" rel="stylesheet" /> *@
+    <link href="@($"{typeof(App).Assembly.GetName()}.styles.css")" rel="stylesheet" />
     <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
 
      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
@@ -212,9 +208,7 @@
 </div>
 @* End of Custom Reconnect Message *@
 
-<app>
-    @(await Html.RenderComponentAsync<App>(Microsoft.AspNetCore.Mvc.Rendering.RenderMode.ServerPrerendered))
-</app>
+<Routes @rendermode="RenderMode.InteractiveServer" />
 
 <div id="browserNotSupported" style="display: none;">
     <div style="width: 100%; text-align: center">

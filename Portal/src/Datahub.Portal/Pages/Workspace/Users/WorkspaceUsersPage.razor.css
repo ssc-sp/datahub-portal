@@ -1,0 +1,8 @@
+﻿body {
+}
+.sticky-stack {
+    position: sticky;
+    top: 0; /* Adjust as needed */
+    z-index: 200; /* Optional: ensures it stays above other content */
+    background: white; /* Optional: prevents content bleed-through */
+}

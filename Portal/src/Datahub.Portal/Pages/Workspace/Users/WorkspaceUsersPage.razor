@@ -22,7 +22,7 @@
         <MudStack>
             @if (_usersToAdd.Any() || _usersToUpdate.Any())
             {
-                <MudStack Row AlignItems="AlignItems.Center">
+                <MudStack Row AlignItems="AlignItems.Center" Class="sticky-stack">
                     <MudElement>
                         <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges" Tag=@("SaveChanges")>
                             @Localizer["Save Changes"]
