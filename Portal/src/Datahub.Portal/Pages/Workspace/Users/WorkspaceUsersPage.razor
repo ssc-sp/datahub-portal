@@ -22,13 +22,22 @@
         <MudStack Class="sticky-stack">
             <MudStack Row AlignItems="AlignItems.Center">
                 <MudElement>
-                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_updateInProgress" OnClick="SaveChanges" Tag=@("SaveChanges")>
+                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges" Tag=@("SaveChanges")>
                         @Localizer["Save Changes"]
                     </DHButton>
                 </MudElement>
-                <MudAlert Severity="Severity.Info" Class="my-3">
-                    <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
-                </MudAlert>
+                @if (_validationErrorMessage is null)
+                {
+                    <MudAlert Severity="Severity.Info" Class="my-3">
+                        <MudText Typo="Typo.body2">@Localizer["You have unsaved changes. Please save them before leaving this page."]</MudText>
+                    </MudAlert>
+                }
+                else
+                {
+                    <MudAlert Severity="Severity.Error" Class="my-3">
+                        <MudText Typo="Typo.body2">@_validationErrorMessage</MudText>
+                    </MudAlert>
+                }
             </MudStack>
         </MudStack>
     }
@@ -249,5 +258,6 @@
 
     private string _modifiedCellStyle;
 
+    private string? _validationErrorMessage = null;
 
 }
