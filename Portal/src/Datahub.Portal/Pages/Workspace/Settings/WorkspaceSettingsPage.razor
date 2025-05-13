@@ -57,6 +57,10 @@
                 <WorkspaceBudgetControl Disabled InitialValue="@_budget"/>
             </NotAuthorized>
         </DatahubAuthView>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCbrOwner" ProjectAcronym="@WorkspaceAcronym"
+                         ElevatedWorkspaceAccessEnabled=@ElevatedWorkspaceAccessEnabled >
+            <WorkspaceCbrSettingsLinkControl WorkspaceAcronym="@WorkspaceAcronym" Disabled=@(!HasCBRBudget) />
+        </DatahubAuthView>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
                          ElevatedWorkspaceAccessEnabled="true">
             <Authorized>
@@ -76,6 +80,8 @@
 
     private bool HasChanged => _preventAutoDelete != _workspace.PreventAutoDelete || _budget != _workspace.Project_Budget;
     private bool RequiresTerraformUpdate => _budget != _workspace.Project_Budget;
+
+    private bool HasCBRBudget => _workspace.ParentGCHostingBudgetId.HasValue;
 
     private bool _updateInProgress;
     private bool _preventAutoDelete;
