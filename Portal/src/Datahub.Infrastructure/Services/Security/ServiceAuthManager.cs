@@ -229,4 +229,14 @@ public class ServiceAuthManager : IServiceAuthManager
         using var ctx = await dbFactory.CreateDbContextAsync();
         return await ctx.GCHostingWorkspaceDetails.AnyAsync(d => d.LeadEmail == userEmail);
     }
+
+    public async Task<List<string>> GetUserCbrWorkspaceAcronyms(string userEmail)
+    {
+        await using var ctx = await dbFactory.CreateDbContextAsync();
+        return await ctx.GCHostingWorkspaceDetails
+            .Where(d => d.LeadEmail == userEmail)
+            .SelectMany(g => g.WorkspacesInBudget)
+            .Select(w => w.Project_Acronym_CD)
+            .ToListAsync();
+    }
 }
