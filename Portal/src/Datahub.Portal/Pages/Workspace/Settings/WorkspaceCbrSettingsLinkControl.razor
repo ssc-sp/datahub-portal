@@ -1,0 +1,16 @@
+﻿@* WorkspaceCbrSettingsLinkControl.razor *@
+
+@using Datahub.Portal.Pages.Account
+
+<SettingsField Label="@Localizer["CBR Budget Management"]" Description="@Localizer["Manage budget allocation for workspaces under this workspace's CBR"]">
+    <MudButton Href="@CbrSettingsUrl" Variant="@Variant.Outlined" Color="@Color.Primary" Disabled=@Disabled >@Localizer["Open CBR Budget"]</MudButton>
+</SettingsField>
+
+
+@code {
+    [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
+
+    [Parameter] public bool Disabled { get; set; }
+
+    private string CbrSettingsUrl => $"/w/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
+}
