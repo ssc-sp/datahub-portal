@@ -1,0 +1,45 @@
+---
+name: 2. Release to Proof-of-concept branch
+
+on:
+  release:
+    types: [released]
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Convert App token
+        id: create_token 
+        uses: getsentry/action-github-app-token@v3.0.0
+        with:
+          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+
+      - name: Checkout proof-of-concept branch
+        uses: actions/checkout@v4
+        with:
+          ref: proof-of-concept
+          token: ${{ steps.create_token.outputs.token }}
+
+      - name: Fetch develop for SHA compare
+        run: git fetch origin develop --depth=1
+
+      - name: Skip if not from develop branch
+        run: |
+          DEV_SHA=$(git rev-parse origin/develop)
+          if [ "$DEV_SHA" != "${{ github.event.release.target_commitish }}" ]; then
+            echo "Release not cut from develop (got ${{ github.event.release.target_commitish }}, expected $DEV_SHA). Skipping."
+            exit 0
+          fi
+
+      - name: Fetch latest develop commit
+        run: git fetch origin develop --depth=1
+
+      - name: Hard‑reset proof-of-concept to develop
+        run: |
+          git reset --hard FETCH_HEAD
+          git push origin proof-of-concept --force-with-lease
+        env:
+          GITHUB_TOKEN: ${{ steps.create_token.outputs.token }}
