@@ -5,7 +5,7 @@
 
 <Router AppAssembly="@typeof(Program).Assembly">
     <Found Context="routeData">
-        <CascadingAuthenticationState>
+        <CascadingAuthenticationState>            
             @if (routeData?.PageType.Namespace?.StartsWith(PublicPageNamespace) ?? false)
             {
                 <RouteView RouteData="@routeData" DefaultLayout="typeof(PublicLayout)"/>
@@ -64,7 +64,7 @@
     {
         if (firstRender)
         {
-            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./App.razor.js");
+            var module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", $"./{nameof(Routes)}.razor.js");
 
             var language = CultureOverride ?? await CultureService.GetLanguageFromLocalStorageAsync();
 
