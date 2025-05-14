@@ -1,0 +1,54 @@
+﻿<MudDialog>
+    <DialogContent>
+        <MudTextField T="string"
+        @bind-Value="_version"
+        Placeholder="vX.X.X"
+        DisableUnderLine="true"
+        Margin="Margin.Dense"
+        Error="@_hasValidationError"
+        ErrorText="Invalid format. Please use vX.X.X. e.g. v1.2.3" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">Cancel</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+    </DialogActions>
+</MudDialog>
+@code {
+
+    [CascadingParameter]
+    MudDialogInstance MudDialog { get; set; }
+    [Parameter]
+    public List<VersionTag> ExistingVersions { get; set; }
+
+    private string _version = string.Empty;
+    private bool _hasValidationError = false;
+    private string _errorText = string.Empty;
+
+    private async Task Submit()
+       {
+        if (ExistingVersions.Any(v => v.Tag.Equals(_version, StringComparison.OrdinalIgnoreCase)))
+           {
+               _errorText = "Version already exists.";
+               _hasValidationError = true;
+               return;
+           }
+
+           if (IsValidVersionFormat(_version))
+           {
+               _hasValidationError = false;
+               MudDialog.Close(DialogResult.Ok(_version));
+           }
+           else
+           {
+               _errorText = "Invalid format. Please use vX.X.X. e.g. v1.2.3";
+               _hasValidationError = true;
+           }
+       }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private bool IsValidVersionFormat(string version)
+    {
+        return System.Text.RegularExpressions.Regex.IsMatch(version, @"^v\d+\.\d+\.\d+$");
+    }
+}
