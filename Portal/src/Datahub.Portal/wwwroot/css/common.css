@@ -1,0 +1,6 @@
+﻿.sticky-stack {
+    position: sticky;
+    top: var(--mud-appbar-height); /* Uses MudBlazor's app bar height */
+    z-index: var(--mud-zindex-appbar); /* Uses MudBlazor's app bar z-index */
+    background: var(--mud-palette-background); /* Uses MudBlazor's background color */
+}

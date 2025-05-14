@@ -1,59 +1,48 @@
-using System.Runtime.InteropServices;
+
 using Datahub.Core;
+using Datahub.Metadata.Model;
+using Datahub.Portal;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.ApplicationInsights;
+using System.Runtime.InteropServices;
 
-namespace Datahub.Portal;
+var builder = WebApplication.CreateBuilder(args);
 
-public class Program
+// Logging configuration
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddAzureWebAppDiagnostics();
+
+if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 {
-    public static void Main(string[] args)
-    {
-        var host = CreateHostBuilder(args)
-            .Build();
-           
-        host.Run();
-
-    }
-
-    public static IHostBuilder CreateHostBuilder(string[] args) =>
-        Host.CreateDefaultBuilder(args)
-            .ConfigureLogging((hostingContext, logBuilder) =>
-            {
-                logBuilder.ClearProviders();
-                logBuilder.AddConsole();
-
-                logBuilder.AddAzureWebAppDiagnostics();
-
-                // event log only works if app is hosted in a Windows enviroment
-                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-                {
-                    logBuilder.AddEventLog();
-                }
-
-                // Adding the filter below to ensure logs of all severity from Program.cs
-                // is sent to ApplicationInsights.
-                logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
-
-                // Adding the filter below to ensure logs of all severity from Startup.cs
-                // is sent to ApplicationInsights.
-                logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
-
-                //  logBuilder.AddFilter("Microsoft.AspNetCore.SignalR", LogLevel.Debug);
-                //  logBuilder.AddFilter("Microsoft.AspNetCore.Http.Connections", LogLevel.Debug);
-                logBuilder.AddFilter("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
-                logBuilder.AddFilter<Microsoft.Extensions.Logging.ApplicationInsights.ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
-            })
-            .ConfigureWebHostDefaults(webBuilder =>
-            {
-                webBuilder.UseStartup<Startup>();                    
-                webBuilder.ConfigureAppConfiguration((ctx, cb) =>
-                {
-                    cb.AddUserSecrets<Startup>();
-                    if (!DevTools.IsDevelopment())
-                    {
-                        StaticWebAssetsLoader.UseStaticWebAssets(ctx.HostingEnvironment, ctx.Configuration);
-                    }
-                });
-            });
-
+    builder.Logging.AddEventLog();
 }
+
+// Application Insights logging filters
+builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Program).FullName, LogLevel.Trace);
+builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>(typeof(Startup).FullName, LogLevel.Trace);
+builder.Logging.AddFilter("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
+builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>("Microsoft.AspNetCore.HttpLogging.HttpLoggingMiddleware", LogLevel.Information);
+
+// App configuration
+builder.Configuration.AddUserSecrets<Startup>();
+if (!DevTools.IsDevelopment())
+{
+    StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
+}
+
+// Add services from Startup
+var startup = new Startup(builder.Configuration);
+startup.ConfigureServices(builder.Services);
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+var logger = app.Services.GetRequiredService<ILogger<Startup>>();
+var configuration = app.Services.GetRequiredService<IConfiguration>();
+var metadataFactory = app.Services.GetRequiredService<IDbContextFactory<MetadataDbContext>>();
+startup.Configure(app, builder.Environment, logger, configuration, metadataFactory);
+
+app.Run();

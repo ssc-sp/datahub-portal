@@ -135,12 +135,17 @@ else
 
     private async Task UpdateUserLanguageSetting()
     {
-        var userLanguageSetting = await _userSettingsService.GetUserLanguage();
-        var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
+        try {
+            var userLanguageSetting = await _userSettingsService.GetUserLanguage();
+            var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
 
-        if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
+            if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
+            {
+                await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
+            }
+        } catch (JSDisconnectedException)
         {
-            await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
+            //ignore
         }
     }
 }
