@@ -38,24 +38,30 @@ namespace Datahub.Functions
 
         internal virtual async Task ScheduleProjects()
         {
+            _logger.LogInformation("Getting projects to schedule for inactivity notifications");
             var projects = await GetProjects();
             
+            _logger.LogInformation($"Found {projects.Count} projects to schedule for inactivity notifications");
             foreach (var project in projects)
             {
                 var message = DeserializeProjectMessage(project);
                 await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ProjectInactivityNotificationQueueName, message);
             }
+            _logger.LogInformation($"Scheduled {projects.Count} projects for inactivity notifications");
         }
         
         internal virtual async Task ScheduleUsers()
         {
+            _logger.LogInformation("Getting users to schedule for inactivity notifications");
             var users = await GetUsers();
 
+            _logger.LogInformation($"Found {users.Count} users to schedule for inactivity notifications");
             foreach (var user in users)
             {
                 var message = DeserializeUserMessage(user);
                 await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserInactivityNotification, message);
             }
+            _logger.LogInformation($"Scheduled {users.Count} users for inactivity notifications");
         }
 
         private async Task<List<int>> GetProjects()

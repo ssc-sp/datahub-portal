@@ -45,16 +45,19 @@ namespace Datahub.Functions
             // return;
 
             // deserialize message
-
+            _logger.LogInformation("Deserializing project inactivity notification message...");
             var message = await serviceBusReceivedMessage
                 .DeserializeAndUnwrapMessageAsync<ProjectInactivityNotificationMessage>();
 
             // verify message 
             if (message is null)
             {
+                _logger.LogError("Invalid queue message: {MessageBody}", serviceBusReceivedMessage.Body.ToString());
                 throw new Exception($"Invalid queue message:\n{serviceBusReceivedMessage.Body.ToString()}");
             }
 
+            _logger.LogInformation("Received project inactivity notification for ProjectId: {ProjectId}", message.ProjectId);
+        
             await using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
 
             // get project
@@ -65,6 +68,12 @@ namespace Datahub.Functions
                 .Where(x => x.Project_ID == message.ProjectId)
                 .FirstOrDefaultAsync(ct);
 
+            if (project is null)
+            {
+                _logger.LogWarning("Project with ID {ProjectId} not found.", message.ProjectId);
+                return;
+            }
+        
             // get project info
             var lastLoginDate = project?.LastLoginDate ?? project.Last_Updated_DT;
             var daysSinceLastLogin = (dateProvider.Today - lastLoginDate).Days;
@@ -73,40 +82,50 @@ namespace Datahub.Functions
             var hasCostRecovery = project.HasCostRecovery;
             var (contacts, acronym) = await GetProjectDetails(message.ProjectId, ct);
 
+            _logger.LogInformation("Project {Acronym} (ID: {ProjectId}) last activity: {LastLoginDate}, inactive for {DaysSinceLastLogin} days, {DaysUntilDeletion} days until soft deletion.",
+                acronym, message.ProjectId, lastLoginDate, daysSinceLastLogin, daysUntilDeletion);
+        
             //var adminContact = new List<string>() { "datasolutions-solutiondedonnees@ssc-spc.gc.ca" };
             var adminContact = new List<string>() { config.Email.AdminEmail };
 
             // check if project to be notified
+            _logger.LogInformation("Checking if project {Acronym} needs to be notified for inactivity...", acronym);
             var email = await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow,
                 hasCostRecovery, acronym, contacts);
 
             var adminEmailBodyText = await GetAdminEmailBodyText(daysSinceLastLogin, acronym);
 
             var emailForAdmin = GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, adminContact, "project_inactive_alert_dhadmin.html", adminEmailBodyText);
+        
             // if email is not null, send email
             if (email != null)
             {
-
+                _logger.LogInformation("Project leads for {Acronym} need to be notified. Sending email...", acronym);
                 await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,email, ct);
+        
                 // add notification to db
                 var sentTo = string.Join(",", contacts);
+                _logger.LogInformation("Notification sent to project leads ({SentTo}) for project {Acronym}, saving to db...", sentTo, acronym);
                 await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
 
                 //notify admin to follow up
                 if (emailForAdmin != null)
                 {
+                    _logger.LogInformation("Notifying admin for project {Acronym} inactivity...", acronym);
                     await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailForAdmin, ct);
                     sentTo = adminContact[0];
+                    _logger.LogInformation("Admin notification sent for project {Acronym}, saving to db...", acronym);
                     await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
                 }
             }
             else if (emailForAdmin != null && daysSinceLastLogin > dateProvider.ProjectSoftDeletionDay() && IsTodayMonday())
             {
+                _logger.LogInformation("Project {Acronym} past soft deletion day and today is Monday. Notifying admin...", acronym);
                 await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailForAdmin, ct);
                 var sentTo = adminContact[0];
+                _logger.LogInformation("Admin notification sent for project {Acronym}, saving to db...", acronym);
                 await projectInactivityNotificationService.AddInactivityNotification(message.ProjectId, dateProvider.Today, daysUntilDeletion, sentTo, ct);
             }
-            
         }
 
         private async Task<(string, string)> GetAdminEmailBodyText(int daysSinceLastLogin, string acronym)
