@@ -1,0 +1,114 @@
+﻿@using System.Reflection
+@using Datahub.Core.Model.Achievements
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Datahub.Portal.Components.Tables
+@using Datahub.Core.Model.Projects
+@typeparam TData
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h2">
+            @Localizer["Add filter"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="4" Class="mb-4">
+            <MudText Style="font-size: 18px">
+                <strong>
+                    @Localizer["Column"]
+                </strong>
+            </MudText>
+            <MudText>
+                @Localizer["Select the column you want to filter"]
+            </MudText>
+            <MudSelect T="PropertyInfo" Value="@_selectedColumn" ValueChanged="OnColumnSelected" Dense>
+                @foreach (var property in typeof(TData).GetProperties().Where(p => _allowedFilterTypes.Contains(p.PropertyType.Name)))
+                {
+                    <MudSelectItem Value=@property>
+                        <MudStack Row>
+                            @Localizer[property.Name]
+                            <MudSpacer/>
+                            <MudText Typo="Typo.caption" Style="font-style: italic">
+                                @Localizer[property.PropertyType.Name]
+                            </MudText>
+                        </MudStack>
+                    </MudSelectItem>
+                }
+            </MudSelect>
+            <MudText Style="font-size: 18px">
+                <strong>
+                    @Localizer["Type"]
+                </strong>
+            </MudText>
+            <MudText>
+                @Localizer["Select the type of filter you want to apply"]
+            </MudText>
+            <MudSelect T="FilterType" @bind-Value="@_selectedFilterType" Dense Disabled="@(!_availableFilterTypes.Any())">
+                @foreach (var filter in _availableFilterTypes)
+                {
+                    <MudSelectItem Value="@filter" T="FilterType">
+                        @Localizer[filter.Label()]
+                    </MudSelectItem>
+                }
+            </MudSelect>
+            <MudText Style="font-size: 18px">
+                <strong>
+                    @Localizer["Value"]
+                </strong>
+            </MudText>
+            <MudText>
+                @Localizer["Enter the value you want to filter by"]
+            </MudText>
+            <MudTextField T="string" Placeholder=@Localizer["Enter value"] Margin="Margin.None"
+                          @bind-Value="_selectedValue"/>
+            <MudStack Row>
+                <MudSpacer/>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Submit">
+                    @Localizer["Add filter"]
+                </MudButton>
+            </MudStack>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [Parameter] public List<FilterData> Filters { get; set; } = [];
+    [CascadingParameter] private MudDialogInstance MudDialog { get; set; } = null!;
+
+    private PropertyInfo _selectedColumn;
+    private List<FilterType> _availableFilterTypes = [];
+    private FilterType _selectedFilterType;
+    private string _selectedValue;
+
+    private readonly List<string> _allowedFilterTypes =
+    [
+        "String",
+        "Int32",
+        "DateTime",
+        "Double",
+        "Float",
+        "Decimal"
+    ];
+
+    private void OnColumnSelected(PropertyInfo col)
+    {
+        _selectedColumn = col;
+        _availableFilterTypes = col.PropertyType.FilterTypes();
+        StateHasChanged();
+    }
+
+    private async Task Submit()
+    {
+        var newFilter = new FilterData
+        {
+            ColumnName = _selectedColumn.Name,
+            ColumnType = _selectedColumn.PropertyType,
+            FilterType = _selectedFilterType,
+            Value = _selectedValue
+        };
+        Filters.Add(newFilter);
+        MudDialog.Close(DialogResult.Ok(Filters));
+    }
+
+
+}
