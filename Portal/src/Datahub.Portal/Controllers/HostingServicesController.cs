@@ -30,7 +30,7 @@ public class HostingServicesController : ControllerBase
     private readonly IUserInformationService _userInformationService;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly ISendEndpointProvider _sendEndpointProvider;
-    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;    
+    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
 
     public HostingServicesController(DatahubProjectDBContext context, IWorkspaceCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration)
     {
