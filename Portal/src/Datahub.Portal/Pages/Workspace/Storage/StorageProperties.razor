@@ -1,6 +1,5 @@
 @* StorageProperties.razor *@
 @using Datahub.Application.Services;
-@using Datahub.Core.Components.Skeleton
 @using Datahub.Core.Components.Code
 @using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Workspace.Storage.Container
@@ -11,8 +10,8 @@
 @if (_loading)
 {
     <span style="display: flex; gap: .5rem; align-items: center;">
-        <Skeleton Width="30px" Height="30px" Circle/>
-        <Skeleton Width="300px" Height="2rem"/>
+        <MudSkeleton Width="30px" Height="30px" SkeletonType="SkeletonType.Circle" />
+        <MudSkeleton Width="300px" Height="2rem" />
     </span>
 }
 else

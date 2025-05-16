@@ -30,8 +30,6 @@ export function azSyncDown(sasToken, dotNetHelper) {
     }
     else {
         console.log("IPC Renderer not found, cannot send message to main process");
-        
-        dotNetHelper?.invokeMethodAsync("AzCopyProgress", count++ > 2 ? "Completed" : "InProgress", (Math.random() * 100) + "");
     }
 }
 
@@ -51,8 +49,6 @@ function setupIpcMessageHandling(ipcRenderer, sasToken, dotNetHelper){
         if(jobStatus === 'InProgress' && percentComplete + "" === "100") {
             percentComplete = 1;
         }
-
-        dotNetHelper?.invokeMethodAsync("AzCopyProgress", jobStatus + "", percentComplete + "");
     });
 
     ipcRenderer.on(DatahubChannel.Prompt, (event, arg) => {

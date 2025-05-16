@@ -1,6 +1,7 @@
 ---
+name: 1. Create Release
+
 on:
-  workflow_dispatch:
   push:
     branches:
       - develop
@@ -9,14 +10,20 @@ permissions:
   contents: write
   pull-requests: write
 
-name: Release-Manager
-
 jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - name: Convert App token
+        id: create_token 
+        uses: getsentry/action-github-app-token@v3.0.0
+        with:
+          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+    
       - uses: googleapis/release-please-action@v4
         with:
           target-branch: develop
           release-type: simple
           config-file: .release-please-config.json
+          token: ${{ steps.create_token.outputs.token }}

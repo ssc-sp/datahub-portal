@@ -15,6 +15,7 @@ public static class RoleConstants
     public const string GUEST_SUFFIX = "-" + GUEST_ROLE;
     public const string WEBAPP_SUFFIX = "-webapp";
     public const string CBR_OWNER_ROLE = "cbr-owner";
+    public const string CBR_OWNER_SUFFIX = "-" + CBR_OWNER_ROLE;
 
     public const string DATAHUB_ADMIN_PROJECT = "DHPGLIST";
     public const string DATAHUB_ROLE_ADMIN = DATAHUB_ADMIN_PROJECT + ADMIN_SUFFIX;

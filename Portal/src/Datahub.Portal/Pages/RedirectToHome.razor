@@ -1,6 +1,5 @@
-﻿@inject NavigationManager _navigationManager
-    
 @page "/"
+@inject NavigationManager Navigation
 
 @code {
 
@@ -8,7 +7,7 @@
     {
         try
         {
-            _navigationManager.NavigateTo(Localizer[PageRoutes.Home]);
+            Navigation.NavigateTo(Localizer[PageRoutes.Home], true);
         }
         catch (NavigationException)
         {

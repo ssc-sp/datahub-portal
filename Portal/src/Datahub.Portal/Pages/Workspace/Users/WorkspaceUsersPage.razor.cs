@@ -73,6 +73,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 if (IsRevertUpdate(existingUpdateCommand, originalUserInfo))
                 {
                     _usersToUpdate.Remove(existingUpdateCommand);
+                    ValidateWorkspaceRules();
                 }
             }
             else
@@ -87,7 +88,21 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 if (!IsRevertUpdate(updateCommand, originalUserInfo))
                 {
                     _usersToUpdate.Add(updateCommand);
+                    ValidateWorkspaceRules();
                 }
+            }
+        }
+
+
+        private void ValidateWorkspaceRules()
+        {
+            _validationErrorMessage = null;
+            var allWorkspaceLeads = _usersToUpdate.Select(_usersToUpdate => _usersToUpdate.ProjectUser).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
+            var existingWorkspaceLeads = _projectUsers.Except(_usersToUpdate.Select(p => p.ProjectUser)).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
+            var newLeads = _usersToAdd.Count(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
+            if (allWorkspaceLeads + newLeads + existingWorkspaceLeads > 2)
+            {
+                _validationErrorMessage = Localizer["You cannot have more than 2 workspace leads."];
             }
         }
 
@@ -97,7 +112,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             projectUser.IsDataSteward = IsDataStewardHavingRole(projectUser.IsDataSteward, projectUser);
 
             ManageUserUpdateCommand(projectUser);
-
+            ValidateWorkspaceRules();
             InvokeAsync(StateHasChanged);
         }
 
@@ -108,6 +123,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             {
                 _usersToAdd.Remove(projectUser);
             }
+            ValidateWorkspaceRules();
 
             InvokeAsync(StateHasChanged);
         }
@@ -158,6 +174,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                         .Where(c =>
                             !_usersToAdd.Any(x => x.Email.Equals(c.Email, StringComparison.InvariantCultureIgnoreCase)))
                         .ToList());
+                    ValidateWorkspaceRules();
                     StateHasChanged();
                 }
             }

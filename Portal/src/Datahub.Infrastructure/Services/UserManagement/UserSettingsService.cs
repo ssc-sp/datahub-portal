@@ -407,8 +407,16 @@ namespace Datahub.Infrastructure.Services.UserManagement
         /// <returns>True if french, false otherwise</returns>
         public async Task<bool> IsFrench()
         {
-            var lang = await GetUserLanguage();
-            return !lang.ToLower().Contains("en");
+            try
+            { 
+                var lang = await GetUserLanguage();
+                return !lang.ToLower().Contains("en");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Unable to check if user is French");
+                return false;
+            }
         }
 
         /// <summary>
