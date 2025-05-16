@@ -1,0 +1,65 @@
+@using ApexCharts
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Align = MudBlazor.Align
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
+    @if (_resourceTypeCounts.Any())
+    {
+        <ApexChart TItem="ResourceTypeCount" Title="@Title" Height="300" Options="@_chartOptions">
+            <ApexPointSeries
+                TItem="ResourceTypeCount"
+                Items="@_resourceTypeCounts"
+                Name="@Localizer["Resources"]"
+                XValue="@(c => c.Type)"
+                YValue="@(c => c.Count)"
+                SeriesType="SeriesType.Donut"
+                ShowDataLabels />
+        </ApexChart>
+    }
+    else
+    {
+        <MudText Align="Align.Center">@Localizer["No resource data available."]</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public List<WorkspaceTableData> Workspaces { get; set; }
+    [Parameter] public string Title { get; set; }
+    private List<ResourceTypeCount> _resourceTypeCounts = new();
+    private readonly ApexChartOptions<ResourceTypeCount> _chartOptions = new();
+
+    private record ResourceTypeCount
+    {
+        public string Type { get; set; }
+        public int Count { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        _resourceTypeCounts = Workspaces
+            .SelectMany(w => w.Resources.Links)
+            .GroupBy(r => r.Item1) // Group by resource type
+            .Select(g => new ResourceTypeCount
+            {
+                Type = g.Key,
+                Count = g.Count()
+            })
+            .Where(r => !r.Type.Equals("Workspace Resource Group"))
+            .OrderByDescending(r => r.Count) // Sort by count
+            .ToList();
+
+        DefineChartOptions();
+    }
+
+    private void DefineChartOptions()
+    {
+        _chartOptions.Chart = new Chart
+        {
+            Type = ApexCharts.ChartType.Donut
+        };
+        _chartOptions.Legend = new Legend
+        {
+            Show = true,
+            Position = LegendPosition.Right
+        };
+    }
+}

@@ -1,0 +1,133 @@
+﻿@using Datahub.Core.Model.Achievements
+@using ApexCharts
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
+    <ApexChart TItem="UserActivity" Title="@Title" Options="@_userActivityFunnelChartOptions"
+               @ref="@_userActivityFunnelChart" Height="300">
+        <ApexPointSeries TItem="UserActivity"
+                         Items="@_userActivities"
+                         Name="@Localizer["User activity"]"
+                         XValue="@(c => c.Threshold)"
+                         YAggregate="@(e => e.Sum(c => c.Count))"
+                         SeriesType="SeriesType.Bar"
+                         ShowDataLabels
+        />
+    </ApexChart>
+</MudPaper>
+
+@code {
+    [Parameter] public List<PortalUser> Users { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+    private ApexChart<UserActivity> _userActivityFunnelChart = new();
+    private readonly ApexChartOptions<UserActivity> _userActivityFunnelChartOptions = new();
+
+    private List<UserActivity> _userActivities = [];
+
+    private record UserActivity
+    {
+        public string Threshold { get; set; }
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        DefineOptions();
+        var allUsers = new UserActivity
+        {
+            Threshold = Localizer["All users"],
+            Date = DateTime.MinValue,
+            Count = Users.Count
+        };
+
+        var lastYear = new UserActivity
+        {
+            Threshold = Localizer["Last year"],
+            Date = DateTime.UtcNow.AddYears(-1),
+            Count = Users.Count(u => u.LastLoginDateTime >= DateTime.UtcNow.AddYears(-1))
+        };
+
+        var last6Months = new UserActivity
+        {
+            Threshold = Localizer["Last 6 months"],
+            Date = DateTime.UtcNow.AddMonths(-6),
+            Count = Users.Count(u => u.LastLoginDateTime >= DateTime.UtcNow.AddMonths(-6))
+        };
+
+        var last3Months = new UserActivity
+        {
+            Threshold = Localizer["Last 3 months"],
+            Date = DateTime.UtcNow.AddMonths(-3),
+            Count = Users.Count(u => u.LastLoginDateTime >= DateTime.UtcNow.AddMonths(-3))
+        };
+
+        var lastMonth = new UserActivity
+        {
+            Threshold = Localizer["Last month"],
+            Date = DateTime.UtcNow.AddMonths(-1),
+            Count = Users.Count(u => u.LastLoginDateTime >= DateTime.UtcNow.AddMonths(-1))
+        };
+
+        var lastWeek = new UserActivity
+        {
+            Threshold = Localizer["Last week"],
+            Date = DateTime.UtcNow.AddDays(-7),
+            Count = Users.Count(u => u.LastLoginDateTime >= DateTime.UtcNow.AddDays(-7))
+        };
+
+        var lastDay = new UserActivity
+        {
+            Threshold = Localizer["Last day"],
+            Date = DateTime.UtcNow.AddDays(-1),
+            Count = Users.Count(u => u.LastLoginDateTime >= DateTime.UtcNow.AddDays(-1))
+        };
+
+        _userActivities =
+        [
+            allUsers,
+            lastYear,
+            last6Months,
+            last3Months,
+            lastMonth,
+            lastWeek,
+            lastDay
+        ];
+        StateHasChanged();
+    }
+
+    private void DefineOptions()
+    {
+        _userActivityFunnelChartOptions.Chart = new Chart
+        {
+            Locales = Locales,
+        };
+        _userActivityFunnelChartOptions.PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar
+            {
+                Horizontal = true,
+                IsFunnel = true,
+                DataLabels = new PlotOptionsBarDataLabels
+                {
+                    Total = new BarTotalDataLabels
+                    {
+                        Enabled = true,
+                        
+                    },
+                    Position = BarDataLabelPosition.Center,
+                }
+            },
+        };
+        var yaxis = new YAxis
+        {
+            Labels = new YAxisLabels()
+            {
+                Show = true,
+            }
+        };
+        _userActivityFunnelChartOptions.Yaxis = [yaxis];
+        
+    }
+
+}
