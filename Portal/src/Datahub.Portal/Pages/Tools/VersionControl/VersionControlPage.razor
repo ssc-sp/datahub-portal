@@ -16,7 +16,7 @@
 
 <MudStack Spacing="6">
     <MudText Typo="Typo.h1">@Localizer["Version Control"]</MudText>
-    <MudText Typo="Typo.body1">@Localizer["This page allows you to add new versions to the FSDH and view all past versions of the FSDH."]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["This page allows you to manage workspace versions in the FSDH."]</MudText>
     <MudSpacer />
     <MudTooltip Text=@Localizer["Add a new version to the version control table."]>
         <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus" OnClick="AddNewVersion" Class="mr-4">@Localizer["Add New Version"]</DHButton>
@@ -70,7 +70,7 @@
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
         var parameters = new DialogParameters
            {
-               { "PromptText", Localizer["Are you sure you want to delete this version?"].ToString() },
+               { "PromptText", Localizer["Are you sure you want to delete version {0}?", version.Tag].ToString()},
                { "ConfirmText", Localizer["Yes"].ToString() },
                { "CancelText", Localizer["No"].ToString() }
            };
@@ -127,7 +127,7 @@
                 .ToList();
 
             await InvokeAsync(StateHasChanged);
-            _snackbar.Add($"New version added: {version}", Severity.Success);
+            _snackbar.Add(Localizer["Successfully added version: {0}", version], Severity.Success);
         }
     }
 }

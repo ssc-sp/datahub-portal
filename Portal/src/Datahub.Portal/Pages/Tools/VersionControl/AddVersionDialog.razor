@@ -6,11 +6,11 @@
         DisableUnderLine="true"
         Margin="Margin.Dense"
         Error="@_hasValidationError"
-        ErrorText="Invalid format. Please use vX.X.X. e.g. v1.2.3" />
+        ErrorText="@_errorText" />
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Cancel">Cancel</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">Ok</MudButton>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>
 @code {
@@ -28,7 +28,7 @@
        {
         if (ExistingVersions.Any(v => v.Tag.Equals(_version, StringComparison.OrdinalIgnoreCase)))
            {
-               _errorText = "Version already exists.";
+               _errorText = Localizer["Version already exists"];
                _hasValidationError = true;
                return;
            }
@@ -40,7 +40,7 @@
            }
            else
            {
-               _errorText = "Invalid format. Please use vX.X.X. e.g. v1.2.3";
+               _errorText = Localizer["Invalid version format. Please use vX.X.X. e.g. v1.2.3"];
                _hasValidationError = true;
            }
        }

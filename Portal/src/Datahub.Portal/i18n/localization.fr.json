@@ -3245,5 +3245,17 @@
   "Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information.": "Les espaces de travail ne peuvent être créés que par les services d'hébergement du GC ou avec un BOI existant. Veuillez contacter votre responsable d'espace de travail ou l'équipe de soutien de la PFDS pour plus d'informations.",
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/mois par GB de stockage",
   "~ {0:C2}/month": "~ {0:C2}/mois",
-  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement"
+  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
+  "This page allows you to manage workspace versions in the FSDH.": "Cette page permet de gérer les versions de l'espace de travail dans le FSDH.",
+  "Add a new version to the version control table.": "Ajouter une nouvelle version au tableau de contrôle des versions.",
+  "Add New Version": "Ajouter une nouvelle version",
+  "Version Tag": "Étiquette de version",
+  "Are you sure you want to delete version {0}?": "Êtes-vous sûr de vouloir supprimer la version {0}?",
+  "Confirm Delete": "Confirmer Supprimer",
+  "Version deleted successfully.": "Version supprimée avec succès.",
+  "Error deleting version, please try again.": "Erreur de suppression de la version, veuillez réessayer.",
+  "Error adding version, please try again.": "Erreur lors de l'ajout de la version, veuillez réessayer.",
+  "Successfully added version: {0}": "Ajouté avec succès la version : {0}",
+  "Version already exists": "La version existe déjà",
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3"
 }

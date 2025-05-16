@@ -2260,5 +2260,19 @@
   "Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information.": "Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information.",
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
-  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload"
+  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
+  "This page allows you to manage workspace versions in the FSDH.": "This page allows you to manage workspace versions in the FSDH.",
+  "Add a new version to the version control table.": "Add a new version to the version control table.",
+  "Add New Version": "Add New Version",
+  "Version Tag": "Version Tag",
+  "Are you sure you want to delete version {0}": "Are you sure you want to delete version {0}",
+  "Confirm Delete": "Confirm Delete",
+  "Version deleted successfully.": "Version deleted successfully.",
+  "Error deleting version, please try again.": "Error deleting version, please try again.",
+  "Error adding version, please try again.": "Error adding version, please try again.",
+  "Successfully added version: {0}": "Successfully added version: {0}",
+  "Version already exists": "Version already exists",
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3"
+
+
 }
