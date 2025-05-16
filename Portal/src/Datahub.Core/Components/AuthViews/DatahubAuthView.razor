@@ -50,7 +50,8 @@
         DatahubSupport,
         DatahubApprover,
         Unauthorized,
-        CbrOwner
+        CbrOwner,
+        WorkspaceCbrOwner
     }
 
     protected override void OnParametersSet()
@@ -83,9 +84,12 @@
         var datahubAdminAsGuestRole = RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST;
         var datahubApprover = RoleConstants.DATAHUB_APPROVER_ROLE;
         var cbrOwnerRole = RoleConstants.CBR_OWNER_ROLE;
+        var workspaceCbrOwnerRole = $"{ProjectAcronym}{RoleConstants.CBR_OWNER_SUFFIX}";
 
         switch (AuthLevel)
         {
+            case AuthLevels.WorkspaceCbrOwner:
+                return ElevatedWorkspaceAccessEnabled ? $"{workspaceCbrOwnerRole},{datahubSupportRole}" : $"{workspaceCbrOwnerRole}";
             case AuthLevels.CbrOwner:
                 return $"{cbrOwnerRole}";
             case AuthLevels.Personal:

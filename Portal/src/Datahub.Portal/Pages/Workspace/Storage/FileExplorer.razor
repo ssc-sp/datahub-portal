@@ -40,7 +40,12 @@
 
             <div class="file-list">
                 <div class="file-list-header">
-                    <div></div>
+                    <div>
+                        <span class="file-selection-icon" @onclick="ToggleSelectAllFiles">
+                            <i class="far fa-circle unchecked" style="display: @(!_allFilesSelected ? "inline" : "none")"></i>
+                            <i class="fas fa-check-circle checked" style="display: @(_allFilesSelected ? "inline" : "none")"></i>
+                        </span>
+                    </div>
                     <MudText>
                         @Localizer["Name"]
                         @* <AeSearchInput *@
@@ -161,6 +166,8 @@ else
 
     public StorageMetadata StorageAccountMetadata { get; set; }
 
+    private bool _allFilesSelected = false;
+
     private CloudStorageContainer _lastContainer = default;
 
     private string ContainerName => Container?.Name;
@@ -232,7 +239,19 @@ else
         }
         return folders;
     }
+    private async Task ToggleSelectAllFiles()
+    {
+        _allFilesSelected = !_allFilesSelected;
 
+        if (_allFilesSelected)
+        {
+            _selectedItems = _files.Select(f => f.name).ToHashSet();
+        }
+        else
+        {
+            _selectedItems.Clear();
+        }
+    }
     private bool CanDeleteFolder(string folderName)
     {
         if (_folders.Contains(folderName) && _folderList != null)

@@ -22,6 +22,7 @@ using Microsoft.Azure.Cosmos.Core;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using NSubstitute;
 using Octokit;
 using Reqnroll;
@@ -176,9 +177,9 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             var requestBody = await File.ReadAllTextAsync(jsonData);
             _scenarioContext[REQUEST_BODY_CONTEXT_KEY] = requestBody;
         }
-
-        [Then("the response should have a {int} status code")]
-        public async Task ThenTheResponseShouldHaveAStatusCode(int p0)
+        //
+        [Then("the response should have a {int} status code and {string} json")]
+        public async Task ThenTheResponseShouldHaveAStatusCode(int response_code, string response_json)
         {
             // Arrange
             var context = new DefaultHttpContext();
@@ -219,14 +220,21 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             // Act
             var result = await _controller.PostCreateWorkspace();
             Assert.NotNull(result);
-            Assert.True(p0 == (result as ObjectResult)?.StatusCode, (result as ObjectResult)?.Value?.ToString());
+            Assert.True(response_code == (result as ObjectResult)?.StatusCode, (result as ObjectResult)?.Value?.ToString());
 
             if (result is OkObjectResult objectResult)
             {
-                var valueObj = objectResult?.Value as object[];
+                var valueObj = (Dictionary<string, string>)objectResult.Value!;
                 valueObj.Should().NotBeNull();
                 valueObj.Should().HaveCount(2);
-                var acronym = valueObj![0] as string;
+                var acronym = valueObj["Acronym"];
+                // Deserialize both the actual and expected JSON into objects
+                var expectedObject = JsonConvert.DeserializeObject<JObject>(response_json);
+
+                // Assert that the deserialized objects are equivalent
+                Assert.Equal(expectedObject["Acronym"], acronym);
+                Assert.Equal(expectedObject["ResourceGroup"], valueObj["ResourceGroup"]);                
+
                 acronym.Should().NotBeNullOrEmpty();
                 _scenarioContext[CREATED_WORKSPACE_ACRONYM_CONTEXT_KEY] = acronym;
             }

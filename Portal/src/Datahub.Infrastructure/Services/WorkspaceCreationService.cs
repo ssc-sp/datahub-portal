@@ -138,14 +138,14 @@ public class WorkspaceCreationService(
         */
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null)
     {
         try
         {
             acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
-            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, gcHostingId: gcHostingDetailsId);
+            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId);
             // DISABLED resource group creation on project creation as this becomes done in the toolbox
             // as part of their first request.
             /*
@@ -291,6 +291,7 @@ public class WorkspaceCreationService(
         return await ctx.GCHostingWorkspaceDetails
             .Where(d => includeAll || d.LeadEmail == userEmail)
             .Include(d => d.Datahub_Project)
+            .Include(d => d.WorkspacesInBudget)
             .AsNoTracking()
             .ToListAsync();
     }
