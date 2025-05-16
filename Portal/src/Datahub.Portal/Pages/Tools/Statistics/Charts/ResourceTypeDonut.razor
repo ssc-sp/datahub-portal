@@ -43,6 +43,7 @@
                 Type = g.Key,
                 Count = g.Count()
             })
+            .Where(r => !r.Type.Equals("Workspace Resource Group"))
             .OrderByDescending(r => r.Count) // Sort by count
             .ToList();
 
