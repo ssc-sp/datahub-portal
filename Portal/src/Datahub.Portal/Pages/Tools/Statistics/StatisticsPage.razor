@@ -132,6 +132,9 @@
             </MudTabPanel>
         </CascadingValue>
     </MudTabs>
+    <MudText Style="font-style: italic" Typo="Typo.caption">
+        @Localizer["Statistics are real-time displays of database information. Loaded in {0}s", _loadTime.ToString("F2")]
+    </MudText>
 }
 else
 {
@@ -164,6 +167,7 @@ else
 
 @code {
     private bool _isLoading = true;
+    private double _loadTime;
     private List<DailyServiceCost> _platformCosts = [];
     private List<Project_Storage> _platformStorage = [];
     private List<PortalUser> _portalUsers = [];
@@ -198,8 +202,8 @@ else
         await LoadCountsAsync();
         await LoadDepartmentsAsync();
         timer.Stop();
-        Logger.LogInformation("Loaded statistics in {Seconds} seconds", timer.Elapsed.TotalSeconds);
-
+        _loadTime = timer.Elapsed.TotalSeconds;
+        Logger.LogInformation("Loaded statistics in {Seconds} seconds", _loadTime);
         _isLoading = false;
         await InvokeAsync(StateHasChanged);
     }
@@ -337,6 +341,7 @@ else
         _averageResourcesPerWorkspace = _workspaces.Any() ? _workspaces.Average(w => w.ResourceCount) : 0;
         _totalMembersAcrossWorkspaces = _workspaces.Sum(w => w.MemberCount);
         _fivePlusMemberWorkspaces = _workspaces.Count(w => w.MemberCount >= 5);
+        _totalBudget = _workspaces.Sum(w => w.Budget);
     }
 
     private async Task LoadRegistrationsAsync()
