@@ -26,4 +26,5 @@ public static class QueueConstants
     // Resource Provisioner Queues
     public const string ResourceRunRequestQueueName = "resource-run-request";
     public const string UserRunRequestQueueName = "user-run-request";
+    public const string VersionUpdaterQueueName = "version-updater";
 }
