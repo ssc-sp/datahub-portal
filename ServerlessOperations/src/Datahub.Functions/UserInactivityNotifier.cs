@@ -86,7 +86,7 @@ namespace Datahub.Functions
             }
         }
 
-        private async Task DisablePortalUser(int portalUserId)
+        internal async Task DisablePortalUser(int portalUserId)
         {
             List<ProjectUserUpdateCommand> usersToUpdate = new();
             List<ProjectUserAddUserCommand> usersToAdd = new();
