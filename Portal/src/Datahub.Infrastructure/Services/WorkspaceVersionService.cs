@@ -27,8 +27,9 @@ namespace Datahub.Infrastructure.Services
                  .Select(v => Version.Parse(v.TrimStart('v')))
                  .OrderByDescending(v => v)
                  .First();
+            var latestStr = $"v{latest.ToString()}";
 
-            return latest.ToString();
+            return latestStr;
         }
 
         public async Task<List<VersionTag>> GetAllVersionsAsync()
