@@ -1,5 +1,6 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -18,7 +19,8 @@ namespace Datahub.Infrastructure.Services
         {
             await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
             var versionTags = await db.VersionTags
-                                .Select(t => t.Tag)
+                                .Where(t => t.IsActive)
+                                .Select(t => t.Tag)                                
                                 .ToListAsync();
          
             var latest = versionTags
@@ -27,6 +29,44 @@ namespace Datahub.Infrastructure.Services
                  .First();
 
             return latest.ToString();
+        }
+
+        public async Task<List<VersionTag>> GetAllVersionsAsync()
+        {
+            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+            var versionTags = await db.VersionTags
+                .ToListAsync();
+
+            var orderedVersionTags = versionTags
+                .OrderByDescending(v => Version.Parse(v.Tag.TrimStart('v')))
+                .ToList();
+
+            return orderedVersionTags;
+        }
+
+
+        public async Task<bool> AddNewVersion(VersionTag versionTag)
+        {
+            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+            await db.VersionTags.AddAsync(versionTag);
+            var isSaved = await db.SaveChangesAsync();
+            return isSaved > 0;
+        }
+
+        public async Task<bool> UpdateVersionTag(VersionTag versionTag)
+        {
+            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+            db.VersionTags.Update(versionTag);
+            var isSaved = await db.SaveChangesAsync();
+            return isSaved > 0;
+        }
+
+        public async Task<bool> DeleteVersion(VersionTag versionTag)
+        {
+            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+            db.VersionTags.Remove(versionTag);
+            var isDeleted = await db.SaveChangesAsync();
+            return isDeleted > 0;
         }
     }
 }

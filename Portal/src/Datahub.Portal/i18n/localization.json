@@ -2036,6 +2036,7 @@
   "Verifying request": "Verifying request",
   "Versioning": "Versioning",
   "Versions": "Versions",
+  "Version Control": "Version Control",
   "Video": "Video",
   "Video: ": "Video: ",
   "View": "View",
@@ -2263,6 +2264,8 @@
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
+  
+  //CBR Localization
   "Already allocated:": "Already allocated:",
   "Total in CBR:": "Total in CBR:",
   "Open CBR Budget": "Open CBR Budget",
@@ -2271,5 +2274,21 @@
   "Allocated Budget": "Allocated Budget",
   "Total workspace budgets must not exceed available CBR budget": "Total workspace budgets must not exceed available CBR budget",
   "Manage budget allocation for workspaces under this workspace's CBR": "Manage budget allocation for workspaces under this workspace's CBR",
-  "CBR must be selected to create a workspace": "CBR must be selected to create a workspace"
+  "CBR must be selected to create a workspace": "CBR must be selected to create a workspace",
+
+  //Version Control Localization
+  "This page allows you to manage workspace versions in the FSDH.": "This page allows you to manage workspace versions in the FSDH.",
+  "Add a new version to the version control table.": "Add a new version to the version control table.",
+  "Add New Version": "Add New Version",
+  "Version Tag": "Version Tag",
+  "Are you sure you want to delete version {0}": "Are you sure you want to delete version {0}",
+  "Confirm Delete": "Confirm Delete",
+  "Version deleted successfully.": "Version deleted successfully.",
+  "Error deleting version, please try again.": "Error deleting version, please try again.",
+  "Error adding version, please try again.": "Error adding version, please try again.",
+  "Successfully added version: {0}": "Successfully added version: {0}",
+  "Version already exists": "Version already exists",
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3"
+
+
 }
