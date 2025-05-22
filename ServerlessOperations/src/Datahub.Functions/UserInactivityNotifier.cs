@@ -1,8 +1,10 @@
 ﻿using System.Text.Json;
 using Azure.Messaging.ServiceBus;
+using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
@@ -27,6 +29,7 @@ namespace Datahub.Functions
         EmailValidator emailValidator,
         IUserInactivityNotificationService userInactivityNotificationService,
         ISendEndpointProvider sendEndpointProvider,
+        IProjectUserManagementService projectUserManagementService,
         IEmailService emailService)
     {
         private readonly ILogger<UserInactivityNotifier> _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
@@ -77,6 +80,35 @@ namespace Datahub.Functions
                         daysUntilLocked!.Value, daysUntilDeleted!.Value, ct);
                 }
             }
+            if (daysUntilLocked <= 0)
+            {
+                await DisablePortalUser(user.Id);
+            }
+        }
+
+        internal async Task DisablePortalUser(int portalUserId)
+        {
+            List<ProjectUserUpdateCommand> usersToUpdate = new();
+            List<ProjectUserAddUserCommand> usersToAdd = new();
+            var projects = await projectUserManagementService.GetProjectListForPortalUser(portalUserId);
+            foreach(var project in projects)
+            {
+                var projectUsers = await projectUserManagementService.GetProjectUsersAsync(project);
+                var projectUser = projectUsers.Where(x => x.PortalUser.Id == portalUserId 
+                    && x.Role.Id != (int)Project_Role.RoleNames.Remove).FirstOrDefault();
+
+                if (projectUser != null) // found not already disabled user
+                {
+                    var updateCommand = new ProjectUserUpdateCommand()
+                    {
+                        ProjectUser = projectUser,
+                        NewRoleId = (int)Project_Role.RoleNames.Remove
+                    };
+                    usersToUpdate.Add(updateCommand);
+                }
+            }
+            await projectUserManagementService.ProcessProjectUserCommandsAsync(usersToUpdate, usersToAdd, portalUserId.ToString());
+
         }
 
         public async Task<EmailRequestMessage?> CheckIfUserToBeNotified(int daysSinceLastLogin, int daysUntilLocked,
