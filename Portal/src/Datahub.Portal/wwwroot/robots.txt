@@ -1,0 +1,9 @@
+# Allow only the root page (/) to be crawled by Google and Bing
+User‑agent: Googlebot
+User‑agent: Bingbot
+Allow: /$
+Disallow: /
+
+# Block all other crawlers completely
+User‑agent: *
+Disallow: /
