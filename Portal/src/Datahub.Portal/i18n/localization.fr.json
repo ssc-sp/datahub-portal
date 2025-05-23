@@ -3335,6 +3335,8 @@
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/mois par GB de stockage",
   "~ {0:C2}/month": "~ {0:C2}/mois",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
+
+  //CBR Localization
   "Already allocated:": "Déjà alloué:",
   "Total in CBR:": "Total en BOI:",
   "Open CBR Budget": "Ouvrir le budget BOI",
@@ -3343,5 +3345,19 @@
   "Allocated Budget": "Budget alloué",
   "Total workspace budgets must not exceed available CBR budget": "Le budget total de l'espace de travail ne doit pas dépasser le budget BOI disponible",
   "Manage budget allocation for workspaces under this workspace's CBR": "Gérer l'allocation du budget pour les espaces de travail dans le cadre du BOI de cet espace de travail",
-  "CBR must be selected to create a workspace": "BOI doit être sélectionné pour créer un espace de travail"
+  "CBR must be selected to create a workspace": "BOI doit être sélectionné pour créer un espace de travail",
+
+  //Version Control Localization
+  "This page allows you to manage workspace versions in the FSDH.": "Cette page permet de gérer les versions de l'espace de travail dans le FSDH.",
+  "Add a new version to the version control table.": "Ajouter une nouvelle version au tableau de contrôle des versions.",
+  "Add New Version": "Ajouter une nouvelle version",
+  "Version Tag": "Étiquette de version",
+  "Are you sure you want to delete version {0}?": "Êtes-vous sûr de vouloir supprimer la version {0}?",
+  "Confirm Delete": "Confirmer Supprimer",
+  "Version deleted successfully.": "Version supprimée avec succès.",
+  "Error deleting version, please try again.": "Erreur de suppression de la version, veuillez réessayer.",
+  "Error adding version, please try again.": "Erreur lors de l'ajout de la version, veuillez réessayer.",
+  "Successfully added version: {0}": "Ajouté avec succès la version : {0}",
+  "Version already exists": "La version existe déjà",
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3"
 }
