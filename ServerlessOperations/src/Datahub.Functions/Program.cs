@@ -90,6 +90,7 @@ var host = new HostBuilder()
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
         services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
+        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
         services.AddScoped<IDateProvider, DateProvider>();
         services.AddScoped<EmailValidator>();
         services.AddScoped<HealthCheckHelper>();
