@@ -1,0 +1,74 @@
+﻿@using System.Reflection
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h2">
+            @Localizer["Select columns"]
+        </MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudStack Spacing="4" Class="mb-4">
+            <MudText Style="font-size: 18px">
+                <strong>
+                    @Localizer["Columns"]
+                </strong>
+            </MudText>
+            <MudText>
+                @Localizer["Select the columns you want to display"]
+            </MudText>
+            <MudList T="string" Dense Style="height: 300px; overflow-y: scroll">
+                @foreach (var property in Properties)
+                {
+                    <MudListItem T="string" Ripple="false" Dense="true">
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudCheckBox T="bool" Value="SelectedColumns.Contains(property)"
+                                         ValueChanged="@((b => OnCheck(property, b)))"/>
+                            <MudText>
+                                @PropertyLabel(property)
+                            </MudText>
+                            <MudSpacer/>
+                            <MudText Typo="Typo.caption" Style="font-style: italic">
+                                @Localizer[property.PropertyType.Name]
+                            </MudText>
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+            <MudStack Row>
+                <MudSpacer/>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Submit">
+                    @Localizer["Apply"]
+                </MudButton>
+            </MudStack>
+        </MudStack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [Parameter] public List<PropertyInfo> SelectedColumns { get; set; } = [];
+    [Parameter] public List<PropertyInfo> Properties { get; set; } = [];
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; } = default!;
+
+    private void OnCheck(PropertyInfo property, bool isChecked)
+    {
+        if (isChecked)
+        {
+            SelectedColumns.Add(property);
+        }
+        else
+        {
+            SelectedColumns.Remove(property);
+        }
+    }
+
+    private void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(SelectedColumns));
+    }
+
+    private string PropertyLabel(PropertyInfo property)
+    {
+        return string.Join(" ", System.Text.RegularExpressions.Regex.Split(property.Name, @"(?<!^)(?=[A-Z])"));
+    }
+
+}
