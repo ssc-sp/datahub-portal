@@ -69,5 +69,10 @@ namespace Datahub.Infrastructure.Services
             var isDeleted = await db.SaveChangesAsync();
             return isDeleted > 0;
         }
+
+        public Task<bool> IsGreenLightChange(string versionTag)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

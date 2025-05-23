@@ -15,7 +15,8 @@ public class RequestManagementService(
     ILogger<RequestManagementService> logger,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     IDatahubAuditingService datahubAuditingService,
-    IResourceMessagingService resourceMessagingService)
+    IResourceMessagingService resourceMessagingService,
+    IWorkspaceVersionService workspaceVersionService)
     : IRequestManagementService
 {
     public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentPortalUser)
@@ -71,6 +72,11 @@ public class RequestManagementService(
             };
 
             await ctx.Project_Resources2.AddAsync(resource);
+
+            if (requestedTemplate.Name == TerraformTemplate.NewProjectTemplate)
+            { 
+                project.Version = await workspaceVersionService.GetLatestVersion();
+            }
         }
     }
 
