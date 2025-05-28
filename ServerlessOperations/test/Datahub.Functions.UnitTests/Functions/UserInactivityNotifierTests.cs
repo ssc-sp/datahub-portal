@@ -1,6 +1,9 @@
-﻿using Datahub.Application.Services;
+﻿using Datahub.Application.Commands;
+using Datahub.Application.Services;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
@@ -30,6 +33,9 @@ namespace Datahub.Functions.UnitTests.Functions
         private readonly IUserInactivityNotificationService _userInactivityNotificationService =
             Substitute.For<IUserInactivityNotificationService>();
 
+        private readonly IProjectUserManagementService _projectUserManagementService =
+            Substitute.For<IProjectUserManagementService>();
+
         private readonly IConfiguration _config = Substitute.For<IConfiguration>();
 
 
@@ -49,7 +55,8 @@ namespace Datahub.Functions.UnitTests.Functions
             _emailValidator = new EmailValidator();
             _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
             _sut = new UserInactivityNotifier(_loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
-                _pongService, _emailValidator, _userInactivityNotificationService, _iSendEndpointProvider, _emailService);
+                _pongService, _emailValidator, _userInactivityNotificationService, _iSendEndpointProvider,
+                _projectUserManagementService, _emailService);
         }
 
         [Test]
@@ -123,6 +130,50 @@ namespace Datahub.Functions.UnitTests.Functions
             result.Body.Should()
                 .Contain("If you do not login to your account in the next 10 day(s), your account will be deleted.");
             result.To.Should().Contain("test@example.com");
+        }
+
+        [Test]
+        public async Task DisablePortalUser_DisablesUserInAllProjects()
+        {
+            // Arrange
+            var portalUserId = 123;
+            var projectId1 = "AAAA";
+            var projectId2 = "BBBB";
+
+            // Mock the projects associated with the portal user
+            var projects = new List<string>
+            {
+                projectId1 , projectId2 
+            };
+            _projectUserManagementService.GetProjectListForPortalUser(portalUserId).Returns(projects);
+
+            // Mock the project users for each project
+            var projectUser1 = new Datahub_Project_User
+            {
+                PortalUser = new PortalUser { Id = portalUserId, GraphGuid = Guid.NewGuid().ToString() },
+                Role = new Project_Role { Id = (int)Project_Role.RoleNames.WorkspaceLead }
+            };
+            var projectUser2 = new Datahub_Project_User
+            {
+                PortalUser = new PortalUser { Id = portalUserId, GraphGuid=Guid.NewGuid().ToString() },
+                Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator }
+            };
+            _projectUserManagementService.GetProjectUsersAsync(projectId1).Returns(new List<Datahub_Project_User> { projectUser1 });
+            _projectUserManagementService.GetProjectUsersAsync(projectId2).Returns(new List<Datahub_Project_User> { projectUser2 });
+
+            // Act
+            await _sut.DisablePortalUser(portalUserId);
+
+            // Assert
+            await _projectUserManagementService.Received(1).ProcessProjectUserCommandsAsync(
+                Arg.Is<List<ProjectUserUpdateCommand>>(commands =>
+                    commands.Count == 2 &&
+                    commands.Any(c => c.ProjectUser == projectUser1 && c.NewRoleId == (int)Project_Role.RoleNames.Remove) &&
+                    commands.Any(c => c.ProjectUser == projectUser2 && c.NewRoleId == (int)Project_Role.RoleNames.Remove)
+                ),
+                Arg.Is<List<ProjectUserAddUserCommand>>(addCommands => addCommands.Count == 0),
+                portalUserId.ToString()
+            );
         }
 
         [OneTimeTearDown]
