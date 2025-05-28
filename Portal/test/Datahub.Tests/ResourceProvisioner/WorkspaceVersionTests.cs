@@ -23,30 +23,92 @@ namespace Datahub.Tests.ResourceProvisioner;
 public class WorkspaceVersionTests
 {
     private IConfiguration _config;
-    private const string ResourceProvisionerUrl = "https://localhost:7275";
-    private static IEnumerable<T> LoadCollectionGeneric<TS,T>(ServiceProvider provider, Func<TS, IEnumerable> loadSource) where TS:DbContext
-    {            
-        //Expression<Func<S, IEnumerable>> expression = d => d.Projects;
-        //Func<S, IEnumerable> loadSource = d => d.Projects;
-        //IDbContextFactory
-        var fac = provider.GetRequiredService<IDbContextFactory<TS>>();
-        using var ctx = fac.CreateDbContext();
-        return ((loadSource(ctx) as IEnumerable<T>) ?? throw new InvalidOperationException()).ToList();
-    }
+   
     private ServiceProvider SetupServices()
     {
         var services = new ServiceCollection();
         services.AddLogging();
         services.AddPooledDbContextFactory<DatahubProjectDBContext>(options => options.UseInMemoryDatabase("datahubProjects"));
-        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
-        
+        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();        
         //dependency for ProjectCreationService
-        services.AddSingleton(Configuration);
-        
+        services.AddSingleton(Configuration);        
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         return services.BuildServiceProvider();
     }
-    
+
+    [Fact]
+    public async Task GivenMultipleVersions_GetPreviousBuildIfExists()
+    {
+        var testCases = new Dictionary<string, string>
+       {
+           { "v2.0.1", "v2.0.0" },
+           { "v3.1.0", string.Empty },
+           { "v1.0.10", "v1.0.9" },
+           { "v4.2.3", "v4.2.2" }
+       };
+
+        foreach (var testCase in testCases)
+        {
+            var version = testCase.Key;
+            var expectedPreviousVersion = testCase.Value;
+
+            var parsedVersion = Version.Parse(version.TrimStart('v'));
+            string previousVersion = parsedVersion.Build > 0
+                ? $"v{parsedVersion.Major}.{parsedVersion.Minor}.{parsedVersion.Build - 1}"
+                : string.Empty;
+
+            Assert.True(previousVersion == expectedPreviousVersion,
+                $"For version {version}, expected previous version to be {expectedPreviousVersion} but was {previousVersion}");
+        }
+    }
+
+    [Fact]
+    public async Task GivenNewVersion_CheckIfGreenLightChangesRequired()
+    {
+        var newVersionbuild = "v2.0.1";
+        var newVersionminor = "v2.1.0";
+        var newVersionmajor = "v3.0.0";
+
+        var newVersions = new List<string> { newVersionbuild, newVersionminor, newVersionmajor };
+
+        var existingVersions = new Dictionary<string, (bool, bool, bool)>()
+        {
+            { "v1.4", (false, false, false) },
+            { "v8.3.6", (false, false, false) },
+            { "v2.0.0", (true, false, false) },
+            { "v10.3.4", (false, false, false) },
+            { "v3.0.0", (false, false, false) },
+            { "v2.1.0", (false, false, false) }
+        };
+
+        foreach (var version in existingVersions)
+        {
+            for (int i = 0; i < newVersions.Count; i++)
+            {
+                var shouldUpdate = false;
+                var newVersion = newVersions[i];
+                var newVer = Version.Parse(newVersion.TrimStart('v'));
+                var existingVer = Version.Parse(version.Key.TrimStart('v'));
+
+                if (newVer.Major == existingVer.Major && newVer.Minor == existingVer.Minor && newVer.Build > existingVer.Build)
+                {
+                    shouldUpdate = true;
+                }
+
+                var expectedValue = i switch
+                {
+                    0 => version.Value.Item1,
+                    1 => version.Value.Item2,
+                    2 => version.Value.Item3,
+                    _ => throw new InvalidOperationException("Unexpected iteration index")
+                };
+
+                Assert.Equal(expectedValue, shouldUpdate);
+            }
+
+        }
+    }
+
     [Fact]
     public async Task GivenListOfVersionTagsThenGetLatestVersion()
     {

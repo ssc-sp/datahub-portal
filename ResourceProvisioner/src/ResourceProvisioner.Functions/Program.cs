@@ -21,10 +21,11 @@ var host = new HostBuilder()
         services.AddApplicationServices(hostContext.Configuration);
         services.AddInfrastructureServices(hostContext.Configuration);
         
-        services.AddMassTransitForAzureFunctions(x =>
-        {
-            x.AddConsumersFromNamespaceContaining<ResourceRunRequest>();
-        }, "DatahubServiceBus:ConnectionString");
+services.AddMassTransitForAzureFunctions(x =>
+       {
+           x.AddConsumersFromNamespaceContaining<ResourceRunRequest>();
+           x.AddConsumersFromNamespaceContaining<WorkspaceVersionUpdateRequest>(); // Adding the VersionUpdater consumer  
+       }, "DatahubServiceBus:ConnectionString");
 
     })
     .Build();

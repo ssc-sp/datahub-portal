@@ -156,7 +156,35 @@ public class RequestManagementService(
 
 
 
+    public async Task<bool> TriggerGreenLightChanges(string versionTag, string email)
+    {
+        //get previous version tag  
+        var parsedVersion = Version.Parse(versionTag.TrimStart('v'));
+        string previousVersion = parsedVersion.Build > 0
+            ? $"v{parsedVersion.Major}.{parsedVersion.Minor}.{parsedVersion.Build - 1}"
+            : string.Empty;
 
+        await using var db = await dbContextFactory.CreateDbContextAsync();
+        var currentVersionProjects = await db.Projects
+           .Where(p => p.Version == previousVersion)
+           .ToListAsync();
+
+        if (currentVersionProjects.Any())
+        {
+            var workspaceDefinitions = new List<WorkspaceDefinition>();
+
+            foreach (var project in currentVersionProjects)
+            {
+                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, email);
+                workspaceDefinitions.Add(workspaceDefinition);
+                //await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, workspaceDefinition);
+                //await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.WorkspaceVersionUpdateRequestQueueName, versionUpdateMessage);
+            }
+
+
+        }
+        return true;
+    }
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
         return projectUser.RoleId switch

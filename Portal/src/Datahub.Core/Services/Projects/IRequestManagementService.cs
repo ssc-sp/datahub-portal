@@ -35,4 +35,6 @@ public interface IRequestManagementService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task ScaffoldLocalChanges(Datahub_Project project, PortalUser requestingUser, TerraformTemplate requestedTemplate,
         DatahubProjectDBContext ctx);
+
+    public Task<bool> TriggerGreenLightChanges(string versionTag, string email);
 }

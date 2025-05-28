@@ -1,6 +1,12 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Extensions;
+using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using Datahub.Shared.Entities;
+using MassTransit;
+using MassTransit.Transports;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,6 +19,8 @@ namespace Datahub.Infrastructure.Services
 {
     public class WorkspaceVersionService(
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
+        ISendEndpointProvider sendEndpointProvider,
+        IResourceMessagingService _resourceMessagingService,
         ILogger<WorkspaceCreationService> logger) : IWorkspaceVersionService
     {
         public async Task<string> GetLatestVersion()
@@ -69,10 +77,6 @@ namespace Datahub.Infrastructure.Services
             var isDeleted = await db.SaveChangesAsync();
             return isDeleted > 0;
         }
-
-        public Task<bool> IsGreenLightChange(string versionTag)
-        {
-            throw new NotImplementedException();
-        }
+        
     }
 }
