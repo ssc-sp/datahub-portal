@@ -95,14 +95,14 @@ namespace Datahub.Functions
             {
                 var projectUsers = await projectUserManagementService.GetProjectUsersAsync(project);
                 var projectUser = projectUsers.Where(x => x.PortalUser.Id == portalUserId 
-                    && x.Role.Id != (int)Project_Role.RoleNames.Remove).FirstOrDefault();
+                    && x.Role.Id != (int)Project_Role.RoleNames.DisabledUser).FirstOrDefault();
 
                 if (projectUser != null) // found not already disabled user
                 {
                     var updateCommand = new ProjectUserUpdateCommand()
                     {
                         ProjectUser = projectUser,
-                        NewRoleId = (int)Project_Role.RoleNames.Remove
+                        NewRoleId = (int)Project_Role.RoleNames.DisabledUser
                     };
                     usersToUpdate.Add(updateCommand);
                 }

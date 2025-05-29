@@ -168,8 +168,8 @@ namespace Datahub.Functions.UnitTests.Functions
             await _projectUserManagementService.Received(1).ProcessProjectUserCommandsAsync(
                 Arg.Is<List<ProjectUserUpdateCommand>>(commands =>
                     commands.Count == 2 &&
-                    commands.Any(c => c.ProjectUser == projectUser1 && c.NewRoleId == (int)Project_Role.RoleNames.Remove) &&
-                    commands.Any(c => c.ProjectUser == projectUser2 && c.NewRoleId == (int)Project_Role.RoleNames.Remove)
+                    commands.Any(c => c.ProjectUser == projectUser1 && c.NewRoleId == (int)Project_Role.RoleNames.DisabledUser) &&
+                    commands.Any(c => c.ProjectUser == projectUser2 && c.NewRoleId == (int)Project_Role.RoleNames.DisabledUser)
                 ),
                 Arg.Is<List<ProjectUserAddUserCommand>>(addCommands => addCommands.Count == 0),
                 portalUserId.ToString()
