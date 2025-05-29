@@ -11,6 +11,7 @@ namespace Datahub.Core.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Create PortalUserStatusChanges table
             migrationBuilder.CreateTable(
                 name: "PortalUserStatusChanges",
                 columns: table => new
@@ -25,13 +26,27 @@ namespace Datahub.Core.Migrations
                 {
                     table.PrimaryKey("PK_PortalUserStatusChanges", x => x.Id);
                 });
+
+            // Add new record to Project_Roles table 
+            migrationBuilder.InsertData(
+                table: "Project_Roles",
+                columns: new[] { "Id", "Name", "Description" },
+                values: new object[] { 6, "Disabled User", "A user whose access has been disabled and cannot interact with the workspace" });
+
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            // Drop PortalUserStatusChanges table
             migrationBuilder.DropTable(
                 name: "PortalUserStatusChanges");
+
+            // Remove the added record from Project_Roles table
+            migrationBuilder.DeleteData(
+                table: "Project_Roles",
+                keyColumn: "Id",
+                keyValue: 6);
         }
     }
 }
