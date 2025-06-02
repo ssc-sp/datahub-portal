@@ -13,15 +13,13 @@ namespace Datahub.Core.Model.Projects
 
         public bool AllowStorage { get; set; }
         public bool AllowDatabricks { get; set; }
-        public bool AllowVMs { get; set; }
 
         public bool IsEqual(Project_Whitelist other)
         {
             return other != null &&
                    ProjectId == other.ProjectId &&
                    AllowStorage == other.AllowStorage &&
-                   AllowDatabricks == other.AllowDatabricks &&
-                   AllowVMs == other.AllowVMs;
+                   AllowDatabricks == other.AllowDatabricks;
         }
     }
 }
