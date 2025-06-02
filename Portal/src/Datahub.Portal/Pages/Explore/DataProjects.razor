@@ -124,8 +124,9 @@
                 && !string.IsNullOrWhiteSpace(p.Project_Name))
             .Include(p => p.Users)
             .Include(p => p.Repositories)
-            // .Include(p => p.SharedFiles)
             .ToListAsync();
+
+        _allProjects = _allProjects.Where(p => !p.IsDeleted).ToList();
 
         _filteredProjects = _allProjects;
         _featuredProjects = _allProjects
