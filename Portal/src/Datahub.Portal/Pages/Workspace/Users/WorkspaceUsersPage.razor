@@ -189,18 +189,24 @@
                 @rowContext.PortalUser.Email
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-
-                <DatahubAuthView AuthLevel="@GetAuthLevel(rowContext)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                    <Authorized>
-                        @{
-                            var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
-                        }
-                        <ProjectMembersRoleSelect InitialValue="@(updateCommand?.NewRoleId ?? rowContext.RoleId ?? 0)" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))" />
-                    </Authorized>
-                    <NotAuthorized>
-                        <MudText>@Localizer[rowContext.Role.Name]</MudText>
-                    </NotAuthorized>
-                </DatahubAuthView>
+                @if (rowContext.Role.Id == (int)Project_Role.RoleNames.DisabledUser)
+                {
+                    <MudText>@Localizer[rowContext.Role.Name]</MudText>
+                }
+                else
+                {
+                    <DatahubAuthView AuthLevel="@GetAuthLevel(rowContext)" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                        <Authorized>
+                            @{
+                                var updateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.Id == rowContext.PortalUser.Id);
+                            }
+                            <ProjectMembersRoleSelect InitialValue="@(updateCommand?.NewRoleId ?? rowContext.RoleId ?? 0)" OnRoleChanged="@(newRoleId => UpdateProjectMemberRole(rowContext, newRoleId))" />
+                        </Authorized>
+                        <NotAuthorized>
+                            <MudText>@Localizer[rowContext.Role.Name]</MudText>
+                        </NotAuthorized>
+                    </DatahubAuthView>
+                }
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
                 <MudCheckBox T="bool" Label=@Localizer["Data Steward"]
@@ -219,6 +225,7 @@
                 <UserViewProfileIconButton ViewedUserGraphId="@rowContext.PortalUser.GraphGuid" />
             </MudTd>
         </RowTemplate>
+
 
         <NoRecordsContent>
             <MudText>@Localizer["There are no users matching the current filter."]</MudText>
