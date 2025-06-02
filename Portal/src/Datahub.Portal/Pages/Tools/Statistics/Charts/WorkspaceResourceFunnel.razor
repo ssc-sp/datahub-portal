@@ -1,0 +1,80 @@
+@using ApexCharts
+@using Align = MudBlazor.Align
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
+    @if (_resourceLevels.Any())
+    {
+        <ApexChart TItem="ResourceLevel" Title="@Title" Height="300" Options="@_chartOptions">
+            <ApexPointSeries
+                TItem="ResourceLevel"
+                Items="@_resourceLevels"
+                Name="@Localizer["Workspaces"]"
+                XValue="@(c => c.Level)"
+                YValue="@(c => c.Count)"
+                SeriesType="SeriesType.Bar"
+                ShowDataLabels />
+        </ApexChart>
+    }
+    else
+    {
+        <MudText Align="Align.Center">@Localizer["No resource data available for workspaces."]</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public List<WorkspaceTableData> Workspaces { get; set; }
+    [Parameter] public string Title { get; set; }
+    private List<ResourceLevel> _resourceLevels = new();
+    private readonly ApexChartOptions<ResourceLevel> _chartOptions = new();
+
+    private record ResourceLevel
+    {
+        public string Level { get; set; }
+        public int Count { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        var maxResources = Workspaces.Max(w => w.ResourceCount);
+        _resourceLevels = Enumerable.Range(1, maxResources)
+            .Select(i => new ResourceLevel
+            {
+                Level = $"{Localizer["Workspaces with"]} {i} {Localizer["resources"]}",
+                Count = Workspaces.Count(w => w.ResourceCount == i)
+            })
+            .ToList();
+
+        DefineChartOptions();
+    }
+
+    private void DefineChartOptions()
+    {
+        _chartOptions.Chart = new Chart
+        {
+            Type = ApexCharts.ChartType.Bar
+        };
+        _chartOptions.PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar
+            {
+                Horizontal = true,
+                IsFunnel = true,
+                DataLabels = new PlotOptionsBarDataLabels
+                {
+                    Total = new BarTotalDataLabels
+                    {
+                        Enabled = true,
+                    },
+                    Position = BarDataLabelPosition.Center
+                }
+            }
+        };
+        _chartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return val + ' workspaces'; }"
+            }
+        };
+    }
+}
