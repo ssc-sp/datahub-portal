@@ -24,31 +24,31 @@
             </MudTooltip>
             <MudTooltip Text=@Localizer["Download entire user table to CSV."]>
                 <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download"
-                          OnClick="HandleDownload" Class="mr-4">
+                OnClick="HandleDownload" Class="mr-4">
                     @Localizer["Download to CSV"]
                 </DHButton>
             </MudTooltip>
         }
         <MudTextField
-            Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string" Immediate="true"
-            Placeholder=@Localizer["Search by User or Workspace"]
-            Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
-            Class="mt-4" Label="@Localizer["Search"]">
+        Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string" Immediate="true"
+        Placeholder=@Localizer["Search by User or Workspace"]
+        Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+        Class="mt-4" Label="@Localizer["Search"]">
         </MudTextField>
         @if (AdminView)
         {
             <MudSpacer/>
             <MudNumericField Value="_numberWorkspaces"
-                             ValueChanged="NumberWorkspacesChanged"
-                             DebounceInterval="300"
-                             Label="Minimum number of workspaces"
-                             T="int"
-                             Immediate="true"
-                             Min="0"/>
+            ValueChanged="NumberWorkspacesChanged"
+            DebounceInterval="300"
+            Label="Minimum number of workspaces"
+            T="int"
+            Immediate="true"
+            Min="0"/>
 
             <MudSpacer/>
             <MudSelect T="string" Value="_lastXDays" ValueChanged=LastXDaysChanged Variant="Variant.Text"
-                       Label="Time of last login" Dense="true">
+            Label="Time of last login" Dense="true">
                 <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
                 @foreach (var days in lastXDaysOptions)
                 {
@@ -60,7 +60,7 @@
     <HeaderContent>
         <MudTh>
             <MudTableSortLabel SortLabel="User" SortBy="new Func<UserWorkspaces, object>(x => x.User.DisplayName)"
-                               InitialDirection="SortDirection.Ascending">
+            InitialDirection="SortDirection.Ascending">
                 @Localizer["User"]
             </MudTableSortLabel>
         </MudTh>
@@ -71,7 +71,7 @@
         {
             <MudTh>
                 <MudTableSortLabel SortLabel="LastLoginDateTime"
-                                   SortBy="new Func<UserWorkspaces, object>(x => x.User.LastLoginDateTime)">
+                SortBy="new Func<UserWorkspaces, object>(x => x.User.LastLoginDateTime)">
                     @Localizer["Last login date"]
                 </MudTableSortLabel>
             </MudTh>
@@ -87,6 +87,10 @@
             <ul style="">
                 @foreach (var workspace in context.Workspaces)
                 {
+                    if (workspace.IsDeleted)
+                    {
+                        continue;
+                    }
                     <li>
                         <MudLink
                             Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
