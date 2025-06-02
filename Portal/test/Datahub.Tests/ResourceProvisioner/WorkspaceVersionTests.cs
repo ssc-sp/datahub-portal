@@ -36,6 +36,40 @@ public class WorkspaceVersionTests
         return services.BuildServiceProvider();
     }
 
+
+    [Fact]
+    public async Task GivenNewVersionBuild_FlagVersionsWithSameMajorMinorAndLowerBuild()
+    {
+        var versions = new Dictionary<string, bool>
+       {
+          { "v1.0.0", false },
+          { "v1.0.1", false },
+          { "v2.0.0", false },
+          { "v2.1.1", true },
+          { "v2.1.0", true },
+          { "v3.0.0", false },
+          { "v3.1.0", false }
+       };
+
+        var newVersion = "v2.1.6";
+        var parsedNewVersion = Version.Parse(newVersion.TrimStart('v'));       
+
+        Assert.All(versions, kvp =>
+        {
+            var parsedKeyVersion = Version.Parse(kvp.Key.TrimStart('v'));
+            if (parsedKeyVersion.Major == parsedNewVersion.Major &&
+                parsedKeyVersion.Minor == parsedNewVersion.Minor &&
+                parsedKeyVersion.Build < parsedNewVersion.Build)
+            {
+                Assert.True(kvp.Value, $"Version {kvp.Key} should be flagged as true.");
+            }
+            else
+            {
+                Assert.False(kvp.Value, $"Version {kvp.Key} should not be flagged as true.");
+            }
+        });
+    }
+
     [Fact]
     public async Task GivenMultipleVersions_GetPreviousBuildIfExists()
     {

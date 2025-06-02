@@ -19,8 +19,6 @@ namespace Datahub.Infrastructure.Services
 {
     public class WorkspaceVersionService(
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ISendEndpointProvider sendEndpointProvider,
-        IResourceMessagingService _resourceMessagingService,
         ILogger<WorkspaceCreationService> logger) : IWorkspaceVersionService
     {
         public async Task<string> GetLatestVersion()

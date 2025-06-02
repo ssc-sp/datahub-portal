@@ -22,6 +22,7 @@ public class TerraformService(
     //public const string TerraformVersionToken = "{{version}}";
     //public const string TerraformBranchToken = "{{branch}}";
     public const string TerraformTagToken = "{{tag}}";
+    public const string TerraformVersionToken = "{{version}}";
 
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
@@ -68,6 +69,8 @@ public class TerraformService(
             
             fileContent = fileContent.Replace(TerraformTagToken,
                 $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspaceDefinition.Workspace.Version}");
+            fileContent = fileContent.Replace(TerraformVersionToken, workspaceDefinition.Workspace.Version);
+
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }
