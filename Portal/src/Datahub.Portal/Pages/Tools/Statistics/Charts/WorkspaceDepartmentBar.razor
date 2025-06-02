@@ -1,0 +1,81 @@
+@using ApexCharts
+@using Align = MudBlazor.Align
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%; height: 100%">
+    @if (_departmentCounts.Any())
+    {
+        <ApexChart TItem="DepartmentCount" Title="@Title" Options="@_chartOptions" Height="650">
+            <ApexPointSeries
+                TItem="DepartmentCount"
+                Items="@_departmentCounts"
+                Name="@Localizer["Workspaces"]"
+                XValue="@(c => c.Department ?? Localizer["Unknown"])"
+                YValue="@(c => c.Count)"
+                SeriesType="SeriesType.Bar"
+                ShowDataLabels />
+        </ApexChart>
+    }
+    else
+    {
+        <MudText Align="Align.Center">@Localizer["No department data available."]</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public List<WorkspaceTableData> Workspaces { get; set; }
+    [Parameter] public string Title { get; set; }
+    [Parameter] public bool Vertical { get; set; } = false;
+    private List<DepartmentCount> _departmentCounts = new();
+    private readonly ApexChartOptions<DepartmentCount> _chartOptions = new();
+
+    private record DepartmentCount
+    {
+        public string Department { get; set; }
+        public int Count { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        _departmentCounts = Workspaces
+            .GroupBy(w => w.Department ?? Localizer["Unknown"])
+            .Select(g => new DepartmentCount
+            {
+                Department = g.Key,
+                Count = g.Count()
+            })
+            .OrderByDescending(d => d.Count)
+            .ToList();
+
+        DefineChartOptions();
+    }
+
+    private void DefineChartOptions()
+    {
+        _chartOptions.Chart = new Chart
+        {
+            Type = ApexCharts.ChartType.Bar,
+        };
+        _chartOptions.PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar
+            {
+                Horizontal = Vertical
+            }
+        };
+        _chartOptions.Xaxis = new XAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Workspace count"].ToString() }
+        };
+        _chartOptions.Yaxis = [
+            new YAxis
+            {
+                Title = new AxisTitle { Text = Localizer["Department"].ToString() }
+            }
+        ];
+        _chartOptions.Legend = new Legend
+        {
+            Show = false
+        };
+    }
+}

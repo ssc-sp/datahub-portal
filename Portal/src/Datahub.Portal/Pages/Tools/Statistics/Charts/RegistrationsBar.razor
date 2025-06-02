@@ -1,0 +1,80 @@
+﻿@using Datahub.Core.Model.Onboarding
+@using ChartType = ApexCharts.ChartType
+@using ApexCharts
+
+@inject ICultureService CultureService
+
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
+    <ApexChart TItem="SelfRegistrationAggregate" Options="@_registrationsBarChartOptions" @ref="@_registrationsBarChart"
+               Height="300" Title="@Title">
+        <ApexPointSeries
+            TItem="SelfRegistrationAggregate"
+            Items="@(Registrations.GroupBy(c => c.CreatedAt).Select(g => new SelfRegistrationAggregate() { Date = g.Key, Count = g.Count() }).ToList())"
+            Name="@Localizer["Registrations"]"
+            XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
+            YAggregate="@(e => e.Count())"
+            OrderBy="@(c => c.X)"
+            SeriesType="SeriesType.Bar"/>
+    </ApexChart>
+</MudPaper>
+
+@code {
+    [Parameter] public List<SelfRegistrationDetails> Registrations { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChart<SelfRegistrationAggregate> _registrationsBarChart = new();
+    private readonly ApexChartOptions<SelfRegistrationAggregate> _registrationsBarChartOptions = new();
+    private string _locale = "en-CA";
+
+    public record SelfRegistrationAggregate
+    {
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _registrationsBarChart.UpdateSeriesAsync();
+        await _registrationsBarChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        var max = DateTime.UtcNow;
+        var min = max.AddDays(-90);
+        var range = (double?)(max - min).TotalMilliseconds;
+        _registrationsBarChartOptions.Chart = new Chart
+        {
+            Locales = Locales,
+            DefaultLocale = _locale,
+        };
+
+        _registrationsBarChartOptions.Yaxis =
+        [
+            new YAxis
+            {
+                Title = new AxisTitle { Text = Localizer["Registrations"].ToString() },
+            }
+        ];
+        _registrationsBarChartOptions.Xaxis = new XAxis
+        {
+            Type = XAxisType.Datetime,
+            Range = range
+        };
+        _registrationsBarChartOptions.PlotOptions = new PlotOptions
+        {
+            Bar = new PlotOptionsBar
+            {
+                ColumnWidth = "100%"
+            },
+        };
+    }
+
+}

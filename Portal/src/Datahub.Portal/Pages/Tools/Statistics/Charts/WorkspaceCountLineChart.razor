@@ -1,0 +1,107 @@
+@using ApexCharts
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Align = MudBlazor.Align
+@using ApexCharts
+<MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
+    @if (_aggregatedWorkspaces.Any() || _aggregatedResources.Any())
+    {
+        <ApexChart TItem="AggregatedData" Title="@Title" Height="300" Options="@_chartOptions">
+            <ApexPointSeries
+                TItem="AggregatedData"
+                Items="@_aggregatedWorkspaces"
+                Name="@Localizer["Workspaces"]"
+                XValue="@(c => c.Date)"
+                YValue="@(c => c.Count)"
+                SeriesType="SeriesType.Line" />
+            <ApexPointSeries
+                TItem="AggregatedData"
+                Items="@_aggregatedResources"
+                Name="@Localizer["Resources"]"
+                XValue="@(c => c.Date)"
+                YValue="@(c => c.Count)"
+                SeriesType="SeriesType.Line" />
+        </ApexChart>
+    }
+    else
+    {
+        <MudText Align="Align.Center">@Localizer["No workspace or resource data available."]</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public List<WorkspaceTableData> Workspaces { get; set; }
+    [Parameter] public string Title { get; set; }
+    private List<AggregatedData> _aggregatedWorkspaces = new();
+    private List<AggregatedData> _aggregatedResources = new();
+    private readonly ApexChartOptions<AggregatedData> _chartOptions = new();
+
+    private record AggregatedData
+    {
+        public DateTime Date { get; set; }
+        public int Count { get; set; }
+    }
+
+    protected override void OnParametersSet()
+    {
+        var cumulativeWorkspaceCount = 0;
+        _aggregatedWorkspaces = Workspaces
+            .Where(w => w.CreatedAt != DateTime.MinValue)
+            .OrderBy(w => w.CreatedAt)
+            .GroupBy(w => w.CreatedAt.Date)
+            .Select(g =>
+            {
+                cumulativeWorkspaceCount += g.Count();
+                return new AggregatedData
+                {
+                    Date = g.Key,
+                    Count = cumulativeWorkspaceCount
+                };
+            })
+            .ToList();
+
+        var cumulativeResourceCount = 0;
+        _aggregatedResources = Workspaces
+            .Where(w => w.CreatedAt != DateTime.MinValue)
+            .OrderBy(w => w.CreatedAt)
+            .GroupBy(w => w.CreatedAt.Date)
+            .Select(g =>
+            {
+                cumulativeResourceCount += g.Sum(w => w.ResourceCount);
+                return new AggregatedData
+                {
+                    Date = g.Key,
+                    Count = cumulativeResourceCount
+                };
+            })
+            .ToList();
+
+        DefineChartOptions();
+    }
+
+    private void DefineChartOptions()
+    {
+        _chartOptions.Chart = new Chart
+        {
+            Type = ApexCharts.ChartType.Line
+        };
+        _chartOptions.Xaxis = new XAxis
+        {
+            Type = XAxisType.Datetime,
+            Title = new AxisTitle { Text = Localizer["Date"].ToString() }
+        };
+        _chartOptions.Yaxis = new List<YAxis>
+        {
+            new YAxis
+            {
+                Title = new AxisTitle { Text = Localizer["Count"].ToString() }
+            }
+        };
+        _chartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return val + ' items'; }"
+            }
+        };
+    }
+}
