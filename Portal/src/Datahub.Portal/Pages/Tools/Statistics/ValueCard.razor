@@ -1,0 +1,17 @@
+﻿<MudPaper Outlined Elevation="0" Class="d-flex pa-4" Style="flex-direction:column; justify-content: center; align-items: center; min-width: 100px">
+    @if (!LabelBelow)
+    {
+        <MudText Typo="Typo.subtitle2">@Label</MudText>
+    }
+    <MudText Typo="Typo.h2">@Value</MudText>
+    @if (LabelBelow)
+    {
+        <MudText Typo="Typo.subtitle2">@Label</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public string Label { get; set; } = string.Empty;
+    [Parameter] public bool LabelBelow { get; set; } = true;
+}
