@@ -68,6 +68,13 @@ public class Project_Role
                 Name = "Guest",
                 Description =
                     "Able to view the workspace and its contents but not able to contribute or modify anything"
+            },
+            new()
+            {
+                Id = (int)RoleNames.DisabledUser,
+                Name = "Disabled User",
+                Description =
+                    "A user whose access has been disabled and cannot interact with the workspace"
             }
         };
     }
@@ -78,6 +85,7 @@ public class Project_Role
         WorkspaceLead = 2,
         Admin = 3,
         Collaborator = 4,
-        Guest = 5
+        Guest = 5,
+        DisabledUser = 6
     }
 }
