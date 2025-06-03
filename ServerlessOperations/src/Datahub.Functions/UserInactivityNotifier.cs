@@ -49,6 +49,8 @@ namespace Datahub.Functions
             var message = await serviceBusReceivedMessage
                 .DeserializeAndUnwrapMessageAsync<UserInactivityNotificationMessage>();
 
+            _logger.LogInformation($"Received user notification check for ID: {message.UserId}");
+
             // verify message 
             if (message is null)
             {
@@ -56,28 +58,40 @@ namespace Datahub.Functions
             }
 
             using var ctx = await dbContextFactory.CreateDbContextAsync(ct);
-
-            // get project
-            var user = await ctx.PortalUsers.AsNoTracking().Where(x => x.Id == message.UserId).FirstOrDefaultAsync(ct);
+            var user = await ctx.PortalUsers
+                .AsNoTracking()
+                .Where(x => x.Id == message.UserId)
+                .FirstAsync(ct);
+            _logger.LogInformation("Found user {UserDisplayName} to check for inactivity notifications",
+                user.DisplayName);
 
             var lastLoginDate = user.LastLoginDateTime ?? user.FirstLoginDateTime;
             var daysSinceLastLogin = (dateProvider.Today - lastLoginDate)?.Days;
             var daysUntilLocked = dateProvider.UserInactivityLockedDay() - daysSinceLastLogin;
             var daysUntilDeleted = dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin;
+            _logger.LogInformation(
+                "User {UserDisplayName} has been inactive for {DaysSinceLastLogin} days. They will be locked in {DaysUntilLocked} days and deleted in {DaysUntilDeleted} days.",
+                user.DisplayName, daysSinceLastLogin, daysUntilLocked, daysUntilDeleted);
 
             if (lastLoginDate != null && emailValidator.IsValidEmail(user.Email))
             {
+                _logger.LogInformation("Checking if the user needs to be notified at this time...");
                 var email = await CheckIfUserToBeNotified(daysSinceLastLogin!.Value, daysUntilLocked!.Value,
                     daysUntilDeleted!.Value, user.Email);
 
                 if (email != null)
                 {
+                    _logger.LogInformation("User {UserDisplayName} needs to be notified. Sending email...",
+                        user.DisplayName);
                     await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
                         email, ct);
 
                     // send notification to db
+                    _logger.LogInformation("Notification sent to {UserDisplayName} for inactivity, saving to db...",
+                        user.DisplayName);
                     await userInactivityNotificationService.AddInactivityNotification(user.Id, dateProvider.Today,
                         daysUntilLocked!.Value, daysUntilDeleted!.Value, ct);
+                    _logger.LogInformation("Notification saved to db for {UserDisplayName}", user.DisplayName);
                 }
             }
             if (daysUntilLocked <= 0)
