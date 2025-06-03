@@ -428,6 +428,11 @@ namespace Datahub.Infrastructure.Services.UserManagement
             try
             {
                 var currentUser = await userInformationService.GetCurrentPortalUserAsync();
+                if (currentUser == null)
+                {
+                    // this is legitimate , if the user is not logged in
+                    return null;
+                }
                 await using var context = await datahubContextFactory.CreateDbContextAsync();
                 var userSettings = await context.UserSettings
                     .AsNoTracking()
