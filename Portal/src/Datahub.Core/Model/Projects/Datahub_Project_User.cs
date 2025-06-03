@@ -23,24 +23,6 @@ public class Datahub_Project_User
     public PortalUser ApprovedPortalUser { get; set; }
     #endregion
 
-    #region Deprecated
-    [Obsolete("Use PortalUser reference instead")]
-    [StringLength(200)]
-    public string User_Name { get; set; }
-
-    [Obsolete("Use Role reference instead")]
-    public bool IsDataApprover { get; set; }
-    [Obsolete("Use Role reference instead")]
-    public bool IsAdmin { get; set; }
-
-    [Obsolete("Use PortalUser reference instead")]
-    [StringLength(200)]
-    public string User_ID { get; set; }
-
-    [Obsolete("Use ApprovedPortalUser reference instead")]
-    public string ApprovedUser { get; set; }
-    #endregion
-
     [Timestamp]
     public byte[] Timestamp { get; set; }
 }

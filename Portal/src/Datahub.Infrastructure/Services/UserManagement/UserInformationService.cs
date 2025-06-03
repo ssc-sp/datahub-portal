@@ -47,7 +47,7 @@ public class UserInformationService(
         return authenticatedUser;
     }
 
-    public async Task<string> GetUserIdString()
+    public async Task<string> GetGraphUserIdString()
     {
         await CheckUser();
         return GetOid();
@@ -463,7 +463,7 @@ public class UserInformationService(
 
     public async Task RegisterAuthenticatedPortalUser()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
 
         var portalUser = await GetPortalUserAsync(graphId);
         if (portalUser is null)
@@ -504,7 +504,7 @@ public class UserInformationService(
 
     public async Task<PortalUser> GetCurrentPortalUserAsync()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
         return await GetPortalUserAsync(graphId);
     }
 
@@ -539,7 +539,7 @@ public class UserInformationService(
 
     public async Task<bool> IsDailyLogin()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
         var portalUser = await GetPortalUserAsync(graphId);
 
         if (portalUser is null)
@@ -553,7 +553,7 @@ public class UserInformationService(
 
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
         return await GetPortalUserWithAchievementsAsync(graphId);
     }
 
