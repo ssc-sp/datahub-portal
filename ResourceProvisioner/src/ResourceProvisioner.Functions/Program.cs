@@ -24,7 +24,6 @@ var host = new HostBuilder()
 services.AddMassTransitForAzureFunctions(x =>
        {
            x.AddConsumersFromNamespaceContaining<ResourceRunRequest>();
-           x.AddConsumersFromNamespaceContaining<WorkspaceVersionUpdateRequest>(); // Adding the VersionUpdater consumer  
        }, "DatahubServiceBus:ConnectionString");
 
     })
