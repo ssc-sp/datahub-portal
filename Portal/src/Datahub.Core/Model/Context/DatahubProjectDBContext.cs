@@ -25,7 +25,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 {
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<Datahub_Project_User> Project_Users { get; set; }
-    public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
     public DbSet<Organization_Level> Organization_Levels { get; set; }
     public DbSet<OnboardingApp> OnboardingApps { get; set; }
 
