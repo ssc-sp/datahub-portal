@@ -24,7 +24,6 @@ namespace Datahub.Core.Model.Context;
 public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
 {
     public DbSet<Datahub_Project> Projects { get; set; }
-    public DbSet<Datahub_ProjectComment> Project_Comments { get; set; }
     public DbSet<Datahub_Project_User> Project_Users { get; set; }
     public DbSet<Datahub_Project_User_Request> Project_Users_Requests { get; set; }
     public DbSet<Datahub_Project_Pipeline_Lnk> Project_Pipeline_Links { get; set; }
@@ -200,8 +199,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<Datahub_Project>().HasIndex(p => p.Project_Acronym_CD).IsUnique();
         modelBuilder.Entity<Datahub_Project>().Property(p => p.WebAppUrlRewritingEnabled).HasDefaultValue(true);
-
-        modelBuilder.Entity<Datahub_ProjectComment>().HasOne(c => c.Project).WithMany(p => p.Comments);
 
         modelBuilder.Entity<Datahub_Project_Pipeline_Lnk>().HasKey(t => new { t.Project_ID, t.Process_Nm });
 

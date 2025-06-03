@@ -36,9 +36,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [Key]
     public int Project_ID { get; set; }
 
-    [AeFormIgnore]
-    public int? SectorId { get; set; }
-
     /// <summary>
     /// Gets or sets the email for the user who created the workspace.
     /// </summary>
@@ -158,11 +155,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
 
     /// <summary>
-    /// Gets or sets the list of comments associated with the workspace.
-    /// </summary>
-    public List<Datahub_ProjectComment> Comments { get; set; }
-
-    /// <summary>
     /// Gets or sets the list of users associated with the workspace.
     /// </summary>
     public List<Datahub_Project_User> Users { get; set; }
@@ -187,6 +179,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public bool IsOverBudget => Credits is null ? false : Credits.Current >= (double)Project_Budget;
 
+    /// <summary>
+    /// Gets or sets the timestamp for concurrency control.
+    /// </summary>
     [AeFormIgnore]
     [Timestamp]
     public byte[] Timestamp { get; set; }
@@ -317,7 +312,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     }
 
     /// <summary>
-    /// Gets or sets the hashed API token for the workspace.
+    /// Gets or sets the hashed API token for the workspace. This is for future use and is not currently used.
     /// </summary>
     public string HashedAPIToken { get; set; }
 
