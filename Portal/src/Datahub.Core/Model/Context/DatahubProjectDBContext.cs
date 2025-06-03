@@ -65,6 +65,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Achievements.Achievement> Achievements { get; set; }
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
+    public DbSet<PortalUserStatusChange> PortalUserStatusChanges { get; set; }
+
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
 
@@ -296,6 +298,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .WithOne(e => e.Credits)
                   .OnDelete(DeleteBehavior.NoAction);
         });
+        modelBuilder.Entity<PortalUserStatusChange>()
+            .Property(p => p.StatusId)
+            .HasConversion<int>();
 
         modelBuilder.Entity<PBI_User_License_Request>()
             .HasOne(p => p.LicenseRequest)
