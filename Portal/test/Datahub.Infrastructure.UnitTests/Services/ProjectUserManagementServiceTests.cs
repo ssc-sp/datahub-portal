@@ -896,7 +896,6 @@ public class ProjectUserManagementServiceTests
                 Project_Name = $"Project {i}",
                 Project_Acronym_CD = $"{i}",
                 Project_Status_Desc = "Active",
-                Sector_Name = $"Sector {i}",
             })
             .ToList();
 
