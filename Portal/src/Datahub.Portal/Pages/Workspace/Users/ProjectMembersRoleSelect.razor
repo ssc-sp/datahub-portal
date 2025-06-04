@@ -42,15 +42,6 @@
             </MudMenuItem>
         }
         <MudDivider />
-        @{
-            var disabledRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.DisabledUser);
-        }
-        <MudMenuItem Disabled Style="max-width: 400px;">
-            <MudAlert Style="margin-bottom: 12px;" Dense Severity="Severity.Info">@Localizer["Disabled users cannot interact with the workspace."]</MudAlert>
-            <MudText Typo="Typo.h6">@Localizer[disabledRole.Name]</MudText>
-            <MudText>@Localizer[disabledRole.Description]</MudText>
-        </MudMenuItem>
-        <MudDivider />
         <MudMenuItem OnClick="@(() => RoleChanged(_removeRole.Id))" Style="max-width: 400px;">
             <MudText Color="Color.Error" Typo="Typo.h6">@Localizer[_removeRole.Name]</MudText>
             <MudText Color="Color.Error">@Localizer[_removeRole.Description]</MudText>
