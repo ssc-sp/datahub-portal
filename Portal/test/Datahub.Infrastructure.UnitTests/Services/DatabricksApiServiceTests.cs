@@ -99,7 +99,6 @@ public class DatabricksApiServiceTests
             Project_Acronym_CD = acronym,
             Project_Name = PROJECT_NAMES[index],
             Project_Status_Desc = "Active",
-            Sector_Name = "Test Sector",
             Resources = [
                new Project_Resources2 
                {

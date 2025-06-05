@@ -67,7 +67,6 @@ public class ProjectResourcingWhitelistServiceTests
         {
             Assert.That(project.Project_Acronym_CD, Is.EqualTo(whitelist.Project.Project_Acronym_CD));
             Assert.That(allowStorage, Is.EqualTo(whitelist.AllowStorage));
-            Assert.That(allowVMs, Is.EqualTo(whitelist.AllowVMs));
             Assert.That(allowDatabricks, Is.EqualTo(whitelist.AllowDatabricks));
         });
 
@@ -96,7 +95,6 @@ public class ProjectResourcingWhitelistServiceTests
         // allow all resources on whitelist
         whitelist.AllowStorage = true;
         whitelist.AllowDatabricks = true;
-        whitelist.AllowVMs = true;
         await whitelistService.UpdateProjectResourceWhitelistAsync(whitelist);
         //var whitelist = await whitelistService.GetProjectResourceWhitelistByProjectAsync(project!.Project_ID);
         Assert.Multiple(() =>
@@ -115,7 +113,6 @@ public class ProjectResourcingWhitelistServiceTests
             Project_Acronym_CD = acronym,
             Project_Name = PROJECT_NAMES[index],
             Project_Status_Desc = "Active",
-            Sector_Name = "Test Sector",
         }).ToArray();
         await context.Projects.AddRangeAsync(projects);
         await context.SaveChangesAsync();
@@ -133,7 +130,6 @@ public class ProjectResourcingWhitelistServiceTests
             {
                 ProjectId = projects[1].Project_ID,
                 AllowStorage = true,
-                AllowVMs = true,
                 AllowDatabricks = true,
                 AdminLastUpdated_ID = OldUserId,
                 AdminLastUpdated_UserName = OldUserEmail,

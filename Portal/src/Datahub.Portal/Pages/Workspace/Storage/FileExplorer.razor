@@ -216,7 +216,7 @@ else
 
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _userId = await _userInformationService.GetUserIdString();
+        _userId = await _userInformationService.GetGraphUserIdString();
 
         _uploadingFiles = new List<FileMetaData>();
     }

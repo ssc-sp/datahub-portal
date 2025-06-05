@@ -13,6 +13,11 @@
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
 		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
 	</PropertyGroup>
+	<PropertyGroup Condition="'$(Configuration)' == 'MIGRATION'">
+		<DefineConstants>MIGRATION</DefineConstants>
+	</PropertyGroup>
+
+
 	<ItemGroup>
 		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
 	</ItemGroup>
