@@ -79,7 +79,6 @@ namespace Datahub.Functions
             var daysSinceLastLogin = (dateProvider.Today - lastLoginDate).Days;
             var daysUntilDeletion = dateProvider.ProjectSoftDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
-            var hasCostRecovery = project.HasCostRecovery;
             var (contacts, acronym) = await GetProjectDetails(message.ProjectId, ct);
 
             _logger.LogInformation("Project {Acronym} (ID: {ProjectId}) last activity: {LastLoginDate}, inactive for {DaysSinceLastLogin} days, {DaysUntilDeletion} days until soft deletion.",
@@ -91,7 +90,7 @@ namespace Datahub.Functions
             // check if project to be notified
             _logger.LogInformation("Checking if project {Acronym} needs to be notified for inactivity...", acronym);
             var email = await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow,
-                hasCostRecovery, acronym, contacts);
+                 acronym, contacts);
 
             var adminEmailBodyText = await GetAdminEmailBodyText(daysSinceLastLogin, acronym);
 
@@ -150,11 +149,11 @@ namespace Datahub.Functions
         }
 
         public async Task<EmailRequestMessage?> CheckIfProjectToBeNotified(int daysUntilDeletion,
-            int daysSinceLastLogin, DateTime? operationalWindow, bool hasCostRecovery, string acronym,
+            int daysSinceLastLogin, DateTime? operationalWindow, string acronym,
             List<string> contacts)
         {
             // check if we are past operational window or that it is null and that the project has no cost recovery and that
-            if ((operationalWindow == null || operationalWindow < dateProvider.Today) && !hasCostRecovery &&
+            if ((operationalWindow == null || operationalWindow < dateProvider.Today) &&
                 dateProvider.ProjectNotificationDays().Contains(daysUntilDeletion))
             {
                 return GetEmailRequestMessage(daysUntilDeletion, daysSinceLastLogin, acronym, contacts, "project_inactive_alert.html", (string.Empty, string.Empty));

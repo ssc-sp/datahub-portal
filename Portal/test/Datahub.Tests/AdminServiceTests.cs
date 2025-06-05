@@ -31,19 +31,6 @@ public class AdminServiceTests
     }
 
     [Fact]
-    public async Task IdentifyDuplicates()
-    {
-        using var ctx = await dbFactory.CreateDbContextAsync();
-        var lst = await ctx.Project_Users_Requests
-            .GroupBy(a => new { a.User_ID, a.Project.Project_ID })
-            .Where(gp => gp.Count() > 1)
-            .Select(gp => gp.ToList())
-            .ToListAsync();
-        //var dups = await ctx.Project_Users_Requests.GroupBy(a => new { a.Project, a.User_ID }).SelectMany(grp => grp.Skip(1)).ToListAsync();
-
-    }
-
-    [Fact]
     public void CheckClaims()
     {
         var identity = new ClaimsIdentity(new[]

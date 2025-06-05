@@ -26,7 +26,7 @@ public interface IUserInformationService
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
 
     Task<User> GetAnonymousGraphUserAsync();
-    Task<string> GetUserIdString();
+    Task<string> GetGraphUserIdString();
     Task<string> GetDisplayName();
     Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
