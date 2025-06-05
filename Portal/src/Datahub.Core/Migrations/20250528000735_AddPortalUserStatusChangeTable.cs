@@ -27,12 +27,6 @@ namespace Datahub.Core.Migrations
                     table.PrimaryKey("PK_PortalUserStatusChanges", x => x.Id);
                 });
 
-            // Add new record to Project_Roles table 
-            migrationBuilder.InsertData(
-                table: "Project_Roles",
-                columns: new[] { "Id", "Name", "Description" },
-                values: new object[] { 6, "Disabled User", "A user whose access has been disabled and cannot interact with the workspace" });
-
         }
 
         /// <inheritdoc />
