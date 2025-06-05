@@ -36,7 +36,7 @@ else
             </MudStack>
             <MudStack Spacing="1">
                 <ProjectPreviewCardIconDetails
-                    NumberOfUsers="Project?.Users?.Count(x => x.RoleId != (int)Project_Role.RoleNames.Remove) ?? 0"
+                    NumberOfUsers="Project?.Users?.Count(x => x.RoleId != (int)Project_Role.RoleNames.Removed) ?? 0"
                     NumberOfRepositories="Project?.Repositories?.Count ?? 0"
                     NumberOfFiles="0"/>
                 <MudElement>
