@@ -144,7 +144,7 @@ public class ProjectUserManagementServiceTests
     [TestCase((int)Project_Role.RoleNames.Admin, Ignore = "Needs to be validated")]
     [TestCase((int)Project_Role.RoleNames.Collaborator, Ignore = "Needs to be validated")]
     [TestCase((int)Project_Role.RoleNames.Guest, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Remove, Ignore = "Needs to be validated")]
+    [TestCase((int)Project_Role.RoleNames.Removed, Ignore = "Needs to be validated")]
     public async Task ShouldProcessAddExistingUserCommandTest(int roleId)
     {
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
@@ -175,7 +175,7 @@ public class ProjectUserManagementServiceTests
                 new List<ProjectUserUpdateCommand>(),
                 new List<ProjectUserAddUserCommand> { command }, "");
 
-        if (roleId == (int)Project_Role.RoleNames.Remove)
+        if (roleId == (int)Project_Role.RoleNames.Removed)
         {
             Assert.That(result, Is.False);
             _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
@@ -317,7 +317,7 @@ public class ProjectUserManagementServiceTests
     [TestCase((int)Project_Role.RoleNames.Admin, Ignore = "Needs to be validated")]
     [TestCase((int)Project_Role.RoleNames.Collaborator, Ignore = "Needs to be validated")]
     [TestCase((int)Project_Role.RoleNames.Guest, Ignore = "Needs to be validated")]
-    [TestCase((int)Project_Role.RoleNames.Remove, Ignore = "Needs to be validated")]
+    [TestCase((int)Project_Role.RoleNames.Removed, Ignore = "Needs to be validated")]
     public async Task ShouldProcessUpdateUserCommandTest(int roleId)
     {
         var projectUserManagementService = GetProjectUserManagementService();
@@ -344,7 +344,7 @@ public class ProjectUserManagementServiceTests
 
         Assert.That(result, Is.True);
 
-        if (roleId == (int)Project_Role.RoleNames.Remove)
+        if (roleId == (int)Project_Role.RoleNames.Removed)
         {
             // double check that the project user is gone
             var projectUser = await _dbContext.Project_Users
@@ -352,7 +352,7 @@ public class ProjectUserManagementServiceTests
                 .Include(u => u.PortalUser).Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.PortalUser.GraphGuid == existingProjectUser.PortalUser.GraphGuid);
 
-            Assert.That(projectUser.Role.Id, Is.EqualTo((int)Project_Role.RoleNames.Remove));
+            Assert.That(projectUser.Role.Id, Is.EqualTo((int)Project_Role.RoleNames.Removed));
         }
 
         //_mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),

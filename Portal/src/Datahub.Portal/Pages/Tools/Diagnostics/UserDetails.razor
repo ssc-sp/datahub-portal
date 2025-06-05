@@ -78,7 +78,7 @@ else
 
     private IEnumerable<Project_Role> _projectRoles = Project_Role
         .GetAll()
-        .Where(r => r.Id != (int) Project_Role.RoleNames.Remove);
+        .Where(r => r.Id != (int) Project_Role.RoleNames.Removed);
 
     protected override async Task OnInitializedAsync()
     {
