@@ -145,6 +145,12 @@ public class UserInformationService(
                    .Any(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? false;
     }
 
+    private bool HasOid()
+    {
+        return authenticatedUser?.Claims?
+                   .Any(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? false;
+    }
+
     private string GetOid()
     {
         // ReSharper disable once ConstantConditionalAccessQualifier
