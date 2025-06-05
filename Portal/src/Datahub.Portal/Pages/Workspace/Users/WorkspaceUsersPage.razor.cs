@@ -46,7 +46,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true ||
                 projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
             var matchesFilteredRole = _currentRoleFilter is null || originalUser?.RoleId == _currentRoleFilter;
-            var isNotRemoved = originalUser?.RoleId != (int)Project_Role.RoleNames.Remove;
+            var isNotRemoved = originalUser?.RoleId != (int)Project_Role.RoleNames.Removed;
 
             return matchesSearch && matchesFilteredRole && isNotRemoved;
         }
@@ -119,7 +119,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
         private void UpdateProjectMemberRoleCommand(ProjectUserAddUserCommand projectUser, int newRoleId)
         {
             projectUser.RoleId = newRoleId;
-            if (projectUser.RoleId == (int)Project_Role.RoleNames.Remove)
+            if (projectUser.RoleId == (int)Project_Role.RoleNames.Removed)
             {
                 _usersToAdd.Remove(projectUser);
             }
@@ -156,7 +156,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
             var dialogParameters = new DialogParameters
         {
-            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
+            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Removed).ToList() },
             { "ProjectAcronym", WorkspaceAcronym },
             { "Inviter", currentUser }
         };
