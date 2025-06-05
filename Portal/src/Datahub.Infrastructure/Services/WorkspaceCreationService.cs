@@ -222,7 +222,6 @@ public class WorkspaceCreationService(
 
     private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null)
     {
-        var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
 
         var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
@@ -232,7 +231,6 @@ public class WorkspaceCreationService(
             Project_Acronym_CD = acronym,
             Project_Name = projectName,
             Project_Name_Fr = projectName,
-            Sector_Name = sectorName,
             Contact_List = portalUser.Email,
             Project_Admin = portalUser.Email,
             Project_Phase = TerraformStatus.CreateRequested,
