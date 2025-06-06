@@ -123,7 +123,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             }
 
             // If a user was previously removed from the project, we reset the Approved_DT to update the added date.
-            if (userToUpdate.RoleId == (int)Project_Role.RoleNames.Remove)
+            if (userToUpdate.RoleId == (int)Project_Role.RoleNames.Removed)
             {
                 userToUpdate.Approved_DT = DateTime.UtcNow;
             }
@@ -141,7 +141,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     {
         foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
         {
-            if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Remove)
+            if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Removed)
             {
                 throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
             }

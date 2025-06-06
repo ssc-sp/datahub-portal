@@ -7,6 +7,7 @@ public class ProjectRolesConfiguration : IEntityTypeConfiguration<Project_Role>
 {
     public void Configure(EntityTypeBuilder<Project_Role> builder)
     {
+        // Seed the database with predefined project roles
         builder.HasData(Project_Role.GetAll());
 
         builder.ToTable("Project_Roles");
