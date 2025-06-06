@@ -266,7 +266,7 @@ namespace Datahub.Core.Migrations
                     b.ToTable("PortalUsers", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUserStatusChange", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUserRoleChange", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -280,7 +280,7 @@ namespace Datahub.Core.Migrations
                     b.Property<int>("PortalUserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("StatusId")
+                    b.Property<int>("RoleId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
