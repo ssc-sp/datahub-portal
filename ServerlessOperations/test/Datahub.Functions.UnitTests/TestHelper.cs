@@ -145,7 +145,6 @@ namespace Datahub.Functions.UnitTests
                     Project_Acronym_CD = TEST_PROJECT_ACRONYM,
                     Project_Name = "Test Workspace",
                     Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector",
                     Deleted_DT = null,
                     DatahubAzureSubscription = new DatahubAzureSubscription
                     {
@@ -159,7 +158,6 @@ namespace Datahub.Functions.UnitTests
                     Project_Acronym_CD = ACTIVE_WEB_APP_PROJECT_ACRONYM,
                     Project_Name = "WebApp Test Project",
                     Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector",
                     Deleted_DT = null,
                     DatahubAzureSubscription = new DatahubAzureSubscription
                     {
@@ -186,7 +184,6 @@ namespace Datahub.Functions.UnitTests
                     Project_Acronym_CD = INACTIVE_WEB_APP_PROJECT_ACRONYM,
                     Project_Name = "Inactive WebApp Test Project",
                     Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector",
                     Deleted_DT = null,
                     Resources =
                     [
@@ -207,7 +204,6 @@ namespace Datahub.Functions.UnitTests
                     Project_Acronym_CD = OVERBUDGET_WEB_APP_PROJECT_ACRONYM,
                     Project_Name = "Overbudget WebApp Test Project",
                     Project_Status_Desc = "Active",
-                    Sector_Name = "Test Sector",
                     Credits = new Project_Credits{ Current = 300},
                     Project_Budget = 200,
                     Users = portalUsers

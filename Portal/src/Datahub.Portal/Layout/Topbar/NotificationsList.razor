@@ -162,7 +162,7 @@
             .Build();
 
 
-        _currentUserId = await _userInformationService.GetUserIdString();
+        _currentUserId = await _userInformationService.GetGraphUserIdString();
         _notificationBadge = await _systemNotificationService.GetNotificationCountForUser(_currentUserId, true);
 
 
