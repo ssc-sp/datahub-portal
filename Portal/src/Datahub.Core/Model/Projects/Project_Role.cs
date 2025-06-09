@@ -37,7 +37,7 @@ public class Project_Role
         {
             new()
             {
-                Id = (int)RoleNames.Remove,
+                Id = (int)RoleNames.Removed,
                 Name = "Remove User",
                 Description = "Revoke the user's access to the workspace"
             },
@@ -79,13 +79,39 @@ public class Project_Role
         };
     }
 
+    /// <summary>
+    /// Defines a set of role names representing different permission levels within a workspace.
+    /// </summary>
     public enum RoleNames
     {
-        Remove = 1, // default is used in the UI to remove a user from a project
+        /// <summary>
+        /// Represents a soft deletion marker to remove the user from the workspace.
+        /// </summary>
+        Removed = 1,
+
+        /// <summary>
+        /// The lead for the workspace, bearing overall business responsibility.
+        /// </summary>
         WorkspaceLead = 2,
+
+        /// <summary>
+        /// A workspace administrator who manages resources and users.
+        /// </summary>
         Admin = 3,
+
+        /// <summary>
+        /// A collaborator who contributes to the workspace's objectives.
+        /// </summary>
         Collaborator = 4,
+
+        /// <summary>
+        /// A viewer with read-only access to workspace contents.
+        /// </summary>
         Guest = 5,
+
+        /// <summary>
+        /// A disabled user with no privileges within the workspace.
+        /// </summary>
         DisabledUser = 6
     }
 }
