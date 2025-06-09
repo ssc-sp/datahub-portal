@@ -159,31 +159,39 @@ public class RequestManagementService(
     public async Task<bool> TriggerGreenLightChanges(string versionTag, string email)
     {
         // Parse the version tag and extract major and minor versions  
-        var parsedVersion = Version.Parse(versionTag.TrimStart('v'));
-        var parsedMajorMinor = $"v{parsedVersion.Major}.{parsedVersion.Minor}";
-
-        await using var db = await dbContextFactory.CreateDbContextAsync();
-        var currentVersionProjects = await db.Projects
-            .Where(p => p.Version.StartsWith(parsedMajorMinor)) 
-            .ToListAsync();
-        
-        if (currentVersionProjects.Any())
+        try
         {
-            foreach (var project in currentVersionProjects)
+            var parsedVersion = Version.Parse(versionTag.TrimStart('v'));
+            var parsedMajorMinor = $"v{parsedVersion.Major}.{parsedVersion.Minor}";
+
+            await using var db = await dbContextFactory.CreateDbContextAsync();
+            var currentVersionProjects = await db.Projects
+                .Where(p => p.Version.StartsWith(parsedMajorMinor))
+                .ToListAsync();
+
+            if (currentVersionProjects.Any())
             {
-                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, email);
-                var parsedProjectVersion = workspaceDefinition.Workspace.Version.TrimStart('v');
-                
-                if (Version.Parse(parsedProjectVersion) >= parsedVersion)
+                foreach (var project in currentVersionProjects)
                 {
-                    continue; 
+                    var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, email);
+                    var parsedProjectVersion = workspaceDefinition.Workspace.Version.TrimStart('v');
+
+                    if (Version.Parse(parsedProjectVersion) >= parsedVersion)
+                    {
+                        continue;
+                    }
+                    workspaceDefinition.Workspace.Version = versionTag;
+                    workspaceDefinition.UpdateWorkspaceVersion = true;
+                    await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
                 }
-                workspaceDefinition.Workspace.Version = versionTag;
-                workspaceDefinition.UpdateWorkspaceVersion = true;
-                await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             }
+            return true;
         }
-        return true;
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error triggering green light changes for version {VersionTag} requseted by {Email}", versionTag, email);
+            return false;
+        }
     }
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
