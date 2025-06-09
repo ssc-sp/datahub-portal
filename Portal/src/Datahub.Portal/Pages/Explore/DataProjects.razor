@@ -163,8 +163,7 @@
     private bool ProjectFilter(Datahub_Project project)
     {
         return project.Project_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
-               project.Project_Acronym_CD.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant()) ||
-               project.Sector_Name.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant());
+               project.Project_Acronym_CD.ToLowerInvariant().Contains(_projectSearchFilter.ToLowerInvariant());
     }
 
 }

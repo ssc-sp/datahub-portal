@@ -189,7 +189,7 @@ public class RequestManagementService(
     {
         return projectUser.RoleId switch
         {
-            (int)Project_Role.RoleNames.Remove => Role.Removed,
+            (int)Project_Role.RoleNames.Removed => Role.Removed,
             (int)Project_Role.RoleNames.WorkspaceLead => Role.Owner,
             (int)Project_Role.RoleNames.Admin => Role.Admin,
             (int)Project_Role.RoleNames.Collaborator => Role.User,

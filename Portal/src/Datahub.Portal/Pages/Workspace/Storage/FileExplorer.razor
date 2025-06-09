@@ -31,7 +31,7 @@
                 MetadataSignature=@_metadataSignature
                 OnNewFolder="HandleNewFolder"
                 SetCurrentFolder="SetCurrentFolder"
-                OnFileDelete="HandleFileDelete"
+                OnFileDelete="HandleFilesDelete"
                 OnFileDownload="HandleFileDownload"
                 OnPublishFiles="HandlePublishFiles"
                 OnFileRename="HandleFileRename"
@@ -216,7 +216,7 @@ else
 
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _userId = await _userInformationService.GetUserIdString();
+        _userId = await _userInformationService.GetGraphUserIdString();
 
         _uploadingFiles = new List<FileMetaData>();
     }

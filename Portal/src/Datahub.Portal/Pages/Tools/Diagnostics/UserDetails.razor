@@ -78,14 +78,14 @@ else
 
     private IEnumerable<Project_Role> _projectRoles = Project_Role
         .GetAll()
-        .Where(r => r.Id != (int) Project_Role.RoleNames.Remove);
+        .Where(r => r.Id != (int) Project_Role.RoleNames.Removed);
 
     protected override async Task OnInitializedAsync()
     {
         var user = await _userInformationService.GetAuthenticatedUser(true);
         _userName = user.Identity?.Name;
         _userId = user.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-        _oid = await _userInformationService.GetUserIdString();
+        _oid = await _userInformationService.GetGraphUserIdString();
         var userIdentity = (ClaimsIdentity)user.Identity;
         var claims = userIdentity?.Claims;
         var roleClaimType = userIdentity?.RoleClaimType;

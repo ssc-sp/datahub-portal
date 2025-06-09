@@ -320,7 +320,7 @@ else
                     .ToList()
             },
             MemberCount = allWorkspaceMembers
-                .Count(m => m.Project_ID == w.Project_ID && m.RoleId != (int)Project_Role.RoleNames.Remove),
+                .Count(m => m.Project_ID == w.Project_ID && m.RoleId != (int)Project_Role.RoleNames.Removed),
             Members = new DHTableLinkList
             {
                 Links = w.Users.Select(u => ValueTuple.Create(u.PortalUser.DisplayName, $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.GraphGuid.Base64Encode()}")).ToList()
