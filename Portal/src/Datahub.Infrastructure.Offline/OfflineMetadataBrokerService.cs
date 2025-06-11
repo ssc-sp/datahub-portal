@@ -78,8 +78,8 @@ public class OfflineMetadataBrokerService : IMetadataBrokerService
     }
 
     public Task UpdateCatalog(long objectId, MetadataObjectType dataType, string englishName, string frenchName, string location,
-        int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText,
-        CatalogObjectLanguage language, int? projectId, bool anonymous = false)
+        string contact, ClassificationType securityClass, string englishText, string frenchText, CatalogObjectLanguage language, int? projectId,
+        bool anonymous = false)
     {
         throw new NotImplementedException();
     }
