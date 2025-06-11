@@ -71,7 +71,7 @@ namespace Datahub.Functions
             if (project is null)
             {
                 _logger.LogWarning("Project with ID {ProjectId} not found.", message.ProjectId);
-                return;
+                throw new InvalidDataException($"Project with ID {message.ProjectId} not found.");
             }
         
             // get project info
