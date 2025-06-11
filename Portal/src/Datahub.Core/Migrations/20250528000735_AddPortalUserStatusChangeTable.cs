@@ -36,11 +36,6 @@ namespace Datahub.Core.Migrations
             migrationBuilder.DropTable(
                 name: "PortalUserStatusChanges");
 
-            // Remove the added record from Project_Roles table
-            migrationBuilder.DeleteData(
-                table: "Project_Roles",
-                keyColumn: "Id",
-                keyValue: 6);
         }
     }
 }

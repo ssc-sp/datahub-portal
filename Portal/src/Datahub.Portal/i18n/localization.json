@@ -2233,6 +2233,7 @@
   "Yes, grant access to my workspace(s)": "Yes, grant access to my workspace(s)",
   "Yesterday": "Yesterday",
   "Yesterday costs": "Yesterday costs",
+  "You are about to delete {0} files. Are you sure?": "You are about to delete {0} files. Are you sure?",
   "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.": "You are an administrator and can view all the repositories linked to your instance of Databricks. Collaborators can only view their own linked repositories.",
   "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.": "You are not an administrator and you can only see the repositories linked to your own account in Databricks. If you wish to share other repositories, request a workspace administrator to share them.",
   "You are not authorized to edit metadata.": "You are not authorized to edit metadata.",
