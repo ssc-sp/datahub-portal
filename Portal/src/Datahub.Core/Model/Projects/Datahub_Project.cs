@@ -21,6 +21,10 @@ public enum ProjectStatus
     Support = 2,
     Closed = 3
 }
+
+/// <summary>
+/// Represents a Datahub workspace, encapsulating all its associated information and resources.
+/// </summary>
 public class Datahub_Project : IComparable<Datahub_Project>
 {
     public const string CLOSED = "Closed";
@@ -40,7 +44,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the email for the user who created the workspace.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-
     public string Contact_List { get; set; }
 
     /// <summary>
@@ -110,9 +113,15 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeLabel(validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
     public string Data_Sensitivity { get; set; } = "Unclassified";
 
+    /// <summary>
+    /// Gets or sets the description of the workspace's status.
+    /// </summary>
     [AeFormIgnore]
     public string Project_Status_Desc { get; set; }
 
+    /// <summary>
+    /// Gets or sets the numerical status of the workspace, corresponding to the <see cref="ProjectStatus"/> enum.
+    /// </summary>
     [AeFormIgnore]
     public int? Project_Status { get; set; }
 
@@ -129,15 +138,27 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormCategory("Workspace Information")]
     public string Project_Icon { get; set; }
 
+    /// <summary>
+    /// Gets or sets the date and time when the workspace was last updated.
+    /// </summary>
     [AeFormIgnore]
     public DateTime Last_Updated_DT { get; set; }
 
+    /// <summary>
+    /// Gets or sets the user ID of the person who last updated the workspace.
+    /// </summary>
     [AeFormIgnore]
     public string Last_Updated_UserId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the date and time when the workspace was marked as deleted. Null if not deleted.
+    /// </summary>
     [AeFormIgnore]
     public DateTime? Deleted_DT { get; set; }
 
+    /// <summary>
+    /// Gets or sets the date and time when the workspace was created.
+    /// </summary>
     [AeFormIgnore]
     public DateTime Created_DT { get; set; }
 
@@ -151,6 +172,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public DatahubAzureSubscription DatahubAzureSubscription { get; set; }
 
+    /// <summary>
+    /// Gets a value indicating whether the workspace is marked as deleted.
+    /// </summary>
     [AeFormIgnore]
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
 
@@ -221,15 +245,28 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public IList<OpenDataSubmission> PublishingSubmissions { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether metadata has been added to the workspace.
+    /// </summary>
     [AeFormIgnore]
     public bool? MetadataAdded { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether a web application is enabled for the workspace.
+    /// </summary>
     [AeFormIgnore]
     public bool? WebAppEnabled { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether URL rewriting is enabled for the web application of the workspace.
+    /// </summary>
     [AeFormIgnore]
     public bool WebAppUrlRewritingEnabled { get; set; }
 
+    /// <summary>
+    /// Gets the last login date of any user associated with the workspace.
+    /// Returns the last updated date if no users are present.
+    /// </summary>
     [AeFormIgnore]
     public DateTime? LastLoginDate
     {
@@ -243,17 +280,29 @@ public class Datahub_Project : IComparable<Datahub_Project>
         }
     }
 
+    /// <summary>
+    /// Gets or sets the operational window for the workspace.
+    /// </summary>
     [AeFormIgnore]
     public DateTime? OperationalWindow { get; set; }
 
+    /// <summary>
+    /// Gets or sets the URL for the web application associated with the workspace.
+    /// </summary>
     [AeFormIgnore]
     [StringLength(128)]
     public string WebApp_URL { get; set; }
 
+    /// <summary>
+    /// Gets or sets the version of the workspace, typically related to its Terraform configuration.
+    /// </summary>
     [AeFormIgnore]
     [StringLength(16)]
     public string Version { get; set; } = TerraformWorkspace.DefaultVersion;
 
+    /// <summary>
+    /// Gets or sets the URL of the Git repository associated with the workspace.
+    /// </summary>
     [AeFormIgnore]
     [StringLength(150)]
     public string GitRepo_URL { get; set; }
@@ -273,6 +322,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     public DateTime AllowDatahubSupport { get; set; }
 
+    /// <summary>
+    /// Gets the localized project name based on the current thread's culture.
+    /// Appends " (*)" to the English name if the French name is not available and the culture is French.
+    /// </summary>
     [AeFormIgnore]
     [NotMapped]
     public string ProjectName
@@ -287,6 +340,10 @@ public class Datahub_Project : IComparable<Datahub_Project>
         }
     }
 
+    /// <summary>
+    /// Gets the localized project description based on the current thread's culture.
+    /// Returns the English description if the French description is not available and the culture is French.
+    /// </summary>
     [AeFormIgnore]
     [NotMapped]
     public string ProjectDescription
@@ -301,6 +358,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
         }
     }
 
+    /// <summary>
+    /// Gets the project information including English name, French name, and acronym.
+    /// </summary>
     [AeFormIgnore]
     [NotMapped]
     public DatahubProjectInfo ProjectInfo

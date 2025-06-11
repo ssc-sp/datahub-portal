@@ -274,8 +274,8 @@ public class MetadataBrokerService : IMetadataBrokerService
     }
 
     public async Task UpdateCatalog(long objectMetadataId, MetadataObjectType dataType, string englishName, string frenchName,
-        string location, int sector, int branch, string contact, ClassificationType securityClass, string englishText, string frenchText,
-        CatalogObjectLanguage language, int? projectId, bool anonymous = false)
+        string location, string contact, ClassificationType securityClass, string englishText, string frenchText, CatalogObjectLanguage language, int? projectId,
+        bool anonymous = false)
     {
         using var ctx = contextFactory.CreateDbContext();
 
@@ -292,8 +292,6 @@ public class MetadataBrokerService : IMetadataBrokerService
                 catalogObject.Name_TXT = englishName;
                 catalogObject.Name_French_TXT = frenchName;
                 catalogObject.Location_TXT = location;
-                catalogObject.Sector_NUM = sector;
-                catalogObject.Branch_NUM = branch;
                 catalogObject.Contact_TXT = contact;
                 catalogObject.Classification_Type = securityClass;
                 catalogObject.Search_English_TXT = englishText;
@@ -372,12 +370,6 @@ public class MetadataBrokerService : IMetadataBrokerService
 
         if (request.ObjectTypes.Count > 0)
             query = query.Where(e => request.ObjectTypes.Contains(e.DataType));
-
-        if (request.Sectors.Count > 0)
-            query = query.Where(e => request.Sectors.Contains(e.Sector_NUM));
-
-        if (request.Branches.Count > 0)
-            query = query.Where(e => request.Branches.Contains(e.Branch_NUM));
 
         if (!containsKeywords)
             query = query.Where(e => e.CatalogObjectId > request.LastPageId);
@@ -552,8 +544,6 @@ public class MetadataBrokerService : IMetadataBrokerService
             Name_English = catObj.Name_TXT,
             Name_French = catObj.Name_French_TXT,
             Location = catObj.Location_TXT,
-            Sector = catObj.Sector_NUM,
-            Branch = catObj.Branch_NUM,
             Contact = catObj.Contact_TXT,
             ClassificationType = catObj.Classification_Type,
             Language = catObj.Language,

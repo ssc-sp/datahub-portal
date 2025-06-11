@@ -25,14 +25,6 @@ public class CatalogObject
     /// </summary>
     public string SecurityClass_TXT { get; set; }
     /// <summary>
-    /// Sector number
-    /// </summary>
-    public int Sector_NUM { get; set; }
-    /// <summary>
-    /// Branch number
-    /// </summary>
-    public int Branch_NUM { get; set; }
-    /// <summary>
     /// Email, name or any way of contact with the cataloged object
     /// </summary>
     public string Contact_TXT { get; set; }

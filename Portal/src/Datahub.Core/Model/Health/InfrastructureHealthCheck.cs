@@ -1,5 +1,9 @@
 namespace Datahub.Core.Model.Health;
 
+/// <summary>
+/// Represents a health check for infrastructure resources, providing details about the resource, its status, and the
+/// time the check was performed.
+/// </summary>
 public class InfrastructureHealthCheck
 {
     /// <summary>
