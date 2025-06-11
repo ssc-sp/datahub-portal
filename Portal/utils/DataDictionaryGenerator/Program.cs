@@ -85,6 +85,11 @@ foreach (var entityType in model.GetEntityTypes())
             {
                 propSummary = propSummary.Substring("Gets a value indicating ".Length);
             }
+
+            if (!string.IsNullOrEmpty(propSummary)) // Check again in case the substring operations made it empty
+            {
+                propSummary = char.ToUpper(propSummary[0]) + propSummary.Substring(1);
+            }
         }
 
         writer.WriteLine($"\"{entityName}\",\"{propName}\",\"{clrType}\",\"{isRequired}\",\"{maxLength}\",\"{propSummary}\"");
