@@ -28,8 +28,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
 
-    public DbSet<PublicDataFile> PublicDataFiles { get; set; }
-
     public DbSet<SharedDataFile> SharedDataFiles { get; set; }
     public DbSet<OpenDataSharedFile> OpenDataSharedFiles { get; set; }
 
@@ -227,10 +225,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<PortalUserRoleChange>()
             .Property(p => p.RoleId)
             .HasConversion<int>();
-
-        modelBuilder.Entity<PublicDataFile>()
-            .HasIndex(e => e.File_ID)
-            .IsUnique();
 
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
