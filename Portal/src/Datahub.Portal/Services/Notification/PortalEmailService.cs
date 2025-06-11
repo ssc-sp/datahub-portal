@@ -58,15 +58,15 @@ public class PortalEmailService
     {
         var parametersDict = BuildOnboardingParameters(parameters);
 
-        var subject = $"Onboarding Request – {parameters.App.Product_Name}";
+        var subject = $"Onboarding Request – {parameters.Product_Name}";
         var html = isClientNotificationSent ? await _emailNotificationService.RenderTemplate<OnboardingAdminUpdated>(parametersDict) : await _emailNotificationService.RenderTemplate<OnboardingAdmin>(parametersDict);
         await _emailNotificationService.SendEmailMessage(subject, html, parameters.AdminEmailAddresses);
         if (!isClientNotificationSent)
         {
             html = await _emailNotificationService.RenderTemplate<OnboardingClient>(parametersDict);
-            await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
-            if (!string.IsNullOrEmpty(parameters.App.Additional_Contact_Email_EMAIL))
-                await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.Additional_Contact_Email_EMAIL, parameters.App.Additional_Contact_Email_EMAIL);
+            await _emailNotificationService.SendEmailMessage(subject, html, parameters.Client_Email, parameters.Client_Contact_Name);
+            if (!string.IsNullOrEmpty(parameters.Additional_Contact_Email_EMAIL))
+                await _emailNotificationService.SendEmailMessage(subject, html, parameters.Additional_Contact_Email_EMAIL, parameters.Additional_Contact_Email_EMAIL);
         }
 
     }
@@ -76,7 +76,7 @@ public class PortalEmailService
         var parametersDict = BuildOnboardingParameters(parameters);
         var subject = $"Please complete the details for your DataHub Initiative";
         var html = await _emailNotificationService.RenderTemplate<OnBoardingMetadataRequest>(parametersDict);
-        await _emailNotificationService.SendEmailMessage(subject, html, parameters.App.Client_Email, parameters.App.Client_Contact_Name);
+        await _emailNotificationService.SendEmailMessage(subject, html, parameters.Client_Email, parameters.Client_Contact_Name);
     }
 
 
@@ -214,10 +214,18 @@ public class PortalEmailService
 
 }
 
+/// <summary>
+/// List of parameters used for onboarding notifications. 
+/// TODO: This is a skeleton of the NRCan onboarding, it needs to be updated.
+/// </summary>
 public class OnboardingParameters
 {
-    public OnboardingApp App;
     public string AppUrl;
+    public string Client_Email { get; set; }
+    public object Product_Name { get; internal set; }
+    public string Additional_Contact_Email_EMAIL { get; internal set; }
+    public string Client_Contact_Name { get; set; }
+
     public List<string> AdminEmailAddresses;
 }
 

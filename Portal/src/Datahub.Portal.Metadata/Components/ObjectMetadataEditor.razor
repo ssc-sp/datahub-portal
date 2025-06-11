@@ -314,16 +314,14 @@
         var digest = _fieldValues.GetCatalogDigest();
         await MetadataBrokerService.UpdateCatalog
         (
-            objectMetadataId, 
-            ObjectType, 
+            objectMetadataId,
+            ObjectType,
             digest.TitleEnglish,
             digest.TitleFrench,
-            Location, 
-            digest.Sector, 
-            digest.Branch, 
-            digest.Contact, 
+            Location,
+            digest.Contact,
             digest.Classification,
-            digest.EnglishCatalog, 
+            digest.EnglishCatalog,
             digest.FrenchCatalog,
             CatalogLanguage,
             ProjectId
