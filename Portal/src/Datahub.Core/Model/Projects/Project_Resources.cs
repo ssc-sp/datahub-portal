@@ -7,8 +7,14 @@ using Newtonsoft.Json;
 
 namespace Datahub.Core.Model.Projects;
 
+/// <summary>
+/// Represents a resource associated with a Datahub project.
+/// </summary>
 public class Project_Resources2
 {
+    /// <summary>
+    /// Gets or sets the unique identifier for the project resource.
+    /// </summary>
     [Key]
     public Guid ResourceId { get; set; } = Guid.NewGuid();
 
@@ -21,21 +27,47 @@ public class Project_Resources2
     [StringLength(200)]
     public string ResourceType { get; set; }
 
+    /// <summary>
+    /// Gets or sets the class name of the resource, defaulting to "legacy".
+    /// </summary>
     [Required]
     [StringLength(200)]
     public string ClassName { get; set; } = "legacy";
 
+    /// <summary>
+    /// Gets or sets the JSON content representing the resource's configuration or metadata. Defaults to an empty JSON object.
+    /// </summary>
     public string JsonContent { get; set; } = "{}";
 
+    /// <summary>
+    /// Gets or sets the foreign key referencing the Datahub_Project this resource belongs to.
+    /// </summary>
     [ForeignKey("Project")]
     public int ProjectId { get; set; }
 
+    /// <summary>
+    /// Gets or sets the timestamp when the resource was requested. Defaults to the current UTC time.
+    /// </summary>
     public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Gets or sets the ID of the user who requested the resource.
+    /// </summary>
     public int RequestedById { get; set; }
+
+    /// <summary>
+    /// Gets or sets the PortalUser who requested the resource.
+    /// </summary>
     public PortalUser RequestedBy { get; set; }
 
+    /// <summary>
+    /// Gets or sets the timestamp when the resource was created.
+    /// </summary>
     public DateTime? CreatedAt { get; set; }
 
+    /// <summary>
+    /// Gets or sets the Datahub_Project this resource is associated with.
+    /// </summary>
     public Datahub_Project Project { get; set; }
 
     /// <summary>
@@ -46,10 +78,25 @@ public class Project_Resources2
     /// </summary>
     // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
     public string Status { get; set; }
+
+    /// <summary>
+    /// Gets or sets the timestamp when the resource was last updated.
+    /// </summary>
     public DateTime? UpdatedAt { get; set; }
+
+    /// <summary>
+    /// Gets or sets the ID of the user who last updated the resource.
+    /// </summary>
     public int? UpdatedById { get; set; }
+
+    /// <summary>
+    /// Gets or sets the PortalUser who last updated the resource.
+    /// </summary>
     public PortalUser UpdatedBy { get; set; }
 
+    /// <summary>
+    /// Gets or sets the input JSON content for the resource. Defaults to an empty JSON object.
+    /// </summary>
     public string InputJsonContent { get; set; } = "{}";
 
     /// <summary>
@@ -62,18 +109,54 @@ public class Project_Resources2
     }
 }
 
+/// <summary>
+/// Defines constants related to project resources, such as service types and storage types.
+/// </summary>
 public static class ProjectResourceConstants
 {
+    /// <summary>
+    /// Represents the PostgreSQL service type.
+    /// </summary>
     public const string SERVICE_TYPE_POSTGRES = "psql";
+
+    /// <summary>
+    /// Represents the SQL Server service type.
+    /// </summary>
     public const string SERVICE_TYPE_SQL_SERVER = "sql";
+
+    /// <summary>
+    /// Represents the Azure Storage service type.
+    /// </summary>
     public const string SERVICE_TYPE_STORAGE = "storage";
+
+    /// <summary>
+    /// Represents the Azure Databricks service type.
+    /// </summary>
     public const string SERVICE_TYPE_DATABRICKS = "databricks";
+
+    /// <summary>
+    /// Represents the Power BI service type.
+    /// </summary>
     public const string SERVICE_TYPE_POWERBI = "powerbi";
+
+    /// <summary>
+    /// Represents the Virtual Machine service type.
+    /// </summary>
     public const string SERVICE_TYPE_VIRTUAL_MACHINE = "virtual-machine";
 
+    /// <summary>
+    /// Represents the Azure Blob Storage type.
+    /// </summary>
     public const string STORAGE_TYPE_BLOB = "blob";
+
+    /// <summary>
+    /// Represents the Azure Data Lake Storage Gen2 type.
+    /// </summary>
     public const string STORAGE_TYPE_GEN2 = "gen2";
 
+    /// <summary>
+    /// An array containing all supported project resource types.
+    /// </summary>
     public static readonly string[] ALL_RESOURCE_TYPES = new[]
     {
         SERVICE_TYPE_DATABRICKS,
