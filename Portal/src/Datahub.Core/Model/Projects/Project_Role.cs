@@ -2,8 +2,19 @@ namespace Datahub.Core.Model.Projects;
 
 public class Project_Role
 {
+    /// <summary>
+    /// Gets or sets the unique identifier of the project role.
+    /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the friendly name of the project role.
+    /// </summary>
     public string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets a brief description of the project role's purpose or responsibilities.
+    /// </summary>
     public string Description { get; set; }
 
     /// <summary>

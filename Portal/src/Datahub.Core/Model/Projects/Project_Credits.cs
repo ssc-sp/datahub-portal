@@ -1,5 +1,8 @@
 ﻿namespace Datahub.Core.Model.Projects;
 
+/// <summary>
+/// Represents the credit consumption and budget tracking details for a specific workspace.
+/// </summary>
 public class Project_Credits
 {
     /// <summary>

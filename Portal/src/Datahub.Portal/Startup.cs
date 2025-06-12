@@ -458,7 +458,6 @@ public class Startup
 
         services.AddScoped<CustomNavigation>();
 
-        services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
     }
 
     private void ConfigureDbContexts(IServiceCollection services)
