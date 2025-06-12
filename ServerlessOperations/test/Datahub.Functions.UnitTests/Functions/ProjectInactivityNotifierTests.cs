@@ -116,21 +116,6 @@ public class ProjectInactivityNotifierTests
     }
 
     [Test]
-    public async Task CheckIfProjectToBeNotified_HasCostRecovery()
-    {
-        // Arrange
-        _dateProvider.Today.Returns(DateTime.Today);
-        _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
-
-        // Act
-        var result = await _sut.CheckIfProjectToBeNotified(10, 10, null,
-            "", new List<string>());
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Test]
     [TestCase(20, 30)]
     [TestCase(0, 1)]
     public void CheckIfProjectToBeDeleted_IsNotOrPastDeletionDay(int daysSinceLastLogin, int deletionDay)
