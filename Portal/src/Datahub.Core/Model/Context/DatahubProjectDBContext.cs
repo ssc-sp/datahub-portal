@@ -25,12 +25,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 {
     public DbSet<Datahub_Project> Projects { get; set; }
     public DbSet<Datahub_Project_User> Project_Users { get; set; }
-    public DbSet<Organization_Level> Organization_Levels { get; set; }
-    public DbSet<OnboardingApp> OnboardingApps { get; set; }
 
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
-
-    public DbSet<PublicDataFile> PublicDataFiles { get; set; }
 
     public DbSet<SharedDataFile> SharedDataFiles { get; set; }
     public DbSet<OpenDataSharedFile> OpenDataSharedFiles { get; set; }
@@ -46,10 +42,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<MiscStoredObject> MiscStoredObjects { get; set; }
 
     public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
-    public DbSet<SpatialObjectShare> GeoObjectShares { get; set; }
     public DbSet<Achievements.Achievement> Achievements { get; set; }
     public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
-    public DbSet<PortalUserStatusChange> PortalUserStatusChanges { get; set; }
+    public DbSet<PortalUserRoleChange> PortalUserStatusChanges { get; set; }
 
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
@@ -227,13 +222,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                   .WithOne(e => e.Credits)
                   .OnDelete(DeleteBehavior.NoAction);
         });
-        modelBuilder.Entity<PortalUserStatusChange>()
-            .Property(p => p.StatusId)
+        modelBuilder.Entity<PortalUserRoleChange>()
+            .Property(p => p.RoleId)
             .HasConversion<int>();
-
-        modelBuilder.Entity<PublicDataFile>()
-            .HasIndex(e => e.File_ID)
-            .IsUnique();
 
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
@@ -241,9 +232,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
         modelBuilder.Entity<MiscStoredObject>()
             .HasAlternateKey(e => new { e.TypeName, e.Id });
-
-        modelBuilder.Entity<SpatialObjectShare>()
-            .ToTable("SpatialObjectShares");
 
         modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);

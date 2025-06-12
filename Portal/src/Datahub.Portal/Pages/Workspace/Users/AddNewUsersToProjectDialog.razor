@@ -51,7 +51,7 @@
                         <td>@GetListText(user)</td>
                         <td>
                             <MudSelect T="int" Label="@Localizer["Role"]" @bind-Value="user.RoleId" Class="role-dropdown">
-                                @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Remove or (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.DisabledUser)))
+                                @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Removed or (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.DisabledUser)))
                                 {
                                     <MudSelectItem T="int" Value="@role.Id">@Localizer[role.Name]</MudSelectItem>
                                 }

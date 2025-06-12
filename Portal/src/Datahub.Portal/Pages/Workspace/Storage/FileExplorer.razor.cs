@@ -63,20 +63,42 @@ public partial class FileExplorer
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserCreateFolder);
     }
 
-    private async Task HandleFileDelete(string fileName)
+    private async Task HandleFilesDelete(string fileName)
     {
-        var message = string.Format(Localizer["Are you sure you want to delete file \"{0}\"?"].ToString(), fileName);
+        // If a single filename is provided, add it to the selected items
+        if (!string.IsNullOrWhiteSpace(fileName))
+        {
+            _selectedItems.Add(fileName);
+        }
+        var toBeDeleted = _selectedItems.Where(x => x != _currentFolder).ToList();
+
+        // Ensure there are selected items to delete
+        if (toBeDeleted == null || !toBeDeleted.Any())
+            return;
+
+        var fileCount = toBeDeleted.Count;
+        var message = string.Format(Localizer["You are about to delete {0} files. Are you sure?"], fileCount);
+        if (fileCount == 1)
+        {
+            message = string.Format(Localizer["Are you sure you want to delete file \"{0}\"?"].ToString(), fileName);
+        }
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        if (!await StorageManager.DeleteFileAsync(ContainerName, JoinPath(_currentFolder, fileName)))
-            return;
+        
+        foreach (var selectedFile in toBeDeleted)
+        {
+            if (!await StorageManager.DeleteFileAsync(ContainerName, JoinPath(_currentFolder, selectedFile)))
+                continue;
 
-        _files?.RemoveAll(f => f.name.Equals(fileName, StringComparison.OrdinalIgnoreCase));
+            _files?.RemoveAll(f => f.name.Equals(selectedFile, StringComparison.OrdinalIgnoreCase));
+        }
 
+        // Clear selected items and reset to the current folder
         _selectedItems = new HashSet<string> { _currentFolder };
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserDeleteFile);
     }
+
 
     private async Task HandleFileItemDrop(string folder, string fileName)
     {
