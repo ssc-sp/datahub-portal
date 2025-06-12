@@ -367,65 +367,16 @@
 
     private void ParseProjectCredits()
     {
-        _currentPerDay = DeserializeCredits<AzureDailyCost>(_projectCredits.CurrentPerDay);
-        _currentPerService = DeserializeCredits<AzureServiceCost>(_projectCredits.CurrentPerService);
-        _yesterdayPerService = DeserializeCredits<AzureServiceCost>(_projectCredits.YesterdayPerService);
+        _currentPerDay = BudgetCostReportUtils.DeserializeCredits<AzureDailyCost>(_projectCredits.CurrentPerDay);
+        _currentPerService = BudgetCostReportUtils.DeserializeCredits<AzureServiceCost>(_projectCredits.CurrentPerService);
+        _yesterdayPerService = BudgetCostReportUtils.DeserializeCredits<AzureServiceCost>(_projectCredits.YesterdayPerService);
     }
 
     private void ParseProjectCosts()
     {
-        _allCosts = ConvertCosts(_projectCosts);
+        _allCosts = BudgetCostReportUtils.ConvertCosts(_projectCosts);
         _fiscalYearCosts = _allCosts.Where(c => c.Date >= CostManagementUtilities.CurrentFiscalYear.StartDate).ToList();
         _last30DaysCosts = _allCosts.Where(c => c.Date >= DateTime.UtcNow.AddDays(-30)).ToList();
-    }
-
-    private List<DailyServiceCost> DeserializeCredits<T>(string json)
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<List<DailyServiceCost>>(json);
-        }
-        catch
-        {
-            var costs = JsonSerializer.Deserialize<List<T>>(json);
-            return ConvertCosts(costs);
-        }
-    }
-
-    private List<DailyServiceCost> ConvertCosts<T>(List<T> costs)
-    {
-        if (typeof(T) == typeof(AzureDailyCost))
-        {
-            var typedCosts = costs as List<AzureDailyCost>;
-            return typedCosts!.Select(c => new DailyServiceCost
-            {
-                Amount = (decimal)c.Cost,
-                Date = c.Date
-            }).ToList();
-        }
-
-        if (typeof(T) == typeof(AzureServiceCost))
-        {
-            var typedCosts = costs as List<AzureServiceCost>;
-            return typedCosts!.Select(c => new DailyServiceCost
-            {
-                Amount = (decimal)c.Cost,
-                Source = c.Name
-            }).ToList();
-        }
-
-        if (typeof(T) == typeof(Datahub_Project_Costs))
-        {
-            var typedCosts = costs as List<Datahub_Project_Costs>;
-            return typedCosts!.Select(c => new DailyServiceCost
-            {
-                Amount = (decimal)c.CadCost,
-                Date = c.Date,
-                Source = c.ServiceName
-            }).ToList();
-        }
-
-        throw new Exception("Invalid type");
     }
 
     private bool AreCreditsValid()

@@ -11,6 +11,11 @@
             <MudTabPanel Text="@Localizer["Storage"]">
                 <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
             </MudTabPanel>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCbrOwner" ProjectAcronym="@WorkspaceAcronym">
+                <MudTabPanel Text="@Localizer["CBR Budget"]">
+                    <CbrBudgetReport WorkspaceAcronym="@WorkspaceAcronym" />
+                </MudTabPanel>
+            </DatahubAuthView>
 
             @* <MudTabPanel Text="@Localizer["Reports"]"> *@
             @*     <WorkspaceReportsTable WorkspaceAcronym="@WorkspaceAcronym"/> *@
