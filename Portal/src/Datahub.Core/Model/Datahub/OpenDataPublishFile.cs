@@ -18,7 +18,9 @@ namespace Datahub.Core.Model.Datahub
         public long SubmissionId { get; set; }
 
         /// <summary>
-        /// Gets or sets the purpose or reason for including this file in the open data submission.
+        /// Gets or sets the role of the file in the submission.
+        /// E.g. TBS Opengov submissions can have Dataset and Guide files,
+        /// as well as a signed IMSO approval form that doesn't get uploaded.
         /// </summary>
         public string FilePurpose { get; set; }
 
