@@ -23,12 +23,14 @@ public class ResourceMessagingService(
 {
     public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
     {
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, workspaceDefinition);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.ResourceRunRequestQueueName, workspaceDefinition); 
     }
+
+   
 
     public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition)
     {
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition); 
     }
 
     public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = "system-generated", string? cbrId = null)

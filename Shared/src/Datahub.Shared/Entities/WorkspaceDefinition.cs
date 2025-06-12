@@ -12,4 +12,6 @@ public class WorkspaceDefinition
 
     public string ResourceGroupName { get; set; } = string.Empty;
     public string CBRID { get; set; } = string.Empty;
+
+    public bool UpdateWorkspaceVersion { get; set; } = false;
 }

@@ -58,6 +58,7 @@ public class NewProjectTemplateTests
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
+            expectedContent = sourceFileContent.Replace(TerraformService.TerraformVersionToken, command.Workspace.Version);
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
