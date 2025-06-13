@@ -3,7 +3,7 @@ using Microsoft.JSInterop;
 
 namespace Datahub.Portal.Services;
 
-public class DownloadService(IJSRuntime jsRuntime) : IDownloadService
+public class DownloadService(IJSRuntime jsRuntime) : IDownloadService, IAsyncDisposable
 {
     private IJSObjectReference _downloadStreamModule = default;
 
@@ -23,5 +23,13 @@ public class DownloadService(IJSRuntime jsRuntime) : IDownloadService
         }
 
         return _downloadStreamModule;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_downloadStreamModule != null)
+        {
+            await _downloadStreamModule.DisposeAsync();
+        }
     }
 }

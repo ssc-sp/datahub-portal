@@ -1,7 +1,8 @@
-﻿@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+﻿@using CsvHelper
+@using CsvHelper.Configuration.Attributes
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IJSRuntime _jsRuntime
-
-@implements IAsyncDisposable
+@inject IDownloadService _downloadService
 
 <MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true">
     <ToolBarContent>
@@ -33,7 +34,7 @@
             @context.Source
         </MudTd>
         <MudTd DataLabel="@Localizer["Cost"]">
-            @(context.Cost < (decimal)0.01 ? $"< {(0.01).ToString("C")}" : context.Cost.ToString("C"))
+            @BudgetCostReportUtils.DisplayDollar(context.Cost)
         </MudTd>
     </RowTemplate>
     <PagerContent>
@@ -45,7 +46,6 @@
 
     [Parameter] public string WorkspaceAcronym { get; set; }
     private List<CostDisplay> Costs { get; set; } = new();
-    private IJSObjectReference _module;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -60,44 +60,31 @@
         Costs = projectCosts.Select(c => new CostDisplay { Cost = (decimal)c.CadCost, Date = c.Date.ToString("d"), Source = c.ServiceName }).ToList();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
-            }
-            catch
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
-            }
-        }
-    }
-
     private async Task HandleDownload()
     {
-        var fileStream = GenerateCsvStream();
+        var fileStream = GenerateCsvWriterStream();
         var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
-        using var streamReference = new DotNetStreamReference(stream: fileStream);
-        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+        await _downloadService.DownloadStreamAsFile(fileStream, fileName);
     }
 
-    private Stream GenerateCsvStream()
+    private Stream GenerateCsvWriterStream()
     {
+        var csvRecords = Costs.Select(ConvertCostForCsv);
+
         var stream = new MemoryStream();
         var writer = new StreamWriter(stream);
-        writer.WriteLine("Date,Source,Cost ($CAD)");
-        foreach (var cost in Costs)
-        {
-            writer.WriteLine($"{cost.Date},{cost.Source},{cost.Cost}");
-        }
+        var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
+
+        csvWriter.WriteRecords(csvRecords);
 
         writer.Flush();
         stream.Position = 0;
         return stream;
     }
 
+    private record WorkspaceCostsCsvRecord(string Date, string Source, [property: Name("Cost ($CAD)")] decimal CostInCad);
+
+    private WorkspaceCostsCsvRecord ConvertCostForCsv(CostDisplay cost) => new(cost.Date, cost.Source, cost.Cost);
 
     record CostDisplay
     {
@@ -105,10 +92,4 @@
         public decimal Cost { get; init; }
         public string Date { get; init; }
     }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_module != null) await _module.DisposeAsync();
-    }
-
 }

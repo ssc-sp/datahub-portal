@@ -291,7 +291,7 @@
         return stream;
     }
 
-    record UsersTableCsvEntry(string Name, string Email, string Workspaces, string LastLogin);
+    record UsersTableCsvEntry(string Name, string Email, string Workspaces, [property: Name("Last Login")] string LastLogin);
 
     private string JoinWorkspaces(IEnumerable<Datahub_Project> workspaces) => string.Join(", ", workspaces.Select(w => $"{w.ProjectName} ({w.Project_Acronym_CD})"));
 
