@@ -78,10 +78,10 @@
                                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
                             }
                             <MudTextField T="string"
-                                          @bind-Value="@_ticketDescription"
-                                          Label=@(Localizer["Detailed description"])
-                                          Required
-                                          Lines="5"/>
+                            @bind-Value="@_ticketDescription"
+                            Label=@(Localizer["Detailed description"])
+                            Required
+                            Lines="5"/>
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
                             foreach (var workspace in _ticketWorkspaces)
@@ -162,10 +162,10 @@
                         <MudText Typo="Typo.body1">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
                         <MudItem xs="6" Class="py-3">
                             <DHButton Href="/resources"
-                                      Variant="Variant.Text"
-                                      Color="Color.Primary"
-                                      Underline
-                                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                            Variant="Variant.Text"
+                            Color="Color.Primary"
+                            Underline
+                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                                 @Localizer["View resources"]
                             </DHButton>
                         </MudItem>
@@ -254,7 +254,7 @@
 
 
     /**
-     * Initializes the component asynchronously.
+    * Initializes the component asynchronously.
      * Retrieves general information about the user submitting the issue, such as name, email, and language used.
      * Retrieves the list of workspaces associated with the user.
      * Retrieves the list of issues previously created by the user.
@@ -262,7 +262,7 @@
     protected override async Task OnInitializedAsync()
     {
         _loading = true; // showing the user that the table is loading.
-        
+
         // Retrieve general info, such as the user submitting the issue.
         _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
         _ticketName = _viewedUser.DisplayName;
@@ -283,6 +283,8 @@
 
         foreach (var project in _userRoles.Select(userRole => userRole.Project))
         {
+            if (project.IsDeleted) continue; // Skip deleted projects
+
             if (!_ticketWorkspaces.ContainsKey(project.Project_Name))
             {
                 _ticketWorkspaces.Add(project.Project_Name, false);
