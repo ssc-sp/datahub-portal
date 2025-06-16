@@ -96,9 +96,6 @@
                                 <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
                                 <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
                             </MudRadioGroup>
-                            <SettingsField Label="@Localizer["Grant Support Access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
-                                <MudCheckBox @bind-Value="_giveAdminAccessToWorkspaces" Label="@Localizer["Enable Temporary Administrative Access to FSDH Support Team"]" Color="@Color.Primary"></MudCheckBox>
-                            </SettingsField>
                         }
                         else if (_currentStep == Steps.Submit)
                         {
@@ -222,7 +219,6 @@
     private List<Datahub_Project_User> _userRoles;
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new();
-    private bool _giveAdminAccessToWorkspaces = true;
 
     private bool _loading = true;
 
@@ -395,15 +391,6 @@
         if (workspaces.Length == 0)
         {
             workspaces = "N/A";
-        }
-
-        // Grant support access to the selected workspaces, if requested.
-        if (_giveAdminAccessToWorkspaces)
-        {
-            foreach (var workspace in matchingWorkspaces)
-            {
-                await GiveAccessToProject(_ticketWorkspaceAcronyms[workspace]);
-            }
         }
 
         // We create the bug report message and send it to the queue.
