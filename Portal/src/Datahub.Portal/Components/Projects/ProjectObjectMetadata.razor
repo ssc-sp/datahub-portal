@@ -81,13 +81,20 @@
 
     protected override async Task OnInitializedAsync()
     {
-        using var ctx = await ContextFactory.CreateDbContextAsync();
-        _project = await ctx.Projects.Include(p => p.Resources)
-            .AsSingleQuery()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
-        if (_project is not null)
+        try
         {
-            await OnProjectLoaded.InvokeAsync(_project);
+            using var ctx = await ContextFactory.CreateDbContextAsync();
+            _project = await ctx.Projects.Include(p => p.Resources)
+                .AsSingleQuery()
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+            if (_project is not null)
+            {
+                await OnProjectLoaded.InvokeAsync(_project);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to load project: {ex.Message}");
         }
     }
 
