@@ -2348,7 +2348,7 @@
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
-  
+
   //CBR Localization
   "Already allocated:": "Already allocated:",
   "Total in CBR:": "Total in CBR:",
@@ -2372,7 +2372,34 @@
   "Error adding version, please try again.": "Error adding version, please try again.",
   "Successfully added version: {0}": "Successfully added version: {0}",
   "Version already exists": "Version already exists",
-  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3"
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
 
-
+  //GC hosting metadata
+  "GCWorkspaceMetadata": "GC Hosting Workspace Metadata",
+  "WorkspaceNoMetadata": "Workspace has no GC Hosting Metadata",
+  "Workspace Name": "Workspace Name",
+  "WorkspaceName_Description": "The official name of the workspace.",
+  "WorkspaceDescription_Description": "Detailed description of the workspace.",
+  "Subject_Description": "The subject(s) of the workspace as defined in the GC Core Subject Thesaurus.",
+  "Keywords": "Keywords",
+  "Keywords_Description": "Keywords that will identify or locate the workspace based on relevant search queries.",
+  "Lead Name": "Lead Name",
+  "LeadName_Description": "Accountable as Business Owner for all projects and datasets in the workspace. Main business contact responsible for workspace cost ($).",
+  "Lead Email": "Lead Email",
+  "LeadEmail_Description": "Email address of the workspace lead.",
+  "FinancialAuthorityName_Description": "Full name of the section 34 or 32 manager responsible for the cost center. ",
+  "FinancialAuthorityEmail_Description": "Email of the manager responsible for the cost center.",
+  "Commitment ISRef": "Commitment IS REF",
+  "CommitmentISRef_Description": "IS REF comittment number.",
+  "Commitment ISOrg": "Commitment IS ORG",
+  "CommitmentISOrg_Description": "IS ORG comittment number.",
+  "WorkspaceBudget_Description": "Allocated budget for the workspace.",
+  "Retention Period": "Retention Period",
+  "RetentionPeriod_Description": "Number of years data will be retained.",
+  "Retention Start Date": "Retention Start Date",
+  "RetentionStartDate_Description": "Date when retention period starts.",
+  "Retention Value": "Retention Value",
+  "RetentionValue_Description": "Allowed values: Retention - perpetual/indefinite, Retention - long-term, Archival value, Unknown, None",
+  "Security Classification": "Security Classification",
+  "SecurityClassification_Description": "Possible values: Unclassified, Protected A, Protected B."
 }
