@@ -139,7 +139,7 @@ public class NewProjectTemplateTests
             ["automation_account_uai_name"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_name,
             ["automation_account_uai_rg"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_rg,
             ["automation_account_uai_sub"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_sub,
-            ["log_analytics_workspace_id"] = _resourceProvisionerConfiguration.Terraform.Variables.log_analytics_workspace_id,
+            ["log_analytics_workspace_id"] = _resourceProvisionerConfiguration.Terraform.Variables.log_analytics_workspace_id
         };
     }
 

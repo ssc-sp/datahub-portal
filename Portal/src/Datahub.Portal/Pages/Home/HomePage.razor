@@ -17,12 +17,11 @@
 }
 
 <MudStack>
-    <DHMainContentTitle Title="@Localizer["Home"]"/>
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <div role="group">
             <MudStack Row AlignItems="AlignItems.End">
-                <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+                <DHMainContentTitle Title="@Localizer["Home"]" />
                 <MudSpacer/>
                 <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime/>
             </MudStack>
