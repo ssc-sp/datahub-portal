@@ -11,13 +11,13 @@
     <MudStack>
         @*metadata field editor*@
         <MetadataEditor Preview=@Preview
-                        Profile=@_profile
-                        Definitions=@_definitions
-                        FieldValues=@_fieldValues
-                        ShowAll=@_showAll
-                        HideTranslationNote=@HideTranslationNote
-                        DisableTranslation=@DisableTranslation
-                        OnFieldChanged=@FieldChanged />
+        Profile=@_profile
+        Definitions=@_definitions
+        FieldValues=@_fieldValues
+        ShowAll=@_showAll
+        HideTranslationNote=@HideTranslationNote
+        DisableTranslation=@DisableTranslation
+        OnFieldChanged=@FieldChanged />
 
         @*actions*@
         @if (!Preview)
@@ -44,9 +44,9 @@
                     @if (ShowSaveButton)
                     {
                         <MudButton OnClick=@HandleSaveButton 
-                                   Disabled=@SaveDisabled                                   
-                                   Variant="Variant.Filled" 
-                                   Color="Color.Primary">
+                        Disabled=@SaveDisabled                                   
+                        Variant="Variant.Filled" 
+                        Color="Color.Primary">
                             @if (_savingData)
                             {
                                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
@@ -68,9 +68,6 @@
 
     [Inject]
     public IMetadataBrokerService MetadataBrokerService { get; set; }
-
-    [Inject]
-    public IOrganizationLevelsService OrganizationLevelsService { get; set; }
 
     /// <summary>
     /// Object ID to edit or add metadata
@@ -206,9 +203,6 @@
         }
 
         await TriggerValuesChanged();
-
-        // set external choices
-        await UpdateExternalFieldChoices();
     }
 
     public string GetTitle()
@@ -360,28 +354,6 @@
     private void ToggleShowAll()
     {
         _showAll = !_showAll;
-    }
-
-    private async Task UpdateExternalFieldChoices()
-    {
-        foreach (var definition in _definitions.Fields)
-        {
-            switch (definition.Field_Name_TXT)
-            {
-                case "sector":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSectors(), false).ToList();
-                    break;
-                case "branch":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetBranches(), true).ToList();
-                    break;
-                case "division":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetDivisions(), true).ToList();
-                    break;
-                case "section":
-                    definition.Choices = GetOrganizationChoices(await OrganizationLevelsService.GetSections(), true).ToList();
-                    break;
-            }
-        }
     }
 
     private IEnumerable<FieldChoice> GetOrganizationChoices(List<OrganizationLevel> levels, bool cascades)
