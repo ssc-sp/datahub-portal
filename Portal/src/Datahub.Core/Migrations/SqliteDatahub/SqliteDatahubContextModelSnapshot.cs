@@ -1139,9 +1139,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("PortalUserId");
 
-                    b.HasIndex("Project_ID");
-
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("Project_ID", "PortalUserId")
+                        .IsUnique();
 
                     b.ToTable("Project_Users", (string)null);
                 });
