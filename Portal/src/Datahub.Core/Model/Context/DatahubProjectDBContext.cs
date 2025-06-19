@@ -234,7 +234,14 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasAlternateKey(e => new { e.TypeName, e.Id });
 
         modelBuilder.Entity<Datahub_Project_User>()
+            .HasKey(u => u.ProjectUser_ID);
+
+        modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+
+        modelBuilder.Entity<Datahub_Project_User>()
+            .HasIndex(u => new { u.Project_ID, u.PortalUserId })
+            .IsUnique();
 
         modelBuilder.Entity<OpenDataSubmission>()
             .HasMany<OpenDataPublishFile>(p => p.Files)

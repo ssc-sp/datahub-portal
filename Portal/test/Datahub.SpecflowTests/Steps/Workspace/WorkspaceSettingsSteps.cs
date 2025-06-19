@@ -23,6 +23,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
+using Toolbelt.Blazor.Globalization;
 
 namespace Datahub.SpecflowTests.Steps.Workspace;
 
@@ -65,6 +66,11 @@ public class WorkspaceSettingsSteps(
 
         var mockRequestManagementService = Substitute.For<IRequestManagementService>();
         Services.AddSingleton(mockRequestManagementService);
+
+        var mockLocalTimeZone = Substitute.For<ILocalTimeZone>();
+        mockLocalTimeZone.GetLocalTimeZoneAsync(null)
+            .Returns(await Task.FromResult(TimeZoneInfo.Utc)); // Use UTC for simplicity in tests
+        Services.AddSingleton(mockLocalTimeZone);
 
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
