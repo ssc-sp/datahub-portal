@@ -2348,7 +2348,7 @@
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
-  
+
   //CBR Localization
   "Already allocated:": "Already allocated:",
   "Total in CBR:": "Total in CBR:",
@@ -2390,7 +2390,9 @@
   "Error adding version, please try again.": "Error adding version, please try again.",
   "Successfully added version: {0}": "Successfully added version: {0}",
   "Version already exists": "Version already exists",
-  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3"
-
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal."
 
 }
