@@ -37,6 +37,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                 else if (await serviceAuthManager.IsUserCbrOwner(userEmail))
                 {
                     claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.CBR_OWNER_ROLE));
+                    var cbrWorkspaces = await serviceAuthManager.GetUserCbrWorkspaceAcronyms(userEmail);
+                    claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
                 }
 
                 // Ensure that the user can't be both approver and admin

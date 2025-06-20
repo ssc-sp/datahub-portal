@@ -7,6 +7,7 @@
 @using Datahub.Portal.Pages.Tools.HostingServices
 @using Datahub.Portal.Pages.Tools.Users
 @using Datahub.Portal.Components.Sidebar
+@using Datahub.Portal.Pages.Tools.VersionControl
 
 @inject ILogger<ToolsPage> _logger
 
@@ -37,7 +38,7 @@
     }
     else
     {
-        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+        _logger.LogWarning("The section {Section} is not a valid section for the tools page", Section);
         <DiagnosticsPage/>
     }
 }
@@ -51,7 +52,6 @@
         { PersonalSidebar.SectionViews.Diagnostics, typeof(DiagnosticsPage) },
         { PersonalSidebar.SectionViews.Statistics, typeof(StatisticsPage) },
         { PersonalSidebar.SectionViews.HealthCheck, typeof(InfrastructureHealthPage) },
-        { PersonalSidebar.SectionViews.Users, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email, typeof(ComposeEmailPage) },
         { PersonalSidebar.SectionViews.AzureSubscriptions, typeof(AzureSubscriptionsPage) },
         { PersonalSidebar.SectionViews.SupportRequests, typeof(SupportRequestPage) },
@@ -59,11 +59,12 @@
         { PersonalSidebar.SectionViews.Diagnostics_FR, typeof(DiagnosticsPage) },
         { PersonalSidebar.SectionViews.Statistics_FR, typeof(StatisticsPage) },
         { PersonalSidebar.SectionViews.HealthCheck_FR, typeof(InfrastructureHealthPage) },
-        { PersonalSidebar.SectionViews.Users_FR, typeof(UsersPage) },
         { PersonalSidebar.SectionViews.Email_FR, typeof(ComposeEmailPage) },
         { PersonalSidebar.SectionViews.AzureSubscriptions_FR, typeof(AzureSubscriptionsPage) },
         { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage) },
-        { PersonalSidebar.SectionViews.HostingServices_FR, typeof(HostingServicesToolPage) }
-    };
+        { PersonalSidebar.SectionViews.HostingServices_FR, typeof(HostingServicesToolPage) },
+        { PersonalSidebar.SectionViews.VersionControl, typeof(VersionControlPage) },
+        { PersonalSidebar.SectionViews.VersionControl_FR, typeof(VersionControlPage) }
+};
 
 }

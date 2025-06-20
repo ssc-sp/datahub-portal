@@ -138,14 +138,14 @@ public class WorkspaceCreationService(
         */
     }
 
-    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null)
+    public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null)
     {
         try
         {
             acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
-            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, gcHostingId: gcHostingDetailsId);
+            await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId);
             // DISABLED resource group creation on project creation as this becomes done in the toolbox
             // as part of their first request.
             /*
@@ -222,7 +222,6 @@ public class WorkspaceCreationService(
 
     private async Task AddProjectToDb(PortalUser portalUser, string projectName, string acronym, string organization, decimal? budget = null, int? gcHostingId = null)
     {
-        var sectorName = GovernmentDepartment.Departments.TryGetValue(organization, out var sector) ? sector : acronym;
         await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
 
         var subscription = await datahubAzureSubscriptionService.NextSubscriptionAsync();
@@ -232,7 +231,6 @@ public class WorkspaceCreationService(
             Project_Acronym_CD = acronym,
             Project_Name = projectName,
             Project_Name_Fr = projectName,
-            Sector_Name = sectorName,
             Contact_List = portalUser.Email,
             Project_Admin = portalUser.Email,
             Project_Phase = TerraformStatus.CreateRequested,
@@ -291,6 +289,7 @@ public class WorkspaceCreationService(
         return await ctx.GCHostingWorkspaceDetails
             .Where(d => includeAll || d.LeadEmail == userEmail)
             .Include(d => d.Datahub_Project)
+            .Include(d => d.WorkspacesInBudget)
             .AsNoTracking()
             .ToListAsync();
     }

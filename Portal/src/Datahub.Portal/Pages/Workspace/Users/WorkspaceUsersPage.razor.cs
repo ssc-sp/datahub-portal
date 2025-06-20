@@ -46,7 +46,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true ||
                 projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
             var matchesFilteredRole = _currentRoleFilter is null || originalUser?.RoleId == _currentRoleFilter;
-            var isNotRemoved = originalUser?.RoleId != (int)Project_Role.RoleNames.Remove;
+            var isNotRemoved = originalUser?.RoleId != (int)Project_Role.RoleNames.Removed;
 
             return matchesSearch && matchesFilteredRole && isNotRemoved;
         }
@@ -73,6 +73,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 if (IsRevertUpdate(existingUpdateCommand, originalUserInfo))
                 {
                     _usersToUpdate.Remove(existingUpdateCommand);
+                    ValidateWorkspaceRules();
                 }
             }
             else
@@ -87,7 +88,21 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 if (!IsRevertUpdate(updateCommand, originalUserInfo))
                 {
                     _usersToUpdate.Add(updateCommand);
+                    ValidateWorkspaceRules();
                 }
+            }
+        }
+
+
+        private void ValidateWorkspaceRules()
+        {
+            _validationErrorMessage = null;
+            var allWorkspaceLeads = _usersToUpdate.Select(_usersToUpdate => _usersToUpdate.ProjectUser).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
+            var existingWorkspaceLeads = _projectUsers.Except(_usersToUpdate.Select(p => p.ProjectUser)).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
+            var newLeads = _usersToAdd.Count(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
+            if (allWorkspaceLeads + newLeads + existingWorkspaceLeads > 2)
+            {
+                _validationErrorMessage = Localizer["You cannot have more than 2 workspace leads."];
             }
         }
 
@@ -97,17 +112,18 @@ namespace Datahub.Portal.Pages.Workspace.Users
             projectUser.IsDataSteward = IsDataStewardHavingRole(projectUser.IsDataSteward, projectUser);
 
             ManageUserUpdateCommand(projectUser);
-
+            ValidateWorkspaceRules();
             InvokeAsync(StateHasChanged);
         }
 
         private void UpdateProjectMemberRoleCommand(ProjectUserAddUserCommand projectUser, int newRoleId)
         {
             projectUser.RoleId = newRoleId;
-            if (projectUser.RoleId == (int)Project_Role.RoleNames.Remove)
+            if (projectUser.RoleId == (int)Project_Role.RoleNames.Removed)
             {
                 _usersToAdd.Remove(projectUser);
             }
+            ValidateWorkspaceRules();
 
             InvokeAsync(StateHasChanged);
         }
@@ -140,7 +156,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
             var dialogParameters = new DialogParameters
         {
-            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Remove).ToList() },
+            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Removed).ToList() },
             { "ProjectAcronym", WorkspaceAcronym },
             { "Inviter", currentUser }
         };
@@ -158,6 +174,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
                         .Where(c =>
                             !_usersToAdd.Any(x => x.Email.Equals(c.Email, StringComparison.InvariantCultureIgnoreCase)))
                         .ToList());
+                    ValidateWorkspaceRules();
                     StateHasChanged();
                 }
             }

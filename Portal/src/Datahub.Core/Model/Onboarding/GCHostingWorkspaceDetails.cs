@@ -3,11 +3,14 @@ using Datahub.Metadata.Model;
 
 namespace Datahub.Core.Model.Onboarding;
 
+/// <summary>
+/// Represents the details of a workspace received from the GC Hosting onboarding process.
+/// </summary>
 #nullable enable
 public class GCHostingWorkspaceDetails
 {
     /// <summary>
-    /// Gets or sets the id of the workspace.
+    /// Gets or sets the id of the workspace (internal GC Hosting identifier).
     /// </summary>
     public string GcHostingId { get; set; } = null!;
 

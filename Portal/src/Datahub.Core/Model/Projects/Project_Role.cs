@@ -2,8 +2,19 @@ namespace Datahub.Core.Model.Projects;
 
 public class Project_Role
 {
+    /// <summary>
+    /// Gets or sets the unique identifier of the project role.
+    /// </summary>
     public int Id { get; set; }
+
+    /// <summary>
+    /// Gets or sets the friendly name of the project role.
+    /// </summary>
     public string Name { get; set; }
+
+    /// <summary>
+    /// Gets or sets a brief description of the project role's purpose or responsibilities.
+    /// </summary>
     public string Description { get; set; }
 
     /// <summary>
@@ -37,7 +48,7 @@ public class Project_Role
         {
             new()
             {
-                Id = (int)RoleNames.Remove,
+                Id = (int)RoleNames.Removed,
                 Name = "Remove User",
                 Description = "Revoke the user's access to the workspace"
             },
@@ -68,16 +79,50 @@ public class Project_Role
                 Name = "Guest",
                 Description =
                     "Able to view the workspace and its contents but not able to contribute or modify anything"
+            },
+            new()
+            {
+                Id = (int)RoleNames.DisabledUser,
+                Name = "Disabled User",
+                Description =
+                    "A user whose access has been disabled and cannot interact with the workspace"
             }
         };
     }
 
+    /// <summary>
+    /// Defines a set of role names representing different permission levels within a workspace.
+    /// </summary>
     public enum RoleNames
     {
-        Remove = 1, // default is used in the UI to remove a user from a project
+        /// <summary>
+        /// Represents a soft deletion marker to remove the user from the workspace.
+        /// </summary>
+        Removed = 1,
+
+        /// <summary>
+        /// The lead for the workspace, bearing overall business responsibility.
+        /// </summary>
         WorkspaceLead = 2,
+
+        /// <summary>
+        /// A workspace administrator who manages resources and users.
+        /// </summary>
         Admin = 3,
+
+        /// <summary>
+        /// A collaborator who contributes to the workspace's objectives.
+        /// </summary>
         Collaborator = 4,
-        Guest = 5
+
+        /// <summary>
+        /// A viewer with read-only access to workspace contents.
+        /// </summary>
+        Guest = 5,
+
+        /// <summary>
+        /// A disabled user with no privileges within the workspace.
+        /// </summary>
+        DisabledUser = 6
     }
 }

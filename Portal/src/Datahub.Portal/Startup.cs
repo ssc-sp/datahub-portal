@@ -70,6 +70,7 @@ using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 using Datahub.Portal.Controllers;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
+using Datahub.Portal.Pages;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -132,17 +133,27 @@ public class Startup
         services.AddAuthenticationServices(Configuration);
         services.AddAuthorization();
 
-        services.AddRazorPages()
+        services.AddRazorPages()        
             .AddMicrosoftIdentityUI();
 
-        services.AddServerSideBlazor()
-            .AddCircuitOptions(o =>
-            {
-                o.DetailedErrors = true; // todo: to make it 'true' only in development
-            }).AddHubOptions(o =>
-            {
-                o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
-            });
+        services.AddRazorComponents()
+            .AddInteractiveServerComponents()
+                        .AddCircuitOptions(o =>
+                        {
+                            o.DetailedErrors = true; // todo: to make it 'true' only in development
+                        }).AddHubOptions(o =>
+                        {
+                            o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+                        });
+
+        //services.AddServerSideBlazor()
+        //    .AddCircuitOptions(o =>
+        //    {
+        //        o.DetailedErrors = true; // todo: to make it 'true' only in development
+        //    }).AddHubOptions(o =>
+        //    {
+        //        o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
+        //    });
 
         services.AddControllers();
 
@@ -165,7 +176,7 @@ public class Startup
         services.AddUserAchievementServices();
         services.AddSecurityServices();
 
-        services.AddElemental();
+        //services.AddElemental();
         services.AddMudServices();
         services.AddMudMarkdownServices();
 
@@ -255,9 +266,9 @@ public class Startup
 
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
-        IConfiguration configuration,
-        IDbContextFactory<MetadataDbContext> metadataFactory)
+    public void Configure(WebApplication app, IWebHostEnvironment env, ILogger<Startup> logger,
+    IConfiguration configuration,
+    IDbContextFactory<MetadataDbContext> metadataFactory)
     {
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
@@ -266,18 +277,18 @@ public class Startup
         var dbDriver = configuration.GetDriver();
         if (dbDriver == DbDriver.Sqlite)
         {
-            var ctx = app.ApplicationServices.GetRequiredService<IDbContextFactory<SqliteDatahubContext>>();
+            var ctx = app.Services.GetRequiredService<IDbContextFactory<SqliteDatahubContext>>();
             InitializeDatabase(logger, ctx);
         }
         else
         {
-            var ctx = app.ApplicationServices.GetRequiredService<IDbContextFactory<SqlServerDatahubContext>>();
+            var ctx = app.Services.GetRequiredService<IDbContextFactory<SqlServerDatahubContext>>();
             InitializeDatabase(logger, ctx);
         }
-        
+
         InitializeDatabase(logger, metadataFactory, true);
 
-        app.UseRequestLocalization(app.ApplicationServices.GetService<IOptions<RequestLocalizationOptions>>()
+        app.UseRequestLocalization(app.Services.GetService<IOptions<RequestLocalizationOptions>>()
             .Value);
 
         if (Debug)
@@ -287,7 +298,6 @@ public class Startup
         else
         {
             app.UseExceptionHandler("/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
@@ -300,26 +310,28 @@ public class Startup
 
         app.UseAuthentication();
         app.UseAuthorization();
-        
+
+        app.UseAntiforgery();
+
         app.UseMiddleware<IFrameMiddleware>();
 
-        app.UseEndpoints(endpoints =>
+        // Replaced UseEndpoints with top-level route registrations
+
+        //DOTNET 9 app.MapStaticAssets();
+        app.MapControllers();
+
+        // Reverse proxy
+        var provider = app.Services.GetService<IProxyConfigProvider>();
+        if (ReverseProxyEnabled() && provider != null)
         {
-            endpoints.MapRazorPages();
-            endpoints.MapBlazorHub();
-            endpoints.MapControllers();
-            endpoints.MapFallbackToPage("/_Host");
-            // reverse proxy
-            var provider = endpoints.ServiceProvider.GetService<IProxyConfigProvider>();
-            if (ReverseProxyEnabled() && provider != null)
-            {
-                endpoints.MapReverseProxy();
-            }  
-            else
-            {
-                logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
-            }
-        });       
+            app.MapReverseProxy();
+        }
+        else
+        {
+            logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+        }
+        
+        app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
     }
 
     private void ConfigureLocalization(IServiceCollection services)
@@ -446,7 +458,6 @@ public class Startup
 
         services.AddScoped<CustomNavigation>();
 
-        services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
     }
 
     private void ConfigureDbContexts(IServiceCollection services)

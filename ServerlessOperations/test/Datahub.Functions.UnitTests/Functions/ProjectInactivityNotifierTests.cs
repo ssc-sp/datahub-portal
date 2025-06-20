@@ -73,7 +73,7 @@ public class ProjectInactivityNotifierTests
 
         // Act
         var result = await _sut.CheckIfProjectToBeNotified(10, daysUntilDeletion, null,
-            false, "", new List<string>());
+             "", new List<string>());
 
         // Assert
         result.Should().BeNull();
@@ -92,7 +92,7 @@ public class ProjectInactivityNotifierTests
 
         // Act
         var result = await _sut.CheckIfProjectToBeNotified(daysUntilDeletion, 10, null,
-            false, "", new List<string>());
+            "", new List<string>());
 
         // Assert
         result.Should().BeOfType<EmailRequestMessage>();
@@ -109,22 +109,7 @@ public class ProjectInactivityNotifierTests
 
         // Act
         var result = await _sut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
-            false, "", new List<string>());
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Test]
-    public async Task CheckIfProjectToBeNotified_HasCostRecovery()
-    {
-        // Arrange
-        _dateProvider.Today.Returns(DateTime.Today);
-        _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
-
-        // Act
-        var result = await _sut.CheckIfProjectToBeNotified(10, 10, null,
-            true, "", new List<string>());
+            "", new List<string>());
 
         // Assert
         result.Should().BeNull();

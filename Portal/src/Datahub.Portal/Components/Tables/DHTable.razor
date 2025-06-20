@@ -1,0 +1,394 @@
+@using System.Reflection
+@using Datahub.Portal.Components.Dialogs
+
+@inject IDialogService _dialogService;
+@inject IJSRuntime _jsRuntime
+
+@typeparam TData where TData : IDHTableData
+
+@if (!HideTitle)
+{
+    <MudStack Row Class="my-2" Style="align-items: end">
+        <MudText Typo="Typo.h2">
+            @Title
+        </MudText>
+        <MudSpacer/>
+        <MudText Typo="Typo.caption" Style="font-style: italic;">
+            @Localizer["{0} {1}", Items.Count, TData.DataLabel()]
+        </MudText>
+    </MudStack>
+}
+<MudTable ServerData="ServerData" @ref="@userTable" Dense Outlined Striped="@Striped"
+          CustomHeader HeaderClass="pa-4" ContainerStyle="overflow-x: scroll">
+    <ToolBarContent>
+        <MudStack Class="my-4" Row AlignItems="AlignItems.Center" Style="width: 100%">
+            <MudTextField
+                Value="_searchString" ValueChanged="SearchStringChanged" DebounceInterval="300" T="string"
+                Immediate="true"
+                Style="width: 400px;"
+                Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium"
+                Label="@Localizer["Search"]" Clearable>
+            </MudTextField>
+            <MudHidden Breakpoint="Breakpoint.MdAndDown">
+                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" PageSizeOptions="@( [10, 20, 100])"
+                               Style="border-top-width: 0px" HideRowsPerPage/>
+            </MudHidden>
+            <MudSpacer/>
+            @if (!HideFilter)
+            {
+                <MudMenu Icon="@Icons.Material.Outlined.FilterList"
+                         Color="@(_filters.Any() ? Color.Primary : Color.Default)" Dense>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Add"
+                                 OnClick=@AddFilter>
+                        @Localizer["Add filter"]
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.FilterAltOff" OnClick="@(() =>
+                                                                                       {
+                                                                                           _filters.Clear();
+                                                                                           ReloadServerData();
+                                                                                       })">
+                        @Localizer["Clear all filters"]
+                    </MudMenuItem>
+                </MudMenu>
+            }
+            @if (!HideOptions)
+            {
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Download" OnClick="@(() => { HandleDownload(false); })">
+                        @Localizer["Download all"]
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.SystemUpdateAlt"
+                                 OnClick="@(() => { HandleDownload(true); })">
+                        @Localizer["Download filtered"]
+                    </MudMenuItem>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Edit"
+                                 OnClick="EditColumns">
+                        @Localizer["Edit columns"]
+                    </MudMenuItem>
+                    @if (HasEmailColumn())
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy"
+                                     OnClick="@(() => { CopyUsersToClipboard(false); })">
+                            @Localizer["Copy all emails"]
+                        </MudMenuItem>
+                        <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy"
+                                     OnClick="@(() => { CopyUsersToClipboard(true); })">
+                            @Localizer["Copy filtered emails"]
+                        </MudMenuItem>
+                    }
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Bolt" OnClick="SelectPreset">
+                        @Localizer["Select preset"]
+                    </MudMenuItem>
+                </MudMenu>
+            }
+        </MudStack>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTHeadRow>
+            <MudStack Row AlignItems="AlignItems.Center" Class="px-4">
+                @if (_filters.Any())
+                {
+                    <MudText>
+                        <strong>
+                            @Localizer["Active filters:"]
+                        </strong>
+                    </MudText>
+                }
+                @foreach (var filter in _filters)
+                {
+                    <MudTooltip
+                        Text="@($"{PropertyLabel(filter.ColumnName)} {filter.FilterType.Label().ToLower()} {filter.Value}")">
+                        <MudChip T="string" Color="Color.Primary" Icon="@Icons.Material.Filled.FilterAlt"
+                                 Size="Size.Small"
+                                 CloseIcon="@Icons.Material.Filled.Close" OnClose="@(() =>
+                                                                                   {
+                                                                                       _filters.Remove(filter);
+                                                                                       ReloadServerData();
+                                                                                   })">
+                            @Localizer[PropertyLabel(filter.ColumnName)]
+                        </MudChip>
+                    </MudTooltip>
+                }
+            </MudStack>
+        </MudTHeadRow>
+        <MudTHeadRow>
+            @foreach (var col in _columns)
+            {
+                <MudTh Style="width: 100px">
+                    <MudTableSortLabel T="dynamic">
+                        <MudText Style="font-weight: 600">
+                            @PropertyLabel(col.Name)
+                        </MudText>
+                    </MudTableSortLabel>
+                </MudTh>
+            }
+        </MudTHeadRow>
+    </HeaderContent>
+    <RowTemplate>
+        @foreach (var col in _columns)
+        {
+            @if (typeof(IDHTableCell).IsAssignableFrom(col.PropertyType))
+            {
+                <MudTd>
+                    @((col.GetValue(context) as IDHTableCell)?.Render())
+                </MudTd>
+            }
+            else
+            {
+                <MudTd>
+                    @(context.GetType().GetProperty(col.Name)?.GetValue(context, null) ?? "")
+                </MudTd>
+            }
+        }
+    </RowTemplate>
+    <PagerContent>
+        <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" PageSizeOptions="@( [10, 20, 100])"/>
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter] public List<TData> Items { get; set; }
+    [Parameter] public DHTablePreset? Preset { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public bool Striped { get; set; } = false;
+    [Parameter] public bool HideTitle { get; set; } = false;
+    [Parameter] public bool HideFilter { get; set; } = false;
+    [Parameter] public bool HideOptions { get; set; } = false;
+
+    private IEnumerable<TData> _filteredData { get; set; }
+    private List<FilterData> _filters { get; set; } = [];
+    private List<PropertyInfo> _columns { get; set; } = [];
+
+
+    private IJSObjectReference _module;
+
+    private MudTable<TData> userTable;
+
+    private string _searchString = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/Tables/DHTable.razor.js");
+        }
+        catch
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/Tables/DHTable.razor.js");
+        }
+
+        _columns = (Preset is null) ? TData.DefaultPreset().Columns : Preset.Columns;
+        _filters = (Preset is null) ? TData.DefaultPreset().Filters : Preset.Filters;
+    }
+
+    private async Task AddFilter()
+    {
+        var parameters = new DialogParameters { { "Filters", _filters } };
+        var dialog = await _dialogService.ShowAsync<FilterDialog<TData>>("", parameters, new DialogOptions { FullWidth = true, MaxWidth = MaxWidth.Medium, CloseButton = true });
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            _filters = (List<FilterData>)result.Data;
+            await ReloadServerData();
+        }
+    }
+
+    private async Task EditColumns()
+    {
+        var parameters = new DialogParameters { { "SelectedColumns", _columns }, { "Properties", typeof(TData).GetProperties().ToList() } };
+        var dialog = await _dialogService.ShowAsync<ColumnSelectDialog>("", parameters, new DialogOptions { FullWidth = true, MaxWidth = MaxWidth.Medium, CloseButton = true });
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            _columns = (List<PropertyInfo>)result.Data;
+            await ReloadServerData();
+        }
+    }
+
+    private async Task SelectPreset()
+    {
+        var dialog = await _dialogService.ShowAsync<PresetDialog<TData>>("", new DialogOptions { FullWidth = true, MaxWidth = MaxWidth.Medium, CloseButton = true });
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            var preset = (DHTablePreset)result.Data;
+            if (preset.Columns is not null) _columns = preset.Columns;
+            if (preset.Filters is not null) _filters = preset.Filters;
+            await ReloadServerData();
+        }
+    }
+
+    private string PropertyLabel(string name)
+    {
+        var label = string.Join(" ", System.Text.RegularExpressions.Regex.Split(name, @"(?<!^)(?=[A-Z])"))
+            .ToLowerInvariant();
+        return label.First().ToString().ToUpper() + label.Substring(1);
+    }
+
+
+    private async Task<TableData<TData>> ServerData(TableState state, CancellationToken cancellationToken)
+    {
+        var filteredData = Items.AsEnumerable();
+
+        // Apply search filter across all selected columns
+        if (!string.IsNullOrEmpty(_searchString))
+        {
+            filteredData = filteredData.Where(user =>
+                _columns.Any(col =>
+                    user.GetType().GetProperty(col.Name)?.GetValue(user)?.ToString()
+                        ?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) ?? false));
+        }
+
+        // Apply additional filters
+        foreach (var filter in _filters)
+        {
+            filteredData = ApplyFilter(filteredData, filter);
+        }
+
+        var totalItems = filteredData.Count();
+        var pagedData = filteredData
+            .Skip(state.Page * state.PageSize)
+            .Take(state.PageSize)
+            .ToList();
+
+        _filteredData = filteredData;
+
+        return await Task.FromResult(new TableData<TData> { TotalItems = totalItems, Items = pagedData });
+    }
+
+    private IEnumerable<TData> ApplyFilter(IEnumerable<TData> data, FilterData filter)
+    {
+        return filter.FilterType switch
+        {
+            FilterType.Equals => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result == 0),
+            FilterType.NotEquals => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result != 0),
+            FilterType.GreaterThan => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result > 0),
+            FilterType.LessThan => data.Where(u =>
+                TryParseDateOrNumber(u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString(), filter.Value, out var result) && result < 0),
+            FilterType.Contains => data.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.Contains(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
+            FilterType.StartsWith => data.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.StartsWith(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
+            FilterType.EndsWith => data.Where(u => u.GetType().GetProperty(filter.ColumnName)?.GetValue(u)?.ToString()?.EndsWith(filter.Value, StringComparison.OrdinalIgnoreCase) ?? false),
+            _ => data
+        };
+    }
+
+    private bool TryParseDateOrNumber(string? value, string filterValue, out int result)
+    {
+        result = 0;
+        if (DateTime.TryParse(value, out var dateVal) && DateTime.TryParse(filterValue, out var filterDate))
+        {
+            result = DateTime.Compare(dateVal, filterDate);
+            return true;
+        }
+
+        if (double.TryParse(value, out var numVal) && double.TryParse(filterValue, out var filterNum))
+        {
+            result = numVal.CompareTo(filterNum);
+            return true;
+        }
+
+        return false;
+    }
+
+    private async Task SearchStringChanged(string search)
+    {
+        _searchString = search;
+        await ReloadServerData();
+    }
+
+    private async Task ReloadServerData()
+    {
+        if (userTable is not null)
+        {
+            await userTable.ReloadServerData();
+        }
+    }
+
+    private PropertyInfo EmailColumn() => typeof(TData).GetProperties().FirstOrDefault(p => p.Name.Contains("Email", StringComparison.OrdinalIgnoreCase));
+    private bool HasEmailColumn() => typeof(TData).GetProperties().Any(p => p.Name.Contains("Email", StringComparison.OrdinalIgnoreCase));
+
+    // Copy emails to clipboard
+    private async Task CopyUsersToClipboard(bool filtered = false)
+    {
+        var emailColumn = EmailColumn();
+        if (filtered)
+        {
+            await CopyToClipboard(
+                _filteredData.Select(x => x.GetType().GetProperty(emailColumn.Name)?.GetValue(x)?.ToString()).Distinct().ToList());
+        }
+        else
+        {
+            await CopyToClipboard(
+                Items.Select(x => x.GetType().GetProperty(emailColumn.Name)?.GetValue(x)?.ToString()).Distinct().ToList());
+        }
+    }
+
+    private async Task<bool> CopyToClipboard(List<string> emailList)
+    {
+        var result = false;
+        if (emailList.Any())
+        {
+            var tempstr = String.Join(";\n", emailList);
+            await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", tempstr);
+            result = true;
+        }
+
+        return result;
+    }
+
+    // CSV download
+    private async Task HandleDownload(bool filtered = false)
+    {
+        var fileStream = GenerateCsvStream(filtered);
+        var fileName = $"{typeof(TData).Name}_{DateTime.Now:yyyy-MM-dd}.csv";
+        using var streamReference = new DotNetStreamReference(stream: fileStream);
+        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+    }
+
+    private Stream GenerateCsvStream(bool filtered = false)
+    {
+        var stream = new MemoryStream();
+        var writer = new StreamWriter(stream);
+
+        // Write header
+        var header = filtered
+            ? string.Join(",", _columns.Select(prop => PropertyLabel(prop.Name)))
+            : string.Join(",", typeof(TData).GetProperties().Select(prop => PropertyLabel(prop.Name)));
+        writer.WriteLine(header);
+
+        // Write rows
+        var data = filtered ? _filteredData : Items;
+        foreach (var user in data)
+        {
+            var values = filtered
+                ? _columns.Select(col => FormatData(user.GetType().GetProperty(col.Name)?.GetValue(user, null)))
+                : typeof(TData).GetProperties().Select(prop => FormatData(prop.GetValue(user, null)));
+            var row = string.Join(",", values);
+            writer.WriteLine(row);
+        }
+
+        writer.Flush();
+        stream.Position = 0;
+        return stream;
+    }
+
+    private string FormatData(dynamic input)
+    {
+        if (input == null)
+        {
+            return string.Empty;
+        }
+
+        var str = input.ToString();
+        if (str == null)
+        {
+            return string.Empty;
+        }
+
+        return "\"" + input + "\"";
+    }
+
+}

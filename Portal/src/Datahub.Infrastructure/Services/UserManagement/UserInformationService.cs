@@ -33,21 +33,21 @@ public class UserInformationService(
     IDbContextFactory<DatahubProjectDBContext> datahubContextFactory)
     : IUserInformationService
 {
-    private GraphServiceClient graphServiceClient;
-    private ClaimsPrincipal authenticatedUser;
-    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
-    private User currentUser;
+    private GraphServiceClient graphServiceClient = null!;
+    private ClaimsPrincipal authenticatedUser = null!;
+    public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated = null!;
+    private User currentUser = null!;
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
     private bool _isViewingAsVisitor;
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
         if (authenticationStateProvider == null || forceReload)
-            authenticatedUser = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
+            authenticatedUser = (await authenticationStateProvider!.GetAuthenticationStateAsync()).User;
         return authenticatedUser;
     }
 
-    public async Task<string> GetUserIdString()
+    public async Task<string> GetGraphUserIdString()
     {
         await CheckUser();
         return GetOid();
@@ -56,21 +56,20 @@ public class UserInformationService(
     public async Task<string> GetUserEmail()
     {
         await CheckUser();
-        return currentUser.Mail;
+        return currentUser.Mail ?? throw new InvalidOperationException("Email is not available for current user");
     }
 
     public async Task<string> GetDisplayName()
     {
         await CheckUser();
-        return currentUser.DisplayName;
+        return currentUser.DisplayName ?? string.Empty;
     }
 
     public async Task<string> GetUserEmailDomain()
     {
-        await CheckUser();
         try
         {
-            MailAddress email = new MailAddress(currentUser.Mail);
+            MailAddress email = new MailAddress(await GetUserEmail());
             return email.Host.ToLower();
         }
         catch (Exception ex)
@@ -82,10 +81,9 @@ public class UserInformationService(
 
     public async Task<string> GetUserEmailPrefix()
     {
-        await CheckUser();
         try
         {
-            var email = new MailAddress(currentUser.Mail);
+            var email = new MailAddress(await GetUserEmail());
             return email.User.ToLower();
         }
         catch (Exception ex)
@@ -124,7 +122,7 @@ public class UserInformationService(
             }
 
             PrepareAuthenticatedClient();
-            currentUser = await graphServiceClient.Users[userId].GetAsync();
+            currentUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
         }
         catch (ServiceException e)
         {
@@ -139,6 +137,12 @@ public class UserInformationService(
             //_logger.LogError(e, "Error Loading User"); redundant
             throw new InvalidOperationException("Cannot retrieve user list", e);
         }
+    }
+
+    private bool HasOid()
+    {
+        return authenticatedUser?.Claims?
+                   .Any(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? false;
     }
 
     private string GetOid()
@@ -193,12 +197,12 @@ public class UserInformationService(
         return Task.FromResult(AnonymousUser);
     }
 
-    public async Task<User> GetGraphUserAsync(string userId)
+    public async Task<User?> GetGraphUserAsync(string userId)
     {
         try
         {
             PrepareAuthenticatedClient();
-            currentUser = await graphServiceClient.Users[userId].GetAsync();
+            currentUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
 
             return currentUser;
         }
@@ -219,12 +223,12 @@ public class UserInformationService(
 
     public async Task<bool> IsViewingAsGuest()
     {
-        return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id);
+        return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id"));
     }
 
     public async Task SetViewingAsGuest(bool isGuest)
     {
-        serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id, isGuest);
+        serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id"), isGuest);
     }
 
     public Task<bool> IsViewingAsVisitor()
@@ -299,7 +303,7 @@ public class UserInformationService(
         try
         {
             PrepareAuthenticatedClient();
-            var graphUser = await graphServiceClient.Users[userGraphId].GetAsync();
+            var graphUser = await graphServiceClient.Users[userGraphId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
             var portalUser = new PortalUser
             {
                 GraphGuid = userGraphId,
@@ -463,7 +467,7 @@ public class UserInformationService(
 
     public async Task RegisterAuthenticatedPortalUser()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
 
         var portalUser = await GetPortalUserAsync(graphId);
         if (portalUser is null)
@@ -502,15 +506,19 @@ public class UserInformationService(
         }
     }
 
-    public async Task<PortalUser> GetCurrentPortalUserAsync()
+    public async Task<PortalUser?> GetCurrentPortalUserAsync()
     {
-        var graphId = await GetUserIdString();
-        return await GetPortalUserAsync(graphId);
+        if (!HasOid())
+        {
+            return null;
+        }
+            var graphId = await GetGraphUserIdString();
+            return await GetPortalUserAsync(graphId);
     }
 
     public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
     {
-        PortalUser portalUser;
+        PortalUser? portalUser;
         await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
         {
             portalUser = await ctx.PortalUsers
@@ -531,7 +539,7 @@ public class UserInformationService(
         {
             portalUser = await ctx.PortalUsers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
+                .FirstAsync(p => p.GraphGuid == userGraphId);
 
             return portalUser;
         }
@@ -539,7 +547,7 @@ public class UserInformationService(
 
     public async Task<bool> IsDailyLogin()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
         var portalUser = await GetPortalUserAsync(graphId);
 
         if (portalUser is null)
@@ -553,7 +561,7 @@ public class UserInformationService(
 
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
-        var graphId = await GetUserIdString();
+        var graphId = await GetGraphUserIdString();
         return await GetPortalUserWithAchievementsAsync(graphId);
     }
 
@@ -566,7 +574,7 @@ public class UserInformationService(
             .Include(p => p.UserSettings)
             .Include(p => p.Achievements)
             .ThenInclude(a => a.Achievement)
-            .FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
+            .FirstAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;
     }

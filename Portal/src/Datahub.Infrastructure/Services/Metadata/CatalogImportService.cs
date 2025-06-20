@@ -64,13 +64,11 @@ public class CatalogImportService
                 metadataCtx.SaveChanges();
 
                 var graphUser = await GetGraphUser(entry.contact);
-                var sector = await GetSector(projectCtx, graphUser?.Department);
 
                 // save dataset metadata
                 var fieldValues = await _metadataBrokerService.GetObjectMetadataValues(objMetadata.ObjectMetadataId);
                 var subjectValues = GetSubjectValues(fieldValues.Definitions, entry.subjects) ?? "";
 
-                fieldValues.SetValue("sector", $"{sector?.Id ?? 0}");
                 fieldValues.SetValue("collection", "primary");
 
                 fieldValues.SetValue("title_translated_en", entry.name_en ?? string.Empty);
@@ -97,11 +95,9 @@ public class CatalogImportService
                     Url_French_TXT = entry.url_fr,
                     SecurityClass_TXT = entry.classification ?? "Unclassified",
                     Classification_Type = GetClassificationType(entry.classification),
-                    Sector_NUM = sector?.Id ?? 0,
-                    Branch_NUM = 0, // no branch for now
                     Contact_TXT = graphUser?.Mail ?? entry.contact,
-                    Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), sector?.Name_English ?? "", string.Empty, entry.name_en, entry.keywords_en),
-                    Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), sector?.Name_French ?? "", string.Empty, entry.name_fr, entry.keywords_fr),
+                    Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), "", string.Empty, entry.name_en, entry.keywords_en),
+                    Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), "", string.Empty, entry.name_fr, entry.keywords_fr),
                 };
 
                 metadataCtx.CatalogObjects.Add(catalogObj);
@@ -136,25 +132,6 @@ public class CatalogImportService
     static bool ObjectMetadataExists(MetadataDbContext ctx, string id)
     {
         return ctx.ObjectMetadataSet.Any(e => e.ObjectId_TXT == id);
-    }
-
-    static async Task<CatalogEntrySector> GetSector(DatahubProjectDBContext ctx, string department)
-    {
-        var engAcronym = (department ?? "").Split('.').FirstOrDefault();
-        if (!string.IsNullOrEmpty(engAcronym))
-        {
-            var orgLevel = await ctx.Organization_Levels.FirstOrDefaultAsync(e => e.Full_Acronym_E == engAcronym);
-            if (orgLevel is not null)
-            {
-                return new()
-                {
-                    Id = orgLevel.Organization_ID,
-                    Name_English = orgLevel.Org_Name_E,
-                    Name_French = orgLevel.Org_Name_F
-                };
-            }
-        }
-        return new();
     }
 
     static string GetSubjectValues(FieldDefinitions definitions, List<CatalogEntrySubject> subjects)
