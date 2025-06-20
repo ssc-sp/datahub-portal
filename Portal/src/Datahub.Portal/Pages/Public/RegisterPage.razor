@@ -153,8 +153,8 @@
     private string[] _errors = { };
     private MudForm _form;
 
-    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
-    private List<TopBarEnvironments> _environmentsToAllowRegistration = new List<TopBarEnvironments> { TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl };
+    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.QualityControl, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
+    private List<TopBarEnvironments> _environmentsToAllowRegistration = new List<TopBarEnvironments> { TopBarEnvironments.ProofOfConcept };
 
     protected override void OnInitialized()
     {
