@@ -459,7 +459,7 @@ public partial class RepositoryService(
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
     {
         try
-        {
+        {            
             if (resourceTemplate.Status == TerraformStatus.DeleteRequested)
             {
                 if (resourceTemplate.Name == TerraformTemplate.NewProjectTemplate)
@@ -471,7 +471,7 @@ public partial class RepositoryService(
                     await terraformService.DeleteTemplateAsync(resourceTemplate.Name, command.Workspace);
                 }
             }
-            else if (resourceTemplate.Status == TerraformStatus.CreateRequested)
+            else if (resourceTemplate.Status == TerraformStatus.CreateRequested || command.UpdateWorkspaceVersion)
             {
                 await terraformService.CopyTemplateAsync(resourceTemplate.Name, command);
                 await ExtractVariables(resourceTemplate, command);
