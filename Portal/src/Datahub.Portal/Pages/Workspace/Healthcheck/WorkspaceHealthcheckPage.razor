@@ -46,6 +46,7 @@
 @inject IHttpContextAccessor _httpContextAccessor
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager
+@inject TimeZoneHelper TimeZoneHelper
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -73,7 +74,9 @@
                         </MudChip>
                     </MudTooltip>
                 </MudTd>
-                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                <MudTd>
+                    <span>@(localTimes.ContainsKey(context.HealthCheckTimeUtc) ? localTimes[context.HealthCheckTimeUtc] : "Loading...")</span>
+                </MudTd>
                 <MudTd>
                     <DHButton Variant="Variant.Filled" Color="Color.Primary"
                               OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
@@ -92,6 +95,7 @@
     private List<InfrastructureHealthCheck> _statusList = new List<InfrastructureHealthCheck>();
     private DatahubProjectDBContext _projectDbContext;
     private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
+    private Dictionary<DateTime, string> localTimes = new();
 
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
@@ -136,6 +140,21 @@
         }
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _statusList != null)
+        {
+            foreach (var item in _statusList)
+            {
+                if (!localTimes.ContainsKey(item.HealthCheckTimeUtc))
+                {
+                    var local = await TimeZoneHelper.ToUserLocalTimeAsync(item.HealthCheckTimeUtc);
+                    localTimes[item.HealthCheckTimeUtc] = local.ToString("g"); // or your preferred format
+                }
+            }
+            StateHasChanged();
+        }
+    }
     private async Task<string> GetSystemAccessTokenAsync()
     {
         var config = new AzureDevOpsConfiguration
