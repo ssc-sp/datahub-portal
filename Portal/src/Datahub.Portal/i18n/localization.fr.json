@@ -3348,8 +3348,26 @@
   "Total workspace budgets must not exceed available CBR budget": "Le budget total de l'espace de travail ne doit pas dépasser le budget BOI disponible",
   "Manage budget allocation for workspaces under this workspace's CBR": "Gérer l'allocation du budget pour les espaces de travail dans le cadre du BOI de cet espace de travail",
   "CBR must be selected to create a workspace": "BOI doit être sélectionné pour créer un espace de travail",
-
-  //Version Control Localization
+  "A horizontal bar chart showing total budget, usage and available budget for workspaces in this CBR. An accessible description is provided below the chart.": "Un diagramme à barres horizontales montrant le budget total, l'utilisation et le budget disponible pour les espaces de travail dans ce BOI. Une description accessible est fournie sous le graphique.",
+  "Incurred costs against the budget allocation for each workspace in this CBR. A detailed table is provided below the charts.": "Coûts encourus par rapport à l'allocation budgétaire pour chaque espace de travail dans ce BOI. Un tableau détaillé est fourni sous les graphiques.",
+  "Workspace {0} has used {1} of its budget of {2}, with {3} remaining.": "L'espace de travail {0} a utilisé {1} de son budget de {2}, et il reste {3}.",
+  "The following workspaces have not yet incurred any costs:": "Les espaces de travail suivants n'ont pas encore engagé de frais :",
+  "{0}, budget {1}.": "{0}, budget {1}.",
+  "A donut chart showing the budget allocation for the workspaces in this CBR. An accessible description is provided below the chart.": "Un diagramme en forme de beignet montrant l'allocation budgétaire pour les espaces de travail dans ce BOI. Une description accessible est fournie sous le graphique.",
+  "Budget allocations": "Allocations budgétaires",
+  "Unallocated": "Non alloué",
+  "Budget allocation for the workspaces in this CBR. A detailed table is provided below the charts.": "Allocation budgétaire pour les espaces de travail dans ce BOI. Un tableau détaillé est fourni sous les graphiques.",
+  "{0} is unallocated.": "{0} n'est pas alloué.",
+  "Budget for workspace {0} is {1}.": "Le budget de l'espace de travail {0} est de {1}.",
+  "Overall, {0} of the total CBR budget of {1} has been allocated to workspaces.": "Globalement, {0} du budget BOI total de {1} a été alloué aux espaces de travail.",
+  "Workspace Budget Usage": "Utilisation du budget de l'espace de travail",
+  "Click on a workspace's row to see detailed usage broken down by service.": "Cliquez sur la ligne d'un espace de travail pour voir l'utilisation détaillée par service.",
+  "Usage": "Utilisation",
+  "Workspace {0} has not yet incurred any costs for its services.": "L'espace de travail {0} n'a pas encore engagé de frais pour ses services.",
+  "Budget Allocation": "Allocation budgétaire",
+  "Budget Usage": "Utilisation du budget",
+  "CBR Budget": "Budget de la BOI",
+  "Available Budget": "Budget disponible",
   "This page allows you to manage workspace versions in the FSDH.": "Cette page permet de gérer les versions de l'espace de travail dans le FSDH.",
   "Add a new version to the version control table.": "Ajouter une nouvelle version au tableau de contrôle des versions.",
   "Add New Version": "Ajouter une nouvelle version",
@@ -3362,6 +3380,9 @@
   "Successfully added version: {0}": "Ajouté avec succès la version : {0}",
   "Version already exists": "La version existe déjà",
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
+  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC."
 
   // GC Hosting Metadata
   "GCWorkspaceMetadata": "Métadonnées de l’espace de travail GC Hosting",

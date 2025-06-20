@@ -17,12 +17,6 @@
 {
     <DHLoadingInitializer />
 }
-else if (_previews.Count == 0)
-{
-    <MudPaper Class="welcome-banner" Style="@_personalBackgroundStyle" >
-        <MudText Typo="Typo.h2" class="greeting">@_greeting</MudText>
-    </MudPaper>
-}
 else
 {
    <AnnouncementCarousel Previews="_previews" BackgroundUrl="@_userBackgroundUrl" />
