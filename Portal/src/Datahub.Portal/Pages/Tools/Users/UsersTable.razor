@@ -1,4 +1,3 @@
-@using CsvHelper
 @using CsvHelper.Configuration.Attributes
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
@@ -14,6 +13,7 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IHttpClientFactory _httpClientFactory
 @inject IJSRuntime _jsRuntime
+@inject ICsvService _csvService
 @inject IDownloadService _downloadService
 
 <MudTable Striped Items="@UserWorkspaces" ServerData="SortUserTable" @ref="userTable">
@@ -271,27 +271,13 @@
     // CSV download
     private async Task HandleDownload()
     {
-        var fileStream = GenerateCsvWriterStream();
+        var csvRecords = _filteredData.Select(ConvertUserWorkspaces);
+        var fileStream = _csvService.GenerateCsvStreamFromRecords(csvRecords);
         var fileName = $"UserInfo_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
         await _downloadService.DownloadStreamAsFile(fileStream, fileName);
     }
 
-    private Stream GenerateCsvWriterStream()
-    {
-        var csvRecords = _filteredData.Select(ConvertUserWorkspaces);
-
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-        csvWriter.WriteRecords(csvRecords);
-
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
-    }
-
-    record UsersTableCsvEntry(string Name, string Email, string Workspaces, [property: Name("Last Login")] string LastLogin);
+    record UsersTableCsvEntry(string Name, string Email, string Workspaces, [property: Name("Last Login")] string LastLogin) : ICsvService.ICsvRecord;
 
     private string JoinWorkspaces(IEnumerable<Datahub_Project> workspaces) => string.Join(", ", workspaces.Select(w => $"{w.ProjectName} ({w.Project_Acronym_CD})"));
 

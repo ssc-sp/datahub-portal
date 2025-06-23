@@ -1,8 +1,8 @@
-﻿@using CsvHelper
-@using CsvHelper.Configuration.Attributes
+﻿@using CsvHelper.Configuration.Attributes
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IJSRuntime _jsRuntime
 @inject IDownloadService _downloadService
+@inject ICsvService _csvService
 
 <MudTable Items="Costs" Dense="true" Outlined="true" RowsPerPage="10" Striped="true">
     <ToolBarContent>
@@ -62,27 +62,13 @@
 
     private async Task HandleDownload()
     {
-        var fileStream = GenerateCsvWriterStream();
+        var csvRecords = Costs.Select(ConvertCostForCsv);
+        using var fileStream = _csvService.GenerateCsvStreamFromRecords(csvRecords);
         var fileName = $"WorkspaceCosts_{WorkspaceAcronym}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
         await _downloadService.DownloadStreamAsFile(fileStream, fileName);
     }
 
-    private Stream GenerateCsvWriterStream()
-    {
-        var csvRecords = Costs.Select(ConvertCostForCsv);
-
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-        csvWriter.WriteRecords(csvRecords);
-
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
-    }
-
-    private record WorkspaceCostsCsvRecord(string Date, string Source, [property: Name("Cost ($CAD)")] decimal CostInCad);
+    private record WorkspaceCostsCsvRecord(string Date, string Source, [property: Name("Cost ($CAD)")] decimal CostInCad) : ICsvService.ICsvRecord;
 
     private WorkspaceCostsCsvRecord ConvertCostForCsv(CostDisplay cost) => new(cost.Date, cost.Source, cost.Cost);
 

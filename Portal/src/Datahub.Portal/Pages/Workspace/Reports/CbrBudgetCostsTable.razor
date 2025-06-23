@@ -1,11 +1,11 @@
 ﻿@* CbrBudgetCostsTable *@
 
-@using CsvHelper
 @using CsvHelper.Configuration.Attributes
 @using Datahub.Application.Services.Cost
 @using Ut = BudgetCostReportUtils
 
 @inject IDownloadService _downloadService
+@inject ICsvService _csvService
 
 
 <MudContainer Gutters>
@@ -113,28 +113,10 @@
     {
         var baseFilename = detailed ? "CBR_Detailed_Workspace_Costs" : "CBR_Workspace_Costs";
         var filename = $"{baseFilename}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
-        using var stream = GenerateWorkspaceCostsCsvWriterStream(detailed);
+        using var stream = detailed ?
+            _csvService.GenerateCsvStreamFromRecords(GetDetailedCbrCostUsageCsvRecords()) :
+            _csvService.GenerateCsvStreamFromRecords(GetBasicCbrCostUsageCsvRecords());
         await _downloadService.DownloadStreamAsFile(stream, filename);
-    }
-
-    private Stream GenerateWorkspaceCostsCsvWriterStream(bool detailed)
-    {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        var csvWriter = new CsvWriter(writer, CultureInfo.InvariantCulture);
-
-        if (detailed)
-        {
-            csvWriter.WriteRecords(GetDetailedCbrCostUsageCsvRecords());
-        }
-        else
-        {
-            csvWriter.WriteRecords(GetBasicCbrCostUsageCsvRecords());
-        }
-
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
     }
 
     private void OnRowClicked(TableRowClickEventArgs<CbrBudgetCostData> eventArgs) => ToggleShowDetails(eventArgs.Item);
@@ -165,11 +147,11 @@
     private IEnumerable<BasicCbrCostUsageCsvRecord> GetBasicCbrCostUsageCsvRecords() => _cbrBudgetCostData
         .Select(c => new BasicCbrCostUsageCsvRecord(c.WorkspaceAcronym, c.Budget, c.Cost));
 
-    private record BasicCbrCostUsageCsvRecord(string Workspace, [property:Name("Allocated Budget")] decimal AllocatedBudget, decimal Usage);
+    private record BasicCbrCostUsageCsvRecord(string Workspace, [property:Name("Allocated Budget")] decimal AllocatedBudget, decimal Usage) : ICsvService.ICsvRecord;
     private record DetailedCbrCostUsageCsvRecord(
         string Workspace, 
         string Service, 
         [property: Name("Allocated Budget")] decimal? AllocatedBudget, 
         decimal? Usage, 
-        [property: Name("Service Usage")] decimal? ServiceUsage);
+        [property: Name("Service Usage")] decimal? ServiceUsage) : ICsvService.ICsvRecord;
 }
