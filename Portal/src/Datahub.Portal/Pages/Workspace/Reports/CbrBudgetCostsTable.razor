@@ -130,28 +130,28 @@
     }
 
     private IEnumerable<DetailedCbrCostUsageCsvRecord> GetDetailedCbrCostUsageCsvRecords()
-    {
+            {
         foreach (var c in _cbrBudgetCostData)
         {
             yield return new(c.WorkspaceAcronym, string.Empty, c.Budget, c.Cost, null);
-            if (c.CostsByService.Count > 0)
-            {
-                foreach(var sc in c.CostsByService)
+                if (c.CostsByService.Count > 0)
                 {
+                    foreach(var sc in c.CostsByService)
+                    {
                     yield return new(c.WorkspaceAcronym, sc.Source, null, null, sc.Amount);
                 }
             }
+            }
         }
-    }
 
     private IEnumerable<BasicCbrCostUsageCsvRecord> GetBasicCbrCostUsageCsvRecords() => _cbrBudgetCostData
         .Select(c => new BasicCbrCostUsageCsvRecord(c.WorkspaceAcronym, c.Budget, c.Cost));
-
+    
     private record BasicCbrCostUsageCsvRecord(string Workspace, [property:Name("Allocated Budget")] decimal AllocatedBudget, decimal Usage) : ICsvService.ICsvRecord;
     private record DetailedCbrCostUsageCsvRecord(
-        string Workspace, 
-        string Service, 
-        [property: Name("Allocated Budget")] decimal? AllocatedBudget, 
-        decimal? Usage, 
+        string Workspace,
+        string Service,
+        [property: Name("Allocated Budget")] decimal? AllocatedBudget,
+        decimal? Usage,
         [property: Name("Service Usage")] decimal? ServiceUsage) : ICsvService.ICsvRecord;
 }

@@ -54,7 +54,8 @@ public class Hooks
             Substitute.For<ILogger<RequestManagementService>>(),
             dbContextFactory,
             datahubAuditingService,
-            substituteResourceMessageService);
+            substituteResourceMessageService,
+            workspaceVersionService);
 
         // register dependencies
         objectContainer.RegisterInstanceAs(datahubPortalConfiguration);

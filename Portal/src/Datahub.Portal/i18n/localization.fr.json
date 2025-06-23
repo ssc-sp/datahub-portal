@@ -159,6 +159,7 @@
   "Access fit-for-purpose, scalable <strong>storage</strong> for GC science Data": "Accès adapté et évolutif au <strong>stockage</strong>des données scientifiques du GC",
   "Access fit-for-purpose, scalable storage for GC science Data": "Accédez à un stockage adapté et évolutif pour les données scientifiques du GC.",
   "Access fit-for-purpose, scalable storage for GC science data": "Accédez à un stockage adapté et évolutif pour les données scientifiques du GC.",
+  "Access from Databricks": "Accès depuis Databricks",
   "Access management": "Gestion de l'accès",
   "Access not authorized": "Accès non autorisé",
   "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members": "Accédez aux notebooks Databricks de l'espace de travail pour écrire, exécuter et partager des analyses avec tous les membres de l'espace de travail",
@@ -3378,5 +3379,8 @@
   "Error adding version, please try again.": "Erreur lors de l'ajout de la version, veuillez réessayer.",
   "Successfully added version: {0}": "Ajouté avec succès la version : {0}",
   "Version already exists": "La version existe déjà",
-  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3"
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
+  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC."
 }

@@ -90,13 +90,16 @@
             <ul style="">
                 @foreach (var workspace in context.Workspaces)
                 {
-                    <li>
-                        <MudLink
-                            Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
-                            <MudText>@workspace.ProjectName <span
-                                    style="@AcronymStyle">(@workspace.Project_Acronym_CD)</span></MudText>
-                        </MudLink>
-                    </li>
+                    if (!workspace.IsDeleted && !(workspace.Users?.FirstOrDefault(u => u.PortalUserId == context.User.Id)?.RoleId == (int)Project_Role.RoleNames.Removed))
+                    {
+                        <li>
+                            <MudLink
+                                Href="@($"/{_datahubPortalConfiguration.ProjectUrlSegment}/{workspace.Project_Acronym_CD}")">
+                                <MudText>@workspace.ProjectName <span
+                                        style="@AcronymStyle">(@workspace.Project_Acronym_CD)</span></MudText>
+                            </MudLink>
+                        </li>
+                    }
                 }
             </ul>
         </MudTd>
