@@ -100,9 +100,9 @@ namespace Datahub.Portal.Pages.Workspace.Users
             var allWorkspaceLeads = _usersToUpdate.Select(_usersToUpdate => _usersToUpdate.ProjectUser).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
             var existingWorkspaceLeads = _projectUsers.Except(_usersToUpdate.Select(p => p.ProjectUser)).Where(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Count();
             var newLeads = _usersToAdd.Count(x => x.RoleId == (int)Project_Role.RoleNames.WorkspaceLead);
-            if (allWorkspaceLeads + newLeads + existingWorkspaceLeads > 2)
+            if (allWorkspaceLeads + newLeads + existingWorkspaceLeads > 1)
             {
-                _validationErrorMessage = Localizer["You cannot have more than 2 workspace leads."];
+                _validationErrorMessage = Localizer["You cannot have more than one workspace lead."];
             }
         }
 
