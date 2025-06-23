@@ -1,9 +1,11 @@
 ﻿@* CbrBudgetCostsTable *@
 
+@using CsvHelper.Configuration.Attributes
 @using Datahub.Application.Services.Cost
 @using Ut = BudgetCostReportUtils
 
-@inject IJSRuntime _jsRuntime
+@inject IDownloadService _downloadService
+@inject ICsvService _csvService
 
 
 <MudContainer Gutters>
@@ -67,8 +69,6 @@
     [Parameter, EditorRequired] public List<DailyServiceCost> WorkspaceCosts { get; set; }
     [Parameter, EditorRequired] public Dictionary<string, List<DailyServiceCost>> ServiceCostsByWorkspace { get; set; }
 
-    private IJSObjectReference _module;
-
     private class CbrBudgetCostData
     {
         public string WorkspaceAcronym { get; private set; }
@@ -105,21 +105,6 @@
         base.OnParametersSet();
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            try
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
-            }
-            catch
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Workspace/Reports/WorkspaceCostsTable.razor.js");
-            }
-        }
-    }
-
     private async Task DownloadBasicWorkspaceCostsCsv() => await DownloadWorkspaceCostsCsv(false);
 
     private async Task DownloadDetailedWorkspaceCostsCsv() => await DownloadWorkspaceCostsCsv(true);
@@ -128,39 +113,10 @@
     {
         var baseFilename = detailed ? "CBR_Detailed_Workspace_Costs" : "CBR_Workspace_Costs";
         var filename = $"{baseFilename}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
-        using var stream = GenerateWorkspaceCostsCsvStream(detailed);
-        using var streamReference = new DotNetStreamReference(stream);
-        await _module.InvokeVoidAsync("downloadFileFromStream", filename, streamReference);
-    }
-
-    private Stream GenerateWorkspaceCostsCsvStream(bool detailed)
-    {
-        //TODO use a csv generating library instead of manually writing lines
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        var header = detailed ? "Workspace,Service,Allocated Budget,Usage,Service Usage" : "Workspace,Allocated Budget,Usage";
-        writer.WriteLine(header);
-        foreach (var c in _cbrBudgetCostData)
-        {
-            if (detailed)
-            {
-                writer.WriteLine($"{c.WorkspaceAcronym},,{c.Budget},{c.Cost},");
-                if (c.CostsByService.Count > 0)
-                {
-                    foreach(var sc in c.CostsByService)
-                    {
-                        writer.WriteLine($"{c.WorkspaceAcronym},{sc.Source},,,{sc.Amount}");
-                    }
-                }
-            }
-            else
-            {
-                writer.WriteLine($"{c.WorkspaceAcronym},{c.Budget},{c.Cost}");
-            }
-        }
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
+        using var stream = detailed ?
+            _csvService.GenerateCsvStreamFromRecords(GetDetailedCbrCostUsageCsvRecords()) :
+            _csvService.GenerateCsvStreamFromRecords(GetBasicCbrCostUsageCsvRecords());
+        await _downloadService.DownloadStreamAsFile(stream, filename);
     }
 
     private void OnRowClicked(TableRowClickEventArgs<CbrBudgetCostData> eventArgs) => ToggleShowDetails(eventArgs.Item);
@@ -172,4 +128,30 @@
             c.ShowDetails = c == item && !c.ShowDetails;
         }
     }
+
+    private IEnumerable<DetailedCbrCostUsageCsvRecord> GetDetailedCbrCostUsageCsvRecords()
+            {
+        foreach (var c in _cbrBudgetCostData)
+        {
+            yield return new(c.WorkspaceAcronym, string.Empty, c.Budget, c.Cost, null);
+                if (c.CostsByService.Count > 0)
+                {
+                    foreach(var sc in c.CostsByService)
+                    {
+                    yield return new(c.WorkspaceAcronym, sc.Source, null, null, sc.Amount);
+                }
+            }
+            }
+        }
+
+    private IEnumerable<BasicCbrCostUsageCsvRecord> GetBasicCbrCostUsageCsvRecords() => _cbrBudgetCostData
+        .Select(c => new BasicCbrCostUsageCsvRecord(c.WorkspaceAcronym, c.Budget, c.Cost));
+    
+    private record BasicCbrCostUsageCsvRecord(string Workspace, [property:Name("Allocated Budget")] decimal AllocatedBudget, decimal Usage) : ICsvService.ICsvRecord;
+    private record DetailedCbrCostUsageCsvRecord(
+        string Workspace,
+        string Service,
+        [property: Name("Allocated Budget")] decimal? AllocatedBudget,
+        decimal? Usage,
+        [property: Name("Service Usage")] decimal? ServiceUsage) : ICsvService.ICsvRecord;
 }
