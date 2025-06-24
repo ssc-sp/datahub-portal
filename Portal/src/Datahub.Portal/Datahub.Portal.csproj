@@ -11,6 +11,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 	  <Content Remove="Data\AzureFlexServers.json" />
+	  <Content Remove="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 	<ItemGroup>
 	  <None Remove="Controllers\OpenDataApprovalForm.docx" />
@@ -49,6 +50,7 @@
 		<PackageReference Include="MudBlazor" Version="7.13.0" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.0.1" />
 		<PackageReference Include="Toolbelt.Blazor.LocalTimeText.Server" Version="1.0.1" />
+		<PackageReference Include="CsvHelper" Version="32.0.3" />
 	</ItemGroup>
 	<ItemGroup>
 		<Content Update="wwwroot\infinite-scrolling.js">
@@ -70,5 +72,9 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="Datahub.SpecflowTests" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Include="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 </Project>
