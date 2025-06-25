@@ -33,6 +33,7 @@
 @using Microsoft.Rest;
 @using MassTransit;
 @using System.IdentityModel.Tokens.Jwt;
+@using Toolbelt.Blazor.Globalization
  
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
@@ -45,8 +46,8 @@
 @inject IHttpClientFactory _httpClientFactory
 @inject IHttpContextAccessor _httpContextAccessor
 @inject IMemoryCache Cache
-@inject NavigationManager NavigationManager
-@inject TimeZoneHelper TimeZoneHelper
+@inject NavigationManager NavigationManager 
+@inject ILocalTimeZone LocalTimeZone
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -96,6 +97,7 @@
     private DatahubProjectDBContext _projectDbContext;
     private List<InfrastructureHealthCheck> _infrastructureHealthChecks;
     private Dictionary<DateTime, string> localTimes = new();
+    private TimeZoneInfo _localTimeZone;
 
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
@@ -112,6 +114,8 @@
         var user = await _userInformationService.GetCurrentGraphUserAsync();
 
         _projectDbContext = DbFactory.CreateDbContext();
+
+        _localTimeZone = await LocalTimeZone.GetLocalTimeZoneAsync(null);
 
         var hasWebApp = LoadDataForTables();
         var needReload = false;
@@ -138,6 +142,7 @@
                 });
             }, null, TimeSpan.FromSeconds(3), Timeout.InfiniteTimeSpan);
         }
+        UpdateLocalTimes();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -148,13 +153,29 @@
             {
                 if (!localTimes.ContainsKey(item.HealthCheckTimeUtc))
                 {
-                    var local = await TimeZoneHelper.ToUserLocalTimeAsync(item.HealthCheckTimeUtc);
-                    localTimes[item.HealthCheckTimeUtc] = local.ToString("g"); // or your preferred format
+                    var local = TimeZoneInfo.ConvertTimeFromUtc(item.HealthCheckTimeUtc, _localTimeZone);
+                    localTimes[item.HealthCheckTimeUtc] = local.ToString("g");
                 }
             }
             StateHasChanged();
         }
     }
+
+    private void UpdateLocalTimes()
+    {
+        if (_statusList != null && _localTimeZone != null)
+        {
+            foreach (var item in _statusList)
+            {
+                if (!localTimes.ContainsKey(item.HealthCheckTimeUtc))
+                {
+                    var local = TimeZoneInfo.ConvertTimeFromUtc(item.HealthCheckTimeUtc, _localTimeZone);
+                    localTimes[item.HealthCheckTimeUtc] = local.ToString("g"); // or your preferred format
+                }
+            }
+        }
+    }
+
     private async Task<string> GetSystemAccessTokenAsync()
     {
         var config = new AzureDevOpsConfiguration

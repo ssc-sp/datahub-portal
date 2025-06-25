@@ -71,7 +71,6 @@ using Yarp.ReverseProxy.Transforms;
 using Datahub.Portal.Controllers;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Datahub.Portal.Pages;
-using Datahub.Portal.Components;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -438,7 +437,6 @@ public class Startup
         services.AddScoped<DataImportingService>();
         services.AddSingleton<DatahubTools>();
         services.AddSingleton<TranslationService>();
-        services.AddScoped<TimeZoneHelper>();
 
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
