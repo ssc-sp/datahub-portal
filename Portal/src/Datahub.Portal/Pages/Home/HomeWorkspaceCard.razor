@@ -1,26 +1,47 @@
-﻿@using Datahub.Core.Model.Projects
+﻿@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Services.Projects
 @using Datahub.Shared.Entities
 @using Datahub.Shared
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Explore
 
 @inject ICultureService CultureService
+@inject IResourceMessagingService ResourceMessagingService
+@inject IRequestManagementService RequestManagementService
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
-        <MudStack Row>
-            <MudText>
+        <MudStack Row>            
+            <MudText Style="@WorkspaceNameStyle">
                 <strong>
                     @Workspace.Project_Name
                 </strong>
                 (@Workspace.Project_Acronym_CD)
             </MudText>
-            <MudSpacer/>
+            <MudSpacer />
+            <MudText Align="Align.Right">
+                @if (Workspace.IsUpdatedRequired(LatestVersion) != VersionUpdateType.None)  
+                {
+                    <DHButton 
+                        Underline 
+                        NoWrap 
+                        Color="Color.Primary"                        
+                        OnClick="@(() => TriggerUpdate(Workspace))"
+                    >
+                        @($"{Workspace.Version} ({Localizer["Update"]})")  
+                    </DHButton>  
+                }
+                else
+                {
+                    @Workspace.Version                    
+                }
+            </MudText>            
         </MudStack>
         <MudStack Row>
             <ProjectPreviewCardIconDetails
-                NumberOfUsers=@NumberOfUsers
-                NumberOfRepositories=@NumberOfRepositories
+            NumberOfUsers=@NumberOfUsers
+            NumberOfRepositories=@NumberOfRepositories
             />
             <MudSpacer/>
         </MudStack>
@@ -47,9 +68,9 @@
                     {
                         <li style=@CardActionStyle>
                             <DHButton Underline NoWrap FullWidth
-                                      Color="Color.Primary"
-                                      Href=@ToolLink(tool)
-                                      EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
+                            Color="Color.Primary"
+                            Href=@ToolLink(tool)
+                            EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
                                 @ToolLabel(tool)
                             </DHButton>
                         </li>
@@ -59,19 +80,19 @@
                 {
                     <li style=@CardActionStyle>
                         <DHButton Underline NoWrap FullWidth
-                                  Color="Color.Primary"
-                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
-                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                        Color="Color.Primary"
+                        Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                             @Localizer["Reports"]
                         </DHButton>
                     </li>
                 }
                 <li style=@CardMainActionStyle>
                     <DHButton Underline NoWrap FullWidth
-                              Color="Color.Primary"
-                              Variant="Variant.Outlined"
-                              Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
-                              EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    Color="Color.Primary"
+                    Variant="Variant.Outlined"
+                    Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
+                    EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                         @Localizer["View workspace"]
                     </DHButton>
                 </li>
@@ -81,14 +102,14 @@
     @if (ShowCost)
     {
         <MudProgressLinear
-            Color=@CostBarColor()
-            Size="Size.Large"
-            Style=@CostBarStyle
-            Value=@((double)WorkspaceUsage.Item1)
-            Max=@((double)WorkspaceUsage.Item2)
-            title=@CostBarTitle()>
+        Color=@CostBarColor()
+        Size="Size.Large"
+        Style=@CostBarStyle
+        Value=@((double)WorkspaceUsage.Item1)
+        Max=@((double)WorkspaceUsage.Item2)
+        title=@CostBarTitle()>
             <ProjectPreviewCardIconDetails
-                WorkspaceUsage=@WorkspaceUsage
+            WorkspaceUsage=@WorkspaceUsage
             />
         </MudProgressLinear>
     }
@@ -99,6 +120,8 @@
     // Params
     [Parameter] public Datahub_Project Workspace { get; set; }
     [Parameter] public bool ShowCost { get; set; }
+    [Parameter] public string LatestVersion { get; set; }
+    [Parameter] public string UserEmail { get; set; } 
 
     // Styles
     private string PaperStyle => new StyleBuilder()
@@ -117,9 +140,13 @@
         .Build();
 
     private string MainStackStyle => new StyleBuilder()
-        .AddStyle("padding", "16px")
+        .AddStyle("padding", "8px 16px 16px 16px")
         .AddStyle("width", "100%")
         .AddStyle("height", "100%")
+        .Build();
+
+    private string WorkspaceNameStyle => new StyleBuilder()
+        .AddStyle("padding-top", "6px")
         .Build();
 
     private string ContainerStyle => new StyleBuilder()
@@ -216,6 +243,12 @@
             TerraformTemplate.AzureAppService => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", Workspace!.Project_Acronym_CD),
             _ => throw new ArgumentOutOfRangeException(nameof(toolName), toolName, null)
         };
+    }
+
+    private async Task TriggerUpdate(Datahub_Project workspace)
+    { 
+        var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
+        await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
     }
 
 }

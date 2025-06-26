@@ -1,8 +1,10 @@
-﻿using Datahub.Application.Services;
+﻿using Amazon.S3.Model.Internal.MarshallTransformations;
+using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 
 
 namespace Datahub.Infrastructure.Services
@@ -11,7 +13,7 @@ namespace Datahub.Infrastructure.Services
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
         ILogger<WorkspaceCreationService> logger) : IWorkspaceVersionService
     {
-        public async Task<string> GetLatestVersion()
+        public async Task<string> GetLatestVersionAsync()
         {
             await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
             var versionTags = await db.VersionTags

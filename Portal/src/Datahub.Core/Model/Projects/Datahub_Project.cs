@@ -7,6 +7,7 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
+using Elemental.Code;
 using Elemental.Components;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
@@ -20,6 +21,14 @@ public enum ProjectStatus
     InProgress = 1,
     Support = 2,
     Closed = 3
+}
+
+public enum VersionUpdateType : int
+{
+    Major,
+    Minor,
+    Build,
+    None
 }
 
 /// <summary>
@@ -425,5 +434,26 @@ public class Datahub_Project : IComparable<Datahub_Project>
             Users = users,
             SubscriptionId = DatahubAzureSubscription?.SubscriptionId ?? throw new InvalidOperationException("Azure subscription not found.")
         };
+    }
+
+    public VersionUpdateType IsUpdatedRequired(string latestVersion)
+    {
+        if (Version != null && Version != "latest")
+        {
+            var inputVersion = System.Version.Parse(Version.TrimStart('v'));
+            var latestParsedVersion = System.Version.Parse(latestVersion.TrimStart('v'));
+
+            if (inputVersion.Major < latestParsedVersion.Major)
+            {
+                return VersionUpdateType.Major;
+            }
+
+            if (inputVersion.Minor < latestParsedVersion.Minor)
+            {
+                return VersionUpdateType.Minor;
+            }
+        }
+
+        return VersionUpdateType.None;
     }
 }
