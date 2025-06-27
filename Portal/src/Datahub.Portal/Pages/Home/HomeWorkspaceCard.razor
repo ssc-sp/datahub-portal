@@ -1,15 +1,19 @@
 ﻿@using Datahub.Application.Services
+@using Datahub.Application.Services.Notification
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
+@using Datahub.Portal.Components.Dialogs
 @using Datahub.Shared.Entities
 @using Datahub.Shared
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Explore
 
 @inject ICultureService CultureService
+@inject IDialogService Dialog
 @inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService RequestManagementService
 @inject IWorkspaceVersionService WorkspaceVersionService
+@inject IEmailNotificationService EmailNotificationService
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
@@ -22,7 +26,7 @@
             </MudText>
             <MudSpacer />
             <MudText Align="Align.Right">
-                @if (Workspace.IsUpdatedRequired(LatestVersion) != VersionUpdateType.None)  
+                @if (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None)  
                 {
                     <DHButton 
                     Underline 
@@ -247,10 +251,44 @@
     }
 
     private async Task TriggerUpdate(Datahub_Project workspace)
-    { 
-        var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
-        await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);
-        await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
+    {
+        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
+        var majorUpdatePrompt = Localizer["This update needs to be run by a Dathub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours "];
+        var UpdateType = Workspace.GetUpdateType(LatestVersion);
+        var Prompt = UpdateType switch
+        {
+            VersionUpdateType.Minor => minorUpdatePrompt,
+            VersionUpdateType.Major => majorUpdatePrompt,
+            VersionUpdateType.Build => minorUpdatePrompt,
+            _ => Localizer["No Update Required"]
+        };
+
+
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+           {
+               { "PromptText", Prompt.ToString()},
+               { "ConfirmText", Localizer["Yes"].ToString() },
+               { "CancelText", Localizer["No"].ToString() }
+           };
+        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
+        var result = await dialog.Result;
+        if (result.Canceled)
+        {
+            return;
+        }
+
+        if (UpdateType == VersionUpdateType.Major)
+        {
+            var message = Localizer["{0} has requested for workspace {1} to be updated to the latest version. Please run the update at the end of the work day.", UserEmail, workspace.Project_Acronym_CD].ToString();
+            await EmailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), UserEmail, message, workspace.Project_Acronym_CD);
+        }
+        else
+        {
+            var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
+            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);
+            await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
+        }
     }
 
 }

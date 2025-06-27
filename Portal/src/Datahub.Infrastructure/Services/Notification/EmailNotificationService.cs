@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Net;
 using System.Text;
 using BlazorTemplater;
@@ -146,6 +147,21 @@ public class EmailNotificationService : IEmailNotificationService
     {
         var mailboxRecipients = recipients.Select(r => CreateMailboxAddress(r.Name, r.Address)).ToList();
         await SendEmailMessage(subject, body, mailboxRecipients, isHtml);
+    }
+
+    public async Task EmailAdminsAsync(string subject, string fromUser, string message, string workspaceAcronym)
+    {
+        var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
+        adminEmails = new List<string>() { "nabeel.bader@ssc-spc.gc.ca" };
+        var parameters = new Dictionary<string, object>()
+        {
+            { "Date", $"{DateTime.UtcNow} UTC" },
+            { "User", fromUser },
+            { "Message", message },
+            { "WorkspaceAcronym", workspaceAcronym }
+        };
+        var bodyHtml = await RenderTemplate<WorkspaceUpdateNotification>(parameters);
+        await SendEmailMessage(subject, bodyHtml, adminEmails);
     }
 
     public async Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace)

@@ -27,6 +27,7 @@ public interface IEmailNotificationService
     Task<IList<MailboxAddress>> BuildRecipientList(IList<string> userIdsOrAddresses);
     Task<MailboxAddress> BuildRecipient(string userIdOrAddress, string recipientName = null);
     Task EmailErrorToDatahub(string subject, string fromUser, string message, string appInsightsMessage, string stackTrace);
+    Task EmailAdminsAsync(string subject, string fromUser, string message, string workspaceAcronym);
 
 
 }

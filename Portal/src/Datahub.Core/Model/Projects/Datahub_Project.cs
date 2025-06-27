@@ -436,7 +436,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
         };
     }
 
-    public VersionUpdateType IsUpdatedRequired(string latestVersion)
+    public VersionUpdateType GetUpdateType(string latestVersion)
     {
         if (Version != null && Version != "latest")
         {
