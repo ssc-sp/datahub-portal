@@ -26,7 +26,7 @@
             </MudText>
             <MudSpacer />
             <MudText Align="Align.Right">
-                @if (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None)  
+                @if (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None && !Workspace.IsVersionUpdateRequested)  
                 {
                     <DHButton 
                     Underline 
@@ -39,7 +39,9 @@
                 }
                 else
                 {
-                    @Workspace.Version                    
+                    <MudText Style="@WorkspaceNameStyle">
+                        @Workspace.Version
+                    </MudText>
                 }
             </MudText>            
         </MudStack>

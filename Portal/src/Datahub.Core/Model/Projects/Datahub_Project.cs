@@ -413,6 +413,11 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public GCHostingWorkspaceDetails ParentGCHostingBudget { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether an update has been requested for the workspace.
+    /// </summary>
+    public bool IsVersionUpdateRequested { get; set; }
+
+    /// <summary>
     /// Converts a Datahub_Project object to a TerraformWorkspace object.
     /// </summary>
     /// <param name="users">The list of TerraformUser objects.</param>
