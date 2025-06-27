@@ -197,25 +197,7 @@ public class RequestManagementService(
         workspaceDefinition.Workspace.Version = versionTag;
         workspaceDefinition.UpdateWorkspaceVersion = true;
         await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-    }
-
-                    if (Version.Parse(parsedProjectVersion) >= parsedVersion)
-                    {
-                        continue;
-                    }
-                    workspaceDefinition.Workspace.Version = versionTag;
-                    workspaceDefinition.UpdateWorkspaceVersion = true;
-                    await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-                }
-            }
-            return true;
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error triggering green light changes for version {VersionTag} requseted by {Email}", versionTag, email);
-            return false;
-        }
-    }
+    }                    
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
         return projectUser.RoleId switch
