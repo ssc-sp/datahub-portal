@@ -2348,7 +2348,7 @@
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
-  
+
   //CBR Localization
   "Already allocated:": "Already allocated:",
   "Total in CBR:": "Total in CBR:",
@@ -2359,8 +2359,26 @@
   "Total workspace budgets must not exceed available CBR budget": "Total workspace budgets must not exceed available CBR budget",
   "Manage budget allocation for workspaces under this workspace's CBR": "Manage budget allocation for workspaces under this workspace's CBR",
   "CBR must be selected to create a workspace": "CBR must be selected to create a workspace",
-
-  //Version Control Localization
+  "A horizontal bar chart showing total budget, usage and available budget for workspaces in this CBR. An accessible description is provided below the chart.": "A horizontal bar chart showing total budget, usage and available budget for workspaces in this CBR. An accessible description is provided below the chart.",
+  "Incurred costs against the budget allocation for each workspace in this CBR. A detailed table is provided below the charts.": "Incurred costs against the budget allocation for each workspace in this CBR. A detailed table is provided below the charts.",
+  "Workspace {0} has used {1} of its budget of {2}, with {3} remaining.": "Workspace {0} has used {1} of its budget of {2}, with {3} remaining.",
+  "The following workspaces have not yet incurred any costs:": "The following workspaces have not yet incurred any costs:",
+  "{0}, budget {1}.": "{0}, budget {1}.",
+  "A donut chart showing the budget allocation for the workspaces in this CBR. An accessible description is provided below the chart.": "A donut chart showing the budget allocation for the workspaces in this CBR. An accessible description is provided below the chart.",
+  "Budget allocations": "Budget allocations",
+  "Unallocated": "Unallocated",
+  "Budget allocation for the workspaces in this CBR. A detailed table is provided below the charts.": "Budget allocation for the workspaces in this CBR. A detailed table is provided below the charts.",
+  "{0} is unallocated.": "{0} is unallocated.",
+  "Budget for workspace {0} is {1}.": "Budget for workspace {0} is {1}.",
+  "Overall, {0} of the total CBR budget of {1} has been allocated to workspaces.": "Overall, {0} of the total CBR budget of {1} has been allocated to workspaces.",
+  "Workspace Budget Usage": "Workspace Budget Usage",
+  "Click on a workspace's row to see detailed usage broken down by service.": "Click on a workspace's row to see detailed usage broken down by service.",
+  "Usage": "Usage",
+  "Workspace {0} has not yet incurred any costs for its services.": "Workspace {0} has not yet incurred any costs for its services.",
+  "Budget Allocation": "Budget Allocation",
+  "Budget Usage": "Budget Usage",
+  "CBR Budget": "CBR Budget",
+  "Available Budget": "Available Budget",
   "This page allows you to manage workspace versions in the FSDH.": "This page allows you to manage workspace versions in the FSDH.",
   "Add a new version to the version control table.": "Add a new version to the version control table.",
   "Add New Version": "Add New Version",
@@ -2372,7 +2390,9 @@
   "Error adding version, please try again.": "Error adding version, please try again.",
   "Successfully added version: {0}": "Successfully added version: {0}",
   "Version already exists": "Version already exists",
-  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3"
-
+  "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal."
 
 }

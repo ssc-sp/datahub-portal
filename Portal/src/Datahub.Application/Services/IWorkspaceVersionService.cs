@@ -11,6 +11,7 @@ public interface IWorkspaceVersionService
     public Task<bool> AddNewVersion(VersionTag versionTag);
     public Task<bool> UpdateVersionTag(VersionTag versionTag);
     public Task<bool> DeleteVersion(VersionTag versionTag);
+    
 
     public Task<bool> SetResourcesToCreateRequested(int projectId);
 }
