@@ -152,7 +152,6 @@ public class EmailNotificationService : IEmailNotificationService
     public async Task EmailAdminsAsync(string subject, string fromUser, string message, string workspaceAcronym)
     {
         var adminEmails = _serviceAuthManager.GetProjectAdminsEmails(RoleConstants.DATAHUB_ADMIN_PROJECT);
-        adminEmails = new List<string>() { "nabeel.bader@ssc-spc.gc.ca" };
         var parameters = new Dictionary<string, object>()
         {
             { "Date", $"{DateTime.UtcNow} UTC" },

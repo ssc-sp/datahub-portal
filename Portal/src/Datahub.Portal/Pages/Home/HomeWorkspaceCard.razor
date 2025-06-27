@@ -283,14 +283,17 @@
         if (UpdateType == VersionUpdateType.Major)
         {
             var message = Localizer["{0} has requested for workspace {1} to be updated to the latest version. Please run the update at the end of the work day.", UserEmail, workspace.Project_Acronym_CD].ToString();
-            await EmailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), UserEmail, message, workspace.Project_Acronym_CD);
+            await EmailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), UserEmail, message, workspace.Project_Acronym_CD);                       
         }
         else
         {
             var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
-            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);
-            await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
+            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);                        
         }
+
+        await WorkspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
+        workspace.IsVersionUpdateRequested = true;
+        await InvokeAsync(StateHasChanged);
     }
 
 }

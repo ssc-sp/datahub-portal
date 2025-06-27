@@ -74,11 +74,25 @@ namespace Datahub.Infrastructure.Services
                 .Where(r => r.ProjectId == projectId)
                 .ToListAsync();
 
-
             projectResources.ForEach(resource => resource.Status = TerraformStatus.CreateRequested);
 
             return await db.SaveChangesAsync() > 0;
 
+        }
+
+        public async Task<bool> SetWorkspaceToUpdateRequested(int projectId)
+        {
+            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+            var project = await db.Projects.FirstOrDefaultAsync(p => p.Project_ID == projectId);
+
+            if (project == null)
+            {
+                logger.LogError($"Project with ID {projectId} not found.");
+                return false;
+            }
+
+            project.IsVersionUpdateRequested = true;
+            return await db.SaveChangesAsync() > 0;
         }
     }
 }
