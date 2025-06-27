@@ -9,6 +9,7 @@
 @inject ICultureService CultureService
 @inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService RequestManagementService
+@inject IWorkspaceVersionService WorkspaceVersionService
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
@@ -24,10 +25,10 @@
                 @if (Workspace.IsUpdatedRequired(LatestVersion) != VersionUpdateType.None)  
                 {
                     <DHButton 
-                        Underline 
-                        NoWrap 
-                        Color="Color.Primary"                        
-                        OnClick="@(() => TriggerUpdate(Workspace))"
+                    Underline 
+                    NoWrap 
+                    Color="Color.Primary"                        
+                    OnClick="@(() => TriggerUpdate(Workspace))"
                     >
                         @($"{Workspace.Version} ({Localizer["Update"]})")  
                     </DHButton>  
@@ -248,6 +249,7 @@
     private async Task TriggerUpdate(Datahub_Project workspace)
     { 
         var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
+        await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);
         await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
     }
 

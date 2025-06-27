@@ -2,6 +2,7 @@
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Diagnostics.CodeAnalysis;
@@ -18,9 +19,9 @@ namespace Datahub.Infrastructure.Services
             await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
             var versionTags = await db.VersionTags
                                 .Where(t => t.IsActive)
-                                .Select(t => t.Tag)                                
+                                .Select(t => t.Tag)
                                 .ToListAsync();
-         
+
             var latest = versionTags
                  .Select(v => Version.Parse(v.TrimStart('v')))
                  .OrderByDescending(v => v)
@@ -67,6 +68,19 @@ namespace Datahub.Infrastructure.Services
             var isDeleted = await db.SaveChangesAsync();
             return isDeleted > 0;
         }
-        
+
+        public async Task<bool> SetResourcesToCreateRequested(int projectId)
+        {
+            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+            var projectResources = await db.Project_Resources2
+                .Where(r => r.ProjectId == projectId)
+                .ToListAsync();
+
+
+            projectResources.ForEach(resource => resource.Status = TerraformStatus.CreateRequested);
+
+            return await db.SaveChangesAsync() > 0;
+
+        }
     }
 }
