@@ -3368,6 +3368,8 @@
   "Budget Usage": "Utilisation du budget",
   "CBR Budget": "Budget de la BOI",
   "Available Budget": "Budget disponible",
+
+  //Workspace Versioning
   "This page allows you to manage workspace versions in the FSDH.": "Cette page permet de gérer les versions de l'espace de travail dans le FSDH.",
   "Add a new version to the version control table.": "Ajouter une nouvelle version au tableau de contrôle des versions.",
   "Add New Version": "Ajouter une nouvelle version",
@@ -3382,5 +3384,12 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
-  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC."
+  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
+  "{0} has requested for workspace {1} to be updated to the latest version. Please run the update at the end of the work day.": "{0} a demandé que l'espace de travail {1} soit mis à jour avec la dernière version. Veuillez exécuter la mise à jour à la fin de la journée de travail.",
+  "Notification Sent": "Notification envoyée",
+  "Workspace Version Update Triggered": "Mise à jour de la version de l'espace de travail déclenchée",
+  "Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?": "L'exécution de cette mise à jour vous empêchera temporairement d'accéder à votre espace de travail. Il est recommandé d'exécuter la mise à jour à la fin de votre journée de travail. Souhaitez-vous continuer ?",
+  "This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours": "Cette mise à jour doit être exécutée par un administrateur Datahub. Cliquez sur “Oui” pour autoriser les administrateurs du Datahub à mettre à jour l'espace de travail. Vous pouvez continuer à utiliser l'espace de travail. La mise à jour sera effectuée en dehors des heures de bureau",
+  "No Update Required": "Aucune mise à jour requise",
+  "Confirm Workspace Update": "Confirmer la mise à jour de l'espace de travail"
 }

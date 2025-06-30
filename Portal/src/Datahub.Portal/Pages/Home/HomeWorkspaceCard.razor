@@ -14,6 +14,7 @@
 @inject IRequestManagementService RequestManagementService
 @inject IWorkspaceVersionService WorkspaceVersionService
 @inject IEmailNotificationService EmailNotificationService
+@inject ISnackbar Snackbar
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
@@ -254,27 +255,9 @@
 
     private async Task TriggerUpdate(Datahub_Project workspace)
     {
-        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
-        var majorUpdatePrompt = Localizer["This update needs to be run by a Dathub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours "];
         var UpdateType = Workspace.GetUpdateType(LatestVersion);
-        var Prompt = UpdateType switch
-        {
-            VersionUpdateType.Minor => minorUpdatePrompt,
-            VersionUpdateType.Major => majorUpdatePrompt,
-            VersionUpdateType.Build => minorUpdatePrompt,
-            _ => Localizer["No Update Required"]
-        };
+        var result = await GetDialogMessage(UpdateType);
 
-
-        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var parameters = new DialogParameters
-           {
-               { "PromptText", Prompt.ToString()},
-               { "ConfirmText", Localizer["Yes"].ToString() },
-               { "CancelText", Localizer["No"].ToString() }
-           };
-        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
-        var result = await dialog.Result;
         if (result.Canceled)
         {
             return;
@@ -288,12 +271,44 @@
         else
         {
             var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
-            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);                        
+            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
+            await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
+
         }
 
         await WorkspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
         workspace.IsVersionUpdateRequested = true;
+
+        var successMessage = UpdateType == VersionUpdateType.Major ? Localizer["Notification Sent"] : Localizer["Workspace Version Update Triggered"];
+        Snackbar.Add(successMessage, Severity.Success);
         await InvokeAsync(StateHasChanged);
     }
 
+
+
+    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType)
+    {
+
+        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
+        var majorUpdatePrompt = Localizer["This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours"];        
+        var prompt = updateType switch
+        {
+            VersionUpdateType.Minor => minorUpdatePrompt,
+            VersionUpdateType.Major => majorUpdatePrompt,
+            VersionUpdateType.Build => minorUpdatePrompt,
+            _ => Localizer["No Update Required"]
+        };
+
+
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+               {
+                   { "PromptText", prompt.ToString() },
+                   { "ConfirmText", Localizer["Yes"].ToString() },
+                   { "CancelText", Localizer["No"].ToString() }                   
+               };
+        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
+        return await dialog.Result;
+    }
 }
+          
