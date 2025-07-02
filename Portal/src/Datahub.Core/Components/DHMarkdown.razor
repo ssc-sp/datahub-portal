@@ -1,4 +1,6 @@
 @using Markdig
+@using Datahub.Portal.Pages
+
 @inject IJSRuntime _jsRuntime;
 
 @if (Content != null)
@@ -45,12 +47,22 @@
                 {
                     _finalContent = Content;
                 }
+                _finalContent += ReadMoreLink();
+
                 _needsRefresh = false;
             }
             if (string.IsNullOrWhiteSpace(_finalContent)) return "Nothing to display";
 
             return _finalContent;
         }
+    }
+
+    private string ReadMoreLink()
+    {
+        var readMoreText = Localizer["Read more"];
+        var newsUrl = Localizer["/announcements"]; 
+        // Unicode for double right arrow: U + 00BB 
+        return $"\n\n[{readMoreText}]({newsUrl}) »";
     }
 
     private string OverrideLinkUrl(Markdig.Syntax.Inlines.LinkInline linkElement)
