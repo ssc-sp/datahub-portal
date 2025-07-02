@@ -27,7 +27,7 @@
             </MudText>
             <MudSpacer />
             <MudText Align="Align.Right">
-                @if (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None && !Workspace.IsVersionUpdateRequested)  
+                @if (IsLead && (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None && !Workspace.IsVersionUpdateRequested))  
                 {
                     <DHButton 
                     Underline 
@@ -130,6 +130,7 @@
     [Parameter] public bool ShowCost { get; set; }
     [Parameter] public string LatestVersion { get; set; }
     [Parameter] public string UserEmail { get; set; } 
+    [Parameter] public bool IsLead { get; set; }
 
     // Styles
     private string PaperStyle => new StyleBuilder()
@@ -264,8 +265,9 @@
         }
 
         if (UpdateType == VersionUpdateType.Major)
-        {
-            var message = Localizer["{0} has requested for workspace {1} to be updated to the latest version. Please run the update at the end of the work day.", UserEmail, workspace.Project_Acronym_CD].ToString();
+        {            
+            var message = $"{UserEmail} has requested for workspace {workspace.Project_Acronym_CD} to be updated to the latest version. Please run the update at the end of the work day.";
+            var messageFr = $"{UserEmail} a demandé que l'espace de travail {workspace.Project_Acronym_CD} soit mis à jour vers la dernière version. Veuillez exécuter la mise à jour à la fin de la journée de travail.";
             await EmailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), UserEmail, message, workspace.Project_Acronym_CD);                       
         }
         else

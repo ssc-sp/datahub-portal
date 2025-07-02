@@ -74,7 +74,7 @@
                     @foreach (var workspace in group.Workspaces)
                     {
                         <li class="d-flex flex-1">
-                            <HomeWorkspaceCard Workspace=@workspace ShowCost=@group.ShowCost LatestVersion="@_latestVersion" UserEmail="@_userEmail"/>
+                            <HomeWorkspaceCard Workspace=@workspace ShowCost=@group.ShowCost LatestVersion="@_latestVersion" UserEmail="@_userEmail" IsLead="@IsLeadGroup(group)" />
                         </li>
                     }
                 }
@@ -253,8 +253,10 @@ else
         var userId = UserId ?? portalUser.GraphGuid;
         _isCurrentUser = userId == portalUser.GraphGuid;
         _userEmail = portalUser.Email;
+        
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
+        //getting all the projects where this users is a member
         await using var dbContext = await DbContextFactory.CreateDbContextAsync();
         _userRoles = await dbContext
             .Project_Users
@@ -312,6 +314,10 @@ else
         };
     }
 
+    private bool IsLeadGroup(WorkspaceDisplayGroup group)
+    {
+        return group == _leadGroup;
+    }
 
     // Utils
     private string FilterLabel()
