@@ -1,26 +1,55 @@
-﻿@using Datahub.Core.Model.Projects
+﻿@using Datahub.Application.Services
+@using Datahub.Application.Services.Notification
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Services.Projects
+@using Datahub.Portal.Components.Dialogs
 @using Datahub.Shared.Entities
 @using Datahub.Shared
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Explore
 
 @inject ICultureService CultureService
+@inject IDialogService Dialog
+@inject IResourceMessagingService ResourceMessagingService
+@inject IRequestManagementService RequestManagementService
+@inject IWorkspaceVersionService WorkspaceVersionService
+@inject IEmailNotificationService EmailNotificationService
+@inject ISnackbar Snackbar
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
-        <MudStack Row>
-            <MudText>
+        <MudStack Row>            
+            <MudText Style="@WorkspaceNameStyle">
                 <strong>
                     @Workspace.Project_Name
                 </strong>
                 (@Workspace.Project_Acronym_CD)
             </MudText>
-            <MudSpacer/>
+            <MudSpacer />
+            <MudText Align="Align.Right">
+                @if (IsLead && (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None && !Workspace.IsVersionUpdateRequested))  
+                {
+                    <DHButton 
+                    Underline 
+                    NoWrap 
+                    Color="Color.Primary"                        
+                    OnClick="@(() => TriggerUpdate(Workspace))"
+                    >
+                        @($"{Workspace.Version} ({Localizer["Update"]})")  
+                    </DHButton>  
+                }
+                else
+                {
+                    <MudText Style="@WorkspaceNameStyle">
+                        @Workspace.Version
+                    </MudText>
+                }
+            </MudText>            
         </MudStack>
         <MudStack Row>
             <ProjectPreviewCardIconDetails
-                NumberOfUsers=@NumberOfUsers
-                NumberOfRepositories=@NumberOfRepositories
+            NumberOfUsers=@NumberOfUsers
+            NumberOfRepositories=@NumberOfRepositories
             />
             <MudSpacer/>
         </MudStack>
@@ -47,9 +76,9 @@
                     {
                         <li style=@CardActionStyle>
                             <DHButton Underline NoWrap FullWidth
-                                      Color="Color.Primary"
-                                      Href=@ToolLink(tool)
-                                      EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
+                            Color="Color.Primary"
+                            Href=@ToolLink(tool)
+                            EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
                                 @ToolLabel(tool)
                             </DHButton>
                         </li>
@@ -59,19 +88,19 @@
                 {
                     <li style=@CardActionStyle>
                         <DHButton Underline NoWrap FullWidth
-                                  Color="Color.Primary"
-                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
-                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                        Color="Color.Primary"
+                        Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                             @Localizer["Reports"]
                         </DHButton>
                     </li>
                 }
                 <li style=@CardMainActionStyle>
                     <DHButton Underline NoWrap FullWidth
-                              Color="Color.Primary"
-                              Variant="Variant.Outlined"
-                              Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
-                              EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    Color="Color.Primary"
+                    Variant="Variant.Outlined"
+                    Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
+                    EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                         @Localizer["View workspace"]
                     </DHButton>
                 </li>
@@ -81,14 +110,14 @@
     @if (ShowCost)
     {
         <MudProgressLinear
-            Color=@CostBarColor()
-            Size="Size.Large"
-            Style=@CostBarStyle
-            Value=@((double)WorkspaceUsage.Item1)
-            Max=@((double)WorkspaceUsage.Item2)
-            title=@CostBarTitle()>
+        Color=@CostBarColor()
+        Size="Size.Large"
+        Style=@CostBarStyle
+        Value=@((double)WorkspaceUsage.Item1)
+        Max=@((double)WorkspaceUsage.Item2)
+        title=@CostBarTitle()>
             <ProjectPreviewCardIconDetails
-                WorkspaceUsage=@WorkspaceUsage
+            WorkspaceUsage=@WorkspaceUsage
             />
         </MudProgressLinear>
     }
@@ -99,6 +128,9 @@
     // Params
     [Parameter] public Datahub_Project Workspace { get; set; }
     [Parameter] public bool ShowCost { get; set; }
+    [Parameter] public string LatestVersion { get; set; }
+    [Parameter] public string UserEmail { get; set; } 
+    [Parameter] public bool IsLead { get; set; }
 
     // Styles
     private string PaperStyle => new StyleBuilder()
@@ -117,9 +149,13 @@
         .Build();
 
     private string MainStackStyle => new StyleBuilder()
-        .AddStyle("padding", "16px")
+        .AddStyle("padding", "8px 16px 16px 16px")
         .AddStyle("width", "100%")
         .AddStyle("height", "100%")
+        .Build();
+
+    private string WorkspaceNameStyle => new StyleBuilder()
+        .AddStyle("padding-top", "6px")
         .Build();
 
     private string ContainerStyle => new StyleBuilder()
@@ -218,4 +254,63 @@
         };
     }
 
+    private async Task TriggerUpdate(Datahub_Project workspace)
+    {
+        var UpdateType = Workspace.GetUpdateType(LatestVersion);
+        var result = await GetDialogMessage(UpdateType);
+
+        if (result.Canceled)
+        {
+            return;
+        }
+
+        if (UpdateType == VersionUpdateType.Major)
+        {            
+            var message = $"{UserEmail} has requested for workspace {workspace.Project_Acronym_CD} to be updated to the latest version. Please run the update at the end of the work day.";
+            var messageFr = $"{UserEmail} a demandé que l'espace de travail {workspace.Project_Acronym_CD} soit mis à jour vers la dernière version. Veuillez exécuter la mise à jour à la fin de la journée de travail.";
+            await EmailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), UserEmail, message, workspace.Project_Acronym_CD);                       
+        }
+        else
+        {
+            var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
+            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
+            await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
+
+        }
+
+        await WorkspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
+        workspace.IsVersionUpdateRequested = true;
+
+        var successMessage = UpdateType == VersionUpdateType.Major ? Localizer["Notification Sent"] : Localizer["Workspace Version Update Triggered"];
+        Snackbar.Add(successMessage, Severity.Success);
+        await InvokeAsync(StateHasChanged);
+    }
+
+
+
+    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType)
+    {
+
+        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
+        var majorUpdatePrompt = Localizer["This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours"];        
+        var prompt = updateType switch
+        {
+            VersionUpdateType.Minor => minorUpdatePrompt,
+            VersionUpdateType.Major => majorUpdatePrompt,
+            VersionUpdateType.Build => minorUpdatePrompt,
+            _ => Localizer["No Update Required"]
+        };
+
+
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+               {
+                   { "PromptText", prompt.ToString() },
+                   { "ConfirmText", Localizer["Yes"].ToString() },
+                   { "CancelText", Localizer["No"].ToString() }                   
+               };
+        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
+        return await dialog.Result;
+    }
 }
+          

@@ -985,6 +985,9 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("HashedAPIToken")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("IsVersionUpdateRequested")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("Is_Featured")
                         .HasColumnType("bit");
 
