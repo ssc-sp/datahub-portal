@@ -33,6 +33,7 @@
 @using Microsoft.Rest;
 @using MassTransit;
 @using System.IdentityModel.Tokens.Jwt;
+@using Toolbelt.Blazor.Globalization
  
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
@@ -45,7 +46,8 @@
 @inject IHttpClientFactory _httpClientFactory
 @inject IHttpContextAccessor _httpContextAccessor
 @inject IMemoryCache Cache
-@inject NavigationManager NavigationManager
+@inject NavigationManager NavigationManager 
+@inject ILocalTimeZone LocalTimeZone
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -73,7 +75,10 @@
                         </MudChip>
                     </MudTooltip>
                 </MudTd>
-                <MudTd>@context.HealthCheckTimeUtc.ToLocalTime()</MudTd>
+                <MudTd>
+                    @* <span><LocalDateTime DateTime="DateTime.SpecifyKind(context.HealthCheckTimeUtc, DateTimeKind.Utc)"/></span> *@
+                    <span><LocalDateTime DateTime="context.HealthCheckTimeUtc" SourceTimeZone="UTC"/></span>
+                </MudTd>
                 <MudTd>
                     <DHButton Variant="Variant.Filled" Color="Color.Primary"
                               OnClick="@(() => CallFunction(context.ResourceType, context.Name, context.Group))"
@@ -107,7 +112,7 @@
 
         var user = await _userInformationService.GetCurrentGraphUserAsync();
 
-        _projectDbContext = DbFactory.CreateDbContext();
+        _projectDbContext = DbFactory.CreateDbContext();        
 
         var hasWebApp = LoadDataForTables();
         var needReload = false;
@@ -133,6 +138,14 @@
                     NavigationManager.NavigateTo(NavigationManager.Uri, forceLoad: true);
                 });
             }, null, TimeSpan.FromSeconds(3), Timeout.InfiniteTimeSpan);
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && _statusList != null)
+        {
+            StateHasChanged();
         }
     }
 
@@ -278,5 +291,4 @@
             await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
         }
     }
-
 }
