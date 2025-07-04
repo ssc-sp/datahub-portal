@@ -51,13 +51,14 @@
   "Logging": {
     "LogLevel": {
       "Default": "Warning",
+      "Datahub": "Information",
       "Microsoft": "Warning",
       "Microsoft.Hosting.Lifetime": "Information"
     },
     "ApplicationInsights": {
       "LogLevel": {
         "Default": "Warning",
-        "DataHub": "Information",
+        "Datahub": "Information",
         "Microsoft": "Warning",
         "Microsoft.Hosting.Lifetime": "Information"
       }
