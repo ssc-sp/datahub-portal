@@ -948,6 +948,8 @@
   "In This Resource": "In This Resource",
   "In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\\nof your needs and that will allow peers outside of your workspace to get an idea of what you\u0027re doing!": "In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\\nof your needs and that will allow peers outside of your workspace to get an idea of what you\u0027re doing!",
   "In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\nof your needs and that will allow peers outside of your workspace to get an idea of what you\u0027re doing!": "In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\nof your needs and that will allow peers outside of your workspace to get an idea of what you\u0027re doing!",
+  "In event of an issue logging in, please contact us": "In event of an issue logging in, please contact us",
+  "In case of issues with your MFA, follow this": "In case of issues with your MFA, follow this",
   "Include_Sandbox_Workspaces": "Include sandbox workspaces",
   "Incorrect workspace acronym.": "Incorrect workspace acronym.",
   "Incremental_Replacement": "Incremental Replacement",
@@ -1074,6 +1076,7 @@
   "Likelihood3": "Target Risk Likelihood",
   "Limitations to docker compose:": "Limitations to docker compose:",
   "Limitations to images:": "Limitations to images:",
+  "link": "link",
   "Link GitHub": "Link GitHub",
   "Link Legend": "Link Legend",
   "Link to DevOps": "Link to DevOps",
@@ -2393,6 +2396,6 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
-  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal."
-
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
+  "for support.": "for support."
 }

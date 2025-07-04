@@ -1468,6 +1468,8 @@
   "In This Resource": "Dans cette documentation",
   "In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\\nof your needs and that will allow peers outside of your workspace to get an idea of what you\u0027re doing!": "Pour faire quoi que ce soit dans votre espace de travail, il est nécessaire de remplir les métadonnées de votre projet. Les métadonnées sont des informations sur le projet, telles qu'une description, des mots-clés et une organisation, qui nous permettent d'avoir une meilleure idée de vos besoins et qui permettront à des pairs en dehors de votre espace de travail de se faire une idée de ce que vous faites!",
   "In order to do anything in your workspace, it is required that you fill out your project metadata. Metadata is information about the project, such as a description, keywords and organization, that allow us to have a better idea\nof your needs and that will allow peers outside of your workspace to get an idea of what you\u0027re doing!": "Pour faire quoi que ce soit dans votre espace de travail, il est nécessaire que vous remplissiez les métadonnées de votre projet. Les métadonnées sont des informations sur le projet, telles qu'une description, des mots-clés et une organisation, qui nous permettent d'avoir une meilleure idée de vos besoins et qui permettront à vos pairs en dehors de votre espace de travail de se faire une idée de ce que vous faites !",
+  "In event of an issue logging in, please contact us": "En cas de problème de connexion, veuillez nous contacter",
+  "In case of issues with your MFA, follow this": "En cas de problème avec votre MFA, suivez ce",
   "Include_Sandbox_Workspaces": "Inclure les espaces de travail du bac à sable",
   "Incorrect workspace acronym.": "Acronyme d'espace de travail incorrect.",
   "Incremental_Replacement": "Remplacement progressif",
@@ -1649,6 +1651,7 @@
   "Limitations to docker compose:": "Limitations de docker compose:",
   "Limitations to images:": "Limitations des images:",
   "Link GitHub": "Lier GitHub",
+  "link": "lien",
   "Link Legend": "Lien Légende",
   "Link to DevOps": "Lien vers DevOps",
   "List of workspace members": "Liste des membres de l'espace de travail",
@@ -3382,5 +3385,6 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
-  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC."
+  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
+  "for support.": "pour obtenir de l'aide."
 }

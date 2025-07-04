@@ -13,6 +13,19 @@
     <PublicLandingDescription>
         @Body
         <MudSpacer/>
+        <MudText Typo="Typo.body1" Class="login-support-info">
+            @Localizer["In event of an issue logging in, please contact us"]
+            <MudLink Href="mailto:DataSolutions-Solutiondedonnees@ssc-spc.gc.ca" Target="_blank">
+                DataSolutions-Solutiondedonnees@ssc-spc.gc.ca
+            </MudLink>
+            @Localizer["for support."]
+        </MudText>
+        <MudText Typo="Typo.body1" Class="login-support-info">
+            @Localizer["In case of issues with your MFA, follow this"]
+            <MudLink Href="https://federal-science-datahub.canada.ca/account-setup#multi-factor-authentication" Target="_blank">
+                @Localizer["link"]
+            </MudLink>.
+        </MudText>
         <DHFooter/>
     </PublicLandingDescription>
 </MudLayout>
