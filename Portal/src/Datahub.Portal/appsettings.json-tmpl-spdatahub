@@ -16,6 +16,22 @@
     "PostgreSQL": true,
     "Costing": false,
     "Storage": true
+  },
+  "Logging": {
+    "ApplicationInsights": {
+      "LogLevel": {
+        "Default": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information",
+        "Microsoft": "Warning",
+        "Datahub": "Information"
+      }
+    },
+    "LogLevel": {
+      "Default": "Warning",
+      "Datahub": "Information",
+      "Microsoft": "Warning",
+      "Microsoft.Hosting.Lifetime": "Information"
+    }
   }
 }
 
