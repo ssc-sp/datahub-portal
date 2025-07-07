@@ -51,7 +51,10 @@ else
             .Join(ctx.Project_Storage_Avgs, p => p.Project_ID, s => s.ProjectId, (p, s) => s).ToListAsync();
         var averages = project_averages.Where(e => e.Date >= minDate)
             .ToList();
-
+        if (project_averages.Count == 0)
+        {
+            return [];
+        }
         _lastUpdate = project_averages.Max(e => e.Date);
         return averages;
     }
