@@ -1,5 +1,14 @@
 # Changelog
 
+## [6.0.1](https://github.com/ssc-sp/datahub-portal/compare/v6.0.0...v6.0.1) (2025-07-07)
+
+
+### Bug Fixes
+
+* Improve announcement card on Home page to include button in article markup ([#1684](https://github.com/ssc-sp/datahub-portal/issues/1684)) ([b626945](https://github.com/ssc-sp/datahub-portal/commit/b62694546f54dcde9246ba024b7cb3f1d499cdb4))
+* local time for healthcheck ([#1682](https://github.com/ssc-sp/datahub-portal/issues/1682)) ([882fcfd](https://github.com/ssc-sp/datahub-portal/commit/882fcfdc4d9e7f07ca4445dcd51b4b9633291d5d))
+* Minor try/catch for better error message on costing refresh in production ([#1685](https://github.com/ssc-sp/datahub-portal/issues/1685)) ([7c408d6](https://github.com/ssc-sp/datahub-portal/commit/7c408d67e17dd9ff27eabc0db9edbac4edb0248a))
+
 ## [6.0.0](https://github.com/ssc-sp/datahub-portal/compare/v5.0.0...v6.0.0) (2025-06-24)
 
 
