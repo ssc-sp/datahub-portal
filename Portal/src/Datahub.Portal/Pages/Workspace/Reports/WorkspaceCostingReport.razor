@@ -423,8 +423,15 @@
     {
         _refreshing = true;
         var beforeUpdate = _projectCredits.LastUpdate;
-
-        var success = await _costMgmt.RefreshWorkspaceCostsAsync(WorkspaceAcronym);
+        var success = false;
+        try {
+            success = await _costMgmt.RefreshWorkspaceCostsAsync(WorkspaceAcronym);
+            _logger.LogInformation("Refreshing cost data for workspace {WorkspaceAcronym}", WorkspaceAcronym);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging refresh for workspace {WorkspaceAcronym}", WorkspaceAcronym);
+        }
         await FetchDatabaseData();
         var afterUpdate = _projectCredits.LastUpdate;
 
