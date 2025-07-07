@@ -1,4 +1,5 @@
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared
 
 
 <MudPaper Outlined Class="pa-4">
@@ -12,7 +13,7 @@
             @Localizer["This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below."]
         </MudText>
         <MudElement HtmlTag="div">
-            @if (ProjectResource.CreatedAt.HasValue)
+            @if (ProjectResource.Status == TerraformStatus.Completed)
             {
                 
                 <DHButton
@@ -41,5 +42,9 @@
     [Parameter]
     [EditorRequired]
     public string WorkspaceAcronym { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public Datahub_Project Project { get; set; }
 
 }
