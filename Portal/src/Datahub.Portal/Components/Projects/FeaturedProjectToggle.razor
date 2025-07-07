@@ -1,0 +1,25 @@
+﻿@using Datahub.Core.Model.Projects
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+    <MudToggleIconButton Toggled="@Project.Is_Featured" ToggledChanged="ToggleFeatured" Icon="@Icons.Material.Filled.StarBorder"
+    ToggledIcon="@Icons.Material.Filled.Star"
+    Color="Color.Primary" Size="Size.Small" Class="ml-2"
+    title="@Localizer["Toggle featured workspace (Admin-only)"]" />
+</DatahubAuthView>
+
+@code {
+    [Parameter]
+    public Datahub_Project Project { get; set; }
+
+    public void ToggleFeatured(bool toggled)
+    {
+        if (Project != null)
+        {
+            Project.Is_Featured = toggled;
+            using var dbContext = _dbContextFactory.CreateDbContext();
+            dbContext.Projects.Update(Project);
+            dbContext.SaveChanges();
+        }
+    }
+}
