@@ -19,17 +19,20 @@
 
                     <MudPaper Elevation="0" Outlined Class="py-2 px-3">
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
-                            <AnnouncementMarkdown Content="@($"{preview.Preview}<br/>[Child]")" Style="@_descriptionTextStyle">
+                            <MudElement>
+                                <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
+                            </MudElement>
+                            <MudElement>
                                 <DHButton Href="@Localizer[PageRoutes.News]"
                                           Color="@Color.Primary"
                                           Variant="@Variant.Text"
                                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
-                                          Underline
+                                          Underline 
                                           NoWrap>
                                     <span class="sr-only">@preview.Preview</span>
                                     @Localizer["Read more"]
                                 </DHButton>
-                            </AnnouncementMarkdown>
+                            </MudElement>
                         </MudStack>
                     </MudPaper>
                 </li>
