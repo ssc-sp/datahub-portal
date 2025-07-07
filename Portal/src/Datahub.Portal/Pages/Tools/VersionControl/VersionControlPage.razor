@@ -1,0 +1,139 @@
+﻿@using Datahub.Application.Services
+@using Datahub.Application.Services.Notifications;
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Services.Projects
+@using Datahub.Portal.Components.Dialogs
+@using Markdig
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IDatahubEmailService _emailService
+@inject IUserInformationService _userInformationService
+@inject IWorkspaceVersionService _workspaceVersionService
+@inject IRequestManagementService _requestManagementService
+@inject IConfiguration _configuration
+@inject ISnackbar _snackbar
+@inject IJSRuntime _jsRuntime
+@inject IDialogService Dialog
+
+
+<MudStack Spacing="6">
+    <MudText Typo="Typo.h1">@Localizer["Version Control"]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["This page allows you to manage workspace versions in the FSDH."]</MudText>
+    <MudSpacer />
+    <MudTooltip Text=@Localizer["Add a new version to the version control table."]>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus" OnClick="AddNewVersion" Class="mr-4">@Localizer["Add New Version"]</DHButton>
+    </MudTooltip>
+
+    <MudTable Items="@_versions" Loading="@_loading" Hover Dense>
+        <HeaderContent>
+            <MudTh>@Localizer["Version Tag"]</MudTh>
+            <MudTh>@Localizer["Active"]</MudTh>
+            <MudTh>@Localizer["Created Date"]</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Tag</MudTd>
+            <MudTd>
+                @if (context.IsActive)
+                {
+                    <MudIconButton Size="Size.Small" Color="Color.Success" Icon="@Icons.Material.Filled.Check" OnClick="() => ToggleVersionStatus(context)" />
+                }
+                else
+                {
+                    <MudIconButton Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Cancel" OnClick="() => ToggleVersionStatus(context)" />
+                }
+            </MudTd>
+            <MudTd>@context.CreatedDate.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd>
+                <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteVersion(context)" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
+        </PagerContent>
+    </MudTable>
+</MudStack>
+
+
+@code {
+
+    private List<VersionTag> _versions = new();
+
+    private bool _loading = true;
+    protected override async Task OnInitializedAsync()
+    {
+        _loading = true;
+        _versions = await _workspaceVersionService.GetAllVersionsAsync();
+        _loading = false;
+    }
+
+    private async Task DeleteVersion(VersionTag version)
+    {
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+           {
+               { "PromptText", Localizer["Are you sure you want to delete version {0}?", version.Tag].ToString()},
+               { "ConfirmText", Localizer["Yes"].ToString() },
+               { "CancelText", Localizer["No"].ToString() }
+           };
+
+        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Delete"], parameters, dialogOptions);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var isDeleted = await _workspaceVersionService.DeleteVersion(version);
+            if (isDeleted)
+            {
+                _versions.Remove(version);
+                _snackbar.Add(Localizer["Version deleted successfully."], Severity.Success);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["Error deleting version, please try again."], Severity.Error);
+            }
+        }
+    }
+
+    private async Task ToggleVersionStatus(VersionTag version)
+    {
+        version.IsActive = !version.IsActive;
+        var isUpdated = await _workspaceVersionService.UpdateVersionTag(version);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddNewVersion()
+    {
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters { { "ExistingVersions", _versions } };
+        var dialog = await Dialog.ShowAsync<AddVersionDialog>(Localizer["Add New Version"], parameters, dialogOptions);
+        var result = await dialog.Result;
+        var email = await _userInformationService.GetUserEmail();
+        if (!result.Canceled)
+        {
+            var version = result.Data.ToString();
+            var versionTag = new VersionTag { Tag = version, CreatedDate = DateTime.UtcNow, CreatedBy = email, IsActive = true };
+            var isAdded = await _workspaceVersionService.AddNewVersion(versionTag);
+            if (!isAdded)
+            {
+                _snackbar.Add(Localizer["Error adding version, please try again."], Severity.Error);
+                return;
+            }
+
+            // Add the new version to the list and sort it by descending System.Version
+            _versions.Add(versionTag);
+
+            _versions = _versions
+                .OrderByDescending(v => System.Version.Parse(v.Tag.TrimStart('v')))
+                .ToList();
+
+            await InvokeAsync(StateHasChanged);
+
+
+            await _requestManagementService.TriggerGreenLightChanges(versionTag.Tag, email);
+
+            _snackbar.Add(Localizer["Successfully added version: {0}", version], Severity.Success);
+        }
+    }
+}

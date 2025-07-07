@@ -11,6 +11,11 @@
             <MudTabPanel Text="@Localizer["Storage"]">
                 <WorkspaceStorageReport WorkspaceAcronym="@WorkspaceAcronym"/>
             </MudTabPanel>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCbrOwner" ProjectAcronym="@WorkspaceAcronym">
+                <MudTabPanel Text="@Localizer["CBR Budget"]">
+                    <CbrBudgetReport WorkspaceAcronym="@WorkspaceAcronym" />
+                </MudTabPanel>
+            </DatahubAuthView>
 
             @* <MudTabPanel Text="@Localizer["Reports"]"> *@
             @*     <WorkspaceReportsTable WorkspaceAcronym="@WorkspaceAcronym"/> *@
@@ -24,13 +29,13 @@
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    public List<ChartLocale> Locales => new()
+    public static List<ChartLocale> Locales => new()
     {
         EnglishLocale,
         FrenchLocale
     };
 
-    public ChartLocale FrenchLocale => new()
+    public static ChartLocale FrenchLocale => new()
     {
         Name = "fr",
         Options = new LocaleOptions
@@ -67,7 +72,7 @@
         }
     };
 
-    public ChartLocale EnglishLocale => new()
+    public static ChartLocale EnglishLocale => new()
     {
         Name = "en",
         Options = new LocaleOptions

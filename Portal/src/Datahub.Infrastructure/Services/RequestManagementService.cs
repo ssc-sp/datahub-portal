@@ -15,7 +15,8 @@ public class RequestManagementService(
     ILogger<RequestManagementService> logger,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     IDatahubAuditingService datahubAuditingService,
-    IResourceMessagingService resourceMessagingService)
+    IResourceMessagingService resourceMessagingService,
+    IWorkspaceVersionService workspaceVersionService)
     : IRequestManagementService
 {
     public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentPortalUser)
@@ -71,6 +72,11 @@ public class RequestManagementService(
             };
 
             await ctx.Project_Resources2.AddAsync(resource);
+
+            if (requestedTemplate.Name == TerraformTemplate.NewProjectTemplate)
+            { 
+                project.Version = await workspaceVersionService.GetLatestVersion();
+            }
         }
     }
 
@@ -150,12 +156,48 @@ public class RequestManagementService(
 
 
 
+    public async Task<bool> TriggerGreenLightChanges(string versionTag, string email)
+    {
+        // Parse the version tag and extract major and minor versions  
+        try
+        {
+            var parsedVersion = Version.Parse(versionTag.TrimStart('v'));
+            var parsedMajorMinor = $"v{parsedVersion.Major}.{parsedVersion.Minor}";
 
+            await using var db = await dbContextFactory.CreateDbContextAsync();
+            var currentVersionProjects = await db.Projects
+                .Where(p => p.Version.StartsWith(parsedMajorMinor))
+                .ToListAsync();
+
+            if (currentVersionProjects.Any())
+            {
+                foreach (var project in currentVersionProjects)
+                {
+                    var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, email);
+                    var parsedProjectVersion = workspaceDefinition.Workspace.Version.TrimStart('v');
+
+                    if (Version.Parse(parsedProjectVersion) >= parsedVersion)
+                    {
+                        continue;
+                    }
+                    workspaceDefinition.Workspace.Version = versionTag;
+                    workspaceDefinition.UpdateWorkspaceVersion = true;
+                    await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+                }
+            }
+            return true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error triggering green light changes for version {VersionTag} requseted by {Email}", versionTag, email);
+            return false;
+        }
+    }
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
         return projectUser.RoleId switch
         {
-            (int)Project_Role.RoleNames.Remove => Role.Removed,
+            (int)Project_Role.RoleNames.Removed => Role.Removed,
             (int)Project_Role.RoleNames.WorkspaceLead => Role.Owner,
             (int)Project_Role.RoleNames.Admin => Role.Admin,
             (int)Project_Role.RoleNames.Collaborator => Role.User,

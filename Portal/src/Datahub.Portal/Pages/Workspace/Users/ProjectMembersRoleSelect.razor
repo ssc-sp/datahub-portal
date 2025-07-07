@@ -33,20 +33,21 @@
                 </MudMenuItem>
             </NotAuthorized>
         </DatahubAuthView>
-        <MudDivider/>
-        @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Remove or (int)Project_Role.RoleNames.WorkspaceLead)))
+        <MudDivider />
+        @foreach (var role in _projectRoles.Where(r => r.Id is not ((int)Project_Role.RoleNames.Removed or (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.DisabledUser)))
         {
             <MudMenuItem OnClick="@(() => RoleChanged(role.Id))" Style="max-width: 400px;">
                 <MudText Typo="Typo.h6">@Localizer[role.Name]</MudText>
                 <MudText>@Localizer[role.Description]</MudText>
             </MudMenuItem>
         }
-        <MudDivider/>
+        <MudDivider />
         <MudMenuItem OnClick="@(() => RoleChanged(_removeRole.Id))" Style="max-width: 400px;">
             <MudText Color="Color.Error" Typo="Typo.h6">@Localizer[_removeRole.Name]</MudText>
             <MudText Color="Color.Error">@Localizer[_removeRole.Description]</MudText>
         </MudMenuItem>
     </ChildContent>
+
 </MudMenu>
 
 @code {
@@ -67,13 +68,13 @@
     protected override void OnParametersSet()
     {
         _projectRoles = Project_Role.GetAll().ToList();
-        _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Remove);
+        _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Removed);
         _currentRole = _projectRoles.FirstOrDefault(r => r.Id == InitialValue);
     }
 
     public async Task RoleChanged(int newRoleId)
     {
-        if (newRoleId == (int)Project_Role.RoleNames.Remove)
+        if (newRoleId == (int)Project_Role.RoleNames.Removed)
         {
             var message = Localizer["Are you sure you want to remove this user from the workspace?"].Value;
             var confirmed = await _jsRuntime.InvokeAsync<bool>("confirm", message);

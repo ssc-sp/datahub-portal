@@ -157,8 +157,6 @@
         public const string Statistics_FR = "statistiques";
         public const string HealthCheck = "healthcheck";
         public const string HealthCheck_FR = "verification-sante";
-        public const string Users = "users";
-        public const string Users_FR = "utilisateurs";
         public const string Email = "email";
         public const string Email_FR = "courriel";
         public const string SupportRequests = "support-requests";
@@ -167,6 +165,8 @@
         public const string AzureSubscriptions_FR = "abonnements-azure";
         public const string HostingServices_FR = "services-hebergement";
         public const string MetadataDefinitions = "metadata/definitions";
+        public const string VersionControl = "version-control";
+        public const string VersionControl_FR = "controle-de-version";
     }
 
 
@@ -185,11 +185,11 @@
         SectionViews.SupportRequests,
         SectionViews.Statistics,
         SectionViews.HealthCheck,
-        SectionViews.Users,
         SectionViews.Email,
         SectionViews.AzureSubscriptions,
         SectionViews.HostingServices,
-        SectionViews.MetadataDefinitions
+        SectionViews.MetadataDefinitions,
+        SectionViews.VersionControl
     };
 
 
@@ -262,13 +262,12 @@
             SectionViews.Diagnostics => SidebarIcons.Diagnostics,
             SectionViews.Statistics => SidebarIcons.Statistics,
             SectionViews.HealthCheck => SidebarIcons.HealthCheck,
-            SectionViews.Users => SidebarIcons.Users,
             SectionViews.Email => SidebarIcons.Email,
             SectionViews.AzureSubscriptions => SidebarIcons.AzureSubscriptions,
             SectionViews.SupportRequests => SidebarIcons.SupportRequests,
             SectionViews.HostingServices => SidebarIcons.HostingServices,
             SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
-
+            SectionViews.VersionControl => SidebarIcons.VersionControl,
             _ => SidebarIcons.Profile
         };
     }
@@ -284,14 +283,14 @@
             SectionViews.Achievements => Localizer["Achievements"],
 
             SectionViews.Diagnostics => Localizer["Diagnostics"],
-            SectionViews.Statistics => Localizer["Statistics"],
+            SectionViews.Statistics => Localizer["Statistics & Reports"],
             SectionViews.HealthCheck => Localizer["Health Check"],
-            SectionViews.Users => Localizer["Users"],
             SectionViews.Email => Localizer["Email"],
             SectionViews.AzureSubscriptions => Localizer["Azure Subscriptions"],
             SectionViews.SupportRequests => Localizer["Support Requests"],
             SectionViews.HostingServices => Localizer["Hosting Services"],
             SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
+            SectionViews.VersionControl => Localizer["Version Control"],
 
             _ => Localizer["Public Profile"]
         };

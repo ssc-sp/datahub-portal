@@ -44,6 +44,10 @@
             <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
             <MudText class="label">@Localizer["File URL"]</MudText>
             <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
+
+            <MudText class="label">@Localizer["Access from Databricks"]</MudText>
+            <InlineCodeWithCopy>@_databricksPasteText</InlineCodeWithCopy>
+
         </div>
     </div>
 }
@@ -78,6 +82,7 @@
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
+    private string _databricksPasteText;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -94,11 +99,16 @@
             .Select(p => (p.Key, Value: File.GetMetadataPropertyValue(p.Key)))
             .ToList();
 
+        var fullFilePath = $"{File.folderpath}/{File.filename}".Replace("//","/").TrimStart('/');
         if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
         {
             var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
             _fileLinkUrl = $"{StorageAccountMetadata.Url}/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
             _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
+        }
+        if (!string.IsNullOrEmpty(fullFilePath))
+        {
+            _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
     }
 

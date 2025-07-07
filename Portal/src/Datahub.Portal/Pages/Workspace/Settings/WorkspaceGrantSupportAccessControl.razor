@@ -1,7 +1,9 @@
 ﻿@using Datahub.Portal.Pages.Account
 @using Datahub.Core.Model.Projects
+@using Toolbelt.Blazor.Globalization
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ILocalTimeZone _localTz
 @inject ISnackbar _snackbar
 
 <SettingsField Label="@Localizer["Support access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
@@ -38,7 +40,9 @@
             .AsNoTracking()
             .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _accessDate = _workspace.AllowDatahubSupport;
+        var accessDateUTC = _workspace.AllowDatahubSupport;
+        var localTz = await _localTz.GetLocalTimeZoneAsync(null);
+        _accessDate = TimeZoneInfo.ConvertTimeFromUtc(accessDateUTC, localTz);
     }
 
     /// <summary>

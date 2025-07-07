@@ -33,7 +33,7 @@ public class UserCircuitCounterServiceTests
     private IUserInformationService GetUserInformationService(string userId)
     {
         var service = new Mock<IUserInformationService>();
-        service.Setup(s => s.GetUserIdString()).Returns(Task.FromResult(userId));
+        service.Setup(s => s.GetGraphUserIdString()).Returns(Task.FromResult(userId));
         return service.Object;
     }
 

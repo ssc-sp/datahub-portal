@@ -1,0 +1,85 @@
+﻿@using ApexCharts
+@using Datahub.Core.Model.Projects
+
+@inject ICultureService CultureService
+
+<span>
+    <h2 class="sr-only">
+        @Localizer["A chart showing the accumulated storage for the workspace over time. An accessible description is provided below the chart."]
+    </h2>
+    <ApexChart @ref="@_accumulatedStorageChart" TItem="Project_Storage" Title="@Title" Height="400"
+               Options="_accumulatedStorageChartOptions">
+        <ApexPointSeries
+            TItem="Project_Storage"
+            Items="@(Storage.GroupBy(c => c.Date).Select(g => new Project_Storage() { Date = g.Key, AverageCapacity = g.Sum(c => c.AverageCapacity) }).ToList())"
+            Name="@Localizer["Accumulated storage"]"
+            XValue="@(c => c.Date.Date.ToString("yyyy-MM-dd"))"
+            YAggregate="@(e => (decimal)double.Round(Storage.Where(c => c.Date <= e.Last().Date).Aggregate(0.0, (total, next) => total + next.AverageCapacity), 2))"
+            OrderBy="@(c => c.X)"
+            SeriesType="SeriesType.Area"/>
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Accumulated storage for the workspace over time. A detailed table is provided below the charts."]
+    </p>
+    <table class="sr-only">
+        <tr>
+            <th>@Localizer["Date"]</th>
+            <th>@Localizer["Storage (GB)"]</th>
+        </tr>
+        @foreach (var storage in Storage)
+        {
+            <tr>
+                <td>@storage.Date.Date.ToString("yyyy-MM-dd")</td>
+                <td>@(double.Round(storage.AverageCapacity, 2))</td>
+            </tr>
+        }
+    </table>
+</span>
+
+@code {
+    [Parameter] public List<Project_Storage> Storage { get; set; }
+    [Parameter] public string Title { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChart<Project_Storage> _accumulatedStorageChart = new();
+    private readonly ApexChartOptions<Project_Storage> _accumulatedStorageChartOptions = new();
+    private string _locale = "en-CA";
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        DefineOptions();
+    }
+
+    public async Task Refresh()
+    {
+        await _accumulatedStorageChart.UpdateSeriesAsync();
+        await _accumulatedStorageChart.UpdateOptionsAsync(true, true, true);
+    }
+
+    private void DefineOptions()
+    {
+        _accumulatedStorageChartOptions.Chart = new Chart
+        {
+            Locales = Locales,
+            DefaultLocale = _locale
+        };
+
+        _accumulatedStorageChartOptions.Tooltip = new Tooltip
+        {
+            Y = new TooltipY
+            {
+                Formatter = "function(val) { return parseFloat(val).toFixed(2); }"
+            }
+        };
+        _accumulatedStorageChartOptions.Yaxis = new List<YAxis>();
+        _accumulatedStorageChartOptions.Yaxis.Add(new YAxis
+        {
+            Title = new AxisTitle { Text = Localizer["Storage (GB)"].ToString() },
+            DecimalsInFloat = 2
+        });
+        _accumulatedStorageChartOptions.Xaxis = new XAxis();
+        _accumulatedStorageChartOptions.Xaxis.Type = XAxisType.Datetime;
+    }
+
+}

@@ -8,7 +8,6 @@
 @using Datahub.Metadata.Utils;
 @inject NavigationManager NavigationManager
 @inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
-@inject IOrganizationLevelsService OrganizationLevelsService
 @inject ILogger<ProjectObjectMetadata> Logger
 @inject ISnackbar _snackbar
 @inject IDatahubCatalogSearch _datahubCatalogSearch
@@ -77,8 +76,6 @@
     private string DefaultMetadaId => ObjectId != ProjectAcronym ? ProjectAcronym : null;
 
     private Datahub_Project _project;
-    private int? _sector;
-    private int? _branch;
     private ObjectMetadataEditor _editor;
 
     protected override async Task OnInitializedAsync()
@@ -89,17 +86,8 @@
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
         if (_project is not null)
         {
-            await TryReadProjectSectorAndBranch();
             await OnProjectLoaded.InvokeAsync(_project);
         }
-    }
-
-    private async Task TryReadProjectSectorAndBranch()
-    {
-        var sectors = await OrganizationLevelsService.GetSectors();
-        _sector = FindOrganizationLevelId(sectors, _project.Sector_Name);
-        var branches = await OrganizationLevelsService.GetBranches();
-        _branch = FindOrganizationLevelId(branches, _project.Branch_Name);
     }
 
     private int? FindOrganizationLevelId(List<OrganizationLevel> levels, string value)
@@ -144,14 +132,6 @@
 
             // Metadata is "added" only when the profile required fields are entered
             _project.MetadataAdded = _editor.ValidProfileFields();
-
-            var sector = _editor.GetSelectedChoices("sector").FirstOrDefault();
-            if (sector is not null)
-                _project.Sector_Name = sector.Label;
-
-            var branch = _editor.GetSelectedChoices("branch").FirstOrDefault();
-            if (branch is not null)
-                _project.Branch_Name = branch.Label;
 
             var name_en = _editor.GetValue(FieldNames.name_en);
             if (!string.IsNullOrEmpty(name_en))

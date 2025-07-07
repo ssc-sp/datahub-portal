@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DataDictionaryGenerator": {
+      "commandName": "Project"
+    },
+    "Container (Dockerfile)": {
+      "commandName": "Docker"
+    }
+  }
+}
