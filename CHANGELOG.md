@@ -1,5 +1,52 @@
 # Changelog
 
+## [6.0.1](https://github.com/ssc-sp/datahub-portal/compare/v6.0.0...v6.0.1) (2025-07-07)
+
+
+### Bug Fixes
+
+* Improve announcement card on Home page to include button in article markup ([#1684](https://github.com/ssc-sp/datahub-portal/issues/1684)) ([b626945](https://github.com/ssc-sp/datahub-portal/commit/b62694546f54dcde9246ba024b7cb3f1d499cdb4))
+* local time for healthcheck ([#1682](https://github.com/ssc-sp/datahub-portal/issues/1682)) ([882fcfd](https://github.com/ssc-sp/datahub-portal/commit/882fcfdc4d9e7f07ca4445dcd51b4b9633291d5d))
+* Minor try/catch for better error message on costing refresh in production ([#1685](https://github.com/ssc-sp/datahub-portal/issues/1685)) ([7c408d6](https://github.com/ssc-sp/datahub-portal/commit/7c408d67e17dd9ff27eabc0db9edbac4edb0248a))
+
+## [6.0.0](https://github.com/ssc-sp/datahub-portal/compare/v5.0.0...v6.0.0) (2025-06-24)
+
+
+### ⚠ BREAKING CHANGES
+
+* Database cleanup and documentation ([#1672](https://github.com/ssc-sp/datahub-portal/issues/1672))
+* Migration fix and updated database schema and doc ([#1667](https://github.com/ssc-sp/datahub-portal/issues/1667))
+* Spring cleanup ([#1664](https://github.com/ssc-sp/datahub-portal/issues/1664))
+
+### Features
+
+* Added 'access from databricks' link to workspace storage ([#1671](https://github.com/ssc-sp/datahub-portal/issues/1671)) ([2b7554b](https://github.com/ssc-sp/datahub-portal/commit/2b7554bdf421c359d32b4d77ccc2ceb5234384cf))
+* Automating version updates for build (green light) changes ([#1670](https://github.com/ssc-sp/datahub-portal/issues/1670)) ([e5e7bcd](https://github.com/ssc-sp/datahub-portal/commit/e5e7bcdef570a6493314e84fcacfcf03d63093b9))
+* CBR Budget Report ([#1668](https://github.com/ssc-sp/datahub-portal/issues/1668)) ([e1a8c73](https://github.com/ssc-sp/datahub-portal/commit/e1a8c73b484eec2798c076a1a14907d9b637d286))
+* disable inactive users ([#1659](https://github.com/ssc-sp/datahub-portal/issues/1659)) ([4c22868](https://github.com/ssc-sp/datahub-portal/commit/4c22868a6ec9259b559f3832998084479e2fc658))
+* In-portal statistics and reports ([#1638](https://github.com/ssc-sp/datahub-portal/issues/1638)) ([af049ce](https://github.com/ssc-sp/datahub-portal/commit/af049ce094382755d26287b2c73a92a8f2eb1328))
+* updated code to handle group file delete operation ([#1666](https://github.com/ssc-sp/datahub-portal/issues/1666)) ([e6cb433](https://github.com/ssc-sp/datahub-portal/commit/e6cb43309db91b6042ff5917d10940ab80e71d9a))
+
+
+### Bug Fixes
+
+* Announcement section is now hidden on the home page when there's nothing to announce ([#1675](https://github.com/ssc-sp/datahub-portal/issues/1675)) ([a838407](https://github.com/ssc-sp/datahub-portal/commit/a8384071c8128c8fa4b0fe7447c45bd88b6e965c))
+* Deleted workspaces and removed users no longer appear on the Explore page ([#1676](https://github.com/ssc-sp/datahub-portal/issues/1676)) ([bbe5be3](https://github.com/ssc-sp/datahub-portal/commit/bbe5be3ddfb874dc3eef457357365ad8ce16246a))
+* Fix notification records not being saved, and logging ([#1654](https://github.com/ssc-sp/datahub-portal/issues/1654)) ([0529848](https://github.com/ssc-sp/datahub-portal/commit/0529848ca7f39007d4ae4be709b2b1ea98643352))
+* Fixed an issue with the metadata editor ([#1674](https://github.com/ssc-sp/datahub-portal/issues/1674)) ([79b46a7](https://github.com/ssc-sp/datahub-portal/commit/79b46a74c32b29f2b6162d64dc8e7f506058c017))
+* Migration fix and updated database schema and doc ([#1667](https://github.com/ssc-sp/datahub-portal/issues/1667)) ([96eaf30](https://github.com/ssc-sp/datahub-portal/commit/96eaf30c90912a5048a63f65e7abdf582868ca34))
+* Minor fixes for non logged users ([#1663](https://github.com/ssc-sp/datahub-portal/issues/1663)) ([960d701](https://github.com/ssc-sp/datahub-portal/commit/960d701d24cb75f422a5cb0cd5235ea848f436d4))
+* Removed the ability to set a user's role as disabled and removed the ability to set a new user as a removed user ([#1665](https://github.com/ssc-sp/datahub-portal/issues/1665)) ([e41594d](https://github.com/ssc-sp/datahub-portal/commit/e41594d3bf8e2a1d1d278e35ece00069e6e6ed0b))
+* updated rules to allow only single workspace lead ([#1681](https://github.com/ssc-sp/datahub-portal/issues/1681)) ([2ae7e7c](https://github.com/ssc-sp/datahub-portal/commit/2ae7e7c5722fc4180aa66af7604b2f6b5fcc91b8))
+* Updated the text on the register page to explain how to get started ([#1678](https://github.com/ssc-sp/datahub-portal/issues/1678)) ([a9a7d03](https://github.com/ssc-sp/datahub-portal/commit/a9a7d03ffab59cd3ace730e05af63665e53c133c))
+* Website is missing a robots.txt file ([#1658](https://github.com/ssc-sp/datahub-portal/issues/1658)) ([84deccc](https://github.com/ssc-sp/datahub-portal/commit/84deccc56d7d856c34a7cecf5789dd70676ba62f))
+
+
+### Miscellaneous Chores
+
+* Database cleanup and documentation ([#1672](https://github.com/ssc-sp/datahub-portal/issues/1672)) ([4f36ab7](https://github.com/ssc-sp/datahub-portal/commit/4f36ab70fa3040ac694c4af55c55de6db5a23d4f))
+* Spring cleanup ([#1664](https://github.com/ssc-sp/datahub-portal/issues/1664)) ([f0ca491](https://github.com/ssc-sp/datahub-portal/commit/f0ca49177f01b4f84477f53becfbbe44dbea6a3a))
+
 ## [5.0.0](https://github.com/ssc-sp/datahub-portal/compare/v4.0.10...v5.0.0) (2025-05-21)
 
 

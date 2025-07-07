@@ -66,3 +66,8 @@ The Workspace Users page should list users, support changing user roles, and all
         And the Data Steward checkbox is disabled for user "guest@example.com"
         When the user updates the role of user with email "guest@example.com" to Collaborator
         Then the Data Steward checkbox should be enabled for user "guest@example.com"
+
+    Scenario: Adding a second workspace lead
+        Given I have an existing workspace lead
+        When I add another lead
+        Then a validation error is shown preventing multiple leads
