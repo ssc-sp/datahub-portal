@@ -26,14 +26,6 @@
         <DHMainContentTitle>
             <MudText Typo="Typo.h1" Class="mb-6">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]</MudText>
         </DHMainContentTitle>
-        <ProjectObjectMetadata
-            ProfileName="project"
-            ObjectId="@WorkspaceAcronym"
-            Location="@WorkspaceAcronym"
-            ProjectAcronym="@WorkspaceAcronym"
-            ValidateRequired="false"
-            ObjectType="@MetadataObjectType.DataInitiative"
-            OnMetadataSaved="@HandleMetadataSaved"/>
         <WorkspaceObjectMetadata ProjectAcronym="@WorkspaceAcronym" />
     </MudStack>
 </MudPaper>
