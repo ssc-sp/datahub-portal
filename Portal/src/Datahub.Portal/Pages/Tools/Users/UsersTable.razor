@@ -1,3 +1,4 @@
+@using CsvHelper.Configuration.Attributes
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 @using System.Text.Json.Nodes;
@@ -12,6 +13,8 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IHttpClientFactory _httpClientFactory
 @inject IJSRuntime _jsRuntime
+@inject ICsvService _csvService
+@inject IDownloadService _downloadService
 
 <MudTable Striped Items="@UserWorkspaces" ServerData="SortUserTable" @ref="userTable">
     <ToolBarContent>
@@ -119,9 +122,6 @@
 
     public IEnumerable<UserWorkspaces> _filteredData { get; set; }
 
-
-    private IJSObjectReference _module;
-
     private MudTable<UserWorkspaces> userTable;
 
     private string _searchString = "", _lastXDays = "";
@@ -135,23 +135,17 @@
 
     public List<string> LockedUsers = new();
     public List<string> AllUsers = new();
-    public bool LoadStatus = false;
 
     private List<string> lastXDaysOptions =
     [
         "Last 7 days",
-        "Last 30 days",
-        "Last 90 days",
-        "Last 120 days",
-        "Last 365 days",
-        "> 1 year"
+    "Last 30 days",
+    "Last 90 days",
+    "Last 120 days",
+    "Last 365 days",
+    "> 1 year"
     ];
 
-    protected override async Task OnInitializedAsync()
-    {
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Tools/Users/UsersTable.razor.js");
-        LoadStatus = true;
-    }
 
     private async Task<TableData<UserWorkspaces>> SortUserTable(TableState state, CancellationToken cancellationToken)
     {
@@ -280,43 +274,25 @@
     // CSV download
     private async Task HandleDownload()
     {
-        var fileStream = GenerateCsvStream();
+        var csvRecords = _filteredData.Select(ConvertUserWorkspaces);
+        var fileStream = _csvService.GenerateCsvStreamFromRecords(csvRecords);
         var fileName = $"UserInfo_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
-        using var streamReference = new DotNetStreamReference(stream: fileStream);
-        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+        await _downloadService.DownloadStreamAsFile(fileStream, fileName);
     }
 
-    private Stream GenerateCsvStream()
-    {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
-        writer.WriteLine("Name,Email,Workspaces,Last Login");
-        foreach (var cost in _filteredData)
-        {
-            writer.WriteLine($"\"{cost.User.DisplayName}\",\"{cost.User.Email}\",\"{AllWorkspaces(cost.Workspaces)}\",{cost.User.LastLoginDateTime?.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"))}");
-        }
+    record UsersTableCsvEntry(string Name, string Email, string Workspaces, [property: Name("Last Login")] string LastLogin) : ICsvService.ICsvRecord;
 
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
-    }
+    private string JoinWorkspaces(IEnumerable<Datahub_Project> workspaces) => string.Join(", ", workspaces.Select(w => $"{w.ProjectName} ({w.Project_Acronym_CD})"));
 
-    private string AllWorkspaces(List<Datahub_Project> workspaces)
-    {
-        string allWorkspaces = "";
-        foreach (var space in workspaces)
-        {
-            if (space.Equals(workspaces.Last()))
-            {
-                allWorkspaces += space.ProjectName + "(" + space.Project_Acronym_CD + ")";
-            }
-            else
-            {
-                allWorkspaces += space.ProjectName + "(" + space.Project_Acronym_CD + "), ";
-            }
-        }
+    private string FormatLastLoginDate(DateTime? date) => date?.ToString("g", CultureInfo.CreateSpecificCulture("en-CA"));
 
-        return allWorkspaces;
-    }
+    private UsersTableCsvEntry ConvertUserWorkspaces(UserWorkspaces userWorkspaces) =>
+        new UsersTableCsvEntry(
+            userWorkspaces.User.DisplayName,
+            userWorkspaces.User.Email,
+            JoinWorkspaces(userWorkspaces.Workspaces),
+            FormatLastLoginDate(userWorkspaces.User.LastLoginDateTime)
+        );
+
 
 }
