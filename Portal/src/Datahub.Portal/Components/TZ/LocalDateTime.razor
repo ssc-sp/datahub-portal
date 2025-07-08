@@ -1,0 +1,151 @@
+@using System.Text.RegularExpressions
+@using Toolbelt.Blazor.Globalization
+@implements IDisposable
+@inject ILocalTimeZone LocalTimeZone
+
+@if (ChildContent is not null && _context is not null)
+{
+    <text>@ChildContent(_context)</text>
+}
+
+@code {
+
+    /// <summary>
+    /// The date part of the time to display, like "2021-12-31", in the time zone specified by the <see cref="TimeZone"/> parameter.<br/>
+    /// This parameter is optional. If not provided, the current date will be used.<br/>
+    /// However, when the specified time zone has daylight saving time changes, this parameter is essential to the correct time conversion.
+    /// </summary>
+    [Parameter, EditorRequired]
+    public DateTimeOffset DateTime { get; set; }
+
+    /// <summary>
+    /// Optional override of the user time zone.
+    /// </summary>
+    [Parameter]
+    public string? TimeZone { get; set; }
+
+    /// <summary>
+    /// Override for the DateTime time zone of <see cref="DateTime"/> parameter. Useful when dealing with UTC DateTime values or when the time zone is not known.<br/>
+    /// </summary>
+    [Parameter]
+    public string? SourceTimeZone { get; set; }
+
+    /// <summary>
+    /// The template to customize rendering the time text.
+    /// </summary>
+    [Parameter]
+    public RenderFragment<LocalDateTimeTemplateContext>? ChildContent { get; set; } = (context) => @<text>@RenderTime(context)</text>;
+
+
+    /// <summary>
+    /// The format to display the time text. By default, it will use the general date/time pattern (short time) "g"
+    /// </summary>
+    [Parameter]
+    public string? Format { get; set; }
+
+    /// <summary>
+    /// If true, lowercases the AM/PM designator unless the format contains a timezone specifier.
+    /// </summary>
+    [Parameter]
+    public bool LowerCaseAmPm { get; set; } = false;
+
+    private TimeZoneInfo _localTimeZone = TimeZoneInfo.Utc;
+
+    private TimeZoneInfo? _srcTimeZone = TimeZoneInfo.Utc;
+
+    private LocalDateTimeTemplateContext? _context;
+
+    private bool _isInitialized = false;
+
+    private DateTimeOffset _localDateTimeOffset;
+
+    private string? _prevTimeZone;
+    private string? _prevFormat;
+
+    protected override async Task OnInitializedAsync()
+    {
+        this._localTimeZone = await this.LocalTimeZone.GetLocalTimeZoneAsync(this.TimeZone);
+        this._srcTimeZone = (SourceTimeZone is null) ? null : this.LocalTimeZone.TimeZoneIdMapper.TimeZoneIdToTimeZoneInfo(this.SourceTimeZone);
+        this.UpdateLocalDateTimeOffset();
+        this.UpdateContext();
+
+        this.LocalTimeZone.LocalTimeZoneChanged += OnLocalTimeChanged;
+        _isInitialized = true;
+    }
+
+    private async Task OnLocalTimeChanged(LocalTimeZoneEventArgs args)
+    {
+        this._localTimeZone = args.TimeZone;
+        await this.InvokeAsync(() =>
+        {
+            this.UpdateLocalDateTimeOffset();
+            this.UpdateContext();
+
+            this.StateHasChanged();
+        });
+    }
+
+    private void UpdateLocalDateTimeOffset()
+    {
+        DateTime utcDateTime;
+
+        if (_srcTimeZone is not null)
+        {
+            // Assume this.DateTime is in _srcTimeZone, convert to UTC
+            utcDateTime = TimeZoneInfo.ConvertTimeToUtc(this.DateTime.DateTime, _srcTimeZone);
+        }
+        else
+        {
+            // Assume this.DateTime is already UTC
+            utcDateTime = System.DateTime.SpecifyKind(this.DateTime.DateTime, DateTimeKind.Utc);
+        }
+
+
+        var localDateTime = TimeZoneInfo.ConvertTimeFromUtc(utcDateTime, this._localTimeZone);
+        this._localDateTimeOffset = new DateTimeOffset(localDateTime, this._localTimeZone.GetUtcOffset(localDateTime));
+    }
+
+    private void UpdateContext()
+    {
+        this._prevTimeZone = this.TimeZone;
+        this._prevFormat = this.Format;
+
+        _context = new()
+        {
+            LocalTimeZone = this._localTimeZone!,
+            Value = this._localDateTimeOffset,
+            Format = this.Format ?? "g",
+            LowerCaseAmPm = this.LowerCaseAmPm
+        };
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (!_isInitialized) return;
+        this.UpdateContext();
+    }
+
+    private static string RenderTime(LocalDateTimeTemplateContext context)
+    {
+        var localDateTime = TimeZoneInfo.ConvertTime(context.Value.UtcDateTime, context.LocalTimeZone);
+        var input = localDateTime.ToString(context.Format, System.Globalization.CultureInfo.InvariantCulture);
+        if (context.LowerCaseAmPm && ContainsTimeZoneSpecifier(context.Format))
+        {
+            // Only lower-case the AM/PM part
+            return Regex.Replace(input, "(AM|PM)", m => m.Value.ToLower());
+        }
+        return input;
+    }
+
+    private static bool ContainsTimeZoneSpecifier(string format)
+    {
+        // z, zz, zzz, K, t are timezone specifiers in .NET
+        return Regex.IsMatch(format, @"(z{1,3}|K|t)");
+    }
+
+    public void Dispose()
+    {
+        this.LocalTimeZone.LocalTimeZoneChanged -= OnLocalTimeChanged;
+    }
+}
