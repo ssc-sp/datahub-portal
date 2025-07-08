@@ -1,6 +1,6 @@
 ﻿@*ProjectMetadata.razor*@
 
-@* @page "/w/{ProjectAcronym}/metadata" *@
+@page "/w/{WorkspaceAcronym}/metadata"
 
 @using Datahub.Core.Services.Projects;
 @using Datahub.Metadata.Model
@@ -11,6 +11,8 @@
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Shared
 @using Datahub.Shared.Entities
+@using Datahub.Portal.Components
+@using Datahub.Portal.Components.Projects
 
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -24,14 +26,7 @@
         <DHMainContentTitle>
             <MudText Typo="Typo.h1" Class="mb-6">@Localizer["Workspace"] @WorkspaceAcronym @Localizer["Metadata"]</MudText>
         </DHMainContentTitle>
-        <ProjectObjectMetadata
-            ProfileName="project"
-            ObjectId="@WorkspaceAcronym"
-            Location="@WorkspaceAcronym"
-            ProjectAcronym="@WorkspaceAcronym"
-            ValidateRequired="false"
-            ObjectType="@MetadataObjectType.DataInitiative"
-            OnMetadataSaved="@HandleMetadataSaved"/>
+        <WorkspaceObjectMetadata ProjectAcronym="@WorkspaceAcronym" />
     </MudStack>
 </MudPaper>
 
