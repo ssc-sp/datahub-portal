@@ -197,7 +197,7 @@ namespace Datahub.Infrastructure.Services.Cost
 
                 var result = response.Value;
                 queryResults.Add(result);
-                lastDate = granularity == QueryGranularity.Daily ? GetLastDate(result) : endDate;
+                lastDate = granularity == QueryGranularity.Daily ? (GetLastDate(result) ?? endDate) : endDate;
                 nextLink = result.NextLink;
             } while (!string.IsNullOrEmpty(nextLink));
 
@@ -587,14 +587,20 @@ namespace Datahub.Infrastructure.Services.Cost
         /// </summary>
         /// <param name="queryResult">A query result from a usage query</param>
         /// <returns>The datetime of the most recent date present in the query result</returns>
-        internal DateTime GetLastDate(QueryResult queryResult)
+        internal DateTime? GetLastDate(QueryResult queryResult)
         {
             var cols = queryResult.Columns.ToList().Select(c => c.Name).ToList();
             CultureInfo provider = CultureInfo.InvariantCulture;
+            var rowCount = queryResult.Rows.Count;
             var max = queryResult.Rows.MaxBy(r => DateTime.ParseExact(
                 r[cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(),
                 "yyyyMMdd",
                 provider));
+            if (max is null)
+            {
+                logger.LogWarning($"Could not find any dates in the query result - found {rowCount} rows");
+                return null;
+            }
             var maxDate = DateTime.ParseExact(max![cols.FindIndex(c => c == USAGE_DATE_COLUMN)].ToString(), "yyyyMMdd",
                 provider);
             return maxDate;
