@@ -881,6 +881,8 @@
   "Head of the workspace and bears business responsibility for success of the workspace": "Head of the workspace and bears business responsibility for success of the workspace",
   "Header": "Header",
   "Health Check": "Health Check",
+  "HealthCheckStarted": "Health check started. The status will update shortly.",
+  "HealthCheckFailed": "Health check request failed. Type: {0} Name: {1} Group: {2} Error: {3}",
   "Healthy": "Healthy",
   "Help": "Help",
   "Help - Federal Science DataHub": "Help - Federal Science DataHub",
