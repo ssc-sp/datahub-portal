@@ -3382,5 +3382,35 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
-  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC."
+  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
+
+  // GC Hosting Metadata
+  "GCWorkspaceMetadata": "Métadonnées de l’espace de travail GC Hosting",
+  "WorkspaceNoMetadata": "L’espace de travail ne possède pas de métadonnées GC Hosting",
+  "Workspace Name": "Nom de l’espace de travail",
+  "WorkspaceName_Description": "Nom officiel de l’espace de travail.",
+  "WorkspaceDescription_Description": "Description détaillée de l’espace de travail.",
+  "Subject_Description": "Le ou les sujets de l’espace de travail tels que définis dans le Thésaurus des sujets principaux du GC.",
+  "Keywords": "Mots-clés",
+  "Keywords_Description": "Mots-clés permettant d’identifier ou de localiser l’espace de travail lors de recherches pertinentes.",
+  "Lead Name": "Nom du responsable",
+  "LeadName_Description": "Responsable en tant que propriétaire d’entreprise pour tous les projets et ensembles de données de l’espace de travail. Principal contact d’affaires responsable des coûts de l’espace de travail ($).",
+  "Lead Email": "Courriel du responsable",
+  "LeadEmail_Description": "Adresse courriel du responsable de l’espace de travail.",
+  "FinancialAuthorityName_Description": "Nom complet du gestionnaire de la section 34 ou 32 responsable du centre de coûts.",
+  "FinancialAuthorityEmail_Description": "Courriel du gestionnaire responsable du centre de coûts.",
+  "Commitment ISRef": "Engagement IS REF",
+  "CommitmentISRef_Description": "Numéro d’engagement IS REF.",
+  "Commitment ISOrg": "Engagement IS ORG",
+  "CommitmentISOrg_Description": "Numéro d’engagement IS ORG.",
+  "WorkspaceBudget_Description": "Budget alloué à l’espace de travail.",
+  "Retention Period": "Période de conservation",
+  "RetentionPeriod_Description": "Nombre d’années pendant lesquelles les données seront conservées.",
+  "Retention Start Date": "Date de début de la conservation",
+  "RetentionStartDate_Description": "Date à laquelle la période de conservation commence.",
+  "Retention Value": "Valeur de conservation",
+  "RetentionValue_Description": "Valeurs autorisées : Conservation – perpétuelle/indéfinie, Conservation – long terme, Valeur archivistique, Inconnue, Aucune",
+  "Security Classification": "Classification de sécurité",
+  "SecurityClassification_Description": "Valeurs possibles : Non classifié, Protégé A, Protégé B."
+
 }
