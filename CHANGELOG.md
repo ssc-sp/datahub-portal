@@ -1,5 +1,13 @@
 # Changelog
 
+## [6.0.4](https://github.com/ssc-sp/datahub-portal/compare/v6.0.3...v6.0.4) (2025-07-09)
+
+
+### Bug Fixes
+
+* fix for updated db names ([#1695](https://github.com/ssc-sp/datahub-portal/issues/1695)) ([e29366e](https://github.com/ssc-sp/datahub-portal/commit/e29366e55f9ac4e78a9a1c199374037520f71c52))
+* storage report bug when no usage data is available ([#1688](https://github.com/ssc-sp/datahub-portal/issues/1688)) ([94aad9d](https://github.com/ssc-sp/datahub-portal/commit/94aad9da2169b9238f754037f8e96a8afc909c68))
+
 ## [6.0.3](https://github.com/ssc-sp/datahub-portal/compare/v6.0.2...v6.0.3) (2025-07-08)
 
 
