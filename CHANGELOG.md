@@ -1,5 +1,19 @@
 # Changelog
 
+## [6.0.3](https://github.com/ssc-sp/datahub-portal/compare/v6.0.2...v6.0.3) (2025-07-08)
+
+
+### Bug Fixes
+
+* Fixing placement of announcement header on home page ([#1691](https://github.com/ssc-sp/datahub-portal/issues/1691)) ([816154c](https://github.com/ssc-sp/datahub-portal/commit/816154ca51ec5cb24cf34cd96313a0e11452ad69))
+
+## [6.0.2](https://github.com/ssc-sp/datahub-portal/compare/v6.0.1...v6.0.2) (2025-07-07)
+
+
+### Reverts
+
+* Revert "fix: Improve announcement card on Home page to include button in article markup" ([#1689](https://github.com/ssc-sp/datahub-portal/issues/1689)) ([46a1ce8](https://github.com/ssc-sp/datahub-portal/commit/46a1ce8b4e9c7d5019620808bb9c97fea5ebc43c))
+
 ## [6.0.1](https://github.com/ssc-sp/datahub-portal/compare/v6.0.0...v6.0.1) (2025-07-07)
 
 

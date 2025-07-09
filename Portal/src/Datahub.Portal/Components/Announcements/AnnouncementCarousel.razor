@@ -3,11 +3,11 @@
 
 @inject NavigationManager _navigationManager
 
+@if (_previewCount > 0)
+{
+    <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+}
 <ul class="my-4 d-flex" style="gap: 25px; flex-wrap: wrap">
-    @if (_previewCount > 0)
-    {
-        <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
-    }
     @foreach (var index in _announcementIndices)
     {
         if (index != -1)
@@ -19,17 +19,20 @@
 
                     <MudPaper Elevation="0" Outlined Class="py-2 px-3">
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
-                            <AnnouncementMarkdown Content="@($"{preview.Preview}<br/>[Child]")" Style="@_descriptionTextStyle">
+                            <MudElement>
+                                <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
+                            </MudElement>
+                            <MudElement>
                                 <DHButton Href="@Localizer[PageRoutes.News]"
                                           Color="@Color.Primary"
                                           Variant="@Variant.Text"
                                           EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
-                                          Underline
+                                          Underline 
                                           NoWrap>
                                     <span class="sr-only">@preview.Preview</span>
                                     @Localizer["Read more"]
                                 </DHButton>
-                            </AnnouncementMarkdown>
+                            </MudElement>
                         </MudStack>
                     </MudPaper>
                 </li>
