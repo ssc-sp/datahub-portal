@@ -3,11 +3,11 @@
 
 @inject NavigationManager _navigationManager
 
+@if (_previewCount > 0)
+{
+    <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+}
 <ul class="my-4 d-flex" style="gap: 25px; flex-wrap: wrap">
-    @if (_previewCount > 0)
-    {
-        <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
-    }
     @foreach (var index in _announcementIndices)
     {
         if (index != -1)

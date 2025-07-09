@@ -1,8 +1,11 @@
 @using System.Reflection
 @using Datahub.Portal.Components.Dialogs
+@using System.Dynamic
 
 @inject IDialogService _dialogService;
 @inject IJSRuntime _jsRuntime
+@inject IDownloadService _downloadService
+@inject ICsvService _csvService
 
 @typeparam TData where TData : IDHTableData
 
@@ -57,10 +60,13 @@
                     <MudMenuItem Icon="@Icons.Material.Outlined.Download" OnClick="@(() => { HandleDownload(false); })">
                         @Localizer["Download all"]
                     </MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.SystemUpdateAlt"
-                                 OnClick="@(() => { HandleDownload(true); })">
-                        @Localizer["Download filtered"]
-                    </MudMenuItem>
+                    @if (HasFilteredData) 
+                    {
+                        <MudMenuItem Icon="@Icons.Material.Outlined.SystemUpdateAlt"
+                                     OnClick="@(() => { HandleDownload(true); })">
+                            @Localizer["Download filtered"]
+                        </MudMenuItem>
+                    }
                     <MudMenuItem Icon="@Icons.Material.Outlined.Edit"
                                  OnClick="EditColumns">
                         @Localizer["Edit columns"]
@@ -159,8 +165,7 @@
     private List<FilterData> _filters { get; set; } = [];
     private List<PropertyInfo> _columns { get; set; } = [];
 
-
-    private IJSObjectReference _module;
+    private bool HasFilteredData => _filteredData?.Any() ?? false;
 
     private MudTable<TData> userTable;
 
@@ -168,15 +173,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        try
-        {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/Tables/DHTable.razor.js");
-        }
-        catch
-        {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/Tables/DHTable.razor.js");
-        }
-
         _columns = (Preset is null) ? TData.DefaultPreset().Columns : Preset.Columns;
         _filters = (Preset is null) ? TData.DefaultPreset().Filters : Preset.Filters;
     }
@@ -342,53 +338,31 @@
     // CSV download
     private async Task HandleDownload(bool filtered = false)
     {
-        var fileStream = GenerateCsvStream(filtered);
-        var fileName = $"{typeof(TData).Name}_{DateTime.Now:yyyy-MM-dd}.csv";
-        using var streamReference = new DotNetStreamReference(stream: fileStream);
-        await _module.InvokeVoidAsync("downloadFileFromStream", fileName, streamReference);
+        var exportItems = GenerateRecordListForCsv(filtered);
+        var filename = $"{typeof(TData).Name}_{DateTime.Now:yyyy-MM-dd}.csv";
+        using var stream = _csvService.GenerateCsvStreamFromDynamicRecords(exportItems);
+        await _downloadService.DownloadStreamAsFile(stream, filename);
     }
 
-    private Stream GenerateCsvStream(bool filtered = false)
+    private dynamic ConvertItemToDynamicCsvRecord(IEnumerable<PropertyInfo> cols, TData item)
     {
-        var stream = new MemoryStream();
-        var writer = new StreamWriter(stream);
+        dynamic d = new ExpandoObject();
+        var dd = d as IDictionary<string, object>;
 
-        // Write header
-        var header = filtered
-            ? string.Join(",", _columns.Select(prop => PropertyLabel(prop.Name)))
-            : string.Join(",", typeof(TData).GetProperties().Select(prop => PropertyLabel(prop.Name)));
-        writer.WriteLine(header);
-
-        // Write rows
-        var data = filtered ? _filteredData : Items;
-        foreach (var user in data)
+        foreach (var col in cols)
         {
-            var values = filtered
-                ? _columns.Select(col => FormatData(user.GetType().GetProperty(col.Name)?.GetValue(user, null)))
-                : typeof(TData).GetProperties().Select(prop => FormatData(prop.GetValue(user, null)));
-            var row = string.Join(",", values);
-            writer.WriteLine(row);
+            dd[PropertyLabel(col.Name)] = item == null ? null : col.GetValue(item, null);
         }
 
-        writer.Flush();
-        stream.Position = 0;
-        return stream;
+        return d;
     }
 
-    private string FormatData(dynamic input)
+    private IEnumerable<dynamic> GenerateRecordListForCsv(bool filtered = false)
     {
-        if (input == null)
-        {
-            return string.Empty;
-        }
+        var exportCols = filtered ? _columns.AsEnumerable() : typeof(TData).GetProperties();
+        var exportItems = filtered ? _filteredData : Items;
 
-        var str = input.ToString();
-        if (str == null)
-        {
-            return string.Empty;
-        }
-
-        return "\"" + input + "\"";
+        return exportItems.Select(item => ConvertItemToDynamicCsvRecord(exportCols, item));
     }
 
 }
