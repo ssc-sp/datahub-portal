@@ -37,6 +37,7 @@
  
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 @inject ILogger<WorkspaceHealthcheckPage> Logger
 @inject IServiceAuthManager _serviceAuthManager
 @inject IUserInformationService _userInformationService
@@ -275,6 +276,8 @@
 
     private async Task CallFunction(InfrastructureHealthResourceType type, string name, string group)
     {
+        Snackbar.Add(Localizer["HealthCheckStarted"], Severity.Info);
+
         var request = new InfrastructureHealthCheckMessage(
             type,
             group,
@@ -288,7 +291,16 @@
         }
         catch (Exception ex)
         {
-            await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
+            await DialogService.ShowMessageBox(
+                Localizer["Health Check"],
+                string.Format(
+                    Localizer["HealthCheckFailed"],
+                    type.ToString(),
+                    name,
+                    group,
+                    ex.Message
+                )
+            );
         }
     }
 }

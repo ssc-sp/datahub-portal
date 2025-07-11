@@ -23,6 +23,18 @@ namespace Datahub.Core.Extensions
             throw new Exception("Resource group name not found");
         }
 
+        public static string GetPostgresId(this Project_Resources2 postgresResource)
+        {
+            if (postgresResource is not null && postgresResource.CreatedAt.HasValue && TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) == postgresResource.ResourceType)
+            {
+                var jsonContent = JsonSerializer.Deserialize<JsonObject>(postgresResource.JsonContent);
+                string id = jsonContent["postgres_id"]!.ToString();
+                if (id == "Missing") throw new Exception("Postgres ID not found");
+                return id;
+            }
+            throw new Exception("Postgres ID not found");
+        }
+
         public static string GetResourceGroupNameFromBlob(this Datahub_Project project)
         {
             var blobStorageTemplateType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob);

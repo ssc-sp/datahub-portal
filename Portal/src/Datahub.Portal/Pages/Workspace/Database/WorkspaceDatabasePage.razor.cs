@@ -4,6 +4,8 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
 using Datahub.Core.Model.Context;
 using Datahub.Portal.Model;
+using Datahub.Shared.Entities;
+using Datahub.Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Newtonsoft.Json;
@@ -29,15 +31,10 @@ namespace Datahub.Portal.Pages.Workspace.Database
 
             await using var context = await _dbContextFactory.CreateDbContextAsync();
             var subscriptionId = await RetrieveWorkspaceSubscriptionId(WorkspaceAcronym, context);
-            var resourceProviderNamespace = "Microsoft.DBforPostgreSQL";
-            var resourceType = "flexibleServers";
-            var resourceName =
-                $"{_portalConfiguration.ResourcePrefix}-{WorkspaceAcronym.ToLowerInvariant()}-psql-{_portalConfiguration.Hosting.EnvironmentName}";
+            var dbResource = await context.Project_Resources2.AsNoTracking().Include(p => p.Project).FirstAsync(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Project.Project_Acronym_CD == WorkspaceAcronym);
+            var pgsqlId = dbResource.GetPostgresId();
 
-            var resourceIdentifier =
-                $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}";
-
-            var postgresResource = client.GetPostgreSqlFlexibleServerResource(new ResourceIdentifier(resourceIdentifier));
+            var postgresResource = client.GetPostgreSqlFlexibleServerResource(new ResourceIdentifier(pgsqlId));
 
             return postgresResource;
         }
