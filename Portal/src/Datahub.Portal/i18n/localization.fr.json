@@ -1356,6 +1356,8 @@
   "Head of the workspace and bears business responsibility for success of the workspace": "Chef de l'espace de travail et assume la responsabilité du succès de l'espace de travail",
   "Header": "En-tête",
   "Health Check": "Vérification de santé",
+  "HealthCheckStarted": "La vérification de l'état a commencé. Le statut sera mis à jour sous peu.",
+  "HealthCheckFailed": "La demande de vérification de l'état a échoué. Type : {0} Nom : {1} Groupe : {2} Erreur : {3}",
   "Healthy": "Bonne",
   "Help": "Aide",
   "Help - Federal Science DataHub": "Assistance - Plateforme fédérale de données scientifiques",
