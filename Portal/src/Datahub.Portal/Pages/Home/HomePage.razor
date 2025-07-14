@@ -1,4 +1,5 @@
 @using Datahub.Core.Model.Achievements
+@using Datahub.Application.Services.Notification
 @using Datahub.Portal.Components.User
 
 @inherits ViewUserBase<HomePage>
@@ -6,6 +7,7 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IPortalUserTelemetryService _telemetryService
 @inject IUserSettingsService _userSettingsService
+@inject IGCNotifyService _gcNotifyService
 
 @attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.Home_FR)]
@@ -17,6 +19,9 @@
 }
 
 <MudStack>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendNotificationTest">
+        @Localizer["Send Notification Test"]
+    </MudButton>
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <div role="group">
@@ -31,12 +36,12 @@
     else
     {
         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-                  Alt="@Localizer["User's background image"]"
-                  Class="rounded-lg mud-elevation-4"
-                  Style="width: 100%"
-                  ObjectFit="ObjectFit.Cover"
-                  Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
+        Alt="@Localizer["User's background image"]"
+        Class="rounded-lg mud-elevation-4"
+        Style="width: 100%"
+        ObjectFit="ObjectFit.Cover"
+        Height="320"
+        ObjectPosition="ObjectPosition.Center"/>
     }
     <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle/>
 </MudStack>
@@ -56,6 +61,12 @@
         await _telemetryService.FindUserLastLogin();
         _telemetryService.GetUserLastLogin();
         await _userSettingsService.IsFrench();
+    }
+
+    private Task SendNotificationTest()
+    {
+        _gcNotifyService.SendNotification("sean.stilwell@ssc-spc.gc.ca", "b99c2d7e-d570-4e76-9ffa-0e1678c5cbb3");
+        return Task.CompletedTask;
     }
 
     protected override async Task OnParametersSetAsync()
