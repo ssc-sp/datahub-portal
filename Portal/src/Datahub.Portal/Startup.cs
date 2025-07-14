@@ -2,6 +2,7 @@ using AspNetCore.Localizer.Json.Extensions;
 using AspNetCore.Localizer.Json.JsonOptions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Datahub.Application;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
@@ -169,6 +170,7 @@ public class Startup
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
+        services.AddBlazoredSessionStorage();
         services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
@@ -460,6 +462,10 @@ public class Startup
 
         services.AddScoped<IDownloadService, DownloadService>();
         services.AddScoped<ICsvService, CsvService>();
+
+        services.AddTransient<CorrelationIdHandler>();
+        services.AddHttpClient<ExternalSearchService>()
+            .AddHttpMessageHandler<CorrelationIdHandler>();
     }
 
     private void ConfigureDbContexts(IServiceCollection services)
@@ -481,5 +487,26 @@ public class Startup
         where TGen : DbContext where Tsql : DbContext where Tsqlite : DbContext
     {
         services.ConfigureDbContext<TGen, Tsql, Tsqlite>(Configuration, connectionStringName, dbDriver);
+    }
+    public class CorrelationIdHandler : DelegatingHandler
+    {
+        private readonly ISessionStorageService _sessionStorage;
+
+        public CorrelationIdHandler(ISessionStorageService sessionStorage)
+        {
+            _sessionStorage = sessionStorage;
+        }
+
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var correlationId = await _sessionStorage.GetItemAsStringAsync("correlationId");
+
+            if (!string.IsNullOrEmpty(correlationId))
+            {
+                request.Headers.Add("X-Correlation-ID", correlationId);
+            }
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 }

@@ -27,6 +27,7 @@ namespace Datahub.Infrastructure.Queues.Messages
         string? Resolution,
         string? LocalStorage,
         BugReportTypes BugReportType,
-        string Description
+        string Description,
+        string? CorrelationId = ""
     ) : IRequest;
 }
