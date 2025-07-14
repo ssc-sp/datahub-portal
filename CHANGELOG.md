@@ -1,5 +1,18 @@
 # Changelog
 
+## [6.1.0](https://github.com/ssc-sp/datahub-portal/compare/v6.0.4...v6.1.0) (2025-07-14)
+
+
+### Features
+
+* Added a new button to make it easier for the FSDH team to feature projects on the Explore page ([#1687](https://github.com/ssc-sp/datahub-portal/issues/1687)) ([2b1c752](https://github.com/ssc-sp/datahub-portal/commit/2b1c75218ef7822ea8430642960f005401df7489))
+* better UX after healthcheck run is triggered ([#1694](https://github.com/ssc-sp/datahub-portal/issues/1694)) ([62a3a06](https://github.com/ssc-sp/datahub-portal/commit/62a3a06643b032943fd27e4b33f2768ed2478e2a))
+
+
+### Bug Fixes
+
+* Disabling self registration in the proof-of-concept environment and updating public landing page ([#1697](https://github.com/ssc-sp/datahub-portal/issues/1697)) ([8762bfb](https://github.com/ssc-sp/datahub-portal/commit/8762bfb35785e278b05ff71fcf8d1bf50b08f174))
+
 ## [6.0.4](https://github.com/ssc-sp/datahub-portal/compare/v6.0.3...v6.0.4) (2025-07-09)
 
 
