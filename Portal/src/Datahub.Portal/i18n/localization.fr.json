@@ -3385,5 +3385,9 @@
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
   "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
-  "Toggle featured workspace (Admin-only)":  "Basculer l'espace de travail en vedette (réservé aux administrateurs)"
+  "Toggle featured workspace (Admin-only)": "Basculer l'espace de travail en vedette (réservé aux administrateurs)",
+  "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre la Plateforme fédérale de données scientifiques.",
+  "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
+  "Account Setup": "Configuration du compte",
+  " instructions.":  "."
 }
