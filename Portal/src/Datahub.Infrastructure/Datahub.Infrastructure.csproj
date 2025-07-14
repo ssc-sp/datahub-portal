@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Azure.Core" Version="1.46.2" />
+      <PackageReference Include="Azure.Identity" Version="1.14.1" />
       <PackageReference Include="Azure.ResourceManager.AppService" Version="1.0.*" />
       <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.*" />
       <PackageReference Include="Azure.ResourceManager.CostManagement" Version="1.0.*" />
@@ -22,6 +24,7 @@
       <PackageReference Include="Azure.Storage.Queues" Version="12.18.0" />
       <PackageReference Include="Microsoft.Azure.Databricks.Client" Version="2.4.0" />
       <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.3" />
+      <PackageReference Include="Microsoft.Identity.Client" Version="4.73.1" />
       <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.*" />
 	  <PackageReference Include="AWSSDK.S3" Version="3.7.*" />
 	  <PackageReference Include="System.Text.Json" Version="8.0.5" />

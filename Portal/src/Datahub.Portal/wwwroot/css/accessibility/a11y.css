@@ -49,3 +49,8 @@
     padding-left: 6px;
 }
 
+.no-margin-textarea textarea.mud-input-root-outlined {
+    margin: 5px !important;
+    border: none;
+}
+

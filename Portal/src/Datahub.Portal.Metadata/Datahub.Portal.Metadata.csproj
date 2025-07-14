@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.46.2" />
+    <PackageReference Include="Azure.Identity" Version="1.14.1" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.73.1" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
     <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
   </ItemGroup>
