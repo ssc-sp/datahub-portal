@@ -50,7 +50,13 @@
 }
 
 .no-margin-textarea textarea.mud-input-root-outlined {
-    margin: 5px !important;
-    border: none;
+    margin: 0px !important;
+    padding: 10px !important;
+    border: none !important;
+    font-size: 90% !important;
+}
+
+.multiselect-textarea .mud-input-root {
+    font-size: 90% !important;
 }
 
