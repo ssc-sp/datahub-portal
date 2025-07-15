@@ -26,8 +26,7 @@ namespace Datahub.Functions
         IQueuePongService pongService,
         EmailValidator emailValidator,
         ISendEndpointProvider sendEndpointProvider,
-        IEmailService emailService,
-        IGCNotifyService notifyService
+        IGCNotifyService notifyService,
         IResourceMessagingService resourceMessagingService)
     {
         private readonly int[] _notificationPercents =
