@@ -31,12 +31,12 @@
     else
     {
         <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-                  Alt="@Localizer["User's background image"]"
-                  Class="rounded-lg mud-elevation-4"
-                  Style="width: 100%"
-                  ObjectFit="ObjectFit.Cover"
-                  Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
+            Alt="@Localizer["User's background image"]"
+            Class="rounded-lg mud-elevation-4"
+            Style="width: 100%"
+            ObjectFit="ObjectFit.Cover"
+            Height="320"
+            ObjectPosition="ObjectPosition.Center"/>
     }
     <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle/>
 </MudStack>

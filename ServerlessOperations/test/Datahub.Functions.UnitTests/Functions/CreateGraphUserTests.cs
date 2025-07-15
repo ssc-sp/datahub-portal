@@ -1,6 +1,8 @@
 using Azure.Identity;
+using Datahub.Application.Services.Notification;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Notification;
 using FluentAssertions;
 using MassTransit;
 using MassTransit.Transports;
@@ -34,7 +36,7 @@ namespace Datahub.Functions.UnitTests.Functions
         private AzureConfig _azureConfig;
         private Mock<AzureManagementService> _azureManagementService;
         private ISendEndpointProvider _sendEndpointProvider;
-        private IEmailService _emailService;
+        private IGCNotifyService _gcNotifyService;
         private CreateGraphUser _function; 
 
         [SetUp]
@@ -47,17 +49,15 @@ namespace Datahub.Functions.UnitTests.Functions
             httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
 
             _azureConfig = new AzureConfig(_config);
-            _emailService = new EmailService(loggerFactory.CreateLogger<EmailService>());
+            _gcNotifyService = Substitute.For<IGCNotifyService>();
 
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
-            _emailService = Substitute.For<IEmailService>();
             
             var _mockGraphClient = TestHelper.MockGraphServiceClient();
             _azureManagementService = new Mock<AzureManagementService>(MockBehavior.Strict,_azureConfig, httpClientFactory);
             _azureManagementService.Setup(f => f.GetGraphServiceClientFromEnvVariables()).Returns(_mockGraphClient);
 
-            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService.Object, _sendEndpointProvider, _emailService);
-
+            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService.Object, _sendEndpointProvider, _gcNotifyService);
         }
 
         [Test]

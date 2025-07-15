@@ -1,5 +1,6 @@
 ﻿@using Datahub.Application.Services.Notifications;
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services.Notification;
 @using Markdig
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -8,8 +9,30 @@
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
+@inject IGCNotifyService _gcNotifyService
 
 <MudStack Class="mb-4">
+    <MudText Typo="Typo.h2">@Localizer["Test Standard Emails"]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["This allows you to test the standard FSDH email templates. Emails will only be sent to you."]</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountCreatedNotification">
+        @Localizer["Send Account Created Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountDeletionNoticeNotification">
+        @Localizer["Send Account Deletion Notice Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountLockingNoticeNotification">
+        @Localizer["Send Account Locking Notice Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestWorkspaceCostNotification">
+        @Localizer["Send Workspace Cost Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestDataHubErrorNotification">
+        @Localizer["Send DataHub Error Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestDatahubResourceDeletedNotification">
+        @Localizer["Send Datahub Resource Deleted Notification"]
+    </MudButton>
+    <MudDivider />
     @*title*@
     <MudStack Row Justify="Justify.SpaceBetween">
         <MudText Typo="Typo.h2">@Localizer["DataHub Email"]</MudText>
@@ -46,13 +69,13 @@
             @if (_recipientType == RecipientType.Projects)
             {
                 <MudSelect
-                    T="string"
-                    SelectedValues=@_selectedProjects
-                    MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
-                    SelectedValuesChanged=@HandleSelectedValuesChanged
-                    MultiSelection="true"
-                    Label="Select workspaces"
-                    Variant="Variant.Outlined">
+                T="string"
+                SelectedValues=@_selectedProjects
+                MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+                SelectedValuesChanged=@HandleSelectedValuesChanged
+                MultiSelection="true"
+                Label="Select workspaces"
+                Variant="Variant.Outlined">
 
                     @foreach (var p in _projects)
                     {
@@ -69,23 +92,23 @@
             @if (_recipientType == RecipientType.Addresses)
             {
                 <MudTextField @bind-Value="_recipients"
-                              DebounceInterval="250"
-                              Label=@Localizer["Enter email addresses"]
-                              HelperText=@Localizer["Enter email addresses separated by commas"]
-                              Adornment=@Adornment.End
-                              AdornmentIcon=@Icons.Material.Filled.Email
-                              Variant="Variant.Outlined"/>
+                DebounceInterval="250"
+                Label=@Localizer["Enter email addresses"]
+                HelperText=@Localizer["Enter email addresses separated by commas"]
+                Adornment=@Adornment.End
+                AdornmentIcon=@Icons.Material.Filled.Email
+                Variant="Variant.Outlined"/>
             }
         </MudItem>
     </MudGrid>
 
     @*subject*@
     <MudTextField @bind-Value="_subject"
-                  DebounceInterval="250"
-                  Label=@Localizer["Subject"]
-                  Adornment="@Adornment.End"
-                  AdornmentIcon="@Icons.Material.Filled.Subject"
-                  Variant="Variant.Outlined"/>
+    DebounceInterval="250"
+    Label=@Localizer["Subject"]
+    Adornment="@Adornment.End"
+    AdornmentIcon="@Icons.Material.Filled.Subject"
+    Variant="Variant.Outlined"/>
 
     @*body*@
     <DHMarkdownEditor InitialValue="@_emailBody" ValueChanged="HandleBodyChanged"/>
@@ -93,17 +116,17 @@
     @*buttons*@
     <MudStack Row Justify="Justify.FlexStart">
         <DHButton Variant="Variant.Filled"
-                   EndIcon="@Icons.Material.Filled.Send"
-                   Color="Color.Warning"
-                   Disabled="@IsPreviewDisabled()"
-                   OnClick="@HandleEmailYourself">
+        EndIcon="@Icons.Material.Filled.Send"
+        Color="Color.Warning"
+        Disabled="@IsPreviewDisabled()"
+        OnClick="@HandleEmailYourself">
             @Localizer["Send Preview to yourself"]
         </DHButton>
         <DHButton Variant="Variant.Filled"
-                   EndIcon="@Icons.Material.Filled.Send"
-                   Color="Color.Primary"
-                   Disabled="@IsSendDisabled()"
-                   OnClick="@HandleSendEmail">
+        EndIcon="@Icons.Material.Filled.Send"
+        Color="Color.Primary"
+        Disabled="@IsSendDisabled()"
+        OnClick="@HandleSendEmail">
             @Localizer["Send"]
         </DHButton>
     </MudStack>
@@ -123,6 +146,36 @@
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
         _projects = await ctx.Projects.Select(p => new ProjectInfo(p.Project_Acronym_CD, p.ProjectName)).ToListAsync();
+    }
+
+    private async Task TestAccountCreatedNotification()
+    {
+        await _gcNotifyService.SendAccountCreatedNotification(await _userInformationService.GetUserEmail());
+    }
+
+    private async Task TestAccountDeletionNoticeNotification()
+    {
+        await _gcNotifyService.SendAccountDeletionNoticeNotification(await _userInformationService.GetUserEmail(), "25", "5");
+    }
+
+    private async Task TestAccountLockingNoticeNotification()
+    {
+        await _gcNotifyService.SendAccountLockingNoticeNotification(await _userInformationService.GetUserEmail(), "25", "5");
+    }
+
+    private async Task TestWorkspaceCostNotification()
+    {
+        await _gcNotifyService.SendWorkspaceCostNotification(await _userInformationService.GetUserEmail(), "90", "TEST-EMAIL");
+    }
+
+    private async Task TestDataHubErrorNotification()
+    {
+        await _gcNotifyService.SendDataHubErrorNotification("This is a test error", await _userInformationService.GetUserEmail());
+    }
+
+    private async Task TestDatahubResourceDeletedNotification()
+    {
+        await _gcNotifyService.SendDatahubResourceDeletedNotification(await _userInformationService.GetUserEmail(), "Storage", "Stockage", "TEST-EMAIL");
     }
 
     private bool IsPreviewDisabled()
