@@ -1356,6 +1356,8 @@
   "Head of the workspace and bears business responsibility for success of the workspace": "Chef de l'espace de travail et assume la responsabilité du succès de l'espace de travail",
   "Header": "En-tête",
   "Health Check": "Vérification de santé",
+  "HealthCheckStarted": "La vérification de l'état a commencé. Le statut sera mis à jour sous peu.",
+  "HealthCheckFailed": "La demande de vérification de l'état a échoué. Type : {0} Nom : {1} Groupe : {2} Erreur : {3}",
   "Healthy": "Bonne",
   "Help": "Aide",
   "Help - Federal Science DataHub": "Assistance - Plateforme fédérale de données scientifiques",
@@ -3412,5 +3414,9 @@
   "RetentionValue_Description": "Valeurs autorisées : Conservation – perpétuelle/indéfinie, Conservation – long terme, Valeur archivistique, Inconnue, Aucune",
   "Security Classification": "Classification de sécurité",
   "SecurityClassification_Description": "Valeurs possibles : Non classifié, Protégé A, Protégé B."
-
+  "Toggle featured workspace (Admin-only)": "Basculer l'espace de travail en vedette (réservé aux administrateurs)",
+  "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre la Plateforme fédérale de données scientifiques.",
+  "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
+  "Account Setup": "Configuration du compte",
+  " instructions.":  "."
 }

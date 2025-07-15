@@ -881,6 +881,8 @@
   "Head of the workspace and bears business responsibility for success of the workspace": "Head of the workspace and bears business responsibility for success of the workspace",
   "Header": "Header",
   "Health Check": "Health Check",
+  "HealthCheckStarted": "Health check started. The status will update shortly.",
+  "HealthCheckFailed": "Health check request failed. Type: {0} Name: {1} Group: {2} Error: {3}",
   "Healthy": "Healthy",
   "Help": "Help",
   "Help - Federal Science DataHub": "Help - Federal Science DataHub",
@@ -2394,7 +2396,6 @@
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
   "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
-
   //GC hosting metadata
   "GCWorkspaceMetadata": "GC Hosting Workspace Metadata",
   "WorkspaceNoMetadata": "Workspace has no GC Hosting Metadata",
@@ -2422,5 +2423,10 @@
   "Retention Value": "Retention Value",
   "RetentionValue_Description": "Allowed values: Retention - perpetual/indefinite, Retention - long-term, Archival value, Unknown, None",
   "Security Classification": "Security Classification",
-  "SecurityClassification_Description": "Possible values: Unclassified, Protected A, Protected B."
+  "SecurityClassification_Description": "Possible values: Unclassified, Protected A, Protected B.",
+  "Toggle featured workspace (Admin-only)": "Toggle featured workspace (Admin-only)",
+  "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.",
+  "If it's your first time signing in, please follow the ": "If it's your first time signing in, please follow the ",
+  "Account Setup": "Account Setup",
+  " instructions.": " instructions."
 }
