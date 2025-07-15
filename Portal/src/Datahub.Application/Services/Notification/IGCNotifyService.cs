@@ -7,4 +7,5 @@ public interface IGCNotifyService
     Task SendAccountDeletionNoticeNotification(string email, string daysSince, string daysUntil);
     Task SendAccountLockingNoticeNotification(string email, string daysSince, string daysUntil);
     Task SendWorkspaceCostNotification(string email, string perc);
+    Task SendDataHubErrorNotification(string errorMessage, string email);
 }

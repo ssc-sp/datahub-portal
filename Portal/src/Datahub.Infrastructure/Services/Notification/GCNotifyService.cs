@@ -121,6 +121,22 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
+    public async Task SendDataHubErrorNotification(string errorMessage, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca")
+    {
+        var postData = new
+        {
+            email_address = email,
+            template_id = GetTemplateId("error"),
+            personalisation = new
+            {
+                errorMessage = errorMessage
+            }
+        };
+
+        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     private string GetTemplateId(string templateName)
     {
         var mappings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(_mappingsJson);
