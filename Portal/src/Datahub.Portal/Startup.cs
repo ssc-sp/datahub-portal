@@ -442,6 +442,7 @@ public class Startup
         services.AddScoped<NotifierService>();
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
+        services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<PortalEmailService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
