@@ -19,9 +19,6 @@
 }
 
 <MudStack>
-    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SendNotificationTest">
-        @Localizer["Send Notification Test"]
-    </MudButton>
     @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
     {
         <div role="group">
@@ -61,12 +58,6 @@
         await _telemetryService.FindUserLastLogin();
         _telemetryService.GetUserLastLogin();
         await _userSettingsService.IsFrench();
-    }
-
-    private Task SendNotificationTest()
-    {
-        _gcNotifyService.SendNotification("sean.stilwell@ssc-spc.gc.ca", "b99c2d7e-d570-4e76-9ffa-0e1678c5cbb3");
-        return Task.CompletedTask;
     }
 
     protected override async Task OnParametersSetAsync()
