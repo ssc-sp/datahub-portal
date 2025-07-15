@@ -284,6 +284,10 @@
                                                         <PostgresConfigurationForm
                                                             Configuration="@(transaction.UpdatedData!)"/>
                                                         break;
+                                                    case TerraformTemplate.AzureDatabricks:
+                                                        <DatabricksConfigurationForm
+                                                            Configuration="@(transaction.UpdatedData!)"/>
+                                                        break;
                                                     default:
                                                         <MudText Style="font-style: italic">
                                                             @Localizer["No configuration available for this tool"]

@@ -42,6 +42,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         private readonly List<string> _configurableToolList =
         [
             TerraformTemplate.AzurePostgres,
+            TerraformTemplate.AzureDatabricks
         ];
 
         /// <summary>
