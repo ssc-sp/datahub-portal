@@ -104,7 +104,7 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
-    public async Task SendWorkspaceCostNotification(string email, string perc)
+    public async Task SendWorkspaceCostNotification(string email, string perc, string acro)
     {
         var postData = new
         {
@@ -112,7 +112,8 @@ public class GCNotifyService : IGCNotifyService
             template_id = GetTemplateId("cost-alert"),
             personalisation = new
             {
-                perc = perc
+                perc = perc,
+                acro = acro
             }
         };
 
@@ -134,6 +135,25 @@ public class GCNotifyService : IGCNotifyService
         };
 
         string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
+    public async Task SendDatahubResourceDeletedNotification(string email, string resource, string resource_fr, string acro)
+    {
+        var postData = new
+        {
+            email_address = email,
+            template_id = GetTemplateId("resource-deleted"),
+            personalisation = new
+            {
+                resource = resource,
+                resource_fr = resource_fr,
+                acro = acro
+            }
+        };
+
+        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
+
         await SendNotification(postDataJson);
     }
 
