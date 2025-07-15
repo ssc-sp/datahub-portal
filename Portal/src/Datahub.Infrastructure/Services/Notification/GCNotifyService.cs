@@ -7,8 +7,7 @@ using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
+using Datahub.Infrastructure.Services.Security;
 
 namespace Datahub.Infrastructure.Services.Notification;
 

@@ -1,5 +1,5 @@
 using Datahub.Application.Services;
-using Datahub.Application.Services.Notification;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -25,7 +25,6 @@ public class ProjectUsageNotifierSteps(
     AzureConfig azureConfig,
     IResourceMessagingService resourceMessagingService,
     ISendEndpointProvider sendEndpointProvider,
-    IGCNotifyService notifyService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace with usage exceeding its budget")]
@@ -78,7 +77,6 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var gcNotifyService = Substitute.For<IGCNotifyService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -87,7 +85,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            gcNotifyService,
+            null,
             resourceMessagingService);
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -148,7 +146,6 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var gcNotifyService = Substitute.For<IGCNotifyService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -157,7 +154,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            gcNotifyService,
+            null,
             resourceMessagingService);
 
         await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
