@@ -234,10 +234,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             entity.Property(e => e.ChangeDate).IsRequired();
         });
 
-        modelBuilder.Entity<PublicDataFile>()
-            .HasIndex(e => e.File_ID)
-            .IsUnique();
-
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
             .IsUnique();
