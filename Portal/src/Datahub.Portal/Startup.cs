@@ -395,6 +395,7 @@ public class Startup
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
             services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
+            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
             
