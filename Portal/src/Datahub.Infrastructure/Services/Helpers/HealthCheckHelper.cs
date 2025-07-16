@@ -20,6 +20,7 @@ using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -62,9 +63,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         ILoggerFactory loggerFactory,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
-        DatahubPortalConfiguration portalConfiguration)
+        DatahubPortalConfiguration portalConfiguration,
+        IHttpContextAccessor httpContextAccessor = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
 
         private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
         private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
@@ -887,6 +891,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             if (result is not null && IsUnhealthyStatus(result.Status))
             {
+                var correlationId = GetCorrelationId();
+
                 return new BugReportMessage(
                     UserName: InfrastructureHealthCheckConstants.BugReportUsername,
                     UserEmail: string.Empty,
@@ -901,6 +907,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     Resolution: string.Empty,
                     LocalStorage: string.Empty,
                     BugReportType: BugReportTypes.InfrastructureError,
+                    CorrelationId: correlationId,
                     Description: $"The infrastructure health check for {result.ResourceType} {result.Name} failed. {result.Details}"
                     );
             }
@@ -911,6 +918,16 @@ namespace Datahub.Infrastructure.Services.Helpers
         }
 
         public async Task SendBugReportMessagesToQueue(IEnumerable<BugReportMessage?> messages) => await sendEndpointProvider.SendDatahubServiceBusMessages(QueueConstants.BugReportQueueName, messages);
+
+        private string GetCorrelationId()
+        {
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext != null && httpContext.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+            {
+                return correlationId.ToString();
+            }
+            return Guid.NewGuid().ToString();
+        }
     }
 
     public record IntermediateHealthCheckResult(InfrastructureHealthStatus Status, List<string> Errors);
