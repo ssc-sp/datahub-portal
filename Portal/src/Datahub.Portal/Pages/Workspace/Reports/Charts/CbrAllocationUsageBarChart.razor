@@ -1,0 +1,137 @@
+﻿@* CbrAllocationUsageBarChart *@
+
+@using ApexCharts
+@using Datahub.Application.Services.Cost
+@using Datahub.Core.Model.Projects
+@using Ut = BudgetCostReportUtils
+
+
+@inject ICultureService CultureService
+
+<MudContainer >
+    <h2 class="sr-only">@Localizer["A horizontal bar chart showing total budget, usage and available budget for workspaces in this CBR. An accessible description is provided below the chart."]</h2>
+    <ApexChart TItem="DailyServiceCost" 
+               Title="@Title"
+               Options="_options">
+        <ApexPointSeries TItem="DailyServiceCost"
+                         Group="usage"
+                         Name=@Localizer["Cost"]
+                         Items="@WorkspaceCosts"
+                         XValue="@(c => c.Source)"
+                         YAggregate="@(e => e.Sum(c => c.Amount))"
+                         SeriesType="SeriesType.Bar" />
+        <ApexPointSeries TItem="DailyServiceCost"
+                         Group="usage"
+                         Name=@Localizer["Available Budget"]
+                         Items="@_availableBudgets"
+                         XValue="@(c => c.Source)"
+                         YAggregate="@(e => e.Sum(c => c.Amount))"
+                         SeriesType="SeriesType.Bar" />
+        <ApexPointSeries TItem="DailyServiceCost"
+                         Group="allocation"
+                         Name=@Localizer["Allocated Budget"]
+                         Items="@BudgetAllocations"
+                         XValue="@(c => c.Source)"
+                         YAggregate="@(e => e.Sum(c => c.Amount))"
+                         SeriesType="SeriesType.Bar" />
+    </ApexChart>
+    <p class="sr-only">
+        @Localizer["Incurred costs against the budget allocation for each workspace in this CBR. A detailed table is provided below the charts."]
+        @foreach(var p in _workspaceBudgetCosts)
+        {
+            @Localizer["Workspace {0} has used {1} of its budget of {2}, with {3} remaining.", p.Acronym,
+                     Ut.DisplayDollar(p.Cost), Ut.DisplayDollar(p.Budget), Ut.DisplayDollar(p.Budget - p.Cost)]
+        }
+        @if (_workspacesWithoutCosts.Any())
+        {
+            @Localizer["The following workspaces have not yet incurred any costs:"]
+            @foreach(var p in _workspacesWithoutCosts)
+            {
+                @Localizer["{0}, budget {1}.", p.Source, Ut.DisplayDollar(p.Amount)]
+            }
+        }
+    </p>
+</MudContainer>
+
+
+@code {
+    [Parameter] public string Title { get; set; }
+    [Parameter, EditorRequired] public List<DailyServiceCost> BudgetAllocations { get; set; }
+    [Parameter, EditorRequired] public List<DailyServiceCost> WorkspaceCosts { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private ApexChartOptions<DailyServiceCost> _options = new();
+    private string _locale = "en-CA";
+
+    private record WorkspaceBudgetCost(string Acronym, decimal Budget, decimal Cost);
+
+    private List<WorkspaceBudgetCost> _workspaceBudgetCosts;
+    private HashSet<string> _noCostWorkspaceAcronyms;
+    private IEnumerable<DailyServiceCost> _workspacesWithoutCosts => BudgetAllocations.Where(c => _noCostWorkspaceAcronyms.Contains(c.Source));
+
+    private List<DailyServiceCost> _availableBudgets;
+
+    protected override void OnParametersSet()
+    {
+        _locale = CultureService.IsEnglish ? ICultureService.English : ICultureService.French;
+        PopulateBudgetCostPairs();
+        DefineOptions();
+    }
+
+    private void PopulateBudgetCostPairs()
+    {
+        var budgetDict = BudgetAllocations.ToDictionary(c => c.Source, c => c.Amount);
+        var costDict = WorkspaceCosts.ToDictionary(c => c.Source, c => c.Amount);
+
+        _workspaceBudgetCosts = WorkspaceCosts
+            .Select(a => new WorkspaceBudgetCost(a.Source, budgetDict[a.Source], a.Amount))
+            .ToList();
+
+        var costWsAcronyms = WorkspaceCosts.Select(c => c.Source);
+
+        _noCostWorkspaceAcronyms = budgetDict.Keys
+            .Where(a => !string.IsNullOrEmpty(a))
+            .Except(costWsAcronyms)
+            .ToHashSet();
+
+        _availableBudgets = BudgetAllocations
+            .Select(a => new DailyServiceCost()
+                {
+                    Source = a.Source,
+                    Amount = a.Amount - (costDict.TryGetValue(a.Source, out var cost) ? cost : 0)
+                })
+            .ToList();
+    }
+
+    private void DefineOptions()
+    {
+        _options.Yaxis = new List<YAxis>();
+        _options.Yaxis.Add(new YAxis());
+
+        _options.Xaxis = new XAxis();
+        _options.Chart = new Chart()
+            {
+                Stacked = true,
+                Locales = Locales,
+                DefaultLocale = _locale
+            };
+
+        _options.Xaxis.Type = XAxisType.Category;
+        _options.Xaxis.Categories = BudgetAllocations.Select(c => string.IsNullOrEmpty(c.Source)? Localizer["Unallocated"] : c.Source);
+        _options.Tooltip = new Tooltip
+            {
+                Y = new TooltipY
+                {
+                    Formatter = "function(val) { return '$'+parseFloat(val).toFixed(2); }"
+                }
+            };
+
+        _options.PlotOptions = new PlotOptions()
+            {
+                Bar = new PlotOptionsBar()
+                {
+                    Horizontal = true
+                }
+            };
+    }
+}

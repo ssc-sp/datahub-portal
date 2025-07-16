@@ -104,7 +104,8 @@ public class WorkspaceToolboxSteps(
             requestLogger,
             dbContextFactory,
             Substitute.For<IDatahubAuditingService>(),
-            resourceMessagingService
+            resourceMessagingService,
+            workspaceVersionService
         );
         Services.AddSingleton<IRequestManagementService>(requestManagementService);
         Services.AddStub<IWebHostEnvironment>();

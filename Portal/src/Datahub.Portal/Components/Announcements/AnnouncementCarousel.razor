@@ -3,6 +3,10 @@
 
 @inject NavigationManager _navigationManager
 
+@if (_previewCount > 0)
+{
+    <MudText Typo="Typo.h2">@Localizer["Announcements"]</MudText>
+}
 <ul class="my-4 d-flex" style="gap: 25px; flex-wrap: wrap">
     @foreach (var index in _announcementIndices)
     {
@@ -61,26 +65,6 @@
         base.OnInitialized();
 
         var hasBackgroundUrl = !string.IsNullOrEmpty(BackgroundUrl);
-
-        // _carouselStyle = new StyleBuilder()
-        //     .AddStyle("height", $"{CarouselHeight}px")
-        //     .Build();
-
-        // _backgroundImageStyle = new StyleBuilder()
-        //     .AddStyle("height", $"{CarouselHeight}px")
-        //     .AddStyle("background", $"linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, black 100%), url('{BackgroundUrl}') no-repeat", when: hasBackgroundUrl)
-        //     .AddStyle("background-size", "cover", when: hasBackgroundUrl)
-        //     .AddStyle("margin-bottom", "1rem")
-        //     .Build();
-
-        // _glassStyle = new StyleBuilder()
-        //     .AddStyle("height", $"{CarouselHeight}px")
-        //     .AddStyle("background", "rgba(0, 0, 0, 0.5)", when: hasBackgroundUrl)
-        //     .AddStyle("color", "white", when: hasBackgroundUrl)
-        //     .AddStyle("backdrop-filter", "blur(5px)", when: hasBackgroundUrl)
-        //     .AddStyle("--mud-palette-text-primary", "white", when: hasBackgroundUrl)
-        //     .AddStyle("--mud-palette-primary", Colors.Purple.Accent2, when: hasBackgroundUrl)
-        //     .Build();
 
         _descriptionTextStyle = new StyleBuilder()
             .AddStyle("overflow", "hidden")

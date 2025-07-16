@@ -13,6 +13,7 @@
 @using Datahub.Application.Services.Cost
 @using ApexCharts
 @using Datahub.Portal.Pages.Workspace.Reports.Charts
+@using Toolbelt.Blazor.Globalization
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IAzurePriceListService _azurePriceListService
@@ -21,6 +22,7 @@
 @inject ISnackbar _snackbar
 @inject ILogger<WorkspaceCostingReport> _logger
 @inject IJSRuntime _jsRuntime
+@inject ILocalTimeZone LocalTimeZone
 
 @if (_loading)
 {
@@ -61,7 +63,7 @@
         @if (_lastUpdateValid)
         {
             <MudText Style="font-style: italic">
-                @Localizer["Last updated {0} {1}", $"{ConvertToLocalTime(_projectCredits.LastUpdate!.Value):yyyy-MM-dd HH:mm}", _timezone]
+                @Localizer["Last updated {0} {1}", $"{_lastUpdate:yyyy-MM-dd HH:mm}", _timezone]                
             </MudText>
         }
 
@@ -214,6 +216,7 @@
     public decimal _projectBudget { get; set; }
     private Project_Credits _projectCredits { get; set; }
     private List<Datahub_Project_Costs> _projectCosts { get; set; } = new();
+    private DateTime _lastUpdate { get; set; } = DateTime.MinValue;
 
     // Cost data
     private List<DailyServiceCost> _allCosts { get; set; } = new();
@@ -313,6 +316,10 @@
         _projectCosts = ctx.Project_Costs.Where(c => c.Project_ID == project.Project_ID).OrderBy(c => c.Date).ToList();
         _projectCredits = project.Credits;
         _projectBudget = project.Project_Budget ?? 0;
+        if (_lastUpdateValid)
+        {
+            _lastUpdate = await LocalTimeZone.ConvertFromUTC(_projectCredits.LastUpdate.Value);
+        }
     }
 
     private async Task<SpendingEstimation> GetSpendingEstimations(decimal amount)
@@ -367,65 +374,16 @@
 
     private void ParseProjectCredits()
     {
-        _currentPerDay = DeserializeCredits<AzureDailyCost>(_projectCredits.CurrentPerDay);
-        _currentPerService = DeserializeCredits<AzureServiceCost>(_projectCredits.CurrentPerService);
-        _yesterdayPerService = DeserializeCredits<AzureServiceCost>(_projectCredits.YesterdayPerService);
+        _currentPerDay = BudgetCostReportUtils.DeserializeCredits<AzureDailyCost>(_projectCredits.CurrentPerDay);
+        _currentPerService = BudgetCostReportUtils.DeserializeCredits<AzureServiceCost>(_projectCredits.CurrentPerService);
+        _yesterdayPerService = BudgetCostReportUtils.DeserializeCredits<AzureServiceCost>(_projectCredits.YesterdayPerService);
     }
 
     private void ParseProjectCosts()
     {
-        _allCosts = ConvertCosts(_projectCosts);
+        _allCosts = BudgetCostReportUtils.ConvertCosts(_projectCosts);
         _fiscalYearCosts = _allCosts.Where(c => c.Date >= CostManagementUtilities.CurrentFiscalYear.StartDate).ToList();
         _last30DaysCosts = _allCosts.Where(c => c.Date >= DateTime.UtcNow.AddDays(-30)).ToList();
-    }
-
-    private List<DailyServiceCost> DeserializeCredits<T>(string json)
-    {
-        try
-        {
-            return JsonSerializer.Deserialize<List<DailyServiceCost>>(json);
-        }
-        catch
-        {
-            var costs = JsonSerializer.Deserialize<List<T>>(json);
-            return ConvertCosts(costs);
-        }
-    }
-
-    private List<DailyServiceCost> ConvertCosts<T>(List<T> costs)
-    {
-        if (typeof(T) == typeof(AzureDailyCost))
-        {
-            var typedCosts = costs as List<AzureDailyCost>;
-            return typedCosts!.Select(c => new DailyServiceCost
-            {
-                Amount = (decimal)c.Cost,
-                Date = c.Date
-            }).ToList();
-        }
-
-        if (typeof(T) == typeof(AzureServiceCost))
-        {
-            var typedCosts = costs as List<AzureServiceCost>;
-            return typedCosts!.Select(c => new DailyServiceCost
-            {
-                Amount = (decimal)c.Cost,
-                Source = c.Name
-            }).ToList();
-        }
-
-        if (typeof(T) == typeof(Datahub_Project_Costs))
-        {
-            var typedCosts = costs as List<Datahub_Project_Costs>;
-            return typedCosts!.Select(c => new DailyServiceCost
-            {
-                Amount = (decimal)c.CadCost,
-                Date = c.Date,
-                Source = c.ServiceName
-            }).ToList();
-        }
-
-        throw new Exception("Invalid type");
     }
 
     private bool AreCreditsValid()
@@ -435,12 +393,6 @@
         if (string.IsNullOrEmpty(_projectCredits.CurrentPerDay)) return false;
         if (string.IsNullOrEmpty(_projectCredits.YesterdayPerService)) return false;
         return true;
-    }
-
-    private DateTime ConvertToLocalTime(DateTime UTCTime)
-    {
-        TimeZone localZone = TimeZone.CurrentTimeZone;
-        return localZone.ToLocalTime(UTCTime);
     }
 
     private async Task HandleShowMonth()
@@ -471,8 +423,15 @@
     {
         _refreshing = true;
         var beforeUpdate = _projectCredits.LastUpdate;
-
-        var success = await _costMgmt.RefreshWorkspaceCostsAsync(WorkspaceAcronym);
+        var success = false;
+        try {
+            success = await _costMgmt.RefreshWorkspaceCostsAsync(WorkspaceAcronym);
+            _logger.LogInformation("Refreshing cost data for workspace {WorkspaceAcronym}", WorkspaceAcronym);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error logging refresh for workspace {WorkspaceAcronym}", WorkspaceAcronym);
+        }
         await FetchDatabaseData();
         var afterUpdate = _projectCredits.LastUpdate;
 

@@ -1,5 +1,6 @@
 ﻿using Bunit;
 using Bunit.TestDoubles;
+using Datahub.Application.Commands;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
@@ -14,6 +15,7 @@ using Datahub.Portal.Pages.Workspace.Users;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,8 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
+using System.Reflection;
+using Xunit;
 
 namespace Datahub.SpecflowTests.Steps
 {
@@ -356,6 +360,72 @@ namespace Datahub.SpecflowTests.Steps
         public async Task WhenTheUserUpdatesSomeonesRoleToCollaborator(string email)
         {
             await UpdateGivenUsersRole(email, (int)Project_Role.RoleNames.Collaborator);
+        }
+
+        [Given(@"I have an existing workspace lead")]
+        public async Task GivenIHaveAnExistingWorkspaceLead()
+        {
+
+            await GivenTheUserIsOnTheWorkspaceUsersPage();
+            // Retrieve the already-registered NSubstitute mock from DI
+            // (Set up previously in GivenTheUserIsOnTheWorkspaceUsersPage() or wherever you configure your services.)
+            var projectUserManagementService = Services.GetService<IProjectUserManagementService>();
+
+            var page = GetWorkspaceUserPageFromContext();
+            // Substitute behavior: return a user who is a Workspace Lead
+            projectUserManagementService!.GetProjectUsersAsync(Arg.Any<string>())
+                .Returns(new List<Datahub_Project_User>
+                {
+            new Datahub_Project_User
+            {
+                RoleId = (int)Project_Role.RoleNames.WorkspaceLead,
+                PortalUser = new PortalUser { GraphGuid = Guid.NewGuid().ToString() }
+            }
+                });            
+        }
+
+        [When(@"I add another lead")]
+        public void WhenIAddAnotherLead()
+        {
+            var page = GetWorkspaceUserPageFromContext();
+            
+            // Get the instance itself, not the type
+            var instance = page.Instance;
+            
+            // Access the field from the instance
+            var fieldUsersToAdd = instance.GetType().GetField("_usersToAdd", BindingFlags.NonPublic | BindingFlags.Instance);
+            fieldUsersToAdd.Should().NotBeNull("The _usersToAdd field should exist in the component");
+            
+            var usersToAdd = (List<ProjectUserAddUserCommand>)fieldUsersToAdd.GetValue(instance);
+            usersToAdd.Should().NotBeNull("The _usersToAdd list should be initialized");
+
+            usersToAdd.Add(new ProjectUserAddUserCommand
+            {
+                Email = "second_lead@test.com",
+                RoleId = (int)Project_Role.RoleNames.WorkspaceLead
+            });
+
+            // Run validation
+            var validateMethod = instance.GetType().GetMethod("ValidateWorkspaceRules", BindingFlags.NonPublic | BindingFlags.Instance);
+            validateMethod.Should().NotBeNull("The ValidateWorkspaceRules method should exist");
+            validateMethod.Invoke(instance, null);
+        }
+
+        [Then(@"a validation error is shown preventing multiple leads")]
+        public void ThenAValidationErrorIsShownPreventingMultipleLeads()
+        {
+            var page = GetWorkspaceUserPageFromContext();
+            
+            // Get the instance itself, not the type
+            var instance = page.Instance;
+            
+            // Check the private field for error message
+            var errorMessageField = instance.GetType().GetField("_validationErrorMessage", BindingFlags.NonPublic | BindingFlags.Instance);
+            errorMessageField.Should().NotBeNull("The _validationErrorMessage field should exist in the component");
+            
+            var validationMessage = (string)errorMessageField.GetValue(instance);
+            validationMessage.Should().NotBeNull("There should be a validation error message");
+            validationMessage.Should().Contain("You cannot have more than one workspace lead.");
         }
     }
 }

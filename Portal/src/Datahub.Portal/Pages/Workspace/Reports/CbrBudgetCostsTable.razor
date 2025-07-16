@@ -1,0 +1,157 @@
+﻿@* CbrBudgetCostsTable *@
+
+@using CsvHelper.Configuration.Attributes
+@using Datahub.Application.Services.Cost
+@using Ut = BudgetCostReportUtils
+
+@inject IDownloadService _downloadService
+@inject ICsvService _csvService
+
+
+<MudContainer Gutters>
+
+    <MudTable T="CbrBudgetCostData" Items="_cbrBudgetCostData" OnRowClick="OnRowClicked" Dense Outlined Striped>
+        <ToolBarContent>
+            <MudText Typo="Typo.h2">@Localizer["Workspace Budget Usage"]</MudText>
+            <MudSpacer/>
+            <MudMenu Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Download" EndIcon="@Icons.Material.Filled.KeyboardArrowDown" Label="@Localizer["Download CSV"]">
+                <MudMenuItem OnClick="DownloadBasicWorkspaceCostsCsv">@Localizer["Usage by Workspace"]</MudMenuItem>
+                <MudMenuItem OnClick="DownloadDetailedWorkspaceCostsCsv">@Localizer["Detailed Usage with Services"]</MudMenuItem>
+            </MudMenu>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>@Localizer["Workspace"]</MudTh>
+            <MudTh>@Localizer["Allocated Budget"]</MudTh>
+            <MudTh>@Localizer["Usage"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.WorkspaceAcronym</MudTd>
+            <MudTd>@Ut.DisplayDollar(context.Budget)</MudTd>
+            <MudTd>@Ut.DisplayDollar(context.Cost)</MudTd>
+        </RowTemplate>
+        <ChildRowContent>
+            @if (context.ShowDetails)
+            {
+                <MudTr>
+                    <td colspan="3" >
+                        <MudContainer Gutters>
+                            @if (context.CostsByService.Count > 0)
+                            {
+                                <MudTable T="DailyServiceCost" Items="context.CostsByService" Context="CostContext">
+                                    <HeaderContent>
+                                        <MudTh>@Localizer["Service Name"]</MudTh>
+                                        <MudTh>@Localizer["Cost"]</MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd>@CostContext.Source</MudTd>
+                                        <MudTd>@Ut.DisplayDollar(CostContext.Amount)</MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                            }
+                            else
+                            {
+                                <MudText>@Localizer["Workspace {0} has not yet incurred any costs for its services.", context.WorkspaceAcronym]</MudText>
+                            }
+                        </MudContainer>
+                    </td>
+                </MudTr>
+            }
+        </ChildRowContent>
+    </MudTable>
+
+    <MudText Typo="Typo.caption">@Localizer["Click on a workspace's row to see detailed usage broken down by service."]</MudText>
+
+</MudContainer>
+
+
+@code {
+    [Parameter, EditorRequired] public List<DailyServiceCost> BudgetAllocations { get; set; }
+    [Parameter, EditorRequired] public List<DailyServiceCost> WorkspaceCosts { get; set; }
+    [Parameter, EditorRequired] public Dictionary<string, List<DailyServiceCost>> ServiceCostsByWorkspace { get; set; }
+
+    private class CbrBudgetCostData
+    {
+        public string WorkspaceAcronym { get; private set; }
+        public decimal Budget { get; private set; }
+        public decimal Cost { get; private set; }
+        public IReadOnlyList<DailyServiceCost> CostsByService { get; private set; }
+        public bool ShowDetails { get; set; }
+
+        public CbrBudgetCostData(string workspaceAcronym, decimal budget, decimal cost, List<DailyServiceCost> dailyServiceCosts)
+        {
+            WorkspaceAcronym = workspaceAcronym;
+            Budget = budget;
+            Cost = cost;
+            CostsByService = dailyServiceCosts ?? new();
+            ShowDetails = false;
+        }
+    }
+
+    private List<CbrBudgetCostData> _cbrBudgetCostData;
+
+    protected override void OnParametersSet()
+    {
+        var costsDict = WorkspaceCosts.ToDictionary(c => c.Source, c => c.Amount);
+
+        _cbrBudgetCostData = BudgetAllocations
+            .Where(b => !string.IsNullOrEmpty(b.Source))
+            .Select(b => new CbrBudgetCostData(
+                b.Source, 
+                b.Amount, 
+                costsDict.TryGetValue(b.Source, out var cost) ? cost : 0, 
+                ServiceCostsByWorkspace.TryGetValue(b.Source, out var costs) ? costs : default))
+            .ToList();
+
+        base.OnParametersSet();
+    }
+
+    private async Task DownloadBasicWorkspaceCostsCsv() => await DownloadWorkspaceCostsCsv(false);
+
+    private async Task DownloadDetailedWorkspaceCostsCsv() => await DownloadWorkspaceCostsCsv(true);
+
+    private async Task DownloadWorkspaceCostsCsv(bool detailed)
+    {
+        var baseFilename = detailed ? "CBR_Detailed_Workspace_Costs" : "CBR_Workspace_Costs";
+        var filename = $"{baseFilename}_{DateTime.Now.ToString("yyyy-MM-dd")}.csv";
+        using var stream = detailed ?
+            _csvService.GenerateCsvStreamFromRecords(GetDetailedCbrCostUsageCsvRecords()) :
+            _csvService.GenerateCsvStreamFromRecords(GetBasicCbrCostUsageCsvRecords());
+        await _downloadService.DownloadStreamAsFile(stream, filename);
+    }
+
+    private void OnRowClicked(TableRowClickEventArgs<CbrBudgetCostData> eventArgs) => ToggleShowDetails(eventArgs.Item);
+
+    private void ToggleShowDetails(CbrBudgetCostData item)
+    {
+        foreach (var c in _cbrBudgetCostData)
+        {
+            c.ShowDetails = c == item && !c.ShowDetails;
+        }
+    }
+
+    private IEnumerable<DetailedCbrCostUsageCsvRecord> GetDetailedCbrCostUsageCsvRecords()
+            {
+        foreach (var c in _cbrBudgetCostData)
+        {
+            yield return new(c.WorkspaceAcronym, string.Empty, c.Budget, c.Cost, null);
+                if (c.CostsByService.Count > 0)
+                {
+                    foreach(var sc in c.CostsByService)
+                    {
+                    yield return new(c.WorkspaceAcronym, sc.Source, null, null, sc.Amount);
+                }
+            }
+            }
+        }
+
+    private IEnumerable<BasicCbrCostUsageCsvRecord> GetBasicCbrCostUsageCsvRecords() => _cbrBudgetCostData
+        .Select(c => new BasicCbrCostUsageCsvRecord(c.WorkspaceAcronym, c.Budget, c.Cost));
+    
+    private record BasicCbrCostUsageCsvRecord(string Workspace, [property:Name("Allocated Budget")] decimal AllocatedBudget, decimal Usage) : ICsvService.ICsvRecord;
+    private record DetailedCbrCostUsageCsvRecord(
+        string Workspace,
+        string Service,
+        [property: Name("Allocated Budget")] decimal? AllocatedBudget,
+        decimal? Usage,
+        [property: Name("Service Usage")] decimal? ServiceUsage) : ICsvService.ICsvRecord;
+}

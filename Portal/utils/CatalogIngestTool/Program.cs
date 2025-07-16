@@ -89,13 +89,11 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
         metadataCtx.SaveChanges();
 
         var graphUser = await GetGraphUser(graphClient, entry.contact, userCache);
-        var sector = await GetSector(projectCtx, graphUser?.Department);
 
         // save dataset metadata
         var fieldValues = await metadataBroker!.GetObjectMetadataValues(objMetadata.ObjectMetadataId);
         var subjectValues = GetSubjectValues(fieldValues.Definitions, entry.subjects) ?? "";
 
-        fieldValues.SetValue("sector", $"{sector?.Id ?? 0}");
         fieldValues.SetValue("collection", "primary");
         fieldValues.SetValue("title_translated_en", entry.name_en);
         fieldValues.SetValue("title_translated_fr", entry.name_fr);
@@ -113,13 +111,11 @@ if (metadataCtx is not null && projectCtx is not null && InputFileExists(args))
             Name_French_TXT = entry.name_fr,
             Location_TXT = entry.url_en,
             SecurityClass_TXT = entry.securityClass ?? "Unclassified",
-            Sector_NUM = sector?.Id ?? 0,
-            Branch_NUM = 0, // no branch for now
             Contact_TXT = graphUser?.Mail ?? entry.contact,
-            Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry), 
-                sector?.Name_English ?? "", string.Empty, entry.name_en, entry.keywords_en),
-            Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry), 
-                sector?.Name_French ?? "", string.Empty, entry.name_fr, entry.keywords_fr),
+            Search_English_TXT = GetCatalogText(GetSubjects(entry, true), GetPrograms(entry),
+                entry.name_en, entry.keywords_en),
+            Search_French_TXT = GetCatalogText(GetSubjects(entry, false), GetPrograms(entry),
+                entry.name_fr, entry.keywords_fr),
         };
 
         metadataCtx.CatalogObjects.Add(catalogObj);
@@ -184,25 +180,6 @@ static async Task<User?> GetGraphUser(GraphServiceClient graphClient, string use
     return found;
 }
 
-static async Task<Sector> GetSector(DatahubProjectDBContext ctx, string? department)
-{
-    var engAcronym = (department ?? "").Split('.').FirstOrDefault();
-    if (!string.IsNullOrEmpty(engAcronym))
-    {
-        var orgLevel = await ctx.Organization_Levels.FirstOrDefaultAsync(e => e.Full_Acronym_E == engAcronym);
-        if (orgLevel is not null)
-        {
-            return new Sector()
-            {
-                Id = orgLevel.Organization_ID,
-                Name_English = orgLevel.Org_Name_E,
-                Name_French = orgLevel.Org_Name_F
-            };
-        }
-    }
-    return new Sector();
-}
-
 static IEnumerable<string> GetSubjects(Entry entry, bool eng)
 {
     return entry.subjects is not null ? entry.subjects.Select(s => eng ? s.name_en : s.name_fr) : new List<string>();
@@ -213,7 +190,7 @@ static IEnumerable<string> GetPrograms(Entry entry)
     return (entry.programs ?? "").Split('/', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).Where(s => !string.IsNullOrEmpty(s));
 }
 
-static string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string sector, string branch, string objectName, IEnumerable<string> keywords)
+static string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> programs, string objectName, IEnumerable<string> keywords)
 {
     return new StringBuilder()
       .AppendJoin(' ', keywords)
@@ -221,8 +198,6 @@ static string GetCatalogText(IEnumerable<string> subjects, IEnumerable<string> p
       .AppendJoin(' ', subjects)
       .Append(' ')
       .AppendJoin(' ', programs.Where(p => p != "none"))
-      .Append(' ')
-      .Append($"{sector} {branch} {objectName}")
       .ToString()
       .ToLower()
       .Trim();
