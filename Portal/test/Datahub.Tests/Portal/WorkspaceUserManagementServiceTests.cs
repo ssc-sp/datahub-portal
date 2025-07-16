@@ -16,6 +16,7 @@ using Datahub.Core.Services.Projects;
 using System.Linq;
 using System.Threading;
 using Datahub.Application.Commands;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Tests
 {
@@ -269,5 +270,46 @@ namespace Datahub.Tests
             Assert.Equal((int)Project_Role.RoleNames.Collaborator, userAfter.RoleId);
             Assert.False(userAfter.IsDataSteward);
         }
+
+        [Fact]
+        public async Task TestUserRoleChange_ShouldAddPortalUserRoleChangeToDbContext()
+        {
+            // Arrange
+            var usersBefore = await _projectUserManagementService.GetProjectUsersAsync(TEST_WORKSPACE_CODE);
+            Assert.NotNull(usersBefore);
+
+            var userBefore = usersBefore.FirstOrDefault(u => u.RoleId == (int)Project_Role.RoleNames.Admin);
+            Assert.NotNull(userBefore);
+            Assert.NotNull(userBefore.RoleId);
+
+            var updateCommand = new ProjectUserUpdateCommand()
+            {
+                IsDataSteward = userBefore.IsDataSteward,
+                NewRoleId = (int)Project_Role.RoleNames.Collaborator, // Change role
+                ProjectUser = userBefore
+            };
+
+            var ctx = _mockDbContextFactory.Object.CreateDbContext();
+
+            // Act
+            await _projectUserManagementService.ProcessProjectUserCommandsAsync(
+                new List<ProjectUserUpdateCommand> { updateCommand },
+                new List<ProjectUserAddUserCommand>(),
+                "1"
+            );
+
+            // Assert
+            var roleChangeRecord = await ctx.PortalUserRoleChanges.FirstOrDefaultAsync(r =>
+                r.PortalUserId == userBefore.PortalUserId && 
+                r.RoleId == Project_Role.RoleNames.Collaborator &&
+                r.ChangeDate != default
+            );
+
+            Assert.NotNull(roleChangeRecord);
+            Assert.Equal(userBefore.PortalUserId, roleChangeRecord.PortalUserId); 
+            Assert.Equal(updateCommand.NewRoleId, (int)roleChangeRecord.RoleId);
+            Assert.NotEqual(default, roleChangeRecord.ChangeDate);
+        }
+
     }
 }

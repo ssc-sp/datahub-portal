@@ -1,8 +1,9 @@
 using System.Linq.Dynamic.Core;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
-using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.UserManagement; 
 using Datahub.Core.Data;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Services.Projects;
@@ -74,6 +75,13 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
+    private async Task AddPortalUserRoleChangeAsync(PortalUserRoleChange roleChangeRecord)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+        context.PortalUserRoleChanges.Add(roleChangeRecord);
+        await context.SaveChangesAsync();
+    }
+
     private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
         IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
@@ -122,20 +130,34 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new InvalidOperationException("Cannot update a user that is not already a member of the project");
             }
 
-            // If a user was previously removed from the project, we reset the Approved_DT to update the added date.
+            // Detect role change
+            if (userToUpdate.RoleId != projectUserUpdateCommand.NewRoleId)
+            {
+                var roleChangeRecord = new PortalUserRoleChange
+                {
+                    PortalUserId = (int)userToUpdate.PortalUserId, 
+                    RoleId = (Project_Role.RoleNames)projectUserUpdateCommand.NewRoleId,
+                    ChangeDate = DateTime.UtcNow
+                };
+
+                await AddPortalUserRoleChangeAsync(roleChangeRecord);
+            }
+
+            // If a user was previously removed from the project, reset the Approved_DT to update the added date
             if (userToUpdate.RoleId == (int)Project_Role.RoleNames.Removed)
             {
                 userToUpdate.Approved_DT = DateTime.UtcNow;
             }
 
+            // Update the user's role and data steward flag
             userToUpdate.RoleId = projectUserUpdateCommand.NewRoleId;
             userToUpdate.IsDataSteward = RoleBasedDataStewardFlag(projectUserUpdateCommand);
             context.Update(userToUpdate);
-            
         }
 
         await context.TrackSaveChangesAsync(_datahubAuditingService);
     }
+
 
     private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
     {
