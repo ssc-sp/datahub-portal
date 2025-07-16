@@ -251,6 +251,11 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
+        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath)
         {
             using var client = await CreateStorageClientAsync();
