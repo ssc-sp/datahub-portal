@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Text;
 using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
-using Datahub.Infrastructure.Services.Security;
 
 namespace Datahub.Infrastructure.Services.Notification;
 
@@ -22,6 +17,11 @@ public class GCNotifyService : IGCNotifyService
 
         if (portalConfiguration?.Media?.StorageConnectionString is null) throw new UnauthorizedAccessException("No token available");
 
+        _mappingsJson = GetTemplateMappings(portalConfiguration);
+    }
+
+    public string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration)
+    {
         var blobClient = new BlobServiceClient(portalConfiguration.Media.StorageConnectionString)
             .GetBlobContainerClient("docs")
             .GetBlobClient("gcnotify-mappings.json");
@@ -29,8 +29,9 @@ public class GCNotifyService : IGCNotifyService
         if (blobClient.Exists())
         {
             var response = blobClient.DownloadContent();
-            _mappingsJson = response.Value.Content.ToString();
+            return response.Value.Content.ToString();
         }
+        return "{}"; // Return empty JSON if the blob does not exist
     }
 
     public async Task SendNotification(string postDataJson)
@@ -59,7 +60,7 @@ public class GCNotifyService : IGCNotifyService
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("user-invited")
+            template_id = GetTemplateId("user-invited", _mappingsJson)
         };
 
         string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
@@ -72,7 +73,7 @@ public class GCNotifyService : IGCNotifyService
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("user-delete-notice"),
+            template_id = GetTemplateId("user-delete-notice", _mappingsJson),
             personalisation = new
             {
                 daysSince = daysSince,
@@ -90,7 +91,7 @@ public class GCNotifyService : IGCNotifyService
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("user-lock-notice"),
+            template_id = GetTemplateId("user-lock-notice", _mappingsJson),
             personalisation = new
             {
                 daysSince = daysSince,
@@ -108,7 +109,7 @@ public class GCNotifyService : IGCNotifyService
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("cost-alert"),
+            template_id = GetTemplateId("cost-alert", _mappingsJson),
             personalisation = new
             {
                 perc = perc,
@@ -126,7 +127,7 @@ public class GCNotifyService : IGCNotifyService
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("error"),
+            template_id = GetTemplateId("error", _mappingsJson),
             personalisation = new
             {
                 errorMessage = errorMessage
@@ -142,7 +143,7 @@ public class GCNotifyService : IGCNotifyService
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("resource-deleted"),
+            template_id = GetTemplateId("resource-deleted", _mappingsJson),
             personalisation = new
             {
                 resource = resource,
@@ -156,9 +157,9 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
-    private string GetTemplateId(string templateName)
+    public string GetTemplateId(string templateName, string mappingsJson)
     {
-        var mappings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(_mappingsJson);
+        var mappings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(mappingsJson);
         if (mappings != null && mappings.TryGetValue(templateName, out var templateId))
         {
             return templateId;

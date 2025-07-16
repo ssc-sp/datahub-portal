@@ -84,5 +84,6 @@ public enum InfrastructureHealthResourceType
     AzureFunction,
     AsureServiceBus,
     WorkspaceSync,
-    DatabricksSync
+    DatabricksSync,
+    GCNotify
 }
