@@ -1,5 +1,6 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
@@ -83,6 +84,7 @@ public class LocalMessageReaderService : BackgroundService
             var devopsConfig = configuration
                 .GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
                 .Get<AzureDevOpsConfiguration>();
+            var gcNotifyService = scope.ServiceProvider.GetRequiredService<IGCNotifyService>();
             string fileContents = File.ReadAllText(e.FullPath);
 
             var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
@@ -90,7 +92,7 @@ public class LocalMessageReaderService : BackgroundService
 
             // TODO: refactor this to make it more concise, and/or autowire it
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppManagementService, configuration, 
-                httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration);
+                httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration, gcNotifyService);
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
             InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);

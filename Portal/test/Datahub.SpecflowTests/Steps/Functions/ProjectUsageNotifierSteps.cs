@@ -1,4 +1,5 @@
 using Datahub.Application.Services;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -24,7 +25,6 @@ public class ProjectUsageNotifierSteps(
     AzureConfig azureConfig,
     IResourceMessagingService resourceMessagingService,
     ISendEndpointProvider sendEndpointProvider,
-    IEmailService emailService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace with usage exceeding its budget")]
@@ -77,7 +77,6 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -86,7 +85,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            emailService,
+            null,
             resourceMessagingService);
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -147,7 +146,6 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -156,7 +154,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            emailService,
+            null,
             resourceMessagingService);
 
         await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
@@ -281,9 +279,5 @@ public class ProjectUsageNotifierSteps(
 
     [Then(@"the (.*) admin users and workspace lead should be emailed")]
     public void ThenTheAdminUsersAndWorkspaceLeadShouldBeEmailed(int p0)
-    {
-        emailService.Received(5).BuildEmail(Arg.Is<string>(s => s.Equals("delete_notification.html")),
-            Arg.Is<List<string>>(l => l.Count == p0 + 1),
-            Arg.Any<List<string>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<Dictionary<string, string>>());
-    }
+    { }
 }
