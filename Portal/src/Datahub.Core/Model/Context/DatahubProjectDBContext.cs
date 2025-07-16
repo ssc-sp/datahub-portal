@@ -59,6 +59,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Project_Role> Project_Roles { get; set; }
 
+    public DbSet<PortalUserRoleChange> PortalUserRoleChanges { get; set; }
+
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
     public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
@@ -225,6 +227,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<PortalUserRoleChange>()
             .Property(p => p.RoleId)
             .HasConversion<int>();
+
+        modelBuilder.Entity<PortalUserRoleChange>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ChangeDate).IsRequired();
+        });
 
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
