@@ -1,13 +1,11 @@
 ﻿using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions.Providers;
-using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
-using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using FluentAssertions;
 using MassTransit;
@@ -38,11 +36,10 @@ namespace Datahub.Functions.UnitTests.Functions
 
         private readonly IConfiguration _config = Substitute.For<IConfiguration>();
 
-
+        private IGCNotifyService _gcNotifyService;
         private AzureConfig _azConfig;
         private QueuePongService _pongService;
         private EmailValidator _emailValidator;
-        private IEmailService _emailService;
         private ISendEndpointProvider _iSendEndpointProvider;
 
         [SetUp]
@@ -53,10 +50,10 @@ namespace Datahub.Functions.UnitTests.Functions
             _azConfig = new AzureConfig(_config);
             _pongService = new QueuePongService(_iSendEndpointProvider);
             _emailValidator = new EmailValidator();
-            _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
+            _gcNotifyService = Substitute.For<IGCNotifyService>();
             _sut = new UserInactivityNotifier(_loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
                 _pongService, _emailValidator, _userInactivityNotificationService, _iSendEndpointProvider,
-                _projectUserManagementService, _emailService);
+                _projectUserManagementService, _gcNotifyService);
         }
 
         [Test]
@@ -72,7 +69,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _sut.CheckIfUserToBeNotified(10, daysUntilLocked, 999, "test@example.com");
 
             // Assert
-            result.Should().BeOfType<EmailRequestMessage>();
+            result.Should().BeTrue();
         }
 
         [Test]
@@ -88,15 +85,14 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _sut.CheckIfUserToBeNotified(10, 999, daysUntilDeleted, "test@example.com");
 
             // Assert
-            result.Should().BeOfType<EmailRequestMessage>();
+            result.Should().BeTrue();
         }
 
         [Test]
         [TestCase(10, 30, new[] { 5, 2 })]
         [TestCase(5, 100, new[] { 200, 7 })]
         [TestCase(0, 2, new[] { 5, 7, 100 })]
-        public async Task CheckIfUserToBeNotified_NotInNotificationDays(int daysUntilLocked, int daysUntilDeleted,
-            int[] notificationDays)
+        public async Task CheckIfUserToBeNotified_NotInNotificationDays(int daysUntilLocked, int daysUntilDeleted, int[] notificationDays)
         {
             // Arrange
             _dateProvider.UserInactivityNotificationDays().Returns(notificationDays);
@@ -105,31 +101,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _sut.CheckIfUserToBeNotified(10, daysUntilLocked, daysUntilDeleted, "test@example.com");
 
             // Assert
-            result.Should().BeNull();
-        }
-
-        [Test]
-        public async Task GetLockedEmailRequestMessage_ReturnsCorrectMessage()
-        {
-            // Act
-            var result = _sut.GetEmailRequestMessage(20, 10, "user_lock", "test@example.com");
-
-            // Assert
-            result.Body.Should()
-                .Contain("If you do not login to your account in the next 10 day(s), your account will be locked.");
-            result.To.Should().Contain("test@example.com");
-        }
-
-        [Test]
-        public async Task GetDeletedEmailRequestMessage_ReturnsCorrectMessage()
-        {
-            // Act
-            var result = _sut.GetEmailRequestMessage(20, 10, "user_deletion", "test@example.com");
-
-            // Assert
-            result.Body.Should()
-                .Contain("If you do not login to your account in the next 10 day(s), your account will be deleted.");
-            result.To.Should().Contain("test@example.com");
+            result.Should().BeFalse();
         }
 
         [Test]
