@@ -20,6 +20,7 @@ using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -62,9 +63,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         ILoggerFactory loggerFactory,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
-        DatahubPortalConfiguration portalConfiguration)
+        DatahubPortalConfiguration portalConfiguration,
+        IHttpContextAccessor httpContextAccessor = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
+        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
+
 
         private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
         private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
@@ -917,8 +921,11 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         private string GetCorrelationId()
         {
-            if (Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+            var httpContext = _httpContextAccessor.HttpContext;
+            if (httpContext != null && httpContext.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+            {
                 return correlationId.ToString();
+            }
             return Guid.NewGuid().ToString();
         }
     }
