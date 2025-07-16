@@ -81,9 +81,11 @@
                             <MudTextField T="string"
                                 @bind-Value="@_ticketDescription"                                
                                 Required
+                                RequiredError="@Localizer["Please provide a description."]"
                                 Variant="Variant.Outlined"
                                 Lines="5"
-                                Class="no-margin-textarea" />
+                                Class="no-margin-textarea"
+                                @ref="_descriptionFieldRef" />
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
                             <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea">
@@ -223,6 +225,7 @@
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new();
     private MudSelect<string> _landingFieldRef;
+    private MudTextField<string> _descriptionFieldRef;
     private bool _isCursorSet;
 
     private bool _loading = true;
@@ -349,13 +352,18 @@
     * Advances to the next step in the form.
      * Validates the form before proceeding to the next step.
      */
-    private void NextStep()
+    private async Task NextStep()
     {
         form.Validate();
-        _isCursorSet = false;
         if (form.IsValid)
         {
+            _isCursorSet = false;
             _currentStep++;
+        }
+        else
+        {
+            // Set focus to the MudTextField if the form is not valid
+            await _descriptionFieldRef.FocusAsync();
         }
     }
 
