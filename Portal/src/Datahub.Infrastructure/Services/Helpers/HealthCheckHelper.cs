@@ -887,6 +887,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             if (result is not null && IsUnhealthyStatus(result.Status))
             {
+                var correlationId = GetCorrelationId();
+
                 return new BugReportMessage(
                     UserName: InfrastructureHealthCheckConstants.BugReportUsername,
                     UserEmail: string.Empty,
@@ -901,6 +903,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     Resolution: string.Empty,
                     LocalStorage: string.Empty,
                     BugReportType: BugReportTypes.InfrastructureError,
+                    CorrelationId: correlationId,
                     Description: $"The infrastructure health check for {result.ResourceType} {result.Name} failed. {result.Details}"
                     );
             }
@@ -911,6 +914,13 @@ namespace Datahub.Infrastructure.Services.Helpers
         }
 
         public async Task SendBugReportMessagesToQueue(IEnumerable<BugReportMessage?> messages) => await sendEndpointProvider.SendDatahubServiceBusMessages(QueueConstants.BugReportQueueName, messages);
+
+        private string GetCorrelationId()
+        {
+            if (Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+                return correlationId.ToString();
+            return Guid.NewGuid().ToString();
+        }
     }
 
     public record IntermediateHealthCheckResult(InfrastructureHealthStatus Status, List<string> Errors);
