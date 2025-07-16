@@ -34,13 +34,14 @@ namespace Datahub.Portal.Components.Tables
 
         public string ToString(string format, IFormatProvider formatProvider)
         {
-            FormattableString formattable = $"\"{string.Join("\\n", Links.Select(l => l.Name).ToList())}\"";
+            var names = ToString();
+            FormattableString formattable = $"{names}";
             return formattable.ToString(formatProvider);
         }
 
         public override string ToString()
         {
-            return $"\"{string.Join("\\n", Links.Select(l => l.Name).ToList())}\"";
+            return string.Join(", ", Links.Select(l => l.Name));
         }
     }
 }

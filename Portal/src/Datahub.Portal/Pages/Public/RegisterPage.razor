@@ -117,10 +117,10 @@
     <FSDHEnvironment Environments="@_environmentsToShowDisabledMessage">
         <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" Style="color: #0d1117" Variant="Variant.Outlined">
             <MudText Typo="Typo.body1">
-                @Localizer["The Federal Science DataHub is launching this March."]
+                @Localizer["You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub."]
             </MudText>
-            <MudLink Typo="Typo.body1" Href="https://poc.fsdh-dhsf.science.cloud-nuage.canada.ca/">
-                @Localizer["To preview the platform, please register in the proof of concept environment"]
+            <MudLink Typo="Typo.body1" Href=@Localizer["https://hosting-services-hebergement.canada.ca/s/?language=en_US"]>
+                @Localizer["To create a workspace, access the GC Hosting Services Portal."]
             </MudLink>
         </MudAlert>
     </FSDHEnvironment>
@@ -153,8 +153,8 @@
     private string[] _errors = { };
     private MudForm _form;
 
-    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
-    private List<TopBarEnvironments> _environmentsToAllowRegistration = new List<TopBarEnvironments> { TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl };
+    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
+    private List<TopBarEnvironments> _environmentsToAllowRegistration = new List<TopBarEnvironments> {  };
 
     protected override void OnInitialized()
     {

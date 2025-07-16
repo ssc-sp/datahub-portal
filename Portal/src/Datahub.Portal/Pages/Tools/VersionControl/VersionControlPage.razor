@@ -1,6 +1,7 @@
 ﻿@using Datahub.Application.Services
 @using Datahub.Application.Services.Notifications;
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Services.Projects
 @using Datahub.Portal.Components.Dialogs
 @using Markdig
 
@@ -8,6 +9,7 @@
 @inject IDatahubEmailService _emailService
 @inject IUserInformationService _userInformationService
 @inject IWorkspaceVersionService _workspaceVersionService
+@inject IRequestManagementService _requestManagementService
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
@@ -127,6 +129,10 @@
                 .ToList();
 
             await InvokeAsync(StateHasChanged);
+
+
+            await _requestManagementService.TriggerGreenLightChanges(versionTag.Tag, email);
+
             _snackbar.Add(Localizer["Successfully added version: {0}", version], Severity.Success);
         }
     }

@@ -1,0 +1,128 @@
+﻿@* CbrBudgetReport.razor *@
+
+@using ApexCharts
+@using Datahub.Application.Services.Cost
+@using Datahub.Core.Model.Onboarding
+@using Datahub.Core.Model.Projects
+@using Datahub.Portal.Pages.Workspace.Reports.Charts
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+
+
+
+@if(_loaded)
+{
+        
+    <MudGrid>
+        <MudItem xs="5"><CbrBudgetAllocationDonut BudgetAllocations="_budgetAllocations" Title="@Localizer["Budget Allocation"]" /></MudItem>
+        <MudItem xs="7"><CbrAllocationUsageBarChart BudgetAllocations="_budgetAllocations" WorkspaceCosts="_workspaceCosts" Title="@Localizer["Budget Usage"]" /></MudItem>
+    </MudGrid>
+
+    <CbrBudgetCostsTable BudgetAllocations="_budgetAllocations" ServiceCostsByWorkspace="_serviceCostsByWorkspace" WorkspaceCosts="_workspaceCosts" />
+
+}
+
+
+@code {
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [CascadingParameter] public List<ChartLocale> Locales { get; set; }
+
+    private GCHostingWorkspaceDetails _gcHostingDetails;
+    private IEnumerable<Datahub_Project> _cbrWorkspaces => _gcHostingDetails?.WorkspacesInBudget;
+    private IEnumerable<Project_Credits> _projectCredits => _cbrWorkspaces.Select(w => w.Credits);
+    private List<Datahub_Project_Costs> _rawProjectCosts;
+    private Dictionary<int, string> _workspaceAcronymsById => _cbrWorkspaces.ToDictionary(w => w.Project_ID, w => w.Project_Acronym_CD);
+
+    private decimal _cbrBudget => _gcHostingDetails.WorkspaceBudget;
+    private decimal _totalAllocatedBudget => _cbrWorkspaces.Sum(w => w.Project_Budget ?? 0);
+    private decimal _unallocatedCbrBudget => _cbrBudget - _totalAllocatedBudget;
+
+    private Dictionary<string, List<DailyServiceCost>> _serviceCostsByWorkspace;
+
+    private List<DailyServiceCost> _budgetAllocations;
+    private List<DailyServiceCost> _workspaceCosts;
+
+    private bool _loaded = false;
+
+    private void PopulateBudgetAllocations()
+    {
+        _budgetAllocations = new();
+
+        var sortedBudgets = _cbrWorkspaces
+            .OrderByDescending(w => w.Project_Budget)
+            .Select(w => new DailyServiceCost()
+                {
+                    Amount = w.Project_Budget ?? 0,
+                    Source = w.Project_Acronym_CD
+                });
+
+        _budgetAllocations.AddRange(sortedBudgets);
+
+        if (_unallocatedCbrBudget > 0)
+        {
+            _budgetAllocations.Add(new()
+                {
+                    Amount = _unallocatedCbrBudget,
+                    Source = string.Empty
+                });
+        }
+    }
+
+    private void PopulateWorkspaceCosts()
+    {
+        _workspaceCosts = _rawProjectCosts
+            .GroupBy(c => c.Project_ID)
+            .OrderByDescending(g => _cbrWorkspaces.First(w => w.Project_ID == g.Key).Project_Budget)
+            .Select(g => new DailyServiceCost()
+                {
+                    Amount = Convert.ToDecimal(g.Sum(c => c.CadCost)),
+                    Source = _cbrWorkspaces.First(w => w.Project_ID == g.Key).Project_Acronym_CD
+                })
+            .ToList();
+    }
+
+    private void PopulateServiceCostsByWorkspace()
+    {
+        _serviceCostsByWorkspace = _rawProjectCosts
+            .GroupBy(c => _workspaceAcronymsById[c.Project_ID])
+            .ToDictionary(
+                g => g.Key, 
+                g => g.GroupBy(wg => wg.ServiceName)
+                    .Select(wg => new DailyServiceCost()
+                    {
+                        Source = wg.Key,
+                        Amount = Convert.ToDecimal(wg.Sum(c => c.CadCost))
+                    })
+                    .OrderByDescending(d => d.Amount)
+                    .ToList()
+            );
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+        // get the workspace and gchosting separately to avoid cycle error when querying .AsNoTracking
+        var workspace = await ctx.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        _gcHostingDetails = await ctx.GCHostingWorkspaceDetails
+            .Include(g => g.WorkspacesInBudget)
+            .ThenInclude(w => w.Credits)
+            .AsNoTracking()
+            .FirstOrDefaultAsync(g => g.Id == workspace.ParentGCHostingBudgetId);
+
+        var workspaceIds = _cbrWorkspaces.Select(w => w.Project_ID);
+
+        _rawProjectCosts = await ctx.Project_Costs
+            .AsNoTracking()
+            .Where(c => workspaceIds.Contains(c.Project_ID))
+            .ToListAsync();
+
+        PopulateBudgetAllocations();
+        PopulateWorkspaceCosts();
+        PopulateServiceCostsByWorkspace();
+
+        _loaded = true;
+    }
+
+}

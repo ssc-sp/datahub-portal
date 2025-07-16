@@ -59,6 +59,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Project_Role> Project_Roles { get; set; }
 
+    public DbSet<PortalUserRoleChange> PortalUserRoleChanges { get; set; }
+
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
     public DbSet<UserInactivityNotifications> UserInactivityNotifications { get; set; }
@@ -226,6 +228,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .Property(p => p.RoleId)
             .HasConversion<int>();
 
+        modelBuilder.Entity<PortalUserRoleChange>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ChangeDate).IsRequired();
+        });
+
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)
             .IsUnique();
@@ -234,7 +242,14 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasAlternateKey(e => new { e.TypeName, e.Id });
 
         modelBuilder.Entity<Datahub_Project_User>()
+            .HasKey(u => u.ProjectUser_ID);
+
+        modelBuilder.Entity<Datahub_Project_User>()
             .Property(u => u.ProjectUser_ID);
+
+        modelBuilder.Entity<Datahub_Project_User>()
+            .HasIndex(u => new { u.Project_ID, u.PortalUserId })
+            .IsUnique();
 
         modelBuilder.Entity<OpenDataSubmission>()
             .HasMany<OpenDataPublishFile>(p => p.Files)

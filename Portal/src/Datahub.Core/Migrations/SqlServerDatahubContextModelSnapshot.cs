@@ -1180,9 +1180,11 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("PortalUserId");
 
-                    b.HasIndex("Project_ID");
-
                     b.HasIndex("RoleId");
+
+                    b.HasIndex("Project_ID", "PortalUserId")
+                        .IsUnique()
+                        .HasFilter("[PortalUserId] IS NOT NULL");
 
                     b.ToTable("Project_Users", (string)null);
                 });
