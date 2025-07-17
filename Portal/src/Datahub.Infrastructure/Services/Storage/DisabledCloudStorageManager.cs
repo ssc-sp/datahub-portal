@@ -87,5 +87,10 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
