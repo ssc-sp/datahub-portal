@@ -258,6 +258,11 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     return Localizer["~ {0:C2} plus {1:C2}/month per GB of storage", postgresCost, 0.18m];
                 case TerraformTemplate.AzureAppService:
                     return Localizer["~ {0:C2}/month", 60.0m];
+                case TerraformTemplate.AzureDatabricks:
+                    var databricksConfig = transaction.UpdatedData as DatabricksConfiguration;
+                    if (databricksConfig == null) return Localizer["N/A"];
+                    var (minCost, maxCost) = databricksConfig.GetMinMaxSelectedHourlyCosts();
+                    return Localizer["~ {0:C2} to {1:C2}/hour, depending on usage", minCost, maxCost];
                 default:
                     return string.Empty;
             }
@@ -311,23 +316,32 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <returns>A human-readable string representing the differences.</returns>
         private string DisplayDiff(Dictionary<string, (object Original, object Updated)> diff)
         {
-            var diffString = "";
-            foreach (var (key, value) in diff)
+            var diffStrings = diff.Select(kv =>
             {
-                var originalValue = value.Original;
-                var updatedValue = value.Updated;
-                if (originalValue == null)
-                {
-                    diffString += Localizer["Selected {0}: {1}\n", PropertyLabel(key).ToLower(), updatedValue];
-                }
-                else
-                {
-                    diffString += Localizer["Updated {0}: {1} -> {2}\n", PropertyLabel(key).ToLower(), originalValue,
-                        updatedValue];
-                }
-            }
+                var key = kv.Key;
+                var originalValue = DisplayValue(kv.Value.Original);
+                var updatedValue = DisplayValue(kv.Value.Updated);
+                return originalValue == null
+                    ? Localizer["Selected {0}: {1}", PropertyLabel(key).ToLower(), updatedValue]
+                    : Localizer["Updated {0}: {1} -> {2}", PropertyLabel(key).ToLower(), originalValue, updatedValue];
+            });
 
-            return diffString;
+            return string.Join(" / ", diffStrings);
+        }
+
+        /// <summary>
+        /// Converts the specified value to a localized string representation.
+        /// </summary>
+        /// <remarks>This method is useful for displaying boolean values in a user-friendly, localized
+        /// format.</remarks>
+        /// <param name="value">The value to be displayed. If the value is a <see langword="bool"/>, it is converted to a localized "Yes" or
+        /// "No" string; otherwise, the value is returned as-is.</param>
+        /// <returns>A localized string representation of the value if it is a <see langword="bool"/>; otherwise, the original
+        /// value.</returns>
+        private object DisplayValue(object value)
+        {
+            if (value is bool booleanValue) return booleanValue ? Localizer["Yes"] : Localizer["No"];
+            return value;
         }
 
         /// <summary>
@@ -339,7 +353,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             return propertyName switch
             {
-                "PSQL_SKU" => Localizer["Database tier"],
+                nameof(PostgresConfiguration.PSQL_SKU) => Localizer["Database tier"],
+                nameof(DatabricksConfiguration.GeneralPurposeTierSku) => Localizer["General purpose tier"],
+                nameof(DatabricksConfiguration.MachineLearningTierSku) => Localizer["ML tier"],
+                nameof(DatabricksConfiguration.MachineLearningGpuTierSku) => Localizer["ML (GPU) tier"],
+                nameof(DatabricksConfiguration.EnableMachineLearning) => Localizer["Enable ML"],
+                nameof(DatabricksConfiguration.EnableMachineLearningGpu) => Localizer["Enable ML (GPU)"],
                 _ => propertyName
             };
         }
@@ -544,6 +563,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                         };
                         resource.InputJsonContent = inputJson.ToString();
                         break;
+                    case TerraformTemplate.AzureDatabricks:
+                        //TODO
+                        break;
                 }
             }
         }
@@ -581,7 +603,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     _transactions.All(transaction => transaction.Tool != dependency.Name))
                 {
                     Log($"Adding dependency: {dependency.Name}");
-                    _transactions.AddTool(dependency.Name, OriginalData(tool));
+                    _transactions.AddTool(dependency.Name, OriginalData(dependency.Name));
                 }
             });
         }
@@ -655,6 +677,13 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     }
                     _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
                     return _workspaceDefinition.AppData.AppServiceConfiguration;
+                case TerraformTemplate.AzureDatabricks:
+                    if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
+                    {
+                        Log("No original configuration found for Azure Databricks. Creating new configuration.");
+                        return new DatabricksConfiguration();
+                    }
+                    return _workspaceDefinition.AppData.DatabricksConfiguration;
                 default:
                     return null;
             }
