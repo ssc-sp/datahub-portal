@@ -23,7 +23,7 @@
 	<ItemGroup>
 		
 		
-		<PackageReference Include="Azure.Core" Version="1.46.2" />
+		<PackageReference Include="Azure.Core" Version="1.47.*" />
 		
 		
 		<PackageReference Include="Azure.Identity" Version="1.14.1" />

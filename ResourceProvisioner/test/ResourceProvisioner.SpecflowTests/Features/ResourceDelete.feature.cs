@@ -39,8 +39,8 @@ namespace ResourceProvisioner.SpecflowTests.Features
         public static async System.Threading.Tasks.Task FeatureSetupAsync()
         {
             testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Resource Delete", "This is the feature that will update the terraform files to delete the workspace " +
-                    "resources", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
+            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Resource Delete", ("This is the feature that will update the terraform files to delete the workspace " +
+                    "resources"), global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
             await testRunner.OnFeatureStartAsync(featureInfo);
         }
         
@@ -87,17 +87,17 @@ namespace ResourceProvisioner.SpecflowTests.Features
             await this.TestTearDownAsync();
         }
         
-        [Xunit.SkippableFactAttribute(DisplayName="The repository service should invoke the DeleteTemplateAsync method when a templa" +
-            "te is set to be deleted")]
+        [Xunit.SkippableFactAttribute(DisplayName=("The repository service should invoke the DeleteTemplateAsync method when a templa" +
+            "te is set to be deleted"))]
         [Xunit.TraitAttribute("FeatureTitle", "Resource Delete")]
-        [Xunit.TraitAttribute("Description", "The repository service should invoke the DeleteTemplateAsync method when a templa" +
-            "te is set to be deleted")]
+        [Xunit.TraitAttribute("Description", ("The repository service should invoke the DeleteTemplateAsync method when a templa" +
+            "te is set to be deleted"))]
         public async System.Threading.Tasks.Task TheRepositoryServiceShouldInvokeTheDeleteTemplateAsyncMethodWhenATemplateIsSetToBeDeleted()
         {
             string[] tagsOfScenario = ((string[])(null));
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The repository service should invoke the DeleteTemplateAsync method when a templa" +
-                    "te is set to be deleted", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo(("The repository service should invoke the DeleteTemplateAsync method when a templa" +
+                    "te is set to be deleted"), null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 4
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -133,11 +133,11 @@ namespace ResourceProvisioner.SpecflowTests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableTheoryAttribute(DisplayName="The terraform service should delete all the files that belong to the workspace re" +
-            "source")]
+        [Xunit.SkippableTheoryAttribute(DisplayName=("The terraform service should delete all the files that belong to the workspace re" +
+            "source"))]
         [Xunit.TraitAttribute("FeatureTitle", "Resource Delete")]
-        [Xunit.TraitAttribute("Description", "The terraform service should delete all the files that belong to the workspace re" +
-            "source")]
+        [Xunit.TraitAttribute("Description", ("The terraform service should delete all the files that belong to the workspace re" +
+            "source"))]
         [Xunit.InlineDataAttribute("azure-storage-blob", new string[0])]
         [Xunit.InlineDataAttribute("azure-databricks", new string[0])]
         [Xunit.InlineDataAttribute("azure-app-service", new string[0])]
@@ -148,8 +148,8 @@ namespace ResourceProvisioner.SpecflowTests.Features
             string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("templateName", templateName);
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The terraform service should delete all the files that belong to the workspace re" +
-                    "source", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo(("The terraform service should delete all the files that belong to the workspace re" +
+                    "source"), null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 13
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -185,11 +185,11 @@ namespace ResourceProvisioner.SpecflowTests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [Xunit.SkippableTheoryAttribute(DisplayName="The terraform service should write a file with the deleted template name for the " +
-            "output status")]
+        [Xunit.SkippableTheoryAttribute(DisplayName=("The terraform service should write a file with the deleted template name for the " +
+            "output status"))]
         [Xunit.TraitAttribute("FeatureTitle", "Resource Delete")]
-        [Xunit.TraitAttribute("Description", "The terraform service should write a file with the deleted template name for the " +
-            "output status")]
+        [Xunit.TraitAttribute("Description", ("The terraform service should write a file with the deleted template name for the " +
+            "output status"))]
         [Xunit.InlineDataAttribute("azure-storage-blob", new string[0])]
         [Xunit.InlineDataAttribute("azure-databricks", new string[0])]
         [Xunit.InlineDataAttribute("azure-app-service", new string[0])]
@@ -200,8 +200,8 @@ namespace ResourceProvisioner.SpecflowTests.Features
             string[] tagsOfScenario = exampleTags;
             System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("templateName", templateName);
-            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The terraform service should write a file with the deleted template name for the " +
-                    "output status", null, tagsOfScenario, argumentsOfScenario, featureTags);
+            global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo(("The terraform service should write a file with the deleted template name for the " +
+                    "output status"), null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 30
     this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -228,8 +228,8 @@ namespace ResourceProvisioner.SpecflowTests.Features
         await testRunner.ThenAsync("a .tf file with the template name should be written to the project path", ((string)(null)), ((global::Reqnroll.Table)(null)), "Then ");
 #line hidden
 #line 36
-        await testRunner.AndAsync(string.Format("the file contents should have the module status variable of {0} and the value of " +
-                            "\"deleted\"", templateName), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
+        await testRunner.AndAsync(string.Format(("the file contents should have the module status variable of {0} and the value of " +
+                            "\"deleted\""), templateName), ((string)(null)), ((global::Reqnroll.Table)(null)), "And ");
 #line hidden
             }
             await this.ScenarioCleanupAsync();
