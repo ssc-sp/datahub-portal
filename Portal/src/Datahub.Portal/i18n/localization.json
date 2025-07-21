@@ -2397,7 +2397,6 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
-  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
   //GC hosting metadata
   "GCWorkspaceMetadata": "GC Hosting Workspace Metadata",
   "WorkspaceNoMetadata": "Workspace has no GC Hosting Metadata",
@@ -2430,9 +2429,8 @@
   "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.",
   "If it's your first time signing in, please follow the ": "If it's your first time signing in, please follow the ",
   "Account Setup": "Account Setup",
-  " instructions.": " instructions."
+  " instructions.": " instructions.",
   "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
-
   //urlpaths
   "account": "account",
   "public": "public",
