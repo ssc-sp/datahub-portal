@@ -346,9 +346,8 @@ public class Startup
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
             options.ResourcesPath = "i18n";
-            options.UseBaseName = false;
-            options.IsAbsolutePath = true;
             options.LocalizationMode = LocalizationMode.I18n;
+            options.UseEmbeddedResources = false;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
