@@ -28,7 +28,7 @@
       <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.3" />
       <PackageReference Include="Microsoft.Identity.Client" Version="4.73.1" />
       <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.*" />
-	  <PackageReference Include="AWSSDK.S3" Version="3.7.*" />
+	  <PackageReference Include="AWSSDK.S3" Version="4.0.*" />
 	  <PackageReference Include="System.Text.Json" Version="9.0.*" />
 	  <PackageReference Include="Yarp.Telemetry.Consumption" Version="2.1.*" />
       
