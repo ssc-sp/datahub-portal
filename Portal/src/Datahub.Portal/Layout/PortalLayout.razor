@@ -1,6 +1,7 @@
 ﻿@using Datahub.Application.Services
 @using Datahub.Core
 @using MudBlazor.Utilities
+@using Blazored.SessionStorage
 @using Microsoft.Identity.Web
 @using MediatR
 @using Datahub.Core.Model.Achievements
@@ -20,6 +21,8 @@
 @inject IMediator _mediatr
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
+@inject ISessionStorageService _sessionStorage
+
 
 <CommonMudProviders />
 
@@ -69,6 +72,7 @@
 
 
     private PortalUser _portalUser;
+    private bool _correlationIdInitialized = false;
     private string _correlationId;
     private IJSObjectReference _module;
     private ErrorBoundary _errorBoundary;
@@ -79,6 +83,20 @@
         _errorBoundary?.Recover();
     }
 
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !_correlationIdInitialized)
+        {
+            _correlationId = await _sessionStorage.GetItemAsStringAsync("correlationId");
+            if (string.IsNullOrEmpty(_correlationId))
+            {
+                _correlationId = Guid.NewGuid().ToString();
+                await _sessionStorage.SetItemAsStringAsync("correlationId", _correlationId);
+            }
+            _correlationIdInitialized = true;
+            StateHasChanged();
+        }
+    }
     private bool HandleException(Exception ex)
     {
         if (IsIgnoredException(ex))
@@ -101,10 +119,8 @@
     {
         try
         {
-            var correlationId = Guid.NewGuid().ToString();
-            await _auditingService.TrackException(ex, (nameof(correlationId), correlationId));
-            await ReportIssue(ex, correlationId);
-            _correlationId = correlationId;
+            await _auditingService.TrackException(ex, (nameof(_correlationId), _correlationId));
+            await ReportIssue(ex, _correlationId);
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception)
@@ -176,7 +192,8 @@
                 Resolution: dimensions,
                 LocalStorage: localStorageData,
                 BugReportType: BugReportTypes.SupportRequest,
-                Description: $"Automatically recorded exception: {exceptionData}, telemetry: {telemetryData}"
+                Description: $"Automatically recorded exception: {exceptionData}, telemetry: {telemetryData}",
+                CorrelationId: _correlationId
             );
 
             await _mediatr.Send(bugReport);
