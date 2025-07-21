@@ -394,6 +394,7 @@ public class Startup
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
             services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
+            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
             
@@ -457,6 +458,8 @@ public class Startup
 
         services.AddScoped<CustomNavigation>();
 
+        services.AddScoped<IDownloadService, DownloadService>();
+        services.AddScoped<ICsvService, CsvService>();
     }
 
     private void ConfigureDbContexts(IServiceCollection services)
