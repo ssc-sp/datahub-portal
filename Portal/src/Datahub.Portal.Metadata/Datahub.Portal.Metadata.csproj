@@ -8,8 +8,8 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.47.*" />
-    <PackageReference Include="Azure.Identity" Version="1.14.1" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.73.1" />
+    <PackageReference Include="Azure.Identity" Version="1.14.*" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.74.*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,3 +18,5 @@
   </ItemGroup>
 
 </Project>
+
+

@@ -28,7 +28,7 @@ namespace Datahub.Tests
 
         private static readonly string TEST_WORKSPACE_CODE = "TEST";
         
-        public WorkspaceUserManagementServiceTests(ITestOutputHelper output)
+        public WorkspaceUserManagementServiceTests(Xunit.Abstractions.ITestOutputHelper output)
         {
             var dbName = Guid.NewGuid().ToString();
             _mockDbContextFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();

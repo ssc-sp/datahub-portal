@@ -15,13 +15,13 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Core" Version="1.47.*" />
-    <PackageReference Include="Azure.Identity" Version="1.14.1" />
+    <PackageReference Include="Azure.Identity" Version="1.14.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.*" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.73.1" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.74.*" />
   </ItemGroup>
 
   <ItemGroup>
@@ -29,3 +29,5 @@
   </ItemGroup>
 
 </Project>
+
+
