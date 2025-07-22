@@ -5,7 +5,7 @@ param(
 
 Get-ChildItem -Recurse -Filter *.csproj | ForEach-Object {
     $file = $_.FullName
-    $content = Get-Content $file
+    $content = Get-Content $file -Raw
     $pattern = "<PackageReference Include=`"$PackageName`" Version=`"[^`"]*`""
     $replacement = "<PackageReference Include=`"$PackageName`" Version=`"$NewVersion`""
     $newContent = $content -replace $pattern, $replacement
