@@ -3414,7 +3414,7 @@
   "Retention Value": "Valeur de conservation",
   "RetentionValue_Description": "Valeurs autorisées : Conservation – perpétuelle/indéfinie, Conservation – long terme, Valeur archivistique, Inconnue, Aucune",
   "Security Classification": "Classification de sécurité",
-  "SecurityClassification_Description": "Valeurs possibles : Non classifié, Protégé A, Protégé B."
+  "SecurityClassification_Description": "Valeurs possibles : Non classifié, Protégé A, Protégé B.",
   "Toggle featured workspace (Admin-only)": "Basculer l'espace de travail en vedette (réservé aux administrateurs)",
   "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre la Plateforme fédérale de données scientifiques.",
   "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
