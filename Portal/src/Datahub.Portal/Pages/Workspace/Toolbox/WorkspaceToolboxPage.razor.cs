@@ -552,19 +552,18 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context);
 
                 // Apply tool specific changes
+                var resource = workspace.Resources.First(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));
                 switch (template.Name)
                 {
                     case TerraformTemplate.AzurePostgres:
-                        var resource = workspace.Resources.First(r =>
-                            r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));
-                        var inputJson = new JsonObject
+                        var postgresJson = new JsonObject
                         {
                             ["postgres_sku"] = _builtWorkspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
                         };
-                        resource.InputJsonContent = inputJson.ToString();
+                        resource.InputJsonContent = postgresJson.ToString();
                         break;
                     case TerraformTemplate.AzureDatabricks:
-                        //TODO
+                        resource.InputJsonContent = JsonSerializer.Serialize(_builtWorkspaceDefinition.AppData.DatabricksConfiguration);
                         break;
                 }
             }
@@ -718,6 +717,13 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     }
                     _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
                     return _workspaceDefinition.AppData.AppServiceConfiguration;
+                case TerraformTemplate.AzureDatabricks:
+                    if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
+                    {
+                        Log("No original configuration found for Azure Databricks. Creating new configuration.");
+                        return new DatabricksConfiguration();
+                    }
+                    return _workspaceDefinition.AppData.DatabricksConfiguration.Clone();
                 default:
                     return null;
             }
