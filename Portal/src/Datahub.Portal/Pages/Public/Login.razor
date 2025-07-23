@@ -3,15 +3,12 @@
 
 @layout BarebonesPublicLayout
 
-@inject NavigationManager _navManager
-@inject ICultureService CultureService
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
-@inject IPortalUserTelemetryService _telemetryService
 
 
-<PageTitle>Federal Science DataHub / DataHub scientifique fédéral</PageTitle>
+<PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
 
 <MudContainer MaxWidth=@MaxWidth.Medium>
