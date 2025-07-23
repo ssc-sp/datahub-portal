@@ -27,8 +27,18 @@
             </MudGrid>
             <DHMainContentTitle Title="@Localizer["MainTitle"]" />
         </MudStack>
+        <MudText Typo="Typo.body1" Class="mt-4">
+            @Localizer["To learn more about the FSDH, visit our "]
+            <MudLink Href="@Localizer["https://gcxgce.sharepoint.com/teams/10002160"]" Typo="Typo.body1">@Localizer["GCxchange"]</MudLink>
+            @Localizer[" site (only available within the GC network)."]
+        </MudText>
+        <MudText Typo="Typo.body1" Class="mt-4">
+            @Localizer["If it's your first time signing in, please follow the "]
+            <MudLink Href="@Localizer["/account-setup"]" Typo="Typo.body1">@Localizer["Account Setup"]</MudLink>
+            @Localizer[" instructions."]
+        </MudText>
         <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-            <MudStack AlignItems="AlignItems.Start" Class="my-8" Style="width: 100%">
+            <MudStack AlignItems="AlignItems.Start" Class="mt-4" Style="width: 100%">
                 <MudText Typo="Typo.body1" Class="text-center">
                     <strong>
                         @Localizer["Please login to continue"]:
@@ -59,16 +69,6 @@
                         @(_loggingIn ? Localizer["Logging in..."] : Localizer["Login"])
                     </MudText>
                 </MudButton>
-                <MudText Typo="Typo.body1">
-                    @Localizer["To learn more about the FSDH, visit our "]
-                    <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["GCxchange site"]</MudLink>
-                    @Localizer[" (only available within the GC network)."]
-                </MudText>
-                <MudText Typo="Typo.body1">
-                    @Localizer["If it's your first time signing in, please follow the "]
-                    <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Account Setup"]</MudLink>
-                    @Localizer[" instructions."]
-                </MudText>
             </MudStack>
         </EditForm>
         <DHFooter />
