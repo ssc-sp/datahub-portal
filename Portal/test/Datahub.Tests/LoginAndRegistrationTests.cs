@@ -264,7 +264,7 @@ namespace Datahub.Tests
             Assert.Equal(ssoRedirect, _navigationManagerMock.LastUri);
         }
 
-        [Fact]
+        [Fact(Skip = "The register page is deprecated, this test is no longer necessary.")]
         public async Task Test_DeletedUserRegistration()
         {
             // Arrange
@@ -299,7 +299,7 @@ namespace Datahub.Tests
             Assert.Equal("/login", _navigationManagerMock.LastUri);
         }
 
-        [Fact]
+        [Fact(Skip = "The register page is deprecated, this test is no longer necessary.")]
         public async Task Test_NewUserRegistration()
         {
             // Arrange
