@@ -183,7 +183,8 @@ public class HostingServicesController : ControllerBase
     private async Task ReportErrorCreatingWorkspace(GCHostingWorkspaceDetails workspaceDetails)
     {
         string description = $"Failed to create workspace {workspaceDetails.WorkspaceName} with workspace lead {workspaceDetails.LeadEmail}";
-
+        var correlationId = GetCorrelationId();
+        
         _logger.LogError(SanitizeHtml(description));
 
         var bugReport = new BugReportMessage(
@@ -200,6 +201,7 @@ public class HostingServicesController : ControllerBase
             Resolution: "n/a",
             LocalStorage: "n/a",
             BugReportType: BugReportTypes.SystemError,
+            CorrelationId: correlationId,
             Description: description
         );
 
@@ -315,6 +317,13 @@ public class HostingServicesController : ControllerBase
         temp.CBRName = input.CBRName;
         temp.CBRID = input.CBRID;
         return temp;
+    }
+
+    private string GetCorrelationId()
+    {
+        if (Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
+            return correlationId.ToString();
+        return Guid.NewGuid().ToString();
     }
 
     public partial class HostingServiceInfo
