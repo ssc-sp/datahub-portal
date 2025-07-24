@@ -1,10 +1,14 @@
-﻿@using Datahub.Core.Model.Projects
+﻿@using Microsoft.Extensions.Caching.Memory;
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Health
 @using Datahub.Shared.Entities
 @using Datahub.Shared
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Explore
 
 @inject ICultureService CultureService
+@inject IMemoryCache MemoryCache
+
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
@@ -166,6 +170,36 @@
     private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
+
+    protected override void OnParametersSet()
+    {
+        UpdateResourceStatusesFromHealthChecks();
+    }
+
+    private void UpdateResourceStatusesFromHealthChecks()
+    {
+        if (MemoryCache.TryGetValue("InfrastructureHealthChecks", out List<InfrastructureHealthCheck> healthChecks))
+        {
+            foreach (var resource in Workspace.Resources)
+            {
+                if (resource.Status == null)
+                {
+                    var serviceType = resource.ResourceType;
+                    var health = healthChecks.FirstOrDefault(h =>
+                        h.Group == Workspace.Project_Acronym_CD &&
+                        TerraformTemplate.MapHealthResourceTypeToTemplateConstant(h.ResourceType) == serviceType);
+
+                    if (health != null 
+                        && health.Status !=  InfrastructureHealthStatus.NotProvisioned
+                        && health.Status != InfrastructureHealthStatus.Undefined
+                    )
+                    {
+                        resource.Status = TerraformStatus.Completed;
+                    }
+                }
+            }
+        }
+    }
 
     // Utils
     private Color CostBarColor()
