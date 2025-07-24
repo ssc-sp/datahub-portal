@@ -73,10 +73,29 @@ public class AnnouncementService : IAnnouncementService
         }
     }
 
-    public Task<bool> DeleteAnnouncementAsync(int id)
+    public async Task<bool> DeleteAnnouncementAsync(int id)
     {
-        throw new NotImplementedException();
+        try
+        {
+            await using var context = await _datahubProjectDbFactory.CreateDbContextAsync();
+            var announcement = await context.Announcements.FindAsync(id);
+            if (announcement == null)
+                return false;
+
+            announcement.IsDeleted = true;
+            announcement.ForceHidden = true;
+            context.Announcements.Update(announcement);
+            await context.TrackSaveChangesAsync(_auditingService);
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error deleting announcement");
+            return false;
+        }
     }
+
+
 
     public async Task<List<AnnouncementPreview>> GetActivePreviews(bool isFrench)
     {
