@@ -6,7 +6,8 @@
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="Markdig" Version="0.37.0" />
+		<PackageReference Include="Markdig" Version="0.41.*" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.*" />
 	</ItemGroup>
 </Project>
+

@@ -36,6 +36,7 @@
 @using Microsoft.Identity.Web
 @using Microsoft.JSInterop;
 @using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+@using MudBlazor.Utilities
 
 @attribute [Route(PageRoutes.Help)]
 @attribute [Route(PageRoutes.Help_FR)]
@@ -62,35 +63,39 @@
                         else if (_currentStep == Steps.Topics)
                         {
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
-                            @foreach (var topic in _ticketTopics)
-                            {
-                                <MudCheckBox @bind-Value="@_ticketTopics[topic.Key]" Label="@Localizer[topic.Key]" Color="@Color.Primary"></MudCheckBox>
-                            }
-                        }
-                        else if (_currentStep == Steps.Description)
-                        {
-                            if (_ticketTopics["Extended Storage Token"])
+                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef" >
+                                @foreach (var topic in _ticketTopicsList)
+                                {  
+                                    <MudSelectItem T="string" Value="@topic">@Localizer[topic]</MudSelectItem>  
+                                }  
+                            </MudSelect>
+
+                            if (_selectedTopics.Contains("Extended Storage Token"))
                             {
                                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please describe why you need an extended storage token and any additional information for your request."]</MudText>
                             }
                             else
                             {
-                                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]</MudText>
+                                <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]*</MudText>
                             }
                             <MudTextField T="string"
-                            @bind-Value="@_ticketDescription"
-                            Label=@(Localizer["Detailed description"])
-                            Required
-                            Lines="5"/>
+                                @bind-Value="@_ticketDescription"                                
+                                Required
+                                RequiredError="@Localizer["Please provide a description."]"
+                                Variant="Variant.Outlined"
+                                Lines="5"
+                                Class="no-margin-textarea"
+                                @ref="_descriptionFieldRef" />
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
-                            foreach (var workspace in _ticketWorkspaces)
-                            {
-                                <MudCheckBox @bind-Value="@_ticketWorkspaces[workspace.Key]" Label="@Localizer[workspace.Key]" Color="@Color.Primary"></MudCheckBox>
-                            }
-                        }
-                        else if (_currentStep == Steps.Language)
-                        {
+                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea">
+                                @foreach (var workspace in _ticketWorkspaces)
+                                {
+                                    <MudSelectItem T="string" Value="@workspace.Key">@Localizer[workspace.Key]</MudSelectItem>
+                                }
+                            </MudSelect>
+
+                        
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
                             <MudRadioGroup T="int" @bind-Value="_ticketPreferredLanguage">
                                 <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
@@ -219,6 +224,9 @@
     private List<Datahub_Project_User> _userRoles;
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new();
+    private MudSelect<string> _landingFieldRef;
+    private MudTextField<string> _descriptionFieldRef;
+    private bool _isCursorSet;
 
     private bool _loading = true;
 
@@ -237,6 +245,25 @@
         { "Other", false },
     };
 
+    // This List is used to generate checkboxes in the help request multi select
+    private readonly List<string> _ticketTopicsList = new List<string>()
+    {
+        { "Workspace"},
+        { "Databricks"},
+        { "Storage"},
+        { "PostgreSQL"},
+        { "Web App"},
+        { "User Management"},
+        { "Documentation"},
+        { "Tool Requesting"},
+        { "Extended Storage Token"},
+        { "Other"},
+    };
+
+    // This List is used to track selected checkboxes in the help request multi select
+    private IEnumerable<string> _selectedTopics = new List<string>();
+    private IEnumerable<string> _selectedWorkspaces = new List<string>();
+
     // This dictionary is used to generate Workspace checkboxes in the help request
     Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
     Dictionary<string, string> _ticketWorkspaceAcronyms = new Dictionary<string, string> { };
@@ -247,11 +274,8 @@
     {
         Start = 0,
         Topics = 1,
-        Description = 2,
-        Language = 3,
-        Submit = 4
+        Submit = 2 
     }
-
 
     /**
     * Initializes the component asynchronously.
@@ -296,7 +320,7 @@
     }
 
     /**
-     * Performs an action after the component has been rendered.
+    * Performs an action after the component has been rendered.
      * This method is called after the first render and can be used to perform tasks that require access to the rendered DOM elements.
      * It imports a JavaScript module and retrieves user agent, resolution, and timezone information using JavaScript interop.
      * This occurs in this method because it requires the component to be rendered first, otherwise an error will be visible briefly to the user.
@@ -306,29 +330,40 @@
      */
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+    if (firstRender)
+    {
+        try
         {
-            try
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Help/HelpPage.razor.js");
-            }
-            catch (Exception e)
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
-            }
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Help/HelpPage.razor.js");
         }
+        catch (Exception e)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
+        }
+    }
+    if (_currentStep == Steps.Topics && _landingFieldRef != null && !_isCursorSet)
+    {
+        _isCursorSet = true;
+        await _landingFieldRef.FocusAsync();
+    }
     }
 
     /**
-     * Advances to the next step in the form.
+    * Advances to the next step in the form.
      * Validates the form before proceeding to the next step.
      */
-    private void NextStep()
+    private async Task NextStep()
     {
         form.Validate();
         if (form.IsValid)
         {
+            _isCursorSet = false;
             _currentStep++;
+        }
+        else
+        {
+            // Set focus to the MudTextField if the form is not valid
+            await _descriptionFieldRef.FocusAsync();
         }
     }
 
@@ -337,6 +372,7 @@
      */
     private void PreviousStep()
     {
+        _isCursorSet = false;
         _currentStep--;
     }
 
@@ -523,4 +559,7 @@
         };
     }
 
+    private string NoMarginStyle => new StyleBuilder()
+        .AddStyle("margin", "0 !important")
+        .Build();
 }

@@ -56,7 +56,8 @@
         {
             if (currentPage.Contains(route))
             {
-                await _userSettingsService.SetLanguage(language, Localizer[route + "-lt"]);
+                var newRoute = Localizer[$"{route}-lt"];
+                await _userSettingsService.SetLanguage(language, newRoute);
                 return;
             }
         }
