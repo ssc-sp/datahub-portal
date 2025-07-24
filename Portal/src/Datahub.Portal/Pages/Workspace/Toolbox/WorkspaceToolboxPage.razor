@@ -80,465 +80,450 @@
         }
         else
         {
-            @if (!_metadataRequired)
-            {
-                @* Toolbox *@
-                <MudStack Row Spacing="0">
-                    <MudStepper Style="@(_activeIndex == 2 ? "width: 100%" : "width: 75%")"
-                                @bind-ActiveIndex="@_activeIndex">
-                        <ActionContent Context="stepper">
-                            @if (stepper.ActiveIndex != 0)
+            @* Toolbox *@
+            <MudStack Row Spacing="0">
+                <MudStepper Style="@(_activeIndex == 2 ? "width: 100%" : "width: 75%")"
+                            @bind-ActiveIndex="@_activeIndex">
+                    <ActionContent Context="stepper">
+                        @if (stepper.ActiveIndex != 0)
+                        {
+                            <DHButton Variant="Variant.Filled"
+                                        Class="ml-4 mb-3 mt-2"
+                                        HtmlTag="button"
+                                        OnClick="@(_ => PreviousStep(stepper))" DisableRipple
+                                        StartIcon="@Icons.Material.Outlined.KeyboardDoubleArrowLeft"
+                                        id=@PreviousButtonId>
+                                @Localizer["Previous step"]
+                            </DHButton>
+                        }
+                        <MudSpacer/>
+                        @if (stepper.ActiveIndex != stepper.Steps.Count - 1)
+                        {
+                            <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                                        Class="mr-4 mb-3 mt-2"
+                                        HtmlTag="button"
+                                        OnClick="@(_ => NextStep(stepper))"
+                                        Disabled="@(!stepper.CanGoToNextStep)"
+                                        DisableRipple EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+                                        id=@NextButtonId>
+                                @Localizer["Next step"]
+                            </DHButton>
+                        }
+                        else
+                        {
+                            <DHButton Variant="Variant.Filled" Color="Color.Primary" DisableRipple
+                                        Class="mr-4 mb-3 mt-2"
+                                        HtmlTag="button"
+                                        OnClick="@(_ => NextStep(stepper))"
+                                        EndIcon="@Icons.Material.Outlined.Check"
+                                        id="@CompleteButtonId">
+                                @Localizer["Complete request"]
+                            </DHButton>
+                        }
+                    </ActionContent>
+                    <ChildContent>
+                        <MudStep Title=@Localizer["Select"]>
+                            <MudText Typo="Typo.h2" Class="mb-2">
+                                @Localizer["Select tools to add, remove or configure in your workspace "]
+                            </MudText>
+                            @if (_disableActiveRequest || _disableOverBudget)
                             {
-                                <DHButton Variant="Variant.Filled"
-                                          Class="ml-4 mb-3 mt-2"
-                                          HtmlTag="button"
-                                          OnClick="@(_ => PreviousStep(stepper))" DisableRipple
-                                          StartIcon="@Icons.Material.Outlined.KeyboardDoubleArrowLeft"
-                                          id=@PreviousButtonId>
-                                    @Localizer["Previous step"]
-                                </DHButton>
+                                <DHAlert Class="mb-2">
+                                    <MudText>
+                                        @if (_disableOverBudget)
+                                        {
+                                            @Localizer["This workspace is over budget and toolbox requests cannot be made."]
+                                        }
+                                        else if (_disableActiveRequest)
+                                        {
+                                            @Localizer["This workspace currently has an active request. You may not make new requests while there is an active request. Come back later, or submit a support request if your active request is taking longer than ususal."]
+                                        }
+                                    </MudText>
+                                </DHAlert>
                             }
-                            <MudSpacer/>
-                            @if (stepper.ActiveIndex != stepper.Steps.Count - 1)
-                            {
-                                <DHButton Variant="Variant.Filled" Color="Color.Primary"
-                                          Class="mr-4 mb-3 mt-2"
-                                          HtmlTag="button"
-                                          OnClick="@(_ => NextStep(stepper))"
-                                          Disabled="@(!stepper.CanGoToNextStep)"
-                                          DisableRipple EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
-                                          id=@NextButtonId>
-                                    @Localizer["Next step"]
-                                </DHButton>
-                            }
-                            else
-                            {
-                                <DHButton Variant="Variant.Filled" Color="Color.Primary" DisableRipple
-                                          Class="mr-4 mb-3 mt-2"
-                                          HtmlTag="button"
-                                          OnClick="@(_ => NextStep(stepper))"
-                                          EndIcon="@Icons.Material.Outlined.Check"
-                                          id="@CompleteButtonId">
-                                    @Localizer["Complete request"]
-                                </DHButton>
-                            }
-                        </ActionContent>
-                        <ChildContent>
-                            <MudStep Title=@Localizer["Select"]>
-                                <MudText Typo="Typo.h2" Class="mb-2">
-                                    @Localizer["Select tools to add, remove or configure in your workspace "]
-                                </MudText>
-                                @if (_disableActiveRequest || _disableOverBudget)
+                            <MudText Class="mb-4">
+                                @Localizer["The tool catalog will list tools that are not yet in your workspace. You will be able to select from those which you would like to add to your workspace."]
+                            </MudText>
+                            <MudText Typo="Typo.h3" Class="mb-2">
+                                @Localizer["Tool catalog"]
+                            </MudText>
+                            <MudStack Spacing="2" Class="mb-2" Style="flex-shrink: 0" id=@CatalogId>
+                                @foreach (var tool in _toolCatalog.Where(t => _transactions.All(tr => tr.Tool != t)))
                                 {
-                                    <DHAlert Class="mb-2">
-                                        <MudText>
-                                            @if (_disableOverBudget)
-                                            {
-                                                @Localizer["This workspace is over budget and toolbox requests cannot be made."]
-                                            }
-                                            else if (_disableActiveRequest)
-                                            {
-                                                @Localizer["This workspace currently has an active request. You may not make new requests while there is an active request. Come back later, or submit a support request if your active request is taking longer than ususal."]
-                                            }
-                                        </MudText>
-                                    </DHAlert>
+                                    <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
+                                                    ToolCategory="@ToolCategory(tool)"
+                                                    ShowDetails="@(_ => ShowInfoSheet(tool, ElementId([CatalogId, tool])))"
+                                                    ToolId=@ElementId([CatalogId, tool])>
+                                        @switch (_toolAvailabilityStatusMap[tool])
+                                        {
+                                            case AvailabilityStatus.Available:
+                                                <DHButton OnClick="@(_ => AddTool(tool))"
+                                                            EndIcon="@Icons.Material.Outlined.Add"
+                                                            DisableRipple
+                                                            Disabled="@(_disableActiveRequest || _disableOverBudget)"
+                                                            HtmlTag="button"
+                                                            Variant="Variant.Filled" Color="Color.Primary"
+                                                            id=@ElementId([CatalogId, tool, AddButtonId])>
+                                                    @Localizer["Add"]
+                                                </DHButton>
+                                                break;
+                                            case AvailabilityStatus.Disabled:
+                                                <MudText Style="font-style: italic">
+                                                    @Localizer["Disabled"]
+                                                </MudText>
+                                                break;
+                                            case AvailabilityStatus.UnderDevelopment:
+                                                <MudText Style="font-style: italic">
+                                                    @Localizer["Under Development"]
+                                                </MudText>
+                                                break;
+                                        }
+                                    </ToolboxItem>
                                 }
-                                <MudText Class="mb-4">
-                                    @Localizer["The tool catalog will list tools that are not yet in your workspace. You will be able to select from those which you would like to add to your workspace."]
-                                </MudText>
-                                <MudText Typo="Typo.h3" Class="mb-2">
-                                    @Localizer["Tool catalog"]
-                                </MudText>
-                                <MudStack Spacing="2" Class="mb-2" Style="flex-shrink: 0" id=@CatalogId>
-                                    @foreach (var tool in _toolCatalog.Where(t => _transactions.All(tr => tr.Tool != t)))
+                            </MudStack>
+                            <MudText Class="mb-4" Style="font-style: italic">
+                                @Localizer["Certain tools have dependencies. As you add tools, they will automatically add their dependencies to your request. Clicking on the name of a tool will show more information about the tool."]
+                            </MudText>
+                            @if (_workspace.Resources.Any())
+                            {
+                                <MudStack Row>
+                                    <MudText Typo="Typo.h3" Class="mb-2">
+                                        @Localizer["Tools in workspace"]
+                                    </MudText>
+                                </MudStack>
+                                <MudStack Spacing="2" Class="mb-2" id=@ExistingId>
+                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove).All(tr => tr.Tool != t.Name)))
                                     {
+                                        var tool = template.Name;
                                         <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
-                                                     ToolCategory="@ToolCategory(tool)"
-                                                     ShowDetails="@(_ => ShowInfoSheet(tool, ElementId([CatalogId, tool])))"
-                                                     ToolId=@ElementId([CatalogId, tool])>
-                                            @switch (_toolAvailabilityStatusMap[tool])
+                                                        ToolCategory="@ToolCategory(tool)"
+                                                        ShowDetails="@(_ => ShowInfoSheet(tool, ElementId([ExistingId, tool])))"
+                                                        ToolId=@ElementId([ExistingId, tool])>
+                                            @switch (template.Status)
                                             {
-                                                case AvailabilityStatus.Available:
-                                                    <DHButton OnClick="@(_ => AddTool(tool))"
-                                                              EndIcon="@Icons.Material.Outlined.Add"
-                                                              DisableRipple
-                                                              Disabled="@(_disableActiveRequest || _disableOverBudget)"
-                                                              HtmlTag="button"
-                                                              Variant="Variant.Filled" Color="Color.Primary"
-                                                              id=@ElementId([CatalogId, tool, AddButtonId])>
-                                                        @Localizer["Add"]
+                                                case TerraformStatus.Completed:
+
+                                                    var configurable = _configurableToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
+                                                    var deletable = !_permanentToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
+
+                                                    <DHButton EndIcon="@SidebarIcons.Gear"
+                                                                Variant="Variant.Filled" Color="Color.Default"
+                                                                DisableRipple
+                                                                OnClick="@(_ => UpdateTool(tool))"
+                                                                Disabled="@(!configurable)"
+                                                                HtmlTag="button"
+                                                                title="@(configurable ? "" : Localizer["This tool cannot be configured currently."])"
+                                                                id=@ElementId([ExistingId, tool, ConfigureButtonId])>
+                                                        @Localizer["Configure"]
+                                                    </DHButton>
+                                                    <DHButton EndIcon="@Icons.Material.Outlined.Delete"
+                                                                Variant="Variant.Filled" Color="Color.Primary"
+                                                                DisableRipple
+                                                                OnClick="@(_ => RemoveTool(tool))"
+                                                                Disabled="@(!deletable)"
+                                                                HtmlTag="button"
+                                                                title="@(!deletable ? Localizer["This tool cannot be removed currently."] : "")"
+                                                                id=@ElementId([ExistingId, tool, RemoveButtonId])>
+                                                        @Localizer["Remove"]
                                                     </DHButton>
                                                     break;
-                                                case AvailabilityStatus.Disabled:
-                                                    <MudText Style="font-style: italic">
-                                                        @Localizer["Disabled"]
+                                                case TerraformStatus.InProgress:
+                                                case TerraformStatus.CreateRequested:
+                                                    <MudText Style="font-style: italic"
+                                                                id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
+                                                        @Localizer["In Progress"]
                                                     </MudText>
                                                     break;
-                                                case AvailabilityStatus.UnderDevelopment:
-                                                    <MudText Style="font-style: italic">
-                                                        @Localizer["Under Development"]
+                                                case TerraformStatus.Failed:
+                                                    <MudText Style="font-style: italic"
+                                                                id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
+                                                        @Localizer["Failed"]
+                                                    </MudText>
+                                                    break;
+                                                case TerraformStatus.DeleteInProgress:
+                                                case TerraformStatus.DeleteRequested:
+                                                    <MudText Style="font-style: italic"
+                                                                id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
+                                                        @Localizer["Deleting..."]
                                                     </MudText>
                                                     break;
                                             }
                                         </ToolboxItem>
                                     }
                                 </MudStack>
-                                <MudText Class="mb-4" Style="font-style: italic">
-                                    @Localizer["Certain tools have dependencies. As you add tools, they will automatically add their dependencies to your request. Clicking on the name of a tool will show more information about the tool."]
+                                <MudText Style="font-style: italic">
+                                    @Localizer["Some tools may not be configurable or removable through the toolbox just yet. For more information, please submit a support request. Clicking on the name of a tool will show more information about the tool."]
                                 </MudText>
-                                @if (_workspace.Resources.Any())
-                                {
-                                    <MudStack Row>
-                                        <MudText Typo="Typo.h3" Class="mb-2">
-                                            @Localizer["Tools in workspace"]
-                                        </MudText>
-                                    </MudStack>
-                                    <MudStack Spacing="2" Class="mb-2" id=@ExistingId>
-                                        @foreach (var template in _workspaceDefinition.Templates.Where(t => _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove).All(tr => tr.Tool != t.Name)))
-                                        {
-                                            var tool = template.Name;
-                                            <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
-                                                         ToolCategory="@ToolCategory(tool)"
-                                                         ShowDetails="@(_ => ShowInfoSheet(tool, ElementId([ExistingId, tool])))"
-                                                         ToolId=@ElementId([ExistingId, tool])>
-                                                @switch (template.Status)
-                                                {
-                                                    case TerraformStatus.Completed:
-
-                                                        var configurable = _configurableToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
-                                                        var deletable = !_permanentToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
-
-                                                        <DHButton EndIcon="@SidebarIcons.Gear"
-                                                                  Variant="Variant.Filled" Color="Color.Default"
-                                                                  DisableRipple
-                                                                  OnClick="@(_ => UpdateTool(tool))"
-                                                                  Disabled="@(!configurable)"
-                                                                  HtmlTag="button"
-                                                                  title="@(configurable ? "" : Localizer["This tool cannot be configured currently."])"
-                                                                  id=@ElementId([ExistingId, tool, ConfigureButtonId])>
-                                                            @Localizer["Configure"]
-                                                        </DHButton>
-                                                        <DHButton EndIcon="@Icons.Material.Outlined.Delete"
-                                                                  Variant="Variant.Filled" Color="Color.Primary"
-                                                                  DisableRipple
-                                                                  OnClick="@(_ => RemoveTool(tool))"
-                                                                  Disabled="@(!deletable)"
-                                                                  HtmlTag="button"
-                                                                  title="@(!deletable ? Localizer["This tool cannot be removed currently."] : "")"
-                                                                  id=@ElementId([ExistingId, tool, RemoveButtonId])>
-                                                            @Localizer["Remove"]
-                                                        </DHButton>
-                                                        break;
-                                                    case TerraformStatus.InProgress:
-                                                    case TerraformStatus.CreateRequested:
-                                                        <MudText Style="font-style: italic"
-                                                                 id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
-                                                            @Localizer["In Progress"]
-                                                        </MudText>
-                                                        break;
-                                                    case TerraformStatus.Failed:
-                                                        <MudText Style="font-style: italic"
-                                                                 id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
-                                                            @Localizer["Failed"]
-                                                        </MudText>
-                                                        break;
-                                                    case TerraformStatus.DeleteInProgress:
-                                                    case TerraformStatus.DeleteRequested:
-                                                        <MudText Style="font-style: italic"
-                                                                 id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
-                                                            @Localizer["Deleting..."]
-                                                        </MudText>
-                                                        break;
-                                                }
-                                            </ToolboxItem>
-                                        }
-                                    </MudStack>
-                                    <MudText Style="font-style: italic">
-                                        @Localizer["Some tools may not be configurable or removable through the toolbox just yet. For more information, please submit a support request. Clicking on the name of a tool will show more information about the tool."]
-                                    </MudText>
-                                }
-                            </MudStep>
-                            <MudStep Title=@Localizer["Configure"]
-                                     Disabled="@(!_transactions.Any(IsConfigurable))">
-                                <MudText Typo="Typo.h2" Class="mb-2">
-                                    @Localizer["Configure the tools you have added to your workspace"]
-                                </MudText>
-                                <MudText Class="mb-4">
-                                    @Localizer["You can configure the tools you have added to your workspace here."]
-                                </MudText>
-                                <MudStack Spacing="4">
-                                    @foreach (var transaction in _transactions.Where(IsConfigurable))
-                                    {
-                                        <MudPaper Elevation="0" Outlined Class="py-4 px-8"
-                                                  Style=@ConfigurationFormStyle>
-                                            <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
-                                                <DHIcon Icon="@ToolIcon(transaction.Tool)"/>
-                                                <MudText Typo="Typo.h3">
-                                                    @ToolLabel(transaction.Tool) configuration
-                                                </MudText>
-                                            </MudStack>
-                                            <MudStack Spacing="2" id=@ConfigurationFormsId>
-                                                @switch (transaction.Tool)
-                                                {
-                                                    case TerraformTemplate.AzurePostgres:
-                                                        <PostgresConfigurationForm
-                                                            Configuration="@(transaction.UpdatedData!)"/>
-                                                        break;
-                                                    case TerraformTemplate.AzureDatabricks:
-                                                        <DatabricksConfigurationForm
-                                                            Configuration="@(transaction.UpdatedData!)"/>
-                                                        break;
-                                                    default:
-                                                        <MudText Style="font-style: italic">
-                                                            @Localizer["No configuration available for this tool"]
-                                                        </MudText>
-                                                        break;
-                                                }
-                                            </MudStack>
-                                        </MudPaper>
-                                    }
-                                </MudStack>
-                            </MudStep>
-                            <MudStep Title=@Localizer["Review"]
-                                     Disabled="@(!_transactions.Any())"
-                                     @bind-Completed="@_completed">
-                                <MudStack>
-                                    <MudText Typo="Typo.h2">
-                                        @Localizer["Review the tools you have selected to add, remove or configure in your workspace"]
-                                    </MudText>
-                                    <MudText>
-                                        @Localizer["Make sure that the following information is correct before submitting your request. Tool requests cannot be cancelled and may take some time to process."]
-                                    </MudText>
-                                    <MudTable Outlined Striped Dense T="ToolboxTransaction" Items="_transactions"
-                                              id=@ReviewTableId>
-                                        <HeaderContent>
-                                            <MudTh>
-                                                <strong>
-                                                    @Localizer["Action"]
-                                                </strong>
-                                            </MudTh>
-                                            <MudTh>
-                                                <strong>
-                                                    @Localizer["Tool"]
-                                                </strong>
-                                            </MudTh>
-                                            <MudTh>
-                                                <strong>
-                                                    @Localizer["Configuration"]
-                                                </strong>
-                                            </MudTh>
-                                            <MudTh>
-                                                <strong>
-                                                    @Localizer["Cost summary"]
-                                                </strong>
-                                            </MudTh>
-                                        </HeaderContent>
-                                        <RowTemplate>
-                                            <MudTd>
-                                                @switch (context.Type)
-                                                {
-                                                    case ToolboxTransactionType.Add:
-                                                        <MudText id=@ElementId([ReviewActionId, context.Tool])>
-                                                            @Localizer["Add"]
-                                                        </MudText>
-                                                        break;
-                                                    case ToolboxTransactionType.Update:
-                                                        <MudText id=@ElementId([ReviewActionId, context.Tool])>
-                                                            @Localizer["Configure"]
-                                                        </MudText>
-                                                        break;
-                                                    case ToolboxTransactionType.Remove:
-                                                        <MudText id=@ElementId([ReviewActionId, context.Tool])>
-                                                            @Localizer["Remove"]
-                                                        </MudText>
-                                                        break;
-                                                }
-                                            </MudTd>
-                                            <MudTd>
-                                                <DHButton EndIcon="@Icons.Material.Outlined.Info" Underline NoWrap
-                                                          OnClick="@(_ => ShowInfoSheet(context.Tool, ElementId([ReviewTableId, context.Tool])))"
-                                                          DisableRipple
-                                                          HtmlTag="button">
-                                                    @ToolLabel(context.Tool)
-                                                </DHButton>
-                                            </MudTd>
-                                            <MudTd>
-                                                @switch (context.Type)
-                                                {
-                                                    case ToolboxTransactionType.Add:
-                                                    case ToolboxTransactionType.Update:
-                                                        <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
-                                                            @DisplayDiff(context.Diff())
-                                                        </MudText>
-                                                        break;
-                                                    case ToolboxTransactionType.Remove:
-                                                        <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
-                                                            @Localizer["N/A"]
-                                                        </MudText>
-                                                        break;
-                                                }
-                                            </MudTd>
-                                            <MudTd>
-                                                @switch (context.Type)
-                                                {
-                                                    case ToolboxTransactionType.Add:
-                                                    case ToolboxTransactionType.Update:
-                                                        @ToolCostSummary(context)
-                                                        break;
-                                                    case ToolboxTransactionType.Remove:
-                                                        <MudText>
-                                                            @Localizer["N/A"]
-                                                        </MudText>
-                                                        break;
-                                                }
-                                            </MudTd>
-                                        </RowTemplate>
-                                    </MudTable>
-                                    <MudStack Spacing="0">
-                                        <MudText>
-                                            <strong>
-                                                @Localizer["Current cost information"]
-                                            </strong>
-                                        </MudText>
-                                        <MudText>
-                                            @Localizer["{0:C2} spent of {1:C2} budget ({2:F2}%)", _workspaceCosts.Spent, _workspaceCosts.Budget, _workspaceCosts.Spent / _workspaceCosts.Budget * 100]
-                                        </MudText>
-                                        <MudText>
-                                            @Localizer["{0:C2} monthly spend ({1:F2}% of budget)", _workspaceCosts.Monthly, _workspaceCosts.Monthly / _workspaceCosts.Budget * 100]
-                                        </MudText>
-                                    </MudStack>
-                                    <MudText>
-                                        @Localizer["By clicking complete, you are confirming that the information above is correct and that you understand the cost implications of your request."]
-                                    </MudText>
-                                </MudStack>
-                            </MudStep>
-                        </ChildContent>
-                    </MudStepper>
-                    @if (_activeIndex != 2)
-                    {
-                        @* Summary view *@
-                        <MudDivider Vertical DividerType="DividerType.Middle" FlexItem Class="mx-0"/>
-                        <MudStack Class="pa-4" Spacing="0" Style="max-width: 25%">
+                            }
+                        </MudStep>
+                        <MudStep Title=@Localizer["Configure"]
+                                    Disabled="@(!_transactions.Any(IsConfigurable))">
                             <MudText Typo="Typo.h2" Class="mb-2">
-                                @Localizer["Summary"]
+                                @Localizer["Configure the tools you have added to your workspace"]
                             </MudText>
-                            @if (_activeIndex == 0)
-                            {
-                                <MudText Typo="Typo.body1" Class="mb-4"
-                                         Style="font-style: italic; text-wrap: wrap; white-space: wrap">
-                                    @Localizer["Unselecting a tool that is a dependency of another tool will also remove the dependent tool."]
-                                </MudText>
-                            }
-                            else
-                            {
-                                <MudText Typo="Typo.body1" Class="mb-4"
-                                         Style="font-style: italic; text-wrap: wrap; white-space: wrap">
-                                    @Localizer["You can edit your selection in the select step."]
-                                </MudText>
-                            }
-                            @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Add))
-                            {
-                                <MudText Typo="Typo.h3" Class="mb-2">
-                                    @Localizer["Add:"]
-                                </MudText>
-                                <MudStack Spacing="0" Class="mb-4" id=@SummaryAddId>
-                                    @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add))
-                                    {
-                                        <MudStack Row AlignItems="AlignItems.Center"
-                                                  id=@ElementId([SummaryAddId, transaction.Tool])>
-                                            @if (_activeIndex == 0)
-                                            {
-                                                <MudIconButton Icon="@Icons.Material.Outlined.Close"
-                                                               Color="Color.Primary"
-                                                               OnClick="@(_ => RevertTool(transaction))"
-                                                               Size="Size.Small"
-                                                               id=@ElementId([SummaryAddId, transaction.Tool, CancelButtonId])/>
-                                            }
-                                            <MudText>
-                                                @ToolLabel(transaction.Tool)
+                            <MudText Class="mb-4">
+                                @Localizer["You can configure the tools you have added to your workspace here."]
+                            </MudText>
+                            <MudStack Spacing="4">
+                                @foreach (var transaction in _transactions.Where(IsConfigurable))
+                                {
+                                    <MudPaper Elevation="0" Outlined Class="py-4 px-8"
+                                                Style=@ConfigurationFormStyle>
+                                        <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
+                                            <DHIcon Icon="@ToolIcon(transaction.Tool)"/>
+                                            <MudText Typo="Typo.h3">
+                                                @ToolLabel(transaction.Tool) configuration
                                             </MudText>
                                         </MudStack>
-                                    }
-                                </MudStack>
-                            }
-                            @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Update))
-                            {
-                                <MudText Typo="Typo.h3" Class="mb-2">
-                                    @Localizer["Configure:"]
-                                </MudText>
-                                <MudStack Spacing="0" Class="mb-4" id=@SummaryConfigureId>
-                                    @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update))
-                                    {
-                                        <MudStack Row AlignItems="AlignItems.Center"
-                                                  id=@ElementId([SummaryConfigureId, transaction.Tool])>
-                                            @if (_activeIndex == 0)
+                                        <MudStack Spacing="2" id=@ConfigurationFormsId>
+                                            @switch (transaction.Tool)
                                             {
-                                                <MudIconButton Icon="@Icons.Material.Outlined.Close"
-                                                               Color="Color.Primary"
-                                                               OnClick="@(_ => RevertTool(transaction))"
-                                                               Size="Size.Small"
-                                                               id=@ElementId([SummaryConfigureId, transaction.Tool, CancelButtonId])/>
+                                                case TerraformTemplate.AzurePostgres:
+                                                    <PostgresConfigurationForm
+                                                        Configuration="@(transaction.UpdatedData!)"/>
+                                                    break;
+                                                case TerraformTemplate.AzureDatabricks:
+                                                    <DatabricksConfigurationForm
+                                                        Configuration="@(transaction.UpdatedData!)"/>
+                                                    break;
+                                                default:
+                                                    <MudText Style="font-style: italic">
+                                                        @Localizer["No configuration available for this tool"]
+                                                    </MudText>
+                                                    break;
                                             }
-                                            <MudText>
-                                                @ToolLabel(transaction.Tool)
-                                            </MudText>
                                         </MudStack>
-                                    }
-                                </MudStack>
-                            }
-                            @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Remove))
-                            {
-                                <MudText Typo="Typo.h3" Class="mb-2">
-                                    @Localizer["Remove:"]
+                                    </MudPaper>
+                                }
+                            </MudStack>
+                        </MudStep>
+                        <MudStep Title=@Localizer["Review"]
+                                    Disabled="@(!_transactions.Any())"
+                                    @bind-Completed="@_completed">
+                            <MudStack>
+                                <MudText Typo="Typo.h2">
+                                    @Localizer["Review the tools you have selected to add, remove or configure in your workspace"]
                                 </MudText>
-                                <MudStack Spacing="0" Class="mb-4" id=@SummaryRemoveId>
-                                    @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove))
-                                    {
-                                        <MudStack Row AlignItems="AlignItems.Center"
-                                                  id=@ElementId([SummaryRemoveId, transaction.Tool])>
-                                            @if (_activeIndex == 0)
+                                <MudText>
+                                    @Localizer["Make sure that the following information is correct before submitting your request. Tool requests cannot be cancelled and may take some time to process."]
+                                </MudText>
+                                <MudTable Outlined Striped Dense T="ToolboxTransaction" Items="_transactions"
+                                            id=@ReviewTableId>
+                                    <HeaderContent>
+                                        <MudTh>
+                                            <strong>
+                                                @Localizer["Action"]
+                                            </strong>
+                                        </MudTh>
+                                        <MudTh>
+                                            <strong>
+                                                @Localizer["Tool"]
+                                            </strong>
+                                        </MudTh>
+                                        <MudTh>
+                                            <strong>
+                                                @Localizer["Configuration"]
+                                            </strong>
+                                        </MudTh>
+                                        <MudTh>
+                                            <strong>
+                                                @Localizer["Cost summary"]
+                                            </strong>
+                                        </MudTh>
+                                    </HeaderContent>
+                                    <RowTemplate>
+                                        <MudTd>
+                                            @switch (context.Type)
                                             {
-                                                <MudIconButton Icon="@Icons.Material.Outlined.Close"
-                                                               Color="Color.Primary"
-                                                               OnClick="@(_ => RevertTool(transaction))"
-                                                               Size="Size.Small"
-                                                               id=@ElementId([SummaryRemoveId, transaction.Tool, CancelButtonId])/>
+                                                case ToolboxTransactionType.Add:
+                                                    <MudText id=@ElementId([ReviewActionId, context.Tool])>
+                                                        @Localizer["Add"]
+                                                    </MudText>
+                                                    break;
+                                                case ToolboxTransactionType.Update:
+                                                    <MudText id=@ElementId([ReviewActionId, context.Tool])>
+                                                        @Localizer["Configure"]
+                                                    </MudText>
+                                                    break;
+                                                case ToolboxTransactionType.Remove:
+                                                    <MudText id=@ElementId([ReviewActionId, context.Tool])>
+                                                        @Localizer["Remove"]
+                                                    </MudText>
+                                                    break;
                                             }
-                                            <MudText>
-                                                @ToolLabel(transaction.Tool)
-                                            </MudText>
-                                        </MudStack>
-                                    }
+                                        </MudTd>
+                                        <MudTd>
+                                            <DHButton EndIcon="@Icons.Material.Outlined.Info" Underline NoWrap
+                                                        OnClick="@(_ => ShowInfoSheet(context.Tool, ElementId([ReviewTableId, context.Tool])))"
+                                                        DisableRipple
+                                                        HtmlTag="button">
+                                                @ToolLabel(context.Tool)
+                                            </DHButton>
+                                        </MudTd>
+                                        <MudTd>
+                                            @switch (context.Type)
+                                            {
+                                                case ToolboxTransactionType.Add:
+                                                case ToolboxTransactionType.Update:
+                                                    <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
+                                                        @DisplayDiff(context.Diff())
+                                                    </MudText>
+                                                    break;
+                                                case ToolboxTransactionType.Remove:
+                                                    <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
+                                                        @Localizer["N/A"]
+                                                    </MudText>
+                                                    break;
+                                            }
+                                        </MudTd>
+                                        <MudTd>
+                                            @switch (context.Type)
+                                            {
+                                                case ToolboxTransactionType.Add:
+                                                case ToolboxTransactionType.Update:
+                                                    @ToolCostSummary(context)
+                                                    break;
+                                                case ToolboxTransactionType.Remove:
+                                                    <MudText>
+                                                        @Localizer["N/A"]
+                                                    </MudText>
+                                                    break;
+                                            }
+                                        </MudTd>
+                                    </RowTemplate>
+                                </MudTable>
+                                <MudStack Spacing="0">
+                                    <MudText>
+                                        <strong>
+                                            @Localizer["Current cost information"]
+                                        </strong>
+                                    </MudText>
+                                    <MudText>
+                                        @Localizer["{0:C2} spent of {1:C2} budget ({2:F2}%)", _workspaceCosts.Spent, _workspaceCosts.Budget, _workspaceCosts.Spent / _workspaceCosts.Budget * 100]
+                                    </MudText>
+                                    <MudText>
+                                        @Localizer["{0:C2} monthly spend ({1:F2}% of budget)", _workspaceCosts.Monthly, _workspaceCosts.Monthly / _workspaceCosts.Budget * 100]
+                                    </MudText>
                                 </MudStack>
-                            }
-                            <MudSpacer/>
-                            <MudText>
-                                <strong>
-                                    @Localizer["Current cost information"]
-                                </strong>
+                                <MudText>
+                                    @Localizer["By clicking complete, you are confirming that the information above is correct and that you understand the cost implications of your request."]
+                                </MudText>
+                            </MudStack>
+                        </MudStep>
+                    </ChildContent>
+                </MudStepper>
+                @if (_activeIndex != 2)
+                {
+                    @* Summary view *@
+                    <MudDivider Vertical DividerType="DividerType.Middle" FlexItem Class="mx-0"/>
+                    <MudStack Class="pa-4" Spacing="0" Style="max-width: 25%">
+                        <MudText Typo="Typo.h2" Class="mb-2">
+                            @Localizer["Summary"]
+                        </MudText>
+                        @if (_activeIndex == 0)
+                        {
+                            <MudText Typo="Typo.body1" Class="mb-4"
+                                        Style="font-style: italic; text-wrap: wrap; white-space: wrap">
+                                @Localizer["Unselecting a tool that is a dependency of another tool will also remove the dependent tool."]
                             </MudText>
-                            <MudText>
-                                @Localizer["{0:C2} spent of {1:C2} budget ({2:F2}%)", _workspaceCosts.Spent, _workspaceCosts.Budget, _workspaceCosts.Spent / _workspaceCosts.Budget * 100]
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.body1" Class="mb-4"
+                                        Style="font-style: italic; text-wrap: wrap; white-space: wrap">
+                                @Localizer["You can edit your selection in the select step."]
                             </MudText>
-                            <MudText>
-                                @Localizer["{0:C2} monthly spend ({1:F2}% of budget)", _workspaceCosts.Monthly, _workspaceCosts.Monthly / _workspaceCosts.Budget * 100]
+                        }
+                        @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Add))
+                        {
+                            <MudText Typo="Typo.h3" Class="mb-2">
+                                @Localizer["Add:"]
                             </MudText>
-                        </MudStack>
-                    }
-                </MudStack>
-            }
-            else
-            {
-                @* Missing metadata *@
-                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Style="min-height:100px"
-                          id=@MetadataWarningId>
-                    <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined"
-                              Style="color: #000">
-                        @Localizer["Looks like you haven't added metadata to your workspace yet. Please add metadata to your workspace to be able to request tools."]
-                        <MudLink Href="@MetadataUrl">@Localizer["Go to metadata page"]</MudLink>
-                    </MudAlert>
-                </MudStack>
-            }
+                            <MudStack Spacing="0" Class="mb-4" id=@SummaryAddId>
+                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add))
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center"
+                                                id=@ElementId([SummaryAddId, transaction.Tool])>
+                                        @if (_activeIndex == 0)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                            Color="Color.Primary"
+                                                            OnClick="@(_ => RevertTool(transaction))"
+                                                            Size="Size.Small"
+                                                            id=@ElementId([SummaryAddId, transaction.Tool, CancelButtonId])/>
+                                        }
+                                        <MudText>
+                                            @ToolLabel(transaction.Tool)
+                                        </MudText>
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+                        @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Update))
+                        {
+                            <MudText Typo="Typo.h3" Class="mb-2">
+                                @Localizer["Configure:"]
+                            </MudText>
+                            <MudStack Spacing="0" Class="mb-4" id=@SummaryConfigureId>
+                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update))
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center"
+                                                id=@ElementId([SummaryConfigureId, transaction.Tool])>
+                                        @if (_activeIndex == 0)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                            Color="Color.Primary"
+                                                            OnClick="@(_ => RevertTool(transaction))"
+                                                            Size="Size.Small"
+                                                            id=@ElementId([SummaryConfigureId, transaction.Tool, CancelButtonId])/>
+                                        }
+                                        <MudText>
+                                            @ToolLabel(transaction.Tool)
+                                        </MudText>
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+                        @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Remove))
+                        {
+                            <MudText Typo="Typo.h3" Class="mb-2">
+                                @Localizer["Remove:"]
+                            </MudText>
+                            <MudStack Spacing="0" Class="mb-4" id=@SummaryRemoveId>
+                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove))
+                                {
+                                    <MudStack Row AlignItems="AlignItems.Center"
+                                                id=@ElementId([SummaryRemoveId, transaction.Tool])>
+                                        @if (_activeIndex == 0)
+                                        {
+                                            <MudIconButton Icon="@Icons.Material.Outlined.Close"
+                                                            Color="Color.Primary"
+                                                            OnClick="@(_ => RevertTool(transaction))"
+                                                            Size="Size.Small"
+                                                            id=@ElementId([SummaryRemoveId, transaction.Tool, CancelButtonId])/>
+                                        }
+                                        <MudText>
+                                            @ToolLabel(transaction.Tool)
+                                        </MudText>
+                                    </MudStack>
+                                }
+                            </MudStack>
+                        }
+                        <MudSpacer/>
+                        <MudText>
+                            <strong>
+                                @Localizer["Current cost information"]
+                            </strong>
+                        </MudText>
+                        <MudText>
+                            @Localizer["{0:C2} spent of {1:C2} budget ({2:F2}%)", _workspaceCosts.Spent, _workspaceCosts.Budget, _workspaceCosts.Spent / _workspaceCosts.Budget * 100]
+                        </MudText>
+                        <MudText>
+                            @Localizer["{0:C2} monthly spend ({1:F2}% of budget)", _workspaceCosts.Monthly, _workspaceCosts.Monthly / _workspaceCosts.Budget * 100]
+                        </MudText>
+                    </MudStack>
+                }
+            </MudStack>
         }
     </MudPaper>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
@@ -646,7 +631,6 @@
     private readonly List<string> _toolCatalog = [];
     private readonly List<string> _adminEventLogs = [];
 
-    private bool _metadataRequired = true;
     private bool _initializing = true;
     private bool _showAdminView;
     private bool _redirectOnCompletion = true;
@@ -727,7 +711,6 @@
         _disableSubmissions = DatahubPortalConfiguration.ToolboxConfig.DisableSubmissions;
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
 
-        _metadataRequired = _workspace.MetadataAdded != true;
         PopulateCatalog();
         Log("Beginning transaction");
         _transactions = ToolboxService.BeginTransaction();

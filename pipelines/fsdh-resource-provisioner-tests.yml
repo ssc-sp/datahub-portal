@@ -1,4 +1,11 @@
 steps:
+  - task: UseDotNet@2
+    displayName: 'Use .NET Core sdk 9.0.x'
+    inputs:
+      version: 9.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+
   # Step 1: Run gen-all-settings.ps1 using AzurePowerShell task
   - task: AzurePowerShell@5
     displayName: 'Run gen-all-settings.ps1 to configure environment variables'
@@ -8,13 +15,6 @@ steps:
       ScriptPath: './gen-all-settings.ps1'  # Path to your script
       ScriptArguments: '-Environment dev'  
       azurePowerShellVersion: 'LatestVersion'  
-
-  - task: UseDotNet@2
-    displayName: 'Use .NET Core sdk 8.0.x'
-    inputs:
-      version: 8.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
 
   - task: DotNetCoreCLI@2
     displayName: 'Resource Provisioner Application Integration Tests'

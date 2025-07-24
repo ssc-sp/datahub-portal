@@ -1,0 +1,177 @@
+﻿@*WorkspaceObjectMetadata.razor *@
+
+@using Microsoft.AspNetCore.Components
+@using Datahub.Core.Model.Onboarding
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Services.CatalogSearch;
+@using Datahub.Metadata.DTO
+@using Datahub.Metadata.Model
+@using Datahub.Core
+@using Datahub.Metadata.Utils
+@using MudBlazor
+
+@inject NavigationManager NavigationManager
+@inject ILogger<ProjectObjectMetadata> Logger
+@inject ISnackbar _snackbar
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+
+@if (!_loaded)
+{
+    <div>Loading...</div>
+}
+else if (_workspace is not null)
+{
+    <div class="workspace-metadata">
+        <MudTextField Label="@Localizer["Workspace Name"]"
+                      Value="@_workspace.WorkspaceName"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["WorkspaceName_Description"]" />
+        <MudTextField Label="@Localizer["Description"]"
+                      Value="@_workspace.WorkspaceDescription"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["WorkspaceDescription_Description"]" />
+        <MudTextField Label="@Localizer["Subject"]"
+                      Value="@_workspace.Subject"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["Subject_Description"]" />
+        <MudTextField Label="@Localizer["Keywords"]"
+                      Value="@_workspace.Keywords"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["Keywords_Description"]" />
+
+        <h4>@Localizer["Lead Info"]</h4>
+        <MudTextField Label="@Localizer["Lead Name"]"
+                      Value="@($"{_workspace.LeadFirstName} {_workspace.LeadLastName}")"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["LeadName_Description"]" />
+        <MudTextField Label="@Localizer["Lead Email"]"
+                      Value="@_workspace.LeadEmail"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["LeadEmail_Description"]" />
+
+        <h4>@Localizer["Financial Authority"]</h4>
+        <MudTextField Label="@Localizer["Name"]"
+                      Value="@($"{_workspace.FinancialAuthorityFirstName} {_workspace.FinancialAuthorityLastName}")"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["FinancialAuthorityName_Description"]" />
+        <MudTextField Label="@Localizer["Email"]"
+                      Value="@_workspace.FinancialAuthorityEmail"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["FinancialAuthorityEmail_Description"]" />
+        <MudTextField Label="@Localizer["Commitment ISRef"]"
+                      Value="@_workspace.FinancialAuthorityCommitmentIsRef"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["CommitmentISRef_Description"]" />
+        <MudTextField Label="@Localizer["Commitment ISOrg"]"
+                      Value="@_workspace.FinancialAuthorityCommitmentIsOrg"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["CommitmentISOrg_Description"]" />
+
+        <h4>@Localizer["Budget & Retention"]</h4>
+        <MudTextField Label="@Localizer["Budget"]"
+                      Value="@_workspace.WorkspaceBudget"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["WorkspaceBudget_Description"]" />
+        <MudTextField Label="@Localizer["Retention Period"]"
+                      Value="@_workspace.RetentionPeriodYears.ToString()"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["RetentionPeriod_Description"]" />
+        <MudTextField Label="@Localizer["Retention Start Date"]"
+                      Value="@_workspace.RetentionPeriodStartDate.ToShortDateString()"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["RetentionStartDate_Description"]" />
+        <MudTextField Label="@Localizer["Retention Value"]"
+                      Value="@_workspace.RetentionValue"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["RetentionValue_Description"]" />
+
+        <h4>@Localizer["Security"]</h4>
+        <MudTextField Label="@Localizer["Security Classification"]"
+                      Value="@_workspace.SecurityClassification"
+                      ReadOnly="true"
+                      Disabled="false"
+                      Variant="Variant.Outlined"
+                      HelperText="@Localizer["SecurityClassification_Description"]" />
+    </div>
+
+}
+else
+{
+    <div>@_message</div>
+}
+
+@code {
+    [Parameter]
+    public string ProjectAcronym { get; set; }
+
+    private GCHostingWorkspaceDetails _workspace;
+    private string _message;
+
+    private bool _loaded = false;
+    protected override async Task OnParametersSetAsync()
+    {
+        _loaded = false;
+        _workspace = null;
+        _message = Localizer["WorkspaceNoMetadata"]; 
+
+        if (string.IsNullOrWhiteSpace(ProjectAcronym))
+        {
+            _loaded = true;
+            return;
+        }
+
+        try
+        {
+            using var context = await ContextFactory.CreateDbContextAsync();
+
+            var project = await context.Projects.Include(p => p.Resources)
+                .AsSingleQuery()
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == ProjectAcronym);
+
+            if (project is not null && project.ParentGCHostingBudgetId.HasValue)
+            { 
+                _workspace = await context.GCHostingWorkspaceDetails
+                    .AsNoTracking()
+                    .Include(b => b.WorkspacesInBudget)
+                    .FirstOrDefaultAsync(b => b.Id == project.ParentGCHostingBudgetId); 
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Error loading workspace metadata."); 
+            _workspace = null;
+            Console.WriteLine("Exception: " + ex);
+        }
+        _loaded = true;
+        StateHasChanged(); 
+    }
+
+}
