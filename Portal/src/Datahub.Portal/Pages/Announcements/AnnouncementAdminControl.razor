@@ -1,4 +1,8 @@
 @using Datahub.Core.Model.Announcements
+@using Datahub.Application.Services.Announcements
+
+@inject IAnnouncementService AnnouncementService
+@inject ISnackbar _snackbar 
 
 <MudStack Spacing="0">
     <MudText Typo="Typo.body2" Color="@GetColor()">
@@ -29,9 +33,12 @@
     }
 
     <MudDivider Class="my-2"/>
-    <MudStack Row Class="mb-16">
+    <MudStack Row Class="mb-2">
         <DHButton Variant="Variant.Text" EndIcon="@Icons.Material.Outlined.Edit" Href="@($"/announcements/edit/{Announcement.Id}")">
             @Localizer["Edit Announcement"]
+        </DHButton>
+        <DHButton Variant="Variant.Text" EndIcon="@Icons.Material.Outlined.Delete" OnClick="DeleteAnnouncement">
+            @Localizer["Delete Announcement"]
         </DHButton>
     </MudStack>
 </MudStack>
@@ -40,6 +47,9 @@
 
     [Parameter]
     public Announcement Announcement { get; set; }
+
+    [Parameter]
+    public EventCallback OnAnnouncementDeleted { get; set; }
 
     private Color GetColor()
     {
@@ -56,4 +66,18 @@
         return Color.Default;
     }
 
+    private async Task DeleteAnnouncement()
+    {
+        var result = await AnnouncementService.DeleteAnnouncementAsync(Announcement.Id);
+
+        if (result)
+        {
+            _snackbar.Add(Localizer["Article deleted"], Severity.Success); 
+            await OnAnnouncementDeleted.InvokeAsync();
+        }
+        else
+        {
+            _snackbar.Add(Localizer["Failed to delete article"], Severity.Error);
+        }
+    }
 }
