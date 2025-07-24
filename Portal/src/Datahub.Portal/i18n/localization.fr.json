@@ -3419,5 +3419,9 @@
   "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre la Plateforme fédérale de données scientifiques.",
   "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
   "Account Setup": "Configuration du compte",
-  " instructions.":  "."
+  " instructions.": ".",
+  "To learn more about the FSDH, visit our ": "Pour en savoir plus sur la PFDS, visitez notre site ",
+  "GCxchange": "GCÉchange",
+  " site (only available within the GC network).": "(disponible uniquement dans le réseau du GC).",
+  "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160/SitePages/fr/Home.aspx"
 }
