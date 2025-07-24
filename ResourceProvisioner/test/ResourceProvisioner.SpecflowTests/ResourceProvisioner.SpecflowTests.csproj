@@ -12,7 +12,7 @@
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
         <PackageReference Include="NSubstitute" Version="5.3.*" />
         <PackageReference Include="Reqnroll" Version="2.4.*" />
-        <PackageReference Include="Reqnroll.xUnit" Version="2.4.*" />
+        <PackageReference Include="Reqnroll.xUnit" Version="2.4.*" />        
         <PackageReference Include="xunit" Version="2.9.*" />
         <PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
             <PrivateAssets>all</PrivateAssets>
@@ -31,6 +31,9 @@
         <None Update="appsettings.test.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="xunit.runner.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
     </ItemGroup>
 
     <ItemGroup>
@@ -38,6 +41,12 @@
     </ItemGroup>
 
 </Project>
+
+
+
+
+
+
 
 
 

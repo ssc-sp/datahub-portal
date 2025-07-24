@@ -1,6 +1,3 @@
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Shared;
@@ -8,10 +5,15 @@ using Datahub.Shared.Entities;
 using Reqnroll;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Functions;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Xunit;
 
 namespace ResourceProvisioner.SpecflowTests.Steps;
 
 [Binding]
+[Collection("RepositoryAccess")]
 public sealed class ResourceRunRequestSteps(
     ResourceRunRequest resourceRunRequest,
     ScenarioContext scenarioContext)

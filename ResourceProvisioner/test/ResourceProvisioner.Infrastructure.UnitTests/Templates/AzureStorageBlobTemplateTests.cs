@@ -6,12 +6,15 @@ using Datahub.Shared.Enums;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
 using static Testing;
 
-public class AzureStorageBlobTemplateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class AzureStorageBlobTemplateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()
