@@ -2487,9 +2487,8 @@
   "locked-lt": "verrouille",
   "/locked-lt": "/verrouille",
   "/register": "/register",
-  "/locked": "/locked"
+  "/locked": "/locked",
 
-  " instructions.": " instructions.",
   "To learn more about the FSDH, visit our ": "To learn more about the FSDH, visit our ",
   "GCxchange": "GCXchange",
   " site (only available within the GC network).": " site (only available within the GC network).",
