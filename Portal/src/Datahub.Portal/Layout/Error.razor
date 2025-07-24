@@ -128,7 +128,8 @@
                 Resolution: "",
                 LocalStorage: localStorageData,
                 BugReportType: BugReportTypes.SystemError,
-                Description: description
+                Description: description,
+                CorrelationId: CorrelationId
             );
 
             await _mediator.Send(bugReport);

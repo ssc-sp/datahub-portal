@@ -27,6 +27,7 @@
 		<PackageReference Include="Azure.ResourceManager.Storage" Version="1.4.*" />
 		<PackageReference Include="Blazor-ApexCharts" Version="3.4.0" />
 		<PackageReference Include="DocumentFormat.OpenXml" Version="3.3.*" />
+		<PackageReference Include="Blazored.SessionStorage" Version="2.4.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="9.0.*" />
 		<PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" Version="9.0.*" />
 		<PackageReference Include="Microsoft.Azure.Management.Fluent" Version="1.38.1" />
