@@ -2,6 +2,7 @@ using AspNetCore.Localizer.Json.Extensions;
 using AspNetCore.Localizer.Json.JsonOptions;
 using BlazorDownloadFile;
 using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Datahub.Application;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
@@ -169,6 +170,7 @@ public class Startup
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
         services.AddBlazoredLocalStorage();
+        services.AddBlazoredSessionStorage();
         services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
         services.AddScoped<GetDimensionsService>();
@@ -346,9 +348,8 @@ public class Startup
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
             options.ResourcesPath = "i18n";
-            options.UseBaseName = false;
-            options.IsAbsolutePath = true;
             options.LocalizationMode = LocalizationMode.I18n;
+            options.UseEmbeddedResources = false;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
@@ -395,6 +396,7 @@ public class Startup
             services.AddScoped<UpdateProjectMonthlyCostService>();
             services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
             services.AddScoped<IProjectDeletionService, ProjectDeletionService>();
+            services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
             
@@ -458,6 +460,12 @@ public class Startup
 
         services.AddScoped<CustomNavigation>();
 
+        services.AddScoped<IDownloadService, DownloadService>();
+        services.AddScoped<ICsvService, CsvService>();
+
+        services.AddTransient<CorrelationIdHandler>();
+        services.AddHttpClient<ExternalSearchService>()
+            .AddHttpMessageHandler<CorrelationIdHandler>();
     }
 
     private void ConfigureDbContexts(IServiceCollection services)
@@ -479,5 +487,26 @@ public class Startup
         where TGen : DbContext where Tsql : DbContext where Tsqlite : DbContext
     {
         services.ConfigureDbContext<TGen, Tsql, Tsqlite>(Configuration, connectionStringName, dbDriver);
+    }
+    public class CorrelationIdHandler : DelegatingHandler
+    {
+        private readonly ISessionStorageService _sessionStorage;
+
+        public CorrelationIdHandler(ISessionStorageService sessionStorage)
+        {
+            _sessionStorage = sessionStorage;
+        }
+
+
+        protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            var correlationId = await _sessionStorage.GetItemAsStringAsync("correlationId");
+
+            if (!string.IsNullOrEmpty(correlationId))
+            {
+                request.Headers.Add("X-Correlation-ID", correlationId);
+            }
+            return await base.SendAsync(request, cancellationToken);
+        }
     }
 }

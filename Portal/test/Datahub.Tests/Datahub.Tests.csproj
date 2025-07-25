@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net8.0</TargetFramework>
+		<TargetFramework>net9.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -31,20 +31,21 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="bunit" Version="1.28.9" />
+		<PackageReference Include="bunit" Version="1.40.*" />
 		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.6" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
-		<PackageReference Include="Moq" Version="4.20.70" />
-		<PackageReference Include="Neovolve.Logging.Xunit" Version="6.0.0" />
-		<PackageReference Include="NSubstitute" Version="5.1.0" />
-		<PackageReference Include="Xunit.DependencyInjection" Version="9.3.0" />
-		<PackageReference Include="xunit" Version="2.8.1" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="2.8.1">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.*" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
+		<PackageReference Include="Moq" Version="4.20.*" />
+		<PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.*" />
+		<PackageReference Include="NSubstitute" Version="5.3.*" />
+		<PackageReference Include="Xunit.DependencyInjection" Version="10.6.*" />
+		<PackageReference Include="xunit.v3.assert" Version="3.0.*" />
+		<PackageReference Include="xunit.v3.core" Version="3.0.*" />
+		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="6.0.2">
+		<PackageReference Include="coverlet.collector" Version="6.0.*">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -57,3 +58,12 @@
 		<ProjectReference Include="..\..\utils\SyncDocs\SyncDocs.csproj" />
 	</ItemGroup>
 </Project>
+
+
+
+
+
+
+
+
+

@@ -60,9 +60,6 @@ public static class ConfigureServices
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
             options.ResourcesPath = portalConfiguration.CultureSettings.ResourcesPath;
-            options.AdditionalResourcePaths = portalConfiguration.CultureSettings.AdditionalResourcePaths;
-            options.UseBaseName = false;
-            options.IsAbsolutePath = true;
             options.LocalizationMode = LocalizationMode.I18n;
             options.MissingTranslationLogBehavior = MissingTranslationLogBehavior.Ignore;
             options.FileEncoding = Encoding.GetEncoding("UTF-8");

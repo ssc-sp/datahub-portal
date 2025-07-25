@@ -18,16 +18,5 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-
-        if (ChildContent is not null && Title is not null)
-        {
-            throw new InvalidOperationException($"Do not specify both '{nameof(Title)}' and '{nameof(ChildContent)}'.");
-        }
-
-        if (ChildContent is null && Title is null)
-        {
-            throw new InvalidOperationException($"'{nameof(Title)}' or '{nameof(ChildContent)}' is required");
-        }
     }
-
 }

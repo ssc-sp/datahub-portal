@@ -1,56 +1,75 @@
 @page "/login"
 @page "/connexion"
-@using System.ComponentModel.DataAnnotations
-@using System.Text.RegularExpressions
-@using Datahub.Core.Model.Achievements;
-
+@layout BarebonesPublicLayout
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
-@inject IPortalUserTelemetryService _telemetryService
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
-<EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
-    <MudStack AlignItems="AlignItems.Start" Class="my-8" Style="width: 100%">
-        <MudText Typo="Typo.body1" Class="text-center">
-            <strong>
-                @Localizer["Please login to continue"]:
-            </strong>
+
+<MudContainer MaxWidth=@MaxWidth.Medium>
+    <MudPaper Class="pt-12 px-12 mt-20">
+        <MudStack>
+            <MudGrid>
+                <MudItem xs="11">
+                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                </MudItem>
+                <MudItem xs="1">
+                    <LanguageToggle />
+                </MudItem>
+            </MudGrid>
+            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+        </MudStack>
+        <MudText Typo="Typo.body1" Class="mt-4">
+            @Localizer["To learn more about the FSDH, visit our "]
+            <MudLink Href="@Localizer["https://gcxgce.sharepoint.com/teams/10002160"]" Typo="Typo.body1">@Localizer["GCxchange"]</MudLink>
+            @Localizer[" site (only available within the GC network)."]
         </MudText>
-        <div class="form-group" style="width: 100%">
-            <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined"
-                          @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true"
-                          RequiredError="@Localizer["Email is required"]" FullWidth="true"/>
-        </div>
-        <div class="form-group">
-            <MudCheckBox T="bool"
-                         @bind-Value="loginModel.Agreement"
-                         Required
-                         RequiredError=@Localizer["Agreement with the Terms and conditions is required"]>
-                <MudText Typo="Typo.body1">
-                    @Localizer["I agree to the "]
-                    <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body1" Target="_blank">
-                        @Localizer["Terms and conditions"]
-                    </MudLink>
-                    @Localizer[" of use for FSDH"]
+        <MudText Typo="Typo.body1" Class="mt-4">
+            @Localizer["If it's your first time signing in, please follow the "]
+            <MudLink Href="@Localizer["/account-setup"]" Typo="Typo.body1">@Localizer["Account Setup"]</MudLink>
+            @Localizer[" instructions."]
+        </MudText>
+        <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+            <MudStack AlignItems="AlignItems.Start" Class="mt-4" Style="width: 100%">
+                <MudText Typo="Typo.body1" Class="text-center">
+                    <strong>
+                        @Localizer["Please login to continue"]:
+                    </strong>
                 </MudText>
-            </MudCheckBox>
-        </div>
-        <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
-                   Disabled="@(_loggingIn || String.IsNullOrWhiteSpace(loginModel.Email) || !loginModel.Agreement)">
-            <MudText>
-                @(_loggingIn ? Localizer["Logging in..."] : Localizer["Login"])
-            </MudText>
-        </MudButton>
-        <MudText Typo="Typo.body1">
-            @Localizer["Don't have an account?"]
-            <MudLink Href="@Localizer["/register"]" Typo="Typo.body1">@Localizer["Register instead"]</MudLink>
-        </MudText>
-    </MudStack>
-</EditForm>
+                <div class="form-group" style="width: 100%">
+                    <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined"
+                                  @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true"
+                                  RequiredError="@Localizer["Email is required"]" FullWidth="true" />
+                </div>
+                <div class="form-group">
+                    <MudCheckBox T="bool"
+                                 @bind-Value="loginModel.Agreement"
+                                 Required
+                                 RequiredError=@Localizer["Agreement with the Terms and conditions is required"]>
+                        <MudText Typo="Typo.body1">
+                            @Localizer["I agree to the "]
+                            <MudLink Href="@Localizer[PageRoutes.TermsAndConditions]" Typo="Typo.body1" Target="_blank">
+                                @Localizer["Terms and conditions"]
+                            </MudLink>
+                            @Localizer[" of use for FSDH"]
+                        </MudText>
+                    </MudCheckBox>
+                </div>
+                <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary"
+                           Disabled="@(_loggingIn || String.IsNullOrWhiteSpace(loginModel.Email) || !loginModel.Agreement)">
+                    <MudText>
+                        @(_loggingIn ? Localizer["Logging in..."] : Localizer["Login"])
+                    </MudText>
+                </MudButton>
+            </MudStack>
+        </EditForm>
+        <DHFooter />
+    </MudPaper>
+</MudContainer>
 
 @code {
-    [Parameter] [SupplyParameterFromQuery] public string redirectUri { get; set; }
+    [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
     private LoginModel loginModel = new LoginModel();
     private bool _loggingIn;
@@ -60,7 +79,7 @@
         _loggingIn = true;
         var loginHint = loginModel.Email;
         var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
-        
+
         // If user is deleted, redirect to register page with deleted flag
         if (existingUser is { IsDeleted: true })
         {
@@ -80,7 +99,7 @@
         {
             // - first check if the user is registered in the tenant (that means they have registered but not logged in yet)
             var registered = await _userInformationService.CheckUserInTenant(loginHint);
-            
+
             // - if not registered, redirect to register page with new flag
             if (!registered)
             {
@@ -119,5 +138,4 @@
         public string Email { get; set; }
         public bool Agreement { get; set; }
     }
-
 }

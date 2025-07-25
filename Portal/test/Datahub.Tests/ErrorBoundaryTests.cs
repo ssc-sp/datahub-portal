@@ -30,6 +30,7 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.Achievements;
 using Microsoft.Extensions.Configuration;
 using Datahub.Core.Model.Context;
+using Blazored.SessionStorage;
 
 namespace Datahub.Tests;
 
@@ -51,6 +52,7 @@ public class ErrorBoundaryTests
     private readonly Mock<ISnackbar> _snackBarMock;
     private readonly Mock<IPortalUserTelemetryService> _portalUserTelemetryServiceMock;
     private readonly Mock<IStringLocalizer> _stringLocalizerMock;
+    private readonly Mock<ISessionStorageService> _sessionStorageMock;
 
     public ErrorBoundaryTests()
     {
@@ -70,6 +72,7 @@ public class ErrorBoundaryTests
         _snackBarMock = new Mock<ISnackbar>();
         _portalUserTelemetryServiceMock = new Mock<IPortalUserTelemetryService>();
         _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
+        _sessionStorageMock = new Mock<ISessionStorageService> { CallBase = false };
 
         _hostingMock = Substitute.For<IWebHostEnvironment>();
     }
@@ -108,7 +111,7 @@ public class ErrorBoundaryTests
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
 
-        using var ctx = new TestContext();
+        using var ctx = new Bunit.TestContext();
         ctx.Services.AddSingleton(_dbConextFactoryMock); 
         ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
@@ -125,6 +128,7 @@ public class ErrorBoundaryTests
         ctx.Services.AddSingleton(_mediatrMock.Object);
         ctx.Services.AddSingleton(_stringLocalizerMock.Object);
         ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
+        ctx.Services.AddSingleton(_sessionStorageMock.Object);
         ctx.Services.AddMudServices();
 
         // Act

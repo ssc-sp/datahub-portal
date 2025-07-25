@@ -1,29 +1,33 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-	  <AzureFunctionsVersion>V4</AzureFunctionsVersion>
-  </PropertyGroup>
-  <ItemGroup>
-    <None Remove="azure functions and SQL.zip" />
-  </ItemGroup>
-  <ItemGroup>
-	  <PackageReference Include="Azure.Identity" Version="1.11.4" />
-	  <PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.39" />
-	  <PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="5.0.0" />
-	  
-    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.4.0" />
+	<PropertyGroup>
+		<TargetFramework>net9.0</TargetFramework>
+		<AzureFunctionsVersion>V4</AzureFunctionsVersion>
+	</PropertyGroup>
+	<ItemGroup>
+		<None Remove="azure functions and SQL.zip" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Azure.Identity" Version="1.14.*" />
+		<PackageReference Include="Microsoft.Azure.WebJobs" Version="3.0.*" />
+		<PackageReference Include="Microsoft.Azure.WebJobs.Extensions" Version="5.0.0" />
 
-  </ItemGroup>
-  <ItemGroup>
-    <None Update="host.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="local.settings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>Never</CopyToPublishDirectory>
-    </None>
-  </ItemGroup>
+		<PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="6.0.*" />
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+		<PackageReference Include="Microsoft.NET.Sdk.Functions" Version="4.6.*" />
+
+	</ItemGroup>
+	<ItemGroup>
+		<None Update="host.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="local.settings.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+			<CopyToPublishDirectory>Never</CopyToPublishDirectory>
+		</None>
+	</ItemGroup>
 </Project>
+
+
+
+

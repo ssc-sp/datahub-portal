@@ -56,6 +56,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install .NET SDK
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: '9.0.x' # Specify the .NET 9 SDK version
+
       # Step 2: List all changed files
       - name: List all changed files
         run: |

@@ -8,6 +8,8 @@
 @using Newtonsoft.Json
 @using static Datahub.Core.DevTools
 
+@layout BarebonesPublicLayout
+
 @inject ILogger<RegisterPage> _logger
 @inject IMetadataBrokerService _metadataBrokerService
 @inject IUserEnrollmentService _userEnrollmentService
@@ -22,7 +24,19 @@
 
 <PageTitle>@Localizer["Registration - Federal Science DataHub"]</PageTitle>
 
-<MudStack>
+<MudContainer MaxWidth=@MaxWidth.Medium>
+    <MudPaper Class="pt-12 px-12 mt-20">
+        <MudStack>
+            <MudGrid>
+                <MudItem xs="11">
+                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                </MudItem>
+                <MudItem xs="1">
+                    <LanguageToggle />
+                </MudItem>
+            </MudGrid>
+            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+        </MudStack>
     <FSDHEnvironment Environments="@_environmentsToAllowRegistration">
         @switch (State)
         {
@@ -117,7 +131,7 @@
     <FSDHEnvironment Environments="@_environmentsToShowDisabledMessage">
         <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" Style="color: #0d1117" Variant="Variant.Outlined">
             <MudText Typo="Typo.body1">
-                @Localizer["Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join."]
+                @Localizer["You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub."]
             </MudText>
             <MudLink Typo="Typo.body1" Href=@Localizer["https://hosting-services-hebergement.canada.ca/s/?language=en_US"]>
                 @Localizer["To create a workspace, access the GC Hosting Services Portal."]
@@ -132,8 +146,10 @@
                      Href="/account-setup">@Localizer["Click here for detailed instructions"]</MudLink>
             @Localizer["on setting up your account."]
         </MudText>
-    </p>
-</MudStack>
+        </p>
+        <DHFooter />
+    </MudPaper>
+</MudContainer>
 
 
 @code {
@@ -153,8 +169,8 @@
     private string[] _errors = { };
     private MudForm _form;
 
-    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.QualityControl, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
-    private List<TopBarEnvironments> _environmentsToAllowRegistration = new List<TopBarEnvironments> { TopBarEnvironments.ProofOfConcept };
+    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
+    private List<TopBarEnvironments> _environmentsToAllowRegistration = new List<TopBarEnvironments> {  };
 
     protected override void OnInitialized()
     {

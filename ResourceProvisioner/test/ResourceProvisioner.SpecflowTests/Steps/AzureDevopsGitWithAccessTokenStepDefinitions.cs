@@ -10,11 +10,14 @@ using Xunit;
 namespace ResourceProvisioner.SpecflowTests.Steps
 {
     [Binding]
+    [Collection("RepositoryAccess")]
     public sealed class AzureDevopsGitWithAccessTokenStepDefinitions(
         ScenarioContext scenarioContext,
         ResourceProvisionerConfiguration resourceProvisionerConfiguration,
         IRepositoryService repositoryService)
     {
+        private static readonly SemaphoreSlim _semaphore = new(1, 1);
+        
         // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
 
         [Given(@"service principal credentials are available")]
@@ -46,22 +49,33 @@ namespace ResourceProvisioner.SpecflowTests.Steps
             Assert.NotNull(accessToken.Token);
             Assert.NotEmpty(accessToken.Token);
             
-            // Check if the token is a valid JWT token
-            var handler = new JwtSecurityTokenHandler();
-            var token = handler.ReadJwtToken(accessToken.Token);
-            Assert.NotNull(token);
-            
             // Check if the token is not expired
-            Assert.True(token.ValidTo > DateTime.UtcNow);
+            Assert.True(accessToken.ExpiresOn > DateTimeOffset.UtcNow);
             
-            // Check if the token is not issued in the future
-            Assert.True(token.ValidFrom < DateTime.UtcNow);
-            
-            // Check if the token is from the correct issuer
-            Assert.Equal("https://sts.windows.net/" + resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.TenantId + "/", token.Issuer);
-            
-            // Check if the token is for the correct audience
-            Assert.Equal(AzureDevOpsClient.AzureDevopsScope, token.Audiences.First());
+            // Try to parse as JWT if possible, but don't fail if it's not a JWT
+            var handler = new JwtSecurityTokenHandler();
+            if (handler.CanReadToken(accessToken.Token))
+            {
+                var token = handler.ReadJwtToken(accessToken.Token);
+                Assert.NotNull(token);
+                
+                // Check if the token is not expired
+                Assert.True(token.ValidTo > DateTime.UtcNow);
+                
+                // Check if the token is not issued in the future
+                Assert.True(token.ValidFrom < DateTime.UtcNow);
+                
+                // Check if the token is from the correct issuer
+                Assert.Equal("https://sts.windows.net/" + resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.TenantId + "/", token.Issuer);
+                
+                // Check if the token is for the correct audience
+                Assert.Equal(AzureDevOpsClient.AzureDevopsScope, token.Audiences.First());
+            }
+            else
+            {
+                // If it's not a JWT token, just verify it's a non-empty string with reasonable length
+                Assert.Fail("This is not a real JWT token.");
+            }
         }
         
         [Given(@"the cloned repository does not exist")]
@@ -78,7 +92,16 @@ namespace ResourceProvisioner.SpecflowTests.Steps
         [When(@"it tries to clone Azure Devops Git repository")]
         public async Task WhenItTriesToCloneAzureDevopsGitRepository()
         {
-            await repositoryService.FetchInfrastructureRepository();
+            await _semaphore.WaitAsync();
+
+            try
+            {
+                await repositoryService.FetchInfrastructureRepository();
+            }
+            finally
+            {
+                _semaphore.Release();
+            }
         }
 
         [Then(@"the cloned repository should exist")]

@@ -86,7 +86,7 @@ namespace Datahub.Tests
             _component = new RegisterPage();
         }
 
-        private TestContext SetupTestContext()
+        private Bunit.TestContext SetupTestContext()
         {
             var workSpaces = new[] { "AAA", "BBB" };
             _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
@@ -117,7 +117,7 @@ namespace Datahub.Tests
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
             configuration.Bind(datahubPortalConfiguration);
 
-            using var ctx = new TestContext();
+            using var ctx = new Bunit.TestContext();
             ctx.Services.AddSingleton(_dbConextFactoryMock);
             ctx.Services.AddSingleton(datahubPortalConfiguration);
             ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);

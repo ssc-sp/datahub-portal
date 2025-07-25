@@ -1,10 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <!--<Nullable>enable</Nullable>-->
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Azure.Core" Version="1.47.*" />
+    <PackageReference Include="Azure.Identity" Version="1.14.*" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.74.*" />
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
@@ -12,3 +18,5 @@
   </ItemGroup>
 
 </Project>
+
+

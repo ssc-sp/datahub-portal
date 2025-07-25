@@ -16,6 +16,7 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject ISnackbar Snackbar
 
+
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
         <MudStack Row>            
@@ -45,6 +46,8 @@
                     </MudText>
                 }
             </MudText>            
+            <MudSpacer/>
+            <FeaturedProjectToggle Project="@Workspace" />
         </MudStack>
         <MudStack Row>
             <ProjectPreviewCardIconDetails
@@ -201,6 +204,36 @@
     private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
+
+    protected override void OnParametersSet()
+    {
+        UpdateResourceStatusesFromHealthChecks();
+    }
+
+    private void UpdateResourceStatusesFromHealthChecks()
+    {
+        if (MemoryCache.TryGetValue("InfrastructureHealthChecks", out List<InfrastructureHealthCheck> healthChecks))
+        {
+            foreach (var resource in Workspace.Resources)
+            {
+                if (resource.Status == null)
+                {
+                    var serviceType = resource.ResourceType;
+                    var health = healthChecks.FirstOrDefault(h =>
+                        h.Group == Workspace.Project_Acronym_CD &&
+                        TerraformTemplate.MapHealthResourceTypeToTemplateConstant(h.ResourceType) == serviceType);
+
+                    if (health != null 
+                        && health.Status !=  InfrastructureHealthStatus.NotProvisioned
+                        && health.Status != InfrastructureHealthStatus.Undefined
+                    )
+                    {
+                        resource.Status = TerraformStatus.Completed;
+                    }
+                }
+            }
+        }
+    }
 
     // Utils
     private Color CostBarColor()
