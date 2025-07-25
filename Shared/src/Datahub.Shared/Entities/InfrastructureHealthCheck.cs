@@ -1,4 +1,4 @@
-namespace Datahub.Core.Model.Health;
+namespace Datahub.Shared.Entities;
 
 /// <summary>
 /// Represents a health check for infrastructure resources, providing details about the resource, its status, and the

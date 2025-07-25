@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Core.Model.Health;
+using Datahub.Shared.Entities;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Helpers;
