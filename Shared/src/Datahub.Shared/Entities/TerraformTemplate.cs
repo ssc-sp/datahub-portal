@@ -1,5 +1,3 @@
-using Datahub.Core.Model.Health;
-
 namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate(string name, string status)

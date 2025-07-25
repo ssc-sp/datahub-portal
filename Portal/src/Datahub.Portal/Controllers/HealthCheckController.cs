@@ -5,7 +5,6 @@ using System.Collections.Concurrent;
 using Datahub.Application.Configuration;
 using Datahub.Core.Model;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Health;
 using Datahub.Shared.Configuration;
 using Azure.Core;
 using System.Net.Http.Headers;
@@ -13,6 +12,7 @@ using Datahub.Core.Data;
 using Datahub.Infrastructure.Services.Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Graph.Models;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Portal.Controllers
 {
