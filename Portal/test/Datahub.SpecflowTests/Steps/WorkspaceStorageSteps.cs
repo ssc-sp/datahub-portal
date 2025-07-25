@@ -50,8 +50,8 @@ namespace Datahub.SpecflowTests.Steps
             var minCapacity = scenarioContext.Get<int>("minCapacity");
             var maxCapacity = scenarioContext.Get<int>("maxCapacity");
 
-            capacity.Should().BeGreaterOrEqualTo(minCapacity);
-            capacity.Should().BeLessOrEqualTo(maxCapacity);
+            capacity.Should().BeGreaterThanOrEqualTo(minCapacity);
+            capacity.Should().BeLessThanOrEqualTo(maxCapacity);
         }
 
         [When(@"the workspace's storage capacity is updated")]
@@ -85,8 +85,8 @@ namespace Datahub.SpecflowTests.Steps
             storage.Should().HaveCount(expectedCount);
             var orderedStorage = storage.OrderBy(s => s.Date).ToList();
             var newestStorage = orderedStorage.Last();
-            newestStorage.AverageCapacity.Should().BeGreaterOrEqualTo(minCapacity);
-            newestStorage.AverageCapacity.Should().BeLessOrEqualTo(maxCapacity);
+            newestStorage.AverageCapacity.Should().BeGreaterThanOrEqualTo(minCapacity);
+            newestStorage.AverageCapacity.Should().BeLessThanOrEqualTo(maxCapacity);
         }
 
         [Given(@"a workspace that does not exist")]

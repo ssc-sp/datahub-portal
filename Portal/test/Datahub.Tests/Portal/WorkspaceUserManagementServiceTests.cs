@@ -18,6 +18,8 @@ using System.Threading;
 using Datahub.Application.Commands;
 using Microsoft.Extensions.Logging;
 
+[assembly: CaptureConsole]
+
 namespace Datahub.Tests
 {
     public class WorkspaceUserManagementServiceTests
@@ -28,7 +30,7 @@ namespace Datahub.Tests
 
         private static readonly string TEST_WORKSPACE_CODE = "TEST";
         
-        public WorkspaceUserManagementServiceTests(ITestOutputHelper output)
+        public WorkspaceUserManagementServiceTests()
         {
             var dbName = Guid.NewGuid().ToString();
             _mockDbContextFactory = new Mock<IDbContextFactory<DatahubProjectDBContext>>();
@@ -37,7 +39,10 @@ namespace Datahub.Tests
             _mockDbContextFactory.Setup(f => f.CreateDbContextAsync(It.IsAny<CancellationToken>()))
                 .Returns(() => Task.FromResult(new DatahubProjectDBContext(new DbContextOptionsBuilder<DatahubProjectDBContext>().UseInMemoryDatabase(dbName).Options)));
             
-            var logger = output.BuildLoggerFor<ProjectUserManagementService>();
+            
+            using ILoggerFactory loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            var logger = loggerFactory.CreateLogger<ProjectUserManagementService>();
+
             var msGraphService = new Mock<IMSGraphService>();
             var requestManagementService = new Mock<IRequestManagementService>();
             var resourceMessagingService = new Mock<IResourceMessagingService>();

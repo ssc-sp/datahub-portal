@@ -55,11 +55,12 @@ namespace Datahub.Functions.UnitTests
             var sendProvider = Substitute.For<ISendEndpointProvider>();
             var webAppService = TestHelper.CreateMockWebAppManagementService();
             var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
+            var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig);
+                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor);
 
             _checkInfrastructureStatus = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }

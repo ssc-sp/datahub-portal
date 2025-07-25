@@ -64,7 +64,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
-        IHttpContextAccessor httpContextAccessor = null)
+        IHttpContextAccessor httpContextAccessor)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;

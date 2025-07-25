@@ -100,7 +100,7 @@ public class CultureSettings
     public string Default { get; set; } = "en-CA";
     public string SupportedCultures { get; set; } = "fr-CA|en-CA";
     public bool TrackTranslations = false;
-    public string ResourcesPath { get; set; } = "../Datahub.Portal/i18n";
+    public string ResourcesPath { get; set; } = "i18n";
     public string[] AdditionalResourcePaths { get; set; } = ["../Datahub.Portal/i18n/ssc"];
 }
 

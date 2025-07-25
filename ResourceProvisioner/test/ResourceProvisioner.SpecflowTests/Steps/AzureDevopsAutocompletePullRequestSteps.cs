@@ -7,6 +7,7 @@ using Xunit;
 namespace ResourceProvisioner.SpecflowTests.Steps;
 
 [Binding]
+[Collection("RepositoryAccess")]
 public sealed class AzureDevopsAutocompletePullRequestSteps(
     ScenarioContext scenarioContext,
     ResourceProvisionerConfiguration resourceProvisionerConfiguration,
