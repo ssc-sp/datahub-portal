@@ -1,5 +1,5 @@
-﻿using MediatR;
-using Datahub.Core.Model.Health;
+﻿using Datahub.Shared.Entities;
+using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages
 {

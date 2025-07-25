@@ -121,4 +121,15 @@ public class TerraformTemplate(string name, string status)
             _ => throw new ArgumentException($"Unknown template name: {name}")
         };
     }
+    public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
+    {
+        return resourceType switch
+        {
+            InfrastructureHealthResourceType.AzureStorageAccount => GetTerraformServiceType(AzureStorageBlob),
+            InfrastructureHealthResourceType.AzureDatabricks => GetTerraformServiceType(AzureDatabricks),
+            InfrastructureHealthResourceType.AzureWebApp => GetTerraformServiceType(AzureAppService),
+            InfrastructureHealthResourceType.AzureSqlDatabase => GetTerraformServiceType(AzurePostgres),
+            _ => string.Empty,
+        };
+    }
 }

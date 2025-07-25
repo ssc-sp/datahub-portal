@@ -2,7 +2,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Health;
+using Datahub.Shared.Entities;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Shared.Configuration;
