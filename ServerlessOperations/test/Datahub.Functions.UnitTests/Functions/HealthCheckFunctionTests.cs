@@ -10,6 +10,7 @@ using Datahub.Shared;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -47,12 +48,13 @@ namespace Datahub.Functions.UnitTests.Functions
             await TestHelper.SeedDatabase(dbContextFactory);
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
-            var webAppService = TestHelper.CreateMockWebAppManagementService();
+            var webAppService = TestHelper.CreateMockWebAppManagementService(); 
             var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
+            var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig);
+                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
