@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <RunConfiguration>
+    <MaxCpuCount>1</MaxCpuCount>
+    <TargetPlatform>x64</TargetPlatform>
+  </RunConfiguration>
+  <NUnit>
+    <NumberOfTestWorkers>1</NumberOfTestWorkers>
+    <DefaultTimeout>60000</DefaultTimeout>
+    <WorkDirectory>TestResults</WorkDirectory>
+    <InternalTraceLevel>Off</InternalTraceLevel>
+    <ProcessModel>InProcess</ProcessModel>
+    <DomainUsage>Default</DomainUsage>
+  </NUnit>
+</RunSettings>

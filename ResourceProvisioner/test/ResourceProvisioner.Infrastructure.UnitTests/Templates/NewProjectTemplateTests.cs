@@ -4,12 +4,15 @@ using System.Text.RegularExpressions;
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
 using static Testing;
 
-public class NewProjectTemplateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class NewProjectTemplateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

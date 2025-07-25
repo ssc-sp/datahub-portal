@@ -1,11 +1,14 @@
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Infrastructure.Common;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
 using static Testing;
 
-public class ContactUsTemplateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class ContactUsTemplateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

@@ -8,14 +8,14 @@
       <UserSecretsId>a89b790e-de96-49a4-896c-5d85870fe59f</UserSecretsId>
   </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Azure.Identity" Version="1.12.*" />
-        <PackageReference Include="MassTransit" Version="8.2.2" />
-        <PackageReference Include="MassTransit.WebJobs.ServiceBus" Version="8.2.2" />
+        <PackageReference Include="Azure.Identity" Version="1.14.*" />
+        <PackageReference Include="MassTransit" Version="8.5.*" />
+        <PackageReference Include="MassTransit.WebJobs.ServiceBus" Version="8.5.*" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.*" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.2.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.19.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.4.0" />
-        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.4.0" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.*" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.23.*" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.7.*" />
+        <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.*" />
         <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.*" />
     </ItemGroup>
     <ItemGroup>
@@ -35,3 +35,10 @@
         <Using Include="System.Threading.ExecutionContext" Alias="ExecutionContext" />
     </ItemGroup>
 </Project>
+
+
+
+
+
+
+

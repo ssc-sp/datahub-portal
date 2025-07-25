@@ -10,21 +10,22 @@
 // ------------------------------------------------------------------------------
 #region Designer generated code
 #pragma warning disable
+using Reqnroll;
 namespace ResourceProvisioner.SpecflowTests.Features
 {
-    using Reqnroll;
-    using System;
-    using System.Linq;
     
     
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
-    [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
+    [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     public partial class ResourceDeleteFeature : object, Xunit.IClassFixture<ResourceDeleteFeature.FixtureData>, Xunit.IAsyncLifetime
     {
         
-        private static global::Reqnroll.ITestRunner testRunner;
+        private global::Reqnroll.ITestRunner testRunner;
         
         private static string[] featureTags = ((string[])(null));
+        
+        private static global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new global::System.Globalization.CultureInfo("en-US"), "Features", "Resource Delete", "This is the feature that will update the terraform files to delete the workspace " +
+                "resources", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
         
         private Xunit.Abstractions.ITestOutputHelper _testOutputHelper;
         
@@ -36,29 +37,54 @@ namespace ResourceProvisioner.SpecflowTests.Features
             this._testOutputHelper = testOutputHelper;
         }
         
-        public static async System.Threading.Tasks.Task FeatureSetupAsync()
-        {
-            testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(null, global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.GetWorkerId());
-            global::Reqnroll.FeatureInfo featureInfo = new global::Reqnroll.FeatureInfo(new System.Globalization.CultureInfo("en-US"), "Features", "Resource Delete", "This is the feature that will update the terraform files to delete the workspace " +
-                    "resources", global::Reqnroll.ProgrammingLanguage.CSharp, featureTags);
-            await testRunner.OnFeatureStartAsync(featureInfo);
-        }
-        
-        public static async System.Threading.Tasks.Task FeatureTearDownAsync()
-        {
-            string testWorkerId = testRunner.TestWorkerId;
-            await testRunner.OnFeatureEndAsync();
-            testRunner = null;
-            global::Reqnroll.xUnit.ReqnrollPlugin.XUnitParallelWorkerTracker.Instance.ReleaseWorker(testWorkerId);
-        }
-        
-        public async System.Threading.Tasks.Task TestInitializeAsync()
+        public static async global::System.Threading.Tasks.Task FeatureSetupAsync()
         {
         }
         
-        public async System.Threading.Tasks.Task TestTearDownAsync()
+        public static async global::System.Threading.Tasks.Task FeatureTearDownAsync()
         {
-            await testRunner.OnScenarioEndAsync();
+        }
+        
+        public async global::System.Threading.Tasks.Task TestInitializeAsync()
+        {
+            testRunner = global::Reqnroll.TestRunnerManager.GetTestRunnerForAssembly(featureHint: featureInfo);
+            try
+            {
+                if (((testRunner.FeatureContext != null) 
+                            && (testRunner.FeatureContext.FeatureInfo.Equals(featureInfo) == false)))
+                {
+                    await testRunner.OnFeatureEndAsync();
+                }
+            }
+            finally
+            {
+                if (((testRunner.FeatureContext != null) 
+                            && testRunner.FeatureContext.BeforeFeatureHookFailed))
+                {
+                    throw new global::Reqnroll.ReqnrollException("Scenario skipped because of previous before feature hook error");
+                }
+                if ((testRunner.FeatureContext == null))
+                {
+                    await testRunner.OnFeatureStartAsync(featureInfo);
+                }
+            }
+        }
+        
+        public async global::System.Threading.Tasks.Task TestTearDownAsync()
+        {
+            if ((testRunner == null))
+            {
+                return;
+            }
+            try
+            {
+                await testRunner.OnScenarioEndAsync();
+            }
+            finally
+            {
+                global::Reqnroll.TestRunnerManager.ReleaseTestRunner(testRunner);
+                testRunner = null;
+            }
         }
         
         public void ScenarioInitialize(global::Reqnroll.ScenarioInfo scenarioInfo)
@@ -67,22 +93,37 @@ namespace ResourceProvisioner.SpecflowTests.Features
             testRunner.ScenarioContext.ScenarioContainer.RegisterInstanceAs<Xunit.Abstractions.ITestOutputHelper>(_testOutputHelper);
         }
         
-        public async System.Threading.Tasks.Task ScenarioStartAsync()
+        public async global::System.Threading.Tasks.Task ScenarioStartAsync()
         {
             await testRunner.OnScenarioStartAsync();
         }
         
-        public async System.Threading.Tasks.Task ScenarioCleanupAsync()
+        public async global::System.Threading.Tasks.Task ScenarioCleanupAsync()
         {
             await testRunner.CollectScenarioErrorsAsync();
         }
         
-        async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
+        async global::System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
         {
-            await this.TestInitializeAsync();
+            try
+            {
+                await this.TestInitializeAsync();
+            }
+            catch (System.Exception e1)
+            {
+                try
+                {
+                    ((Xunit.IAsyncLifetime)(this)).DisposeAsync();
+                }
+                catch (System.Exception e2)
+                {
+                    throw new System.AggregateException("Test initialization failed", e1, e2);
+                }
+                throw;
+            }
         }
         
-        async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
+        async global::System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
         {
             await this.TestTearDownAsync();
         }
@@ -92,10 +133,10 @@ namespace ResourceProvisioner.SpecflowTests.Features
         [Xunit.TraitAttribute("FeatureTitle", "Resource Delete")]
         [Xunit.TraitAttribute("Description", "The repository service should invoke the DeleteTemplateAsync method when a templa" +
             "te is set to be deleted")]
-        public async System.Threading.Tasks.Task TheRepositoryServiceShouldInvokeTheDeleteTemplateAsyncMethodWhenATemplateIsSetToBeDeleted()
+        public async global::System.Threading.Tasks.Task TheRepositoryServiceShouldInvokeTheDeleteTemplateAsyncMethodWhenATemplateIsSetToBeDeleted()
         {
             string[] tagsOfScenario = ((string[])(null));
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The repository service should invoke the DeleteTemplateAsync method when a templa" +
                     "te is set to be deleted", null, tagsOfScenario, argumentsOfScenario, featureTags);
 #line 4
@@ -143,10 +184,10 @@ namespace ResourceProvisioner.SpecflowTests.Features
         [Xunit.InlineDataAttribute("azure-app-service", new string[0])]
         [Xunit.InlineDataAttribute("azure-postgresql", new string[0])]
         [Xunit.InlineDataAttribute("new-project-template", new string[0])]
-        public async System.Threading.Tasks.Task TheTerraformServiceShouldDeleteAllTheFilesThatBelongToTheWorkspaceResource(string templateName, string[] exampleTags)
+        public async global::System.Threading.Tasks.Task TheTerraformServiceShouldDeleteAllTheFilesThatBelongToTheWorkspaceResource(string templateName, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("templateName", templateName);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The terraform service should delete all the files that belong to the workspace re" +
                     "source", null, tagsOfScenario, argumentsOfScenario, featureTags);
@@ -195,10 +236,10 @@ namespace ResourceProvisioner.SpecflowTests.Features
         [Xunit.InlineDataAttribute("azure-app-service", new string[0])]
         [Xunit.InlineDataAttribute("azure-postgresql", new string[0])]
         [Xunit.InlineDataAttribute("new-project-template", new string[0])]
-        public async System.Threading.Tasks.Task TheTerraformServiceShouldWriteAFileWithTheDeletedTemplateNameForTheOutputStatus(string templateName, string[] exampleTags)
+        public async global::System.Threading.Tasks.Task TheTerraformServiceShouldWriteAFileWithTheDeletedTemplateNameForTheOutputStatus(string templateName, string[] exampleTags)
         {
             string[] tagsOfScenario = exampleTags;
-            System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new System.Collections.Specialized.OrderedDictionary();
+            global::System.Collections.Specialized.OrderedDictionary argumentsOfScenario = new global::System.Collections.Specialized.OrderedDictionary();
             argumentsOfScenario.Add("templateName", templateName);
             global::Reqnroll.ScenarioInfo scenarioInfo = new global::Reqnroll.ScenarioInfo("The terraform service should write a file with the deleted template name for the " +
                     "output status", null, tagsOfScenario, argumentsOfScenario, featureTags);
@@ -235,17 +276,17 @@ namespace ResourceProvisioner.SpecflowTests.Features
             await this.ScenarioCleanupAsync();
         }
         
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
-        [System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
+        [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Reqnroll", "2.0.0.0")]
+        [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
         public class FixtureData : object, Xunit.IAsyncLifetime
         {
             
-            async System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
+            async global::System.Threading.Tasks.Task Xunit.IAsyncLifetime.InitializeAsync()
             {
                 await ResourceDeleteFeature.FeatureSetupAsync();
             }
             
-            async System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
+            async global::System.Threading.Tasks.Task Xunit.IAsyncLifetime.DisposeAsync()
             {
                 await ResourceDeleteFeature.FeatureTearDownAsync();
             }

@@ -16,6 +16,7 @@ public class ApprovalFormTests
         // test mapping property from entity to viewmodel
         approvalFormEntity.ApprovalFormId = 11;
         approvalFormEntity.CopyPublicPropertiesTo(approvalFormViewModel, true);
+
         Assert.Equal(approvalFormEntity.ApprovalFormId, approvalFormViewModel.ApprovalFormId);
 
         // test mapping property from viewmodel to entity
