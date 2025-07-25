@@ -5,6 +5,7 @@
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Shared.Entities
 @using Datahub.Shared
+@using Microsoft.Extensions.Caching.Memory
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Explore
 
@@ -15,6 +16,7 @@
 @inject IWorkspaceVersionService WorkspaceVersionService
 @inject IEmailNotificationService EmailNotificationService
 @inject ISnackbar Snackbar
+@inject IMemoryCache MemoryCache
 
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
@@ -27,7 +29,7 @@
                 (@Workspace.Project_Acronym_CD)
             </MudText>
             <MudSpacer />
-            <MudText Align="Align.Right">
+            @* <MudText Align="Align.Right">
                 @if (IsLead && (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None && !Workspace.IsVersionUpdateRequested))  
                 {
                     <DHButton 
@@ -45,8 +47,8 @@
                         @Workspace.Version
                     </MudText>
                 }
-            </MudText>            
-            <MudSpacer/>
+            </MudText>             
+            <MudSpacer/>*@
             <FeaturedProjectToggle Project="@Workspace" />
         </MudStack>
         <MudStack Row>
