@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Model.Health;
+﻿using Datahub.Shared.Entities;
 
 namespace Datahub.Portal.Services
 {
