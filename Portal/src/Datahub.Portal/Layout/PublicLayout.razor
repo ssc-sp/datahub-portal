@@ -4,19 +4,18 @@
 
 @attribute [AllowAnonymous]
 
-<CommonMudProviders />
-
-<MudLayout>
-    <MudAppBar Elevation="0" Style="@_topBorderStyle">
-        <PublicTopbar/>
-    </MudAppBar>
-    <PublicLandingDescription>
-        @Body
-        <MudSpacer/>
-        <DHFooter/>
-    </PublicLandingDescription>
-</MudLayout>
-
+<CommonMudProviders>
+    <MudLayout>
+        <MudAppBar Elevation="0" Style="@_topBorderStyle">
+            <PublicTopbar/>
+        </MudAppBar>
+        <PublicLandingDescription>
+            @Body
+            <MudSpacer/>
+            <DHFooter/>
+        </PublicLandingDescription>
+    </MudLayout>
+</CommonMudProviders>
 @code {
 
     private readonly string _topBorderStyle = new StyleBuilder()

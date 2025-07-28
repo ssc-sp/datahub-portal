@@ -8,10 +8,16 @@
             </DHButton>
         </MudItem>
         <MudItem xs="12" sm="2" Class="align-content-center">
-            <MudImage Src="/img/fip_mark.png" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;"/>
+            <MudImage Src="@ImageSrc" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;" />
         </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
+    private string ImageSrc => IsDarkMode
+    ? "/img/fip-mark-dark.png"
+    : "/img/fip_mark.png";
+
+    [CascadingParameter]
+    public bool IsDarkMode { get; set; }
 }

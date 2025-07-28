@@ -1,13 +1,17 @@
-﻿<MudThemeProvider Theme="@DatahubTheme.DefaultTheme" />
-<MudDialogProvider />
-<MudSnackbarProvider />
-<MudPopoverProvider />
-@if (ChildContent is not null)
-{
-    @ChildContent
-}
+﻿<CascadingValue Value="_isDarkMode">
+    <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
+    <MudPopoverProvider />
+    @if (ChildContent is not null)
+    {
+        @ChildContent
+    }
+</CascadingValue>
 
 @code {
     [Parameter]
     public RenderFragment ChildContent { get; set; }
+
+    private bool _isDarkMode = true;
 }

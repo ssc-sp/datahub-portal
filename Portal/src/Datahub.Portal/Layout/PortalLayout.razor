@@ -24,7 +24,7 @@
 @inject ISessionStorageService _sessionStorage
 
 
-<CommonMudProviders />
+<CommonMudProviders>
 
 <DatahubAchievementProvider/>
 
@@ -55,7 +55,7 @@
         <DHFooter/>
     </MudMainContent>
 </MudLayout>
-
+</CommonMudProviders>
 @code {
 
     private readonly string _topBorderStyle = new StyleBuilder()
