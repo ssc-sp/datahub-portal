@@ -2,7 +2,7 @@
 
 namespace Datahub.Metadata.Model;
 
-public abstract class MetadataDbContext : DbContext
+public class MetadataDbContext : DbContext
 {
 
     // below are used for migrations
