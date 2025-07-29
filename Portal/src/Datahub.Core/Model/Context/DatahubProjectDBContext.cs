@@ -123,18 +123,16 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<VersionTag> VersionTags { get; set; }
 
-#pragma warning disable SX1309
-    private readonly DbContextOptions<DatahubProjectDBContext> options;
-#pragma warning restore SX1309
-
+    private DbContextOptions<DatahubProjectDBContext> _options;
     // below are used for migrations
 #if MIGRATION
+
     public DatahubProjectDBContext() { }
 #endif
 
     public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
     {
-        this.options = options;
+        this._options = options;
     }
 
     protected DatahubProjectDBContext(DbContextOptions options) : base(options)
