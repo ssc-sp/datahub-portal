@@ -123,16 +123,13 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<VersionTag> VersionTags { get; set; }
 
-    private DbContextOptions<DatahubProjectDBContext> _options;
     // below are used for migrations
 #if MIGRATION
-
     public DatahubProjectDBContext() { }
 #endif
 
     public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
     {
-        this._options = options;
     }
 
     protected DatahubProjectDBContext(DbContextOptions options) : base(options)
