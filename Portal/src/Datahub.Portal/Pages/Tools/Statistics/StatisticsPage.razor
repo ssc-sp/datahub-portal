@@ -253,7 +253,7 @@ else
         await using var ctx = await DbContextFactory.CreateDbContextAsync();
         var allUsers = await ctx.PortalUsers.ToListAsync();
         var allRegistrations = await ctx.SelfRegistrationDetails.ToListAsync();
-        var allWorkspaceMembers = await ctx.Project_Users.Include(m => m.Project).ToListAsync();
+        var allWorkspaceMembers = await ctx.Project_Users.Include(m => m.Project).Where(m => m.PortalUser != null).ToListAsync();
 
         _portalUsers = allUsers;
         _users = allUsers.Select(u => new UserTableData
@@ -275,7 +275,7 @@ else
             Workspaces = new DHTableLinkList
             {
                 Links = allWorkspaceMembers
-                    .Where(m => m.PortalUser.GraphGuid == u.GraphGuid)
+                    .Where(m => m.PortalUser?.GraphGuid == u.GraphGuid)
                     .Select(m => ValueTuple.Create(
                         $"{m.Project.Project_Name} ({m.Project.Project_Acronym_CD})",
                         $"{PageRoutes.WorkspacePrefix}/{m.Project.Project_Acronym_CD}"
