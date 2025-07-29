@@ -1,6 +1,5 @@
 ﻿using Datahub.Infrastructure.Queues.Messages;
 using FluentValidation;
-using Microsoft.Azure.Cosmos.Linq;
 
 namespace Datahub.Functions.Validators
 {
