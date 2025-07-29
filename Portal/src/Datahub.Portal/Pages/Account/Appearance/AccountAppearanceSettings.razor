@@ -16,9 +16,9 @@
                 <MudDivider/>
             </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
-                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
+                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
                     <MudSelectItem T="string" Value="@("DataHub Light")"/>
-                    <MudSelectItem Disabled T="string" Value="@("DataHub Dark")"/>
+                    <MudSelectItem T="string" Value="@("DataHub Dark")"/>
                     <MudSelectItem Disabled T="string" Value="@("Space Light")"/>
                     <MudSelectItem Disabled T="string" Value="@("Space Dark")"/>
                 </MudSelect>
@@ -41,6 +41,11 @@
 
 
 @code {
+    [CascadingParameter(Name = "IsDarkMode")]
+    public bool IsDarkMode { get; set; }
+
+    [CascadingParameter(Name = "IsDarkModeChanged")]
+    public EventCallback<bool> IsDarkModeChanged { get; set; }
 
     [Parameter]
     public PortalUser ViewedUser { get; set; }
@@ -48,15 +53,46 @@
     [Parameter]
     public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
+    private string _selectedTheme = "DataHub Light";    // default
+
+    protected override async Task OnInitializedAsync()
+    {
+        var theme = await _userSettingsService.GetTheme();
+        _selectedTheme = theme ?? "DataHub Light";
+        StateHasChanged();
+    }
+
     private async Task HandleLanguageChanged(string language)
     {
         await _localStorage.SetItemAsStringAsync("language", language);
         await _userSettingsService.RegisterUserLanguage(language);
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         await _userSettingsService.SetLanguage(language);
-        
+
         ViewedUser.UserSettings.Language = language;
-        
+
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
+
+    private string SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            if (_selectedTheme != value)
+            {
+                _selectedTheme = value;
+                var dark = value.ToLowerInvariant().Contains("dark"); 
+                if (dark != IsDarkMode)
+                {
+                    IsDarkModeChanged.InvokeAsync(dark);
+                }
+            }
+        }
+    }
+
+    private async Task HandleThemeChanged(string theme)
+    {
+        await _userSettingsService.SetTheme(theme); 
     }
 }

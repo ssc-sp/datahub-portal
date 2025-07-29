@@ -1,12 +1,16 @@
-﻿<CascadingValue Value="_isDarkMode">
-    <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
-    <MudDialogProvider />
-    <MudSnackbarProvider />
-    <MudPopoverProvider />
-    @if (ChildContent is not null)
-    {
-        @ChildContent
-    }
+﻿@inject IUserSettingsService UserSettingsService
+
+<CascadingValue Value="_isDarkMode">
+    <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+        <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
+        <MudDialogProvider />
+        <MudSnackbarProvider />
+        <MudPopoverProvider />
+        @if (ChildContent is not null)
+        {
+            @ChildContent
+        }
+    </CascadingValue>
 </CascadingValue>
 
 @code {
@@ -14,4 +18,10 @@
     public RenderFragment ChildContent { get; set; }
 
     private bool _isDarkMode = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var theme = await UserSettingsService.GetTheme() ?? "";
+        _isDarkMode = theme.ToLowerInvariant().Contains("dark");
+    }
 }
