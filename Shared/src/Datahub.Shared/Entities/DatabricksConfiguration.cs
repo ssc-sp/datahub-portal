@@ -12,6 +12,7 @@ public class DatabricksConfiguration
     public const string MACHINE_LEARNING_GPU_TIER_CONFIG_JSON_KEY = TerraformVariables.MlGpuCompute;
     public const string ENABLE_MACHINE_LEARNING_CONFIG_JSON_KEY = TerraformVariables.EnableMlCluster;
     public const string ENABLE_MACHINE_LEARNING_GPU_CONFIG_JSON_KEY = TerraformVariables.EnableMlGpuCluster;
+    public static readonly Version MinimumConfigurableWorkspaceVersion = new(5, 2, 0);
 
     [JsonPropertyName(GENERAL_PURPOSE_TIER_CONFIG_JSON_KEY)]
     public string GeneralPurposeTierSku { get; set; } = DatabricksTier.DefaultGeneralPurpose.DatabricksSKU;

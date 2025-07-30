@@ -50,8 +50,11 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         /// <param name="transaction">The transaction to check.</param>
         /// <returns>True if the tool is configurable and the transaction is not a removal, otherwise false.</returns>
-        private bool IsConfigurable(ToolboxTransaction transaction) =>
-            _configurableToolList.Contains(transaction.Tool) && transaction.Type != ToolboxTransactionType.Remove;
+        private bool IsConfigurable(ToolboxTransaction transaction, System.Version workspaceVersion) =>
+            _configurableToolList.Contains(transaction.Tool) && 
+            transaction.Type != ToolboxTransactionType.Remove &&
+            (transaction.Tool != TerraformTemplate.AzureDatabricks || workspaceVersion >= DatabricksConfiguration.MinimumConfigurableWorkspaceVersion);
+        //TODO: implement the above with generic version gating instead of hardcoding Databricks
 
         // Availability status options for our tools
         internal record struct AvailabilityStatus
