@@ -9,8 +9,8 @@
     <ItemGroup>
                 
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="9.0.*" />
-        <PackageReference Include="Microsoft.Identity.Web" Version="2.19.1" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+        <PackageReference Include="Microsoft.Identity.Web" Version="3.11.*" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="9.0.*" />
     </ItemGroup>
 
     <ItemGroup>
@@ -23,3 +23,5 @@
     </ItemGroup>
 
 </Project>
+
+

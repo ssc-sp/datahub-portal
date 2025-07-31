@@ -17,12 +17,15 @@ using Version = System.Version;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using Datahub.Shared;
 using NUnit.Framework.Internal.Execution;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
 using static Testing;
 
-public class RepositoryServiceTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class RepositoryServiceTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

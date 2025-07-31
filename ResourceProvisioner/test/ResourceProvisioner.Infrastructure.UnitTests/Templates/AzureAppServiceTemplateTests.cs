@@ -4,13 +4,16 @@ using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 using TerraformVariables = Datahub.Shared.TerraformVariables;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
 using static Testing;
 
-public class AzureAppServiceTemplateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class AzureAppServiceTemplateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

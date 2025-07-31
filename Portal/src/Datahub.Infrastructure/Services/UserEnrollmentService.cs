@@ -8,7 +8,6 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Cosmos.Storage.Internal;
 using Microsoft.Extensions.Logging;
 
 namespace Datahub.Infrastructure.Services;
@@ -101,7 +100,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
                     id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
                 }
             }
-            catch (HttpException ex)
+            catch (Exception ex)
             {
                 _logger.LogWarning(ex, "Failed to send invite - retrying");
                 await Task.Delay(1000);

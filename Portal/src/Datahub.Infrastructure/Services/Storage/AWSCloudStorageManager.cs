@@ -82,7 +82,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
                 {
                     id = entry.ETag,
                     name = relativePath,
-                    lastmodifiedts = entry.LastModified != default ? entry.LastModified : DateTime.UtcNow, // Default to current time if invalid
+                    lastmodifiedts = entry.LastModified ?? DateTime.UtcNow, // Convert nullable DateTime? to DateTime
                     filesize = entry.Size > 0 ? entry.Size.ToString() : "Unknown" // Handle 0 size gracefully
                 };
 
@@ -91,7 +91,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
             request.ContinuationToken = response.NextContinuationToken;
 
-        } while (response.IsTruncated);
+        } while (response.IsTruncated == true);
 
         return new DfsPage(folders, files, continuationToken!);
     }

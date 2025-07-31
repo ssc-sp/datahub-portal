@@ -2,11 +2,12 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Health;
+using Datahub.Shared.Entities;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Shared.Configuration;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -87,10 +88,11 @@ public class LocalMessageReaderService : BackgroundService
 
             var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
             var sendEndpointProvider = scope.ServiceProvider.GetRequiredService<ISendEndpointProvider>();
+            var httpContextAccessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
 
             // TODO: refactor this to make it more concise, and/or autowire it
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppManagementService, configuration, 
-                httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration);
+                httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration, httpContextAccessor);
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
             InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);

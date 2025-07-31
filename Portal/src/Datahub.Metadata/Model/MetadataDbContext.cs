@@ -4,7 +4,21 @@ namespace Datahub.Metadata.Model;
 
 public class MetadataDbContext : DbContext
 {
+
+    // below are used for migrations
+#if MIGRATION
+    private DbContextOptions<MetadataDbContext> options;
+    public MetadataDbContext() { }
+#endif
+
     public MetadataDbContext(DbContextOptions<MetadataDbContext> options) : base(options)
+    {
+#if MIGRATION
+        this.options = options;
+#endif
+    }
+
+    protected MetadataDbContext(DbContextOptions options) : base(options)
     {
     }
 

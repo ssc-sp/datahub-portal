@@ -7,13 +7,16 @@ using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 using TerraformVariables = Datahub.Shared.TerraformVariables;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
 using static Testing;
 
-public class AzureDatabricksTemplateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class AzureDatabricksTemplateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()
@@ -22,8 +25,9 @@ public class AzureDatabricksTemplateTests
         var localInfrastructureClonePath =
             DirectoryUtils.GetInfrastructureRepositoryPath(_resourceProvisionerConfiguration);
 
-        VerifyDirectoryDoesNotExist(localModuleClonePath);
-        VerifyDirectoryDoesNotExist(localInfrastructureClonePath);
+        // Use safe cleanup methods to prevent conflicts
+        SafeCleanup(localModuleClonePath);
+        SafeCleanup(localInfrastructureClonePath);
     }
 
     [Test]

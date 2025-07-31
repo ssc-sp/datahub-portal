@@ -1,11 +1,14 @@
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Infrastructure.Common;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests;
 
 using static Testing;
 
-public class VariableUpdateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class VariableUpdateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		RunTest.bat = RunTest.bat
 		stylecop.json = stylecop.json
+		update-nuget-packages.ps1 = update-nuget-packages.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
@@ -322,10 +323,6 @@ Global
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -377,12 +374,11 @@ Global
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 		{3D033E58-9544-4099-AFF1-C820B0C28F7C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5

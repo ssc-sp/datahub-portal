@@ -7,8 +7,10 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Shared;
+using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -46,12 +48,13 @@ namespace Datahub.Functions.UnitTests.Functions
             await TestHelper.SeedDatabase(dbContextFactory);
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
-            var webAppService = TestHelper.CreateMockWebAppManagementService();
+            var webAppService = TestHelper.CreateMockWebAppManagementService(); 
             var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
+            var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig);
+                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
@@ -59,7 +62,7 @@ namespace Datahub.Functions.UnitTests.Functions
         [Test]
         public async Task TestCoreAzureSQLDatabaseHealthCheck()
         {
-            var healthCheckRequest = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase,
+            var healthCheckRequest = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureSqlDatabase,
                 InfrastructureHealthCheckConstants.CoreRequestGroup, InfrastructureHealthCheckConstants.CoreRequestGroup);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(healthCheckRequest);
 
@@ -71,7 +74,7 @@ namespace Datahub.Functions.UnitTests.Functions
         [Test]
         public async Task TestWorkspaceAzureSQLDatabaseHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase,
+            var request = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureSqlDatabase,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -83,7 +86,7 @@ namespace Datahub.Functions.UnitTests.Functions
         [Test]
         public async Task TestWorkspaceAzureFunctionHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureFunction,
+            var request = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureFunction,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -96,7 +99,7 @@ namespace Datahub.Functions.UnitTests.Functions
         [Test]
         public async Task TestInvalidWorkspaceSQLDatabaseHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureSqlDatabase,
+            var request = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureSqlDatabase,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, "NOPE");
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -104,7 +107,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var firstResult = results.FirstOrDefault();
             firstResult.Should().NotBeNull();
             firstResult.Check.Should().NotBeNull();
-            firstResult.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Degraded);
+            firstResult.Check.Status.Should().Be(InfrastructureHealthStatus.Degraded);
             firstResult.Errors.Should().HaveCount(1);
             firstResult.Errors[0].Should().Contain("Cannot retrieve project");
         }
@@ -112,7 +115,7 @@ namespace Datahub.Functions.UnitTests.Functions
         [Test]
         public async Task TestUndefinedWebAppHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
+            var request = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureWebApp,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.TEST_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -120,13 +123,13 @@ namespace Datahub.Functions.UnitTests.Functions
             var firstResult = results.FirstOrDefault();
             firstResult.Should().NotBeNull();
             firstResult.Check.Should().NotBeNull();
-            firstResult.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Undefined);
+            firstResult.Check.Status.Should().Be(InfrastructureHealthStatus.Undefined);
         }
 
         [Test]
         public async Task TestRunningWebAppHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
+            var request = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureWebApp,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.ACTIVE_WEB_APP_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -138,7 +141,7 @@ namespace Datahub.Functions.UnitTests.Functions
         [Test]
         public async Task TestNotRunningWebAppHealthCheck()
         {
-            var request = new InfrastructureHealthCheckMessage(Core.Model.Health.InfrastructureHealthResourceType.AzureWebApp,
+            var request = new InfrastructureHealthCheckMessage(InfrastructureHealthResourceType.AzureWebApp,
                 InfrastructureHealthCheckConstants.WorkspacesRequestGroup, TestHelper.INACTIVE_WEB_APP_PROJECT_ACRONYM);
             var response = await _checkInfrastructureStatusFunction.ProcessRequest(request);
 
@@ -146,7 +149,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var firstResult = results.FirstOrDefault();
             firstResult.Should().NotBeNull();
             firstResult.Check.Should().NotBeNull();
-            firstResult.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Degraded);
+            firstResult.Check.Status.Should().Be(InfrastructureHealthStatus.Degraded);
             firstResult.Errors.Should().HaveCount(1);
             firstResult.Errors[0].Should().Contain("not running");
         }
@@ -168,7 +171,7 @@ namespace Datahub.Functions.UnitTests.Functions
         {
             result.Should().NotBeNull();
             result.Check.Should().NotBeNull();
-            result.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Healthy);
+            result.Check.Status.Should().Be(InfrastructureHealthStatus.Healthy);
             result.Errors.Should().BeEmpty();
         }
 
@@ -176,7 +179,7 @@ namespace Datahub.Functions.UnitTests.Functions
         {
             result.Should().NotBeNull();
             result.Check.Should().NotBeNull();
-            result.Check.Status.Should().Be(Core.Model.Health.InfrastructureHealthStatus.Unhealthy);
+            result.Check.Status.Should().Be(InfrastructureHealthStatus.Unhealthy);
             result.Errors?.Count().Should().BeGreaterThan(0);
             result.Errors?[0].Should().Contain(expectedError);
         }

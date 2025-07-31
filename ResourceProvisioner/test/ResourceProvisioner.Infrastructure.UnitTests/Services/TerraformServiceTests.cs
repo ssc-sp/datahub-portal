@@ -2,11 +2,15 @@ using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
 using static Testing;
-public class TerraformServiceTests
+
+[NonParallelizable]
+[Category("TemplateTests")]
+public class TerraformServiceTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

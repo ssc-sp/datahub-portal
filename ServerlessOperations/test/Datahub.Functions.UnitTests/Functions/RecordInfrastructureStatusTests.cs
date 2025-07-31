@@ -7,6 +7,7 @@ using Azure.Messaging.ServiceBus;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Health;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

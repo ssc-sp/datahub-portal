@@ -348,9 +348,8 @@ public class Startup
         {
             options.CacheDuration = TimeSpan.FromMinutes(15);
             options.ResourcesPath = "i18n";
-            options.UseBaseName = false;
-            options.IsAbsolutePath = true;
             options.LocalizationMode = LocalizationMode.I18n;
+            options.UseEmbeddedResources = false;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
@@ -475,13 +474,7 @@ public class Startup
         var useSqlite = projectsDatabaseConnectionString?.StartsWith("Data Source=") ?? false;
         
         ConfigureDbContext<DatahubProjectDBContext, SqlServerDatahubContext,SqliteDatahubContext>(services, "datahub_mssql_project", useSqlite ? DbDriver.Sqlite : DbDriver.Azure);
-        ConfigureDbContext<MetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
-    }
-
-    private void ConfigureDbContext<T>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)
-        where T : DbContext
-    {
-        services.ConfigureDbContext<T>(Configuration, connectionStringName, dbDriver);
+        ConfigureDbContext<MetadataDbContext, SqlServerMetadataDbContext, SqlServerMetadataDbContext>(services, "datahub_mssql_metadata", DbDriver.Azure);
     }
 
     private void ConfigureDbContext<TGen, Tsql, Tsqlite>(IServiceCollection services, string connectionStringName, DbDriver dbDriver)

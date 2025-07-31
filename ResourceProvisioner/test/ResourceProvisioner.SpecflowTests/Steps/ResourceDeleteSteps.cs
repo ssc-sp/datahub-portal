@@ -13,10 +13,12 @@ using ResourceProvisioner.Domain.Enums;
 using ResourceProvisioner.Domain.Events;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using Xunit;
 
 namespace ResourceProvisioner.SpecflowTests.Steps;
 
 [Binding]
+[Collection("RepositoryAccess")]
 public class ResourceDeleteSteps(ScenarioContext scenarioContext)
 {
     [Given(@"a repository service with a stubbed CommitTerraformTemplate method")]
