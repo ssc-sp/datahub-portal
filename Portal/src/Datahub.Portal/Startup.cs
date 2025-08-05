@@ -46,7 +46,6 @@ using Datahub.Metadata.Model;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
-using Datahub.Portal.Services.Notification;
 using Datahub.Portal.Services.Offline;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
@@ -445,7 +444,6 @@ public class Startup
 
         services.AddScoped<IEmailNotificationService, EmailNotificationService>();
         services.AddScoped<IGCNotifyService, GCNotifyService>();
-        services.AddScoped<PortalEmailService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
 
