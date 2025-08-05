@@ -104,10 +104,12 @@ namespace Datahub.SpecflowTests.Hooks
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
 
             SeedDb(dbContextFactory);
+            scenarioContext["dbReady"] = true;
         }
 
         [BeforeScenario("LargeResponse")]
-        public void BeforeScenarioLargeResponse(IObjectContainer objectContainer)
+        public void BeforeScenarioLargeResponse(IObjectContainer objectContainer,
+            ScenarioContext scenarioContext)
         {
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
@@ -184,19 +186,31 @@ namespace Datahub.SpecflowTests.Hooks
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
 
             SeedDb(dbContextFactory);
+            scenarioContext["dbReady"] = true;
         }
 
         [AfterScenario("WorkspaceCosts")]
-        public void AfterScenarioWorkspaceCosts(IObjectContainer objectContainer)
+        public void AfterScenarioWorkspaceCosts(IObjectContainer objectContainer, ScenarioContext scenarioContext)
         {
+            //make sure the database has been initialized
+            if (!scenarioContext.ContainsKey("dbReady") || !(bool)scenarioContext["dbReady"])
+            {
+                return;
+            }
             var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
             using var context = dbContextFactory.CreateDbContext();
             context.Database.EnsureDeleted();
         }
         
         [AfterScenario("LargeResponse")]
-        public void AfterScenarioLargeResponse(IObjectContainer objectContainer)
+        public void AfterScenarioLargeResponse(IObjectContainer objectContainer,
+            ScenarioContext scenarioContext)
         {
+            //make sure the database has been initialized
+            if (!scenarioContext.ContainsKey("dbReady") || !(bool)scenarioContext["dbReady"])
+            {
+                return;
+            }
             var dbContextFactory = objectContainer.Resolve<IDbContextFactory<DatahubProjectDBContext>>();
             using var context = dbContextFactory.CreateDbContext();
             context.Database.EnsureDeleted();

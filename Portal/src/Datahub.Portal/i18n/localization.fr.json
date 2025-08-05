@@ -3425,7 +3425,8 @@
   "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
   "Account Setup": "Configuration du compte",
   " instructions.":  ".",
-  
+  "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
+
 
   //urlpaths
   "account": "compte",

@@ -2435,6 +2435,7 @@
   "If it's your first time signing in, please follow the ": "If it's your first time signing in, please follow the ",
   "Account Setup": "Account Setup",
   " instructions.": " instructions.",
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
   //urlpaths
   "account": "account",
   "public": "public",
@@ -2492,14 +2493,6 @@
   "/locked-lt": "/verrouille",
   "/register": "/register",
   "/locked": "/locked",
-  "{0} has requested for workspace {1} to be updated to the latest version. Please run the update at the end of the work day.": "{0} has requested for workspace {1} to be updated to the latest version. Please run the update at the end of the work day.",
-  "Notification Sent": "Notification Sent",
-  "Workspace Version Update Triggered": "Workspace Version Update Triggered",
-  "Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?": "Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?",
-  "This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours": "This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours",
-  "No Update Required": "No Update Required",
-  "Confirm Workspace Update": "Confirm Workspace Update",
-
 
   "To learn more about the FSDH, visit our ": "To learn more about the FSDH, visit our ",
   "GCxchange": "GCXchange",
