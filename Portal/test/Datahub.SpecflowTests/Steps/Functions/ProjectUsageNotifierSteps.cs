@@ -16,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
+using Datahub.Application.Services.Notification;
 
 namespace Datahub.SpecflowTests.Steps.Functions;
 
@@ -146,7 +147,7 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        emailService = Substitute.For<IEmailService>();
+        var notifyService = Substitute.For<IGCNotifyService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -155,7 +156,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            emailService,
+            notifyService,
             resourceMessagingService);
 
         await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
