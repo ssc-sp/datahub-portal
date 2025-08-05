@@ -1,4 +1,3 @@
-using Datahub.Infrastructure.Queues.Messages;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -7,11 +6,9 @@ using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Datahub.Functions.Services;
-using Datahub.Infrastructure.Extensions;
-using Datahub.Shared.Configuration;
 using MassTransit;
 using Datahub.Infrastructure.Services.Azure;
+using Datahub.Application.Services.Notification;
 using static System.Guid;
 
 namespace Datahub.Functions;
@@ -21,7 +18,7 @@ public class CreateGraphUser(
     AzureConfig configuration,
     AzureManagementService azureManagementService,
     ISendEndpointProvider sendEndpointProvider,
-    IEmailService emailService)
+    IGCNotifyService notifyService)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<CreateGraphUser>();
 
@@ -146,7 +143,7 @@ public class CreateGraphUser(
         }
 
         // send invite email
-        await SenInvitationEmail(userEmail, inviter);
+        await notifyService.SendAccountCreatedNotification(userEmail);
 
         var response = new JsonObject
         {
@@ -201,42 +198,9 @@ public class CreateGraphUser(
         return result;
     }
 
-    private async Task SenInvitationEmail(string userEmail, string inviter)
-    {
-        var portalLink = configuration.PortalUrl ?? "";
-        var contacts = new List<string>() { userEmail };
-
-        Dictionary<string, string> bodyArgs = new()
-        {
-            { "{{inviter}}", inviter },
-            { "{{datahub_link}}", portalLink }
-        };
-
-        var email = emailService.BuildEmail("user_invitation.html", contacts, new List<string>(), bodyArgs,
-            new Dictionary<string, string>());
-        if (email is not null)
-        {
-            await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, email);
-        }
-    }
-
     private async Task SendFailureEmail(string message)
     {
-        var subject = "Datahub invitation failed";
-        var body = "An error occurred while inviting a user to Datahub.\n " +
-                   "Please check the logs for more details.\n " +
-                   $"Error message: {message}";
-        var contacts = new List<string>() { configuration.Email.AdminEmail };
-
-        EmailRequestMessage notificationEmail = new()
-        {
-            To = contacts,
-            Subject = subject,
-            Body = body
-        };
-
-        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-            notificationEmail);
+        notifyService.SendDataHubErrorNotification(message, configuration.Email.AdminEmail);
     }
 
     record CreateUserRequest(string email, string mockInvite, string inviter);
