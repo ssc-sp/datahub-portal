@@ -2,6 +2,7 @@
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
@@ -30,7 +31,7 @@ namespace Datahub.Functions
         IUserInactivityNotificationService userInactivityNotificationService,
         ISendEndpointProvider sendEndpointProvider,
         IProjectUserManagementService projectUserManagementService,
-        IEmailService emailService)
+        IGCNotifyService notifyService)
     {
         private readonly ILogger<UserInactivityNotifier> _logger = loggerFactory.CreateLogger<UserInactivityNotifier>();
 
@@ -66,9 +67,9 @@ namespace Datahub.Functions
                 user.DisplayName);
 
             var lastLoginDate = user.LastLoginDateTime ?? user.FirstLoginDateTime;
-            var daysSinceLastLogin = (dateProvider.Today - lastLoginDate)?.Days;
-            var daysUntilLocked = dateProvider.UserInactivityLockedDay() - daysSinceLastLogin;
-            var daysUntilDeleted = dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin;
+            int daysSinceLastLogin = (int)(dateProvider.Today - lastLoginDate)?.Days;
+            int daysUntilLocked = (int)(dateProvider.UserInactivityLockedDay() - daysSinceLastLogin);
+            int daysUntilDeleted = (int)(dateProvider.UserInactivityDeletionDay() - daysSinceLastLogin);
             _logger.LogInformation(
                 "User {UserDisplayName} has been inactive for {DaysSinceLastLogin} days. They will be locked in {DaysUntilLocked} days and deleted in {DaysUntilDeleted} days.",
                 user.DisplayName, daysSinceLastLogin, daysUntilLocked, daysUntilDeleted);
@@ -76,22 +77,24 @@ namespace Datahub.Functions
             if (lastLoginDate != null && emailValidator.IsValidEmail(user.Email))
             {
                 _logger.LogInformation("Checking if the user needs to be notified at this time...");
-                var email = await CheckIfUserToBeNotified(daysSinceLastLogin!.Value, daysUntilLocked!.Value,
-                    daysUntilDeleted!.Value, user.Email);
+                var email = await CheckIfUserToBeNotified(daysSinceLastLogin, daysUntilLocked, daysUntilDeleted, user.Email);
 
-                if (email != null)
+                if (email)
                 {
-                    _logger.LogInformation("User {UserDisplayName} needs to be notified. Sending email...",
-                        user.DisplayName);
-                    await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                        email, ct);
+                    _logger.LogInformation("User {UserDisplayName} needs to be notified. Sending email...", user.DisplayName);
 
-                    // send notification to db
-                    _logger.LogInformation("Notification sent to {UserDisplayName} for inactivity, saving to db...",
-                        user.DisplayName);
-                    await userInactivityNotificationService.AddInactivityNotification(user.Id, dateProvider.Today,
-                        daysUntilLocked!.Value, daysUntilDeleted!.Value, ct);
-                    _logger.LogInformation("Notification saved to db for {UserDisplayName}", user.DisplayName);
+                    if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilLocked))
+                    {
+                        await notifyService.SendAccountLockingNoticeNotification(user.Email, daysSinceLastLogin.ToString(), daysUntilLocked.ToString());
+                    }
+
+                    if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilDeleted))
+                    {
+                        await notifyService.SendAccountDeletionNoticeNotification(user.Email, daysSinceLastLogin.ToString(), daysUntilLocked.ToString());
+                    }
+
+                    _logger.LogInformation("Notification sent to {UserDisplayName} for inactivity, saving to db...", user.DisplayName);
+                    await userInactivityNotificationService.AddInactivityNotification(user.Id, dateProvider.Today, daysUntilLocked, daysUntilDeleted, ct);
                 }
             }
             if (daysUntilLocked <= 0)
@@ -125,53 +128,19 @@ namespace Datahub.Functions
 
         }
 
-        public async Task<EmailRequestMessage?> CheckIfUserToBeNotified(int daysSinceLastLogin, int daysUntilLocked,
-            int daysUntilDeleted, string email)
+        public async Task<bool> CheckIfUserToBeNotified(int daysSinceLastLogin, int daysUntilLocked, int daysUntilDeleted, string email)
         {
             if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilLocked))
             {
-                return GetLockedEmailRequestMessage(daysSinceLastLogin, daysUntilLocked, email);
+                return true;
             }
 
             if (dateProvider.UserInactivityNotificationDays().Contains(daysUntilDeleted))
             {
-                return GetDeletedEmailRequestMessage(daysSinceLastLogin, daysUntilDeleted, email);
+                return true;
             }
 
-            return null;
-        }
-
-        public EmailRequestMessage GetLockedEmailRequestMessage(int daysSinceLastLogin, int daysUntilLocked,
-            string email)
-        {
-            return GetEmailRequestMessage(daysSinceLastLogin, daysUntilLocked, "user_lock", email);
-        }
-
-        public EmailRequestMessage GetDeletedEmailRequestMessage(int daysSinceLastLogin, int daysUntilDeleted,
-            string email)
-        {
-            return GetEmailRequestMessage(daysSinceLastLogin, daysUntilDeleted, "user_deletion", email);
-        }
-
-        public EmailRequestMessage GetEmailRequestMessage(int daysSince, int daysUntil, string reason, string email)
-        {
-            Dictionary<string, string> bodyArgs = new()
-            {
-                { "{daysSince}", daysSince.ToString() },
-                { "{daysUntil}", daysUntil.ToString() }
-            };
-
-            Dictionary<string, string> subjectArgs = new();
-
-            List<string> bcc = new() { GetNotificationCCAddress() };
-
-            return emailService.BuildEmail($"{reason}_alert.html", new List<string>() { email }, bcc, bodyArgs,
-                subjectArgs);
-        }
-
-        private string GetNotificationCCAddress()
-        {
-            return config.Email?.NotificationsCCAddress ?? "fsdh-notifications-dhsf-notifications@ssc-spc.gc.ca";
+            return false;
         }
     }
 }
