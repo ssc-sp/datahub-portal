@@ -40,7 +40,7 @@
     </SettingsField>
     <SettingsField Label="@Localizer["Machine Learning Compute"]"
                    Description="@Localizer["This node type is tuned for machine learning tasks. It may incur higher usage costs than the general purpose tier."]">
-        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearning>
+        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearning id=@EnableMLCheckBoxId>
             @Localizer["Enable Machine Learning Cluster"]
         </MudCheckBox>
         @if (IsEditingML)
@@ -77,7 +77,7 @@
     </SettingsField>
     <SettingsField Label="@Localizer["Machine Learning Compute with GPU"]"
                    Description="@Localizer["This enables GPU-accelerated compute nodes for heavy machine learning tasks. This will incur higher usage costs than the other compute tiers."]">
-        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearningGpu>
+        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearningGpu @id=@EnableMLGpuCheckBoxId>
             @Localizer["Enable Machine Learning Cluster with GPU"]
         </MudCheckBox>
         @if (IsEditingMLGpu)
@@ -129,6 +129,8 @@
 
     public static string DatabricksConfigurationFormId => "databricks-configuration-form";
     public static string GeneralPurposeTierSelectId => "databricks-general-purpose-tier-select";
+    public static string EnableMLCheckBoxId => "databricks-enable-ml-checkbox";
+    public static string EnableMLGpuCheckBoxId => "databricks-enable-ml-gpu-checkbox";
     public static string MLTierSelectId => "databricks-ml-tier-select";
     public static string MLGPUTierSelectId => "databricks-ml-gpu-tier-select";
 
