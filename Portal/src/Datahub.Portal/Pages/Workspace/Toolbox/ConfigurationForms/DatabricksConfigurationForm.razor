@@ -4,7 +4,7 @@
 
 <div id=@DatabricksConfigurationFormId>
     <SettingsField Label="@Localizer["General Purpose Compute"]"
-                   Description="@Localizer["This is the compute node for general purpose Databricks tasks"]">
+                   Description="@Localizer["This is the compute node for general purpose Databricks tasks."]">
         @if (IsEditingGeneralPurpose)
         {
             <MudSelect 
@@ -43,7 +43,7 @@
         <MudCheckBox @bind-Value=@Configuration.EnableMachineLearning id=@EnableMLCheckBoxId>
             @Localizer["Enable Machine Learning Cluster"]
         </MudCheckBox>
-        @if (IsEditingML)
+        @if (Configuration.EnableMachineLearning)
         {
             <MudSelect 
                 T=DatabricksTier 
@@ -64,23 +64,13 @@
                 }
             </MudSelect>
         }
-        else if (Configuration.EnableMachineLearning)
-        {
-            <MudStack Row>
-                @TierDescription(SelectedMachineLearningTier)
-                <MudSpacer />
-                <MudText Style="font-style: italic">
-                    @Configuration.MachineLearningTierSku
-                </MudText>
-            </MudStack>
-        }
     </SettingsField>
     <SettingsField Label="@Localizer["Machine Learning Compute with GPU"]"
                    Description="@Localizer["This enables GPU-accelerated compute nodes for heavy machine learning tasks. This will incur higher usage costs than the other compute tiers."]">
-        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearningGpu @id=@EnableMLGpuCheckBoxId>
+        <MudCheckBox @bind-Value=@Configuration.EnableMachineLearningGpu id=@EnableMLGpuCheckBoxId>
             @Localizer["Enable Machine Learning Cluster with GPU"]
         </MudCheckBox>
-        @if (IsEditingMLGpu)
+        @if (Configuration.EnableMachineLearningGpu)
         {
             <MudSelect 
                 T=DatabricksTier 
@@ -101,27 +91,9 @@
                 }
             </MudSelect>
         }
-        else if (Configuration.EnableMachineLearningGpu)
-        {
-            <MudStack Row>
-                @TierDescription(SelectedMachineLearningGpuTier)
-                <MudSpacer />
-                <MudText Style="font-style: italic">
-                    @Configuration.MachineLearningGpuTierSku
-                </MudText>
-            </MudStack>
-        }
+
     </SettingsField>
-    <SettingsField Label="@Localizer["Advanced Configuration"]" Description="@Localizer["This allows you to set which thing"]">
-        <MudStack Row AlignItems="AlignItems.Center">
-            <MudToggleIconButton
-                @bind-Toggled=@AdvancedConfiguration 
-                Icon="@Icons.Material.Filled.Settings"
-                ToggledColor="Color.Primary"/>
-            <MudText>@Localizer["Advanced Configuration"]</MudText>
-        </MudStack>
-    </SettingsField>
-</div>
+ </div>
 
 
 @code {
@@ -138,24 +110,7 @@
     private readonly IEnumerable<DatabricksTier> AvailableMLTiers = DatabricksTier.GetMachineLearningTiers().Where(t => t.IsAvailable).ToList();
     private readonly IEnumerable<DatabricksTier> AvailableMLGPUTiers = DatabricksTier.GetMachineLearningGpuTiers().Where(t => t.IsAvailable).ToList();
 
-    private bool _advancedConfiguration = false;
-    private bool AdvancedConfiguration
-    {
-        get => _advancedConfiguration;
-        set
-        {
-            _advancedConfiguration = value;
-            if (!value)
-            {
-                Configuration.ResetMLTier();
-                Configuration.ResetMLGpuTier();
-            }
-        }
-    }
-
     private bool IsEditingGeneralPurpose => false;
-    private bool IsEditingML => AdvancedConfiguration && Configuration.EnableMachineLearning;
-    private bool IsEditingMLGpu => AdvancedConfiguration && Configuration.EnableMachineLearningGpu;
 
     private DatabricksTier LookupDatabricksTier(IEnumerable<DatabricksTier> tierList, string sku)
     {
