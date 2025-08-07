@@ -168,7 +168,7 @@
   "Access the project Workspace in the Power BI Service": "Accéder à l'espace de travail de l'espace de travail dans le service Power BI",
   "Access the storage account for this project to upload, download and share datasets with all project members.": "Accédez au compte de stockage de ce projet pour charger, télécharger et partager des ensembles de données avec tous les membres du projet.",
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.": "Accédez aux comptes de stockage de l'espace de travail pour télécharger, télécharger et partager des ensembles de données avec tous les membres de l'espace de travail.",
-  "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Accédez aux comptes de stockage de l'espace de travail pour télécharger, télécharger et partager des ensembles de données avec tous les membres de l'espace de travail. Les ensembles de données stockés dans l'espace de travail peuvent aussi être publiés sur Open Data.",
+  "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Accédez aux comptes de stockage de l'espace de travail pour télécharger, télécharger et partager des ensembles de données avec tous les membres de l'espace de travail. Les ensembles de données stockés dans l'espace de travail peuvent aussi être publiés sur le Portail du gouvernement ouvert.",
   "Access to Information and Privacy Secretariat": "Secrétariat de l'accès à l'information et de la protection des renseignements personnels",
   "Access to PostgreSQL is disabled when going over budget. You will no longer be able to access any data or make any changes to the database.": "L'accès à PostgreSQL est désactivé en cas de dépassement du budget. Vous ne pourrez plus accéder à aucune donnée ni modifier la base de données.",
   "Access to high-performance, massively parallel and specialized GPU compute instances for speeding up your algorithms and model training.": "Accès à des instances de calcul avec unité de traitement graphique spécialisé, massivement parallèles et hautement performantes pour accélérer la formation sur les algorithmes et vos modèles.",
@@ -3386,7 +3386,7 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
-  
+
   // GC Hosting Metadata
   "GCWorkspaceMetadata": "Métadonnées de l’espace de travail GC Hosting",
   "WorkspaceNoMetadata": "L’espace de travail ne possède pas de métadonnées GC Hosting",
@@ -3419,7 +3419,7 @@
   "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre la Plateforme fédérale de données scientifiques.",
   "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
   "Account Setup": "Configuration du compte",
-  " instructions.":  ".",
+  " instructions.": ".",
   "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
 
 
