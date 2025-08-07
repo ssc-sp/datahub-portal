@@ -326,7 +326,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 var updatedValue = DisplayValue(kv.Value.Updated);
                 return originalValue == null
                     ? Localizer["Selected {0}: {1}", PropertyLabel(key).ToLower(), updatedValue]
-                    : Localizer["Updated {0}: {1} -> {2}", PropertyLabel(key).ToLower(), originalValue, updatedValue];
+                    : Localizer["Updated {0}: {1} → {2}", PropertyLabel(key).ToLower(), originalValue, updatedValue];
             });
 
             return string.Join(" / ", diffStrings);

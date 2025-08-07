@@ -2552,7 +2552,7 @@
   "Select tools to add, remove or configure in your workspace ": "Sélectionnez les outils à ajouter, supprimer ou configurer dans votre espace de travail ",
   "Select whether this team will be accessible to:": "Can you please provide context for this one. I didn't find it in the form.",
   "Selected Government of Canada Department/Agency": "Ministère/organisme sélectionné du gouvernement du Canada",
-  "Selected {0}: {1}\\n": "Sélectionné {0}: {1}\\n",
+  "Selected {0}: {1}": "Sélectionné {0}: {1}",
   "Self registrations": "Auto-inscriptions",
   "Self-Serve BI Tools": "Outils d’intelligence d’affaires en libre-service",
   "Send": "Envoyer",
@@ -2964,7 +2964,7 @@
   "Update Metadata": "Mise à jour des métadonnées",
   "Updated": "Mise à jour",
   "Updated by {0} on {1}": "Mis à jour par {0} le {1}",
-  "Updated {0}: {1} -\u003E {2}\\n": "Mis à jour {0}: {1} -\u003E {2}\\n",
+  "Updated {0}: {1} \u2192 {2}": "Mis à jour {0}: {1} \u2192 {2}",
   "Updating shared key access...": "Mise à jour de l'accès par clé partagée...",
   "Updating workspace...": "Mise à jour de l'espace de travail...",
   "Upgrade Workspace to Latest": "Mettre à jour l'espace de travail à la dernière version",
@@ -3386,7 +3386,7 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
   "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=fr",
   "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "L'auto-enregistrement n'est pas disponible dans cet environnement. Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre.",
-  
+
   // GC Hosting Metadata
   "GCWorkspaceMetadata": "Métadonnées de l’espace de travail GC Hosting",
   "WorkspaceNoMetadata": "L’espace de travail ne possède pas de métadonnées GC Hosting",
@@ -3419,7 +3419,7 @@
   "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "Vous devez créer un espace de travail sur le Portail des services d'hébergement du GC ou être ajouté à un espace de travail pour rejoindre la Plateforme fédérale de données scientifiques.",
   "If it's your first time signing in, please follow the ": "Si c'est votre première connexion, veuillez suivre les directions pour la  ",
   "Account Setup": "Configuration du compte",
-  " instructions.":  ".",
+  " instructions.": ".",
   "To create a workspace, access the GC Hosting Services Portal.": "Pour créer un espace de travail, accédez au Portail des services d'hébergement du GC.",
 
 
@@ -3483,5 +3483,23 @@
   "To learn more about the FSDH, visit our ": "Pour en savoir plus sur la PFDS, visitez notre site ",
   "GCxchange": "GCÉchange",
   " site (only available within the GC network).": "(disponible uniquement dans le réseau du GC).",
-  "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160/SitePages/fr/Home.aspx"
+  "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160/SitePages/fr/Home.aspx",
+  "General Purpose Compute": "Calcul à usage général",
+  "This is the compute node for general purpose Databricks tasks.": "Ceci est le nœud de calcul pour les tâches Databricks à usage général.",
+  "General purpose compute tier": "Niveau de calcul à usage général",
+  "Machine Learning Compute": "Calcul pour l'apprentissage machine",
+  "This node type is tuned for machine learning tasks. It may incur higher usage costs than the general purpose tier.": "Ce type de nœud est optimisé pour les tâches d'apprentissage machine. Il peut entraîner des coûts d'utilisation plus élevés que le niveau à usage général.",
+  "Enable Machine Learning Cluster": "Activer le cluster d'apprentissage machine",
+  "Machine learning compute tier": "Niveau de calcul pour l'apprentissage machine",
+  "Machine Learning Compute with GPU": "Calcul d'apprentissage machine avec GPU",
+  "This enables GPU-accelerated compute nodes for deep learning and other heavy machine learning tasks. Depending on usage, this will likely incur higher costs.": "Cela permet d'utiliser des nœuds de calcul accélérés par GPU pour l'apprentissage profond et d'autres tâches lourdes d'apprentissage machine. Selon l'utilisation, cela entraînera probablement des coûts plus élevés.",
+  "Enable Machine Learning Cluster with GPU": "Activer le cluster d'apprentissage machine avec GPU",
+  "Machine learning (GPU) tier": "Niveau d'apprentissage machine (GPU)",
+  "{0} - {1} vCPUs, {2} RAM, GPU(s): {3}, {4}": "{0} - {1} vCPU, {2} RAM, GPU: {3}, {4}",
+  "General purpose tier": "Niveau à usage général",
+  "ML tier": "Niveau d'apprentissage machine",
+  "ML (GPU) tier": "Niveau d'apprentissage machine (GPU)",
+  "Enable ML": "Activer l'apprentissage machine",
+  "Enable ML (GPU)": "Activer l'apprentissage machine (GPU)",
+  "~ {0:C2} to {1:C2}/hour, depending on usage": "~ {0:C2} à {1:C2}/heure, selon l'utilisation"
 }

@@ -66,7 +66,7 @@
         }
     </SettingsField>
     <SettingsField Label="@Localizer["Machine Learning Compute with GPU"]"
-                   Description="@Localizer["This enables GPU-accelerated compute nodes for heavy machine learning tasks. This will incur higher usage costs than the other compute tiers."]">
+                   Description="@Localizer["This enables GPU-accelerated compute nodes for deep learning and other heavy machine learning tasks. Depending on usage, this will likely incur higher costs."]">
         <MudCheckBox @bind-Value=@Configuration.EnableMachineLearningGpu id=@EnableMLGpuCheckBoxId>
             @Localizer["Enable Machine Learning Cluster with GPU"]
         </MudCheckBox>
