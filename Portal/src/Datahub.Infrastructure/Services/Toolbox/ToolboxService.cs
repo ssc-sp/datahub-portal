@@ -58,6 +58,9 @@ namespace Datahub.Infrastructure.Services.Toolbox
                 case TerraformTemplate.AzurePostgres:
                     workspaceDefinition.AppData.PostgresConfiguration = transaction.UpdatedData;
                     break;
+                case TerraformTemplate.AzureDatabricks:
+                    workspaceDefinition.AppData.DatabricksConfiguration = transaction.UpdatedData;
+                    break;
             }
         }
     }
@@ -160,6 +163,7 @@ namespace Datahub.Infrastructure.Services.Toolbox
             else
             {
                 var differences = updatedProperties
+                    .Where(prop => prop.GetValue(transaction.UpdatedData) != null)
                     .ToDictionary(prop => prop.Name,
                         prop => (Original: (object?)null,
                             Updated: prop.GetValue(transaction.UpdatedData)));
