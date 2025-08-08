@@ -2383,6 +2383,11 @@
   "Budget Usage": "Budget Usage",
   "CBR Budget": "CBR Budget",
   "Available Budget": "Available Budget",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",  
+
+  //Workspace Versioning
   "This page allows you to manage workspace versions in the FSDH.": "This page allows you to manage workspace versions in the FSDH.",
   "Add a new version to the version control table.": "Add a new version to the version control table.",
   "Add New Version": "Add New Version",

@@ -7,6 +7,13 @@
         Margin="Margin.Dense"
         Error="@_hasValidationError"
         ErrorText="@_errorText" />
+        <MudTextField T="string"
+                      @bind-Value="@_versionDescription"
+                      Required
+                      RequiredError="@Localizer["Please provide a description."]"
+                      Variant="Variant.Outlined"
+                      Lines="5"
+                      Class="no-margin-textarea"/>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
@@ -21,6 +28,7 @@
     public List<VersionTag> ExistingVersions { get; set; }
 
     private string _version = string.Empty;
+    private string _versionDescription = string.Empty;
     private bool _hasValidationError = false;
     private string _errorText = string.Empty;
 

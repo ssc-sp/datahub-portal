@@ -131,7 +131,7 @@
             await InvokeAsync(StateHasChanged);
 
 
-            await _requestManagementService.TriggerGreenLightChanges(versionTag.Tag, email);
+            await _requestManagementService.TriggerBuildVersionUpdates(versionTag.Tag, email);
 
             _snackbar.Add(Localizer["Successfully added version: {0}", version], Severity.Success);
         }
