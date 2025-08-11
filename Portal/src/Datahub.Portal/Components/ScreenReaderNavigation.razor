@@ -23,11 +23,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+
         if (firstRender)
         {
             try
             {
                 _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/ScreenReaderNavigation.razor.js");
+            }
+            catch (JSDisconnectedException)
+            {
+                // Handle the case where the JS runtime is disconnected
             }
             catch
             {
