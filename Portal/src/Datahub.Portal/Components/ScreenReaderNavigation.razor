@@ -34,10 +34,6 @@
             {
                 // Handle the case where the JS runtime is disconnected
             }
-            catch
-            {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/ScreenReaderNavigation.razor.js");
-            }
 
             await Task.Delay(TimeSpan.FromSeconds(1)); // Wait for the DOM to be ready
             var skipLinks = SkipLink.GetAvailableSkipLinks();
