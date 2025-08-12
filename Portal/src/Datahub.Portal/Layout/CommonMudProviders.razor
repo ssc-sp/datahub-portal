@@ -1,17 +1,19 @@
 ﻿@inject IUserSettingsService UserSettingsService
 
-<CascadingValue Value="_isDarkMode">
-    <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
-        <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
-        <MudDialogProvider />
-        <MudSnackbarProvider />
-        <MudPopoverProvider />
-        @if (ChildContent is not null)
-        {
-            @ChildContent
-        }
+<div class="@(_isDarkMode ? "mud-theme-dark" : "mud-theme-light")">
+    <CascadingValue Value="_isDarkMode">
+        <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+            <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
+            <MudDialogProvider />
+            <MudSnackbarProvider />
+            <MudPopoverProvider />
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+        </CascadingValue>
     </CascadingValue>
-</CascadingValue>
+</div>
 
 @code {
     [Parameter]

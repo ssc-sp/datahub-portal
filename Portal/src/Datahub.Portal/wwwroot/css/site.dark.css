@@ -1,0 +1,38 @@
+/* For light theme chips */
+.mud-theme-light .dh_themed_chip {
+    background-color: #e0e0e0; /* light gray */
+    color: #212121; /* dark text */
+}
+
+/* For dark theme chips */
+.mud-theme-dark .dh_themed_chip {
+    background-color: #424242; /* dark gray */
+    color: #ffffff; /* light text */
+}
+
+.mud-theme-dark .mud-alert-message {
+    color: #ffffff !important;
+}
+
+.mud-chip-color-dark.mud-chip-outlined.dh_themed_chip,
+.mud-chip-color-dark.dh_themed_chip {
+    color: #fff !important;
+}
+
+.mud-chip-color-dark.mud-chip-outlined.dh_themed_chip {
+    background-color: #424242 !important;
+    border-color: #fff !important;
+}
+
+.mud-chip-color-dark.dh_themed_chip .mud-chip-content,
+.mud-chip-color-dark.dh_themed_chip .mud-icon-root {
+    color: #fff !important;
+}
+
+.mud-dark-text.mud-icon-root {
+    color: #e0e0e0 !important;
+}
+
+.mud-theme-dark .donut-inner-text {
+    fill: #ffffff !important;
+}

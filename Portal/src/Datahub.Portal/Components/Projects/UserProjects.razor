@@ -41,7 +41,7 @@
                         CheckMark>
                 @foreach (var group in WorkspaceDisplayGroups)
                 {
-                    <MudChip T="string"
+                    <MudChip Class="dh_themed_chip" T="string"
                              title=@group.FilterLabel
                              Text=@group.Label
                              @bind-Selected=@(group.FilterToggle)>

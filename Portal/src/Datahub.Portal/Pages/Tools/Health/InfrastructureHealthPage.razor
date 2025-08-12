@@ -49,7 +49,7 @@ else
                     <MudTd>@context.ResourceType</MudTd>
                     <MudTd>
                         <MudStack Row>
-                            <MudChip Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small" T="string">
+                            <MudChip Class="dh_themed_chip" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small" T="string">
                                 @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
                             </MudChip>
                             @if (!string.IsNullOrEmpty(context.Details))
@@ -87,7 +87,7 @@ else
                 <MudTd>@context.Name</MudTd>
                 <MudTd>
                     <MudStack Row>
-                        <MudChip Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small" T="string">
+                        <MudChip Class="dh_themed_chip" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small" T="string">
                             @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
                         </MudChip>
                         @if (!string.IsNullOrEmpty(context.Details))
@@ -189,7 +189,7 @@ else
                 <MudTd DataLabel="Workspace">@context.Name</MudTd>
                 <MudTd DataLabel="Resource">@Localizer[context.ResourceType.ToString()]</MudTd>
                 <MudTd DataLabel="Status">
-                    <MudChip Color="@HealthCheckPageUtil.GetDisplayColor(context)" T="string" Size="Size.Small">
+                    <MudChip Class="dh_themed_chip" Color="@HealthCheckPageUtil.GetDisplayColor(context)" T="string" Size="Size.Small">
                         @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
                     </MudChip>
                 </MudTd>
