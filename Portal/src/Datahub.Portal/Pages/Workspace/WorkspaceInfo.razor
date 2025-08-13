@@ -40,6 +40,16 @@
 
         _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
         _projectDescription = LoadProjectDescription();
+
+        if (_project is not null && _project.ParentGCHostingBudgetId.HasValue)
+        {
+            var _workspace = await db.GCHostingWorkspaceDetails
+                .AsNoTracking()
+                .Include(b => b.WorkspacesInBudget)
+                .FirstOrDefaultAsync(b => b.Id == _project.ParentGCHostingBudgetId);
+
+            _projectDescription = _workspace.WorkspaceDescription;
+        }
     }
 
     private string LoadProjectDescription()
