@@ -10,12 +10,35 @@
     color: #ffffff; /* light text */
 }
 
-.mud-theme-dark .mud-alert-message {
+.mud-theme-dark .mud-alert-message,
+.mud-theme-dark .apexcharts-legend-text,
+.mud-theme-dark .file-item-icon {
     color: #ffffff !important;
 }
 
-.mud-chip-color-dark.mud-chip-outlined.dh_themed_chip,
-.mud-chip-color-dark.dh_themed_chip {
+.mud-theme-dark .file-list-header {
+    background-color: #373740 !important;
+}
+
+.mud-theme-dark .file-item.highlight,
+.mud-theme-dark .file-item:hover {
+    background-color: #c0c0c0 !important;
+    color: #212121 !important; /* dark text for contrast */
+}
+
+.mud-theme-dark .file-item.highlight .file-item-icon,
+.mud-theme-dark .file-item:hover .file-item-icon,
+.mud-theme-dark .file-item.highlight .file-item-name,
+.mud-theme-dark .file-item:hover .file-item-name {
+    color: #212121 !important;
+}
+
+.mud-theme-dark .inline-code-with-copy {
+    background-color: #e0e0e0; /* light gray */
+    color: #212121; /* dark text */
+}
+
+.mud-chip-color-dark.mud-chip-outlined.dh_themed_chip, .mud-chip-color-dark.dh_themed_chip {
     color: #fff !important;
 }
 
@@ -32,7 +55,7 @@
 .mud-dark-text.mud-icon-root {
     color: #e0e0e0 !important;
 }
-
+.mud-theme-dark .apexcharts-text,
 .mud-theme-dark .donut-inner-text {
     fill: #ffffff !important;
 }
