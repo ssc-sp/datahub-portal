@@ -16,17 +16,17 @@
         <MudStack Row>
             <MudText>
                 <strong>
-                    @Workspace.Project_Name
+                    @_title
                 </strong>
-                (@Workspace.Project_Acronym_CD)
+                (@_acro)
             </MudText>
             <MudSpacer/>
             <FeaturedProjectToggle Project="@Workspace" />
         </MudStack>
         <MudStack Row>
             <ProjectPreviewCardIconDetails
-                NumberOfUsers=@NumberOfUsers
-                NumberOfRepositories=@NumberOfRepositories
+            NumberOfUsers=@NumberOfUsers
+            NumberOfRepositories=@NumberOfRepositories
             />
             <MudSpacer/>
         </MudStack>
@@ -53,9 +53,9 @@
                     {
                         <li style=@CardActionStyle>
                             <DHButton Underline NoWrap FullWidth
-                                      Color="Color.Primary"
-                                      Href=@ToolLink(tool)
-                                      EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
+                            Color="Color.Primary"
+                            Href=@ToolLink(tool)
+                            EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
                                 @ToolLabel(tool)
                             </DHButton>
                         </li>
@@ -65,19 +65,19 @@
                 {
                     <li style=@CardActionStyle>
                         <DHButton Underline NoWrap FullWidth
-                                  Color="Color.Primary"
-                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
-                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                        Color="Color.Primary"
+                        Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                             @Localizer["Reports"]
                         </DHButton>
                     </li>
                 }
                 <li style=@CardMainActionStyle>
                     <DHButton Underline NoWrap FullWidth
-                              Color="Color.Primary"
-                              Variant="Variant.Outlined"
-                              Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
-                              EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                    Color="Color.Primary"
+                    Variant="Variant.Outlined"
+                    Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
+                    EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                         @Localizer["View workspace"]
                     </DHButton>
                 </li>
@@ -87,14 +87,14 @@
     @if (ShowCost)
     {
         <MudProgressLinear
-            Color=@CostBarColor()
-            Size="Size.Large"
-            Style=@CostBarStyle
-            Value=@((double)WorkspaceUsage.Item1)
-            Max=@((double)WorkspaceUsage.Item2)
-            title=@CostBarTitle()>
+        Color=@CostBarColor()
+        Size="Size.Large"
+        Style=@CostBarStyle
+        Value=@((double)WorkspaceUsage.Item1)
+        Max=@((double)WorkspaceUsage.Item2)
+        title=@CostBarTitle()>
             <ProjectPreviewCardIconDetails
-                WorkspaceUsage=@WorkspaceUsage
+            WorkspaceUsage=@WorkspaceUsage
             />
         </MudProgressLinear>
     }
@@ -172,11 +172,15 @@
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
+    private string _title = "";
+    private string _acro = "";
     private string _description = "";
 
     protected override async Task OnParametersSetAsync()
     {
         UpdateResourceStatusesFromHealthChecks();
+        _title = Workspace.ProjectName;
+        _acro = Workspace.Project_Acronym_CD;
         _description = Workspace.ProjectDescription;
 
         using var context = await ContextFactory.CreateDbContextAsync();
@@ -188,6 +192,7 @@
                 .Include(b => b.WorkspacesInBudget)
                 .FirstOrDefaultAsync(b => b.Id == Workspace.ParentGCHostingBudgetId);
 
+            _title = _workspace.WorkspaceName;
             _description = _workspace.WorkspaceDescription;
         }
     }
