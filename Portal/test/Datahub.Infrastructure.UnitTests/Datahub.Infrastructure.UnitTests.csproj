@@ -11,7 +11,7 @@
     <ItemGroup>
         
         
-        <PackageReference Include="FluentAssertions" Version="8.5.*" />
+        <PackageReference Include="FluentAssertions" Version="7.1.*" />
         
         
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.*" />
