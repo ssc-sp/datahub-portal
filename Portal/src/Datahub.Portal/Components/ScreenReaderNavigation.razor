@@ -23,15 +23,16 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+
         if (firstRender)
         {
             try
             {
                 _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/ScreenReaderNavigation.razor.js");
             }
-            catch
+            catch (JSDisconnectedException)
             {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/ScreenReaderNavigation.razor.js");
+                // Handle the case where the JS runtime is disconnected
             }
 
             await Task.Delay(TimeSpan.FromSeconds(1)); // Wait for the DOM to be ready
