@@ -75,7 +75,7 @@ public class RequestManagementService(
 
             if (requestedTemplate.Name == TerraformTemplate.NewProjectTemplate)
             { 
-                project.Version = await workspaceVersionService.GetLatestVersion();
+                project.Version = await workspaceVersionService.GetLatestVersionAsync();
             }
         }
     }
@@ -156,7 +156,7 @@ public class RequestManagementService(
 
 
 
-    public async Task<bool> TriggerGreenLightChanges(string versionTag, string email)
+    public async Task<bool> TriggerBuildVersionUpdates(string versionTag, string email)
     {
         // Parse the version tag and extract major and minor versions  
         try
@@ -180,9 +180,7 @@ public class RequestManagementService(
                     {
                         continue;
                     }
-                    workspaceDefinition.Workspace.Version = versionTag;
-                    workspaceDefinition.UpdateWorkspaceVersion = true;
-                    await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+                    await SendVersionUpdateToQueueAsync(versionTag, workspaceDefinition);
                 }
             }
             return true;
@@ -193,6 +191,13 @@ public class RequestManagementService(
             return false;
         }
     }
+
+    public async Task SendVersionUpdateToQueueAsync(string versionTag, WorkspaceDefinition workspaceDefinition)
+    {
+        workspaceDefinition.Workspace.Version = versionTag;
+        workspaceDefinition.UpdateWorkspaceVersion = true;
+        await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
+    }                    
     public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
     {
         return projectUser.RoleId switch
