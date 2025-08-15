@@ -17,6 +17,7 @@
 @inject IEmailNotificationService EmailNotificationService
 @inject ISnackbar Snackbar
 @inject IMemoryCache MemoryCache
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
 
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
@@ -24,9 +25,9 @@
         <MudStack Row>            
             <MudText Style="@WorkspaceNameStyle">
                 <strong>
-                    @Workspace.Project_Name
+                    @_title
                 </strong>
-                (@Workspace.Project_Acronym_CD)
+                (@_acro)
             </MudText>
             <MudSpacer />
             @* <MudText Align="Align.Right">
@@ -58,11 +59,11 @@
             />
             <MudSpacer/>
         </MudStack>
-        @if (!string.IsNullOrWhiteSpace(Workspace.ProjectDescription))
+        @if (!string.IsNullOrWhiteSpace(_description))
         {
             <div style=@ProjectDescriptionContainerStyle>
-                <MudText title="@Workspace.ProjectDescription" Style=@ProjectDescriptionStyle>
-                    @Workspace.ProjectDescription
+                <MudText title="@_description" Style=@ProjectDescriptionStyle>
+                    @_description
                 </MudText>
             </div>
         }
@@ -207,9 +208,29 @@
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
-    protected override void OnParametersSet()
+    private string _title = "";
+    private string _acro = "";
+    private string _description = "";
+
+    protected override async Task OnParametersSetAsync()
     {
         UpdateResourceStatusesFromHealthChecks();
+        _title = Workspace.ProjectName;
+        _acro = Workspace.Project_Acronym_CD;
+        _description = Workspace.ProjectDescription;
+
+        using var context = await ContextFactory.CreateDbContextAsync();
+
+        if (Workspace is not null && Workspace.ParentGCHostingBudgetId.HasValue)
+        {
+            var _workspace = await context.GCHostingWorkspaceDetails
+                .AsNoTracking()
+                .Include(b => b.WorkspacesInBudget)
+                .FirstOrDefaultAsync(b => b.Id == Workspace.ParentGCHostingBudgetId);
+
+            _title = _workspace.WorkspaceName;
+            _description = _workspace.WorkspaceDescription;
+        }
     }
 
     private void UpdateResourceStatusesFromHealthChecks()
