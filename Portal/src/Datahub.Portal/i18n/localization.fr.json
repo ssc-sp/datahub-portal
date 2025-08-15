@@ -3492,5 +3492,10 @@
   "Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?": "L'exécution de cette mise à jour vous empêchera temporairement d'accéder à votre espace de travail. Il est recommandé d'exécuter la mise à jour à la fin de votre journée de travail. Souhaitez-vous continuer ?",
   "This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours": "Cette mise à jour doit être exécutée par un administrateur Datahub. Cliquez sur “Oui” pour autoriser les administrateurs du Datahub à mettre à jour l'espace de travail. Vous pouvez continuer à utiliser l'espace de travail. La mise à jour sera effectuée en dehors des heures de bureau",
   "No Update Required": "Aucune mise à jour requise",
-  "Confirm Workspace Update": "Confirmer la mise à jour de l'espace de travail"
+  "Confirm Workspace Update": "Confirmer la mise à jour de l'espace de travail",
+  "Please provide a description of the update. This description will be used as to indicate what is new in the updated version.": "Veuillez fournir une description de la mise à jour. Cette description sera utilisée pour indiquer les nouveautés de la version mise à jour.",
+  "English Description": "Description en anglais",
+  "Please provide an English description.": "Veuillez fournir une description en anglais.",
+  "French Description": "Description en français",
+  "Please provide a French description.": "Veuillez fournir une description en français."
 }
