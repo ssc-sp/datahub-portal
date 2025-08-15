@@ -26,8 +26,8 @@ public static class PageRoutes
 
     public const string AccountPrefix = "account";
     public const string AccountPrefix_FR = "compte";
-    public const string AccountDefault = $"/{AccountPrefix}/";
-    public const string AccountDefault_FR = $"/{AccountPrefix_FR}/";
+    public const string AccountDefault = $"/{AccountPrefix}";
+    public const string AccountDefault_FR = $"/{AccountPrefix_FR}";
     public const string Account = $"/{AccountPrefix}/{{Section}}";
     public const string Account_FR = $"/{AccountPrefix_FR}/{{Section}}";
     

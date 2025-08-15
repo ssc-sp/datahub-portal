@@ -2383,6 +2383,11 @@
   "Budget Usage": "Budget Usage",
   "CBR Budget": "CBR Budget",
   "Available Budget": "Available Budget",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
+
+  //Workspace Versioning
   "This page allows you to manage workspace versions in the FSDH.": "This page allows you to manage workspace versions in the FSDH.",
   "Add a new version to the version control table.": "Add a new version to the version control table.",
   "Add New Version": "Add New Version",
@@ -2395,8 +2400,6 @@
   "Successfully added version: {0}": "Successfully added version: {0}",
   "Version already exists": "Version already exists",
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
-  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
-  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
   //GC hosting metadata
   "GCWorkspaceMetadata": "GC Hosting Workspace Metadata",
   "WorkspaceNoMetadata": "Workspace has no GC Hosting Metadata",
@@ -2430,7 +2433,6 @@
   "If it's your first time signing in, please follow the ": "If it's your first time signing in, please follow the ",
   "Account Setup": "Account Setup",
   " instructions.": " instructions.",
-  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
   //urlpaths
   "account": "account",
   "public": "public",
@@ -2482,12 +2484,14 @@
   "/login-lt": "/connexion",
   "register-lt": "inscription",
   "/register-lt": "/inscription",
-  "settings-lt": "parametres",  
+  "settings-lt": "parametres",
   "/settings-lt": "/parametres",
   "locked-lt": "verrouille",
   "/locked-lt": "/verrouille",
   "/register": "/register",
   "/locked": "/locked",
+  "/account/-lt": "/compte",
+  "/account-lt": "/compte",
 
   "To learn more about the FSDH, visit our ": "To learn more about the FSDH, visit our ",
   "GCxchange": "GCXchange",

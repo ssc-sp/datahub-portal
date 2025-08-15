@@ -26,6 +26,18 @@ namespace Datahub.Core.Model.Datahub
         public string Tag { get; set; }
 
         /// <summary>
+        /// Gets or sets the description of the version tag.
+        /// </summary>
+        [Required]
+        public string VersionDescription { get; set; }
+
+        /// <summary>
+        /// Gets or sets the French description of the version tag.
+        /// </summary>
+        [Required]
+        public string VersionDescriptionFr { get; set; }
+
+        /// <summary>
         /// Gets or sets a value indicating whether the version tag is currently active.
         /// </summary>
         public bool IsActive { get; set; }

@@ -12,6 +12,7 @@ using Datahub.Shared.Entities;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MimeKit;
 
 namespace Datahub.Functions;
 
@@ -129,6 +130,7 @@ public class TerraformOutputHandler(
             await ProcessAzureDatabricks(outputVariables);
             await ProcessAzureWebApp(outputVariables);
             await ProcessAzurePostgres(outputVariables);
+            await UpdateProjectVariables(outputVariables);
             transactionScope.Complete();
         }
         catch (Exception e)
@@ -344,6 +346,7 @@ public class TerraformOutputHandler(
                 ["resource_group_name"] = resourceGroupName
             };
 
+            project.IsVersionUpdateRequested = false;
             projectResource.JsonContent = jsonContent.ToString();
             projectResource.CreatedAt ??= DateTime.UtcNow;
         }
@@ -357,6 +360,23 @@ public class TerraformOutputHandler(
         projectResource.UpdatedAt = DateTime.UtcNow;
 
         await projectDbContext.SaveChangesAsync();
+    }
+
+    internal async Task UpdateProjectVariables(IReadOnlyDictionary<string, TerraformOutputVariable> outputVariables)
+    {
+        var projectAcronym = outputVariables[TerraformVariables.OutputProjectAcronym];
+        var project = await projectDbContext.Projects
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+
+        if (project == null)
+        {
+            _logger.LogError("Project not found for acronym {ProjectId}", projectAcronym.Value);
+            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+        }
+
+        project.IsVersionUpdateRequested = false;
+        await projectDbContext.SaveChangesAsync();
+
     }
 
     private static string GetStatusMapping(string value)
