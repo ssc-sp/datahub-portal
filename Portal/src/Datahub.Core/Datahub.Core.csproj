@@ -101,10 +101,7 @@
 	<ItemGroup>
 		<Content Update="i18n\SharedResources.fr.json">
 			<CustomToolNamespace>Resources</CustomToolNamespace>
-		</Content>
-		<Content Update="Templates\WorkspaceUpdateNotification.razor">
-		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
-		</Content>
+		</Content>		
 		<Content Include="Components\DHMarkdown.razor.js" />
 		<Content Include="Components\FileUpload\DropZone.razor.js" />
 	</ItemGroup>
