@@ -1,5 +1,6 @@
 ﻿@using Datahub.Application.Services.ReverseProxy
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared
 @inject IReverseProxyConfigService _reverseProxyConfigService
 
 <MudPaper Outlined Class="pa-4">
@@ -14,7 +15,7 @@
             @Localizer["Navigate to the Azure App Service to view your web application, where you can serve interactive and user-friendly dashboards."]
         </MudText>
         <MudElement HtmlTag="div">
-            @if (ProjectResource.CreatedAt.HasValue)
+            @if (ProjectResource.Status == TerraformStatus.Completed)
             {
                 <MudStack Row>
                     <DHButton
@@ -47,7 +48,6 @@
     [Parameter] [EditorRequired] public Project_Resources2 ProjectResource { get; set; }
 
     [Parameter] [EditorRequired] public string WorkspaceAcronym { get; set; }
-
 
     private string GetWebAppUrl()
     {
