@@ -1,4 +1,5 @@
 @using Datahub.Core.Model.Projects
+@using Datahub.Shared
 @inject DatahubPortalConfiguration _config
 
 
@@ -13,7 +14,7 @@
             @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data."]
         </MudText>
         <MudElement HtmlTag="div">
-            @if (ProjectResource.CreatedAt.HasValue)
+            @if (ProjectResource.Status == TerraformStatus.Completed)
             {
             <MudStack Row>
                 <DHButton
@@ -55,5 +56,9 @@
     [Parameter]
     [EditorRequired]
     public string WorkspaceAcronym { get; set; }
+
+    [Parameter]
+    [EditorRequired]
+    public Datahub_Project Project { get; set; }
 
 }

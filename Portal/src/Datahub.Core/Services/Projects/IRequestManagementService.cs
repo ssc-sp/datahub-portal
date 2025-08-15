@@ -36,5 +36,6 @@ public interface IRequestManagementService
     Task ScaffoldLocalChanges(Datahub_Project project, PortalUser requestingUser, TerraformTemplate requestedTemplate,
         DatahubProjectDBContext ctx);
 
-    public Task<bool> TriggerGreenLightChanges(string versionTag, string email);
+    public Task<bool> TriggerBuildVersionUpdates(string versionTag, string email);
+    public Task SendVersionUpdateToQueueAsync(string versionTag, WorkspaceDefinition workspaceDefinition);
 }
