@@ -10,89 +10,143 @@ namespace Datahub.Infrastructure.Services
 {
     public class WorkspaceVersionService(
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<WorkspaceCreationService> logger) : IWorkspaceVersionService
+        ILogger<WorkspaceVersionService> logger) : IWorkspaceVersionService
     {
         public async Task<string> GetLatestVersionAsync()
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            var versionTags = await db.VersionTags
-                                .Where(t => t.IsActive)
-                                .Select(t => t.Tag)
-                                .ToListAsync();
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                var versionTags = await db.VersionTags
+                                    .Where(t => t.IsActive)
+                                    .Select(t => t.Tag)
+                                    .ToListAsync();
 
-            var latest = versionTags
-                 .Select(v => Version.Parse(v.TrimStart('v')))
-                 .OrderByDescending(v => v)
-                 .First();
-            var latestStr = $"v{latest.ToString()}";
+                var latest = versionTags
+                     .Select(v => Version.Parse(v.TrimStart('v')))
+                     .OrderByDescending(v => v)
+                     .First();
+                var latestStr = $"v{latest.ToString()}";
 
-            return latestStr;
+                return latestStr;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting latest version");
+                throw;
+            }
         }
 
         public async Task<List<VersionTag>> GetAllVersionsAsync()
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            var versionTags = await db.VersionTags
-                .ToListAsync();
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                var versionTags = await db.VersionTags
+                    .ToListAsync();
 
-            var orderedVersionTags = versionTags
-                .OrderByDescending(v => Version.Parse(v.Tag.TrimStart('v')))
-                .ToList();
+                var orderedVersionTags = versionTags
+                    .OrderByDescending(v => Version.Parse(v.Tag.TrimStart('v')))
+                    .ToList();
 
-            return orderedVersionTags;
+                return orderedVersionTags;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting all versions");
+                throw;
+            }
         }
-
 
         public async Task<bool> AddNewVersion(VersionTag versionTag)
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            await db.VersionTags.AddAsync(versionTag);
-            var isSaved = await db.SaveChangesAsync();
-            return isSaved > 0;
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                await db.VersionTags.AddAsync(versionTag);
+                var isSaved = await db.SaveChangesAsync();
+                return isSaved > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error adding new version with tag: {Tag}", versionTag?.Tag);
+                throw;
+            }
         }
 
         public async Task<bool> UpdateVersionTag(VersionTag versionTag)
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            db.VersionTags.Update(versionTag);
-            var isSaved = await db.SaveChangesAsync();
-            return isSaved > 0;
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                db.VersionTags.Update(versionTag);
+                var isSaved = await db.SaveChangesAsync();
+                return isSaved > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error updating version tag with ID: {VersionTagId}", versionTag?.VersionTagId);
+                throw;
+            }
         }
 
         public async Task<bool> DeleteVersion(VersionTag versionTag)
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            db.VersionTags.Remove(versionTag);
-            var isDeleted = await db.SaveChangesAsync();
-            return isDeleted > 0;
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                db.VersionTags.Remove(versionTag);
+                var isDeleted = await db.SaveChangesAsync();
+                return isDeleted > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error deleting version tag with ID: {VersionTagId}", versionTag?.VersionTagId);
+                throw;
+            }
         }
 
         public async Task<bool> SetResourcesToCreateRequested(int projectId)
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            var projectResources = await db.Project_Resources2
-                .Where(r => r.ProjectId == projectId)
-                .ToListAsync();
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                var projectResources = await db.Project_Resources2
+                    .Where(r => r.ProjectId == projectId)
+                    .ToListAsync();
 
-            projectResources.ForEach(resource => resource.Status = TerraformStatus.CreateRequested);
+                projectResources.ForEach(resource => resource.Status = TerraformStatus.CreateRequested);
 
-            return await db.SaveChangesAsync() > 0;
-
+                return await db.SaveChangesAsync() > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error setting resources to create requested for project ID: {ProjectId}", projectId);
+                throw;
+            }
         }
 
         public async Task<bool> SetWorkspaceToUpdateRequested(int projectId)
         {
-            await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
-            var project = await db.Projects.FirstOrDefaultAsync(p => p.Project_ID == projectId);
-
-            if (project == null)
+            try
             {
-                logger.LogError($"Project with ID {projectId} not found.");
-                return false;
-            }
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                var project = await db.Projects.FirstOrDefaultAsync(p => p.Project_ID == projectId);
 
-            project.IsVersionUpdateRequested = true;
-            return await db.SaveChangesAsync() > 0;
+                if (project == null)
+                {
+                    logger.LogError("Project with ID {ProjectId} not found.", projectId);
+                    return false;
+                }
+
+                project.IsVersionUpdateRequested = true;
+                return await db.SaveChangesAsync() > 0;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error setting workspace to update requested for project ID: {ProjectId}", projectId);
+                throw;
+            }
         }
     }
 }

@@ -1,25 +1,37 @@
 ﻿<MudDialog>
     <DialogContent>
         <MudTextField T="string"
-        @bind-Value="_version"
-        Placeholder="vX.X.X"
-        DisableUnderLine="true"
-        Margin="Margin.Dense"
-        Error="@_hasValidationError"
-        ErrorText="@_errorText" />
+                      @bind-Value="_version"
+                      Placeholder="vX.X.X"
+                      DisableUnderLine="true"
+                      Margin="Margin.Dense"
+                      Error="@_hasValidationError.Item1"
+                      ErrorText="@_errorText"
+                      Class="no-margin-textarea" />
+        <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide a description of the update. This description will be used as to indicate what is new in the updated version."]*</MudText>
         <MudTextField T="string"
                       @bind-Value="@_versionDescription"
-                      Required
-                      RequiredError="@Localizer["Please provide a description."]"
+                      Label="@Localizer["English Description"]"
+                      ErrorText="@Localizer["Please provide an English description."]"
+                      Error="@_hasValidationError.Item2"
                       Variant="Variant.Outlined"
-                      Lines="5"
-                      Class="no-margin-textarea"/>
+                      Lines="3"
+                      Class="no-margin-textarea mb-3" />
+        <MudTextField T="string"
+                      @bind-Value="@_versionDescriptionFrench"
+                      Label="@Localizer["French Description"]"
+                      ErrorText="@Localizer["Please provide a French description."]"
+                      Error="@_hasValidationError.Item3"
+                      Variant="Variant.Outlined"
+                      Lines="3"
+                      Class="no-margin-textarea mb-3" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
         <MudButton Color="Color.Primary" OnClick="Submit">@Localizer["Ok"]</MudButton>
     </DialogActions>
 </MudDialog>
+
 @code {
 
     [CascadingParameter]
@@ -29,29 +41,56 @@
 
     private string _version = string.Empty;
     private string _versionDescription = string.Empty;
-    private bool _hasValidationError = false;
+    private string _versionDescriptionFrench = string.Empty;
+    private (bool, bool, bool) _hasValidationError = (false, false, false);
     private string _errorText = string.Empty;
 
     private async Task Submit()
-       {
-        if (ExistingVersions.Any(v => v.Tag.Equals(_version, StringComparison.OrdinalIgnoreCase)))
-           {
-               _errorText = Localizer["Version already exists"];
-               _hasValidationError = true;
-               return;
-           }
+    {
+        _hasValidationError = (false, false, false);
 
-           if (IsValidVersionFormat(_version))
-           {
-               _hasValidationError = false;
-               MudDialog.Close(DialogResult.Ok(_version));
-           }
-           else
-           {
-               _errorText = Localizer["Invalid version format. Please use vX.X.X. e.g. v1.2.3"];
-               _hasValidationError = true;
-           }
-       }
+        if (ExistingVersions.Any(v => v.Tag.Equals(_version, StringComparison.OrdinalIgnoreCase)))
+        {
+            _errorText = Localizer["Version already exists"];
+            _hasValidationError.Item1 = true;
+        }
+
+        if(!IsValidVersionFormat(_version))
+        {
+            _errorText = Localizer["Invalid version format. Please use vX.X.X. e.g. v1.2.3"];
+            _hasValidationError.Item1 = true;  
+        }
+
+        if (string.IsNullOrWhiteSpace(_versionDescription))
+        {
+            _hasValidationError.Item2 = true;
+        }
+
+        if (string.IsNullOrWhiteSpace(_versionDescriptionFrench))
+        {
+            _hasValidationError.Item3 = true;
+        }
+
+        if (_hasValidationError.Item1 || _hasValidationError.Item2 || _hasValidationError.Item3)
+        {
+            return;
+        }
+
+        if (IsValidVersionFormat(_version))
+        {
+            _hasValidationError = (false, false, false);
+            var versionTag = new VersionTag 
+            { 
+                Tag = _version, 
+                VersionDescription = _versionDescription,  
+                VersionDescriptionFr = _versionDescriptionFrench,
+                CreatedDate = DateTime.UtcNow, 
+                IsActive = true 
+            };
+
+            MudDialog.Close(DialogResult.Ok(versionTag));
+        }
+    }
 
     private void Cancel() => MudDialog.Cancel();
 

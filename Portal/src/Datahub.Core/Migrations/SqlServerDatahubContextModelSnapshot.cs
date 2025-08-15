@@ -692,6 +692,10 @@ namespace Datahub.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("VersionDescriptionFr")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("VersionTagId");
 
                     b.ToTable("VersionTags");
