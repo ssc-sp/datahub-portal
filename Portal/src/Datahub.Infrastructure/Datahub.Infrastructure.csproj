@@ -20,7 +20,7 @@
       <PackageReference Include="itext7" Version="9.2.*" />
       <PackageReference Include="MassTransit" Version="8.5.*" />
       <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.*" />
-      <PackageReference Include="MediatR" Version="13.0.*" />
+      <PackageReference Include="MediatR" Version="12.3.0" />
 	  <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />-->
 	  <PackageReference Include="Azure.Storage.Common" Version="12.24.*" />
       <PackageReference Include="Azure.Storage.Queues" Version="12.23.*" />
