@@ -83,6 +83,7 @@ public abstract class DatahubTheme
         },
         PaletteDark =
         {
+            Primary = "#C8C4F3",
             AppbarBackground = "#27272F"
         },
     };

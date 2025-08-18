@@ -52,7 +52,7 @@ public class UserSettings
     public List<string> HiddenAlerts { get; set; }
 
     /// <summary>
-    /// Gets or sets the preferred theme for this user ("DataHub Light" or "DataHub Dark").
+    /// Gets or sets the preferred theme for this user ("Light mode" or "Dark mode").
     /// </summary>
     public string Theme { get; set; }
 }

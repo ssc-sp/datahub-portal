@@ -17,10 +17,8 @@
             </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
                 <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
-                    <MudSelectItem T="string" Value="@("DataHub Light")"/>
-                    <MudSelectItem T="string" Value="@("DataHub Dark")"/>
-                    <MudSelectItem Disabled T="string" Value="@("Space Light")"/>
-                    <MudSelectItem Disabled T="string" Value="@("Space Dark")"/>
+                    <MudSelectItem T="string" Value="@Localizer["Light mode"]" />
+                    <MudSelectItem T="string" Value="@Localizer["Dark mode"]" />
                 </MudSelect>
             </SettingsField>
             <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
@@ -53,12 +51,15 @@
     [Parameter]
     public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
-    private string _selectedTheme = "DataHub Light";    // default
+    private string _selectedTheme = "Light mode";    // default
 
     protected override async Task OnInitializedAsync()
     {
         var theme = await _userSettingsService.GetTheme();
-        _selectedTheme = theme ?? "DataHub Light";
+        _selectedTheme = string.IsNullOrEmpty(theme) ? Localizer["Light mode"] : theme;
+        // data fix for users with old values
+        if (_selectedTheme.ToLower() == "datahub dark") _selectedTheme = Localizer["Dark mode"];
+        if (_selectedTheme.ToLower() == "datahub light") _selectedTheme = Localizer["Light mode"];
         StateHasChanged();
     }
 
