@@ -10,17 +10,21 @@
 		<UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
 	</PropertyGroup>
 	<ItemGroup>
-	  <Content Remove="Data\AzureFlexServers.json" />
-	  <Content Remove="i18n\localization.fr.json" />
-	  <Content Remove="i18n\localization.json" />
-	  <Content Remove="wwwroot\js\DownloadFileFromStream.js" />
+		<Content Remove="Data\AzureFlexServers.json" />
+		<Content Remove="i18n\gchosting.fr.json" />
+		<Content Remove="i18n\gchosting.json" />
+		<Content Remove="i18n\localization.fr.json" />
+		<Content Remove="i18n\localization.json" />
+		<Content Remove="i18n\url.fr.json" />
+		<Content Remove="i18n\url.json" />
+		<Content Remove="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 	<ItemGroup>
-	  <None Remove="Controllers\OpenDataApprovalForm.docx" />
+		<None Remove="Controllers\OpenDataApprovalForm.docx" />
 	</ItemGroup>
 	<ItemGroup>
-	  <EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
-	  <EmbeddedResource Include="Data\AzureFlexServers.json" />
+		<EmbeddedResource Include="Controllers\OpenDataApprovalForm.docx" />
+		<EmbeddedResource Include="Data\AzureFlexServers.json" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Azure.Core" Version="1.47.2.0" />
@@ -36,8 +40,8 @@
 		<PackageReference Include="Microsoft.Azure.Management.Graph.RBAC.Fluent" Version="1.38.1" />
 		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.*">
-		  <PrivateAssets>all</PrivateAssets>
-		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.12.*" />
 		<PackageReference Include="Microsoft.Graph" Version="5.87.*" />
@@ -78,12 +82,16 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Include="wwwroot\js\DownloadFileFromStream.js" />
+		<None Include="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 
 	<ItemGroup>
-	  <EmbeddedResource Include="i18n\localization.fr.json" WithCulture="false" />
-	  <EmbeddedResource Include="i18n\localization.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\localization.fr.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\localization.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\gchosting.fr.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\gchosting.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\url.fr.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\url.json" WithCulture="false" />
 	</ItemGroup>
 </Project>
 
