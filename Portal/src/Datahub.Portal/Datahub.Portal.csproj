@@ -11,12 +11,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Remove="Data\AzureFlexServers.json" />
-		<Content Remove="i18n\gchosting.fr.json" />
-		<Content Remove="i18n\gchosting.json" />
-		<Content Remove="i18n\localization.fr.json" />
-		<Content Remove="i18n\localization.json" />
-		<Content Remove="i18n\url.fr.json" />
-		<Content Remove="i18n\url.json" />
+		<Content Remove="i18n\*.json" />
 		<Content Remove="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 	<ItemGroup>
@@ -86,29 +81,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Include="i18n\localization.fr.json" WithCulture="false" />
-		<EmbeddedResource Include="i18n\localization.json" WithCulture="false" />
-		<EmbeddedResource Include="i18n\gchosting.fr.json" WithCulture="false" />
-		<EmbeddedResource Include="i18n\gchosting.json" WithCulture="false" />
-		<EmbeddedResource Include="i18n\url.fr.json" WithCulture="false" />
-		<EmbeddedResource Include="i18n\url.json" WithCulture="false" />
+		<EmbeddedResource Include="i18n\*.json" WithCulture="false" />
 	</ItemGroup>
 </Project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
