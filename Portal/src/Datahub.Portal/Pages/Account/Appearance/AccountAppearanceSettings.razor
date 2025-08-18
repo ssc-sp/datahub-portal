@@ -83,7 +83,7 @@
             if (_selectedTheme != value)
             {
                 _selectedTheme = value;
-                var dark = value.ToLowerInvariant().Contains("dark"); 
+                var dark = value.ToLowerInvariant().Contains("dark") || value.ToLowerInvariant().Contains("sombre");
                 if (dark != IsDarkMode)
                 {
                     IsDarkModeChanged.InvokeAsync(dark);

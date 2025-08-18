@@ -24,6 +24,6 @@
     protected override async Task OnInitializedAsync()
     {
         var theme = await UserSettingsService.GetTheme() ?? "";
-        _isDarkMode = theme.ToLowerInvariant().Contains("dark");
+        _isDarkMode = theme.ToLowerInvariant().Contains("dark") || theme.ToLowerInvariant().Contains("sombre");
     }
 }
