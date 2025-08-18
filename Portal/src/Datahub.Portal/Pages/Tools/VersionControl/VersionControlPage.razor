@@ -25,14 +25,28 @@
     </MudTooltip>
 
     <MudTable Items="@_versions" Loading="@_loading" Hover Dense>
+        <ColGroup>
+            <col style="width: 10%" />
+            <col style="width: 60%" />
+            <col style="width: 7%" />
+            <col style="width: 19%" />
+            <col style="width: 4%" />
+        </ColGroup>
         <HeaderContent>
             <MudTh>@Localizer["Version Tag"]</MudTh>
+            <MudTh>@Localizer["Description"]</MudTh>
             <MudTh>@Localizer["Active"]</MudTh>
             <MudTh>@Localizer["Created Date"]</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.Tag</MudTd>
+            <MudTd>
+                <MudStack Spacing="1">
+                    <MudText Typo="Typo.body2">@context.VersionDescription</MudText>
+                    <MudText Typo="Typo.body2">@context.VersionDescriptionFr</MudText>                    
+                </MudStack>
+            </MudTd>
             <MudTd>
                 @if (context.IsActive)
                 {
@@ -112,8 +126,8 @@
         var email = await _userInformationService.GetUserEmail();
         if (!result.Canceled)
         {
-            var version = result.Data.ToString();
-            var versionTag = new VersionTag { Tag = version, CreatedDate = DateTime.UtcNow, CreatedBy = email, IsActive = true };
+            var versionTag = (VersionTag)result.Data;
+            versionTag.CreatedBy = email;
             var isAdded = await _workspaceVersionService.AddNewVersion(versionTag);
             if (!isAdded)
             {
@@ -131,9 +145,9 @@
             await InvokeAsync(StateHasChanged);
 
 
-            await _requestManagementService.TriggerGreenLightChanges(versionTag.Tag, email);
+            await _requestManagementService.TriggerBuildVersionUpdates(versionTag.Tag, email);
 
-            _snackbar.Add(Localizer["Successfully added version: {0}", version], Severity.Success);
+            _snackbar.Add(Localizer["Successfully added version: {0}", versionTag.Tag], Severity.Success);
         }
     }
 }

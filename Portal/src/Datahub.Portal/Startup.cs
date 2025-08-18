@@ -71,6 +71,7 @@ using Yarp.ReverseProxy.Transforms;
 using Datahub.Portal.Controllers;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Datahub.Portal.Pages;
+using AspNetCore.Localizer.Json.Commons;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -348,12 +349,13 @@ public class Startup
             options.CacheDuration = TimeSpan.FromMinutes(15);
             options.ResourcesPath = "i18n";
             options.LocalizationMode = LocalizationMode.I18n;
-            options.UseEmbeddedResources = false;
+            options.UseEmbeddedResources = true;
             options.MissingTranslationLogBehavior = trackTranslations
                 ? MissingTranslationLogBehavior.CollectToJSON
                 : MissingTranslationLogBehavior.Ignore;
             options.FileEncoding = Encoding.GetEncoding("UTF-8");
             options.SupportedCultureInfos = supportedCultureInfos;
+            options.AssemblyHelper = new AssemblyHelper(typeof(Startup).Assembly);
         });
 
         services.Configure<RequestLocalizationOptions>(options =>

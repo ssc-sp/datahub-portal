@@ -23,21 +23,22 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+
         if (firstRender)
         {
             try
             {
                 _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Components/ScreenReaderNavigation.razor.js");
+                await Task.Delay(TimeSpan.FromSeconds(1)); // Wait for the DOM to be ready
+                var skipLinks = SkipLink.GetAvailableSkipLinks();
+                _skipLinkIds = await _module.InvokeAsync<List<string>>("getNavigationIds", skipLinks);
+                StateHasChanged();
             }
-            catch
+            catch (JSDisconnectedException)
             {
-                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Components/ScreenReaderNavigation.razor.js");
+                // Handle the case where the JS runtime is disconnected
             }
 
-            await Task.Delay(TimeSpan.FromSeconds(1)); // Wait for the DOM to be ready
-            var skipLinks = SkipLink.GetAvailableSkipLinks();
-            _skipLinkIds = await _module.InvokeAsync<List<string>>("getNavigationIds", skipLinks);
-            StateHasChanged();
         }
     }
 
