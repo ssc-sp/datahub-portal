@@ -98,10 +98,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
-	<ItemGroup>
-		<Content Update="i18n\SharedResources.fr.json">
-			<CustomToolNamespace>Resources</CustomToolNamespace>
-		</Content>		
+	<ItemGroup>		
 		<Content Include="Components\DHMarkdown.razor.js" />
 		<Content Include="Components\FileUpload\DropZone.razor.js" />
 	</ItemGroup>
