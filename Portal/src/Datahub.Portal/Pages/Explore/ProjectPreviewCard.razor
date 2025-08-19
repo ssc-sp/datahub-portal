@@ -1,8 +1,10 @@
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
+@using Datahub.Application.Services
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+@inject IWorkspaceCreationService _workspaceCreationService
 
 @if (_showCreate)
 {
@@ -84,16 +86,13 @@ else
     {
         _description = Project.ProjectDescription;
 
-        using var context = await ContextFactory.CreateDbContextAsync();
-
         if (Project is not null && Project.ParentGCHostingBudgetId.HasValue)
         {
-            var _workspace = await context.GCHostingWorkspaceDetails
-                .AsNoTracking()
-                .Include(b => b.WorkspacesInBudget)
-                .FirstOrDefaultAsync(b => b.Id == Project.ParentGCHostingBudgetId);
-
-            _description = _workspace.WorkspaceDescription;
+            var hostingDetails = await _workspaceCreationService.GetGCHostingWorkspaceDetailsAsync(Project.ParentGCHostingBudgetId.Value);
+            if (hostingDetails is not null && !string.IsNullOrWhiteSpace(hostingDetails.WorkspaceDescription))
+            {
+                _description = hostingDetails.WorkspaceDescription;
+            }
         }
     }
 }

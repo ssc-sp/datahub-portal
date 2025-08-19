@@ -310,6 +310,32 @@ public class WorkspaceCreationService(
         return await GetGCHostingDetailsInternal(default, true);
     }
 
+    public async Task<GCHostingWorkspaceDetails?> GetGCHostingWorkspaceDetailsAsync(int id, bool includeWorkspaces = false, bool includeWorkspaceCredits = false)
+    {
+        await using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
+        IQueryable<GCHostingWorkspaceDetails> query = ctx.GCHostingWorkspaceDetails.AsNoTracking();
+
+        if (includeWorkspaceCredits)
+        {
+            query = query.Include(g => g.WorkspacesInBudget)
+                         .ThenInclude(w => w.Credits);
+        } else if (includeWorkspaces)
+        {
+            query = query.Include(g => g.WorkspacesInBudget);
+        }
+
+        return await query.FirstOrDefaultAsync(g => g.Id == id);
+    }
+
+    public async Task<GCHostingWorkspaceDetails?> GetParentHostingDetailsForWorkspaceAsync(string projectAcronym, bool includeWorkspaces = false, bool includeWorkspaceCredits = false)
+    {
+        await using var ctx = await datahubProjectDbFactory.CreateDbContextAsync();
+        var project = await ctx.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+        if (project?.ParentGCHostingBudgetId is null)
+            return null;
+        return await GetGCHostingWorkspaceDetailsAsync(project.ParentGCHostingBudgetId.Value, includeWorkspaces, includeWorkspaceCredits);
+    }
+
     private static IEnumerable<(string Key, string Value)> GenerateMetadataValuesFromGCHosting(GCHostingWorkspaceDetails details, FieldDefinitions fieldDefinitions)
     {
         // basic values: strings straight from the api input
