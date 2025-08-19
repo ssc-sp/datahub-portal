@@ -3,6 +3,7 @@ using System;
 using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    partial class SqliteDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20250806134910_AddedVersionDescriptionfield")]
+    partial class AddedVersionDescriptionfield
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
@@ -660,10 +663,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.Property<string>("VersionDescription")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("VersionDescriptionFr")
                         .IsRequired()
                         .HasColumnType("TEXT");
 

@@ -68,7 +68,7 @@ public class ResourceMessagingService(
 
 
 
-        workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersion() : workspace.Version;
+        workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersionAsync() : workspace.Version;
 
         return new WorkspaceDefinition
         {

@@ -25,9 +25,13 @@ namespace Datahub.SpecflowTests.Hooks
     [Binding]
     public class ProjectUsageHook
     {
-        [BeforeScenario("ProjectUsageNotifier")]
-        public void BeforeScenarioProjectUsageNotifier(IObjectContainer objectContainer,
-            ScenarioContext scenarioContext)
+        /// <summary>
+        /// Sets up the base configuration and DbContext for each scenario.
+        /// This method is designed to be thread-safe for parallel test execution.
+        /// </summary>
+        /// <param name="objectContainer">The scenario-specific dependency injection container.</param>
+        /// <returns>A tuple containing the IConfiguration and the DbContextFactory.</returns>
+        private (IConfiguration, IDbContextFactory<DatahubProjectDBContext>) SetupCoreDependencies(IObjectContainer objectContainer)
         {
             var configuration = new ConfigurationBuilder()
                 .AddEnvironmentVariables()
@@ -35,13 +39,23 @@ namespace Datahub.SpecflowTests.Hooks
                 .AddJsonFile("appsettings.test.json", optional: true)
                 .Build();
 
-            var datahubPortalConfiguration = new DatahubPortalConfiguration();
-            configuration.Bind(datahubPortalConfiguration);
-
             var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString()) // Unique DB per scenario
                 .Options;
             var dbContextFactory = new SpecFlowDbContextFactory(options);
+
+            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+
+            return (configuration, dbContextFactory);
+        }
+
+        [BeforeScenario("ProjectUsageNotifier")]
+        public void BeforeScenarioProjectUsageNotifier(IObjectContainer objectContainer)
+        {
+            var (configuration, _) = SetupCoreDependencies(objectContainer);
+
+            var datahubPortalConfiguration = new DatahubPortalConfiguration();
+            configuration.Bind(datahubPortalConfiguration);
             
             var azureConfig = new AzureConfig(configuration);
             var resourceMessagingService = Substitute.For<IResourceMessagingService>();
@@ -49,7 +63,6 @@ namespace Datahub.SpecflowTests.Hooks
             var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             var emailService = Substitute.For<IEmailService>();
 
-            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(azureConfig);
             objectContainer.RegisterInstanceAs(resourceMessagingService);
             objectContainer.RegisterInstanceAs(sendEndpointProvider);
@@ -57,23 +70,13 @@ namespace Datahub.SpecflowTests.Hooks
         }
         
         [BeforeScenario("ProjectUsage")]
-        public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
-            ScenarioContext scenarioContext)
+        public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer)
         {
-            var configuration = new ConfigurationBuilder()
-                .AddEnvironmentVariables()
-                .AddUserSecrets<Hooks>()
-                .AddJsonFile("appsettings.test.json", optional: true)
-                .Build();
+            var (configuration, dbContextFactory) = SetupCoreDependencies(objectContainer);
             configuration["EnableRollover"] = "true";
 
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
             configuration.Bind(datahubPortalConfiguration);
-
-            var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-            var dbContextFactory = new SpecFlowDbContextFactory(options);
 
             var loggerFactory = new LoggerFactory();
 
@@ -159,7 +162,6 @@ namespace Datahub.SpecflowTests.Hooks
                 }
             };
 
-            objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
             objectContainer.RegisterInstanceAs(projectUsageScheduler);
             objectContainer.RegisterInstanceAs(projectUsageUpdater);
