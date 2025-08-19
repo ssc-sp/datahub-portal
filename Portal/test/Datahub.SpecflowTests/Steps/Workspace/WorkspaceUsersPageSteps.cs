@@ -121,6 +121,9 @@ namespace Datahub.SpecflowTests.Steps
             var mockProjectUserManagementService = Substitute.For<IProjectUserManagementService>();
             Services.AddSingleton(mockProjectUserManagementService);
 
+            var mockUserSettingsService = Substitute.For<IUserSettingsService>();
+            Services.AddSingleton(mockUserSettingsService);
+
             var mockProjectUsers = SetupProjectUsers();
 
             // Set up the mock to return the mock data
