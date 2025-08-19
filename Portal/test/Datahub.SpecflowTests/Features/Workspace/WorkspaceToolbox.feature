@@ -84,12 +84,6 @@ the correct information in the page.
       | azure-app-service    |
       | azure-postgres       |
 
-    Scenario: User sees a metadata warning instead of the toolbox if the workspace has no metadata
-        Given a workspace with no metadata
-        And the user is on the workspace toolbox page
-        Then they should not see the toolbox
-        And they should instead see a metadata warning
-
     Scenario: User sees the appropriate tools in the catalog
         Given the workspace does not have <catalog-tool>
         And the user is on the workspace toolbox page

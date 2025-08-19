@@ -31,7 +31,7 @@
         PageRoutes.Help, PageRoutes.Help_FR,
         PageRoutes.HelpWithParam, PageRoutes.HelpWithParam_FR,
         PageRoutes.TermsAndConditions, PageRoutes.TermsAndConditions_FR,
-        PageRoutes.AccountDefault, PageRoutes.AccountDefault_FR,
+        PageRoutes.AccountDefault, PageRoutes.AccountDefault_FR,       
         "/login", "/connexion", "/register", "/inscription", "/locked", "/verrouille"
     };
     private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "account-setup", "/locked" };
@@ -56,7 +56,8 @@
         {
             if (currentPage.Contains(route))
             {
-                await _userSettingsService.SetLanguage(language, Localizer[route + "-lt"]);
+                var newRoute = Localizer[$"{route}-lt"];
+                await _userSettingsService.SetLanguage(language, newRoute);
                 return;
             }
         }

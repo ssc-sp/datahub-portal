@@ -6,9 +6,9 @@
 @inject IUserSettingsService _userSettingsService
 
 <MudGrid>
-    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
+    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
         <MudItem xs="12" sm="4">
-            <AnnouncementAdminControl Announcement="@Announcement"/>
+            <AnnouncementAdminControl Announcement="@Announcement" OnAnnouncementDeleted="OnAnnouncementDeleted" />
         </MudItem>
     </DatahubAuthView>
     <MudItem xs="12" sm="@(_isAdminView ? 8 : 12)">
@@ -38,6 +38,9 @@
     [Parameter] public Announcement Announcement { get; set; }
 
     [Parameter] public bool IsHidden { get; set; }
+
+    [Parameter]
+    public EventCallback OnAnnouncementDeleted { get; set; }
 
     private string _style => IsHidden ? "opacity: 0.5;" : string.Empty;
     private bool _isFrench;

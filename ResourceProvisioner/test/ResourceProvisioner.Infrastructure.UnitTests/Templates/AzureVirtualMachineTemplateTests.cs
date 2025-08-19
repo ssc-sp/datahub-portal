@@ -1,12 +1,15 @@
 using Datahub.Shared.Entities;
 using ResourceProvisioner.Domain.Exceptions;
 using ResourceProvisioner.Infrastructure.Common;
+using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Templates;
 
 using static Testing;
 
-public class AzureVirtualMachineTemplateTests
+[NonParallelizable]
+[Category("TemplateTests")]
+public class AzureVirtualMachineTemplateTests : TemplateTestCollection
 {
     [SetUp]
     public void RunBeforeEachTest()

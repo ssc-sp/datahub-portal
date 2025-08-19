@@ -111,7 +111,7 @@ public class ErrorBoundaryTests
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
 
-        using var ctx = new TestContext();
+        using var ctx = new Bunit.TestContext();
         ctx.Services.AddSingleton(_dbConextFactoryMock); 
         ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);

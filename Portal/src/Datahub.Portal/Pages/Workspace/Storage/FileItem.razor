@@ -71,7 +71,24 @@
     [Parameter]
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
-    private string ByteSize => Folder ? "" : ByteSizeLib.ByteSize.FromBytes(long.Parse(Size ?? "0")).ToString();
+    private string ByteSize
+    {
+        get
+        {
+            if (Folder)
+            {
+                return "";
+            }
+
+            if (long.TryParse(Size, out var sizeInBytes))
+            {
+                return ByteSizeLib.ByteSize.FromBytes(sizeInBytes).ToString();
+            }
+
+            // Return the original Size string if parsing fails
+            return Size ?? "";
+        }
+    }
     private IJSObjectReference _module;
     private ElementReference _fileItemElement;
 

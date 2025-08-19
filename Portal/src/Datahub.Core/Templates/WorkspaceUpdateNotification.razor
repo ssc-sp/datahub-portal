@@ -1,0 +1,28 @@
+﻿<h2>Workspace Update Request</h2>
+
+<p>Date: @Date</p>
+
+<p>Workspace Acronym: @WorkspaceAcronym</p>
+
+<p>Requested by: @User</p>
+
+@if (!string.IsNullOrEmpty(Message))
+{
+    <p>@Message</p>
+}
+
+@code {
+
+    [Parameter]
+    public string Date { get; set; }
+
+    [Parameter]
+    public string User { get; set; }
+
+    [Parameter]
+    public string Message { get; set; }
+
+    [Parameter]
+    public string WorkspaceAcronym { get; set; }
+
+}

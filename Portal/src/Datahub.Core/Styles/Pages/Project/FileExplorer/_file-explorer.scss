@@ -5,139 +5,145 @@
 @use 'file-selection-icons';
 
 .file-explorer-layout-wrapper {
+    position: relative;
 
-  position: relative;
-  
-  .sas-token-button {
-    position: absolute;
-    top: 70px;
-    right: 30px;
-    z-index: 100;
-  }
-  
-  .tab-control {
-    .tab-selection {
-      i {
-        margin-right: 4px;
-      }
-    }
-  }
-
-  .file-explorer-layout {
-    display: grid;
-    grid-template-columns: 1fr 400px;
-
-    $border: 1px solid var(--bg-color-accent);
-
-    grid-template-areas: 
-    "heading heading"
-    "file-list item-details";
-
-    @include heading.scss($border);
-
-    $page-padding: c.spacing(4);
-    $anti-page-padding: calc(#{$page-padding} * -1);
-
-    .file-list {
-      grid-area: file-list;
-      $grid-columns: 36px 1fr 150px 250px 36px;
-
-
-      .file-list-header,
-      .file-item {
-        display: grid;
-        grid-template-columns: $grid-columns;
-        gap: c.spacing(1);
-        align-items: center;
-        padding: c.spacing(1);
-
-        .file-item-name {
-          i {
-            font-size: 1rem;
-          }
-        }
-      }
-
-      .file-list-header {
-        border-bottom: $border;
-        background-color: c.$grey-50;
+    .sas-token-button {
+        position: absolute;
+        top: 70px;
+        right: 30px;
         z-index: 100;
-        position: sticky;
-        top: c.$topbarHeight;
-      }
-
-      .file-item {
-        
-        .file-selection-icon {
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          position: relative;
-          height: 100%;
-          width: 100%;
-        }
-        
-        @include file-selection-icons.sharepoint-style;
-
-        .file-item-name {
-          display: flex;
-          align-items: center;
-          gap: c.spacing(1);
-
-          .file-item-icon {
-            width: 20px;
-            height: 30px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            border-radius: 100px;
-            color: c.$grey-800;
-          }
-        }
-
-        &:not(:last-of-type),
-        .dropzone-container + &{
-          border-bottom: 1px solid var(--bg-color-accent);
-        }
-
-        &:hover {
-          background-color: c.$grey-100;
-        }
-        
-        &.highlight {
-          background-color: c.$grey-200;
-
-          &:hover {
-            background-color: c.$grey-300;
-          }
-        }
-        
-      }
-      
-      .dropzone-container {
-        &:not(:last-of-type) {
-          .file-item {
-            border-bottom: 1px solid var(--bg-color-accent);
-          }
-        }
-      }
     }
 
-    .item-details {
-      grid-area: item-details;
-      border-left: $border;
-
-      .details-sticky {
-        position: sticky;
-        top: c.$topbarHeight;
-        padding: c.spacing(2);
-
-        .details-container {
-          @include storage-properties.file-explorer-card;
+    .tab-control {
+        .tab-selection {
+            i {
+                margin-right: 4px;
+            }
         }
-      }
     }
-  }
+
+    .file-explorer-layout {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+
+        $border: 1px solid var(--bg-color-accent);
+
+        grid-template-areas:
+            "heading heading" "file-list item-details";
+
+        @include heading.scss($border);
+
+        $page-padding: c.spacing(4);
+        $anti-page-padding: calc(#{$page-padding} * -1);
+
+        .file-list {
+            grid-area: file-list;
+            $grid-columns: 36px 1fr 150px 250px 36px;
+
+
+            .file-list-header,
+            .file-item {
+                display: grid;
+                grid-template-columns: $grid-columns;
+                gap: c.spacing(1);
+                align-items: center;
+                padding: c.spacing(1);
+
+                .file-item-name {
+                    i {
+                        font-size: 1rem;
+                    }
+                }
+            }
+
+            .file-list-header {
+                border-bottom: $border;
+                background-color: c.$grey-50;
+                z-index: 100;
+                position: sticky;
+                top: c.$topbarHeight;
+            }
+
+            .file-item {
+
+                .file-selection-icon {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    position: relative;
+                    height: 100%;
+                    width: 100%;
+                }
+
+                @include file-selection-icons.sharepoint-style;
+
+                .file-item-name {
+                    display: flex;
+                    align-items: center;
+                    gap: c.spacing(1);
+
+                    .file-item-icon {
+                        width: 20px;
+                        height: 30px;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        border-radius: 100px;
+                        color: c.$grey-800;
+                    }
+                }
+
+                &:not(:last-of-type),
+                .dropzone-container + & {
+                    border-bottom: 1px solid var(--bg-color-accent);
+                }
+
+                &:hover {
+                    background-color: c.$grey-100;
+                }
+
+                &.highlight {
+                    background-color: c.$grey-200;
+
+                    &:hover {
+                        background-color: c.$grey-300;
+                    }
+                }
+            }
+
+            .dropzone-container {
+                &:not(:last-of-type) {
+                    .file-item {
+                        border-bottom: 1px solid var(--bg-color-accent);
+                    }
+                }
+            }
+        }
+
+        .item-details {
+            grid-area: item-details;
+            border-left: $border;
+
+            .details-sticky {
+                position: sticky;
+                top: c.$topbarHeight;
+                padding: c.spacing(2);
+
+                .details-container {
+                    @include storage-properties.file-explorer-card;
+                }
+            }
+        }
+        
+        /* Highlight the selected row */
+        .file-row-selected {
+            background-color: #e0f7fa;
+            color: #00796b;
+        }
+        /* Default row styling */
+        .file-row {
+            background-color: transparent;
+            color: inherit;
+        }
+    }
 }

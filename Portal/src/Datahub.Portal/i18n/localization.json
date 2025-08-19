@@ -1400,6 +1400,7 @@
   "Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes.": "Please note that the logs are only available when the web application is running. Logs may be delayed by a few minutes.",
   "Please press the button below to generate the IMSO approval form.": "Please press the button below to generate the IMSO approval form.",
   "Please press the button below to publish your submission on the Open Data Registry.": "Please press the button below to publish your submission on the Open Data Registry.",
+  "Please provide a description.": "Please provide a description.",
   "Please provide additional information that we can use to investigate this issue.": "Please provide additional information that we can use to investigate this issue.",
   "Please read before configuration to ensure that you do not run into any issues!": "Please read before configuration to ensure that you do not run into any issues!",
   "Please read the Additional Information section before proceeding to ensure that you do not run into any issues!": "Please read the Additional Information section before proceeding to ensure that you do not run into any issues!",
@@ -1680,6 +1681,7 @@
   "Search Users": "Search Users",
   "Search by User or Workspace": "Search by User or Workspace",
   "Search by workspace name or acronym": "Search by workspace name or acronym",
+  "Search files or folders": "Search files or folders",
   "Search for new users below using their email address. New users will be added as collaborators.": "Search for new users below using their email address. New users will be added as collaborators.",
   "Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more.": "Search the Data Catalog to find and discover NRCan datasets on energy, finance, science, forestry or human resources, and more.",
   "Search the Datahub catalog.": "Search the Datahub catalog.",
@@ -2383,6 +2385,11 @@
   "Budget Usage": "Budget Usage",
   "CBR Budget": "CBR Budget",
   "Available Budget": "Available Budget",
+  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
+  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
+  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
+
+  //Workspace Versioning
   "This page allows you to manage workspace versions in the FSDH.": "This page allows you to manage workspace versions in the FSDH.",
   "Add a new version to the version control table.": "Add a new version to the version control table.",
   "Add New Version": "Add New Version",
@@ -2395,12 +2402,14 @@
   "Successfully added version: {0}": "Successfully added version: {0}",
   "Version already exists": "Version already exists",
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
-  "https://hosting-services-hebergement.canada.ca/s/?language=en_US": "https://hosting-services-hebergement.canada.ca/s/?language=en_US",
-  "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.": "Self registration is not available in this environment. You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join.",
-  "To create a workspace, access the GC Hosting Services Portal.": "To create a workspace, access the GC Hosting Services Portal.",
-  "Toggle featured workspace (Admin-only)": "Toggle featured workspace (Admin-only)",
-  "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.": "You must create a workspace on the GC Hosting Services Portal or be added to a workspace to join the Federal Science DataHub.",
-  "If it's your first time signing in, please follow the ": "If it's your first time signing in, please follow the ",
-  "Account Setup": "Account Setup",
-  " instructions.": " instructions."
+
+  "To learn more about the FSDH, visit our ": "To learn more about the FSDH, visit our ",
+  "GCxchange": "GCXchange",
+  " site (only available within the GC network).": " site (only available within the GC network).",
+  "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160",
+  "Please provide a description of the update. This description will be used as to indicate what is new in the updated version.": "Please provide a description of the update. This description will be used as to indicate what is new in the updated version.",
+  "English Description": "English Description",
+  "Please provide an English description.": "Please provide an English description.",
+  "French Description": "French Description",
+  "Please provide a French description.": "Please provide a French description."
 }

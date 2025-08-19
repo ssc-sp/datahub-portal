@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.17");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -276,7 +276,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Id");
 
-                    b.ToTable("PortalUserStatusChanges");
+                    b.ToTable("PortalUserRoleChange");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -659,6 +659,14 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("VersionDescription")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VersionDescriptionFr")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("VersionTagId");
 
                     b.ToTable("VersionTags");
@@ -679,45 +687,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasKey("Id");
 
                     b.ToTable("DocumentationResources", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Health.InfrastructureHealthCheck", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Details")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Group")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("HealthCheckTimeUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("TEXT")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("ResourceType")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Url")
-                        .HasMaxLength(256)
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("InfrastructureHealthChecks", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.MiscStoredObject", b =>
@@ -947,6 +916,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("HashedAPIToken")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsVersionUpdateRequested")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Is_Featured")
                         .HasColumnType("INTEGER");
@@ -1618,6 +1590,45 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasKey("PortalUserId");
 
                     b.ToTable("UserSettings", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Shared.Entities.InfrastructureHealthCheck", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Details")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Group")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("HealthCheckTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ResourceType")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Url")
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("InfrastructureHealthChecks", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.TbsOpenGovSubmission", b =>

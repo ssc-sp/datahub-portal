@@ -19,6 +19,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		RunTest.bat = RunTest.bat
 		stylecop.json = stylecop.json
+		update-nuget-packages.ps1 = update-nuget-packages.ps1
 	EndProjectSection
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{48CAB0F7-CFCC-443B-B71D-E015878CE5B7}"
@@ -161,7 +162,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipelines", "Pipelines", "{
 		pipelines\functions-test.yml = pipelines\functions-test.yml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DataDictionaryGenerator", "Portal\utils\DataDictionaryGenerator\DataDictionaryGenerator.csproj", "{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{3D033E58-9544-4099-AFF1-C820B0C28F7C}"
+	ProjectSection(SolutionItems) = preProject
+		.github\workflows\apply-rulesets.yml = .github\workflows\apply-rulesets.yml
+		.github\workflows\code-linting.yml = .github\workflows\code-linting.yml
+		.github\workflows\codeql.yml = .github\workflows\codeql.yml
+		.github\workflows\dataportal-translation-linting.yml = .github\workflows\dataportal-translation-linting.yml
+		.github\workflows\docker-image.yml = .github\workflows\docker-image.yml
+		.github\workflows\pr-build.yml = .github\workflows\pr-build.yml
+		.github\workflows\pr-commit-linting.yml = .github\workflows\pr-commit-linting.yml
+		.github\workflows\refresh-stale-prs.yml = .github\workflows\refresh-stale-prs.yml
+		.github\workflows\trivy.yml = .github\workflows\trivy.yml
+		.github\workflows\update-trivy-cache.yml = .github\workflows\update-trivy-cache.yml
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -310,10 +323,6 @@ Global
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1B44BC52-6E9A-4FF1-84EE-D2A67D8CDD2B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -364,11 +373,12 @@ Global
 		{12002871-163E-49CD-93DE-FBED9F5573E1} = {0A20EC69-1E3C-498F-B989-89CAF316CE06}
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
+		{3D033E58-9544-4099-AFF1-C820B0C28F7C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
-		RESX_AutoCreateNewLanguageFiles = True
 		RESX_ConfirmAddLanguageFile = True
+		RESX_AutoCreateNewLanguageFiles = True
+		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Shared\src\Datahub.Shared\Datahub.Shared.projitems*{57703cec-08b9-40b8-b5e2-064a196b1587}*SharedItemsImports = 5

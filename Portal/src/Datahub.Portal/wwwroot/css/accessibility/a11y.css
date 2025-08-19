@@ -49,3 +49,29 @@
     padding-left: 6px;
 }
 
+.no-margin-textarea textarea.mud-input-root-outlined {
+    margin: 0px !important;
+    padding: 10px !important;
+    border: none !important;
+    font-size: 90% !important;
+}
+
+.no-margin-textarea ::placeholder {
+    font-size: 0.85em !important;
+    opacity: 0.7 !important;
+}
+
+.no-margin-textarea input::placeholder {
+    font-size: 0.85em !important;
+    opacity: 0.7 !important;
+}
+
+.no-margin-textarea textarea::placeholder {
+    font-size: 0.85em !important;
+    opacity: 0.7 !important;
+}
+
+.multiselect-textarea .mud-input-root {
+    font-size: 90% !important;
+}
+

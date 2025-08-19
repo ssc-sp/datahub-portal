@@ -5,12 +5,12 @@ using Datahub.Core.Model.Catalog;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Documentation;
-using Datahub.Core.Model.Health;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Model.UserTracking;
+using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
@@ -58,6 +58,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ProjectRepository> ProjectRepositories { get; set; }
 
     public DbSet<Project_Role> Project_Roles { get; set; }
+
+    public DbSet<PortalUserRoleChange> PortalUserRoleChanges { get; set; }
 
     public DbSet<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
 
@@ -121,10 +123,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<VersionTag> VersionTags { get; set; }
 
-#pragma warning disable SX1309
-    private readonly DbContextOptions<DatahubProjectDBContext> options;
-#pragma warning restore SX1309
-
     // below are used for migrations
 #if MIGRATION
     public DatahubProjectDBContext() { }
@@ -132,7 +130,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DatahubProjectDBContext(DbContextOptions<DatahubProjectDBContext> options) : base(options)
     {
-        this.options = options;
     }
 
     protected DatahubProjectDBContext(DbContextOptions options) : base(options)
@@ -225,6 +222,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<PortalUserRoleChange>()
             .Property(p => p.RoleId)
             .HasConversion<int>();
+
+        modelBuilder.Entity<PortalUserRoleChange>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ChangeDate).IsRequired();
+        });
 
         modelBuilder.Entity<SharedDataFile>()
             .HasIndex(e => e.File_ID)

@@ -14,7 +14,6 @@ using FluentAssertions;
 using FluentValidation;
 using FluentValidation.Results;
 using MassTransit;
-using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
