@@ -1,0 +1,90 @@
+/* Dark theme chip overrides */
+.mud-theme-dark .dh_themed_chip {
+    background-color: #424242; /* dark gray */
+    color: #ffffff; /* light text */
+}
+
+.mud-theme-dark .mud-chip-outlined.dh_themed_chip {
+    color: #fff !important;
+    background-color: #424242 !important;
+    border-color: #fff !important;
+}
+
+.mud-theme-dark .dh_themed_chip .mud-chip-content,
+.mud-theme-dark .dh_themed_chip .mud-icon-root {
+    color: #fff !important;
+}
+
+/* Ensure proper contrast for colored chips in dark theme */
+.mud-theme-dark .dh_themed_chip.mud-chip-color-primary {
+    background-color: var(--mud-palette-primary) !important;
+    color: var(--mud-palette-primary-contrast) !important;
+}
+
+.mud-theme-dark .dh_themed_chip.mud-chip-color-secondary {
+    background-color: var(--mud-palette-secondary) !important;
+    color: var(--mud-palette-secondary-contrast) !important;
+}
+
+.mud-theme-dark .dh_themed_chip.mud-chip-color-success {
+    background-color: var(--mud-palette-success) !important;
+    color: var(--mud-palette-success-contrast) !important;
+}
+
+.mud-theme-dark .dh_themed_chip.mud-chip-color-warning {
+    background-color: var(--mud-palette-warning) !important;
+    color: var(--mud-palette-warning-contrast) !important;
+}
+
+.mud-theme-dark .dh_themed_chip.mud-chip-color-error {
+    background-color: var(--mud-palette-error) !important;
+    color: var(--mud-palette-error-contrast) !important;
+}
+
+.mud-theme-dark .dh_themed_chip.mud-chip-color-info {
+    background-color: var(--mud-palette-info) !important;
+    color: var(--mud-palette-info-contrast) !important;
+}
+
+.mud-theme-dark .dh_themed_chip.mud-chip-color-dark {
+    background-color: var(--mud-palette-dark) !important;
+    color: var(--mud-palette-dark-contrast) !important;
+}
+
+/* Other dark theme styles */
+.mud-theme-dark .mud-alert-message,
+.mud-theme-dark .apexcharts-legend-text,
+.mud-theme-dark .file-item-icon {
+    color: #ffffff !important;
+}
+
+.mud-theme-dark .file-list-header {
+    background-color: #373740 !important;
+}
+
+.mud-theme-dark .file-item.highlight,
+.mud-theme-dark .file-item:hover {
+    background-color: #c0c0c0 !important;
+    color: #212121 !important; /* dark text for contrast */
+}
+
+    .mud-theme-dark .file-item.highlight .file-item-icon,
+    .mud-theme-dark .file-item:hover .file-item-icon,
+    .mud-theme-dark .file-item.highlight .file-item-name,
+    .mud-theme-dark .file-item:hover .file-item-name {
+        color: #212121 !important;
+    }
+
+.mud-theme-dark .inline-code-with-copy {
+    background-color: #e0e0e0; /* light gray */
+    color: #212121; /* dark text */
+}
+
+.mud-theme-dark .mud-icon-root {
+    color: #e0e0e0 !important;
+}
+
+.mud-theme-dark .apexcharts-text,
+.mud-theme-dark .donut-inner-text {
+    fill: #ffffff !important;
+}
