@@ -22,7 +22,7 @@
         <MudStack Class="sticky-stack">
             <MudStack Row AlignItems="AlignItems.Center">
                 <MudElement>
-                    <DHButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges" Tag=@("SaveChanges")>
+                    <DHButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges" Tag=@("SaveChanges")>
                         @Localizer["Save Changes"]
                     </DHButton>
                 </MudElement>
@@ -105,7 +105,7 @@
         <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
         <MudSpacer />
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-            <DHButton Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
+            <DHButton Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
                 @Localizer["Invite New User"]
             </DHButton>
         </DatahubAuthView>
