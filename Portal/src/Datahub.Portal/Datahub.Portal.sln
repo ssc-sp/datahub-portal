@@ -1,0 +1,24 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.2.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.Portal", "Datahub.Portal.csproj", "{7AE7527F-60DC-9410-CDC0-BC64F7DF8535}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{7AE7527F-60DC-9410-CDC0-BC64F7DF8535}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7AE7527F-60DC-9410-CDC0-BC64F7DF8535}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7AE7527F-60DC-9410-CDC0-BC64F7DF8535}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7AE7527F-60DC-9410-CDC0-BC64F7DF8535}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DDEE86D4-9575-4356-8DE2-9E7DB2F5FE24}
+	EndGlobalSection
+EndGlobal
