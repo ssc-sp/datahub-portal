@@ -1,21 +1,22 @@
 ﻿@using MudBlazor
 @using System.Net
+@inject Microsoft.Extensions.Localization.IStringLocalizer<IpAddressDialog> Localizer
 
 <MudDialog Style="min-width: 40vw; max-width: 50vw;">
     <DialogContent>
         <MudGrid>
             <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="StartIp" Label="Start IP Address" Required="true" />
+                <MudTextField @bind-Value="StartIp" Label="@Localizer["Start IP Address"]" Required="true" />
             </MudItem>
             <MudItem xs="12" sm="6">
-                <MudTextField @bind-Value="EndIp" Label="End IP Address (optional)" />
+                <MudTextField @bind-Value="EndIp" Label="@Localizer["End IP Address"]" />
             </MudItem>
         </MudGrid>
         <MudText Color="Color.Error">@ErrorMessage</MudText>
     </DialogContent>
     <DialogActions>
-        <MudButton OnClick="Submit" Color="Color.Primary">OK</MudButton>
-        <MudButton OnClick="Cancel" Color="Color.Secondary">Cancel</MudButton>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer["Ok"]</MudButton>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">@Localizer["Cancel"]</MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -31,7 +32,7 @@
     {
         if (!IPAddress.TryParse(StartIp, out var startIp))
         {
-            ErrorMessage = "Invalid start IP address.";
+            ErrorMessage = Localizer["Invalid IP address."];
             return;
         }
 
@@ -41,13 +42,13 @@
         {
             if (!IPAddress.TryParse(EndIp, out var endIp))
             {
-                ErrorMessage = "Invalid end IP address.";
+                ErrorMessage = Localizer["Invalid IP address."];
                 return;
             }
 
             if (!IsValidRange(startIp, endIp))
             {
-                ErrorMessage = "IP range must be within a single 255.255.255.0 subnet.";
+                ErrorMessage = Localizer["Invalid IP range."];
                 return;
             }
         }
