@@ -1,0 +1,82 @@
+﻿@using MudBlazor
+@using System.Net
+
+<MudDialog Style="min-width: 40vw; max-width: 50vw;">
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="StartIp" Label="Start IP Address" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="EndIp" Label="End IP Address (optional)" />
+            </MudItem>
+        </MudGrid>
+        <MudText Color="Color.Error">@ErrorMessage</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Color="Color.Primary">OK</MudButton>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">Cancel</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    public string StartIp { get; set; }
+    public string EndIp { get; set; }
+    public string ErrorMessage { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (!IPAddress.TryParse(StartIp, out var startIp))
+        {
+            ErrorMessage = "Invalid start IP address.";
+            return;
+        }
+
+        bool isRange = !string.IsNullOrWhiteSpace(EndIp);
+
+        if (isRange)
+        {
+            if (!IPAddress.TryParse(EndIp, out var endIp))
+            {
+                ErrorMessage = "Invalid end IP address.";
+                return;
+            }
+
+            if (!IsValidRange(startIp, endIp))
+            {
+                ErrorMessage = "IP range must be within a single 255.255.255.0 subnet.";
+                return;
+            }
+        }
+
+        MudDialog.Close(DialogResult.Ok(new IpDialogResult
+            {
+                StartIp = StartIp,
+                EndIp = isRange ? EndIp : StartIp
+            }));
+    }
+
+    private bool IsValidRange(IPAddress start, IPAddress end)
+    {
+        var startBytes = start.GetAddressBytes();
+        var endBytes = end.GetAddressBytes();
+
+        // Check if first 3 octets are the same (i.e., within 255.255.255.0)
+        for (int i = 0; i < 3; i++)
+        {
+            if (startBytes[i] != endBytes[i])
+                return false;
+        }
+        // Ensure start <= end
+        return startBytes[3] <= endBytes[3];
+    }
+
+    public class IpDialogResult
+    {
+        public string StartIp { get; set; }
+        public string EndIp { get; set; }
+    }
+}
