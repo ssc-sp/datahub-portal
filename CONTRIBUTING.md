@@ -1,0 +1,52 @@
+# Contributing
+
+([Français](#comment-contribuer))
+
+## How to Contribute
+
+When contributing, post comments and discuss changes you wish to make via
+Issues.
+
+Feel free to propose changes by creating Pull Requests. If you don't have write
+access, editing a file will create a Fork of this project for you to save your
+proposed changes to. Submitting a change to a file will write it to a new Branch
+in your Fork, so you can send a Pull Request.
+
+If this is your first time contributing on GitHub, don't worry! Let us know if
+you have any questions.
+
+### External Collaboration
+
+We welcome external contributions to our project. However, all contributions from external collaborators must first be reviewed by our team. Please ensure that any changes are submitted via a Pull Request from your Fork, allowing our team to review and merge them into the project.
+
+### Security
+
+**Do not post any security issues on the public repository!** See
+[SECURITY.md](SECURITY.md)
+
+---
+
+## Comment contribuer
+
+Lorsque vous contribuez, veuillez également publier des commentaires et discuter
+des modifications que vous souhaitez apporter par l'entremise des enjeux
+(Issues).
+
+N'hésitez pas à proposer des modifications en créant des demandes de tirage
+(Pull Requests). Si vous n'avez pas accès au mode de rédaction, la modification
+d'un fichier créera une copie (Fork) de ce projet afin que vous puissiez
+enregistrer les modifications que vous proposez. Le fait de proposer une
+modification à un fichier l'écrira dans une nouvelle branche dans votre copie
+(Fork), de sorte que vous puissiez envoyer une demande de tirage (Pull Request).
+
+Si c'est la première fois que vous contribuez à GitHub, ne vous en faites pas!
+Faites-nous part de vos questions.
+
+### Collaboration externe
+
+Nous accueillons favorablement les contributions externes à notre projet. Cependant, toutes les contributions des collaborateurs externes doivent d'abord être examinées par notre équipe. Veuillez vous assurer que toutes les modifications sont soumises via une demande de tirage à partir de votre copie (Fork), permettant ainsi à notre équipe de les examiner et de les fusionner dans le projet.
+
+### Sécurité
+
+**Ne publiez aucun problème de sécurité sur le dépôt public!** Voir
+[SECURITY.md](SECURITY.md)
