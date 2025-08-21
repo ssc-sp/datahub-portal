@@ -1,4 +1,5 @@
 using Azure.Messaging.ServiceBus;
+using Datahub.Application.Services.Notification;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -25,7 +26,7 @@ namespace Datahub.Functions
         IQueuePongService pongService,
         EmailValidator emailValidator,
         ISendEndpointProvider sendEndpointProvider,
-        IEmailService emailService,
+        IGCNotifyService notifyService,
         IResourceMessagingService resourceMessagingService)
     {
         private readonly int[] _notificationPercents =
@@ -133,17 +134,11 @@ namespace Datahub.Functions
 
             foreach (var resourceName in resourceNames)
             {
-                var args = new Dictionary<string, string>
+                foreach (var admin in adminContacts)
                 {
-                    { "{workspaceAcronym}", projectAcronym },
-                    { "{resource}", TerraformTemplate.ConvertTemplateNameToReadableName(resourceName) },
-                    { "{resource_fr}", TerraformTemplate.ConvertTemplateNameToReadableName(resourceName, true) }
-                };
-
-                var email = emailService.BuildEmail("delete_notification.html", adminContacts, [],
-                    args, args);
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                    email!, cancellationToken);
+                    if (notifyService != null)
+                        await notifyService.SendDatahubResourceDeletedNotification(admin, TerraformTemplate.ConvertTemplateNameToReadableName(resourceName), TerraformTemplate.ConvertTemplateNameToReadableName(resourceName, true), projectAcronym);
+                }
             }
         }
 
@@ -220,9 +215,8 @@ namespace Datahub.Functions
 
             try
             {
-                var notificationEmail = GetNotificationEmail(details.ProjectAcro, notificationPerc, details.Contacts);
-                await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName,
-                    notificationEmail);
+                foreach (var contact in details.Contacts)
+                    await notifyService.SendWorkspaceCostNotification(contact, details.ProjectAcro, notificationPerc.ToString());
 
                 details.Credits.PercNotified = notificationPerc;
                 details.Credits.LastNotified = DateTime.UtcNow;
@@ -266,29 +260,6 @@ namespace Datahub.Functions
             var budget = Convert.ToDouble(project.Project_Budget);
 
             return new(project.Project_Acronym_CD, contacts, budget, project.Credits);
-        }
-
-        private EmailRequestMessage GetNotificationEmail(string projectAcro, int perc, List<string> contacts)
-        {
-            Dictionary<string, string> bodyArgs = new()
-            {
-                { "{ws}", projectAcro },
-                { "{perc}", perc.ToString() }
-            };
-
-            Dictionary<string, string> subjectArgs = new()
-            {
-                { "{ws}", projectAcro },
-                { "{perc}", perc.ToString() }
-            };
-
-            List<string> bcc = new();
-            if (perc > 70) // Only sends the notification to us for the 75% and 100% notifications
-            {
-                bcc.Add(GetNotificationCCAddress());
-            }
-
-            return emailService.BuildEmail("cost_alert.html", contacts, bcc, bodyArgs, subjectArgs);
         }
 
         private string GetNotificationCCAddress()
