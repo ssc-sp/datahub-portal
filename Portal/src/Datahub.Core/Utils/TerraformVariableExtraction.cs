@@ -12,6 +12,11 @@ namespace Datahub.Core.Utils;
 /// </summary>
 public static class TerraformVariableExtraction
 {
+    private static readonly JsonSerializerOptions CaseInsensitiveSerializerOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     /// <summary>
     /// Extracts the Databricks workspace Id from the provided project.
     /// </summary>
@@ -160,6 +165,34 @@ public static class TerraformVariableExtraction
     }
 
     /// <summary>
+    /// Extracts the Databricks configuration from the specified project.
+    /// </summary>
+    /// <remarks>This method searches the project's resources for a Databricks resource and extracts
+    /// configuration values from its input JSON content. If no Databricks resource is found,  the method returns <see
+    /// langword="null"/>.</remarks>
+    /// <param name="project">The project from which to extract the Databricks configuration.  This parameter can be <see langword="null"/>.</param>
+    /// <returns>A <see cref="DatabricksConfiguration"/> object containing the extracted configuration,  or <see
+    /// langword="null"/> if the project does not contain a Databricks resource.</returns>
+    public static DatabricksConfiguration? ExtractDatabricksConfiguration(Datahub_Project? project)
+    {
+        var databricksTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks);
+        var databricksResource = project?.Resources?.FirstOrDefault(r =>
+            r.ResourceType == databricksTemplateName);
+
+        if (databricksResource != null)
+        {
+            var databricksConfiguration = JsonSerializer.Deserialize<DatabricksConfiguration>(
+                databricksResource.InputJsonContent, CaseInsensitiveSerializerOptions);
+
+            return databricksConfiguration;
+        }
+        else
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
     /// Extracts the environment variable keys from a project resource. This is made generic,
     /// so that it can be used on any resource
     /// </summary>
@@ -300,10 +333,7 @@ public static class TerraformVariableExtraction
         if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;
 
-        var deserializeOptions = new JsonSerializerOptions
-        {
-            PropertyNameCaseInsensitive = true
-        };
+        var deserializeOptions = CaseInsensitiveSerializerOptions;
 
         var jsonContent =
             JsonSerializer.Deserialize<Dictionary<string, string>>(projectResourceJsonContent, deserializeOptions);

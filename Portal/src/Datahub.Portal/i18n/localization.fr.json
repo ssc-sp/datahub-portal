@@ -2552,7 +2552,7 @@
   "Select tools to add, remove or configure in your workspace ": "Sélectionnez les outils à ajouter, supprimer ou configurer dans votre espace de travail ",
   "Select whether this team will be accessible to:": "Can you please provide context for this one. I didn't find it in the form.",
   "Selected Government of Canada Department/Agency": "Ministère/organisme sélectionné du gouvernement du Canada",
-  "Selected {0}: {1}\\n": "Sélectionné {0}: {1}\\n",
+  "Selected {0}: {1}": "Sélectionné {0}: {1}",
   "Self registrations": "Auto-inscriptions",
   "Self-Serve BI Tools": "Outils d’intelligence d’affaires en libre-service",
   "Send": "Envoyer",
@@ -2964,7 +2964,7 @@
   "Update Metadata": "Mise à jour des métadonnées",
   "Updated": "Mise à jour",
   "Updated by {0} on {1}": "Mis à jour par {0} le {1}",
-  "Updated {0}: {1} -\u003E {2}\\n": "Mis à jour {0}: {1} -\u003E {2}\\n",
+  "Updated {0}: {1} \u2192 {2}": "Mis à jour {0}: {1} \u2192 {2}",
   "Updating shared key access...": "Mise à jour de l'accès par clé partagée...",
   "Updating workspace...": "Mise à jour de l'espace de travail...",
   "Upgrade Workspace to Latest": "Mettre à jour l'espace de travail à la dernière version",
@@ -3340,5 +3340,5 @@
   "{0} {1}": "{0} {1}",
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/mois par GB de stockage",
   "~ {0:C2}/month": "~ {0:C2}/mois",
-  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
+  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement"
 }
