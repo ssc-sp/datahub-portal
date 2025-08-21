@@ -12,11 +12,11 @@ if (-not $NoFetch) {
     git fetch --all --prune | Out-Null
 }
 
-# Validate base branch existence
-if (-not (git show-ref --verify --quiet "refs/remotes/$BaseBranch")) {
-    Write-Host "Base branch '$BaseBranch' not found. Aborting." -ForegroundColor Red
-    exit 1
-}
+# # Validate base branch existence
+# if (-not (git show-ref --verify --quiet "refs/remotes/$BaseBranch")) {
+#     Write-Host "Base branch '$BaseBranch' not found. Aborting." -ForegroundColor Red
+#     exit 1
+# }
 
 # Helper: clean a branch name (strip leading * and whitespace)
 function Normalize-Branch {
@@ -28,7 +28,7 @@ function Normalize-Branch {
 $merged = git branch --merged $BaseBranch |
     ForEach-Object { Normalize-Branch $_ } |
     Where-Object {
-        $_ -and $_ -notin @('main','master','develop','release') # protect common primaries
+        $_ -and $_ -notin @('main','master','develop','release','proof-of-concept') # protect common primaries
     }
 
 # Collect local branches whose upstream is gone (git branch -vv marks them with [gone])
@@ -43,7 +43,7 @@ $gone = git branch -vv |
         }
     } |
     Where-Object {
-        $_ -and $_ -notin @('main','master','develop','release')
+        $_ -and $_ -notin @('main','master','develop','release','proof-of-concept')
     }
 
 # Exclude current branch from any deletion set
@@ -52,7 +52,11 @@ $merged = $merged | Where-Object { $_ -ne $current }
 $gone   = $gone   | Where-Object { $_ -ne $current }
 
 # Merge lists (keep uniqueness) but track category
-$mergedSet = [System.Collections.Generic.HashSet[string]]::new([string[]]$merged)
+$merged = $merged ?? @()
+$merged = $merged | ForEach-Object { [string]$_ }
+$mergedList = [System.Collections.Generic.List[string]]::new()
+$merged | ForEach-Object { $mergedList.Add($_) }
+$mergedSet = [System.Collections.Generic.HashSet[string]]::new($mergedList)
 $goneUnique = $gone | Where-Object { -not $mergedSet.Contains($_) }
 
 if (-not $merged -and -not $goneUnique) {
