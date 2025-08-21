@@ -6,10 +6,28 @@ $keyFiles = @{}
 foreach ($file in $files) {
 	$lines = Get-Content $file.FullName
 	$keys = @()
+	$newLines = @()
 	foreach ($line in $lines) {
-		if ($line -match '"([^"]+)":') {
-			$keys += $matches[1]
+		if ($line -match '"([^"\n]+)":\s*"([^"\n]*)"') {
+			$key = $matches[1]
+			$value = $matches[2]
+			$keys += $key
+			# Only keep lines where key != value
+			if ($key -ne $value) {
+				$newLines += $line
+			}
+		} else {
+			$newLines += $line
 		}
+	}
+	# Rename original file to .backup before overwriting
+	$backupPath = "$($file.FullName).backup"
+	if (-not (Test-Path $backupPath)) {
+		Rename-Item -Path $file.FullName -NewName ($file.Name + ".backup")
+		# Write filtered lines to original file name
+		Set-Content -Path $file.FullName -Value $newLines
+	} else {
+		Write-Host "Backup file already exists: $backupPath" -ForegroundColor Magenta
 	}
 	foreach ($key in $keys) {
 		if (-not $keyFiles.ContainsKey($key)) {
