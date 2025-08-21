@@ -1001,6 +1001,7 @@
   "Enabled": "Activé",
   "End Date": "Date de fin",
   "End_Date": "Date de fin",
+  "End IP Address": "Fin de l'adresse IP",
   "Energy Infrastructure Security": "Protection des infrastructures énergétiques",
   "Energy Policy and International Affairs Branch": "Direction de la politique énergétique et des affaires internationales",
   "Energy Science and Technology Programs": "Programmes de science & technologie énergétiques",
@@ -1532,6 +1533,7 @@
   "Invalid Government of Canada email address": "Adresse e-mail du gouvernement du Canada invalide",
   "Invalid IP address format (e.g. 192.168.2.1)": "Format d'adresse IP non valide (p. ex. 192.168.2.1)",
   "Invalid IP address.": "Adresse IP non valide.",
+  "Invalid IP range.": "La plage d'IP doit être dans un seul sous-réseau 255.255.255.0",
   "Invalid email": "Courriel invalide",
   "Invalid link": "Lien invalide",
   "Invalid parameters, redirecting": "Paramètres non valides, redirection",
@@ -2645,6 +2647,7 @@
   "StackTrace Snippet": "Extrait de la pile d'appels",
   "Stakeholder Relations": "Relations avec les intervenants",
   "Start": "Démarrer",
+  "Start IP Address": "Adresse IP de départ",
   "Start (ms)": "Démarrage (ms)",
   "Start Date": "Date de début",
   "Start showing announcement on": "Commencer à afficher l'annonce le",
@@ -3340,5 +3343,5 @@
   "{0} {1}": "{0} {1}",
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/mois par GB de stockage",
   "~ {0:C2}/month": "~ {0:C2}/mois",
-  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
+  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement"
 }
