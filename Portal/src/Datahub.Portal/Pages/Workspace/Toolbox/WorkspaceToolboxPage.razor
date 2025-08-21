@@ -720,7 +720,7 @@
         // If we can guarantee that all workspaces have a proper version string, we can remove this check.
         if (workspace.Version == TerraformWorkspace.LatestVersionString)
         {
-            var latestVersionTag = await WorkspaceVersionService.GetLatestVersion();
+            var latestVersionTag = await WorkspaceVersionService.GetLatestVersionAsync();
             return ParseVersionTag(latestVersionTag);
         }
 
