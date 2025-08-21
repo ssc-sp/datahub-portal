@@ -318,6 +318,7 @@ public class Startup
 
         app.UseMiddleware<IFrameMiddleware>();
 
+
         // Replaced UseEndpoints with top-level route registrations
 
         //DOTNET 9 app.MapStaticAssets();
@@ -327,7 +328,10 @@ public class Startup
         var provider = app.Services.GetService<IProxyConfigProvider>();
         if (ReverseProxyEnabled() && provider != null)
         {
+            // Inject our URL rewrite middleware before mapping reverse proxy so it can capture proxied responses
+            app.UseReverseProxyUrlRewriter();
             app.MapReverseProxy();
+
         }
         else
         {

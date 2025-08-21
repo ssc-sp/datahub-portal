@@ -42,9 +42,18 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
         return url;
     }
 
-    public string BuildWebAppURL(string acronym, bool routeInfo = false)
+
+    /// <summary>
+    /// Build the web app URL for the given acronym
+    /// </summary>
+    /// <param name="prefix">Workspace prefix, e.g. "w"</param>
+    /// <param name="acronym">Workspace acronym</param>
+    /// <param name="routeInfo">the trailing "/" cannot be included when specifying the route info for yarp</param>
+    /// <returns>relative path</returns>
+
+    private static string BuildWebAppURL(string prefix, string acronym, bool routeInfo = false)
     {
-        return "/" + _config.ReverseProxy.WebAppPrefix + "/" + acronym + (routeInfo ? "": "/");
+        return ReverseProxyPathHelper.BuildWebAppURL(prefix, acronym, routeInfo);
     }
 
     public string WebAppPrefix => _config.ReverseProxy.WebAppPrefix;
@@ -57,12 +66,12 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppUrlRewritingEnabled))
             .ToList();
 
-        return data.Select(d => (d.Acronym, BuildRoute(d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
+        return data.Select(d => (d.Acronym, BuildRoute(_config.ReverseProxy.WebAppPrefix, d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
     }
 
-    RouteConfig BuildRoute(string acronym, bool urlRewritingEnabled)
+    private static RouteConfig BuildRoute(string webAppPrefix, string acronym, bool urlRewritingEnabled)
     {
-        var prefix = BuildWebAppURL(acronym,true);
+        var prefix = BuildWebAppURL(webAppPrefix, acronym, true);
         var route = new RouteConfig()
         {
             RouteId = GetRouteId(acronym),
@@ -100,6 +109,11 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
 
     static string GetRouteId(string acronym) => $"route-{acronym}".ToLower();
     static string GetClusterId(string acronym) => $"cluster-{acronym}".ToLower();
+
+    public string BuildWebAppURL(string acronym, bool routeInfo = false)
+    {
+        return BuildWebAppURL(_config.ReverseProxy.WebAppPrefix, acronym, routeInfo);
+    }
 
     record ProjectWebData(string Acronym, string Url, bool UrlRewritingEnabled);
 }
