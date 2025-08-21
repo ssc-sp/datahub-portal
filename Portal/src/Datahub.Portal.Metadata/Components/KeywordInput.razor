@@ -22,7 +22,7 @@
         @*selected keywords*@
         @foreach (var keyword in _keywordList)
         {
-            <MudChip Text="@keyword" 
+            <MudChip Class="dh_themed_chip" Text="@keyword" 
                      OnClose=@(m => HandleKeywordDeleted(m))
                      Variant="Variant.Filled" 
                      Color="Color.Dark" T="string" />
@@ -30,7 +30,7 @@
         @*suggested keywords*@
         @foreach (var keyword in _suggestions)
         {
-            <MudChip Text="@keyword" 
+            <MudChip Class="dh_themed_chip" Text="@keyword" 
                      Variant="Variant.Filled" 
                      Color="Color.Default"
                      Icon="@Icons.Material.Filled.AddCircle"

@@ -18,6 +18,8 @@ namespace Datahub.Application.Services.UserManagement
         Task<bool> RegisterUserLanguage(string language);
         Task<bool> SetLanguage(string language, string redirectUrl = "");
         Task<string> GetUserLanguage();
+        Task<bool> SetTheme(string theme, string redirectUrl = "");
+        Task<string> GetTheme();
         Task<bool> IsFrench();
         Task<UserSettings?> GetUserSettingsAsync();
     }
