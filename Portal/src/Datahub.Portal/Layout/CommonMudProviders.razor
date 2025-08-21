@@ -1,13 +1,29 @@
-﻿<MudThemeProvider Theme="@DatahubTheme.DefaultTheme" />
-<MudDialogProvider />
-<MudSnackbarProvider />
-<MudPopoverProvider />
-@if (ChildContent is not null)
-{
-    @ChildContent
-}
+﻿@inject IUserSettingsService UserSettingsService
+
+<div class="@(_isDarkMode ? "mud-theme-dark" : "mud-theme-light")">
+    <CascadingValue Value="_isDarkMode">
+        <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+            <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
+            <MudDialogProvider />
+            <MudSnackbarProvider />
+            <MudPopoverProvider />
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+        </CascadingValue>
+    </CascadingValue>
+</div>
 
 @code {
     [Parameter]
     public RenderFragment ChildContent { get; set; }
+
+    private bool _isDarkMode = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var theme = await UserSettingsService.GetTheme() ?? "";
+        _isDarkMode = theme.ToLowerInvariant().Contains("dark") || theme.ToLowerInvariant().Contains("sombre");
+    }
 }

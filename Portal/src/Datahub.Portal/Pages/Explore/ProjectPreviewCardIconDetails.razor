@@ -1,7 +1,7 @@
 <MudStack Row Spacing="0">
     @if (WorkspaceUsage is not null)
     {
-        <MudChip T="string" title="@Localizer["Current spending and budget of your workspace:"]" Size="Size.Small"
+        <MudChip Class="dh_themed_chip" T="string" title="@Localizer["Current spending and budget of your workspace:"]" Size="Size.Small"
                  Variant="Variant.Outlined" Label="true" Color="Color.Dark" Style="@($"background: {DatahubTheme.DefaultTheme.PaletteLight.Background}")" >
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                 <p>
@@ -17,7 +17,7 @@
     }
     @if (NumberOfWorkspacesRemaining >= 0)
     {
-        <MudChip T="string" title="@Localizer["Number of workspaces remaining"]" Size="Size.Small"
+        <MudChip Class="dh_themed_chip" T="string" title="@Localizer["Number of workspaces remaining"]" Size="Size.Small"
                  Variant="Variant.Outlined" Label="true" Color="Color.Dark">
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                 <p>
@@ -30,7 +30,7 @@
     }
     @if (NumberOfUsers >= 0)
     {
-        <MudChip T="string" title="@Localizer["Number of users in the workspace"]" Size="Size.Small"
+        <MudChip Class="dh_themed_chip" T="string" title="@Localizer["Number of users in the workspace"]" Size="Size.Small"
                  Variant="Variant.Outlined" Label="true" Color="Color.Dark">
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                 <p>
@@ -43,7 +43,7 @@
     }
     @if (NumberOfRepositories >= 0)
     {
-        <MudChip T="string" title="@Localizer["Number of shared repositories"]" Size="Size.Small"
+        <MudChip Class="dh_themed_chip" T="string" title="@Localizer["Number of shared repositories"]" Size="Size.Small"
                  Variant="Variant.Outlined" Label="true" Color="Color.Dark">
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                 <p>
@@ -56,7 +56,7 @@
     }
     @if (NumberOfFiles >= 0)
     {
-        <MudChip T="string" title="@Localizer["Number of shared files"]" Size="Size.Small" Variant="Variant.Outlined"
+        <MudChip Class="dh_themed_chip" T="string" title="@Localizer["Number of shared files"]" Size="Size.Small" Variant="Variant.Outlined"
                  Label="true" Color="Color.Dark">
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                 <p>
