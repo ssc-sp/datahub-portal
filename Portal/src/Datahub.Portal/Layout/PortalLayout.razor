@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services
+@using Datahub.Application.Services
 @using Datahub.Core
 @using MudBlazor.Utilities
 @using Blazored.SessionStorage
@@ -23,8 +23,7 @@
 @inject ILocalStorageService _localStorage
 @inject ISessionStorageService _sessionStorage
 
-
-<CommonMudProviders />
+<CommonMudProviders>
 
 <DatahubAchievementProvider/>
 
@@ -55,7 +54,7 @@
         <DHFooter/>
     </MudMainContent>
 </MudLayout>
-
+</CommonMudProviders>
 @code {
 
     private readonly string _topBorderStyle = new StyleBuilder()
