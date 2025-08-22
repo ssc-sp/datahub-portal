@@ -107,6 +107,7 @@ public class WorkspaceToolboxSteps(
             resourceMessagingService,
             workspaceVersionService
         );
+        Services.AddSingleton<IWorkspaceVersionService>(workspaceVersionService);
         Services.AddSingleton<IRequestManagementService>(requestManagementService);
         Services.AddStub<IWebHostEnvironment>();
         Services.AddSingleton<IResourceMessagingService>(resourceMessagingService);
@@ -186,6 +187,15 @@ public class WorkspaceToolboxSteps(
         var dbContext = dbContextFactory.CreateDbContext();
         var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
         project.MetadataAdded = false;
+        dbContext.SaveChanges();
+    }
+
+    [Given(@"the workspace version is (.*)")]
+    public void GivenTheWorkspaceVersionIs(string version)
+    {
+        var dbContext = dbContextFactory.CreateDbContext();
+        var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+        project.Version = version;
         dbContext.SaveChanges();
     }
 
@@ -775,6 +785,20 @@ public class WorkspaceToolboxSteps(
         dbContext.SaveChanges();
     }
 
+    [Given("the (.*) has a json configuration (.*)")]
+    public void GivenTheHasAJsonConfiguration(string tool, string jsonFilename)
+    {
+        var jsonPath = Path.Combine("Features/Workspace/config", jsonFilename + ".json");
+        var jsonConfig = File.ReadAllText(jsonPath);
+        var dbContext = dbContextFactory.CreateDbContext();
+        var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+        var resource = dbContext.Project_Resources2.First(p =>
+            p.ProjectId == project.Project_ID && p.ResourceType == TerraformTemplate.GetTerraformServiceType(tool));
+        var jsonObject = JsonSerializer.Deserialize<JsonObject>(jsonConfig);
+        resource.InputJsonContent = jsonObject!.ToJsonString();
+        dbContext.SaveChanges();
+    }
+
     [Then(@"the underlying Add transaction should have the correct (.*) if the tool is (.*)")]
     public void ThenTheUnderlyingAddTransactionShouldHaveTheCorrect(string configType, bool configurable)
     {
@@ -948,12 +972,38 @@ public class WorkspaceToolboxSteps(
         scenarioContext["workspaceToolbox"] = workspaceToolbox;
     }
 
+    [When(@"the user toggles the (.*) checkbox")]
+    public async Task WhenTheUserTogglesTheCheckbox(string checkboxId)
+    {
+        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var checkbox = workspaceToolbox!.FindComponents<MudCheckBox<bool>>()
+            .FirstOrDefault(c => c.Instance.FieldId == checkboxId);
+        await workspaceToolbox!.InvokeAsync(async () => await checkbox!.Instance.ValueChanged.InvokeAsync(!checkbox.Instance.Value));
+        workspaceToolbox!.Render();
+        scenarioContext["workspaceToolbox"] = workspaceToolbox;
+    }
+
     [Then(@"the (.*) should have (.*) as its value")]
     public void ThenTheShouldHaveAsItsValue(string selectFieldId, string existingValue)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
         var selectField = workspaceToolbox!.Find($"#{selectFieldId}");
         selectField.Attributes["value"]?.Value.Should().Be(existingValue);
+    }
+
+    [Then(@"the (.*) checkbox should be (.*)")]
+    public void ThenTheCheckboxShouldBe(string checkboxId, bool isChecked)
+    {
+        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var checkbox = workspaceToolbox!.Find($"#{checkboxId}");
+        if (isChecked)
+        {
+            checkbox.Attributes["checked"].Should().NotBeNull();
+        }
+        else
+        {
+            checkbox.Attributes["checked"].Should().BeNull();
+        }
     }
 
     [Then(@"the underlying Configure transaction should show the correct (.*) and (.*) values for (.*)")]
@@ -980,6 +1030,12 @@ public class WorkspaceToolboxSteps(
             newValueStr.Should().Be(newValue);
         }
     }
+
+    private static string RenderNiceBooleanValue(bool value) => value ? "Yes" : "No";
+
+    [Then(@"the user should see review information for (.*) with boolean values (.*) and (.*)")]
+    public void ThenTheUserShouldSeeReviewInformationForBooleanWithTheAnd(string tool, bool existingValue, bool newValue) =>
+        ThenTheUserShouldSeeReviewInformationForWithTheAnd(tool, RenderNiceBooleanValue(existingValue), RenderNiceBooleanValue(newValue));
 
     [Then(@"the user should see review information for (.*) with the (.*) and (.*)")]
     public void ThenTheUserShouldSeeReviewInformationForWithTheAnd(string tool, string existingValue, string newValue)
@@ -1044,6 +1100,11 @@ public class WorkspaceToolboxSteps(
                     generatedDefinition.AppData.PostgresConfiguration.Should().NotBeNull();
                     generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().NotBeNull();
                     generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().Be(configVal);
+                    break;
+                case TerraformTemplate.AzureDatabricks:
+                    generatedDefinition.AppData.DatabricksConfiguration.Should().NotBeNull();
+                    generatedDefinition.AppData.DatabricksConfiguration.GeneralPurposeTierSku.Should().NotBeNull();
+                    generatedDefinition.AppData.DatabricksConfiguration.GeneralPurposeTierSku.Should().Be(configVal);
                     break;
             }
         }
@@ -1122,6 +1183,14 @@ public class WorkspaceToolboxSteps(
                     toolResource.InputJsonContent.Should().NotBeNull();
                     var inputJsonContent = toolResource.InputJsonContent.ToString();
                     inputJsonContent.Should().Contain(configValue);
+                    break;
+                case TerraformTemplate.AzureDatabricks:
+                    var databricksResource = resources.FirstOrDefault(r =>
+                        r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks));
+                    databricksResource.Should().NotBeNull();
+                    databricksResource.InputJsonContent.Should().NotBeNull();
+                    var databricksInputJsonContent = databricksResource.InputJsonContent.ToString();
+                    databricksInputJsonContent.Should().Contain(configValue);
                     break;
             }
         }
