@@ -71,7 +71,7 @@
                 <MudTd>@context.ResourceType</MudTd>
                 <MudTd>
                     <MudTooltip Delay="600" Text="@HealthCheckPageUtil.GetStatusDetails(context)">
-                        <MudChip T="string" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small">
+                        <MudChip Class="dh_themed_chip" T="string" Color="@HealthCheckPageUtil.GetDisplayColor(context)" Size="Size.Small">
                             @Localizer[HealthCheckPageUtil.GetDisplayStatusText(context)]
                         </MudChip>
                     </MudTooltip>

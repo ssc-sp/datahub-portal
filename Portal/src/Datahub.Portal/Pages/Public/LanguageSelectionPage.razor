@@ -18,7 +18,7 @@
                     <span class="sr-only" translate="no">
                         <DHMainContentTitle Title="Federal Science DataHub - Language Selection / Plateforme fédérale de données scientifiques - Sélection de la langue" />
                     </span>
-                    <MudImage Src="/img/canada-fip.svg" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem"/>
+                    <MudImage Src=@ImageSrc Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 2rem" />
                     <MudSpacer/>
                     <MudStack Row>
                         <MudSpacer/>
@@ -62,10 +62,14 @@
 </MudContainer>
 
 @code {
-
+    [CascadingParameter] public bool IsDarkMode { get; set; } 
     [SupplyParameterFromQuery(Name = "redirectUrl")]
+
     public string RedirectUrl { get; set; }
 
+    private string ImageSrc => IsDarkMode
+    ? "/img/canada-fip-dark.png"
+    : "/img/canada-fip.svg";
     private string EnglishTermsUrl => $"{PageRoutes.TermsAndConditions}?culture={CultureService.CanadaEnglish}";
     private string FrenchTermsUrl => $"{PageRoutes.TermsAndConditions_FR}?culture={CultureService.CanadaFrench}";
 
