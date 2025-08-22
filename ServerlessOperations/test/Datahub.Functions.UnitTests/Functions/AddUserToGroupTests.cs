@@ -35,7 +35,7 @@ namespace Datahub.Functions.UnitTests.Functions
             _azureManagementService.Setup(f => f.GetGraphServiceClientFromEnvVariables())
                 .Returns(TestHelper.MockGraphServiceClient());
 
-            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService.Object, Substitute.For<ISendEndpointProvider>(), Substitute.For<IEmailService>());
+            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService.Object, Substitute.For<ISendEndpointProvider>(), null);
 
             _validRequest = new AddUserToGroupRequest(Guid.NewGuid().ToString());
             _invalidRequest = new AddUserToGroupRequest("");
