@@ -27,6 +27,7 @@ public static class ConfigureReverseProxyServices
         });
         services.AddReverseProxy()
             .AddTransformFactory<WorkspaceACLTransformFactory>()
+            .AddTransformFactory<URLTranslationTransformFactory>()
             .AddTransforms(builderContext =>
             {
                 builderContext.AddXForwarded(ForwardedTransformActions.Append);

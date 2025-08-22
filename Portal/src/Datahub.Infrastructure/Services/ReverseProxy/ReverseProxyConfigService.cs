@@ -66,49 +66,24 @@ internal class ReverseProxyConfigService : IReverseProxyConfigService
             .Select(e => new ProjectWebData(e.Project_Acronym_CD, SanitizeWebAppURL(e.WebApp_URL), e.WebAppUrlRewritingEnabled))
             .ToList();
 
-        return data.Select(d => (d.Acronym, BuildRoute(_config.ReverseProxy.WebAppPrefix, d.Acronym, d.UrlRewritingEnabled), BuildCluster(d.Acronym, d.Url))).ToList();
-    }
-
-    private static RouteConfig BuildRoute(string webAppPrefix, string acronym, bool urlRewritingEnabled)
-    {
-        var prefix = BuildWebAppURL(webAppPrefix, acronym, true);
-        var route = new RouteConfig()
-        {
-            RouteId = GetRouteId(acronym),
-            ClusterId = GetClusterId(acronym),
-            Match = new()
-            {
-                Path = $"{prefix}/{{**catch-all}}"
-            },
-            AuthorizationPolicy = IReverseProxyConfigService.WorkspaceAuthorizationPolicy
-        };
-
-        var finalRoute = route.
-            WithTransformResponseHeader("X-Frame-Options", "SAMEORIGIN", append: false).
-            WithTransformForwarded().
-            WithTransformXForwarded().
-            WithTransform(transform => {
-                transform[IReverseProxyConfigService.WorkspaceACLTransform] = acronym;
-            });
-        if (urlRewritingEnabled)
-            finalRoute = finalRoute.WithTransformPathRemovePrefix(prefix);
-        return finalRoute;
+        return data.Select(d => (
+            d.Acronym,
+            ReverseProxyRouteHelper.BuildRoute(_config.ReverseProxy.WebAppPrefix, d.Acronym, d.UrlRewritingEnabled, d.UrlRewritingEnabled),
+            BuildCluster(d.Acronym, d.Url)
+        )).ToList();
     }
 
     static ClusterConfig BuildCluster(string acronym, string webUrl)
     {
         return new ClusterConfig()
         {
-            ClusterId = GetClusterId(acronym),
+            ClusterId = ReverseProxyRouteHelper.GetClusterId(acronym),
             Destinations = new Dictionary<string, DestinationConfig>()
             {
                 { $"destination-{acronym}", new() { Address = webUrl }}
             }
         };
     }
-
-    static string GetRouteId(string acronym) => $"route-{acronym}".ToLower();
-    static string GetClusterId(string acronym) => $"cluster-{acronym}".ToLower();
 
     public string BuildWebAppURL(string acronym, bool routeInfo = false)
     {

@@ -8,8 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddRazorPages();
 
+
 // Register reverse proxy services
-builder.Services.AddReverseProxy();
+builder.Services.AddReverseProxy().AddTransformFactory<URLTranslationTransformFactory>();
 
 // Provide a simple config service for the utility and wire up the proxy config provider
 builder.Services.AddSingleton<IReverseProxyConfigService, ReverseProxyUtil.SimpleReverseProxyConfig>();
@@ -35,8 +36,6 @@ app.MapStaticAssets();
 app.MapRazorPages()
    .WithStaticAssets();
 
-app.MapReverseProxy();
-        
-app.UseReverseProxyUrlRewriter();
+app.MapReverseProxy();       
 
 app.Run();

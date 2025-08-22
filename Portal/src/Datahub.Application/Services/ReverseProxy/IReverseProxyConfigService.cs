@@ -5,6 +5,7 @@ namespace Datahub.Application.Services.ReverseProxy;
 public interface IReverseProxyConfigService
 {
     public const string WorkspaceACLTransform = "ACLTransformProvider";
+    public const string WorkspacePrefix = "WorkspacePrefix";
     public const string WorkspaceRouteInfo = "Workspace";
     public const string WorkspaceAuthorizationPolicy = "WorkspaceAppPolicy";
     
