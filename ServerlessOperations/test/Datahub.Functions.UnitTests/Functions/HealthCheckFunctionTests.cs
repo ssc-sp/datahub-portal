@@ -54,7 +54,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor);
+                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor, null);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
