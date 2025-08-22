@@ -86,8 +86,8 @@
 
 		<PackageReference Include="RulesEngine" Version="6.0.*" />
 		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" Version="9.0.*" />
-		<PackageReference Include="MudBlazor" Version="7.13.0" />
-		<PackageReference Include="MudBlazor.Markdown" Version="1.0.2" />
+		<PackageReference Include="MudBlazor" Version="8.11.*" />
+		<PackageReference Include="MudBlazor.Markdown" Version="8.11.*" />
 		<PackageReference Include="System.Drawing.Common" Version="9.0.*" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.*" />
 		<PackageReference Include="System.Runtime.Caching" Version="9.0.*" />
