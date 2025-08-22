@@ -5,9 +5,10 @@
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Workspace.Reports.Charts
+@using Datahub.Application.Services
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-
+@inject IWorkspaceCreationService _workspaceCreationService
 
 
 @if(_loaded)
@@ -105,11 +106,7 @@
         // get the workspace and gchosting separately to avoid cycle error when querying .AsNoTracking
         var workspace = await ctx.Projects.AsNoTracking().FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _gcHostingDetails = await ctx.GCHostingWorkspaceDetails
-            .Include(g => g.WorkspacesInBudget)
-            .ThenInclude(w => w.Credits)
-            .AsNoTracking()
-            .FirstOrDefaultAsync(g => g.Id == workspace.ParentGCHostingBudgetId);
+        _gcHostingDetails = await _workspaceCreationService.GetGCHostingWorkspaceDetailsAsync(workspace.ParentGCHostingBudgetId ?? -1, includeWorkspaces: true, includeWorkspaceCredits: true);
 
         var workspaceIds = _cbrWorkspaces.Select(w => w.Project_ID);
 
