@@ -1,3 +1,4 @@
+@using System.Globalization
 @using MudBlazor.Utilities
 
 @inject NavigationManager _navManager
@@ -5,7 +6,7 @@
 
 <ScreenReaderNavigation/>
 
-<MudImage Src=@Localizer["/img/canada-fip.svg"] Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; margin-top: 20px; float:left!important;" />
+<MudImage Src=@ImageSrc Alt=@Localizer["Government of Canada Wordmark"] Style="max-height: 25px; margin-top: 20px; float:left!important;" />
 
 
 <MudText Typo="Typo.h2" Style="@_titleStyle">
@@ -71,7 +72,15 @@
 
 @code {
 
+    [CascadingParameter] public bool IsDarkMode { get; set; }
+    
     [Parameter] public string SupportFormUrl { get; set; }
+
+    private string CurrentLanguage => CultureInfo.CurrentUICulture.TwoLetterISOLanguageName;
+
+    private string ImageSrc => IsDarkMode
+        ? $"/img/canada-fip-dark{(CurrentLanguage == "en" ? "" : "-fr")}.svg"
+        : $"/img/canada-fip{(CurrentLanguage == "en" ? "" : $"-fr")}.svg";
 
     private string _titleStyle;
 

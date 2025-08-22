@@ -35,7 +35,7 @@
 		<PackageReference Include="Ae.MudBlazor.Forms" Version="1.0.0" />
 		<PackageReference Include="AElemental.Blazor" Version="1.6.22173.2" />
 		<PackageReference Include="AElemental.Blazor.Theme" Version="1.6.22173.2" />
-		<PackageReference Include="Azure.Core" Version="1.47.*" />
+		<PackageReference Include="Azure.Core" Version="1.47.2.0" />
 
 		<PackageReference Include="Azure.Identity" Version="1.14.*" />
 		<PackageReference Include="AspNetCore.Localizer.Json" Version="1.0.2" />
@@ -98,10 +98,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 	</ItemGroup>
-	<ItemGroup>
-		<Content Update="i18n\SharedResources.fr.json">
-			<CustomToolNamespace>Resources</CustomToolNamespace>
-		</Content>
+	<ItemGroup>		
 		<Content Include="Components\DHMarkdown.razor.js" />
 		<Content Include="Components\FileUpload\DropZone.razor.js" />
 	</ItemGroup>

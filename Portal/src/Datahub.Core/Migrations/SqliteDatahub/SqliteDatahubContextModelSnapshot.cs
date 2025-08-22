@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.7");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -659,6 +659,14 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasMaxLength(20)
                         .HasColumnType("TEXT");
 
+                    b.Property<string>("VersionDescription")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VersionDescriptionFr")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
                     b.HasKey("VersionTagId");
 
                     b.ToTable("VersionTags");
@@ -908,6 +916,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("HashedAPIToken")
                         .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsVersionUpdateRequested")
+                        .HasColumnType("INTEGER");
 
                     b.Property<bool>("Is_Featured")
                         .HasColumnType("INTEGER");

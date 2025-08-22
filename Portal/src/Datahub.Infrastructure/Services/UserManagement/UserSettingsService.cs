@@ -401,6 +401,11 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return userSetting != null ? userSetting.Language : string.Empty;
         }
 
+        public async Task<bool> SetTheme(string theme)
+        {
+            return true;
+        }
+
         /// <summary>
         /// Checks if the user's selected language is French.
         /// </summary>
@@ -418,6 +423,50 @@ namespace Datahub.Infrastructure.Services.UserManagement
                 return false;
             }
         }
+
+        /// <summary>
+        /// Sets theme preference
+        /// </summary>
+        /// <param name="language"></param>
+        /// <param name="redirectUrl"></param>
+        /// <returns></returns>
+        public async Task<bool> SetTheme(string theme, string redirectUrl = "")
+        {
+            await using var context = await datahubContextFactory.CreateDbContextAsync();
+            var userSetting = await GetUserSettingsAsync();
+
+            if (userSetting != null)
+            {
+                userSetting.Theme = theme;
+                context.UserSettings.Update(userSetting);
+                await context.SaveChangesAsync();
+            }
+
+            var language = Thread.CurrentThread.CurrentCulture.Name;
+            var uri = new Uri(navigationManager.Uri).GetComponents(
+                UriComponents.PathAndQuery,
+                UriFormat.Unescaped);
+
+            if (redirectUrl != string.Empty)
+                uri = redirectUrl;
+
+            var query = $"?culture={Uri.EscapeDataString(language)}&" +
+                        $"redirectionUri={Uri.EscapeDataString(uri)}";
+            navigationManager.NavigateTo($"/Culture/SetCulture{query}", forceLoad: true);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Gets the user's selected theme.
+        /// </summary>
+        /// <returns>Returns theme</returns>
+        public async Task<string> GetTheme()
+        {
+            var userSetting = await GetUserSettingsAsync();
+
+            return userSetting != null ? userSetting.Theme : "";
+        }         
 
         /// <summary>
         /// Gets the user's settings. Not tracked.

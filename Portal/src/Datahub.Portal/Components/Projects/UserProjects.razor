@@ -1,3 +1,4 @@
+@using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 @using Datahub.Portal.Pages.Explore
 @using Datahub.Portal.Pages.Home
@@ -10,6 +11,7 @@
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
+@inject IWorkspaceVersionService WorkspaceVersionService
 
 @if (_userRoles is null)
 {
@@ -26,7 +28,7 @@
         @if (HasWorkspaces)
         {
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.CbrOwner">
-                <DHButton Variant="Variant.Filled"
+                <DHButton Variant="Variant.Outlined"
                           Color="Color.Primary"
                           Underline
                           NoWrap
@@ -36,12 +38,12 @@
                 </DHButton>
             </DatahubAuthView>
             <MudChipSet T="string"
-                        SelectionMode="SelectionMode.MultiSelection"
-                        Ripple="false"
-                        CheckMark>
+            SelectionMode="SelectionMode.MultiSelection"
+            Ripple="false"
+            CheckMark>
                 @foreach (var group in WorkspaceDisplayGroups)
                 {
-                    <MudChip T="string"
+                    <MudChip Class="dh_themed_chip" T="string"
                              title=@group.FilterLabel
                              Text=@group.Label
                              @bind-Selected=@(group.FilterToggle)>
@@ -51,10 +53,10 @@
             </MudChipSet>
             <MudSpacer/>
             <DHButton Color="Color.Primary"
-                      Underline
-                      NoWrap
-                      Href="@Localizer[PageRoutes.Explore]"
-                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+            Underline
+            NoWrap
+            Href="@Localizer[PageRoutes.Explore]"
+            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                 @Localizer["Explore other workspaces and users"]
             </DHButton>
         }
@@ -64,20 +66,20 @@
         <MudText Style=@ItalicTextStyle>
             @FilterLabel()
         </MudText>
-            <ul style=@DisplayGroupStyle>
-                @foreach (var group in WorkspaceDisplayGroups)
+        <ul style=@DisplayGroupStyle>
+            @foreach (var group in WorkspaceDisplayGroups)
+            {
+                @if (Show(group))
                 {
-                    @if (Show(group))
+                    @foreach (var workspace in group.Workspaces)
                     {
-                        @foreach (var workspace in group.Workspaces)
-                        {
-                            <li class="d-flex flex-1">
-                                <HomeWorkspaceCard Workspace=@workspace ShowCost=@group.ShowCost/>
-                            </li>
-                        }
+                        <li class="d-flex flex-1">
+                            <HomeWorkspaceCard Workspace=@workspace ShowCost=@group.ShowCost LatestVersion="@_latestVersion" UserEmail="@_userEmail" IsLead="@IsLeadGroup(group)" />
+                        </li>
                     }
                 }
-            </ul>
+            }
+        </ul>
     }
     else
     {
@@ -207,6 +209,8 @@ else
     private List<Datahub_Project> _adminWorkspaces;
     private List<Datahub_Project> _collaboratorWorkspaces;
     private List<Datahub_Project> _guestWorkspaces;
+    private string _latestVersion;
+    private string _userEmail;
 
     // Styles
     string SectionTitleStyle => new StyleBuilder()
@@ -248,7 +252,11 @@ else
         var portalUser = await UserInformationService.GetCurrentPortalUserAsync();
         var userId = UserId ?? portalUser.GraphGuid;
         _isCurrentUser = userId == portalUser.GraphGuid;
+        _userEmail = portalUser.Email;
+        
+        _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
+        //getting all the projects where this users is a member
         await using var dbContext = await DbContextFactory.CreateDbContextAsync();
         _userRoles = await dbContext
             .Project_Users
@@ -306,6 +314,10 @@ else
         };
     }
 
+    private bool IsLeadGroup(WorkspaceDisplayGroup group)
+    {
+        return group == _leadGroup;
+    }
 
     // Utils
     private string FilterLabel()

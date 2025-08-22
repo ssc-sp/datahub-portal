@@ -1,4 +1,4 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -64,7 +64,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor httpContextAccessor = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;

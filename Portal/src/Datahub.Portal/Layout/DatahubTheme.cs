@@ -83,7 +83,9 @@ public abstract class DatahubTheme
         },
         PaletteDark =
         {
-            AppbarBackground = Colors.Gray.Darken3
+            Primary = "#C8C4F3",
+            AppbarBackground = "#27272F",
+            Background = "#27272F"
         },
     };
 }

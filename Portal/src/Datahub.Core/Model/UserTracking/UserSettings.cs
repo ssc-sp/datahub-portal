@@ -50,4 +50,9 @@ public class UserSettings
     /// Gets or sets a collection of alert identifiers that the user has chosen to hide.
     /// </summary>
     public List<string> HiddenAlerts { get; set; }
+
+    /// <summary>
+    /// Gets or sets the preferred theme for this user ("Light mode" or "Dark mode").
+    /// </summary>
+    public string Theme { get; set; }
 }

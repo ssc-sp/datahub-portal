@@ -104,7 +104,7 @@
                 {
                     <MudTooltip
                         Text="@($"{PropertyLabel(filter.ColumnName)} {filter.FilterType.Label().ToLower()} {filter.Value}")">
-                        <MudChip T="string" Color="Color.Primary" Icon="@Icons.Material.Filled.FilterAlt"
+                        <MudChip Class="dh_themed_chip" T="string" Color="Color.Primary" Icon="@Icons.Material.Filled.FilterAlt"
                                  Size="Size.Small"
                                  CloseIcon="@Icons.Material.Filled.Close" OnClose="@(() =>
                                                                                    {
