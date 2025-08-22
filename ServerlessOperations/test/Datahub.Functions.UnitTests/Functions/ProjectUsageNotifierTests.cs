@@ -1,10 +1,12 @@
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Context;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
@@ -26,7 +28,7 @@ namespace Datahub.Functions.UnitTests
         private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private EmailValidator _emailValidatorMock;
         private ISendEndpointProvider _sendEndpointProviderMock;
-        private IEmailService _emailServiceMock;
+        private IGCNotifyService _notifyService;
         private IResourceMessagingService _resourceMessagingServiceMock;
         private IConfiguration _config = Substitute.For<IConfiguration>();
         private AzureConfig _azureConfig;
@@ -41,7 +43,7 @@ namespace Datahub.Functions.UnitTests
 
             _emailValidatorMock = Substitute.For<EmailValidator>();
             _sendEndpointProviderMock = Substitute.For<ISendEndpointProvider>();
-            _emailServiceMock = Substitute.For<IEmailService>();
+            _notifyService = Substitute.For<IGCNotifyService>();
             _resourceMessagingServiceMock = Substitute.For<IResourceMessagingService>();
 
             var sendEndpointMock = Substitute.For<ISendEndpoint>();
@@ -71,7 +73,7 @@ namespace Datahub.Functions.UnitTests
                 _pongService,
                 _emailValidatorMock,
                 _sendEndpointProviderMock,
-                _emailServiceMock,
+                _notifyService,
                 _resourceMessagingServiceMock
             );
         }
