@@ -10,7 +10,8 @@ namespace Datahub.Shared.Entities;
 
 public class TerraformWorkspace
 {
-    public const string DefaultVersion = "latest";
+    public const string LatestVersionString = "latest";
+    public const string DefaultVersion = LatestVersionString;
     public string? Name { get; set; }
     public string? Acronym { get; set; }
     public double BudgetAmount { get; set; } = 100;
