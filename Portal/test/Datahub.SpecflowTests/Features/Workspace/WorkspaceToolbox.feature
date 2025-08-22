@@ -100,6 +100,7 @@ the correct information in the page.
 
     Scenario: User sees the appropriate tools in the summary after selecting them
         Given the workspace does not have <catalog-tool>
+        And the workspace version is <version>
         And the user is on the workspace toolbox page
         When the user clicks the Add button for <catalog-tool>, if it is <available>
         Then <catalog-tool> should be in the Summary section as an added tool
@@ -111,14 +112,15 @@ the correct information in the page.
         And there should be no underlying Add transaction for <catalog-tool>
 
     Examples:
-      | catalog-tool         | available | configurable | configuration-type                            |
-      | new-project-template | true      | false        | null                                          |
-      | azure-storage-blob   | true      | false        | null                                          |
-      | azure-databricks     | true      | false        | null                                          |
-      | azure-app-service    | true      | false        | null                                          |
-      | azure-postgres       | true      | true         | Datahub.Shared.Entities.PostgresConfiguration |
-      | azure-arcgis         | false     | false        | null                                          |
-      | azure-api            | false     | false        | null                                          |
+	  | catalog-tool         | available | configurable | configuration-type                              | version |
+	  | new-project-template | true      | false        | null                                            | v5.0.6  |
+	  | azure-storage-blob   | true      | false        | null                                            | v5.0.6  |
+	  | azure-databricks     | true      | false        | null                                            | v5.0.6  |
+	  | azure-databricks     | true      | true         | Datahub.Shared.Entities.DatabricksConfiguration | v5.2.1  |
+	  | azure-app-service    | true      | false        | null                                            | v5.0.6  |
+	  | azure-postgres       | true      | true         | Datahub.Shared.Entities.PostgresConfiguration   | v5.0.6  |
+	  | azure-arcgis         | false     | false        | null                                            | v5.0.6  |
+	  | azure-api            | false     | false        | null                                            | v5.0.6  |
 
     Scenario: User sees the appropriate tools in the summary after removing them
         Given the workspace has the <existing-tool> tool
@@ -141,6 +143,7 @@ the correct information in the page.
 
     Scenario: User sees the appropriate tools in the summary after configuring them
         Given the workspace has the <existing-tool> tool
+        And the workspace version is <version>
         And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
         And the user is on the workspace toolbox page
         When the user clicks the Configure button for <existing-tool>, if it is <configurable>
@@ -153,13 +156,14 @@ the correct information in the page.
         And there should be no underlying Configure transaction for <existing-tool>
 
     Examples:
-      | existing-tool        | configurable | configuration-type                            | configuration-parameter | db-name      | existing-configuration |
-      | new-project-template | false        | null                                          | null                    | null         | null                   |
-      | azure-storage-blob   | false        | null                                          | null                    | null         | null                   |
-      | azure-databricks     | false        | null                                          | null                    | null         | null                   |
-      | azure-app-service    | false        | null                                          | null                    | null         | null                   |
-      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration | PSQL_SKU                | postgres_sku | B_Standard_B1ms        |
-      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration | PSQL_SKU                | postgres_sku | null                   |
+      | existing-tool        | configurable | configuration-type                              | configuration-parameter | db-name                 | existing-configuration | version |
+      | new-project-template | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
+      | azure-storage-blob   | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
+      | azure-databricks     | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
+      | azure-databricks     | true         | Datahub.Shared.Entities.DatabricksConfiguration | general_purpose_cluster | general_purpose_cluster | Standard_D4ds_v5       | v5.2.1  |
+      | azure-app-service    | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
+      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration   | PSQL_SKU                | postgres_sku            | B_Standard_B1ms        | v5.0.6  |
+      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration   | PSQL_SKU                | postgres_sku            | null                   | v5.0.6  |
 
     Scenario: User sees the appropriate dependencies in the summary after selecting a tool
         Given the workspace does not have <catalog-tool>
@@ -203,6 +207,7 @@ the correct information in the page.
     Scenario: Users proceeding after having a configurable tool should go to configuration step, and proceeding with no configurable tools
     should go to the review step
         Given the workspace has <tool> if it is not being added (<action>)
+        And the workspace version is <version>
         And the user is on the workspace toolbox page
         And they have done an <action> on a <tool>
         When the user clicks the Next button
@@ -211,12 +216,15 @@ the correct information in the page.
         Then they should be back on the selection step
 
     Examples:
-      | action     | tool                 | expected-step |
-      | added      | new-project-template | 2             |
-      | removed    | azure-app-service    | 2             |
-      | configured | azure-postgres       | 1             |
-      | removed    | azure-postgres       | 2             |
-      | added      | azure-postgres       | 1             |
+      | action     | tool                 | expected-step | version |
+      | added      | new-project-template | 2             | v5.0.6  |
+      | removed    | azure-app-service    | 2             | v5.0.6  |
+      | configured | azure-postgres       | 1             | v5.0.6  |
+      | removed    | azure-postgres       | 2             | v5.0.6  |
+      | added      | azure-postgres       | 1             | v5.0.6  |
+      | added      | azure-databricks     | 2             | v5.0.6  |
+      | configured | azure-databricks     | 1             | v5.2.1  |
+      | added      | azure-databricks     | 1             | v5.2.1  |
 
     Scenario: Users click on the various information sheets for each tool
         Given the user is on the workspace toolbox page
@@ -249,14 +257,34 @@ the correct information in the page.
         Then the user should see review information for <configurable-tool> with the <existing-configuration> and <new-configuration>
 
     Examples:
-      | configurable-tool | configurable | form-id                     | example-form-input  | existing-configuration | new-configuration | configuration-parameter | db-name      |
-      | azure-postgres    | true         | postgres-configuration-form | postgres-sku-select | B_Standard_B1ms        | B_Standard_B2s    | PSQL_SKU                | postgres_sku |
-      | azure-postgres    | true         | postgres-configuration-form | postgres-sku-select | null                   | B_Standard_B1ms   | PSQL_SKU                | postgres_sku |
+      | configurable-tool | configurable | form-id                       | example-form-input  | existing-configuration | new-configuration | configuration-parameter | db-name      |
+      | azure-postgres    | true         | postgres-configuration-form   | postgres-sku-select | B_Standard_B1ms        | B_Standard_B2s    | PSQL_SKU                | postgres_sku |
+      | azure-postgres    | true         | postgres-configuration-form   | postgres-sku-select | null                   | B_Standard_B1ms   | PSQL_SKU                | postgres_sku |
+
+    Scenario: Users enable or disable a boolean configuration option for configurable tools
+        Given the workspace has the <configurable-tool> tool
+        And the workspace version is <version>
+        And the <configurable-tool> has a json configuration <config-name>
+        And the user is on the workspace toolbox page
+	    When the user clicks the Configure button for <configurable-tool>, if it is <configurable>
+        And the user clicks the Next button
+        Then the user should see the configuration form for <configurable-tool> with <form-id>
+        And the <checkbox-id> checkbox should be <checked-before>
+        When the user toggles the <checkbox-id> checkbox
+        Then the underlying Configure transaction should show the correct <checked-before> and <checked-after> values for <configuration-parameter>
+        When the user clicks the Next button
+        Then the user should see review information for <configurable-tool> with boolean values <checked-before> and <checked-after>
+
+    Examples: 
+	    | configurable-tool | version | config-name           | configurable | form-id                       | checkbox-id                   | checked-before | checked-after | configuration-parameter |
+	    | azure-databricks  | v5.2.1  | databricks-default    | true         | databricks-configuration-form | databricks-enable-ml-checkbox | false          | true          | enable_ml_cluster       |
+	    | azure-databricks  | v5.2.1  | databricks-ml-default | true         | databricks-configuration-form | databricks-enable-ml-checkbox | true           | false         | enable_ml_cluster       |
 
       # SUBMISSION
 
     Scenario: Users see the correct submission process information in the UI, the appropriate changes are applied to the database and the request is correctly sent to the RP
         Given the workspace does not have <catalog-tool>
+        And the workspace version is <version>
         And the user is on the workspace toolbox page
         When the user clicks the Add button for <catalog-tool>, if it is <available>
         And the user clicks the Next button
@@ -271,9 +299,10 @@ the correct information in the page.
         And the user should be redirected to the workspace dashboard
 
     Examples:
-      | catalog-tool         | available | configurable | configuration   |
-      | new-project-template | true      | false        | null            |
-      | azure-storage-blob   | true      | false        | null            |
-      | azure-databricks     | true      | false        | null            |
-      | azure-app-service    | true      | false        | null            |
-      | azure-postgres       | true      | true         | B_Standard_B1ms |
+	    | catalog-tool         | available | configurable | configuration    | version |
+	    | new-project-template | true      | false        | null             | v5.0.6  |
+	    | azure-storage-blob   | true      | false        | null             | v5.0.6  |
+	    | azure-databricks     | true      | false        | null             | v5.0.6  |
+	    | azure-app-service    | true      | false        | null             | v5.0.6  |
+	    | azure-postgres       | true      | true         | B_Standard_B1ms  | v5.0.6  |
+	    | azure-databricks     | true      | true         | Standard_D4ds_v5 | v5.2.1  |

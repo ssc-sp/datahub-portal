@@ -1,0 +1,7 @@
+{
+  "general_purpose_cluster": "Standard_D4ds_v5",
+  "ml_compute": "Standard_D4ds_v5",
+  "ml_gpu_compute": null,
+  "enable_ml_cluster": true,
+  "enable_ml_gpu_cluster": false
+}

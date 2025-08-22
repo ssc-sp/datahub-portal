@@ -64,6 +64,12 @@ public static class TerraformVariables
     // App service related variables
     public const string AppServiceNameSuffix = "app_service_name_suffix";
 
+    // Azure Databricks related variables
+    public const string EnableMlCluster = "enable_ml_cluster";
+    public const string EnableMlGpuCluster = "enable_ml_gpu_cluster";
+    public const string MlCompute = "ml_compute";
+    public const string MlGpuCompute = "ml_gpu_compute";
+
     /// <summary>
     /// Default outbound IP address for the Datahub Portal
     /// </summary>

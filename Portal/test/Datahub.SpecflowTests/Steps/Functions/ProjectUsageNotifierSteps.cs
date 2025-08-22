@@ -26,6 +26,7 @@ public class ProjectUsageNotifierSteps(
     AzureConfig azureConfig,
     IResourceMessagingService resourceMessagingService,
     ISendEndpointProvider sendEndpointProvider,
+    IGCNotifyService gCNotifyService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace with usage exceeding its budget")]
@@ -143,11 +144,9 @@ public class ProjectUsageNotifierSteps(
     [When(@"the notifier verifies overbudget is deleted")]
     public async Task WhenTheNotifierVerifiesOverbudgetIsDeleted()
     {
-        var logger = Substitute.For<ILoggerFactory>();
-        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        var logger = Substitute.For<ILoggerFactory>();        
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
-        var emailValidator = Substitute.For<EmailValidator>();
-        var notifyService = Substitute.For<IGCNotifyService>();
+        var emailValidator = Substitute.For<EmailValidator>();        
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -156,7 +155,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            notifyService,
+            gCNotifyService,
             resourceMessagingService);
 
         await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
@@ -281,5 +280,11 @@ public class ProjectUsageNotifierSteps(
 
     [Then(@"the (.*) admin users and workspace lead should be emailed")]
     public void ThenTheAdminUsersAndWorkspaceLeadShouldBeEmailed(int p0)
-    { }
+    {
+
+        gCNotifyService.Received(30).SendDatahubResourceDeletedNotification(Arg.Is<string>(s => s.Contains("@")),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Is<string>(Testing.WorkspaceAcronym));
+    }
 }
