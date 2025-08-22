@@ -4,28 +4,28 @@ using System.Text;
 
 namespace Datahub.Shared.Entities
 {
-    public class PostgresTier
+    public class PostgresTier : ComputeTier
     {
-        public string SKUName { get; set; }
-        public int Cores { get; set; }
-        public string MemorySize { get; set; }
-        public string PSQL_SKU { get; set; }
-        public string Cost { get; set; }
+        public string PSQL_SKU
+        {
+            get => TerraformSku;
+            set => TerraformSku = value;
+        }
         public string MaxIOPS { get; set; } = "N/A";
         public string MaxBandwidth { get; set; } = "N/A";
-        public string Type { get; set; } = "N/A";
-        public bool IsAvailable { get; set; }
 
         public static List<PostgresTier> GetPostgresTiers()
         {
-            var postgresTiers = new List<PostgresTier>();
-            postgresTiers.Add(new PostgresTier { SKUName = "B1ms", Cores = 1, MemorySize = "2 GiB", PSQL_SKU = "B_Standard_B1ms", MaxIOPS = "640", MaxBandwidth = "10 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$17.80/month" });
-            postgresTiers.Add(new PostgresTier { SKUName = "B2s", Cores = 2, MemorySize = "4 GiB", PSQL_SKU = "B_Standard_B2s", MaxIOPS = "1,280", MaxBandwidth = "15 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$71.20/month" });
-            postgresTiers.Add(new PostgresTier { SKUName = "B4ms", Cores = 4, MemorySize = "16 GiB", PSQL_SKU = "B_Standard_B4ms", MaxIOPS = "2,880", MaxBandwidth = "35 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$284.85/month" });
-            postgresTiers.Add(new PostgresTier { SKUName = "B8ms", Cores = 8, MemorySize = "32 GiB", PSQL_SKU = "B_Standard_B8ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$569.69/month" });
-            postgresTiers.Add(new PostgresTier { SKUName = "B12ms", Cores = 12, MemorySize = "48 GiB", PSQL_SKU = "B_Standard_B12ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$854.54/month" });
-            postgresTiers.Add(new PostgresTier { SKUName = "B16ms", Cores = 16, MemorySize = "64 GiB", PSQL_SKU = "B_Standard_B16ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$1139.38/month" });
-            postgresTiers.Add(new PostgresTier { SKUName = "B20ms", Cores = 20, MemorySize = "80 GiB", PSQL_SKU = "B_Standard_B20ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$1424.23/month" });
+            var postgresTiers = new List<PostgresTier>
+            {
+                new() { SKUName = "B1ms", Cores = 1, MemorySize = "2 GiB", PSQL_SKU = "B_Standard_B1ms", MaxIOPS = "640", MaxBandwidth = "10 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$17.80/month" },
+                new() { SKUName = "B2s", Cores = 2, MemorySize = "4 GiB", PSQL_SKU = "B_Standard_B2s", MaxIOPS = "1,280", MaxBandwidth = "15 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$71.20/month" },
+                new() { SKUName = "B4ms", Cores = 4, MemorySize = "16 GiB", PSQL_SKU = "B_Standard_B4ms", MaxIOPS = "2,880", MaxBandwidth = "35 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$284.85/month" },
+                new() { SKUName = "B8ms", Cores = 8, MemorySize = "32 GiB", PSQL_SKU = "B_Standard_B8ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$569.69/month" },
+                new() { SKUName = "B12ms", Cores = 12, MemorySize = "48 GiB", PSQL_SKU = "B_Standard_B12ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$854.54/month" },
+                new() { SKUName = "B16ms", Cores = 16, MemorySize = "64 GiB", PSQL_SKU = "B_Standard_B16ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$1139.38/month" },
+                new() { SKUName = "B20ms", Cores = 20, MemorySize = "80 GiB", PSQL_SKU = "B_Standard_B20ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$1424.23/month" }
+            };
             return postgresTiers;
         }
     }
