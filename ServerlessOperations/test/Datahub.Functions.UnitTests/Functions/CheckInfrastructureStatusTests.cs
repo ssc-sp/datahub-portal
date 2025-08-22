@@ -60,7 +60,7 @@ namespace Datahub.Functions.UnitTests
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor);
+                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor, null);
 
             _checkInfrastructureStatus = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
