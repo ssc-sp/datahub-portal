@@ -25,6 +25,11 @@
                       Variant="Variant.Outlined"
                       Lines="3"
                       Class="no-margin-textarea mb-3" />
+        <MudCheckBox T="bool"
+                     @bind-Value="@_createAnnouncement"
+                     Label="@Localizer["Create Announcement"]"
+                     Color="Color.Primary"
+                     Class="mt-3" />
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
@@ -42,10 +47,11 @@
     private string _version = string.Empty;
     private string _versionDescription = string.Empty;
     private string _versionDescriptionFrench = string.Empty;
+    private bool _createAnnouncement = false;
     private (bool, bool, bool) _hasValidationError = (false, false, false);
     private string _errorText = string.Empty;
 
-    private async Task Submit()
+    private void Submit()
     {
         _hasValidationError = (false, false, false);
 
@@ -85,7 +91,8 @@
                 VersionDescription = _versionDescription,  
                 VersionDescriptionFr = _versionDescriptionFrench,
                 CreatedDate = DateTime.UtcNow, 
-                IsActive = true 
+                IsActive = true,
+                AnnouncementCreated = _createAnnouncement
             };
 
             MudDialog.Close(DialogResult.Ok(versionTag));

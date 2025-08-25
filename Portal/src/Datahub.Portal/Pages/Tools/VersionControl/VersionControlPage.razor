@@ -27,15 +27,17 @@
     <MudTable Items="@_versions" Loading="@_loading" Hover Dense>
         <ColGroup>
             <col style="width: 10%" />
-            <col style="width: 60%" />
+            <col style="width: 50%" />
             <col style="width: 7%" />
-            <col style="width: 19%" />
-            <col style="width: 4%" />
+            <col style="width: 8%" />
+            <col style="width: 17%" />
+            <col style="width: 8%" />
         </ColGroup>
         <HeaderContent>
             <MudTh>@Localizer["Version Tag"]</MudTh>
             <MudTh>@Localizer["Description"]</MudTh>
             <MudTh>@Localizer["Active"]</MudTh>
+            <MudTh>@Localizer["Announcement"]</MudTh>
             <MudTh>@Localizer["Created Date"]</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
@@ -55,6 +57,16 @@
                 else
                 {
                     <MudIconButton Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Cancel" OnClick="() => ToggleVersionStatus(context)" />
+                }
+            </MudTd>
+            <MudTd>
+                @if (context.AnnouncementCreated)
+                {
+                    <MudIcon Icon="@Icons.Material.Filled.Announcement" Color="Color.Primary" Size="Size.Small" />
+                }
+                else
+                {
+                    <MudIcon Icon="@Icons.Material.Outlined.Announcement" Color="Color.Default" Size="Size.Small" />
                 }
             </MudTd>
             <MudTd>@context.CreatedDate.ToString("yyyy-MM-dd")</MudTd>
@@ -144,10 +156,16 @@
 
             await InvokeAsync(StateHasChanged);
 
-
             await _requestManagementService.TriggerBuildVersionUpdates(versionTag.Tag, email);
 
             _snackbar.Add(Localizer["Successfully added version: {0}", versionTag.Tag], Severity.Success);
+
+            // Handle announcement creation if requested
+            if (versionTag.AnnouncementCreated)
+            {
+                // TODO: Implement announcement creation logic
+                _snackbar.Add(Localizer["Announcement creation requested for version: {0}", versionTag.Tag], Severity.Info);
+            }
         }
     }
 }
