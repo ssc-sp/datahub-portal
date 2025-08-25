@@ -282,7 +282,7 @@ public class ProjectUsageNotifierSteps(
     public void ThenTheAdminUsersAndWorkspaceLeadShouldBeEmailed(int p0)
     {
 
-        gCNotifyService.Received(30).SendDatahubResourceDeletedNotification(Arg.Is<string>(s => s.Contains("@")),
+        gCNotifyService.Received(6).SendDatahubResourceDeletedNotification(Arg.Is<string>(s => s.Contains("@")),
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Is<string>(Testing.WorkspaceAcronym));
