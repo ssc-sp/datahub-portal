@@ -142,7 +142,7 @@ namespace Datahub.Functions
             foreach (var admin in adminContacts)
             {
                 if (notifyService != null)
-                    await notifyService.SendDatahubResourceDeletedNotification(admin, TerraformTemplate.ConvertTemplateNameToReadableName(resources), TerraformTemplate.ConvertTemplateNameToReadableName(resources, true), projectAcronym);
+                    await notifyService.SendDatahubResourceDeletedNotification(admin, resources, resources, projectAcronym);
             }
         }
 
