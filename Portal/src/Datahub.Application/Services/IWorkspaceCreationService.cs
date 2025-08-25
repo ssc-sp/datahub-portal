@@ -34,4 +34,15 @@ public interface IWorkspaceCreationService
     public Task CreateNewTemplateWorkspaceResourceAsync(string projectAcronym);
 
     public Task SaveWorkspaceMetadataFromGCHostingDetails(string projectAcronym, GCHostingWorkspaceDetails workspaceDetails);
+
+    /// <summary>
+    /// Returns a single GC Hosting workspace details record by its id.
+    /// Optionally includes child workspaces and their credits.
+    /// </summary>
+    Task<GCHostingWorkspaceDetails?> GetGCHostingWorkspaceDetailsAsync(int id, bool includeWorkspaces = false, bool includeWorkspaceCredits = false);
+
+    /// <summary>
+    /// Returns the parent GC Hosting workspace details object for the workspace identified by the acronym.
+    /// </summary>
+    Task<GCHostingWorkspaceDetails?> GetParentHostingDetailsForWorkspaceAsync(string projectAcronym, bool includeWorkspaces = false, bool includeWorkspaceCredits = false);
 }
