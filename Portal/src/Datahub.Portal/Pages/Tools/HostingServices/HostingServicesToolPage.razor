@@ -53,7 +53,7 @@
     <MudProgressCircular Color="Color.Primary" Indeterminate="true"/>
 }
 else {
-    <MudText Typo="Typo.body1" Visible="!_running">
+    <MudText Typo="Typo.body1" Class="@(_running?"invisible":"visible")">
         @Localizer["Response from API:"] @_result
     </MudText>
 }

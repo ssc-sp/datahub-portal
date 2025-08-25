@@ -76,6 +76,9 @@ public class WorkspaceToolboxSteps(
         JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/SkipLink.razor.js")
             .SetResult(module);
         module.SetupVoid("focusElement", Arg.Any<string>());
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
+
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
@@ -94,7 +97,8 @@ public class WorkspaceToolboxSteps(
         var dialogService = new DialogService();
         Services.AddSingleton<IDialogService>(dialogService);
         Services.AddSingleton(datahubPortalConfiguration);
-        Services.AddStub<IDatahubAuditingService>();
+        Services.AddStub<IDatahubAuditingService>();      
+        Services.AddMudMarkdownServices();
         var requestLogger = new Logger<RequestManagementService>(new LoggerFactory());
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
@@ -964,7 +968,7 @@ public class WorkspaceToolboxSteps(
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
         var selectField = workspaceToolbox!.Find($"#{selectFieldId}");
-        selectField.Click();
+        selectField.Blur();
         workspaceToolbox!.Render();
         var newValueItem = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([selectFieldId, newValue])}");
         newValueItem.Click();

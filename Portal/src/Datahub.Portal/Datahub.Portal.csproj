@@ -8,6 +8,7 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 		<UserSecretsId>b1e84dc3-b45f-428e-bf71-7eec3434b232</UserSecretsId>
+		<CodeAnalysisRuleSet>..\..\..\Analyzers.ruleset</CodeAnalysisRuleSet>
 	</PropertyGroup>
 	<ItemGroup>
 		<Content Remove="Data\AzureFlexServers.json" />
@@ -49,7 +50,7 @@
 		<PackageReference Include="MiniProfiler.EntityFrameworkCore" Version="4.5.*" />
 		<PackageReference Include="Octokit" Version="14.0.*" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="8.0.*" />
-		<PackageReference Include="MudBlazor" Version="7.13.0" />
+		<PackageReference Include="MudBlazor" Version="8.11.*" />
 		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.*" />
 		<PackageReference Include="Toolbelt.Blazor.LocalTimeText.Server" Version="1.0.1" />
 		<PackageReference Include="CsvHelper" Version="33.1.*" />
