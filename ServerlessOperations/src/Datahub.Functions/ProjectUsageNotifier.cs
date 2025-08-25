@@ -132,13 +132,17 @@ namespace Datahub.Functions
                 .Where(emailValidator.IsValidEmail)
                 .ToList();
 
-            foreach (var resourceName in resourceNames)
+            string resources;
+
+            if (resourceNames.Count == 1)
+                resources = TerraformTemplate.ConvertTemplateNameToReadableName(resourceNames[0], true);
+            else
+                resources = string.Join(", ", resourceNames.Select(rn => TerraformTemplate.ConvertTemplateNameToReadableName(rn)));
+
+            foreach (var admin in adminContacts)
             {
-                foreach (var admin in adminContacts)
-                {
-                    if (notifyService != null)
-                        await notifyService.SendDatahubResourceDeletedNotification(admin, TerraformTemplate.ConvertTemplateNameToReadableName(resourceName), TerraformTemplate.ConvertTemplateNameToReadableName(resourceName, true), projectAcronym);
-                }
+                if (notifyService != null)
+                    await notifyService.SendDatahubResourceDeletedNotification(admin, TerraformTemplate.ConvertTemplateNameToReadableName(resources), TerraformTemplate.ConvertTemplateNameToReadableName(resources, true), projectAcronym);
             }
         }
 
