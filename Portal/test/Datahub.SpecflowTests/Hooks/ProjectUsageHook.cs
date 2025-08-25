@@ -2,6 +2,7 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
+using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
@@ -63,10 +64,13 @@ namespace Datahub.SpecflowTests.Hooks
             var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             var emailService = Substitute.For<IEmailService>();
 
+            var gcNotify = Substitute.For<IGCNotifyService>();
+
             objectContainer.RegisterInstanceAs(azureConfig);
             objectContainer.RegisterInstanceAs(resourceMessagingService);
             objectContainer.RegisterInstanceAs(sendEndpointProvider);
             objectContainer.RegisterInstanceAs(emailService);
+            objectContainer.RegisterInstanceAs(gcNotify);
         }
         
         [BeforeScenario("ProjectUsage")]
