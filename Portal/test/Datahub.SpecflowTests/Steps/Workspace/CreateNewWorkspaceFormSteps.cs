@@ -71,6 +71,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             JSInterop.SetupVoid("mudPopover.initialize", _ => true);
             JSInterop.Setup<int>("mudpopoverHelper.countProviders");
             JSInterop.SetupVoid("mudPopover.connect", _ => true);
+            JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
         }
 
         private static IWorkspaceCreationService CreateMockedWorkspaceCreationService(

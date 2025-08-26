@@ -62,7 +62,8 @@ public class WorkspaceCbrSettingsPageSteps(
         JSInterop.SetupVoid("mudPopover.initialize", _ => true);
         JSInterop.Setup<int>("mudpopoverHelper.countProviders");
         JSInterop.SetupVoid("mudPopover.connect", _ => true);
-
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
         Services.AddStub<IDatahubAuditingService>();
     }
 

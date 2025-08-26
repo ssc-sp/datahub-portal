@@ -1,6 +1,7 @@
 ﻿@using Datahub.Portal
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.AspNetCore.Components
+@using System.Reflection
 
 <!DOCTYPE html>
 <html lang="en">
@@ -70,15 +71,9 @@
     <link href="@($"{typeof(App).Assembly.GetName().Name}.styles.css")" rel="stylesheet" />
     <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
 
-    <link href="/css/site.dark.css" rel="stylesheet" />
-
     <ImportMap />
 
      <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
-    @*   <script src="~/js/powerbi-client/dist/powerbi.min.js"></script>
-    <script src="~/js/pbi-integration.js"></script>
-    *@
-    @*<script src="~/js/third-party/highlight.min.js"></script>*@
     
     <script src="/js/markdown-editor.js" type="module"></script>
 
@@ -88,7 +83,6 @@
     <script defer src="/_content/Datahub.Core/js/anchorLink.js"></script>
     <script defer src="/_content/Datahub.Core/js/clipboard-interop.js"></script>
     <script defer src="/_content/Datahub.Core/js/iframe.js"></script>
-    <script defer src="_content/AElemental.Blazor/js/aebundle.js"></script>
     <script defer src="/js/custom-navigation.js"></script>
 
     <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/easymde.min.js"></script>
@@ -234,7 +228,7 @@
 
 
 <script src="_framework/blazor.server.js"></script>
-<script src="_content/MudBlazor/MudBlazor.min.js"></script>
+<script src="_content/MudBlazor/MudBlazor.min.js?v=@(Assembly.GetAssembly(typeof(MudBlazor.AbstractLocalizationInterceptor))?.GetName().Version?.ToString())"></script>
 <script defer src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>
 </body>
 </html>

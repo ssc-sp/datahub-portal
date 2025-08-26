@@ -3,7 +3,6 @@
         <MudTextField T="string"
                       @bind-Value="_version"
                       Placeholder="vX.X.X"
-                      DisableUnderLine="true"
                       Margin="Margin.Dense"
                       Error="@_hasValidationError.Item1"
                       ErrorText="@_errorText"
@@ -35,7 +34,7 @@
 @code {
 
     [CascadingParameter]
-    MudDialogInstance MudDialog { get; set; }
+    IMudDialogInstance MudDialog { get; set; }
     [Parameter]
     public List<VersionTag> ExistingVersions { get; set; }
 
