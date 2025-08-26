@@ -3834,13 +3834,13 @@ pre {
 
 /* Light theme chip styles */
 .mud-theme-light .dh_themed_chip {
-    background-color: #e0e0e0; /* light gray */
+    background-color: #fff; /* light gray */
     color: #212121; /* dark text */
 }
 
 .mud-theme-light .mud-chip-outlined.dh_themed_chip {
     color: #212121 !important;
-    background-color: transparent !important;
+    background-color: #e0e0e0 !important;
     border-color: #212121 !important;
 }
 
