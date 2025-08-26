@@ -7,8 +7,6 @@ using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
-using Elemental.Code;
-using Elemental.Components;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
 using AeFormIgnoreAttribute = MudBlazor.Forms.AeFormIgnoreAttribute;
@@ -119,7 +117,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormCategory("Workspace Information")]
     [Required]
-    [AeLabel(validValues: new[] { "Unclassified", "Protected A", "Protected B" })]
+    [MudForm(ValidValues= new[] { "Unclassified", "Protected A", "Protected B" })]
     public string Data_Sensitivity { get; set; } = "Unclassified";
 
     /// <summary>
@@ -138,7 +136,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the phase of the workspace.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-    [AeLabel(isDropDown: true)]
+    [MudForm(IsDropDown=true)]
     public string Project_Phase { get; set; }
 
     /// <summary>
@@ -224,7 +222,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormCategory("Initiative Connections")]
     [StringLength(100)]
-    [AeLabel(validValues: new[] { SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE })]
+    [MudForm(ValidValues= new[] { SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE })]
     public string DB_Type { get; set; }
 
     /// <summary>

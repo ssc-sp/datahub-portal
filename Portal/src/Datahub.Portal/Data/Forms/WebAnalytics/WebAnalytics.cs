@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Elemental.Components;
+using MudBlazor.Forms;
 
 namespace Datahub.Portal.Data.Forms.WebAnalytics;
 
