@@ -11,6 +11,14 @@
     }
 }
 
+.sticky-stack {
+    position: sticky;
+    top: var(--mud-appbar-height); /* Uses MudBlazor's app bar height */
+    z-index: var(--mud-zindex-appbar); /* Uses MudBlazor's app bar z-index */
+    background: var(--mud-palette-background); /* Uses MudBlazor's background color */
+}
+
+
 /*! normalize.css v8.0.1 | MIT License | github.com/necolas/normalize.css */
 /* Document
    ========================================================================== */
@@ -220,12 +228,6 @@ button,
         outline: 1px dotted ButtonText;
     }
 
-/**
- * Correct the padding in Firefox.
- */
-fieldset {
-    padding: 0.35em 0.75em 0.625em;
-}
 
 /**
  * 1. Correct the text wrapping in Edge and IE.
@@ -236,7 +238,6 @@ fieldset {
 legend {
     box-sizing: border-box; /* 1 */
     color: inherit; /* 2 */
-    display: table; /* 1 */
     max-width: 100%; /* 1 */
     padding: 0; /* 3 */
     white-space: normal; /* 1 */

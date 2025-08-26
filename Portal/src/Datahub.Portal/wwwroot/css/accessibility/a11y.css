@@ -1,5 +1,5 @@
 ﻿*:focus {
-    outline: 2px solid black !important;
+    outline: 2px black !important;
     outline-offset: -2px !important;
 }
 

@@ -6,14 +6,14 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <base href="/"/>
+    <base href="/" />
 
     @*Favicons*@
     <!-- For old IEs -->
-    <link rel="shortcut icon" href="/img/favicons/favicon.ico"/>
+    <link rel="shortcut icon" href="/img/favicons/favicon.ico" />
     <!-- For new browsers - multisize ico  -->
     <link rel="icon" type="image/x-icon" sizes="16x16 32x32" href="/_content/Datahub.Core/img/favicons/favicon.ico">
     <!-- For iPad with high-resolution Retina display running iOS ≥ 7: -->
@@ -52,29 +52,24 @@
     @* see https://fontawesome.com/docs/web/setup/host-yourself/webfonts *@
 
     @* <link href="/_content/Datahub.Core/css/fontawesome/all.min.css" rel="stylesheet" /> *@
-    <link href="/css/fontawesome/fontawesome.min.css" rel="stylesheet"/>
-    <link href="/css/fontawesome/solid.min.css" rel="stylesheet"/>
-    <link href="/css/fontawesome/light.min.css" rel="stylesheet"/>
-    <link href="/css/fontawesome/duotone.min.css" rel="stylesheet"/>
+    <link href="/css/fontawesome/fontawesome.min.css" rel="stylesheet" />
+    <link href="/css/fontawesome/solid.min.css" rel="stylesheet" />
+    <link href="/css/fontawesome/light.min.css" rel="stylesheet" />
+    <link href="/css/fontawesome/duotone.min.css" rel="stylesheet" />
 
-    @* <link href="/_content/Datahub.Core/css/third-party/normalize.css" rel="stylesheet" /> *@
-    <link href="/css/site.min.css" rel="stylesheet"/>
-    <link href="/css/common.css" rel="stylesheet" />
-    
-    @* Accessibility CSS *@
-    <link href="/css/accessibility/a11y.css" rel="stylesheet"/>
-    @* <link href="/css/accessibility/wet-boew/theme-wet-boew/css/theme.css" rel="stylesheet"/> *@
+    <link href="/css/site.min.css" rel="stylesheet" />
 
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet"/>
-    <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet"/>
+
+    <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
+    <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet" />
     @* dotnet 9 <link href="@Assets["{ASSEMBLY NAME}.styles.css"]" rel="stylesheet" /> *@
     <link href="@($"{typeof(App).Assembly.GetName().Name}.styles.css")" rel="stylesheet" />
     <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
 
     <ImportMap />
 
-     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
-    
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
+
     <script src="/js/markdown-editor.js" type="module"></script>
 
     <script src="/js/BlazorInterop.js"></script>
@@ -102,121 +97,118 @@
     </script>
 
     <HeadOutlet @rendermode="RenderMode.InteractiveServer" />
-    
+
 </head>
 
 <body>
 
 
-@* Custom Reconnect Message *@
-<style>
-    .my-reconnect-modal > div {
-        position: fixed;
-        top: 0;
-        right: 0;
-        bottom: 0;
-        left: 0;
-        z-index: 10000;
-        overflow: hidden;
-        background-color: #fff;
-        text-align: center;
-        font-weight: bold;
-        padding-top:  16rem;
-    }
-    .components-reconnect-hide > div
-    {
-        display: none;
-    }
+    @* Custom Reconnect Message *@
+    <style>
+        .my-reconnect-modal > div {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 10000;
+            overflow: hidden;
+            background-color: #fff;
+            text-align: center;
+            font-weight: bold;
+            padding-top: 16rem;
+        }
 
-    .components-reconnect-show > div
-    {
-        display: none;
-    }
-    .components-reconnect-show > .show
-    {
-        display: block;
-    }
+        .components-reconnect-hide > div {
+            display: none;
+        }
 
-    .components-reconnect-failed > div
-    {
-        display: none;
-    }
-    .components-reconnect-failed > .failed
-    {
-        display: block;
-    }
+        .components-reconnect-show > div {
+            display: none;
+        }
 
-    .components-reconnect-rejected >div
-    {
-        display: none;
-    }
-    .components-reconnect-rejected > .rejected
-    {
-        display: block;
-    }
-</style>
+        .components-reconnect-show > .show {
+            display: block;
+        }
+
+        .components-reconnect-failed > div {
+            display: none;
+        }
+
+        .components-reconnect-failed > .failed {
+            display: block;
+        }
+
+        .components-reconnect-rejected > div {
+            display: none;
+        }
+
+        .components-reconnect-rejected > .rejected {
+            display: block;
+        }
+    </style>
 
 
-<div id="components-reconnect-modal" class="my-reconnect-modal components-reconnect-hide">
-    <div class="show">
-        <p>
-            Attempting to reconnect...
-        </p>
-        <p>
-            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
-        </p>
-        <div style="height: 100px;"></div>
-        <p>
-            Tentative de reconnexion...
-        </p>
-        <p>
-            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
-        </p>
+    <div id="components-reconnect-modal" class="my-reconnect-modal components-reconnect-hide">
+        <div class="show">
+            <p>
+                Attempting to reconnect...
+            </p>
+            <p>
+                <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
+            </p>
+            <div style="height: 100px;"></div>
+            <p>
+                Tentative de reconnexion...
+            </p>
+            <p>
+                <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
+            </p>
+        </div>
+
+        <div class="failed">
+            <p>
+                Connection to the server has failed.
+            </p>
+            <p>
+                <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
+            </p>
+            <div style="height: 100px;"></div>
+            <p>
+                La connexion au serveur a échoué.
+            </p>
+            <p>
+                <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
+            </p>
+        </div>
+        <div class="rejected">
+            <p>
+                Connection to the server has timed out.
+            </p>
+            <p>
+                <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
+            </p>
+            <div style="height: 100px;"></div>
+            <p>
+                La connexion au serveur a expiré.
+            </p>
+            <p>
+                <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
+            </p>
+        </div>
     </div>
+    @* End of Custom Reconnect Message *@
 
-    <div class="failed">
-        <p>
-            Connection to the server has failed. 
-        </p>
-        <p>
-             <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
-        </p>
-        <div style="height: 100px;"></div>
-        <p>
-            La connexion au serveur a échoué.
-        </p>
-        <p>
-           <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
-        </p>
-    </div>
-    <div class="rejected">
-        <p>
-            Connection to the server has timed out.
-        </p>
-        <p>
-            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Click here</span> to try returning to the home page.
-        </p>
-        <div style="height: 100px;"></div>
-        <p>
-            La connexion au serveur a expiré.
-        </p>
-        <p>
-            <span onclick="location.reload()" style="text-decoration: underline; cursor: pointer;">Cliquez ici</span> pour essayer de retourner à la page d'accueil.
-        </p>
-    </div>
-</div>
-@* End of Custom Reconnect Message *@
+    <Routes @rendermode="RenderMode.InteractiveServer" />
 
-<Routes @rendermode="RenderMode.InteractiveServer" />
-
-<div id="browserNotSupported" style="display: none;">
-    <div style="width: 100%; text-align: center">
-        <i class="fad fa-exclamation-triangle fa-10x"></i>
+    <div id="browserNotSupported" style="display: none;">
+        <div style="width: 100%; text-align: center">
+            <i class="fad fa-exclamation-triangle fa-10x"></i>
+        </div>
+        <h1 style="margin: 16px 0; text-align: center">The Datahub Application requires a recent browser.</h1>
+        <p>To view our interactive report we recommend using a recent browser such as Chrome, Edge, Firefox, or Safari.</p>
     </div>
-    <h1 style="margin: 16px 0; text-align: center">The Datahub Application requires a recent browser.</h1>
-    <p>To view our interactive report we recommend using a recent browser such as Chrome, Edge, Firefox, or Safari.</p>
-</div>
-<script>
+    <script>
         var ua = window.navigator.userAgent;
         var msie = ua.indexOf("MSIE ");
         if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) {
@@ -227,8 +219,8 @@
     </script>
 
 
-<script src="_framework/blazor.server.js"></script>
-<script src="_content/MudBlazor/MudBlazor.min.js?v=@(Assembly.GetAssembly(typeof(MudBlazor.AbstractLocalizationInterceptor))?.GetName().Version?.ToString())"></script>
-<script defer src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>
+    <script src="_framework/blazor.server.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js?v=@(Assembly.GetAssembly(typeof(MudBlazor.AbstractLocalizationInterceptor))?.GetName().Version?.ToString())"></script>
+    <script defer src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>
 </body>
 </html>
