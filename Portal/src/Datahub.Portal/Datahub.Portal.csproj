@@ -12,7 +12,6 @@
 	<ItemGroup>
 		<Content Remove="Data\AzureFlexServers.json" />
 		<Content Remove="i18n\*.json" />
-		<Content Remove="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Remove="Controllers\OpenDataApprovalForm.docx" />
@@ -74,10 +73,6 @@
 
 	<ItemGroup>
 		<InternalsVisibleTo Include="Datahub.SpecflowTests" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<None Include="wwwroot\js\DownloadFileFromStream.js" />
 	</ItemGroup>
 
 	<ItemGroup>
