@@ -63,7 +63,7 @@
                         else if (_currentStep == Steps.Topics)
                         {
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
-                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef" >
+                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true" AdornmentColor="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef">
                                 @foreach (var topic in _ticketTopicsList)
                                 {  
                                     <MudSelectItem T="string" Value="@topic">@Localizer[topic]</MudSelectItem>  
@@ -88,7 +88,7 @@
                                 @ref="_descriptionFieldRef" />
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
-                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea">
+                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" AdornmentColor="@Color.Primary" Class="multiselect-textarea">
                                 @foreach (var workspace in _ticketWorkspaces)
                                 {
                                     <MudSelectItem T="string" Value="@workspace.Key">@Localizer[workspace.Key]</MudSelectItem>

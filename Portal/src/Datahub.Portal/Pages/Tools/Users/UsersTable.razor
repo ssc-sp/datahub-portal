@@ -52,7 +52,7 @@
             <MudSpacer/>
             <MudSelect T="string" Value="_lastXDays" ValueChanged=LastXDaysChanged Variant="Variant.Text"
                        Label="Time of last login" Dense="true">
-                <MudSelectItem T="string" Value="null" DataLabel="Lead(s)">@Localizer["All"]</MudSelectItem>
+                <MudSelectItem T="string" Value="null">@Localizer["All"]</MudSelectItem>
                 @foreach (var days in lastXDaysOptions)
                 {
                     <MudSelectItem T="string" Value="days">@Localizer[days]</MudSelectItem>

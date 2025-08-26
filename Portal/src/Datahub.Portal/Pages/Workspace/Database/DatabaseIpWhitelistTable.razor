@@ -120,7 +120,7 @@
         {
             SetFunc = value => value?.ToString() ?? string.Empty,
             GetFunc = IPAddress.Parse,
-            SetErrorMessage = Localizer["Invalid IP address format (e.g. 192.168.2.1)"],
+            SetErrorMessage = (Localizer["Invalid IP address format (e.g. 192.168.2.1)"], Array.Empty<Object>()),
         };
 
     protected override async Task OnInitializedAsync()
