@@ -5,6 +5,7 @@ using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Services.CatalogSearch;
@@ -40,6 +41,10 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
         private IUserInformationService userInfoService;
         private DatahubPortalConfiguration portalConfiguration;
+
+        // Per-scenario users to avoid shared static state when tests run in parallel
+        private PortalUser cbrOwnerUser;
+        private PortalUser otherWorkspaceLeadUser;
 
         private async Task SetupServices()
         {
@@ -182,8 +187,12 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         [Given("authorization as a CBR Owner for the workspace creation page")]
         public void GivenAuthorizationAsACbrOwnerForTheWorkspaceCreationPage()
         {
+            // Create per-scenario users
+            cbrOwnerUser = CommonCbrTestUtils.CreateCbrOwnerUser();
+            otherWorkspaceLeadUser = CommonCbrTestUtils.CreateOtherWorkspaceLead();
+
             userInfoService = Substitute.For<IUserInformationService>();
-            userInfoService.GetCurrentPortalUserAsync().Returns(CommonCbrTestUtils.CbrOwnerUser);
+            userInfoService.GetCurrentPortalUserAsync().Returns(cbrOwnerUser);
             Services.AddSingleton(userInfoService);
 
             CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, true, false);
@@ -192,8 +201,12 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         [Given("authorization as a non-CBR owner for the workspace creation page")]
         public void GivenAuthorizationAsANonCbrOwnerForTheWorkspaceCreationPage()
         {
+            // Create per-scenario users
+            cbrOwnerUser = CommonCbrTestUtils.CreateCbrOwnerUser();
+            otherWorkspaceLeadUser = CommonCbrTestUtils.CreateOtherWorkspaceLead();
+
             userInfoService = Substitute.For<IUserInformationService>();
-            userInfoService.GetCurrentPortalUserAsync().Returns(CommonCbrTestUtils.OtherWorkspaceLead);
+            userInfoService.GetCurrentPortalUserAsync().Returns(otherWorkspaceLeadUser);
             Services.AddSingleton(userInfoService);
 
             CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, false, false);
@@ -204,7 +217,11 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         {
             await SetupServices();
 
-            var dbContextFactory = await CommonCbrTestUtils.GenerateCbrTestDatabase();
+            // Ensure users are initialized in case this step is used directly
+            cbrOwnerUser ??= CommonCbrTestUtils.CreateCbrOwnerUser();
+            otherWorkspaceLeadUser ??= CommonCbrTestUtils.CreateOtherWorkspaceLead();
+
+            var dbContextFactory = await CommonCbrTestUtils.GenerateCbrTestDatabase(cbrOwnerUser, otherWorkspaceLeadUser);
             Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
             var workspaceCreationService = CreateMockedWorkspaceCreationService(portalConfiguration, dbContextFactory, userInfoService);

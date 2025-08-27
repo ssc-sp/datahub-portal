@@ -2,6 +2,7 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Offline;
@@ -28,6 +29,10 @@ public class WorkspaceCbrSettingsPageSteps(
     private const string RelativePathToSrc = "../../../../../src";
 
     private const string WORKSPACE_CBR_SETTINGS_PAGE_CTX_KEY = "workspaceCbrSettingsPage";
+
+    // Per-scenario users
+    private PortalUser cbrOwnerUser;
+    private PortalUser otherWorkspaceLeadUser;
 
     private async Task SetupServices()
     {
@@ -70,8 +75,11 @@ public class WorkspaceCbrSettingsPageSteps(
     [Given("authorization as a CBR Owner for the CBR budget management page")]
     public void GivenAuthorizationAsACbrOwnerForTheCbrBudgetManagementPage()
     {
+        cbrOwnerUser = CommonCbrTestUtils.CreateCbrOwnerUser();
+        otherWorkspaceLeadUser = CommonCbrTestUtils.CreateOtherWorkspaceLead();
+
         var userInfoService = Substitute.For<IUserInformationService>();
-        userInfoService.GetCurrentPortalUserAsync().Returns(CommonCbrTestUtils.CbrOwnerUser);
+        userInfoService.GetCurrentPortalUserAsync().Returns(cbrOwnerUser);
         Services.AddSingleton(userInfoService);
 
         CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, true, false);
@@ -82,7 +90,10 @@ public class WorkspaceCbrSettingsPageSteps(
     {
         await SetupServices();
 
-        var dbContextFactory = await CommonCbrTestUtils.GenerateCbrTestDatabase();
+        cbrOwnerUser ??= CommonCbrTestUtils.CreateCbrOwnerUser();
+        otherWorkspaceLeadUser ??= CommonCbrTestUtils.CreateOtherWorkspaceLead();
+
+        var dbContextFactory = await CommonCbrTestUtils.GenerateCbrTestDatabase(cbrOwnerUser, otherWorkspaceLeadUser);
         Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
         var authenticatedCbrBudgetPage = RenderComponent<CascadingAuthenticationState>(parameters =>
