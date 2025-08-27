@@ -173,12 +173,10 @@ public class Startup
         services.AddBlazoredSessionStorage();
         services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
-        services.AddScoped<GetDimensionsService>();
 
         services.AddUserAchievementServices();
         services.AddSecurityServices();
 
-        //services.AddElemental();
         services.AddMudServices();
         services.AddMudMarkdownServices();
 

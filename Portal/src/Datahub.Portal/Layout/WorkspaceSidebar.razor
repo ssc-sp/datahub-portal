@@ -38,7 +38,7 @@
                            ValueChanged="@(projectAcronym => HandleProjectChange(projectAcronym))"
                            Label="@Localizer["Current workspace"]"
                            title="@Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]"
-                           Dense
+                           Dense 
                            Variant="Variant.Outlined">
                     @foreach (var project in _allProjects)
                     {
