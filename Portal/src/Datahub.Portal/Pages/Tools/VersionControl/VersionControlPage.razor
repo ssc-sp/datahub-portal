@@ -1,6 +1,8 @@
 ﻿@using Datahub.Application.Services
+@using Datahub.Application.Services.Announcements
 @using Datahub.Application.Services.Notifications;
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Announcements
 @using Datahub.Core.Services.Projects
 @using Datahub.Portal.Components.Dialogs
 @using Markdig
@@ -13,6 +15,7 @@
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
+@inject IAnnouncementService _announcementService
 @inject IDialogService Dialog
 
 
@@ -27,23 +30,21 @@
     <MudTable Items="@_versions" Loading="@_loading" Hover Dense>
         <ColGroup>
             <col style="width: 10%" />
-            <col style="width: 50%" />
+            <col style="width: 60%" />
             <col style="width: 7%" />
-            <col style="width: 8%" />
-            <col style="width: 17%" />
-            <col style="width: 8%" />
+            <col style="width: 19%" />
+            <col style="width: 4%" />
         </ColGroup>
         <HeaderContent>
             <MudTh>@Localizer["Version Tag"]</MudTh>
             <MudTh>@Localizer["Description"]</MudTh>
             <MudTh>@Localizer["Active"]</MudTh>
-            <MudTh>@Localizer["Announcement"]</MudTh>
             <MudTh>@Localizer["Created Date"]</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context.Tag</MudTd>
-            <MudTd>
+            <MudTd Style="cursor: pointer;" @onclick="() => EditVersion(context)">@context.Tag</MudTd>
+            <MudTd Style="cursor: pointer;" @onclick="() => EditVersion(context)">
                 <MudStack Spacing="1">
                     <MudText Typo="Typo.body2">@context.VersionDescription</MudText>
                     <MudText Typo="Typo.body2">@context.VersionDescriptionFr</MudText>                    
@@ -59,17 +60,7 @@
                     <MudIconButton Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Cancel" OnClick="() => ToggleVersionStatus(context)" />
                 }
             </MudTd>
-            <MudTd>
-                @if (context.AnnouncementCreated)
-                {
-                    <MudIcon Icon="@Icons.Material.Filled.Announcement" Color="Color.Primary" Size="Size.Small" />
-                }
-                else
-                {
-                    <MudIcon Icon="@Icons.Material.Outlined.Announcement" Color="Color.Default" Size="Size.Small" />
-                }
-            </MudTd>
-            <MudTd>@context.CreatedDate.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd Style="cursor: pointer;" @onclick="() => EditVersion(context)">@context.CreatedDate.ToString("yyyy-MM-dd")</MudTd>
             <MudTd>
                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteVersion(context)" />
             </MudTd>
@@ -135,10 +126,12 @@
         var parameters = new DialogParameters { { "ExistingVersions", _versions } };
         var dialog = await Dialog.ShowAsync<AddVersionDialog>(Localizer["Add New Version"], parameters, dialogOptions);
         var result = await dialog.Result;
-        var email = await _userInformationService.GetUserEmail();
+        
         if (!result.Canceled)
         {
             var versionTag = (VersionTag)result.Data;
+            var email = await _userInformationService.GetUserEmail();
+            var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
             versionTag.CreatedBy = email;
             var isAdded = await _workspaceVersionService.AddNewVersion(versionTag);
             if (!isAdded)
@@ -163,8 +156,62 @@
             // Handle announcement creation if requested
             if (versionTag.AnnouncementCreated)
             {
-                // TODO: Implement announcement creation logic
-                _snackbar.Add(Localizer["Announcement creation requested for version: {0}", versionTag.Tag], Severity.Info);
+                var announcement = new Announcement
+                {
+                    StartDateTime = DateTime.UtcNow,
+                    EndDateTime = DateTime.UtcNow.AddDays(30),  
+                    PreviewEn = $"A new version {versionTag.Tag} of the FSDH workspaces has been released. Check out the details in the description.",
+                    PreviewFr = $"Une nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée. Consultez les détails dans la description.",
+                    BodyEn = Markdown.ToHtml(versionTag.VersionDescription),
+                    BodyFr = Markdown.ToHtml(versionTag.VersionDescriptionFr),
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedById = portalUser.Id
+                };
+
+                var success = await _announcementService.SaveAnnouncementAsync(announcement);
+
+                if (success)
+                {
+                    _snackbar.Add(Localizer["Announcement createdfor version: {0}", versionTag.Tag], Severity.Info);                    
+                }
+                else
+                {
+                    _snackbar.Add(Localizer["Failed to create announcement"], Severity.Error);
+                }
+            }
+        }
+    }
+
+    private async Task EditVersion(VersionTag version)
+    {
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters 
+        { 
+            { "EditingVersion", version }
+        };
+        var dialog = await Dialog.ShowAsync<AddVersionDialog>(Localizer["Edit Version"], parameters, dialogOptions);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var updatedVersionTag = (VersionTag)result.Data;
+            var isUpdated = await _workspaceVersionService.UpdateVersionTag(updatedVersionTag);
+            
+            if (isUpdated)
+            {
+                // Update the version in the local list
+                var index = _versions.FindIndex(v => v.VersionTagId == updatedVersionTag.VersionTagId);
+                if (index >= 0)
+                {
+                    _versions[index] = updatedVersionTag;
+                }
+                
+                _snackbar.Add(Localizer["Version updated successfully."], Severity.Success);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["Error updating version, please try again."], Severity.Error);
             }
         }
     }

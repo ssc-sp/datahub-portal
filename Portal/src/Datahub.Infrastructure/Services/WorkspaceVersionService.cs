@@ -58,6 +58,21 @@ namespace Datahub.Infrastructure.Services
             }
         }
 
+        public async Task<VersionTag?> GetVersionByIdAsync(int versionTagId)
+        {
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                return await db.VersionTags
+                    .FirstOrDefaultAsync(v => v.VersionTagId == versionTagId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting version by ID: {VersionTagId}", versionTagId);
+                throw;
+            }
+        }
+
         public async Task<bool> AddNewVersion(VersionTag versionTag)
         {
             try
