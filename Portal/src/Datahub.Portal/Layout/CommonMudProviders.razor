@@ -1,29 +1,53 @@
 ﻿@inject IUserSettingsService UserSettingsService
 
-<div class="@(_isDarkMode ? "mud-theme-dark" : "mud-theme-light")">
-    <CascadingValue Value="_isDarkMode">
-        <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
-            <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
-            <MudDialogProvider />
-            <MudSnackbarProvider />
-            <MudPopoverProvider />
-            @if (ChildContent is not null)
-            {
-                @ChildContent
-            }
+@if (_isThemeLoaded)
+{
+    <div class="@(_isDarkMode ? "mud-theme-dark" : "mud-theme-light")">
+        <CascadingValue Value="_isDarkMode">
+            <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+                <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
+                <MudDialogProvider />
+                <MudSnackbarProvider />
+                <MudPopoverProvider />
+                @if (ChildContent is not null)
+                {
+                    @ChildContent
+                }
+            </CascadingValue>
         </CascadingValue>
-    </CascadingValue>
-</div>
+    </div>
+}
+else
+{
+    @* Show loading state with light theme to prevent flicker *@
+    <div class="mud-theme-light">
+        <CascadingValue Value="false">
+            <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+                <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" IsDarkMode="false" />
+                <MudDialogProvider />
+                <MudSnackbarProvider />
+                <MudPopoverProvider />
+                @if (ChildContent is not null)
+                {
+                    @ChildContent
+                }
+            </CascadingValue>
+        </CascadingValue>
+    </div>
+}
 
 @code {
     [Parameter]
     public RenderFragment ChildContent { get; set; }
 
-    private bool _isDarkMode = true;
+    private bool _isDarkMode = false; // Default to light theme
+    private bool _isThemeLoaded = false;
 
     protected override async Task OnInitializedAsync()
     {
         var theme = await UserSettingsService.GetTheme() ?? "";
         _isDarkMode = theme.ToLowerInvariant().Contains("dark") || theme.ToLowerInvariant().Contains("sombre");
+        _isThemeLoaded = true;
+        StateHasChanged();
     }
 }
