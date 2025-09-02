@@ -15,11 +15,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\QueueConstants.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\AppServiceConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\InfrastructureHealthCheck.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\ComputeTier.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\DatabricksConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\DatabricksTier.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\PostgresConfiguration.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Entities\PostgresTier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\ComputeTier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\DatabricksConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\DatabricksTier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\IWorkspaceToolConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\PostgresConfiguration.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\PostgresTier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOrganization.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformOutputVariable.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformUser.cs" />
@@ -27,6 +28,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\TerraformTemplate.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceAppData.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceDefinition.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\VersionAwareWorkspaceTool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Enums\TerraformRole.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\ProjectNotFoundException.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Exceptions\UserNotFoundException.cs" />

@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace Datahub.Shared.Entities;
+namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
-public class DatabricksConfiguration
+public class DatabricksConfiguration : IWorkspaceToolConfiguration
 {
     public const string GENERAL_PURPOSE_TIER_CONFIG_JSON_KEY = "general_purpose_cluster";
     public const string MACHINE_LEARNING_TIER_CONFIG_JSON_KEY = TerraformVariables.MlCompute;

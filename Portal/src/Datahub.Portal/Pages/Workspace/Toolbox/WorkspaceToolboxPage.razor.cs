@@ -8,6 +8,7 @@ using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Layout;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Random = System.Random;

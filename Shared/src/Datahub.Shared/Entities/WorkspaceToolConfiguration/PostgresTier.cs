@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Datahub.Shared.Entities
+namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
     public class PostgresTier : ComputeTier
     {
