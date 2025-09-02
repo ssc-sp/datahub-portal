@@ -16,13 +16,13 @@
                 <MudDivider/>
             </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
-                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
+                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
                     <MudSelectItem T="string" Value="@Localizer["Light mode"]" />
                     <MudSelectItem T="string" Value="@Localizer["Dark mode"]" />
                 </MudSelect>
             </SettingsField>
             <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
-                <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
+                <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
                     <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
                     <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
                     <MudSelectItem Disabled T="string" Value="@("Klingon")">Klingon</MudSelectItem>
