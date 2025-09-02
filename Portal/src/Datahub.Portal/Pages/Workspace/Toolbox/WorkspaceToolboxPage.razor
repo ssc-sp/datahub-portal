@@ -20,6 +20,7 @@
 @inject IDialogService DialogService
 @inject IToolboxService ToolboxService
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
+@inject IWorkspaceVersionService WorkspaceVersionService
 
 @if (_initializing)
 {
@@ -203,7 +204,11 @@
                                             {
                                                 case TerraformStatus.Completed:
 
-                                                    var configurable = _configurableToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
+                                                    // TODO: implement generic version gating for all tools instead of hardcoding Databricks
+                                                    var configurable = _configurableToolList.Contains(tool) && 
+                                                        _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && 
+                                                        (tool != TerraformTemplate.AzureDatabricks || _workspaceVersion >= DatabricksConfiguration.MinimumConfigurableWorkspaceVersion) &&
+                                                        !(_disableActiveRequest || _disableOverBudget);
                                                     var deletable = !_permanentToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
 
                                                     <DHButton EndIcon="@SidebarIcons.Gear"
@@ -257,7 +262,7 @@
                             }
                         </MudStep>
                         <MudStep Title=@Localizer["Configure"]
-                                    Disabled="@(!_transactions.Any(IsConfigurable))">
+                                    Disabled="@(!_transactions.Any(IsConfigurableForCurrentWorkspace))">
                             <MudText Typo="Typo.h2" Class="mb-2">
                                 @Localizer["Configure the tools you have added to your workspace"]
                             </MudText>
@@ -265,7 +270,7 @@
                                 @Localizer["You can configure the tools you have added to your workspace here."]
                             </MudText>
                             <MudStack Spacing="4">
-                                @foreach (var transaction in _transactions.Where(IsConfigurable))
+                                @foreach (var transaction in _transactions.Where(IsConfigurableForCurrentWorkspace))
                                 {
                                     <MudPaper Elevation="0" Outlined Class="py-4 px-8"
                                                 Style=@ConfigurationFormStyle>
@@ -280,6 +285,10 @@
                                             {
                                                 case TerraformTemplate.AzurePostgres:
                                                     <PostgresConfigurationForm
+                                                        Configuration="@(transaction.UpdatedData!)"/>
+                                                    break;
+                                                case TerraformTemplate.AzureDatabricks:
+                                                    <DatabricksConfigurationForm
                                                         Configuration="@(transaction.UpdatedData!)"/>
                                                     break;
                                                 default:
@@ -361,9 +370,13 @@
                                             {
                                                 case ToolboxTransactionType.Add:
                                                 case ToolboxTransactionType.Update:
-                                                    <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
-                                                        @DisplayDiff(context.Diff())
-                                                    </MudText>
+                                                    // TODO: this is a bandaid fix; when general version-gating is implemented, this should be removed
+                                                    @if (IsConfigurableForCurrentWorkspace(context))
+                                                    {
+                                                        <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
+                                                            @DisplayDiff(context.Diff())
+                                                        </MudText>
+                                                    }
                                                     break;
                                                 case ToolboxTransactionType.Remove:
                                                     <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
@@ -621,6 +634,7 @@
     private PortalUser _viewedPortalUser;
     private List<ToolboxTransaction> _transactions;
     private DatahubProjectDBContext _context;
+    private System.Version _workspaceVersion;
 
     private (decimal Spent, decimal Budget, decimal Monthly) _workspaceCosts;
 
@@ -686,6 +700,35 @@
         .Build();
 
 
+    // TODO move this to a util class or similar
+    private System.Version ParseVersionTag(string versionTag)
+    {
+        var versionTagNumeric = versionTag?.TrimStart('v');
+        if (versionTagNumeric is not null && System.Version.TryParse(versionTagNumeric, out var version))
+        {
+            return version;
+        }
+        else
+        {
+            return new(0,0,0);
+        }
+    }
+
+    private async Task<System.Version> DetermineWorkspaceVersion(Datahub_Project workspace)
+    {
+        //TODO: workspaces shouldn't have "latest" version string, however in dev some still do.
+        // If we can guarantee that all workspaces have a proper version string, we can remove this check.
+        if (workspace.Version == TerraformWorkspace.LatestVersionString)
+        {
+            var latestVersionTag = await WorkspaceVersionService.GetLatestVersionAsync();
+            return ParseVersionTag(latestVersionTag);
+        }
+
+        return ParseVersionTag(workspace.Version);
+    }
+
+    private bool IsConfigurableForCurrentWorkspace(ToolboxTransaction transaction) => IsConfigurable(transaction, _workspaceVersion);
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -706,6 +749,8 @@
         _disableSubmissionDelays = DatahubPortalConfiguration.ToolboxConfig.DisableSubmissionDelays;
         _disableSubmissions = DatahubPortalConfiguration.ToolboxConfig.DisableSubmissions;
         // TODO: Update this piece of code once the metadata is filled in via GC Hosting
+
+        _workspaceVersion = await DetermineWorkspaceVersion(_workspace);
 
         PopulateCatalog();
         Log("Beginning transaction");

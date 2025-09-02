@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+﻿using AngleSharp.Dom;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
@@ -27,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +35,10 @@ using MudBlazor.Services;
 using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
+using System.Diagnostics;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using ResourceMessagingService = Datahub.Infrastructure.Services.ResourceMessagingService;
 
 namespace Datahub.SpecflowTests.Steps.Workspace;
@@ -76,6 +78,9 @@ public class WorkspaceToolboxSteps(
         JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/SkipLink.razor.js")
             .SetResult(module);
         module.SetupVoid("focusElement", Arg.Any<string>());
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
+
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
@@ -95,6 +100,7 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IDialogService>(dialogService);
         Services.AddSingleton(datahubPortalConfiguration);
         Services.AddStub<IDatahubAuditingService>();
+        Services.AddMudMarkdownServices();
         var requestLogger = new Logger<RequestManagementService>(new LoggerFactory());
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
@@ -107,6 +113,7 @@ public class WorkspaceToolboxSteps(
             resourceMessagingService,
             workspaceVersionService
         );
+        Services.AddSingleton<IWorkspaceVersionService>(workspaceVersionService);
         Services.AddSingleton<IRequestManagementService>(requestManagementService);
         Services.AddStub<IWebHostEnvironment>();
         Services.AddSingleton<IResourceMessagingService>(resourceMessagingService);
@@ -186,6 +193,15 @@ public class WorkspaceToolboxSteps(
         var dbContext = dbContextFactory.CreateDbContext();
         var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
         project.MetadataAdded = false;
+        dbContext.SaveChanges();
+    }
+
+    [Given(@"the workspace version is (.*)")]
+    public void GivenTheWorkspaceVersionIs(string version)
+    {
+        var dbContext = dbContextFactory.CreateDbContext();
+        var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+        project.Version = version;
         dbContext.SaveChanges();
     }
 
@@ -775,6 +791,20 @@ public class WorkspaceToolboxSteps(
         dbContext.SaveChanges();
     }
 
+    [Given("the (.*) has a json configuration (.*)")]
+    public void GivenTheHasAJsonConfiguration(string tool, string jsonFilename)
+    {
+        var jsonPath = Path.Combine("Features/Workspace/config", jsonFilename + ".json");
+        var jsonConfig = File.ReadAllText(jsonPath);
+        var dbContext = dbContextFactory.CreateDbContext();
+        var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
+        var resource = dbContext.Project_Resources2.First(p =>
+            p.ProjectId == project.Project_ID && p.ResourceType == TerraformTemplate.GetTerraformServiceType(tool));
+        var jsonObject = JsonSerializer.Deserialize<JsonObject>(jsonConfig);
+        resource.InputJsonContent = jsonObject!.ToJsonString();
+        dbContext.SaveChanges();
+    }
+
     [Then(@"the underlying Add transaction should have the correct (.*) if the tool is (.*)")]
     public void ThenTheUnderlyingAddTransactionShouldHaveTheCorrect(string configType, bool configurable)
     {
@@ -936,14 +966,55 @@ public class WorkspaceToolboxSteps(
     }
 
     [When(@"the user sets (.*) in the form to (.*)")]
-    public void WhenTheUserMakesChangesToTheInTheForm(string selectFieldId, string newValue)
+    public async Task WhenTheUserMakesChangesToTheInTheForm(string selectFieldId, string newValue)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var selectField = workspaceToolbox!.Find($"#{selectFieldId}");
-        selectField.Click();
-        workspaceToolbox!.Render();
-        var newValueItem = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([selectFieldId, newValue])}");
-        newValueItem.Click();
+
+        // First, try to set value directly for MudSelect<string> via ValueChanged (bypasses popover rendering)
+        var stringSelect = workspaceToolbox!.FindComponents<MudSelect<string>>()
+            .FirstOrDefault(c => c.Instance?.FieldId == selectFieldId || c.Markup.Contains($"id=\"{selectFieldId}\""));
+
+        if (stringSelect == null)
+            throw new ArgumentNullException(nameof(stringSelect));
+
+        await workspaceToolbox!.InvokeAsync(async () => await stringSelect.Instance.ValueChanged.InvokeAsync(newValue));
+        workspaceToolbox.Render();
+        scenarioContext["workspaceToolbox"] = workspaceToolbox;
+
+    }
+
+    private static void TryOpenMudSelectDropdown(IElement selectField, IRenderedComponent<CascadingAuthenticationState> root)
+    {
+        try
+        {
+            // focus then open with Space or ArrowDown
+            selectField.TriggerEvent("onfocus", new FocusEventArgs());
+            selectField.TriggerEvent("onkeydown", new KeyboardEventArgs { Key = " ", Code = "Space" });
+            root.Render();
+        }
+        catch
+        {
+            // ignore and try ArrowDown
+        }
+
+        try
+        {
+            selectField.TriggerEvent("onkeydown", new KeyboardEventArgs { Key = "ArrowDown", Code = "ArrowDown" });
+            root.Render();
+        }
+        catch
+        {
+            // ignore; menu may already be open
+        }
+    }
+
+    [When(@"the user toggles the (.*) checkbox")]
+    public async Task WhenTheUserTogglesTheCheckbox(string checkboxId)
+    {
+        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var checkbox = workspaceToolbox!.FindComponents<MudCheckBox<bool>>()
+            .FirstOrDefault(c => c.Instance.FieldId == checkboxId);
+        await workspaceToolbox!.InvokeAsync(async () => await checkbox!.Instance.ValueChanged.InvokeAsync(!checkbox.Instance.Value));
         workspaceToolbox!.Render();
         scenarioContext["workspaceToolbox"] = workspaceToolbox;
     }
@@ -954,6 +1025,21 @@ public class WorkspaceToolboxSteps(
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
         var selectField = workspaceToolbox!.Find($"#{selectFieldId}");
         selectField.Attributes["value"]?.Value.Should().Be(existingValue);
+    }
+
+    [Then(@"the (.*) checkbox should be (.*)")]
+    public void ThenTheCheckboxShouldBe(string checkboxId, bool isChecked)
+    {
+        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var checkbox = workspaceToolbox!.Find($"#{checkboxId}");
+        if (isChecked)
+        {
+            checkbox.Attributes["checked"].Should().NotBeNull();
+        }
+        else
+        {
+            checkbox.Attributes["checked"].Should().BeNull();
+        }
     }
 
     [Then(@"the underlying Configure transaction should show the correct (.*) and (.*) values for (.*)")]
@@ -980,6 +1066,12 @@ public class WorkspaceToolboxSteps(
             newValueStr.Should().Be(newValue);
         }
     }
+
+    private static string RenderNiceBooleanValue(bool value) => value ? "Yes" : "No";
+
+    [Then(@"the user should see review information for (.*) with boolean values (.*) and (.*)")]
+    public void ThenTheUserShouldSeeReviewInformationForBooleanWithTheAnd(string tool, bool existingValue, bool newValue) =>
+        ThenTheUserShouldSeeReviewInformationForWithTheAnd(tool, RenderNiceBooleanValue(existingValue), RenderNiceBooleanValue(newValue));
 
     [Then(@"the user should see review information for (.*) with the (.*) and (.*)")]
     public void ThenTheUserShouldSeeReviewInformationForWithTheAnd(string tool, string existingValue, string newValue)
@@ -1044,6 +1136,11 @@ public class WorkspaceToolboxSteps(
                     generatedDefinition.AppData.PostgresConfiguration.Should().NotBeNull();
                     generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().NotBeNull();
                     generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().Be(configVal);
+                    break;
+                case TerraformTemplate.AzureDatabricks:
+                    generatedDefinition.AppData.DatabricksConfiguration.Should().NotBeNull();
+                    generatedDefinition.AppData.DatabricksConfiguration.GeneralPurposeTierSku.Should().NotBeNull();
+                    generatedDefinition.AppData.DatabricksConfiguration.GeneralPurposeTierSku.Should().Be(configVal);
                     break;
             }
         }
@@ -1122,6 +1219,14 @@ public class WorkspaceToolboxSteps(
                     toolResource.InputJsonContent.Should().NotBeNull();
                     var inputJsonContent = toolResource.InputJsonContent.ToString();
                     inputJsonContent.Should().Contain(configValue);
+                    break;
+                case TerraformTemplate.AzureDatabricks:
+                    var databricksResource = resources.FirstOrDefault(r =>
+                        r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks));
+                    databricksResource.Should().NotBeNull();
+                    databricksResource.InputJsonContent.Should().NotBeNull();
+                    var databricksInputJsonContent = databricksResource.InputJsonContent.ToString();
+                    databricksInputJsonContent.Should().Contain(configValue);
                     break;
             }
         }

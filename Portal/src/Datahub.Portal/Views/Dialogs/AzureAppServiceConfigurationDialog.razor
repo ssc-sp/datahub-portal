@@ -53,7 +53,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] public MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] public IMudDialogInstance MudDialog { get; set; }
     [Parameter] public AppServiceConfiguration Configuration { get; set; }
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public Project_Resources2 Resource { get; set; }
