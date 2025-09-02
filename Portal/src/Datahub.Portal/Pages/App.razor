@@ -98,18 +98,6 @@
     </script>
 
     <HeadOutlet @rendermode="RenderMode.InteractiveServer" />
-    <style>
-        /* Prevent flash of unstyled content during theme loading */
-        body {
-            background-color: #f7fafc; /* Light theme background */
-            transition: background-color 0.2s ease-in-out;
-        }
-
-        /* Dark theme will override this when applied */
-        .mud-theme-dark body {
-            background-color: #27272F; /* Dark theme background */
-        }
-    </style>
 </head>
 
 <body>
