@@ -1,7 +1,10 @@
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
+@using Datahub.Application.Services
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
+@inject IWorkspaceCreationService _workspaceCreationService
 
 @if (_showCreate)
 {
@@ -29,9 +32,9 @@ else
         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px; width: 300px">
             <MudStack>
                 <MudText Typo="Typo.h3" Style="@_titleTextStyle">@Project.ProjectName</MudText>
-                @if (!string.IsNullOrWhiteSpace(Project.ProjectDescription))
+                @if (!string.IsNullOrWhiteSpace(_description))
                 {
-                    <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@Project.ProjectDescription</MudText>
+                    <MudText Typo="Typo.body2" Style="@_descriptionTextStyle">@_description</MudText>
                 }
             </MudStack>
             <MudStack Spacing="1">
@@ -63,6 +66,8 @@ else
 
     private bool _showCreate => OnCreateWorkspace.HasDelegate;
 
+    private string _description;
+
     private static string _descriptionTextStyle = new StyleBuilder()
         .AddStyle("overflow", "hidden")
         .AddStyle("-webkit-line-clamp", "2")
@@ -77,4 +82,17 @@ else
         .AddStyle("display", "-webkit-box")
         .Build();
 
+    protected override async Task OnParametersSetAsync()
+    {
+        _description = Project.ProjectDescription;
+
+        if (Project is not null && Project.ParentGCHostingBudgetId.HasValue)
+        {
+            var hostingDetails = await _workspaceCreationService.GetGCHostingWorkspaceDetailsAsync(Project.ParentGCHostingBudgetId.Value);
+            if (hostingDetails is not null && !string.IsNullOrWhiteSpace(hostingDetails.WorkspaceDescription))
+            {
+                _description = hostingDetails.WorkspaceDescription;
+            }
+        }
+    }
 }
