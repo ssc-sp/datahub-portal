@@ -1,5 +1,6 @@
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Public
+
 @inherits LayoutComponentBase
 
 @attribute [AllowAnonymous]
@@ -8,13 +9,20 @@
 
 <MudLayout>
     @Body
-    
+
     <div style="@_backgroundStyle"></div>
 </MudLayout>
 
 @code {
-    private readonly string _backgroundStyle = new StyleBuilder()
-                .AddStyle("background-image", "url('/img/home-hero.jpg')")
+    private string _imageUrl;
+    private string _backgroundStyle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _imageUrl = await GetBackgroundImage();
+
+        _backgroundStyle = new StyleBuilder()
+                .AddStyle("background-image", "url('" + _imageUrl + "')")
                 .AddStyle("background-size", "cover")
                 .AddStyle("background-position", "center")
                 .AddStyle("background-repeat", "no-repeat")
@@ -26,4 +34,27 @@
                 .AddStyle("z-index", "-100")
                 .AddStyle("filter", "blur(8px)")
                 .Build();
+    }
+
+    private async Task<string> GetBackgroundImage()
+    {
+        int month = DateTime.Now.Month;
+
+        if (month == 12 || month == 1 || month == 2)
+        {
+            return "/img/winter.jpg"; // Winter
+        }
+        else if (month >= 3 && month <= 5)
+        {
+            return "/img/spring.jpg"; // Spring
+        }
+        else if (month >= 6 && month <= 8)
+        {
+            return "/img/summer.jpg"; // Summer
+        }
+        else // September to November
+        {
+            return "/img/fall.jpg"; // Fall
+        }
+    }
 }
