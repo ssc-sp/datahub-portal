@@ -2,10 +2,10 @@
 
 #nullable disable
 
-namespace Datahub.Core.Migrations
+namespace Datahub.Core.Migrations.SqliteDatahub
 {
     /// <inheritdoc />
-    public partial class AddThemeToUserSettings : Migration
+    public partial class ThemeAttribute : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -13,7 +13,8 @@ namespace Datahub.Core.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Theme",
                 table: "UserSettings",
-                type: "nvarchar(128)",
+                type: "TEXT",
+                maxLength: 128,
                 nullable: true);
         }
 

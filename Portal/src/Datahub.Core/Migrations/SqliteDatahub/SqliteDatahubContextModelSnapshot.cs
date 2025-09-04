@@ -1583,6 +1583,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
 
+                    b.Property<string>("Theme")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
+
                     b.Property<string>("UserName")
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");

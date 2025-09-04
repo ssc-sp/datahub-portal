@@ -20,19 +20,19 @@
             <MudText Typo="Typo.h2">Edit Field Definition</MudText>
             <MudCard>
                 <MudCardContent>
-                    <MudForm Model="@_form" @ref="_formRef" OnValidSubmit="@HandleValidSubmit">
+                    <MudForm Model="@_form" @ref="_formRef" IsValidChanged="@HandleValidSubmit">
                         <MudTextField @bind-Value="_form.Field_Name_TXT" Label="@GetDataLabel(nameof(_form.Field_Name_TXT))" Required="true" />
                         <MudTextField @bind-Value="_form.Name_English_TXT" Label="@GetDataLabel(nameof(_form.Name_English_TXT))" Required="true" />
                         <MudTextField @bind-Value="_form.Name_French_TXT" Label="@GetDataLabel(nameof(_form.Name_French_TXT))" Required="true" />
                         <MudTextField @bind-Value="_form.English_DESC" Label="@GetDataLabel(nameof(_form.English_DESC))" />
                         <MudTextField @bind-Value="_form.French_DESC" Label="@GetDataLabel(nameof(_form.French_DESC))" />
-                        <MudCheckBox @bind-Checked="_form.Required_FLAG" Label="@GetDataLabel(nameof(_form.Required_FLAG))" T="bool" />
-                        <MudCheckBox @bind-Checked="_form.MultiSelect_FLAG" Label="@GetDataLabel(nameof(_form.MultiSelect_FLAG))" T="bool" />
+                        <MudCheckBox @bind-Value="_form.Required_FLAG" Label="@GetDataLabel(nameof(_form.Required_FLAG))" T="bool" />
+                        <MudCheckBox @bind-Value="_form.MultiSelect_FLAG" Label="@GetDataLabel(nameof(_form.MultiSelect_FLAG))" T="bool" />
                         <MudTextField @bind-Value="_form.Default_Value_TXT" Label="@GetDataLabel(nameof(_form.Default_Value_TXT))" />
                         <MudNumericField @bind-Value="_form.Sort_Order_NUM" Label="@GetDataLabel(nameof(_form.Sort_Order_NUM))" T="int" />
                         <MudTextField @bind-Value="_form.Choices_TXT" Label="@GetDataLabel(nameof(_form.Choices_TXT))" Placeholder="Enter choice list separated by | characters. (new definitions)" />
 
-                        <MudButton Type="submit" Color="Color.Primary">Submit</MudButton>
+                        <MudButton Color="Color.Primary">Submit</MudButton>
                         <MudButton OnClick="ClearForm" Color="Color.Secondary">Cancel</MudButton>
                     </MudForm>
                 </MudCardContent>

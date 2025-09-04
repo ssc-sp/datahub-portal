@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Elemental.Components;
+using MudBlazor.Forms;
 
 namespace Datahub.Core.Model.Projects;
 
@@ -11,20 +11,20 @@ public class Datahub_ProjectApiUser
 
     [Required]
     [StringLength(32)]
-    [AeLabel("Name")]
+    [MudForm("Name")]
     public string Client_Name_TXT { get; set; }
 
     [Required]
     [StringLength(10)]
-    [AeLabel("Project")]
+    [MudForm("Project")]
     public string Project_Acronym_CD { get; set; }
 
     [Required]
     [StringLength(128)]
-    [AeLabel("Email")]
+    [MudForm("Email")]
     public string Email_Contact_TXT { get; set; }
 
-    [AeLabel("Expiration")]
+    [MudForm("Expiration")]
     public DateTime? Expiration_DT { get; set; }
 
     public bool Enabled { get; set; }

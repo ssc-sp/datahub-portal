@@ -703,8 +703,8 @@
     // TODO move this to a util class or similar
     private System.Version ParseVersionTag(string versionTag)
     {
-        var versionTagNumeric = versionTag.TrimStart('v');
-        if (System.Version.TryParse(versionTagNumeric, out var version))
+        var versionTagNumeric = versionTag?.TrimStart('v');
+        if (versionTagNumeric is not null && System.Version.TryParse(versionTagNumeric, out var version))
         {
             return version;
         }

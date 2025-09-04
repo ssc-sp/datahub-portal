@@ -112,7 +112,7 @@ else
             @Localizer["View the health of the infrastructure that supports the workspaces."]
         </MudText>
             <MudTable T="InfrastructureHealthCheck" @ref="workspaceHealthTable"
-            ServerData="LoadWorkspaceChecks" Hover Dense Sortable="true">
+            ServerData="LoadWorkspaceChecks" Hover Dense>
             <HeaderContent>
                 <MudTh Style="width: 20%;">
                     <MudStack Row>
