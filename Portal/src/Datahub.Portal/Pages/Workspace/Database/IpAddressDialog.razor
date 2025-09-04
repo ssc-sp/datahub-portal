@@ -21,7 +21,7 @@
 </MudDialog>
 
 @code {
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] IDialogInstance MudDialog { get; set; }
     public string StartIp { get; set; }
     public string EndIp { get; set; }
     public string ErrorMessage { get; set; }
