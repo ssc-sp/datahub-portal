@@ -75,38 +75,38 @@
             <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["Start IP Address"]</MudTableSortLabel>
+        </MudTh>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.EndIPAddress))">@Localizer["End IP Address"]</MudTableSortLabel>
         </MudTh>
         <MudTh />
     </HeaderContent>
+
     <RowTemplate>
         <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
-        <MudTd DataLabel="@Localizer["IP Address (192.168.2.1)"]">
-            @if (context.EndIPAddress != null && !context.EndIPAddress.Equals(context.StartIPAddress))
-            {
-                @($"{context.StartIPAddress} - {context.EndIPAddress}")
-            }
-            else
-            {
-                @context.StartIPAddress
-            }
-        </MudTd>
+        <MudTd DataLabel="@Localizer["Start IP Address"]">@context.StartIPAddress</MudTd>
+        <MudTd DataLabel="@Localizer["End IP Address"]">@context.EndIPAddress</MudTd>
         <MudTd>
             <MudTooltip Text="@Localizer["Delete IP Address"]">
-                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])"
-                               OnClick="@(() => DeleteIpAddress(context, true))" />
+                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])" OnClick="@(() => DeleteIpAddress(context, true))" />
             </MudTooltip>
         </MudTd>
     </RowTemplate>
+
     <RowEditingTemplate>
         <MudTd DataLabel="@Localizer["Name"]">
             <MudTextField @bind-Value="@context.Name" Required />
         </MudTd>
-        <MudTd DataLabel="@Localizer["IP Address"]">
+        <MudTd DataLabel="@Localizer["Start IP Address"]">
             <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()" />
+        </MudTd>
+        <MudTd DataLabel="@Localizer["End IP Address"]">
+            <MudTextField @bind-Value="@context.EndIPAddress" Converter="@BuildConverter()" />
         </MudTd>
         <MudTd />
     </RowEditingTemplate>
+
     <EditButtonContent Context="button">
         <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
     </EditButtonContent>
