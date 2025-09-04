@@ -401,11 +401,6 @@ namespace Datahub.Infrastructure.Services.UserManagement
             return userSetting != null ? userSetting.Language : string.Empty;
         }
 
-        public async Task<bool> SetTheme(string theme)
-        {
-            return true;
-        }
-
         /// <summary>
         /// Checks if the user's selected language is French.
         /// </summary>

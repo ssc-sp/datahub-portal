@@ -13,7 +13,7 @@
     </DialogContent>
     <DialogActions>
         <MudContainer Style="display: flex">
-            <MudCheckBox @bind-Value="@_hideAllAlerts" T="bool" Style="margin-left: auto; margin-right: 20px" Size="Size.Medium" Label="@Localizer["Don't show alerts anymore"]" LabelPosition="LabelPosition.Start"/>
+            <MudCheckBox @bind-Value="@_hideAllAlerts" T="bool" Style="margin-left: auto; margin-right: 20px" Size="Size.Medium" Label="@Localizer["Don't show alerts anymore"]" LabelPlacement="Placement.Start" />
             <MudButton OnClick="Close" Color="Color.Primary" Variant="Variant.Filled">@Localizer["Close"]</MudButton>
         </MudContainer>
     </DialogActions>
@@ -23,7 +23,7 @@
 @code {
     // This is where the common look of a page alert dialog is defined.
     
-    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
 
     [Parameter] public string Title { get; set; }
 

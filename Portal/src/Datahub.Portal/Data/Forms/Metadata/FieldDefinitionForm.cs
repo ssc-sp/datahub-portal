@@ -1,4 +1,4 @@
-﻿using Elemental.Components;
+﻿using MudBlazor.Forms;
 using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Portal.Data.Forms.Metadata;
@@ -42,6 +42,6 @@ public class FieldDefinitionForm
     public int Sort_Order_NUM { get; set; }
 
     [AeFormCategory("Other", 30)]
-    [AeLabel(placeholder: "Enter choice list separated by | characters. (new definitions)")]
+    [MudForm(Placeholder= "Enter choice list separated by | characters. (new definitions)")]
     public string Choices_TXT { get; set; }
 }
