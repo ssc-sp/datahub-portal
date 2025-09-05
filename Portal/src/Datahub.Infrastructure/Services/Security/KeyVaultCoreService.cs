@@ -35,7 +35,9 @@ public class KeyVaultCoreService : IKeyVaultService
                 SetKeyVaultClient();
             }
 
-            var keyVaultName = _targets.Value.KeyVaultName;
+            var keyVaultName = !string.IsNullOrEmpty(_portalConfiguration.APITargets.KeyVaultName)
+                ? _portalConfiguration.APITargets.KeyVaultName
+                : Environment.GetEnvironmentVariable("APITargets__KeyVaultName");
             var keyValueKey = await _keyVaultClient.GetKeyAsync("https://" + keyVaultName + ".vault.azure.net", keyName);
             if (keyValueKey == null) throw new KeyNotFoundException($"Key {keyName} not found");
             return keyValueKey;
@@ -57,8 +59,10 @@ public class KeyVaultCoreService : IKeyVaultService
                 SetKeyVaultClient();
             }
 
-            var keyVaultName = _targets.Value.KeyVaultName;
-            var keyValueSecret = await _keyVaultClient.GetSecretAsync("https://" + keyVaultName + ".vault.azure.net/", secretName);
+            var keyVaultName = !string.IsNullOrEmpty(_portalConfiguration.APITargets.KeyVaultName)
+                ? _portalConfiguration.APITargets.KeyVaultName
+                : Environment.GetEnvironmentVariable("APITargets__KeyVaultName");
+            var keyValueSecret = await _keyVaultClient.GetSecretAsync("https://" + keyVaultName + ".vault.azure.net", secretName);
             return keyValueSecret.Value;
         }
         catch (Exception e)
