@@ -36,6 +36,9 @@ public class KeyVaultCoreService : IKeyVaultService
             }
 
             var keyVaultName = _targets.Value.KeyVaultName;
+            if (string.IsNullOrEmpty(keyVaultName))
+                throw new ArgumentNullException("APITargets__KeyVaultName", "KeyVaultName is not configured");
+            
             var keyValueKey = await _keyVaultClient.GetKeyAsync("https://" + keyVaultName + ".vault.azure.net", keyName);
             if (keyValueKey == null) throw new KeyNotFoundException($"Key {keyName} not found");
             return keyValueKey;
