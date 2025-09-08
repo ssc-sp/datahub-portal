@@ -57,7 +57,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string BugReportUsername = "Datahub Portal";
     }
 
-    public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    public class HealthCheckHelper(
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IProjectStorageConfigurationService projectStorageConfigurationService,
         IWorkspaceWebAppManagementService workspaceWebAppManagementService,
         IConfiguration configuration,
@@ -66,12 +67,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
-        IHttpContextAccessor httpContextAccessor,
-        IGCNotifyService gcNotifyService)
+        IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
+        IGCNotifyService? gcNotifyService = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-
+        private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
+        private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
 
         private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
         private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
@@ -979,7 +980,7 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         private string GetCorrelationId()
         {
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = _httpContextAccessor?.HttpContext;
             if (httpContext != null && httpContext.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
             {
                 return correlationId.ToString();
