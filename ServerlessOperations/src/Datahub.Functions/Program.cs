@@ -1,49 +1,46 @@
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Datahub.Application.Services;
+using Datahub.Application.Services.Cost;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Projects;
+using Datahub.Application.Services.ResourceGroups;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.WebApp;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions;
+using Datahub.Functions.Providers;
+using Datahub.Functions.Services;
+using Datahub.Functions.Validators;
+using Datahub.Infrastructure;
+using Datahub.Infrastructure.Offline.Security;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Cost;
+using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Infrastructure.Services.Projects;
+using Datahub.Infrastructure.Services.ResourceGroups;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Shared.Configuration;
+using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Datahub.Application.Services;
-using Datahub.Application.Services.Cost;
-using Datahub.Application.Services.Projects;
-using Datahub.Application.Services.ResourceGroups;
-using Datahub.Application.Services.Security;
-using Datahub.Application.Services.Storage;
-using Datahub.Functions.Services;
-using Datahub.Functions.Providers;
-using Datahub.Functions.Validators;
-using Datahub.Infrastructure.Services.Cost;
-using Datahub.Infrastructure.Services.Security;
-using Datahub.Infrastructure.Services.Storage;
-using Microsoft.Extensions.Azure;
-using Datahub.Core.Model.Context;
-using Datahub.Infrastructure;
-using Datahub.Infrastructure.Services.Helpers;
-using Datahub.Infrastructure.Services.ResourceGroups;
-using Datahub.Shared.Configuration;
-using Datahub.Application.Services.WebApp;
-using Datahub.Infrastructure.Services.WebApp;
-using Datahub.Infrastructure.Offline.Security;
-using Datahub.Application.Services.Notification;
-using Datahub.Infrastructure.Services.Notification;
 
 // Needed so AddUserSecrets<Program>() still works with top-level statements
 
-var builder = Host.CreateApplicationBuilder(args);
-
-// Functions worker (replaces .ConfigureFunctionsWorkerDefaults())
-builder.Services.AddFunctionsWorkerDefaults();
-
+var builder = FunctionsApplication.CreateBuilder(args);
 // Configuration (order matters: base -> local -> env/user secrets)
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
