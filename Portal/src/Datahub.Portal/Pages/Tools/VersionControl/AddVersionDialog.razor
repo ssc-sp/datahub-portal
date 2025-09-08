@@ -10,19 +10,7 @@
                       ErrorText="@_errorText"
                       Disabled="@_isEditMode"
                       Class="no-margin-textarea" />
-        
-        @if (_isEditMode)
-        {
-            <MudText Typo="@Typo.body2" Class="mb-3 text-muted">
-                @Localizer["Created on"] @EditingVersion.CreatedDate.ToString("yyyy-MM-dd") 
-                @if (!string.IsNullOrEmpty(EditingVersion.CreatedBy))
-                {
-                    @Localizer["by"] @EditingVersion.CreatedBy
-                }
-                - @Localizer["Status"]: @(EditingVersion.IsActive ? Localizer["Active"] : Localizer["Inactive"])
-            </MudText>
-        }
-        
+                
         <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide a description of the update. This description will be used as to indicate what is new in the updated version."]*</MudText>
         <MudTextField T="string"
                       @bind-Value="@_versionDescription"

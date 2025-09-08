@@ -28,5 +28,14 @@
   "English Description": "Description en anglais",
   "Please provide an English description.": "Veuillez fournir une description en anglais.",
   "French Description": "Description en français",
-  "Please provide a French description.": "Veuillez fournir une description en français."    
+  "Please provide a French description.": "Veuillez fournir une description en français.",
+
+  "Please provide a description of the update. This description will be used as to indicate what is new in the updated version.*": "Veuillez fournir une description de la mise à jour. Cette description sera utilisée pour indiquer les nouveautés de la version mise à jour.*",  
+  "Create Announcement": "Créer une annonce",  
+  "Please provide an English description": "Veuillez fournir une description en anglais.",  
+  "Announcement created for version: {0}": "Annonce créée pour la version : {0}",
+  "Failed to create announcement": "Échec de la création de l'annonce",
+  "Edit Version": "Modifier la version",
+  "Version updated successfully": "Version mise à jour avec succès",
+  "Error updating version, please try again.": "Erreur lors de la mise à jour de la version, veuillez réessayer."
 }
