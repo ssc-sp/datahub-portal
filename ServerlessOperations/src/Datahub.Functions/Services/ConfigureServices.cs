@@ -2,6 +2,7 @@ using Datahub.Application.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Datahub.Core.Configuration; // added
 
 namespace Datahub.Functions.Services;
 
@@ -66,6 +67,7 @@ public static class ConfigureServices
         }
 
         services.AddSingleton(datahubConfiguration);
+        
         services.AddMassTransitForAzureFunctions(x =>
         {
             x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
@@ -74,6 +76,11 @@ public static class ConfigureServices
         var apiTargets = new APITargets();
         configuration.Bind("APITargets", apiTargets);
         services.AddSingleton(apiTargets);
+
+        // Diagnostic dump (redacted) using shared Core utility
+        ConfigurationHelper.DumpRedactedToConsole("Datahub configuration", datahubConfiguration);
+        ConfigurationHelper.DumpRedactedToConsole("API targets", apiTargets);
+
         return services;
     }
 }

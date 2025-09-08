@@ -30,15 +30,8 @@ public class KeyVaultCoreService : IKeyVaultService
     {
         try
         {
-            if (_keyVaultClient == null)
-            {
-                SetKeyVaultClient();
-            }
+            string keyVaultName = GetKeyVaultName();
 
-            var keyVaultName = _targets.Value.KeyVaultName;
-            if (string.IsNullOrEmpty(keyVaultName))
-                throw new ArgumentNullException("APITargets__KeyVaultName", "KeyVaultName is not configured");
-            
             var keyValueKey = await _keyVaultClient.GetKeyAsync("https://" + keyVaultName + ".vault.azure.net", keyName);
             if (keyValueKey == null) throw new KeyNotFoundException($"Key {keyName} not found");
             return keyValueKey;
@@ -50,24 +43,31 @@ public class KeyVaultCoreService : IKeyVaultService
             throw;
         }
     }
- 
+
+    private string GetKeyVaultName()
+    {
+        if (_keyVaultClient == null)
+        {
+            SetKeyVaultClient();
+        }
+
+        var keyVaultName = _targets.Value.KeyVaultName;
+        if (string.IsNullOrEmpty(keyVaultName))
+            throw new ArgumentNullException("APITargets__KeyVaultName", "KeyVaultName is not configured");
+        return keyVaultName;
+    }
+
     public async Task<string> GetSecret(string secretName)
     {
         try
         {
-            if (_keyVaultClient == null)
-            {
-                SetKeyVaultClient();
-            }
+            string keyVaultName = GetKeyVaultName();
 
-            var keyVaultName = _targets.Value.KeyVaultName;
             var keyValueSecret = await _keyVaultClient.GetSecretAsync("https://" + keyVaultName + ".vault.azure.net/", secretName);
             return keyValueSecret.Value;
         }
         catch (Exception e)
         {
-            _logger.LogError($"Could not retrieve secret: {secretName}");
-            _logger.LogError($"The following error occured: {e.Message}");
             _logger.LogError(e, $"Could not retrieve secret: {secretName}");
             throw;
         }
