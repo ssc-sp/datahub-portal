@@ -49,9 +49,7 @@ var host = new HostBuilder()
     })
     .ConfigureServices((hostContext, services) =>
     {
-        var config = hostContext.Configuration;
-
-        hostContext.HostingEnvironment.IsDevelopment();
+        var config = hostContext.Configuration;        
         
         var connectionString = config["datahub_mssql_project"];
         if (connectionString is not null)
