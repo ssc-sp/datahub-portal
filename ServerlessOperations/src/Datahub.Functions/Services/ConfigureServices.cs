@@ -70,7 +70,10 @@ public static class ConfigureServices
         {
             x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
         }, DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
-
+        // Bind APITargets section
+        var apiTargets = new APITargets();
+        configuration.Bind("APITargets", apiTargets);
+        services.AddSingleton(apiTargets);
         return services;
     }
 }
