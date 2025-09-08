@@ -1,0 +1,46 @@
+@using Datahub.Core.Components.AuthViews
+@using Datahub.Core.Model.Projects
+
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated" ProjectAcronym="@ProjectAcronym">
+    <MudText Class="sr-only" Typo="Typo.h2">
+        @Localizer["Workspace version information"]
+    </MudText>
+    <MudStack>
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+            <MudText Typo="Typo.h3">@Localizer["Workspace Version"]</MudText>
+        </MudStack>                
+            <MudStack>
+                <MudText Typo="Typo.body1">
+                    <strong>@Localizer["Current Version:"]</strong> @_currentVersionUIText
+                </MudText>
+                <MudText Typo="Typo.body1">
+                    @_updateRequired
+                </MudText>
+            </MudStack>        
+    </MudStack>
+</DatahubAuthView>
+
+@code {
+
+    [Parameter] public string ProjectAcronym { get; set; }
+    [Parameter] public string CurrentVersion { get; set; }
+    [Parameter] public DateTime? LastUpdated { get; set; }
+    [Parameter] public string LatestVersion { get; set; }
+
+    private string _currentVersion => CurrentVersion ?? "Unknown";
+    private DateTime? _lastUpdated => LastUpdated;
+    private string _dateUIText;
+    private string _currentVersionUIText;
+    private string _updateRequired;
+
+    protected override async Task OnInitializedAsync()
+    {            
+        _dateUIText = LastUpdated is null ? string.Empty : $"(updated on {LastUpdated?.ToString("yyyy-MM-dd")})";
+        _currentVersionUIText = $"{(_currentVersion ?? "N/A")}";
+        if(LatestVersion != CurrentVersion)
+        {
+            _updateRequired += $"Workspace Version {LatestVersion} is available. Your workspace will be updated shortly";
+        }
+    }
+
+}
