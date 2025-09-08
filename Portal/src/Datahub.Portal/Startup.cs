@@ -187,6 +187,12 @@ public class Startup
         services.Configure<APITarget>(Configuration.GetSection("APITargets"));
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
+
+        // Diagnostic dump (redacted) using shared Core utility
+        ConfigurationHelper.DumpRedactedToConsole("Data Projects Configuration", Configuration.GetSection("DataProjectsConfiguration"));
+        ConfigurationHelper.DumpRedactedToConsole("API targets", Configuration.GetSection("APITargets"));
+        ConfigurationHelper.DumpRedactedToConsole("Application Insights", Configuration.GetSection("ApplicationInsights"));
+
         services.AddScoped<IPortalVersionService, PortalVersionService>();
 
         services.AddScoped<CatalogImportService>();
