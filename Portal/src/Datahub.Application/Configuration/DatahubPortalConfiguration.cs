@@ -16,13 +16,8 @@ public class DatahubPortalConfiguration
     public string ProjectUrlSegment { get; set; } = "w";
     public string ProfileUrlSegment { get; set; } = "profile";
 
-    public ConnectionStrings ConnectionStrings { get; set; } = new();
     public AzureAd AzureAd { get; set; } = new();
-    public AdoServiceUser AdoServiceUser { get; set; } = new();
     public AdoOrg AdoOrg { get; set; } = new();
-    public Graph Graph { get; set; } = new();
-    public APITargets APITargets { get; set; } = new();
-    public ApplicationInsights ApplicationInsights { get; set; } = new();
     public KeyVault KeyVault { get; set; } = new();
     public Hosting Hosting { get; set; } = new();
     public EmailNotification EmailNotification { get; set; } = new();
