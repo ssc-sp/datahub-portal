@@ -1,169 +1,274 @@
-﻿using System.Text;
+﻿using Amazon.Runtime.Internal.Util;
 using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
+using Microsoft.Extensions.Logging;
+using System.Text;
+using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services.Notification;
 
 public class GCNotifyService : IGCNotifyService
 {
-    private IKeyVaultService _keyVaultService;
-    private string _mappingsJson;
+    private readonly IKeyVaultService _keyVaultService;
+    private readonly ILogger<GCNotifyService> _logger;
+    private readonly string _mappingsJson;
 
-    public GCNotifyService(IKeyVaultService keyVaultService, DatahubPortalConfiguration portalConfiguration)
+    public GCNotifyService(
+        IKeyVaultService keyVaultService,
+        ILoggerFactory loggerFactory,
+        DatahubPortalConfiguration portalConfiguration)
     {
         _keyVaultService = keyVaultService ?? throw new ArgumentNullException(nameof(keyVaultService));
+        _logger = loggerFactory.CreateLogger<GCNotifyService>();
 
-        if (portalConfiguration?.Media?.StorageConnectionString is null) throw new UnauthorizedAccessException("No token available");
+        if (portalConfiguration?.Media?.StorageConnectionString is null)
+        {
+            _logger.LogError("Initialization failed: Media.StorageConnectionString is null (no token available).");
+            throw new UnauthorizedAccessException("No token available");
+        }
 
+        _logger.LogInformation("Initializing GCNotifyService and loading template mappings from blob storage.");
         _mappingsJson = GetTemplateMappings(portalConfiguration);
+        _logger.LogInformation("GCNotifyService initialized successfully. Templates loaded: {TemplateCount}", SafeCountMappings(_mappingsJson));
     }
 
     public string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration)
     {
+        _logger.LogDebug("Retrieving GC Notify template mappings from blob storage.");
         var blobClient = new BlobServiceClient(portalConfiguration.Media.StorageConnectionString)
             .GetBlobContainerClient("docs")
             .GetBlobClient("gcnotify-mappings.json");
 
-        if (blobClient.Exists())
+        try
         {
-            var response = blobClient.DownloadContent();
-            return response.Value.Content.ToString();
+            if (blobClient.Exists())
+            {
+                var response = blobClient.DownloadContent();
+                var json = response.Value.Content.ToString();
+                _logger.LogInformation("Template mappings blob found. Length={Length} chars.", json.Length);
+                return json;
+            }
+
+            _logger.LogWarning("Template mappings blob not found. Falling back to empty mappings.");
+            return "{}";
         }
-        return "{}"; // Return empty JSON if the blob does not exist
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to retrieve template mappings. Returning empty mappings.");
+            return "{}";
+        }
     }
 
     public async Task SendNotification(string postDataJson)
     {
-        string endpoint = "https://api.notification.canada.ca/v2/notifications/email";
-        string apikey = await _keyVaultService.GetSecret("gc-notify-api-key");
+        _logger.LogDebug("Preparing to send GC Notify request. Payload length={Length}", postDataJson?.Length);
 
-        using (HttpClient client = new HttpClient())
+        const string endpoint = "https://api.notification.canada.ca/v2/notifications/email";
+
+        try
         {
+            var apikey = await _keyVaultService.GetSecret("gc-notify-api-key");
+            if (string.IsNullOrWhiteSpace(apikey))
+            {
+                _logger.LogError("GC Notify API key is null or empty.");
+                throw new InvalidOperationException("API key not available.");
+            }
+
+            using var client = new HttpClient();
             client.DefaultRequestHeaders.Add("Authorization", $"ApiKey-v1 {apikey}");
 
-            var content = new StringContent(postDataJson, Encoding.UTF8, "application/json");
+            using var content = new StringContent(postDataJson, Encoding.UTF8, "application/json");
+            _logger.LogInformation("Sending GC Notify request to {Endpoint}", endpoint);
 
-            HttpResponseMessage response = await client.PostAsync(endpoint, content);
+            var response = await client.PostAsync(endpoint, content);
 
             if (!response.IsSuccessStatusCode)
             {
                 string errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("GC Notify request failed. Status={StatusCode}, Body={Error}", response.StatusCode, Truncate(errorContent, 2000));
                 throw new Exception($"Failed to send notification: {response.StatusCode} - {errorContent}");
             }
+
+            _logger.LogInformation("GC Notify request succeeded. Status={StatusCode}", response.StatusCode);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unhandled exception while sending GC Notify notification.");
+            throw;
         }
     }
 
     public async Task SendAccountCreatedNotification(string email)
     {
+        using var _ = _logger.BeginScope("AccountCreatedNotification {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing account created notification.");
+
+        var templateId = GetTemplateId("user-invited", _mappingsJson);
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("user-invited", _mappingsJson)
+            template_id = templateId
         };
 
-        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
-
+        _logger.LogDebug("Dispatching account created notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
 
     public async Task SendAccountDeletionNoticeNotification(string email, string daysSince, string daysUntil)
     {
+        using var _ = _logger.BeginScope("AccountDeletionNotice {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing account deletion notice. daysSince={DaysSince}, daysUntil={DaysUntil}", daysSince, daysUntil);
+
+        var templateId = GetTemplateId("user-delete-notice", _mappingsJson);
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("user-delete-notice", _mappingsJson),
-            personalisation = new
-            {
-                daysSince = daysSince,
-                daysUntil = daysUntil
-            }
+            template_id = templateId,
+            personalisation = new { daysSince, daysUntil }
         };
 
-        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
-
+        _logger.LogDebug("Dispatching account deletion notice with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
 
     public async Task SendAccountLockingNoticeNotification(string email, string daysSince, string daysUntil)
     {
+        using var _ = _logger.BeginScope("AccountLockingNotice {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing account locking notice. daysSince={DaysSince}, daysUntil={DaysUntil}", daysSince, daysUntil);
+
+        var templateId = GetTemplateId("user-lock-notice", _mappingsJson);
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("user-lock-notice", _mappingsJson),
-            personalisation = new
-            {
-                daysSince = daysSince,
-                daysUntil = daysUntil
-            }
+            template_id = templateId,
+            personalisation = new { daysSince, daysUntil }
         };
 
-        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
-
+        _logger.LogDebug("Dispatching account locking notice with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
 
     public async Task SendWorkspaceCostNotification(string email, string perc, string acro)
     {
+        using var _ = _logger.BeginScope("WorkspaceCostNotification {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing workspace cost notification. perc={Perc}, acro={Acro}", perc, acro);
+
+        var templateId = GetTemplateId("cost-alert", _mappingsJson);
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("cost-alert", _mappingsJson),
-            personalisation = new
-            {
-                perc = perc,
-                acro = acro
-            }
+            template_id = templateId,
+            personalisation = new { perc, acro }
         };
 
-        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
-
+        _logger.LogDebug("Dispatching workspace cost notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
 
     public async Task SendDataHubErrorNotification(string errorMessage, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca")
     {
+        using var _ = _logger.BeginScope("DataHubErrorNotification {Email}", MaskEmail(email));
+        _logger.LogWarning("Composing DataHub error notification. ErrorMessageHash={Hash}", errorMessage?.GetHashCode());
+
+        var templateId = GetTemplateId("error", _mappingsJson);
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("error", _mappingsJson),
-            personalisation = new
-            {
-                errorMessage = errorMessage
-            }
+            template_id = templateId,
+            personalisation = new { errorMessage }
         };
 
-        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
+        _logger.LogDebug("Dispatching error notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
 
     public async Task SendDatahubResourceDeletedNotification(string email, string resource, string resource_fr, string acro)
     {
+        using var _ = _logger.BeginScope("ResourceDeletedNotification {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing resource deleted notification. resource={Resource} acro={Acro}", resource, acro);
+
+        var templateId = GetTemplateId("resource-deleted", _mappingsJson);
         var postData = new
         {
             email_address = email,
-            template_id = GetTemplateId("resource-deleted", _mappingsJson),
-            personalisation = new
-            {
-                resource = resource,
-                resource_fr = resource_fr,
-                acro = acro
-            }
+            template_id = templateId,
+            personalisation = new { resource, resource_fr, acro }
         };
 
-        string postDataJson = System.Text.Json.JsonSerializer.Serialize(postData);
-
+        _logger.LogDebug("Dispatching resource deleted notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
 
     public string GetTemplateId(string templateName, string mappingsJson)
     {
-        var mappings = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(mappingsJson);
-        if (mappings != null && mappings.TryGetValue(templateName, out var templateId))
+        _logger.LogDebug("Resolving template id for templateName={TemplateName}", templateName);
+
+        try
         {
-            return templateId;
+            var mappings = JsonSerializer.Deserialize<Dictionary<string, string>>(mappingsJson);
+            if (mappings != null && mappings.TryGetValue(templateName, out var templateId))
+            {
+                _logger.LogInformation("Template resolved. templateName={TemplateName} templateId={TemplateId}", templateName, templateId);
+                return templateId;
+            }
+
+            _logger.LogError("Template not found in mappings. templateName={TemplateName}", templateName);
+            throw new KeyNotFoundException($"Template '{templateName}' not found in mappings.");
         }
-        throw new KeyNotFoundException($"Template '{templateName}' not found in mappings.");
+        catch (JsonException ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize template mappings JSON.");
+            throw;
+        }
     }
+
+    public async Task<bool> CheckHealthAsync()
+    {
+        _logger.LogInformation("Performing GC Notify health check using simulate-delivered address.");
+        try
+        {
+            //https://documentation.notification.canada.ca/en/testing.html#smoke-testing
+            // This will send a notification to one of the test emails
+            await SendAccountCreatedNotification("simulate-delivered@notification.canada.ca");
+            _logger.LogInformation("Health check succeeded.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "GC Notify health check failed.");
+            return false;
+        }
+    }
+
+    private static string MaskEmail(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email)) return "<null>";
+        var at = email.IndexOf('@');
+        if (at <= 1) return "***" + email[(at >= 0 ? at : email.Length)..];
+        return email[0] + "***" + email[(at - 1)..];
+    }
+
+    private static int SafeCountMappings(string json)
+    {
+        try
+        {
+            var dict = JsonSerializer.Deserialize<Dictionary<string, string>>(json);
+            return dict?.Count ?? 0;
+        }
+        catch
+        {
+            return 0;
+        }
+    }
+
+    private static string Truncate(string value, int max) =>
+        string.IsNullOrEmpty(value) ? value : (value.Length <= max ? value : value.Substring(0, max) + "...(truncated)");
 }

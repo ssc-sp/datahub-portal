@@ -37,22 +37,19 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
-
-// Needed so AddUserSecrets<Program>() still works with top-level statements
+using Microsoft.Extensions.Caching.Memory; // ADDED
 
 var builder = FunctionsApplication.CreateBuilder(args);
-// Configuration (order matters: base -> local -> env/user secrets)
+
 builder.Configuration
     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
     .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
     .AddUserSecrets<Program>(optional: true)
-    .AddEnvironmentVariables(); // (local.settings.json is also mapped to env vars by Core Tools)
+    .AddEnvironmentVariables();
 
-// Access common objects
 var config = builder.Configuration;
 var env = builder.Environment;
 
-// DbContext(s)
 var connectionString = config["datahub_mssql_project"];
 if (!string.IsNullOrWhiteSpace(connectionString))
 {
@@ -62,7 +59,6 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         options.UseSqlServer(connectionString));
 }
 
-// Resilient HttpClient for Azure Management
 builder.Services.AddHttpClient(AzureManagementService.ClientName)
     .AddPolicyHandler(
         Policy<HttpResponseMessage>
@@ -71,14 +67,12 @@ builder.Services.AddHttpClient(AzureManagementService.ClientName)
             .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5))
     );
 
-// DevOps Config (temporary approach kept)
 var devopsConfig = config.GetSection("AzureDevOpsConfiguration").Get<AzureDevOpsConfiguration>();
 if (devopsConfig is not null)
 {
     builder.Services.AddSingleton(devopsConfig);
 }
 
-// Service registrations (mirrors original)
 builder.Services.AddSingleton<AzureConfig>();
 builder.Services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
 builder.Services.AddSingleton<AzureManagementService>();
@@ -92,7 +86,7 @@ builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
 builder.Services.AddScoped<ProjectUsageService>();
-builder.Services.AddScoped<QueuePongService>();
+builder.Services.AddScoped<IQueuePongService, QueuePongService>();
 builder.Services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
 builder.Services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
 builder.Services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
@@ -103,9 +97,10 @@ builder.Services.AddScoped<IDateProvider, DateProvider>();
 builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
-
-// Satisfy dependency (offline path)
 builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
+
+// in-memory cache for health result
+builder.Services.AddMemoryCache();
 
 var host = builder.Build();
 await host.RunAsync();
