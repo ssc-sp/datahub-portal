@@ -2,7 +2,8 @@ using Datahub.Application.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Datahub.Core.Configuration; // added
+using Datahub.Core.Configuration;
+using Datahub.Core.Data; // added
 
 namespace Datahub.Functions.Services;
 
@@ -15,14 +16,6 @@ public static class ConfigureServices
     private const string DEVOPS_CLIENT_SECRET_KEY = "AzureDevOpsConfiguration:ClientSecret";
     private const string DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY = "DatahubServiceBus:ConnectionString";
 
-
-    /// <summary>
-    /// Adds Datahub configuration from Azure function format to the service collections.
-    /// </summary>
-    /// <param name="services">The <see cref="IServiceCollection"/> to add the configuration to.</param>
-    /// <param name="configuration">The <see cref="IConfiguration"/> used for binding the configuration.</param>
-    /// <returns>The modified <see cref="IServiceCollection"/>.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when a required configuration value is null or empty.</exception>
     public static IServiceCollection AddDatahubConfigurationFromFunctionFormat(this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -72,14 +65,22 @@ public static class ConfigureServices
         {
             x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
         }, DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
-        // Bind APITargets section
-        var apiTargets = new APITargets();
-        configuration.Bind("APITargets", apiTargets);
-        services.AddSingleton(apiTargets);
 
-        // Diagnostic dump (redacted) using shared Core utility
+        // APITargets via Options pattern (replaces manual singleton binding)
+        services
+            .AddOptions<APITargets>()
+            .Bind(configuration.GetSection(nameof(APITargets)))
+            .Validate(o => !string.IsNullOrWhiteSpace(o.KeyVaultName), "KeyVaultName is required")
+            .ValidateOnStart();
+
+        // Diagnostic dump (redacted)
         ConfigurationHelper.DumpRedactedToConsole("Datahub configuration", datahubConfiguration);
-        ConfigurationHelper.DumpRedactedToConsole("API targets", apiTargets);
+
+        // Dump bound APITargets once (resolve from provider after options configured)
+        services.PostConfigure<APITargets>(apiTargets =>
+        {
+            ConfigurationHelper.DumpRedactedToConsole("API targets", apiTargets);
+        });
 
         return services;
     }

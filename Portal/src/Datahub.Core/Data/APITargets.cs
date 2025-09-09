@@ -1,6 +1,6 @@
 ﻿namespace Datahub.Core.Data;
 
-public class APITarget
+public class APITargets
 {
     public string SearchServiceName { get; set; }
     public string StorageAccountName { get; set; }
