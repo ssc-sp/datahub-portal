@@ -1,107 +1,111 @@
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Datahub.Application.Services;
+using Datahub.Application.Services.Cost;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Projects;
+using Datahub.Application.Services.ResourceGroups;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.WebApp;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Functions;
+using Datahub.Functions.Providers;
+using Datahub.Functions.Services;
+using Datahub.Functions.Validators;
+using Datahub.Infrastructure;
+using Datahub.Infrastructure.Offline.Security;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Cost;
+using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Infrastructure.Services.Projects;
+using Datahub.Infrastructure.Services.ResourceGroups;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Shared.Configuration;
+using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Datahub.Application.Services;
-using Datahub.Application.Services.Cost;
-using Datahub.Application.Services.Projects;
-using Datahub.Application.Services.ResourceGroups;
-using Datahub.Application.Services.Security;
-using Datahub.Application.Services.Storage;
-using Datahub.Functions.Services;
-using Datahub.Functions.Providers;
-using Datahub.Functions.Validators;
-using Datahub.Infrastructure.Services.Cost;
-using Datahub.Infrastructure.Services.Security;
-using Datahub.Infrastructure.Services.Storage;
-using Microsoft.Extensions.Azure;
-using Datahub.Core.Model.Context;
-using Datahub.Infrastructure;
-using Datahub.Infrastructure.Services.Helpers;
-using Datahub.Infrastructure.Services.ResourceGroups;
-using Datahub.Shared.Configuration;
-using Datahub.Application.Services.WebApp;
-using Datahub.Infrastructure.Services.WebApp;
-using Datahub.Infrastructure.Offline.Security;
-using Datahub.Application.Services.Notification;
-using Datahub.Infrastructure.Services.Notification;
 
+// Needed so AddUserSecrets<Program>() still works with top-level statements
 
-var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults()
-    .ConfigureAppConfiguration(builder =>
-    {
-        builder.AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-            .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
-            .AddUserSecrets<Program>()
-            .Build();
-    })
-    .ConfigureServices((hostContext, services) =>
-    {
-        var config = hostContext.Configuration;
+var builder = FunctionsApplication.CreateBuilder(args);
+// Configuration (order matters: base -> local -> env/user secrets)
+builder.Configuration
+    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
+    .AddUserSecrets<Program>(optional: true)
+    .AddEnvironmentVariables(); // (local.settings.json is also mapped to env vars by Core Tools)
 
-        hostContext.HostingEnvironment.IsDevelopment();
-        
-        var connectionString = config["datahub_mssql_project"];
-        if (connectionString is not null)
-        {
-            services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
-                options.UseSqlServer(connectionString));
-            services.AddDbContextPool<DatahubProjectDBContext>(options => options.UseSqlServer(connectionString));
-        }
+// Access common objects
+var config = builder.Configuration;
+var env = builder.Environment;
 
-        services.AddHttpClient(AzureManagementService.ClientName).AddPolicyHandler(
-            Policy<HttpResponseMessage>
-                .Handle<HttpRequestException>()
-                .OrResult(x => x.StatusCode == HttpStatusCode.TooManyRequests)
-                .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5)));
+// DbContext(s)
+var connectionString = config["datahub_mssql_project"];
+if (!string.IsNullOrWhiteSpace(connectionString))
+{
+    builder.Services.AddPooledDbContextFactory<DatahubProjectDBContext>(options =>
+        options.UseSqlServer(connectionString));
+    builder.Services.AddDbContextPool<DatahubProjectDBContext>(options =>
+        options.UseSqlServer(connectionString));
+}
 
-        // TODO: implement this in a better way (unified between function and portal apps)
-        var devopsConfig = config?.GetSection("AzureDevOpsConfiguration")?.Get<AzureDevOpsConfiguration>();
-        if (devopsConfig != null)
-        {
-            services.AddSingleton(devopsConfig);
-        }
+// Resilient HttpClient for Azure Management
+builder.Services.AddHttpClient(AzureManagementService.ClientName)
+    .AddPolicyHandler(
+        Policy<HttpResponseMessage>
+            .Handle<HttpRequestException>()
+            .OrResult(r => r.StatusCode == HttpStatusCode.TooManyRequests)
+            .WaitAndRetryAsync(Backoff.DecorrelatedJitterBackoffV2(TimeSpan.FromSeconds(2), 5))
+    );
 
-        services.AddSingleton<AzureConfig>();
-        services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
-        services.AddSingleton<AzureManagementService>();
-        services.AddAzureResourceManager(config);
-        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
-        services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
-        services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
-        services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
-        services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
-        services.AddSingleton<IEmailService, EmailService>();
-        services.AddScoped<IGCNotifyService, GCNotifyService>();
-        services.AddSingleton<IAlertRecordService, AlertRecordService>();
-        services.AddScoped<ProjectUsageService>();
-        services.AddScoped<QueuePongService>();
-        services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
-        services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
-        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
-        services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
-        services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
-        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
-        services.AddScoped<IDateProvider, DateProvider>();
-        services.AddScoped<EmailValidator>();
-        services.AddScoped<HealthCheckHelper>();
-        services.AddDatahubConfigurationFromFunctionFormat(config);
+// DevOps Config (temporary approach kept)
+var devopsConfig = config.GetSection("AzureDevOpsConfiguration").Get<AzureDevOpsConfiguration>();
+if (devopsConfig is not null)
+{
+    builder.Services.AddSingleton(devopsConfig);
+}
 
-        // This is necessary to satisfy a dependency in WorkspaceWebAppManagementService, but it's not actually used so Offline works fine.
-        services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
-    })
-    .Build();
+// Service registrations (mirrors original)
+builder.Services.AddSingleton<AzureConfig>();
+builder.Services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
+builder.Services.AddSingleton<AzureManagementService>();
+builder.Services.AddAzureResourceManager(config);
+builder.Services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
+builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
+builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+builder.Services.AddSingleton<IEmailService, EmailService>();
+builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
+builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
+builder.Services.AddScoped<ProjectUsageService>();
+builder.Services.AddScoped<QueuePongService>();
+builder.Services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+builder.Services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+builder.Services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+builder.Services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
+builder.Services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
+builder.Services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
+builder.Services.AddScoped<IDateProvider, DateProvider>();
+builder.Services.AddScoped<EmailValidator>();
+builder.Services.AddScoped<HealthCheckHelper>();
+builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
 
-host.Run();
+// Satisfy dependency (offline path)
+builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
+
+var host = builder.Build();
+await host.RunAsync();
