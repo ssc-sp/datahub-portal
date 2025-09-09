@@ -1,5 +1,4 @@
-﻿using Amazon.Runtime.Internal.Util;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
