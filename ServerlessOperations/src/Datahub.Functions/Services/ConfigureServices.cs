@@ -68,8 +68,8 @@ public static class ConfigureServices
 
         // APITargets via Options pattern (replaces manual singleton binding)
         services
-            .AddOptions<APITarget>()
-            .Bind(configuration.GetSection("APITargets"))
+            .AddOptions<APITargets>()
+            .Bind(configuration.GetSection(nameof(APITargets)))
             .Validate(o => !string.IsNullOrWhiteSpace(o.KeyVaultName), "KeyVaultName is required")
             .ValidateOnStart();
 
@@ -77,7 +77,7 @@ public static class ConfigureServices
         ConfigurationHelper.DumpRedactedToConsole("Datahub configuration", datahubConfiguration);
 
         // Dump bound APITargets once (resolve from provider after options configured)
-        services.PostConfigure<APITarget>(apiTargets =>
+        services.PostConfigure<APITargets>(apiTargets =>
         {
             ConfigurationHelper.DumpRedactedToConsole("API targets", apiTargets);
         });

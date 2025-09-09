@@ -17,9 +17,9 @@ public class KeyVaultCoreService : IKeyVaultService
     private DatahubPortalConfiguration _portalConfiguration;
     private ILogger<KeyVaultCoreService> _logger;
     private KeyVaultClient _keyVaultClient;
-    private IOptions<APITarget> _targets;
+    private IOptions<APITargets> _targets;
 
-    public KeyVaultCoreService(IOptions<APITarget> targets, ILogger<KeyVaultCoreService> logger, DatahubPortalConfiguration portalConfiguration)
+    public KeyVaultCoreService(IOptions<APITargets> targets, ILogger<KeyVaultCoreService> logger, DatahubPortalConfiguration portalConfiguration)
     {
         _logger = logger;
         _portalConfiguration = portalConfiguration;

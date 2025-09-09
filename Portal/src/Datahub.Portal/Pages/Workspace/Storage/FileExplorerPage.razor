@@ -386,11 +386,11 @@
         // - one for using user credentials to query workspace KV
         // but we don't exactly have a good way to use portal credentials to query workspace KV, which is needed to check project key
         // so I am doing a workaround here to force the core KV service to target the workspace KV
-        var apiTarget = new APITarget
+        var apiTarget = new APITargets
             {
                 KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
             };
-        var options = Options.Create<APITarget>(apiTarget);
+        var options = Options.Create<APITargets>(apiTarget);
 
         var logger = (new LoggerFactory()).CreateLogger<KeyVaultCoreService>();
         var keyVaultService = new KeyVaultCoreService(options, logger, _datahubPortalConfiguration);
