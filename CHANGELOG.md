@@ -1,5 +1,47 @@
 # Changelog
 
+## [7.0.0](https://github.com/ssc-sp/datahub-portal/compare/v6.1.0...v7.0.0) (2025-09-10)
+
+
+### ⚠ BREAKING CHANGES
+
+* Switching to use GC Notify for email notifications ([#1707](https://github.com/ssc-sp/datahub-portal/issues/1707))
+* accessibility and nuget package updates ([#1705](https://github.com/ssc-sp/datahub-portal/issues/1705))
+* upgrade solution to dotnet 9 ([#1634](https://github.com/ssc-sp/datahub-portal/issues/1634))
+
+### Features
+
+* Added seasonal backgrounds for the BarebonesPublicLayout ([#1726](https://github.com/ssc-sp/datahub-portal/issues/1726)) ([02e5f74](https://github.com/ssc-sp/datahub-portal/commit/02e5f74491b124be144e329dc180bf96fc56d6c6))
+* Additional cluster configuration for Databricks ([#1710](https://github.com/ssc-sp/datahub-portal/issues/1710)) ([1e886b3](https://github.com/ssc-sp/datahub-portal/commit/1e886b3877945b7be1bdf821ec54650a26298f4c))
+* Changing the workspace metadata page to display the info received from Hosting Services ([#1679](https://github.com/ssc-sp/datahub-portal/issues/1679)) ([f884dd6](https://github.com/ssc-sp/datahub-portal/commit/f884dd6b0fdcc11440ccb5a624f9938a977e217a))
+* Correlation ID ([#1700](https://github.com/ssc-sp/datahub-portal/issues/1700)) ([3f3a2dd](https://github.com/ssc-sp/datahub-portal/commit/3f3a2dd53be7681b1558d3f79ef994ce58effb62))
+* Dark Theme ([#1708](https://github.com/ssc-sp/datahub-portal/issues/1708)) ([9932152](https://github.com/ssc-sp/datahub-portal/commit/9932152a47fe9a6376779dee5eb8fadb7c77bfa2))
+* Delete button for Announcement ([#1701](https://github.com/ssc-sp/datahub-portal/issues/1701)) ([37e6a5e](https://github.com/ssc-sp/datahub-portal/commit/37e6a5ed3eb3f8cd088990482980150f396c4f99))
+* Dotnet function improvements ([#1732](https://github.com/ssc-sp/datahub-portal/issues/1732)) ([af4c2d3](https://github.com/ssc-sp/datahub-portal/commit/af4c2d378b6d21a8b4d000ff5c7121d8ca18920b))
+* file storage search ([#1635](https://github.com/ssc-sp/datahub-portal/issues/1635)) ([77dd27b](https://github.com/ssc-sp/datahub-portal/commit/77dd27b6003e9e20480c98d89d16502f1009e02f))
+* Redesigned the login page for the platform ([#1703](https://github.com/ssc-sp/datahub-portal/issues/1703)) ([016092d](https://github.com/ssc-sp/datahub-portal/commit/016092d3ba7b94974252c1a8ce4801644f12c4ec))
+* Split localization into multiple files ([#1718](https://github.com/ssc-sp/datahub-portal/issues/1718)) ([ee75125](https://github.com/ssc-sp/datahub-portal/commit/ee75125de6ffe473ccc943d79e3de1208d5b8332))
+* Switching to use GC Notify for email notifications ([#1707](https://github.com/ssc-sp/datahub-portal/issues/1707)) ([fca87d9](https://github.com/ssc-sp/datahub-portal/commit/fca87d9dcf6ec854a3a5df89e291447ad913d142))
+* track user role changes ([#1669](https://github.com/ssc-sp/datahub-portal/issues/1669)) ([48addc1](https://github.com/ssc-sp/datahub-portal/commit/48addc1e8c22c3c6bbaef5057bf65533fca078af))
+* Workspace Versioning Functionality ([#1683](https://github.com/ssc-sp/datahub-portal/issues/1683)) ([65b580c](https://github.com/ssc-sp/datahub-portal/commit/65b580c5fb2f14eae759995d255701d1be860cbb))
+
+
+### Bug Fixes
+
+* Adding a missing comma in the French localization json ([#1702](https://github.com/ssc-sp/datahub-portal/issues/1702)) ([ba4dda0](https://github.com/ssc-sp/datahub-portal/commit/ba4dda0e50090b6ab6cbdb53fdab2d88f2454378))
+* Bug [#11757](https://github.com/ssc-sp/datahub-portal/issues/11757) - downloading data from tables doesn't work when deployed in Azure ([#1723](https://github.com/ssc-sp/datahub-portal/issues/1723)) ([8631d50](https://github.com/ssc-sp/datahub-portal/commit/8631d50758d284a4ed798817e4f8491fdd1b545e))
+* Changed the text about publishing to Open Government on the workspace dashboard ([#1709](https://github.com/ssc-sp/datahub-portal/issues/1709)) ([991b496](https://github.com/ssc-sp/datahub-portal/commit/991b496d79c86c59d5cde59fb4397e82dcee22c5))
+* Fixed an issue where the acronym and usage percent variables were swapped ([#1734](https://github.com/ssc-sp/datahub-portal/issues/1734)) ([35b51f4](https://github.com/ssc-sp/datahub-portal/commit/35b51f493b7b2ca11c8fc7fe45f9a56d8dda90f5))
+* prevent dark background flicker ([#1725](https://github.com/ssc-sp/datahub-portal/issues/1725)) ([2f27ba6](https://github.com/ssc-sp/datahub-portal/commit/2f27ba6c714c42e6a2c0e6018a71cd2b380bac61))
+* reorg try/catch to avoid disconnected exception ([#1714](https://github.com/ssc-sp/datahub-portal/issues/1714)) ([3bfb7b2](https://github.com/ssc-sp/datahub-portal/commit/3bfb7b234aeeb648571a650a82d47bb5f5fda700))
+* workspace card does not show provisioned tools ([#1704](https://github.com/ssc-sp/datahub-portal/issues/1704)) ([70dd26e](https://github.com/ssc-sp/datahub-portal/commit/70dd26e5475f954742efb9da653114d5ad2aae77))
+
+
+### Miscellaneous Chores
+
+* accessibility and nuget package updates ([#1705](https://github.com/ssc-sp/datahub-portal/issues/1705)) ([ed17cc0](https://github.com/ssc-sp/datahub-portal/commit/ed17cc0ee27aea598392c845f11bdc96ae96d657))
+* upgrade solution to dotnet 9 ([#1634](https://github.com/ssc-sp/datahub-portal/issues/1634)) ([a801f95](https://github.com/ssc-sp/datahub-portal/commit/a801f95e9c7f383b83527462e4bda4db8f44e700))
+
 ## [6.1.0](https://github.com/ssc-sp/datahub-portal/compare/v6.0.4...v6.1.0) (2025-07-14)
 
 
