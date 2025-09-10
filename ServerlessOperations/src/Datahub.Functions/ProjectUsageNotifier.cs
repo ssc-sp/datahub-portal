@@ -220,7 +220,7 @@ namespace Datahub.Functions
             try
             {
                 foreach (var contact in details.Contacts)
-                    await notifyService.SendWorkspaceCostNotification(contact, details.ProjectAcro, notificationPerc.ToString());
+                    await notifyService.SendWorkspaceCostNotification(contact, notificationPerc.ToString(), details.ProjectAcro);
 
                 details.Credits.PercNotified = notificationPerc;
                 details.Credits.LastNotified = DateTime.UtcNow;
