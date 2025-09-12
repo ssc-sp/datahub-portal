@@ -21,4 +21,4 @@ public interface IAnnouncementService
     Task<List<AnnouncementPreview>> GetActivePreviews(bool isFrench);
 }
 
-public record AnnouncementPreview(int Id, string Preview);
+public record AnnouncementPreview(int Id, string Preview, int Severity);

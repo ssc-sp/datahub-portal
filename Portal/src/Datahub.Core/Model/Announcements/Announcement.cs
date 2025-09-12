@@ -42,6 +42,11 @@ public class Announcement
     public string BodyFr { get; set; }
 
     /// <summary>
+    /// Gets or sets an int representing the alert level of the announcement.
+    /// </summary>
+    public int Severity { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the announcement is forcibly hidden, regardless of other settings.
     /// </summary>
     public bool ForceHidden { get; set; }
