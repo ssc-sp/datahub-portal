@@ -382,6 +382,9 @@ namespace Datahub.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("StartDateTime")
                         .HasColumnType("datetime2");
 
