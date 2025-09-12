@@ -22,7 +22,7 @@ public class WorkspaceVersionStatistics
 
 public interface IWorkspaceVersionService
 {
-    public Task<string> GetLatestVersionAsync   ();
+    public Task<string> GetLatestVersionAsync();
     public Task<List<VersionTag>> GetAllVersionsAsync();
     public Task<VersionTag?> GetVersionByIdAsync(int versionTagId);
     public Task<bool> AddNewVersion(VersionTag versionTag);

@@ -220,7 +220,7 @@ namespace Datahub.Infrastructure.Services
                 var outdatedWorkspaces = totalWorkspaces - latestVersionWorkspaces;
                 
                 // Count workspaces with pending update requests
-                var workspacesWithUpdateRequests = allWorkspaces.Count(p => p.IsVersionUpdateRequested);
+                var workspacesWithUpdateRequested = allWorkspaces.Count(p => p.IsVersionUpdateRequested);
                 
                 var percentageOnLatest = totalWorkspaces > 0 
                     ? Math.Round((decimal)latestVersionWorkspaces / totalWorkspaces * 100, 1)
@@ -232,7 +232,7 @@ namespace Datahub.Infrastructure.Services
                     LatestVersionWorkspaces = latestVersionWorkspaces,
                     OutdatedWorkspaces = outdatedWorkspaces,
                     PercentageOnLatest = percentageOnLatest,
-                    WorkspacesWithUpdateRequests = workspacesWithUpdateRequests,
+                    WorkspacesWithUpdateRequests = workspacesWithUpdateRequested,
                     LatestVersion = latestVersion
                 };
             }

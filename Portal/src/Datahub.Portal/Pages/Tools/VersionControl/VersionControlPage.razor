@@ -1,18 +1,21 @@
 ﻿@using Datahub.Application.Services
 @using Datahub.Application.Services.Announcements
-@using Datahub.Application.Services.Notifications;
+@using Datahub.Application.Services.Notification
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Announcements
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Portal.Pages.Tools.Statistics
+@using Datahub.Shared
 @using Markdig
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject IDatahubEmailService _emailService
 @inject IUserInformationService _userInformationService
 @inject IWorkspaceVersionService _workspaceVersionService
 @inject IRequestManagementService _requestManagementService
+@inject IResourceMessagingService _resourceMessagingService
+@inject IEmailNotificationService _emailNotificationService
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
@@ -139,19 +142,29 @@
 
     <MudTable Items="@_outdatedWorkspaces" Loading="@_loadingOutdated" Hover Dense>
         <ColGroup>
-            <col style="width: 40%" />
-            <col style="width: 30%" />
-            <col style="width: 30%" />
+            <col style="width: 35%" />
+            <col style="width: 25%" />
+            <col style="width: 25%" />
+            <col style="width: 15%" />
         </ColGroup>
         <HeaderContent>
             <MudTh>@Localizer["Workspace Name"]</MudTh>
             <MudTh>@Localizer["Workspace Acronym"]</MudTh>
             <MudTh>@Localizer["Current Version"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
             <MudTd>@context.WorkspaceName</MudTd>
             <MudTd>@context.WorkspaceAcronym</MudTd>
             <MudTd>@context.CurrentVersion</MudTd>
+            <MudTd>
+                <MudTooltip Text="@Localizer["Trigger workspace update"]">
+                    <MudIconButton Size="Size.Small" 
+                                   Icon="@Icons.Material.Filled.Upgrade" 
+                                   Color="Color.Primary"
+                                   OnClick="@(() => TriggerWorkspaceUpdate(context.WorkspaceAcronym))" />
+                </MudTooltip>
+            </MudTd>
         </RowTemplate>
         <PagerContent>
             <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
@@ -168,6 +181,7 @@
     private List<VersionTag> _versions = new();
     private List<OutdatedWorkspaceInfo> _outdatedWorkspaces = new();
     private WorkspaceVersionStatistics _statistics = null;
+    private string _latestVersion = string.Empty;
 
     private bool _loading = true;
     private bool _loadingOutdated = true;
@@ -180,6 +194,7 @@
         _versions = await _workspaceVersionService.GetAllVersionsAsync();
         _outdatedWorkspaces = await _workspaceVersionService.GetWorkspacesNotOnLatestVersionAsync();
         _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
+        _latestVersion = await _workspaceVersionService.GetLatestVersionAsync();
 
         _loading = false;
         _loadingOutdated = false;
@@ -366,5 +381,94 @@
     private string GetUpdateRequestsTextStyle()
     {
         return "width: 100%; text-align: center; color: white;";
+    }
+
+    // Replicate the exact logic from HomeWorkspaceCard
+    private async Task TriggerWorkspaceUpdate(string workspaceAcronym)
+    {
+        try
+        {
+            // Get the workspace project by acronym (same as HomeWorkspaceCard has the full project)
+            await using var db = await _dbContextFactory.CreateDbContextAsync();
+            var workspace = await db.Projects
+                .Include(p => p.Resources)
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym && p.Deleted_DT == null);
+
+            if (workspace == null)
+            {
+                _snackbar.Add(Localizer["Workspace {0} not found.", workspaceAcronym], Severity.Error);
+                return;
+            }
+
+            var userEmail = await _userInformationService.GetUserEmail();
+            
+            // Use the exact same logic as HomeWorkspaceCard.TriggerUpdate
+            var updateType = workspace.GetUpdateType(_latestVersion);
+            var result = await GetDialogMessage(updateType);
+
+            if (result.Canceled)
+            {
+                return;
+            }
+
+            if (updateType == VersionUpdateType.Major)
+            {            
+                var message = $"{userEmail} has requested for workspace {workspace.Project_Acronym_CD} to be updated to the latest version. Please run the update at the end of the work day.";
+                var messageFr = $"{userEmail} a demandé que l'espace de travail {workspace.Project_Acronym_CD} soit mis à jour vers la dernière version. Veuillez exécuter la mise à jour à la fin de la journée de travail.";
+                await _emailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), userEmail, message, workspace.Project_Acronym_CD);                       
+            }
+            else
+            {
+                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, userEmail);
+                await _workspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
+                await _requestManagementService.SendVersionUpdateToQueueAsync(_latestVersion, workspaceDefinition);
+            }
+
+            await _workspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
+            workspace.IsVersionUpdateRequested = true;
+
+            var successMessage = updateType == VersionUpdateType.Major ? Localizer["Notification Sent"] : Localizer["Workspace Version Update Triggered"];
+            _snackbar.Add(successMessage, Severity.Success);
+            
+            // Refresh the data
+            await RefreshWorkspaceData();
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(Localizer["Error triggering workspace update: {0}", ex.Message], Severity.Error);
+        }
+    }
+
+    // Replicate the exact dialog logic from HomeWorkspaceCard
+    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType)
+    {
+        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
+        var majorUpdatePrompt = Localizer["This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours"];        
+        var prompt = updateType switch
+        {
+            VersionUpdateType.Minor => minorUpdatePrompt,
+            VersionUpdateType.Major => majorUpdatePrompt,
+            VersionUpdateType.Build => minorUpdatePrompt,
+            _ => Localizer["No Update Required"]
+        };
+
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+        {
+            { "PromptText", prompt.ToString() },
+            { "ConfirmText", Localizer["Yes"].ToString() },
+            { "CancelText", Localizer["No"].ToString() }                   
+        };
+        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
+        return await dialog.Result;
+    }
+
+    private async Task RefreshWorkspaceData()
+    {
+        _loadingOutdated = true;
+        _outdatedWorkspaces = await _workspaceVersionService.GetWorkspacesNotOnLatestVersionAsync();
+        _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
+        _loadingOutdated = false;
+        await InvokeAsync(StateHasChanged);
     }
 }
