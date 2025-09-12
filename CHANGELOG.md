@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.1](https://github.com/ssc-sp/datahub-portal/compare/v7.0.0...v7.0.1) (2025-09-12)
+
+
+### Bug Fixes
+
+* terraform output handler fix ([#1735](https://github.com/ssc-sp/datahub-portal/issues/1735)) ([2e977db](https://github.com/ssc-sp/datahub-portal/commit/2e977db0fedd7a539e13f08ea3f1abc29ed80971))
+
 ## [7.0.0](https://github.com/ssc-sp/datahub-portal/compare/v6.1.0...v7.0.0) (2025-09-10)
 
 
