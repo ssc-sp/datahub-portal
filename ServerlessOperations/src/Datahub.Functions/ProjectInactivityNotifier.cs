@@ -23,7 +23,7 @@ namespace Datahub.Functions
     public class ProjectInactivityNotifier(
         ILoggerFactory loggerFactory,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-        QueuePongService pongService,
+        IQueuePongService pongService,
         ISendEndpointProvider sendEndpointProvider,
         IProjectInactivityNotificationService projectInactivityNotificationService,
         EmailValidator emailValidator,

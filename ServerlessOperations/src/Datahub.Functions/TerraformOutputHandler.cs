@@ -19,7 +19,7 @@ namespace Datahub.Functions;
 public class TerraformOutputHandler(
     ILoggerFactory loggerFactory,
     DatahubProjectDBContext projectDbContext,
-    QueuePongService pongService,
+    IQueuePongService pongService,
     IResourceMessagingService resourceMessagingService,
     AzureConfig config)
 {
