@@ -26,7 +26,7 @@ namespace Datahub.Functions
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IDateProvider dateProvider,
         AzureConfig config,
-        QueuePongService pongService,
+        IQueuePongService pongService,
         EmailValidator emailValidator,
         IUserInactivityNotificationService userInactivityNotificationService,
         ISendEndpointProvider sendEndpointProvider,
