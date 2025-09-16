@@ -16,7 +16,19 @@
             if (!preview.Preview.StartsWith("!["))
             {
                 <li class="flex-1">
-                    <MudAlert Severity="GetSeverity(preview.Severity)" Style="color: #000" Icon="@GetIcon(preview.Severity)" NoIcon="(preview.Severity == 2 ? true : false)">
+                    <MudAlert Severity="GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
+                        @if (preview.Severity != 2)
+                        {
+                            <div style="display: flex; justify-content: center; align-items: center;">
+                                <MudIcon Icon="@GetIcon(preview.Severity)"
+                                         Size="Size.Medium"
+                                         Color="(preview.Severity == 1 ? Color.Warning : Color.Error)"/>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="width: 24px; height: 24px;"></div>
+                        }
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
                             <MudElement>
                                 <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
