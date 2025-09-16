@@ -6,6 +6,7 @@
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
 @using Datahub.Infrastructure.Services.Toolbox
+@using Datahub.Shared.Entities.WorkspaceToolConfiguration
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms
 
@@ -149,7 +150,8 @@
                                 @Localizer["Tool catalog"]
                             </MudText>
                             <MudStack Spacing="2" Class="mb-2" Style="flex-shrink: 0" id=@CatalogId>
-                                @foreach (var tool in _toolCatalog.Where(t => _transactions.All(tr => tr.Tool != t)))
+                                @foreach (var tool in _toolCatalog.Where(_transactions.DoesNotContainTool))
+                                @* @foreach (var tool in _toolCatalog.Where(t => _transactions.All(tr => tr.Tool != t))) *@
                                 {
                                     <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
                                                     ToolCategory="@ToolCategory(tool)"
@@ -193,7 +195,8 @@
                                     </MudText>
                                 </MudStack>
                                 <MudStack Spacing="2" Class="mb-2" id=@ExistingId>
-                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove).All(tr => tr.Tool != t.Name)))
+                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => AllRemoveTransactions.DoesNotContainTool(t.Name)))
+                                    @* @foreach (var template in _workspaceDefinition.Templates.Where(t => _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove).All(tr => tr.Tool != t.Name))) *@
                                     {
                                         var tool = template.Name;
                                         <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
@@ -205,11 +208,18 @@
                                                 case TerraformStatus.Completed:
 
                                                     // TODO: implement generic version gating for all tools instead of hardcoding Databricks
-                                                    var configurable = _configurableToolList.Contains(tool) && 
+                                                    var configurable = IsConfigurable(tool, _workspaceVersion) && 
+                                                        AllUpdateTransactions.DoesNotContainTool(tool) && 
+                                                        @* (tool != TerraformTemplate.AzureDatabricks || _workspaceVersion >= DatabricksConfiguration.MinimumConfigurableWorkspaceVersion) && *@
+                                                        !(_disableActiveRequest || _disableOverBudget);
+                                                    @* var configurable = _configurableToolList.Contains(tool) && 
                                                         _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && 
                                                         (tool != TerraformTemplate.AzureDatabricks || _workspaceVersion >= DatabricksConfiguration.MinimumConfigurableWorkspaceVersion) &&
+                                                        !(_disableActiveRequest || _disableOverBudget); *@
+                                                    var deletable = IsDeletable(tool) && 
+                                                        AllUpdateTransactions.DoesNotContainTool(tool) && 
                                                         !(_disableActiveRequest || _disableOverBudget);
-                                                    var deletable = !_permanentToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
+                                                    @* var deletable = !_permanentToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget); *@
 
                                                     <DHButton EndIcon="@SidebarIcons.Gear"
                                                                 Variant="Variant.Filled" Color="Color.Default"
@@ -443,13 +453,14 @@
                                 @Localizer["You can edit your selection in the select step."]
                             </MudText>
                         }
+
                         @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Add))
                         {
                             <MudText Typo="Typo.h3" Class="mb-2">
                                 @Localizer["Add:"]
                             </MudText>
                             <MudStack Spacing="0" Class="mb-4" id=@SummaryAddId>
-                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add))
+                                @foreach (var transaction in AllAddTransactions)
                                 {
                                     <MudStack Row AlignItems="AlignItems.Center"
                                                 id=@ElementId([SummaryAddId, transaction.Tool])>
@@ -474,7 +485,7 @@
                                 @Localizer["Configure:"]
                             </MudText>
                             <MudStack Spacing="0" Class="mb-4" id=@SummaryConfigureId>
-                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update))
+                                @foreach (var transaction in AllUpdateTransactions)
                                 {
                                     <MudStack Row AlignItems="AlignItems.Center"
                                                 id=@ElementId([SummaryConfigureId, transaction.Tool])>
@@ -499,7 +510,7 @@
                                 @Localizer["Remove:"]
                             </MudText>
                             <MudStack Spacing="0" Class="mb-4" id=@SummaryRemoveId>
-                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove))
+                                @foreach (var transaction in AllRemoveTransactions)
                                 {
                                     <MudStack Row AlignItems="AlignItems.Center"
                                                 id=@ElementId([SummaryRemoveId, transaction.Tool])>

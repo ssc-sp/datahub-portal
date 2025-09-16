@@ -113,6 +113,9 @@ namespace Datahub.Infrastructure.Services.Toolbox
             transactions.Remove(transaction);
         }
 
+        public static bool ContainsTool(this IEnumerable<ToolboxTransaction> transactions, string toolName) => transactions.Select(t => t.Tool).Contains(toolName);
+        public static bool DoesNotContainTool(this IEnumerable<ToolboxTransaction> transactions, string toolName) => !ContainsTool(transactions, toolName);
+
         /// <summary>
         /// This method will diff the original and updated data of a transaction. This is very useful
         /// to display the changes that were made to a workspace definition through either an Add or an Update.

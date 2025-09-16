@@ -1,3 +1,5 @@
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
+
 namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate(string name, string status)
@@ -98,28 +100,33 @@ public class TerraformTemplate(string name, string status)
 
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
-        return name switch
-        {
-            NewProjectTemplate => [],
-            VariableUpdate => [],
-            AzureStorageBlob => [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-            ],
-            AzureDatabricks =>
-            [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-                new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
-            ],
-            AzureAppService =>
-            [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-                new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
-            ],
-            AzurePostgres => [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-            ],
-            _ => throw new ArgumentException($"Unknown template name: {name}")
-        };
+        return VersionAwareWorkspaceToolInfo.VERSION_AWARE_WORKSPACE_TOOLS
+            .FirstOrDefault(t => t.ToolName == name)?
+            .ToolDependencies
+            .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested))
+            .ToList() ?? [];
+        //return name switch
+        //{
+        //    NewProjectTemplate => [],
+        //    VariableUpdate => [],
+        //    AzureStorageBlob => [
+        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
+        //    ],
+        //    AzureDatabricks =>
+        //    [
+        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
+        //        new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
+        //    ],
+        //    AzureAppService =>
+        //    [
+        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
+        //        new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
+        //    ],
+        //    AzurePostgres => [
+        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
+        //    ],
+        //    _ => throw new ArgumentException($"Unknown template name: {name}")
+        //};
     }
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {

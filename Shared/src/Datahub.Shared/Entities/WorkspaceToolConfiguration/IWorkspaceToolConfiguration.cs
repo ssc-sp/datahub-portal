@@ -7,4 +7,5 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 public interface IWorkspaceToolConfiguration
 {
+    IWorkspaceToolConfiguration Clone();
 }

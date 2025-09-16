@@ -62,7 +62,7 @@ public class DatabricksConfiguration : IWorkspaceToolConfiguration
         return (minCost, maxCost);
     }
 
-    public DatabricksConfiguration Clone()
+    public IWorkspaceToolConfiguration Clone()
     {
         return new DatabricksConfiguration
         {
