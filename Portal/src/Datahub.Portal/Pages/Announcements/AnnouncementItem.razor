@@ -11,7 +11,15 @@
             <AnnouncementAdminControl Announcement="@Announcement" OnAnnouncementDeleted="OnAnnouncementDeleted" />
         </MudItem>
     </DatahubAuthView>
+    
     <MudItem xs="12" sm="@(_isAdminView ? 8 : 12)">
+        @if (Announcement.Severity != 2)
+        {
+            <MudChip T="string" Color="GetColor()" Disabled="!Announcement.IsVisible()">
+                <DHIcon Icon="@GetIcon(Announcement.Severity)"/>
+                <MudText Typo="Typo.button">@GetText(Announcement.Severity)</MudText>
+            </MudChip>
+        }
         <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
             <MudStack>
                 <DHMarkdown style="order: 1;" Content="@GetBody()" LinkRewriter="RewriteLink"/>
@@ -62,6 +70,34 @@
     private string GetBody()
     {
         return _isFrench ? Announcement.BodyFr : Announcement.BodyEn;
+    }
+
+    private Severity GetSeverity(int n)
+    {
+        if (n == 0)
+        {
+            return Severity.Error;
+        }
+        return n == 1 ? Severity.Warning : Severity.Normal;
+    }
+
+    private Color GetColor()
+    {
+        if(Announcement.IsVisible())
+        {
+            return Announcement.Severity == 1 ? Color.Warning : Color.Error;
+        }
+        return Color.Transparent;
+    }
+
+    private string GetIcon(int n)
+    {
+        return n == 1 ? Icons.Material.Outlined.WarningAmber as string : Icons.Material.Outlined.ErrorOutline as string;
+    }
+
+    private string GetText(int n)
+    {
+        return n == 1 ? @Localizer[" NOTICE"] : @Localizer[" Important"];     
     }
 
 }
