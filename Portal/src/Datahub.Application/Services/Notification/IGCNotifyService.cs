@@ -13,4 +13,5 @@ public interface IGCNotifyService
     Task SendDatahubResourceDeletedNotification(string email, string resource, string resource_fr, string acro);
     string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration);
     string GetTemplateId(string templateName, string mappingsJson);
+    Task<bool> CheckHealthAsync();
 }

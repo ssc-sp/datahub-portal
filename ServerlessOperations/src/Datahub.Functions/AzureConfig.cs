@@ -60,7 +60,7 @@ public class AzureConfig : IAzureServicePrincipalConfig
 
     public string PortalUrl => _config["PORTAL_URL"] ?? "";
     public string ServicePrincipalGroupID => _config["SP_GROUP_ID"] ?? "";
-    public string KeyVaultName => _config["KEY_VAULT_NAME"] ?? "";
+    
     
     public string MediaStorageConnectionString => _config["Media:StorageConnectionString"] ?? "";
 
