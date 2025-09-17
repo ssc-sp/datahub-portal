@@ -63,7 +63,7 @@
     {
         _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
-                         ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
+        ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
                 <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
             </Authorized>
@@ -102,7 +102,7 @@
         { WorkspaceSidebar.SectionViews.Healthcheck, typeof(WorkspaceHealthcheckPage) },
         { WorkspaceSidebar.SectionViews.Sudo, typeof(WorkspaceSudoPage) },
         { WorkspaceSidebar.SectionViews.Settings, typeof(WorkspaceSettingsPage) },
-    
+
         { WorkspaceSidebar.SectionViews.Dashboard_FR, typeof(WorkspaceDashboard) },
         { WorkspaceSidebar.SectionViews.Publishing_FR, typeof(PublishingDashboard) },
         { WorkspaceSidebar.SectionViews.Repositories_FR, typeof(RepositoryManagementPage) },
@@ -135,6 +135,8 @@
         await RecordRecentLink();
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        WorkspaceAcronymParam = WorkspaceAcronymParam.ToUpperInvariant();
 
         var project = dbContext.Projects
             .AsNoTracking()
