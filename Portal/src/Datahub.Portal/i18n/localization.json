@@ -2353,5 +2353,8 @@
   "{0} {1}": "{0} {1}",
   "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
-  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload"
-  }
+  "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
+  "INFO": "INFO",
+  "NOTICE": "NOTICE",
+  "IMPORTANT": "IMPORTANT"
+}

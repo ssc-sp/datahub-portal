@@ -2,6 +2,7 @@
 @using MudBlazor.Utilities
 
 @inject NavigationManager _navigationManager
+@inject IAnnouncementService _announcementService
 
 @if (_previewCount > 0)
 {
@@ -16,19 +17,13 @@
             if (!preview.Preview.StartsWith("!["))
             {
                 <li class="flex-1">
-                    <MudAlert Severity="GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
-                        @if (preview.Severity != 2)
-                        {
-                            <div style="display: flex; justify-content: center; align-items: center;">
-                                <MudIcon Icon="@GetIcon(preview.Severity)"
-                                         Size="Size.Medium"
-                                         Color="(preview.Severity == 1 ? Color.Warning : Color.Error)"/>
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="width: 24px; height: 24px;"></div>
-                        }
+                    <MudAlert Severity="_announcementService.GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
+                        <div style="display: flex;">
+                            <MudChip T="string" Color="_announcementService.GetColor(preview.Severity, true)">
+                                <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" />
+                                <MudText Typo="Typo.button">@_announcementService.GetText(preview.Severity)</MudText>
+                            </MudChip>
+                        </div>
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
                             <MudElement>
                                 <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
@@ -103,20 +98,5 @@
         // The # of columns for the announcements is displayed accordingly
         _previewCount = count;
     }
-
-    private Severity GetSeverity(int n)
-    {
-        if (n == 0)
-        {
-            return Severity.Error;
-        }
-        return n == 1 ? Severity.Warning: Severity.Normal;
-    }
-
-    private string GetIcon(int n)
-    {
-        return n == 1 ? Icons.Material.Outlined.WarningAmber as string : Icons.Material.Outlined.ErrorOutline as string;
-    }
-
 }
 

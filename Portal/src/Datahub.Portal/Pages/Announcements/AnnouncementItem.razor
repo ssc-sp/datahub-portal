@@ -1,9 +1,11 @@
 @using Datahub.Core.Model.Announcements
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services.Announcements
 @using Datahub.Application.Services
 
 @inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
+@inject IAnnouncementService _announcementService
 
 <MudGrid>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
@@ -15,9 +17,9 @@
     <MudItem xs="12" sm="@(_isAdminView ? 8 : 12)">
         @if (Announcement.Severity != 2)
         {
-            <MudChip T="string" Color="GetColor()" Disabled="!Announcement.IsVisible()">
-                <DHIcon Icon="@GetIcon(Announcement.Severity)"/>
-                <MudText Typo="Typo.button">@GetText(Announcement.Severity)</MudText>
+            <MudChip T="string" Color="_announcementService.GetColor(Announcement.Severity, Announcement.IsVisible())" Disabled="!Announcement.IsVisible()">
+                <DHIcon Icon="@_announcementService.GetIcon(Announcement.Severity)" Class="mr-1"/>
+                <MudText Typo="Typo.button">@_announcementService.GetText(Announcement.Severity)</MudText>
             </MudChip>
         }
         <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
@@ -71,33 +73,4 @@
     {
         return _isFrench ? Announcement.BodyFr : Announcement.BodyEn;
     }
-
-    private Severity GetSeverity(int n)
-    {
-        if (n == 0)
-        {
-            return Severity.Error;
-        }
-        return n == 1 ? Severity.Warning : Severity.Normal;
-    }
-
-    private Color GetColor()
-    {
-        if(Announcement.IsVisible())
-        {
-            return Announcement.Severity == 1 ? Color.Warning : Color.Error;
-        }
-        return Color.Transparent;
-    }
-
-    private string GetIcon(int n)
-    {
-        return n == 1 ? Icons.Material.Outlined.WarningAmber as string : Icons.Material.Outlined.ErrorOutline as string;
-    }
-
-    private string GetText(int n)
-    {
-        return n == 1 ? @Localizer[" NOTICE"] : @Localizer[" Important"];     
-    }
-
 }
