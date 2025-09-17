@@ -143,9 +143,6 @@
         IsLoading = true; // Start loading
         await base.OnParametersSetAsync();
 
-        // Simulate loading delay or fetch search results
-        await Task.Delay(500); // Replace with actual data fetching logic if needed
-
         if (SearchResults != null && SearchResults.Any())
         {
             SelectedFile = SearchResults.First();
