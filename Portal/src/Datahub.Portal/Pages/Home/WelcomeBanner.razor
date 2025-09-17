@@ -36,7 +36,7 @@ else
     {
         var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
         _userBackgroundUrl = _datahubPortalConfiguration.Media.GetAchievementImageUrl(portalUser.BannerPictureUrl);
-        _previews = await _announcementService.GetActivePreviews(CultureService.IsFrench);
+        _previews = (await _announcementService.GetActivePreviews(CultureService.IsFrench)).OrderBy(o=>o.Severity).ToList();
         _isLoading = false;
         StateHasChanged();
     }

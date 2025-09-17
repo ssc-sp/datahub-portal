@@ -16,8 +16,19 @@
             if (!preview.Preview.StartsWith("!["))
             {
                 <li class="flex-1">
-
-                    <MudPaper Elevation="0" Outlined Class="py-2 px-3">
+                    <MudAlert Severity="GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
+                        @if (preview.Severity != 2)
+                        {
+                            <div style="display: flex; justify-content: center; align-items: center;">
+                                <MudIcon Icon="@GetIcon(preview.Severity)"
+                                         Size="Size.Medium"
+                                         Color="(preview.Severity == 1 ? Color.Warning : Color.Error)"/>
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="width: 24px; height: 24px;"></div>
+                        }
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
                             <MudElement>
                                 <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
@@ -34,7 +45,7 @@
                                 </DHButton>
                             </MudElement>
                         </MudStack>
-                    </MudPaper>
+                    </MudAlert>
                 </li>
             }
         }
@@ -92,5 +103,20 @@
         // The # of columns for the announcements is displayed accordingly
         _previewCount = count;
     }
+
+    private Severity GetSeverity(int n)
+    {
+        if (n == 0)
+        {
+            return Severity.Error;
+        }
+        return n == 1 ? Severity.Warning: Severity.Normal;
+    }
+
+    private string GetIcon(int n)
+    {
+        return n == 1 ? Icons.Material.Outlined.WarningAmber as string : Icons.Material.Outlined.ErrorOutline as string;
+    }
+
 }
 
