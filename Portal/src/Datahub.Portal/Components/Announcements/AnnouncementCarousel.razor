@@ -21,7 +21,7 @@
                         <div style="display: flex;">
                             <MudChip T="string" Color="_announcementService.GetColor(preview.Severity, true)">
                                 <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" />
-                                <MudText Typo="Typo.button">@_announcementService.GetText(preview.Severity)</MudText>
+                                <MudText Typo="Typo.button">@Localizer[_announcementService.GetText(preview.Severity)]</MudText>
                             </MudChip>
                         </div>
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
