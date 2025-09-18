@@ -41,7 +41,7 @@ namespace Datahub.Functions.UnitTests.Functions
 
 
         private AzureConfig _azConfig;
-        private QueuePongService _pongService;
+        private IQueuePongService _pongService;
         private EmailValidator _emailValidator;
         private IGCNotifyService _gcNotifyService;
         private ISendEndpointProvider _iSendEndpointProvider;
