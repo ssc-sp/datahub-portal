@@ -1,5 +1,20 @@
 # Changelog
 
+## [7.0.3](https://github.com/ssc-sp/datahub-portal/compare/v7.0.2...v7.0.3) (2025-09-18)
+
+
+### Bug Fixes
+
+* test case fixes for pong service ([#1742](https://github.com/ssc-sp/datahub-portal/issues/1742)) ([f1cd7bb](https://github.com/ssc-sp/datahub-portal/commit/f1cd7bb4623f006dacd6b7c728482c43c53c3f27))
+
+## [7.0.2](https://github.com/ssc-sp/datahub-portal/compare/v7.0.1...v7.0.2) (2025-09-17)
+
+
+### Bug Fixes
+
+* Removing delay for displaying search results ([#1738](https://github.com/ssc-sp/datahub-portal/issues/1738)) ([fc0bd1d](https://github.com/ssc-sp/datahub-portal/commit/fc0bd1d7620024f29f96841d87380611b3938e2f))
+* Restored statistics download ([#1739](https://github.com/ssc-sp/datahub-portal/issues/1739)) ([f96118a](https://github.com/ssc-sp/datahub-portal/commit/f96118af4c282f7d1a4c2248e218e3a5a0d6b5df))
+
 ## [7.0.1](https://github.com/ssc-sp/datahub-portal/compare/v7.0.0...v7.0.1) (2025-09-12)
 
 

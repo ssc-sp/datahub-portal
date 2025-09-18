@@ -39,7 +39,7 @@ public class ProjectInactivityNotifierTests
     private readonly IConfiguration _config = Substitute.For<IConfiguration>();
 
     private AzureConfig _azConfig;
-    private QueuePongService _pongService;
+    private IQueuePongService _pongService;
     private EmailValidator _emailValidator;
     private IEmailService _emailService;
     private ISendEndpointProvider _iSendEndpointProvider;
