@@ -1,5 +1,12 @@
 # Changelog
 
+## [7.0.3](https://github.com/ssc-sp/datahub-portal/compare/v7.0.2...v7.0.3) (2025-09-18)
+
+
+### Bug Fixes
+
+* test case fixes for pong service ([#1742](https://github.com/ssc-sp/datahub-portal/issues/1742)) ([f1cd7bb](https://github.com/ssc-sp/datahub-portal/commit/f1cd7bb4623f006dacd6b7c728482c43c53c3f27))
+
 ## [7.0.2](https://github.com/ssc-sp/datahub-portal/compare/v7.0.1...v7.0.2) (2025-09-17)
 
 
