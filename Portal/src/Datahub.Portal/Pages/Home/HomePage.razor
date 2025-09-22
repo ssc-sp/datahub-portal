@@ -12,34 +12,30 @@
 
 
 <MudStack>
-    @if (_viewedPortalUser is null)
+    @if (_viewedPortalUser is null || _viewedPortalUser.GraphGuid == _currentGuid)
     {
-        <DHLoadingInitializer Message="@Localizer["Initializing profile..."]" />
+        <div role="group">
+            <MudStack Row AlignItems="AlignItems.End">
+                <DHMainContentTitle Title="@Localizer["Home"]" />
+                <MudSpacer />
+                @if (_viewedPortalUser is not null)
+                {
+                    <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime />
+                }
+            </MudStack>
+            <WelcomeBanner />
+        </div>
     }
     else
     {
-        @if (_viewedPortalUser.GraphGuid == _currentGuid)
-        {
-            <div role="group">
-                <MudStack Row AlignItems="AlignItems.End">
-                    <DHMainContentTitle Title="@Localizer["Home"]" />
-                    <MudSpacer />
-                    <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime />
-                </MudStack>
-                <WelcomeBanner />
-            </div>
-        }
-        else
-        {
-            <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
-                      Alt="@Localizer["User's background image"]"
-                      Class="rounded-lg mud-elevation-4"
-                      Style="width: 100%"
-                      ObjectFit="ObjectFit.Cover"
-                      Height="320"
-                      ObjectPosition="ObjectPosition.Center" />
-        }
-    }
+        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+                  Alt="@Localizer["User's background image"]"
+                  Class="rounded-lg mud-elevation-4"
+                  Style="width: 100%"
+                  ObjectFit="ObjectFit.Cover"
+                  Height="320"
+                  ObjectPosition="ObjectPosition.Center" />
+    }    
     <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle />
 </MudStack>
 
@@ -54,21 +50,13 @@
     {
         await base.OnInitializedAsync();
         _currentGuid = await _userInformationService.GetCurrentUserGraphId();
-    }
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
+        _viewedPortalUser = await GetViewedPortalUserAsync();
+        if (_viewedPortalUser.GraphGuid != _currentGuid)
         {
-            _viewedPortalUser = await GetViewedPortalUserAsync();
-
-            _userProjectGuid = _viewedPortalUser.GraphGuid;
-            if (_viewedPortalUser.GraphGuid != _currentGuid)
-            {
-                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
-            }
-            StateHasChanged();
+            await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
+
+        _userProjectGuid = _viewedPortalUser.GraphGuid;
     }
 
 

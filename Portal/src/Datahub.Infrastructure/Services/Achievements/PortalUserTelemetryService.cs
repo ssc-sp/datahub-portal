@@ -63,8 +63,10 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
 
     }
 
-    public DateTime? GetUserLastLogin()
+    public async Task<DateTime?> GetUserLastLoginAsync()
     {
+        if (lastLogin == null)
+            await FindUserLastLogin();
         return lastLogin;
     }
 

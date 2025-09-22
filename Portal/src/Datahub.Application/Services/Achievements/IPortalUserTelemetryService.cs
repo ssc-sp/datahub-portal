@@ -14,9 +14,7 @@ public interface IPortalUserTelemetryService
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task LogTelemetryEvent(string eventName);
 
-    Task FindUserLastLogin();
-
-    DateTime? GetUserLastLogin();
+    Task<DateTime?> GetUserLastLoginAsync();
 }
 
 public class AchievementsEarnedEventArgs : EventArgs
