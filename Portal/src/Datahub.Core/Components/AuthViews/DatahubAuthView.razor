@@ -58,6 +58,8 @@
     {
         base.OnParametersSet();
 
+        ProjectAcronym = ProjectAcronym?.ToUpperInvariant();
+
         if (ChildContent != null && Authorized != null)
         {
             throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
