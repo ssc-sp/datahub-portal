@@ -221,7 +221,7 @@
     private string _ticketDescription = "";
     private string _ticketOrg = "";
     private int _ticketPreferredLanguage = 1;
-    private List<Datahub_Project_User> _userRoles;
+    private List<UserRoleLinks> _userRoles;
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new();
     private MudSelect<string> _landingFieldRef;
@@ -297,10 +297,10 @@
 
         // Retrieve the list of workspaces
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _userRoles = await dbContext.Project_Users
+        _userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)
-            .ThenInclude(p => p.Users)
+            .ThenInclude(p => p.UserRoles)
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
             .ToListAsync();

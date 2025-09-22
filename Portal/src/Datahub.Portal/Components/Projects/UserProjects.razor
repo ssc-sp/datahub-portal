@@ -202,8 +202,7 @@ else
 
 
     // User, Roles, and Projects
-    private bool _isCurrentUser;
-    private List<Datahub_Project_User> _userRoles;
+    private List<UserRoleLinks> _userRoles;
     private List<Datahub_Project> _allWorkspaces;
     private List<Datahub_Project> _leadWorkspaces;
     private List<Datahub_Project> _adminWorkspaces;
@@ -249,29 +248,33 @@ else
 
     private async Task QueryWorkspaces()
     {
-        var portalUser = await UserInformationService.GetCurrentPortalUserAsync();
-        var userId = UserId ?? portalUser.GraphGuid;
-        _isCurrentUser = userId == portalUser.GraphGuid;
-        _userEmail = portalUser.Email;
+        if (_userRoles != null)
+        {
+            return;
+		}
+        var portalUserGuid = await UserInformationService.GetGraphUserIdString();
+        var userId = UserId ?? portalUserGuid;
         
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
         //getting all the projects where this users is a member
         await using var dbContext = await DbContextFactory.CreateDbContextAsync();
+
         _userRoles = await dbContext
-            .Project_Users
-            .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser.GraphGuid == userId)
+            .UserRolesLinks
+            .Include(u => u.PortalUser)            
             .Include(u => u.Role)
-            .Include(u => u.Project)
-            .ThenInclude(p => p.Users)
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
             .Include(u => u.Project)
             .ThenInclude(p => p.Repositories)
             .Include(u => u.Project)
             .ThenInclude(p => p.Resources)
+			.AsNoTracking()
+            .AsSingleQuery()
+			.Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
+		_userEmail = _userRoles.First().PortalUser.Email;
 
         _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _leadWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();

@@ -110,7 +110,7 @@
             </DHButton>
         </DatahubAuthView>
     </MudStack>
-    <MudTable Items="@_projectUsers" Striped Filter="@(new Func<Datahub_Project_User, bool>(CombinedFilter))">
+    <MudTable Items="@_projectUsers" Striped Filter="@(new Func<UserRoleLinks, bool>(CombinedFilter))">
         <ToolBarContent>
             <MudStack Row AlignItems="AlignItems.Center">
                 <MudTabs Elevation="0" Rounded>
@@ -157,19 +157,19 @@
 
         <HeaderContent>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.PortalUser?.DisplayName))" InitialDirection="SortDirection.Ascending">
+                <MudTableSortLabel SortBy="@(new Func<UserRoleLinks, object>(x => x?.PortalUser?.DisplayName))" InitialDirection="SortDirection.Ascending">
                     @Localizer["Account"]
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.PortalUser?.Email))">
+                <MudTableSortLabel SortBy="@(new Func<UserRoleLinks, object>(x => x?.PortalUser?.Email))">
                     @Localizer["Email"]
                 </MudTableSortLabel>
             </MudTh>
             <MudTh>@Localizer["Role"]</MudTh>
             <MudTh>@Localizer["Data Steward"]</MudTh>
             <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<Datahub_Project_User, object>(x => x?.Approved_DT))">
+                <MudTableSortLabel SortBy="@(new Func<UserRoleLinks, object>(x => x?.Approved_DT))">
                     @Localizer["Added to Workspace"]
                 </MudTableSortLabel>
             </MudTh>
@@ -255,7 +255,7 @@
     private int _guestCount => _projectUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Guest) ?? 0;
     private int _allCount => _projectUsers?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed) ?? 0;
 
-    private List<Datahub_Project_User> _projectUsers;
+    private List<UserRoleLinks> _projectUsers;
     private List<WorkspaceUserInfo> _originalUserInfo = new();
 
     private int? _currentRoleFilter = default;

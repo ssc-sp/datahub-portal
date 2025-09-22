@@ -17,7 +17,7 @@
 }
 
 <MudStack>
-    @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
+    @if (_viewedPortalUser.GraphGuid == _currentGuid)
     {
         <div role="group">
             <MudStack Row AlignItems="AlignItems.End">
@@ -43,7 +43,7 @@
 
 @code {
 
-    private PortalUser _currentUser;
+    private string _currentGuid;
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
 
@@ -51,26 +51,19 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-
-        await _telemetryService.FindUserLastLogin();
-        _telemetryService.GetUserLastLogin();
-        await _userSettingsService.IsFrench();
+        _currentGuid = await _userInformationService.GetGraphUserIdString();        
     }
 
     protected override async Task OnParametersSetAsync()
     {
-        await base.OnParametersSetAsync();
-
         _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
 
-        if (_viewedPortalUser.GraphGuid != _currentUser.GraphGuid)
+        _userProjectGuid = _viewedPortalUser.GraphGuid;        
+        if (_viewedPortalUser.GraphGuid != _currentGuid)
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
 
-        _userProjectGuid = _viewedPortalUser.GraphGuid;
-        StateHasChanged();
     }
 
 }

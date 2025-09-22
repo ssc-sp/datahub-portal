@@ -17,15 +17,22 @@ public class ViewUserBase<T> : ComponentBase
     [Inject]
     protected IUserInformationService _userInformationService { get; set; } = null!;
     [Inject]
-    protected ILogger<T> _logger { get; set; } = null!;
-    
+    protected ILogger<T> _logger { get; set; } = null!;   
+
+    private PortalUser? _portalUserWithAchievements;
+
     protected async Task<PortalUser> GetViewedPortalUserWithAchievementsAsync()
     {
         try
         {
             if (!string.IsNullOrWhiteSpace(UserIdBase64))
             {
-                return await _userInformationService.GetPortalUserWithAchievementsAsync(UserIdBase64.Base64Decode());
+                if (_portalUserWithAchievements != null && _portalUserWithAchievements.GraphGuid == UserIdBase64.Base64Decode())
+                {
+                    return _portalUserWithAchievements;
+                }
+                _portalUserWithAchievements = await _userInformationService.GetPortalUserWithAchievementsAsync(UserIdBase64.Base64Decode());
+                return _portalUserWithAchievements;
             }
         }
         catch (Exception ex)
