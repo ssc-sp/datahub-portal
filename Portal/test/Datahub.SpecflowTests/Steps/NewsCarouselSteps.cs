@@ -45,7 +45,7 @@ public sealed class NewsCarouselSteps(
         var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
             .Add(p => p.Previews, new List<AnnouncementPreview>
             {
-                new(1, @"![](/api/media//uploads/upload-11ade686-9bca-43e0-b449-caf4eb74d223.png)")
+                new(1, @"![](/api/media//uploads/upload-11ade686-9bca-43e0-b449-caf4eb74d223.png)", 1)
             })
         );
         scenarioContext["newsCarousel"] = newsCarousel;
@@ -91,7 +91,7 @@ public sealed class NewsCarouselSteps(
         var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
             .Add(p => p.Previews, new List<AnnouncementPreview>
             {
-                new(1, "## hello world")
+                new(1, "## hello world", 1)
             })
         );
         scenarioContext["newsCarousel"] = newsCarousel;

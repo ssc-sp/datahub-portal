@@ -7,6 +7,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using MudBlazor;
 
 namespace Datahub.Infrastructure.Services.Announcements;
 
@@ -106,9 +107,63 @@ public class AnnouncementService : IAnnouncementService
         var articles = await ctx.Announcements
             .Where(e => !e.ForceHidden && today > e.StartDateTime && (!e.EndDateTime.HasValue || today < e.EndDateTime.Value))
             .OrderByDescending(e => e.StartDateTime)
-            .Select(e => new AnnouncementPreview(e.Id, isFrench ? e.PreviewFr : e.PreviewEn))
+            .Select(e => new AnnouncementPreview(e.Id, isFrench ? e.PreviewFr : e.PreviewEn, e.Severity))
             .ToListAsync();
 
         return articles;
+    }
+
+    public Severity GetSeverity(int n)
+    {
+        if (n == 0)
+        {
+            return Severity.Error;
+        }
+        return n == 1 ? Severity.Warning : Severity.Normal;
+    }
+
+    public Color GetColor(int n, bool isVisible=true)
+    {
+        if (isVisible)
+        {
+            switch (n)
+            {
+                case 0:
+                    return Color.Error;
+                case 1:
+                    return Color.Warning;
+                case 2:
+                    return Color.Dark;
+            }
+        }
+        return Color.Transparent;
+    }
+
+    public string GetIcon(int n)
+    {
+        switch (n)
+        {
+            case 0:
+                return Icons.Material.Outlined.ErrorOutline as string;
+            case 1:
+                return Icons.Material.Outlined.WarningAmber as string;
+            case 2:
+                return Icons.Material.Outlined.Info as string;
+        }
+        return Icons.Material.Outlined.Info as string;
+    }
+
+    public string GetText(int n)
+    {
+        switch (n)
+        {
+            case 0:
+                return "IMPORTANT";
+            case 1:
+                return "NOTICE";
+            case 2:
+                return "INFO";
+        }
+        return "INFO";
     }
 }
