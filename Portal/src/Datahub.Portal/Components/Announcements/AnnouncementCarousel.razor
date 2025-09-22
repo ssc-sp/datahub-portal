@@ -2,6 +2,7 @@
 @using MudBlazor.Utilities
 
 @inject NavigationManager _navigationManager
+@inject IAnnouncementService _announcementService
 
 @if (_previewCount > 0)
 {
@@ -16,8 +17,13 @@
             if (!preview.Preview.StartsWith("!["))
             {
                 <li class="flex-1">
-
-                    <MudPaper Elevation="0" Outlined Class="py-2 px-3">
+                    <MudAlert Severity="_announcementService.GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
+                        <div style="display: flex;">
+                            <MudChip T="string" Color="_announcementService.GetColor(preview.Severity, true)">
+                                <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" />
+                                <MudText Typo="Typo.button">@Localizer[_announcementService.GetText(preview.Severity)]</MudText>
+                            </MudChip>
+                        </div>
                         <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
                             <MudElement>
                                 <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
@@ -34,7 +40,7 @@
                                 </DHButton>
                             </MudElement>
                         </MudStack>
-                    </MudPaper>
+                    </MudAlert>
                 </li>
             }
         }
