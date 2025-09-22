@@ -252,7 +252,7 @@ else
         {
             return;
 		}
-        var portalUserGuid = await UserInformationService.GetGraphUserIdString();
+        var portalUserGuid = await UserInformationService.GetCurrentUserGraphId();
         var userId = UserId ?? portalUserGuid;
         
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();

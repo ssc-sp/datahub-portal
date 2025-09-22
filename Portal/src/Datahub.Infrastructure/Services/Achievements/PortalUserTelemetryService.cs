@@ -22,6 +22,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     private readonly IDatahubAuditingService auditingService;
 
     private DateTime? lastLogin;
+    private PortalUser _portalUser;
 
     public PortalUserTelemetryService(
         ILogger<PortalUserTelemetryService> logger,
@@ -71,9 +72,10 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
     {
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
-        var portalUser = await userInformationService.GetCurrentPortalUserWithAchievementsAsync();
+        if (_portalUser == null)
+            _portalUser = await userInformationService.GetCurrentPortalUserWithAchievementsAsync();
         // check the user exists
-        if (portalUser is null)
+        if (_portalUser is null)
         {
             logger.LogWarning("Logging Telemetry without a Portal User. Event: {eventName}", eventName);
             return;
@@ -83,7 +85,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         var engine = engineFactory.GetAchievementEngine();
 
         // collect the user current achievements
-        var currentAchievements = new HashSet<string>(portalUser.Achievements.Select(a => a.AchievementId));
+        var currentAchievements = new HashSet<string>(_portalUser.Achievements.Select(a => a.AchievementId));
 
         // evaluate the changes
         var newAchievements = await engine.Evaluate(eventName, currentAchievements).ToListAsync();
@@ -93,7 +95,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         {
             var newAchievement = new UserAchievement()
             {
-                PortalUserId = portalUser.Id,
+                PortalUserId = _portalUser.Id,
                 AchievementId = id,
                 Count = 1,
                 UnlockedAt = DateTime.UtcNow
@@ -103,7 +105,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
 
         ctx.TelemetryEvents.Add(new TelemetryEvent()
         {
-            PortalUserId = portalUser.Id,
+            PortalUserId = _portalUser.Id,
             EventName = eventName,
             EventDate = DateTime.UtcNow
         });
@@ -113,7 +115,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         // report the new achievements
         if (newAchievements.Any())
         {
-            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, portalUser.UserSettings.HideAchievements));
+            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, _portalUser.UserSettings.HideAchievements));
             await auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
         }
     }
