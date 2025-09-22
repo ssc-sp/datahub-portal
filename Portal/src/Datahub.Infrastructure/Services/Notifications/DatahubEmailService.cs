@@ -27,7 +27,7 @@ public class DatahubEmailService : IDatahubEmailService
     public async Task<bool> SendAll(string sender, string subject, string body)
     {
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var recipients = await ctx.Project_Users.Include(u => u.PortalUser).Select(u => u.PortalUser.Email).Distinct().ToListAsync();
+        var recipients = await ctx.UserRolesLinks.Include(u => u.PortalUser).Select(u => u.PortalUser.Email).Distinct().ToListAsync();
         return await SendMessage(ToList(sender), default, recipients, subject, body);
     }
 
@@ -36,7 +36,7 @@ public class DatahubEmailService : IDatahubEmailService
         var projectSet = new HashSet<string>(projects);
         
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
-        var recipients = await ctx.Project_Users
+        var recipients = await ctx.UserRolesLinks
            .Include(e => e.Project)
            .Include(u => u.PortalUser)
            .Where(e => projectSet.Contains(e.Project.Project_Acronym_CD))

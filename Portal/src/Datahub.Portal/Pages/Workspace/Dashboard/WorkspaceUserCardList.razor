@@ -90,9 +90,9 @@
 
     [Parameter] public string ProjectAcronym { get; set; }
 
-    private List<Datahub_Project_User> _projectLeads = new();
-    private List<Datahub_Project_User> _projectAdmins = new();
-    private List<Datahub_Project_User> _projectMembers = new();
+    private List<UserRoleLinks> _projectLeads = new();
+    private List<UserRoleLinks> _projectAdmins = new();
+    private List<UserRoleLinks> _projectMembers = new();
     private string _head => _projectLeads.Any() ? @Localizer["Workspace lead"] : _projectAdmins.Any() ? Localizer["Admins"] : Localizer["Collaborators"];
     private Project_Role.RoleNames _headRole => _projectLeads.Any() ? Project_Role.RoleNames.WorkspaceLead : _projectAdmins.Any() ? Project_Role.RoleNames.Admin : Project_Role.RoleNames.Collaborator;
 

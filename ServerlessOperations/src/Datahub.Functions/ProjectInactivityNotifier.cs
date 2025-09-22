@@ -62,7 +62,7 @@ namespace Datahub.Functions
 
             // get project
             var project = await ctx.Projects
-                .Include(p => p.Users)
+                .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)
                 .AsNoTracking()
                 .Where(x => x.Project_ID == message.ProjectId)
@@ -185,7 +185,7 @@ namespace Datahub.Functions
             if (project is null)
                 return default;
 
-            var contacts = project.Users?
+            var contacts = project.UserRoles?
                 .Select(u => u.PortalUser.Email)
                 .Where(emailValidator.IsValidEmail)
                 .ToList();

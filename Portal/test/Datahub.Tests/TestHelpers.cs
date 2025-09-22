@@ -46,9 +46,9 @@ public class FakePortalUserTelemetryService : IPortalUserTelemetryService
     {
     }
 
-    public DateTime? GetUserLastLogin()
+    public Task<DateTime?> GetUserLastLoginAsync()
     {
-        throw new NotImplementedException();
+        return Task.FromResult(new DateTime?());
     }
 
     public Task FindUserLastLogin()

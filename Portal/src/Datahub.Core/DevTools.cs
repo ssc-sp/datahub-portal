@@ -11,7 +11,7 @@ namespace Datahub.Core
         public static bool IsDevelopment()
         {
             var whereAmI = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-            return !string.IsNullOrEmpty(whereAmI) && whereAmI.ToLower() == "development";
+            return !string.IsNullOrEmpty(whereAmI) && (whereAmI.ToLower() == "development" || whereAmI.ToLower() == "sand");
         }
 
         public enum TopBarEnvironments

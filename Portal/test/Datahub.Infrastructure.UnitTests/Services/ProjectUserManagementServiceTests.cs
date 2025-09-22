@@ -152,7 +152,7 @@ public class ProjectUserManagementServiceTests
 
         var projectUserManagementService = GetProjectUserManagementService();
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -223,7 +223,7 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<TerraformTemplate>(), It.IsAny<PortalUser>()), Times.Once);
 
-        var projectUser = _dbContext.Project_Users
+        var projectUser = _dbContext.UserRolesLinks
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
             .First(u => u.PortalUser.GraphGuid == TestUserGraphGuid);
@@ -245,7 +245,7 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<TerraformTemplate>(), It.IsAny<PortalUser>()), Times.Never);
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -279,7 +279,7 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<TerraformTemplate>(), It.IsAny<PortalUser>()), Times.Never);
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -325,7 +325,7 @@ public class ProjectUserManagementServiceTests
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
             It.IsAny<TerraformTemplate>(), It.IsAny<PortalUser>()), Times.Never);
 
-        var existingProjectUser = await _dbContext.Project_Users
+        var existingProjectUser = await _dbContext.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -347,7 +347,7 @@ public class ProjectUserManagementServiceTests
         if (roleId == (int)Project_Role.RoleNames.Removed)
         {
             // double check that the project user is gone
-            var projectUser = await _dbContext.Project_Users
+            var projectUser = await _dbContext.UserRolesLinks
                 .AsNoTracking()
                 .Include(u => u.PortalUser).Include(u => u.Role)
                 .FirstOrDefaultAsync(u => u.PortalUser.GraphGuid == existingProjectUser.PortalUser.GraphGuid);
@@ -370,7 +370,7 @@ public class ProjectUserManagementServiceTests
     {
         var projectUserManagementService = GetProjectUserManagementService();
 
-        var seededProjectUsers = await _dbContext.Project_Users
+        var seededProjectUsers = await _dbContext.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -909,7 +909,7 @@ public class ProjectUserManagementServiceTests
             })
             .ToList();
 
-        var projectUsers = users.Select(u => new Datahub_Project_User()
+        var projectUsers = users.Select(u => new UserRoleLinks()
             {
                 PortalUser = u,
                 Project = projects[u.Id % count],

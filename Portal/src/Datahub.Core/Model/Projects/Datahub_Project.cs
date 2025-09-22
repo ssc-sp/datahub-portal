@@ -186,9 +186,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public bool IsDeleted => Deleted_DT != null && Deleted_DT < DateTime.UtcNow;
 
     /// <summary>
-    /// Gets or sets the list of users associated with the workspace.
+    /// Gets or sets the list of roles and users associated with the workspace.
     /// </summary>
-    public List<Datahub_Project_User> Users { get; set; }
+    public List<UserRoleLinks> UserRoles { get; set; }
 
     /// <summary>
     /// Gets or sets the credits for the workspace.
@@ -279,9 +279,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
     {
         get
         {
-            if (Users != null)
+            if (UserRoles != null)
             {
-                return Users.Select(x => x.PortalUser.LastLoginDateTime).Max();
+                return UserRoles.Select(x => x.PortalUser.LastLoginDateTime).Max();
             }
             return Last_Updated_DT;
         }

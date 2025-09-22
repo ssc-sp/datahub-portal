@@ -120,7 +120,7 @@ public class ServiceAuthManager : IServiceAuthManager
     {
         using var ctx = dbFactory.CreateDbContext();
 
-        return ctx.Project_Users
+        return ctx.UserRolesLinks
             .Where(a =>
                 a.Project.Project_Acronym_CD == projectAcronym
                 && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
@@ -154,7 +154,7 @@ public class ServiceAuthManager : IServiceAuthManager
             allProjectAdmins = new Dictionary<string, List<string>>();
             await using var ctx = await dbFactory.CreateDbContextAsync();
 
-            var adminsFromProjectUsersTable = await ctx.Project_Users
+            var adminsFromProjectUsersTable = await ctx.UserRolesLinks
                 .AsNoTracking()
                 .Include(a => a.Project)
                 .Include(a => a.PortalUser)
@@ -198,7 +198,7 @@ public class ServiceAuthManager : IServiceAuthManager
 
         await using var ctx = await dbFactory.CreateDbContextAsync();
 
-        var usersRoles = await ctx.Project_Users
+        var usersRoles = await ctx.UserRolesLinks
             .AsNoTracking()
             .Include(a => a.Project)
             .Include(a => a.PortalUser)

@@ -62,7 +62,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(AnonymousUser);
     }
 
-    public Task<string> GetGraphUserIdString()
+    public Task<string> GetCurrentUserGraphId()
     {
         return Task.FromResult(UserGuid.ToString());
     }

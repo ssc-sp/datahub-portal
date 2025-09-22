@@ -58,8 +58,6 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await base.OnParametersSetAsync();
-
         _isFrench = await _userSettingsService.IsFrench();
         _isAdminView = await _userInformationService.IsUserDatahubAdmin();
     }

@@ -1,10 +1,13 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Datahub.Core;
 
 namespace Datahub.Core.Data;
 
@@ -88,21 +91,45 @@ public static class EFTools
             throw new InvalidProgramException($"Cannot configure {typeof(T).Name} - no connection string for '{connectionStringName}':{connectionString}");
         }
 
+        // use existing helper to detect development environment
+        var isDev = DevTools.IsDevelopment();
+
+        // helper to add ConfigureWarnings when in dev
+        Action<DbContextOptionsBuilder> BuildSqlServerOptions()
+            => options =>
+            {
+                options.UseSqlServer(connectionString);
+                if (isDev)
+                {
+                    options.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
+                }
+            };
+
+        Action<DbContextOptionsBuilder> BuildSqliteOptions()
+            => options =>
+            {
+                options.UseSqlite(connectionString);
+                if (isDev)
+                {
+                    options.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
+                }
+            };
+
         switch (dbDriver)
         {
             case DbDriver.Memory:
-                services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
-                services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                services.AddPooledDbContextFactory<T>(BuildSqlServerOptions());
+                services.AddDbContextPool<T>(BuildSqlServerOptions());
                 break;
             case DbDriver.SqlServer:
             case DbDriver.SqlLocalDB:
             case DbDriver.Azure:
-                services.AddPooledDbContextFactory<T>(options => options.UseSqlServer(connectionString));
-                services.AddDbContextPool<T>(options => options.UseSqlServer(connectionString));
+                services.AddPooledDbContextFactory<T>(BuildSqlServerOptions());
+                services.AddDbContextPool<T>(BuildSqlServerOptions());
                 break;
             case DbDriver.Sqlite:
-                services.AddPooledDbContextFactory<T>(options => options.UseSqlite(connectionString));
-                services.AddDbContextPool<T>(options => options.UseSqlite(connectionString));
+                services.AddPooledDbContextFactory<T>(BuildSqliteOptions());
+                services.AddDbContextPool<T>(BuildSqliteOptions());
                 break;
             default:
                 throw new ArgumentException("Invalid DB driver");

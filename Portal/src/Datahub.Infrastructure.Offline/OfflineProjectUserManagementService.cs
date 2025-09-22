@@ -28,10 +28,10 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
         throw new NotImplementedException();
     }
 
-    public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
+    public async Task<List<UserRoleLinks>> GetProjectUsersAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Project_Users
+        return await context.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -46,7 +46,7 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
         using (var context = await _contextFactory.CreateDbContextAsync())
         {
             var projectAcronyms = await (from p in context.Projects
-                                         join pu in context.Project_Users on p.Project_ID equals pu.Project_ID
+                                         join pu in context.UserRolesLinks on p.Project_ID equals pu.Project_ID
                                          where pu.PortalUserId == portalUserId
                                          select p.Project_Acronym_CD).ToListAsync();
 
@@ -54,7 +54,7 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
         }
     }
 
-    public async Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym)
+    public async Task<UserRoleLinks?> GetProjectLeadAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         var users = await GetProjectUsersAsync(projectAcronym);
