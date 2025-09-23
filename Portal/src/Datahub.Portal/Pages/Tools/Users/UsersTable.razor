@@ -90,7 +90,7 @@
             <ul style="">
                 @foreach (var workspace in context.Workspaces)
                 {
-                    if (!workspace.IsDeleted && !(workspace.Users?.FirstOrDefault(u => u.PortalUserId == context.User.Id)?.RoleId == (int)Project_Role.RoleNames.Removed))
+                    if (!workspace.IsDeleted && !(workspace.UserRoles?.FirstOrDefault(u => u.PortalUserId == context.User.Id)?.RoleId == (int)Project_Role.RoleNames.Removed))
                     {
                         <li>
                             <MudLink

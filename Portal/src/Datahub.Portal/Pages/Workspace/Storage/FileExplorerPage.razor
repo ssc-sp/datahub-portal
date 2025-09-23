@@ -179,7 +179,7 @@
                               await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
 
         _project = await projectContext.Projects
-            .Include(p => p.Users)
+            .Include(p => p.UserRoles)
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
             .FirstOrDefaultAsync();

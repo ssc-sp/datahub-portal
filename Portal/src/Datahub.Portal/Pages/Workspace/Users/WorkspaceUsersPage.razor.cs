@@ -37,7 +37,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             ProjectMemberRoleFilter(_currentRoleFilter);
         }
 
-        private bool CombinedFilter(Datahub_Project_User projectUser)
+        private bool CombinedFilter(UserRoleLinks projectUser)
         {
             // use originalUser for role filtering to ensure users don't disappear from their corresponding role tab when changing role
             var originalUser = _originalUserInfo.FirstOrDefault(u => u.PortalUserId == projectUser.PortalUserId);
@@ -56,11 +56,11 @@ namespace Datahub.Portal.Pages.Workspace.Users
             _currentRoleFilter = roleId;
         }
 
-        private static bool IsDataStewardHavingRole(bool isDataSteward, Datahub_Project_User projectUser) => isDataSteward && IsAllowedRoleForDataSteward(projectUser);
+        private static bool IsDataStewardHavingRole(bool isDataSteward, UserRoleLinks projectUser) => isDataSteward && IsAllowedRoleForDataSteward(projectUser);
 
         private static bool IsRevertUpdate(ProjectUserUpdateCommand command, WorkspaceUserInfo originalInfo) => command?.NewRoleId == originalInfo?.RoleId && command?.IsDataSteward == originalInfo?.IsDataSteward;
 
-        private void ManageUserUpdateCommand(Datahub_Project_User projectUser)
+        private void ManageUserUpdateCommand(UserRoleLinks projectUser)
         {
             var existingUpdateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
             var originalUserInfo = _originalUserInfo.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
@@ -106,7 +106,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             }
         }
 
-        private void UpdateProjectMemberRole(Datahub_Project_User projectUser, int newRoleId)
+        private void UpdateProjectMemberRole(UserRoleLinks projectUser, int newRoleId)
         {
             projectUser.RoleId = newRoleId;
             projectUser.IsDataSteward = IsDataStewardHavingRole(projectUser.IsDataSteward, projectUser);
@@ -128,20 +128,20 @@ namespace Datahub.Portal.Pages.Workspace.Users
             InvokeAsync(StateHasChanged);
         }
 
-        private bool IsModified(Datahub_Project_User projectUser)
+        private bool IsModified(UserRoleLinks projectUser)
         {
             return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
         }
-        private DatahubAuthView.AuthLevels GetAuthLevel(Datahub_Project_User projectUser)
+        private DatahubAuthView.AuthLevels GetAuthLevel(UserRoleLinks projectUser)
         {
             return projectUser.Role?.Id == 2 ? DatahubAuthView.AuthLevels.DatahubSupport : DatahubAuthView.AuthLevels.WorkspaceAdmin;
         }
 
-        private static bool IsAllowedRoleForDataSteward(Datahub_Project_User projectUser) => RoleConstants.AllowedDataStewardRoleIds.Contains(projectUser.RoleId ?? 0);
+        private static bool IsAllowedRoleForDataSteward(UserRoleLinks projectUser) => RoleConstants.AllowedDataStewardRoleIds.Contains(projectUser.RoleId ?? 0);
 
-        private static bool IsDataStewardCheckboxDisabled(Datahub_Project_User projectUser) => !(projectUser.IsDataSteward || IsAllowedRoleForDataSteward(projectUser));
+        private static bool IsDataStewardCheckboxDisabled(UserRoleLinks projectUser) => !(projectUser.IsDataSteward || IsAllowedRoleForDataSteward(projectUser));
 
-        private void ChangeDataStewardFlag(Datahub_Project_User projectUser, bool newValue)
+        private void ChangeDataStewardFlag(UserRoleLinks projectUser, bool newValue)
         {
             projectUser.IsDataSteward = IsDataStewardHavingRole(newValue, projectUser);
 

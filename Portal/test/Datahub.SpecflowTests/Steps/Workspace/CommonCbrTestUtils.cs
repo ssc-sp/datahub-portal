@@ -59,14 +59,14 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 Project_Budget = 1000
             };
 
-            var w1cbrOwnerUser = new Datahub_Project_User()
+            var w1cbrOwnerUser = new UserRoleLinks()
             {
                 PortalUser = cbrOwnerUser,
                 Role = workspaceLeadRole,
                 Project = mainCbrWorkspace
             };
 
-            var w2LeadUser = new Datahub_Project_User()
+            var w2LeadUser = new UserRoleLinks()
             {
                 Role = workspaceLeadRole,
                 PortalUser = otherWorkspaceLead,
@@ -102,7 +102,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             await context.Project_Roles.AddAsync(workspaceLeadRole);
             await context.PortalUsers.AddRangeAsync(cbrOwnerUser, otherWorkspaceLead);
             await context.Projects.AddRangeAsync(mainCbrWorkspace, otherWorkspace);
-            await context.Project_Users.AddRangeAsync(w1cbrOwnerUser, w2LeadUser);
+            await context.UserRolesLinks.AddRangeAsync(w1cbrOwnerUser, w2LeadUser);
             await context.GCHostingWorkspaceDetails.AddAsync(gcHosting);
 
             await context.SaveChangesAsync();

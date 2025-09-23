@@ -734,7 +734,7 @@
         await base.OnInitializedAsync();
 
         await using var context = await ContextFactory.CreateDbContextAsync();
-        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
+        _viewedPortalUser = await GetViewedPortalUserAsync();
         _workspace = await context.Projects
             .AsNoTracking()
             .Include(w => w.Resources)

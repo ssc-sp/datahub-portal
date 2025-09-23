@@ -39,6 +39,7 @@ public class UserInformationService(
     private User currentUser = null!;
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
     private bool _isViewingAsVisitor;
+    private PortalUser _userWithAchievements;
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
@@ -47,7 +48,7 @@ public class UserInformationService(
         return authenticatedUser;
     }
 
-    public async Task<string> GetGraphUserIdString()
+    public async Task<string> GetCurrentUserGraphId()
     {
         await CheckUser();
         return GetOid();
@@ -467,7 +468,7 @@ public class UserInformationService(
 
     public async Task RegisterAuthenticatedPortalUser()
     {
-        var graphId = await GetGraphUserIdString();
+        var graphId = await GetCurrentUserGraphId();
 
         var portalUser = await GetPortalUserAsync(graphId);
         if (portalUser is null)
@@ -512,7 +513,7 @@ public class UserInformationService(
         {
             return null;
         }
-            var graphId = await GetGraphUserIdString();
+            var graphId = await GetCurrentUserGraphId();
             return await GetPortalUserAsync(graphId);
     }
 
@@ -547,7 +548,7 @@ public class UserInformationService(
 
     public async Task<bool> IsDailyLogin()
     {
-        var graphId = await GetGraphUserIdString();
+        var graphId = await GetCurrentUserGraphId();
         var portalUser = await GetPortalUserAsync(graphId);
 
         if (portalUser is null)
@@ -561,11 +562,14 @@ public class UserInformationService(
 
     public async Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync()
     {
-        var graphId = await GetGraphUserIdString();
-        return await GetPortalUserWithAchievementsAsync(graphId);
+        if (_userWithAchievements != null)
+            return _userWithAchievements;
+        var graphId = await GetCurrentUserGraphId();
+        _userWithAchievements = await LoadPortalUserWithAchievementsAsync(graphId);
+        return _userWithAchievements;
     }
 
-    public async Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    private async Task<PortalUser> LoadPortalUserWithAchievementsAsync(string userGraphId)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
 
@@ -574,9 +578,17 @@ public class UserInformationService(
             .Include(p => p.UserSettings)
             .Include(p => p.Achievements)
             .ThenInclude(a => a.Achievement)
+            .AsSingleQuery()
             .FirstAsync(p => p.GraphGuid == userGraphId);
 
         return portalUser;
+    }
+
+    public async Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    {
+        if (userGraphId == (await GetCurrentUserGraphId()))
+            return await GetCurrentPortalUserWithAchievementsAsync();
+        return await LoadPortalUserWithAchievementsAsync(userGraphId);
     }
 
     public async Task<bool> CheckUserInTenant(string email)

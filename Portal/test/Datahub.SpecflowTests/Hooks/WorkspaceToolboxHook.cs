@@ -89,12 +89,12 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.PortalUsers.Add(user);
 
-            var projectUser = new Datahub_Project_User
+            var projectUser = new UserRoleLinks
             {
                 PortalUserId = user.Id,
                 Project_ID = project.Project_ID
             };
-            context.Project_Users.Add(projectUser);
+            context.UserRolesLinks.Add(projectUser);
             await context.SaveChangesAsync();
         }
     }

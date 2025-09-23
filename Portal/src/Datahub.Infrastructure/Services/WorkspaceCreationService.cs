@@ -246,7 +246,7 @@ public class WorkspaceCreationService(
         var role = Project_Role.GetAll()
             .First(r => r.Id == (int)Project_Role.RoleNames.WorkspaceLead);
 
-        var projectUser = new Datahub_Project_User()
+        var projectUser = new UserRoleLinks()
         {
             PortalUserId = portalUser.Id,
             Approved_DT = DateTime.Now,
@@ -255,7 +255,7 @@ public class WorkspaceCreationService(
             RoleId = role.Id,
             IsDataSteward = true
         };
-        await db.Project_Users.AddAsync(projectUser);
+        await db.UserRolesLinks.AddAsync(projectUser);
 
         var projectWhiteList = new Project_Whitelist()
         {
