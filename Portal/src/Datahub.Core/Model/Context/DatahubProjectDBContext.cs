@@ -24,7 +24,7 @@ namespace Datahub.Core.Model.Context;
 public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBContext>
 {
     public DbSet<Datahub_Project> Projects { get; set; }
-    public DbSet<Datahub_Project_User> Project_Users { get; set; }
+    public DbSet<UserRoleLinks> UserRolesLinks { get; set; }
 
     public DbSet<Project_Resources2> Project_Resources2 { get; set; }
 
@@ -172,7 +172,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         var initialSetup = configuration.GetSection("InitialSetup");
         if (initialSetup?.GetValue<string>("AdminGUID") != null)
         {
-            var user = context.Project_Users.Add(new Datahub_Project_User()
+            var user = context.UserRolesLinks.Add(new UserRoleLinks()
             {
                 PortalUser = new PortalUser()
                 {
@@ -236,13 +236,13 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<MiscStoredObject>()
             .HasAlternateKey(e => new { e.TypeName, e.Id });
 
-        modelBuilder.Entity<Datahub_Project_User>()
+        modelBuilder.Entity<UserRoleLinks>()
             .HasKey(u => u.ProjectUser_ID);
 
-        modelBuilder.Entity<Datahub_Project_User>()
+        modelBuilder.Entity<UserRoleLinks>()
             .Property(u => u.ProjectUser_ID);
 
-        modelBuilder.Entity<Datahub_Project_User>()
+        modelBuilder.Entity<UserRoleLinks>()
             .HasIndex(u => new { u.Project_ID, u.PortalUserId })
             .IsUnique();
 

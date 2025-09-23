@@ -3,9 +3,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Datahub.Core.Model.Projects.Configuration;
 
-public class ProjectUsersConfiguration : IEntityTypeConfiguration<Datahub_Project_User>
+public class UserRolesLinksConfiguration : IEntityTypeConfiguration<UserRoleLinks>
 {
-    public void Configure(EntityTypeBuilder<Datahub_Project_User> builder)
+    public void Configure(EntityTypeBuilder<UserRoleLinks> builder)
     {
         builder.ToTable("Project_Users");
 
@@ -27,7 +27,7 @@ public class ProjectUsersConfiguration : IEntityTypeConfiguration<Datahub_Projec
         //     .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasOne(e => e.Project)
-            .WithMany(e => e.Users)
+            .WithMany(e => e.UserRoles)
             .HasForeignKey(e => e.Project_ID)
             .OnDelete(DeleteBehavior.NoAction);
 

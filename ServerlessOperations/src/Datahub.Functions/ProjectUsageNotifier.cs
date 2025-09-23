@@ -120,12 +120,12 @@ namespace Datahub.Functions
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var project = await ctx.Projects
-                .Include(p => p.Users)
+                .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)
                 .Where(p => p.Project_Acronym_CD == projectAcronym)
                 .FirstAsync(cancellationToken);
 
-            var adminContacts = project.Users
+            var adminContacts = project.UserRoles
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
@@ -246,7 +246,7 @@ namespace Datahub.Functions
             var project = await ctx.Projects
                 .Where(e => e.Project_Acronym_CD == projectAcronym)
                 .Include(e => e.Credits)
-                .Include(e => e.Users)
+                .Include(e => e.UserRoles)
                 .ThenInclude(e => e.PortalUser)
                 .AsSingleQuery()
                 .FirstOrDefaultAsync(cancellationToken);
@@ -254,7 +254,7 @@ namespace Datahub.Functions
             if (project is null)
                 return default;
 
-            var contacts = project.Users
+            var contacts = project.UserRoles
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)

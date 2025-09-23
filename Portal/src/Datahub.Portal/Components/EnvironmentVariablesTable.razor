@@ -174,7 +174,7 @@ else
     private bool envError = false;
     private bool loading = true;
     public bool needsRestart = false;
-    private Datahub_Project_User? projectUser;
+    private UserRoleLinks? projectUser;
     
 
     protected override async Task OnInitializedAsync()
@@ -183,7 +183,7 @@ else
         {
             var ctx = await _dbContextFactory.CreateDbContextAsync();
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            projectUser = ctx.Project_Users.Include(datahubProjectUser => datahubProjectUser.Role)
+            projectUser = ctx.UserRolesLinks.Include(datahubProjectUser => datahubProjectUser.Role)
                 .FirstOrDefault(u => u.PortalUser.Id == currentUser.Id);
             var role = projectUser.Role;
             envVars = await GetEnvironmentVariables();

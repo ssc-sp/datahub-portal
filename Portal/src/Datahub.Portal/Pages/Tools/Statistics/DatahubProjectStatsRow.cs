@@ -9,7 +9,7 @@ public class DatahubProjectStatsRow
     public string Name { get; set; }
     public string Acronym { get; set; }
     
-    public List<Datahub_Project_User> AllUsers { get; set; }
+    public List<UserRoleLinks> AllUsers { get; set; }
     public List<Project_Resources2> ProvisionedResources { get; set; }
     public string Department { get; set; }
     public DateTime? LastLogin { get; set; }

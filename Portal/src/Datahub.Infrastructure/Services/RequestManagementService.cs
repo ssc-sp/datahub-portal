@@ -111,7 +111,7 @@ public class RequestManagementService(
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
                 .Include(p => p.Resources)
-                .Include(p => p.Users)
+                .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)
                 .FirstOrDefaultAsync(p => p.Project_ID == datahubProject.Project_ID);
 
@@ -198,7 +198,7 @@ public class RequestManagementService(
         workspaceDefinition.UpdateWorkspaceVersion = true;
         await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
     }                    
-    public static Role GetTerraformUserRole(Datahub_Project_User projectUser)
+    public static Role GetTerraformUserRole(UserRoleLinks projectUser)
     {
         return projectUser.RoleId switch
         {
