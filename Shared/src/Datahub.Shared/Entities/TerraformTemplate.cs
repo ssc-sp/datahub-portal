@@ -98,35 +98,22 @@ public class TerraformTemplate(string name, string status)
         };
     }
 
+    public static IEnumerable<string> GetDependencyNames(string toolName) => toolName switch
+    {
+        NewProjectTemplate => [],
+        VariableUpdate => [],
+        AzureStorageBlob => [NewProjectTemplate],
+        AzureDatabricks => [NewProjectTemplate, AzureStorageBlob],
+        AzureAppService => [NewProjectTemplate, AzureStorageBlob],
+        AzurePostgres => [NewProjectTemplate],
+        _ => []
+    };
+
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
-        return VersionAwareWorkspaceToolInfo.VERSION_AWARE_WORKSPACE_TOOLS
-            .FirstOrDefault(t => t.ToolName == name)?
-            .ToolDependencies
+        return GetDependencyNames(name)
             .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested))
             .ToList() ?? [];
-        //return name switch
-        //{
-        //    NewProjectTemplate => [],
-        //    VariableUpdate => [],
-        //    AzureStorageBlob => [
-        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-        //    ],
-        //    AzureDatabricks =>
-        //    [
-        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-        //        new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
-        //    ],
-        //    AzureAppService =>
-        //    [
-        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-        //        new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
-        //    ],
-        //    AzurePostgres => [
-        //        new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-        //    ],
-        //    _ => throw new ArgumentException($"Unknown template name: {name}")
-        //};
     }
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {

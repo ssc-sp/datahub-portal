@@ -19,129 +19,132 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
     {
         #region Tool utilities
 
-        // Because the dependencies are used outside of the toolbox page, and the SidebarIcons class isn't available in Shared, we apply the icons here
-        private static VersionAwareWorkspaceToolInfo ApplyIconToTool(VersionAwareWorkspaceToolInfo tool)
+        private readonly IDictionary<string, VersionAwareWorkspaceToolInfo> _versionAwareTools = new Dictionary<string, VersionAwareWorkspaceToolInfo>()
         {
-            tool.ToolIcon = tool.ToolName switch
-            {
-                TerraformTemplate.NewProjectTemplate => SidebarIcons.Workspace,
-                TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
-                TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
-                TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
-                TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
-                TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
-                TerraformTemplate.AzureAPI => SidebarIcons.Api,
-                _ => SidebarIcons.Default
-            };
+            { TerraformTemplate.NewProjectTemplate, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.NewProjectTemplate,
+                    ToolLabel = "Azure Workspace Essentials",
+                    ToolCategory = "Core",
+                    ToolDescription =
+                        "The basic tools required to host your workspace. This includes Azure Key vault, some monitoring and a virtual network, among other things.",
+                    ToolIcon = SidebarIcons.Workspace,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                    CanBeDeleted = false,
+                    ToolCostInformation = ("Workspace essentials are the backbone of your workspace in the cloud, and costs related to the various resources this includes sum up to less than {0:C2} per month.", [1.0])
+                }
+            },
+            { TerraformTemplate.AzureDatabricks, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.AzureDatabricks,
+                    ToolLabel = "Azure Databricks",
+                    ToolCategory = "Compute & Analytics",
+                    ToolDescription =
+                        "Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service.",
+                    ToolIcon = SidebarIcons.Databricks,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                    CanBeDeleted = false,
+                    ConfigurationVersions =
+                    [
+                        new VersionAwareWorkspaceToolConfigInfo
+                        {
+                            MinVersion = new Version(5, 2, 0)
+                            //TODO config details
+                        },
+                    ],
+                    ToolCostInformation = ("The cost of Databricks is completely dependent on your usage. The idle costs of Databricks when not using it at all are nearly $0. Small compute clusters will cost about {0:C2} to {1:C2} per hour of usage, regular compute clusters will cost about {2:C2} to {3:C2} per hour of usage and large compute clusters will cost {4:C2} to {5:C2} per hour of usage. Additional costs may be incurred by other usage (data catalog, compute creation, etc.) and prices mentioned refer to default configurations. Make sure to read the additional information below for more details on costs.", [0.80, 2.40, 1.60, 4.80, 3.20, 9.60]),
+                    AdditionalLinks = [
+                        ("Azure Databricks documentation", "https://docs.microsoft.com/en-us/azure/databricks/"),
+                        ("Azure Databricks pricing", "https://azure.microsoft.com/en-us/pricing/details/databricks/")
+                    ]
+                }
+            },
+            { TerraformTemplate.AzureStorageBlob, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.AzureStorageBlob,
+                    ToolLabel = "Azure Storage Blob",
+                    ToolCategory = "Storage",
+                    ToolDescription =
+                        "Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data.",
+                    ToolIcon = SidebarIcons.Storage,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                    CanBeDeleted = false,
+                    ToolCostInformation = ("Storage costs are about {0:C2} per terabyte of hot storage per month. Uploading and downloading to cloud storage also incurs bandwidth costs. See additional information below for details on costing.", [30.0]),
+                    AdditionalLinks = [
+                        ("Introduction to Azure Storage", "https://learn.microsoft.com/en-us/azure/storage/common/storage-introduction"),
+                        ("Azure Storage pricing", "https://azure.microsoft.com/en-us/pricing/details/storage/blobs/")
+                    ]
+                }
+            },
+            { TerraformTemplate.AzureAppService, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.AzureAppService,
+                    ToolLabel = "Web Application",
+                    ToolCategory = "Web",
+                    ToolDescription =
+                        "Web Application is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo.",
+                    ToolIcon = SidebarIcons.WebApp,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                    ToolCostInformation = ("The default App Service offered costs about {0:C2} per month, regardless of usage. Changing configurations will affect the cost of this resource. Stopping the web application does not stop the costs. Read more about this resource below.", [60.0]), 
+                    AdditionalLinks = [
+                        ("Azure App Service documentation", "https://docs.microsoft.com/en-us/azure/app-service/"),
+                        ("Azure App Service pricing", "https://azure.microsoft.com/en-us/pricing/details/app-service/")
+                    ]
+                }
+            },
+            { TerraformTemplate.AzurePostgres, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.AzurePostgres,
+                    ToolLabel = "Azure Postgres",
+                    ToolCategory = "Databases",
+                    ToolDescription =
+                        "Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability.",
+                    ToolIcon = SidebarIcons.SqlDatabase,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                    ConfigurationVersions =
+                    [
+                        new VersionAwareWorkspaceToolConfigInfo
+                        {
+                            MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS
+                        }
+                    ],
+                    ToolCostInformation = ("The default Postgres offered costs about {0:C2} per month plus {1:C2} per month per GB of storage, regardless of usage. Changing configurations will affect the cost of this resource. Read more about this resource below.", [20.0, 0.18] ),
+                    AdditionalLinks = [
+                        ("Azure Database for PostgreSQL documentation", "https://docs.microsoft.com/en-us/azure/postgresql/"),
+                        ("Azure Database for PostgreSQL pricing", "https://azure.microsoft.com/en-us/pricing/details/postgresql/")
+                    ]
+                }
+            },
+            { TerraformTemplate.AzureArcGis, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.AzureArcGis,
+                    ToolLabel = "Azure ArcGIS",
+                    ToolCategory = "Data & Analytics",
+                    ToolDescription =
+                        "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.",
+                    ToolIcon = SidebarIcons.ArcGis,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.UNDER_DEVELOPMENT,
+                }
+            },
+            { TerraformTemplate.AzureAPI, new VersionAwareWorkspaceToolInfo
+                {
+                    ToolName = TerraformTemplate.AzureAPI,
+                    ToolLabel = "Azure API Management",
+                    ToolCategory = "API",
+                    ToolDescription =
+                        "Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service.",
+                    ToolIcon = SidebarIcons.Api,
+                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.UNDER_DEVELOPMENT,
+                }
+            }
+        };
 
-            return tool;
-        }
-
-        private readonly IDictionary<string, VersionAwareWorkspaceToolInfo> _versionAwareTools = VersionAwareWorkspaceToolInfo.VERSION_AWARE_WORKSPACE_TOOLS
-            .ToDictionary(t => t.ToolName, ApplyIconToTool);
-        //private readonly IDictionary<string, VersionAwareWorkspaceToolInfo> _versionAwareTools = new Dictionary<string, VersionAwareWorkspaceToolInfo>()
-        //{
-        //    { TerraformTemplate.NewProjectTemplate, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.NewProjectTemplate,
-        //            ToolLabel = "Azure Workspace Essentials",
-        //            ToolCategory = "Core",
-        //            ToolDescription =
-        //                "The basic tools required to host your workspace. This includes Azure Key vault, some monitoring and a virtual network, among other things.",
-        //            ToolIcon = SidebarIcons.Workspace,
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-        //            CanBeDeleted = false
-        //        }
-        //    },
-        //    { TerraformTemplate.AzureDatabricks, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.AzureDatabricks,
-        //            ToolLabel = "Azure Databricks",
-        //            ToolCategory = "Compute & Analytics",
-        //            ToolDescription =
-        //                "Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service.",
-        //            ToolIcon = SidebarIcons.Databricks,
-        //            ToolDependencies = [ TerraformTemplate.NewProjectTemplate, TerraformTemplate.AzureStorageBlob ],
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-        //            CanBeDeleted = false,
-        //            ConfigurationVersions =
-        //            [
-        //                new VersionAwareWorkspaceToolConfigInfo
-        //                {
-        //                    MinVersion = new Version(5, 2, 0)
-        //                    //TODO config details
-        //                }
-        //            ]
-        //        }
-        //    },
-        //    { TerraformTemplate.AzureStorageBlob, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.AzureStorageBlob,
-        //            ToolLabel = "Azure Storage Blob",
-        //            ToolCategory = "Storage",
-        //            ToolDescription =
-        //                "Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data.",
-        //            ToolIcon = SidebarIcons.Storage,
-        //            ToolDependencies = [ TerraformTemplate.NewProjectTemplate ],
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-        //            CanBeDeleted = false
-        //        }
-        //    },
-        //    { TerraformTemplate.AzureAppService, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.AzureAppService,
-        //            ToolLabel = "Web Application",
-        //            ToolCategory = "Web",
-        //            ToolDescription =
-        //                "Web Application is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo.",
-        //            ToolIcon = SidebarIcons.WebApp,
-        //            ToolDependencies = [ TerraformTemplate.NewProjectTemplate, TerraformTemplate.AzureStorageBlob ],
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-        //        }
-        //    },
-        //    { TerraformTemplate.AzurePostgres, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.AzurePostgres,
-        //            ToolLabel = "Azure Postgres",
-        //            ToolCategory = "Databases",
-        //            ToolDescription =
-        //                "Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability.",
-        //            ToolIcon = SidebarIcons.SqlDatabase,
-        //            ToolDependencies = [ TerraformTemplate.NewProjectTemplate ],
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-        //            ConfigurationVersions =
-        //            [
-        //                new VersionAwareWorkspaceToolConfigInfo
-        //                {
-        //                    MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS
-        //                }
-        //            ]
-        //        }
-        //    },
-        //    { TerraformTemplate.AzureArcGis, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.AzureArcGis,
-        //            ToolLabel = "Azure ArcGIS",
-        //            ToolCategory = "Data & Analytics",
-        //            ToolDescription =
-        //                "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database.",
-        //            ToolIcon = SidebarIcons.ArcGis,
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.FAR_FUTURE,
-        //        }
-        //    },
-        //    { TerraformTemplate.AzureAPI, new VersionAwareWorkspaceToolInfo
-        //        {
-        //            ToolName = TerraformTemplate.AzureAPI,
-        //            ToolLabel = "Azure API Management",
-        //            ToolCategory = "API",
-        //            ToolDescription =
-        //                "Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service.",
-        //            ToolIcon = SidebarIcons.Api,
-        //            MinAvailableVersion = VersionAwareWorkspaceToolInfo.FAR_FUTURE,
-        //        }
-        //    }
-        //};
-
+        /// <summary>
+        /// Retrieves information about a version-aware workspace tool by its name.
+        /// </summary>
+        /// <param name="toolName">The name of the tool to retrieve information for. This value cannot be <see langword="null"/> or empty.</param>
+        /// <returns>A <see cref="VersionAwareWorkspaceToolInfo"/> object containing information about the specified tool.</returns>
+        /// <exception cref="ArgumentException">Thrown if the specified <paramref name="toolName"/> is not defined.</exception>
         private VersionAwareWorkspaceToolInfo GetToolInfo(string toolName)
         {
             if (_versionAwareTools.TryGetValue(toolName, out var toolInfo))
@@ -151,68 +154,50 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             throw new ArgumentException($"Tool '{toolName}' not found.");
         }
 
-        // List of possible tools
-        //private readonly List<string> _toolList =
-        //[
-        //    TerraformTemplate.NewProjectTemplate,
-        //    TerraformTemplate.AzureDatabricks,
-        //    TerraformTemplate.AzureStorageBlob,
-        //    TerraformTemplate.AzureAppService,
-        //    TerraformTemplate.AzurePostgres,
-        //    TerraformTemplate.AzureArcGis,
-        //    TerraformTemplate.AzureAPI
-        //];
-
-        // List of tools that cannot be deleted
-        //private readonly List<string> _permanentToolList =
-        //[
-        //    TerraformTemplate.AzureDatabricks,
-        //    TerraformTemplate.AzureStorageBlob,
-        //    TerraformTemplate.NewProjectTemplate
-        //];
-
-        // List of tools that can be configured
-        //private readonly List<string> _configurableToolList =
-        //[
-        //    TerraformTemplate.AzurePostgres,
-        //    TerraformTemplate.AzureDatabricks
-        //];
+        /// <summary>
+        /// Determines whether the specified tool is configurable for the current workspace version.
+        /// </summary>
+        /// <param name="toolInfo">The tool information, including version compatibility details.</param>
+        /// <returns><see langword="true"/> if the tool is configurable for the current workspace version; otherwise, <see
+        /// langword="false"/>.</returns>
+        private bool IsConfigurable(VersionAwareWorkspaceToolInfo toolInfo) =>
+            toolInfo.IsConfigurable(_workspaceVersion);
 
         /// <summary>
-        /// Checks if a transaction concerns a configurable tool and that the transaction is to configure or add.
+        /// Determines whether the specified transaction is configurable.
         /// </summary>
-        /// <param name="transaction">The transaction to check.</param>
-        /// <returns>True if the tool is configurable and the transaction is not a removal, otherwise false.</returns>
-        //private bool IsConfigurable(ToolboxTransaction transaction, System.Version workspaceVersion) =>
-        //    _configurableToolList.Contains(transaction.Tool) && 
-        //    transaction.Type != ToolboxTransactionType.Remove &&
-        //    (transaction.Tool != TerraformTemplate.AzureDatabricks || workspaceVersion >= DatabricksConfiguration.MinimumConfigurableWorkspaceVersion);
-
-        private bool IsConfigurable(ToolboxTransaction transaction, Version workspaceVersion) =>
-            IsConfigurable(transaction.Tool, workspaceVersion) &&
+        /// <remarks>A transaction is considered configurable if the associated tool information meets the
+        /// configurability criteria and the transaction type is not <see
+        /// cref="ToolboxTransactionType.Remove"/>.</remarks>
+        /// <param name="transaction">The transaction to evaluate.</param>
+        /// <returns><see langword="true"/> if the transaction is configurable; otherwise, <see langword="false"/>.</returns>
+        private bool IsConfigurable(ToolboxTransaction transaction) =>
+            IsConfigurable(GetToolInfo(transaction.Tool)) &&
             transaction.Type != ToolboxTransactionType.Remove;
 
-        private bool IsConfigurable(string toolName, Version workspaceVersion) =>
-            GetToolInfo(toolName).IsConfigurable(workspaceVersion);
+        /// <summary>
+        /// Determines whether the specified tool is configurable in a more recent workspace version.
+        /// </summary>
+        /// <param name="toolInfo">The tool information containing versioning details.</param>
+        /// <returns><see langword="true"/> if the tool is configurable in a more recent workspace version; otherwise, <see
+        /// langword="false"/>.</returns>
+        private bool IsConfigurableInFutureVersion(VersionAwareWorkspaceToolInfo toolInfo) => 
+            toolInfo.IsConfigurableInFutureVersion(_workspaceVersion);
 
-        // Availability status options for our tools
-        //internal record struct AvailabilityStatus
-        //{
-        //    public const string Available = "Available";
-        //    public const string UnderDevelopment = "Under Development";
-        //    public const string MetadataRequired = "Metadata Required";
-        //    public const string Disabled = "Disabled";
-        //}
         internal enum AvailabilityStatus
         {
             Available,
             UnderDevelopment,
-            MetadataRequired,
             Disabled,
             UpgradeWorkspace
         }
 
-        private bool IsDeletable(string tool) => GetToolInfo(tool).CanBeDeleted;
+        /// <summary>
+        /// Determines whether the specified tool can be deleted.
+        /// </summary>
+        /// <param name="toolInfo">The tool information containing the deletion status.</param>
+        /// <returns><see langword="true"/> if the tool can be deleted; otherwise, <see langword="false"/>.</returns>
+        private bool IsDeletable(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.CanBeDeleted;
 
         /// <summary>
         /// Gets the label associated with each availability status.
@@ -223,112 +208,64 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             AvailabilityStatus.Available => Localizer["Available"],
             AvailabilityStatus.UnderDevelopment => Localizer["Under Development"],
-            AvailabilityStatus.MetadataRequired => Localizer["Metadata Required"],
             AvailabilityStatus.Disabled => Localizer["Disabled"],
             AvailabilityStatus.UpgradeWorkspace => Localizer["Upgrade Workspace"],
             _ => throw new NotImplementedException()
         };
 
-        // Map of tools to their availability status
-        private readonly Dictionary<string, AvailabilityStatus> _toolAvailabilityStatusMap = new()
+        /// <summary>
+        /// Get the availability status for a given tool based on its configuration and the current workspace version.
+        /// </summary>
+        /// <param name="toolInfo">The tool to get availability status for</param>
+        /// <returns>Availability status for the given tool</returns>
+        private AvailabilityStatus GetAvailabilityStatus(VersionAwareWorkspaceToolInfo toolInfo)
         {
-            { TerraformTemplate.NewProjectTemplate, AvailabilityStatus.Available },
-            { TerraformTemplate.AzureDatabricks, AvailabilityStatus.Available },
-            { TerraformTemplate.AzureStorageBlob, AvailabilityStatus.Available },
-            { TerraformTemplate.AzureAppService, AvailabilityStatus.Available },
-            { TerraformTemplate.AzurePostgres, AvailabilityStatus.Available },
-            { TerraformTemplate.AzureArcGis, AvailabilityStatus.UnderDevelopment },
-            { TerraformTemplate.AzureAPI, AvailabilityStatus.UnderDevelopment }
-        };
+            if (toolInfo.IsDisabled)
+            {
+                return AvailabilityStatus.Disabled;
+            }
+
+            if (toolInfo.MinAvailableVersion == VersionAwareWorkspaceToolInfo.UNDER_DEVELOPMENT)
+            {
+                return AvailabilityStatus.UnderDevelopment;
+            }
+
+            if (toolInfo.MinAvailableVersion > _workspaceVersion)
+            {
+                return AvailabilityStatus.UpgradeWorkspace;
+            }
+
+            return AvailabilityStatus.Available;
+        }
 
         /// <summary>
         /// Gets the display label for each tool.
         /// </summary>
-        /// <param name="tool">The tool identifier.</param>
+        /// <param name="toolInfo">The tool to get the label for.</param>
         /// <returns>The localized label for the tool.</returns>
-        private string ToolLabel(string tool) => Localizer[GetToolInfo(tool).ToolLabel];
-        //{
-        //    //return tool switch
-        //    //{
-        //    //    TerraformTemplate.NewProjectTemplate => Localizer["Azure Workspace Essentials"],
-        //    //    TerraformTemplate.AzureDatabricks => Localizer["Azure Databricks"],
-        //    //    TerraformTemplate.AzureStorageBlob => Localizer["Azure Storage Blob"],
-        //    //    TerraformTemplate.AzureAppService => Localizer["Web Application"],
-        //    //    TerraformTemplate.AzurePostgres => Localizer["Azure Postgres"],
-        //    //    TerraformTemplate.AzureArcGis => Localizer["Azure ArcGIS"],
-        //    //    TerraformTemplate.AzureAPI => Localizer["Azure API Management"],
-        //    //    _ => tool
-        //    //};
-        //    var toolInfo = GetToolInfo(tool);
-        //    return Localizer[toolInfo.ToolLabel];
-        //}
+        private string ToolLabel(VersionAwareWorkspaceToolInfo toolInfo) => Localizer[toolInfo.ToolLabel];
 
         /// <summary>
         /// Gets the category for each tool.
         /// </summary>
-        /// <param name="tool">The tool identifier.</param>
+        /// <param name="toolInfo">The tool to get the category for.</param>
         /// <returns>The localized category for the tool.</returns>
-        private string ToolCategory(string tool) => Localizer[GetToolInfo(tool).ToolCategory];
-        //{
-        //    return tool switch
-        //    {
-        //        TerraformTemplate.NewProjectTemplate => Localizer["Core"],
-        //        TerraformTemplate.AzureDatabricks => Localizer["Compute & Analytics"],
-        //        TerraformTemplate.AzureStorageBlob => Localizer["Storage"],
-        //        TerraformTemplate.AzureAppService => Localizer["Web"],
-        //        TerraformTemplate.AzurePostgres => Localizer["Databases"],
-        //        TerraformTemplate.AzureArcGis => Localizer["Data & Analytics"],
-        //        TerraformTemplate.AzureAPI => Localizer["API"],
-        //        _ => tool
-        //    };
-        //}
+        private string ToolCategory(VersionAwareWorkspaceToolInfo toolInfo) => Localizer[toolInfo.ToolCategory];
 
         /// <summary>
         /// Gets the description for each tool.
         /// </summary>
-        /// <param name="tool">The tool identifier.</param>
+        /// <param name="toolInfo">The tool to get the description for.</param>
         /// <returns>The localized description for the tool.</returns>
-        private string ToolDescription(string tool) => Localizer[GetToolInfo(tool).ToolDescription];
-        //{
-        //    return tool switch
-        //    {
-        //        TerraformTemplate.NewProjectTemplate => Localizer[
-        //            "The basic tools required to host your workspace. This includes Azure Key vault, some monitoring and a virtual network, among other things."],
-        //        TerraformTemplate.AzureDatabricks => Localizer[
-        //            "Azure Databricks is a fast, easy, and collaborative Apache Spark-based analytics platform. Accelerate big data analytics and artificial intelligence (AI) solutions with Azure Databricks, a fast, easy and collaborative Apache Spark-based analytics service."],
-        //        TerraformTemplate.AzureStorageBlob => Localizer[
-        //            "Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data."],
-        //        TerraformTemplate.AzureAppService => Localizer[
-        //            "Web Application is a fully managed web hosting service for building web apps, mobile back ends, and RESTful APIs. It offers auto-scaling and high availability, supports both Windows and Linux, and enables automated deployments from GitHub, Azure DevOps, or any Git repo."],
-        //        TerraformTemplate.AzurePostgres => Localizer[
-        //            "Azure Database for PostgreSQL is a relational database service based on the open-source Postgres database engine. It's a fully managed database-as-a-service offering that can handle mission-critical workloads with predictable performance, security, high availability, and dynamic scalability."],
-        //        TerraformTemplate.AzureArcGis => Localizer[
-        //            "ArcGIS is a geographic information system (GIS) for working with maps and geographic information. It is used for creating and using maps, compiling geographic data, analyzing mapped information, sharing and discovering geographic information, using maps and geographic information in a range of applications, and managing geographic information in a database."],
-        //        TerraformTemplate.AzureAPI => Localizer[
-        //            "Azure API Management is a fully managed service that enables participants to publish, secure, transform, maintain, and monitor APIs. To use API Management, you must first create an Azure App Service."],
-        //        _ => tool
-        //    };
-        //}
+        private string ToolDescription(VersionAwareWorkspaceToolInfo toolInfo) => Localizer[toolInfo.ToolDescription];
 
         /// <summary>
         /// Gets the icon for each tool.
         /// </summary>
-        /// <param name="tool">The tool identifier.</param>
+        /// <param name="toolInfo">The tool to get the icon for.</param>
         /// <returns>The icon identifier for the tool.</returns>
-        private string ToolIcon(string tool) => GetToolInfo(tool).ToolIcon;
-        //{
-        //    return tool switch
-        //    {
-        //        TerraformTemplate.NewProjectTemplate => SidebarIcons.Workspace,
-        //        TerraformTemplate.AzureDatabricks => SidebarIcons.Databricks,
-        //        TerraformTemplate.AzureStorageBlob => SidebarIcons.Storage,
-        //        TerraformTemplate.AzureAppService => SidebarIcons.WebApp,
-        //        TerraformTemplate.AzurePostgres => SidebarIcons.SqlDatabase,
-        //        TerraformTemplate.AzureArcGis => SidebarIcons.ArcGis,
-        //        TerraformTemplate.AzureAPI => SidebarIcons.Api,
-        //        _ => SidebarIcons.Default
-        //    };
-        //}
+        private string ToolIcon(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.ToolIcon;
+        
 
         /// <summary>
         /// Calculates how many instances of a tool are currently in use.
@@ -346,56 +283,25 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <summary>
         /// Gets the dependencies for each tool.
         /// </summary>
-        /// <param name="tool">The tool identifier.</param>
+        /// <param name="toolInfo">The tool to get dependencies for.</param>
         /// <returns>An array of tuples containing the icon and name of each dependency.</returns>
-        private (string Icon, string Name)[] ToolDependencies(string tool)
-        {
-            var toolInfo = GetToolInfo(tool);
-            var dependencies = toolInfo.ToolDependencies;
-            return dependencies.Select(GetToolInfo)
-                .Select(d => (d.ToolIcon, d.ToolLabel))
+        private (string Icon, string Name)[] ToolDependencies(VersionAwareWorkspaceToolInfo toolInfo) =>
+            toolInfo.ToolDependencies
+                .Select(GetToolInfo)
+                .Select(dependencyInfo => (ToolIcon(dependencyInfo), ToolLabel(dependencyInfo)))
                 .ToArray();
-
-            //try
-            //{
-            //    var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
-            //    return dependencies.Select(dependency => (ToolIcon(dependency.Name), ToolLabel(dependency.Name)))
-            //        .ToArray();
-            //}
-            //catch
-            //{
-            //    return [];
-            //}
-        }
-
+        
         /// <summary>
         /// Long form cost information for each resource
         /// </summary>
-        /// <param name="tool">The tool to get cost information for</param>
+        /// <param name="toolInfo">The tool to get cost information for</param>
         /// <returns>A localized string providing cost information</returns>
-        private string ToolCostInformation(string tool)
+        private string ToolCostInformation(VersionAwareWorkspaceToolInfo toolInfo)
         {
-            return tool switch
-            {
-                TerraformTemplate.NewProjectTemplate => Localizer[
-                    "Workspace essentials are the backbone of your workspace in the cloud, and costs related to the various resources this includes sum up to less than {0:C2} per month.",
-                    1.0],
-                TerraformTemplate.AzureDatabricks => Localizer[
-                    "The cost of Databricks is completely dependent on your usage. The idle costs of Databricks when not using it at all are nearly $0. Small compute clusters will cost about {0:C2} to {1:C2} per hour of usage, regular compute clusters will cost about {2:C2} to {3:C2} per hour of usage and large compute clusters will cost {4:C2} to {5:C2} per hour of usage. Additional costs may be incurred by other usage (data catalog, compute creation, etc.) and prices mentioned refer to default configurations. Make sure to read the additional information below for more details on costs.",
-                    0.80, 2.40, 1.60, 4.80, 3.20, 9.60],
-                TerraformTemplate.AzureStorageBlob => Localizer[
-                    "Storage costs are about {0:C2} per terabyte of hot storage per month. Uploading and downloading to cloud storage also incurs bandwidth costs. See additional information below for details on costing.",
-                    30.0],
-                TerraformTemplate.AzurePostgres => Localizer[
-                    "The default Postgres offered costs about {0:C2} per month plus {1:C2} per month per GB of storage, regardless of usage. Changing configurations will affect the cost of this resource. Read more about this resource below.",
-                    20.0, 0.18],
-                TerraformTemplate.AzureAppService => Localizer[
-                    "The default App Service offered costs about {0:C2} per month, regardless of usage. Changing configurations will affect the cost of this resource. Stopping the web application does not stop the costs. Read more about this resource below.",
-                    60.0],
-                _ => Localizer["No cost information available for this resource."]
-            };
+            var (info, args) = toolInfo.ToolCostInformation;
+            return Localizer[info, args];
         }
-
+        
         /// <summary>
         /// Short form cost calculation for each transaction
         /// </summary>
@@ -432,43 +338,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <summary>
         /// List of additional links for each tool
         /// </summary>
-        /// <param name="tool">The tool to get additional links for</param>
-        /// <returns>A list of tuples of text/URL for additional info on each tool</returns>
-        private (string Text, string URL)[] ToolAdditionalLinks(string tool)
-        {
-            return tool switch
-            {
-                TerraformTemplate.AzureStorageBlob =>
-                [
-                    (Localizer["Introduction to Azure Storage"],
-                        Localizer["https://learn.microsoft.com/en-us/azure/storage/common/storage-introduction"]),
-                    (Localizer["Azure Storage pricing"],
-                        Localizer["https://azure.microsoft.com/en-us/pricing/details/storage/blobs/"]),
-                ],
-                TerraformTemplate.AzurePostgres =>
-                [
-                    (Localizer["Azure Database for PostgreSQL documentation"],
-                        Localizer["https://docs.microsoft.com/en-us/azure/postgresql/"]),
-                    (Localizer["Azure Database for PostgreSQL pricing"],
-                        Localizer["https://azure.microsoft.com/en-us/pricing/details/postgresql/"]),
-                ],
-                TerraformTemplate.AzureDatabricks =>
-                [
-                    (Localizer["Azure Databricks documentation"],
-                        Localizer["https://docs.microsoft.com/en-us/azure/databricks/"]),
-                    (Localizer["Azure Databricks pricing"],
-                        Localizer["https://azure.microsoft.com/en-us/pricing/details/databricks/"]),
-                ],
-                TerraformTemplate.AzureAppService =>
-                [
-                    (Localizer["Azure App Service documentation"],
-                        Localizer["https://docs.microsoft.com/en-us/azure/app-service/"]),
-                    (Localizer["Azure App Service pricing"],
-                        Localizer["https://azure.microsoft.com/en-us/pricing/details/app-service/"]),
-                ],
-                _ => Array.Empty<(string, string)>()
-            };
-        }
+        /// <param name="toolInfo">The tool to get additional links for</param>
+        /// <returns>An array of tuples of text/URL for additional info on each tool</returns>
+        private (string Text, string URL)[] ToolAdditionalLinks(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.AdditionalLinks
+            .Select(linkInfo => (Localizer[linkInfo.Text].ToString(), Localizer[linkInfo.URL].ToString()))
+            .ToArray();
+        
 
         /// <summary>
         /// Converts a difference dictionary into a human-readable string.
@@ -933,14 +808,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private void PopulateCatalog()
         {
-            //_toolList.ForEach(tool =>
-            //{
-            //    if (_workspaceDefinition.Templates.All(template => template.Name != tool))
-            //    {
-            //        _toolCatalog.Add(tool);
-            //    }
-            //});
-
             var existingTools = _workspaceDefinition.Templates.Select(t => t.Name).ToHashSet();
             _toolCatalog.AddRange(_versionAwareTools.Keys.Where(t => !existingTools.Contains(t)));
         }
@@ -952,17 +819,18 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <param name="id">The HTML id to use in the dialog</param>
         private async Task ShowInfoSheet(string tool, string id)
         {
+            var toolInfo = GetToolInfo(tool);
             var infoParams = new DialogParameters
             {
-                { "Title", ToolLabel(tool) },
-                { "Description", ToolDescription(tool) },
-                { "Icon", ToolIcon(tool) },
-                { "Category", ToolCategory(tool) },
-                { "Dependencies", ToolDependencies(tool) },
+                { "Title", ToolLabel(toolInfo) },
+                { "Description", ToolDescription(toolInfo) },
+                { "Icon", ToolIcon(toolInfo) },
+                { "Category", ToolCategory(toolInfo) },
+                { "Dependencies", ToolDependencies(toolInfo) },
                 { "Instances", await ToolInstances(tool) },
-                { "Availability", AvailabilityLabel(_toolAvailabilityStatusMap[tool]) },
-                { "CostInformation", ToolCostInformation(tool) },
-                { "AdditionalLinks", ToolAdditionalLinks(tool) },
+                { "Availability", AvailabilityLabel(GetAvailabilityStatus(toolInfo)) },
+                { "CostInformation", ToolCostInformation(toolInfo) },
+                { "AdditionalLinks", ToolAdditionalLinks(toolInfo) },
                 { "Id", id }
             };
 
@@ -974,7 +842,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 MaxWidth = MaxWidth.Large
             };
 
-            await DialogService.ShowAsync<InfoSheet>(ToolLabel(tool), infoParams, infoOptions);
+            await DialogService.ShowAsync<InfoSheet>(ToolLabel(toolInfo), infoParams, infoOptions);
         }
 
         #endregion
