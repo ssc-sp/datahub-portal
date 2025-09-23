@@ -7,7 +7,7 @@ namespace Datahub.Core.Model.Projects
     /// <summary>
     /// Represents a user record associated with a FSDH workspace.
     /// </summary>
-    public class Datahub_Project_User
+    public class UserRoleLinks
     {
         /// <summary>
         /// Gets or sets the unique identifier for the workspace user record.

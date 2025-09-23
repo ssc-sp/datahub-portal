@@ -108,7 +108,7 @@
     public PortalUser Inviter { get; set; } = null!;
 
     [Parameter]
-    public List<Datahub_Project_User> CurrentProjectUsers { get; set; } = new();
+    public List<UserRoleLinks> CurrentProjectUsers { get; set; } = new();
 
     private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
     private readonly EmailAddressAttribute _emailValidator = new() { ErrorMessage = "The email address is invalid" };

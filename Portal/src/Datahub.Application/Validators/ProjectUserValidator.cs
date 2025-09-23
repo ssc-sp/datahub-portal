@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Datahub.Application.Validators;
 
-public class ProjectUserValidator : AbstractValidator<Datahub_Project_User>
+public class ProjectUserValidator : AbstractValidator<UserRoleLinks>
 {
         public ProjectUserValidator()
         {

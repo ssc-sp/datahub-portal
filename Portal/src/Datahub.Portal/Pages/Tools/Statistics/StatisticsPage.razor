@@ -253,7 +253,7 @@ else
         await using var ctx = await DbContextFactory.CreateDbContextAsync();
         var allUsers = await ctx.PortalUsers.ToListAsync();
         var allRegistrations = await ctx.SelfRegistrationDetails.ToListAsync();
-        var allWorkspaceMembers = await ctx.Project_Users.Include(m => m.Project).ToListAsync();
+        var allWorkspaceMembers = await ctx.UserRolesLinks.Include(m => m.Project).ToListAsync();
 
         _portalUsers = allUsers;
         _users = allUsers.Select(u => new UserTableData
@@ -291,14 +291,14 @@ else
     {
         await using var ctx = await DbContextFactory.CreateDbContextAsync();
         var allWorkspaces = await ctx.Projects
-            .Include(w => w.Users)
+            .Include(w => w.UserRoles)
             .ThenInclude(pu => pu.PortalUser)
             .Include(w => w.Resources)
             .ToListAsync();
 
         var allCredits = await ctx.Project_Credits.ToListAsync();
         var allResources = await ctx.Project_Resources2.ToListAsync();
-        var allWorkspaceMembers = await ctx.Project_Users.ToListAsync();
+        var allWorkspaceMembers = await ctx.UserRolesLinks.ToListAsync();
         var workspaceDepartments = await MetadataBrokerService.ListObjectFieldValues("organization_name");
 
         _workspaces = allWorkspaces.Select(w => new WorkspaceTableData
@@ -323,7 +323,7 @@ else
                 .Count(m => m.Project_ID == w.Project_ID && m.RoleId != (int)Project_Role.RoleNames.Removed),
             Members = new DHTableLinkList
             {
-                Links = w.Users.Select(u => ValueTuple.Create(u.PortalUser.DisplayName, $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.GraphGuid.Base64Encode()}")).ToList()
+                Links = w.UserRoles.Select(u => ValueTuple.Create(u.PortalUser.DisplayName, $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.GraphGuid.Base64Encode()}")).ToList()
             },
             CreatedAt = w.Created_DT,
             UpdatedAt = w.Last_Updated_DT,

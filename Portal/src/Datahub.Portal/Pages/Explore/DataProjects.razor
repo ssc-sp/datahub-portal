@@ -62,7 +62,7 @@
             </MudTh>
 
             <MudTh>
-                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.Users?.Count ?? 0 + x.Repositories?.Count ?? 0)" InitialDirection="SortDirection.Ascending">@Localizer["Details"]</MudTableSortLabel>
+                <MudTableSortLabel SortBy="new Func<Datahub_Project, object>(x => x.UserRoles?.Count ?? 0 + x.Repositories?.Count ?? 0)" InitialDirection="SortDirection.Ascending">@Localizer["Details"]</MudTableSortLabel>
             </MudTh>
 
             <MudTh>
@@ -79,7 +79,7 @@
 
             <MudTd DataLabel="Details">
                 <ProjectPreviewCardIconDetails
-                NumberOfUsers="context?.Users?.Count ?? 0"
+                NumberOfUsers="context?.UserRoles?.Count ?? 0"
                 NumberOfRepositories="context?.Repositories?.Count ?? 0"
                 NumberOfFiles="0"/>
             </MudTd>
@@ -123,7 +123,7 @@
                 !p.Is_Private && !string.IsNullOrWhiteSpace(p.Project_Acronym_CD) && 
                 !string.IsNullOrWhiteSpace(p.Project_Name)
             )
-            .Include(p => p.Users)
+            .Include(p => p.UserRoles)
             .Include(p => p.Repositories)
             .ToListAsync();
 
@@ -140,7 +140,7 @@
         _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
         {
             User = u,
-            Workspaces = context.Project_Users.Include(pu => pu.Project)
+            Workspaces = context.UserRolesLinks.Include(pu => pu.Project)
                 .Where(pu => pu.PortalUser.GraphGuid == u.GraphGuid)
                 .Select(pu => pu.Project).ToList(),
         }).ToList();
