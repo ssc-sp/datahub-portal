@@ -154,16 +154,27 @@
             <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context.WorkspaceName</MudTd>
-            <MudTd>@context.WorkspaceAcronym</MudTd>
-            <MudTd>@context.CurrentVersion</MudTd>
+            <MudTd>@context.Project_Name</MudTd>
+            <MudTd>@context.Project_Acronym_CD</MudTd>
+            <MudTd>@context.Version</MudTd>
             <MudTd>
-                <MudTooltip Text="@Localizer["Trigger workspace update"]">
-                    <MudIconButton Size="Size.Small" 
-                                   Icon="@Icons.Material.Filled.Upgrade" 
-                                   Color="Color.Primary"
-                                   OnClick="@(() => TriggerWorkspaceUpdate(context.WorkspaceAcronym))" />
-                </MudTooltip>
+                @if (context.IsVersionUpdateRequested)
+                {
+                    <MudTooltip Text="@Localizer["Update in progress"]">
+                        <MudIcon Size="Size.Small" 
+                                 Icon="@Icons.Material.Filled.Autorenew" 
+                                 Color="Color.Info" />
+                    </MudTooltip>
+                }
+                else
+                {
+                    <MudTooltip Text="@Localizer["Trigger workspace update"]">
+                        <MudIconButton Size="Size.Small" 
+                                       Icon="@Icons.Material.Filled.Upgrade" 
+                                       Color="Color.Primary"
+                                       OnClick="@(() => TriggerWorkspaceUpdate(context.Project_Acronym_CD))" />
+                    </MudTooltip>
+                }
             </MudTd>
         </RowTemplate>
         <PagerContent>
@@ -179,7 +190,7 @@
 @code {
 
     private List<VersionTag> _versions = new();
-    private List<OutdatedWorkspaceInfo> _outdatedWorkspaces = new();
+    private List<Datahub_Project> _outdatedWorkspaces = new();
     private WorkspaceVersionStatistics _statistics = null;
     private string _latestVersion = string.Empty;
 
@@ -388,7 +399,10 @@
     {
         try
         {
-            // Get the workspace project by acronym (same as HomeWorkspaceCard has the full project)
+            // Find the workspace in our current list first
+            var workspaceInList = _outdatedWorkspaces.FirstOrDefault(w => w.Project_Acronym_CD == workspaceAcronym);
+            
+            // Get the workspace project by acronym with resources included
             await using var db = await _dbContextFactory.CreateDbContextAsync();
             var workspace = await db.Projects
                 .Include(p => p.Resources)
@@ -411,23 +425,19 @@
                 return;
             }
 
-            if (updateType == VersionUpdateType.Major)
-            {            
-                var message = $"{userEmail} has requested for workspace {workspace.Project_Acronym_CD} to be updated to the latest version. Please run the update at the end of the work day.";
-                var messageFr = $"{userEmail} a demandé que l'espace de travail {workspace.Project_Acronym_CD} soit mis à jour vers la dernière version. Veuillez exécuter la mise à jour à la fin de la journée de travail.";
-                await _emailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), userEmail, message, workspace.Project_Acronym_CD);                       
-            }
-            else
-            {
-                var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, userEmail);
-                await _workspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
-                await _requestManagementService.SendVersionUpdateToQueueAsync(_latestVersion, workspaceDefinition);
-            }
-
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, userEmail);
+            await _workspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
+            await _requestManagementService.SendVersionUpdateToQueueAsync(_latestVersion, workspaceDefinition);            
             await _workspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
+            
+            // Update local state
             workspace.IsVersionUpdateRequested = true;
+            if (workspaceInList != null)
+            {
+                workspaceInList.IsVersionUpdateRequested = true;
+            }
 
-            var successMessage = updateType == VersionUpdateType.Major ? Localizer["Notification Sent"] : Localizer["Workspace Version Update Triggered"];
+            var successMessage = Localizer["Workspace Version Update Triggered"];
             _snackbar.Add(successMessage, Severity.Success);
             
             // Refresh the data

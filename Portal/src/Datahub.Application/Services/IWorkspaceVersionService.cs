@@ -1,14 +1,8 @@
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Application.Services;
-
-public class OutdatedWorkspaceInfo
-{
-    public string WorkspaceName { get; set; }
-    public string WorkspaceAcronym { get; set; }
-    public string CurrentVersion { get; set; }
-}
 
 public class WorkspaceVersionStatistics
 {
@@ -30,6 +24,6 @@ public interface IWorkspaceVersionService
     public Task<bool> DeleteVersion(VersionTag versionTag);
     public Task<bool> SetResourcesToCreateRequested(int projectId);
     public Task<bool> SetWorkspaceToUpdateRequested(int projectId);
-    public Task<List<OutdatedWorkspaceInfo>> GetWorkspacesNotOnLatestVersionAsync();
+    public Task<List<Datahub_Project>> GetWorkspacesNotOnLatestVersionAsync();
     public Task<WorkspaceVersionStatistics> GetWorkspaceVersionStatisticsAsync();
 }

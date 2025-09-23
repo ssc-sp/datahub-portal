@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -164,7 +165,7 @@ namespace Datahub.Infrastructure.Services
             }
         }
 
-        public async Task<List<OutdatedWorkspaceInfo>> GetWorkspacesNotOnLatestVersionAsync()
+        public async Task<List<Datahub_Project>> GetWorkspacesNotOnLatestVersionAsync()
         {
             try
             {
@@ -179,13 +180,7 @@ namespace Datahub.Infrastructure.Services
                                p.Version != null && 
                                p.Version != latestVersion &&
                                p.Version != "latest")
-                    .Select(p => new OutdatedWorkspaceInfo
-                    {
-                        WorkspaceName = p.Project_Name,
-                        WorkspaceAcronym = p.Project_Acronym_CD,
-                        CurrentVersion = p.Version
-                    })
-                    .OrderBy(w => w.WorkspaceAcronym)
+                    .OrderBy(p => p.Project_Acronym_CD)
                     .ToListAsync();
 
                 return outdatedWorkspaces;
