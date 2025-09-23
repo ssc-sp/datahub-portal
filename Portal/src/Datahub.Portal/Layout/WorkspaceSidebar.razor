@@ -244,14 +244,13 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        var viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _userProjectGuid = viewedPortalUser.GraphGuid;
-        var userRoles = await dbContext.Project_Users
+        _userProjectGuid = await _userInformationService.GetCurrentUserGraphId();
+        var userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)
-            .ThenInclude(p => p.Users)
+            .ThenInclude(p => p.UserRoles)
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
             .Include(u => u.PortalUser)

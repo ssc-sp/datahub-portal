@@ -63,14 +63,14 @@ namespace Datahub.Tests
         {
             var mockUsers = SetupProjectUsers();
             var ctx = _mockDbContextFactory.Object.CreateDbContext();
-            ctx.Project_Users.AddRange(mockUsers);
+            ctx.UserRolesLinks.AddRange(mockUsers);
             ctx.SaveChanges();
 
             _userInformationService.Setup(u => u.GetCurrentPortalUserAsync())
                 .Returns(Task.FromResult(mockUsers.First().PortalUser));
         }
 
-        private static IEnumerable<Datahub_Project_User> SetupProjectUsers()
+        private static IEnumerable<UserRoleLinks> SetupProjectUsers()
         {
             var workspaceLeadRole = new Project_Role()
             {
@@ -93,7 +93,7 @@ namespace Datahub.Tests
 
             var workspace = new Datahub_Project() { Project_ID = 1, Project_Acronym_CD = TEST_WORKSPACE_CODE };
 
-            yield return new Datahub_Project_User()
+            yield return new UserRoleLinks()
             {
                 PortalUserId = 1,
                 PortalUser = new PortalUser() { Id = 1, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Walter Lead", Email = "wlead@example.com" },
@@ -104,7 +104,7 @@ namespace Datahub.Tests
                 IsDataSteward = true
             };
 
-            yield return new Datahub_Project_User()
+            yield return new UserRoleLinks()
             {
                 PortalUserId = 2,
                 PortalUser = new PortalUser() { Id = 2, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Nathan Admi", Email = "admin@example.com" },
@@ -114,7 +114,7 @@ namespace Datahub.Tests
                 RoleId = adminRole.Id
             };
 
-            yield return new Datahub_Project_User()
+            yield return new UserRoleLinks()
             {
                 PortalUserId = 3,
                 PortalUser = new PortalUser() { Id = 3, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Gary Guest", Email = "guest@example.com" },

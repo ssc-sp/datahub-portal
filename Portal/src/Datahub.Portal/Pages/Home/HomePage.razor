@@ -10,22 +10,20 @@
 @attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.Home_FR)]
 
-@if (_viewedPortalUser is null)
-{
-    <DHLoadingInitializer Message="@Localizer["Initializing profile..."]"/>
-    return;
-}
 
 <MudStack>
-    @if (_viewedPortalUser.GraphGuid == _currentUser.GraphGuid)
+    @if (_viewedPortalUser is null || _viewedPortalUser.GraphGuid == _currentGuid)
     {
         <div role="group">
             <MudStack Row AlignItems="AlignItems.End">
                 <DHMainContentTitle Title="@Localizer["Home"]" />
-                <MudSpacer/>
-                <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime/>
+                <MudSpacer />
+                @if (_viewedPortalUser is not null)
+                {
+                    <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime />
+                }
             </MudStack>
-            <WelcomeBanner/>
+            <WelcomeBanner />
         </div>
     }
     else
@@ -36,14 +34,14 @@
                   Style="width: 100%"
                   ObjectFit="ObjectFit.Cover"
                   Height="320"
-                  ObjectPosition="ObjectPosition.Center"/>
-    }
-    <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle/>
+                  ObjectPosition="ObjectPosition.Center" />
+    }    
+    <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle />
 </MudStack>
 
 @code {
 
-    private PortalUser _currentUser;
+    private string _currentGuid;
     private PortalUser _viewedPortalUser;
     private string _userProjectGuid;
 
@@ -51,26 +49,15 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-
-        await _telemetryService.FindUserLastLogin();
-        _telemetryService.GetUserLastLogin();
-        await _userSettingsService.IsFrench();
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
-
-        _viewedPortalUser = await GetViewedPortalUserWithAchievementsAsync();
-
-        if (_viewedPortalUser.GraphGuid != _currentUser.GraphGuid)
+        _currentGuid = await _userInformationService.GetCurrentUserGraphId();
+        _viewedPortalUser = await GetViewedPortalUserAsync();
+        if (_viewedPortalUser.GraphGuid != _currentGuid)
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
 
         _userProjectGuid = _viewedPortalUser.GraphGuid;
-        StateHasChanged();
     }
+
 
 }

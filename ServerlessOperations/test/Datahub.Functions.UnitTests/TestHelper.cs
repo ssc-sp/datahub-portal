@@ -125,9 +125,9 @@ namespace Datahub.Functions.UnitTests
                     GraphGuid=Guid.NewGuid().ToString()
                 }
             };
-            var portalUsers = new List<Datahub_Project_User>
+            var portalUsers = new List<UserRoleLinks>
             {
-                new Datahub_Project_User
+                new UserRoleLinks
                 {
                     ProjectUser_ID=1,
                     PortalUser=new PortalUser
@@ -206,7 +206,7 @@ namespace Datahub.Functions.UnitTests
                     Project_Status_Desc = "Active",
                     Credits = new Project_Credits{ Current = 300},
                     Project_Budget = 200,
-                    Users = portalUsers
+                    UserRoles = portalUsers
                 }
             };
             var resources = new List<Project_Resources2>

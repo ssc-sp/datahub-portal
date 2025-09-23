@@ -43,9 +43,9 @@
                 await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLogin);
 
                 await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-                var userId = await _userInformationService.GetGraphUserIdString();
+                var userId = await _userInformationService.GetCurrentUserGraphId();
 
-                var numberOfProjects = projectContext.Project_Users
+                var numberOfProjects = projectContext.UserRolesLinks
                     .Count(p => p.PortalUser.GraphGuid == userId);
 
                 if (numberOfProjects > 0)

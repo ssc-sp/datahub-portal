@@ -24,6 +24,11 @@ public interface IAnnouncementService
     Color GetColor(int n, bool isVisible);
     string GetIcon(int n);
     string GetText(int n);
+    
+    /// <summary>
+    /// Clears the cached active announcement previews.
+    /// </summary>
+    void ClearPreviewsCache();
 }
 
 public record AnnouncementPreview(int Id, string Preview, int Severity);

@@ -38,7 +38,7 @@ public class ResourceMessagingService(
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var project = await ctx.Projects
             .AsNoTracking()
-            .Include(p => p.Users)
+            .Include(p => p.UserRoles)
             .ThenInclude(u => u.PortalUser)
             .Include(p => p.Resources)
             .Include(p => p.DatahubAzureSubscription)
@@ -50,7 +50,7 @@ public class ResourceMessagingService(
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }
         
-        var users = project.Users
+        var users = project.UserRoles
             .Where(u => u.PortalUser != null)
             .Select(u => new TerraformUser
             {
