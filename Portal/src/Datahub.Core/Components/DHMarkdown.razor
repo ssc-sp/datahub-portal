@@ -5,14 +5,25 @@
 {
     <div @ref="_elementReference" @attributes=@InputAttributes class="markdown-content">
         <MudMarkdown 
-            Value=@FinalContent             
-            OverrideLinkUrl=@OverrideLinkUrl 
-            OverrideHeaderTypo=@SubstituteHeaderTypo />
+            Value=@FinalContent
+            Props=@Props />
     </div>
 }
 
 @code {
     private const string MARKDOWN_CONTAINER_CLASS = "markdown-container";
+
+    private MudMarkdownProps Props => new()
+    {
+        Link =
+        {
+			OverrideUrl = OverrideLinkUrl,                    
+        },
+        Heading =
+        {
+            OverrideTypo = SubstituteHeaderTypo,            
+        }
+    };    
 
     [Parameter]
     public string Content { get; set; }

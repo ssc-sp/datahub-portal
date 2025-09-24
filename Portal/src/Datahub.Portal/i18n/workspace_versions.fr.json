@@ -13,7 +13,10 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
 
 
-  "To learn more about the FSDH, visit our ": "Pour en savoir plus sur la PFDS, visitez notre site ",
+  "To learn more about the FSDH, visit the ": "Pour en savoir plus sur la PFDS, visitez nos ",
+  "Canada.ca pages": "pages Canada.ca",
+  "https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html": "https://www.canada.ca/fr/services-partages/services/outils-pour-personnes-travaillant-gc/outils-scientifique/plateforme-federale-donnees-scientifiques.html",
+  " about the platform. For Government of Canada employees, more detailed information is available on the ": " concernant la plateforme. Pour les employés du gouvernement du Canada, des informations plus détaillées sont disponibles sur le site ",
   "GCxchange": "GCÉchange",
   " site (only available within the GC network).": "(disponible uniquement dans le réseau du GC).",
   "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160/SitePages/fr/Home.aspx",

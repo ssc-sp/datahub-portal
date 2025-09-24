@@ -16,13 +16,8 @@ public class DatahubPortalConfiguration
     public string ProjectUrlSegment { get; set; } = "w";
     public string ProfileUrlSegment { get; set; } = "profile";
 
-    public ConnectionStrings ConnectionStrings { get; set; } = new();
     public AzureAd AzureAd { get; set; } = new();
-    public AdoServiceUser AdoServiceUser { get; set; } = new();
     public AdoOrg AdoOrg { get; set; } = new();
-    public Graph Graph { get; set; } = new();
-    public APITargets APITargets { get; set; } = new();
-    public ApplicationInsights ApplicationInsights { get; set; } = new();
     public KeyVault KeyVault { get; set; } = new();
     public Hosting Hosting { get; set; } = new();
     public EmailNotification EmailNotification { get; set; } = new();
@@ -114,19 +109,6 @@ public class DataProjects
     public bool PostgreSQL { get; set; } = false;
     public bool Costing { get; set; } = false;
     public bool Storage { get; set; } = true;
-}
-
-public class APITargets
-{
-    public string StorageURL { get; set; } = null!;
-    public string SearchServiceName { get; set; } = null!;
-    public string StorageAccountName { get; set; } = null!;
-    public string KeyVaultName { get; set; } = null!;
-    public string FileSystemName { get; set; } = null!;
-    public string FileIndexName { get; set; } = null!;
-    public string FileIndexerName { get; set; } = null!;
-    public string LogoutURL { get; set; } = null!;
-    public string LoginUrl { get; set; } = null!;
 }
 
 public class ApplicationInsights

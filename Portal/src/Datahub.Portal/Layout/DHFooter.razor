@@ -6,15 +6,24 @@
             <DHButton Underline Href="@Localizer[PageRoutes.TermsAndConditions]" Target="_blank">
                 <MudText>@Localizer["Terms and Conditions"]</MudText>
             </DHButton>
+            <DHButton Underline Href="@Localizer["https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html"]" Target="_blank">
+                <MudText>@Localizer["FSDH on Canada.ca"]</MudText>
+            </DHButton>
             <DHButton Underline Href="@Localizer["https://gcxgce.sharepoint.com/teams/10002160"]" Target="_blank">
-                <MudText>@Localizer["GCxchange"]</MudText>
+                <MudText>@Localizer["GCxchange Community"]</MudText>
             </DHButton>
         </MudItem>
         <MudItem xs="12" sm="2" Class="align-content-center">
-            <MudImage Src="/img/fip_mark.png" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;"/>
+            <MudImage Src="@ImageSrc" Alt=@Localizer["Government of Canada Wordmark"] Style="max-height:32px; float:right!important;" />
         </MudItem>
     </MudGrid>
 </MudContainer>
 
 @code {
+    private string ImageSrc => IsDarkMode
+    ? "/img/fip_mark_dark.png"
+    : "/img/fip_mark.png";
+
+    [CascadingParameter]
+    public bool IsDarkMode { get; set; }
 }

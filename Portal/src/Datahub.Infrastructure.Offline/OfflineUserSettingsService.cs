@@ -61,9 +61,19 @@ namespace Datahub.Core.Services.Offline
             return Task.FromResult(true);
         }
 
+        public Task<bool> SetTheme(string theme, string redirectUrl = "")
+        {
+            return Task.FromResult(true);
+        }
+
         public Task<string> GetUserLanguage()
         {
             return Task.FromResult("en");
+        }
+
+        public Task<string> GetTheme()
+        {
+            return Task.FromResult("");
         }
 
         public Task<bool> IsFrench()

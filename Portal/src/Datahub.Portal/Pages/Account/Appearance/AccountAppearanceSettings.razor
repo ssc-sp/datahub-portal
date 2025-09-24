@@ -16,15 +16,13 @@
                 <MudDivider/>
             </MudStack>
             <SettingsField Label="@Localizer["Theme Preferences"]" Description="@Localizer["Choose how DataHub looks to you. Select a single theme, or sync with your operating system automatically."]">
-                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@("DataHub Light")">
-                    <MudSelectItem T="string" Value="@("DataHub Light")"/>
-                    <MudSelectItem Disabled T="string" Value="@("DataHub Dark")"/>
-                    <MudSelectItem Disabled T="string" Value="@("Space Light")"/>
-                    <MudSelectItem Disabled T="string" Value="@("Space Dark")"/>
+                <MudSelect T="string" Label="@Localizer["Current Theme"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Theme" ValueChanged="HandleThemeChanged">
+                    <MudSelectItem T="string" Value="@Localizer["Light mode"]" />
+                    <MudSelectItem T="string" Value="@Localizer["Dark mode"]" />
                 </MudSelect>
             </SettingsField>
             <SettingsField Label="@Localizer["Language Selection"]" Description="@Localizer["Choose your preferred language for DataHub."]">
-                <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" AnchorOrigin="Origin.BottomCenter" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
+                <MudSelect T="string" Label="@Localizer["Current Language"]" Variant="Variant.Outlined" Value="@ViewedUser.UserSettings.Language" ValueChanged="HandleLanguageChanged">
                     <MudSelectItem T="string" Value="@("en-CA")">English</MudSelectItem>
                     <MudSelectItem T="string" Value="@("fr-CA")">Français</MudSelectItem>
                     <MudSelectItem Disabled T="string" Value="@("Klingon")">Klingon</MudSelectItem>
@@ -41,6 +39,11 @@
 
 
 @code {
+    [CascadingParameter(Name = "IsDarkMode")]
+    public bool IsDarkMode { get; set; }
+
+    [CascadingParameter(Name = "IsDarkModeChanged")]
+    public EventCallback<bool> IsDarkModeChanged { get; set; }
 
     [Parameter]
     public PortalUser ViewedUser { get; set; }
@@ -48,15 +51,49 @@
     [Parameter]
     public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
 
+    private string _selectedTheme = "Light mode";    // default
+
+    protected override async Task OnInitializedAsync()
+    {
+        var theme = await _userSettingsService.GetTheme();
+        _selectedTheme = string.IsNullOrEmpty(theme) ? Localizer["Light mode"] : theme;
+        // data fix for users with old values
+        if (_selectedTheme.ToLower() == "datahub dark") _selectedTheme = Localizer["Dark mode"];
+        if (_selectedTheme.ToLower() == "datahub light") _selectedTheme = Localizer["Light mode"];
+        StateHasChanged();
+    }
+
     private async Task HandleLanguageChanged(string language)
     {
         await _localStorage.SetItemAsStringAsync("language", language);
         await _userSettingsService.RegisterUserLanguage(language);
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         await _userSettingsService.SetLanguage(language);
-        
+
         ViewedUser.UserSettings.Language = language;
-        
+
         await OnViewedUserChanged.InvokeAsync(ViewedUser);
+    }
+
+    private string SelectedTheme
+    {
+        get => _selectedTheme;
+        set
+        {
+            if (_selectedTheme != value)
+            {
+                _selectedTheme = value;
+                var dark = value.ToLowerInvariant().Contains("dark") || value.ToLowerInvariant().Contains("sombre");
+                if (dark != IsDarkMode)
+                {
+                    IsDarkModeChanged.InvokeAsync(dark);
+                }
+            }
+        }
+    }
+
+    private async Task HandleThemeChanged(string theme)
+    {
+        await _userSettingsService.SetTheme(theme); 
     }
 }

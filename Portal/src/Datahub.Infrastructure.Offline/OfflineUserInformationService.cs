@@ -62,7 +62,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(AnonymousUser);
     }
 
-    public Task<string> GetGraphUserIdString()
+    public Task<string> GetCurrentUserGraphId()
     {
         return Task.FromResult(UserGuid.ToString());
     }
@@ -72,6 +72,10 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult("en-CA");
     }
 
+    public Task<string> GetTheme()
+    {
+        return Task.FromResult(""); 
+    }
     public Task<string> GetUserRootFolder()
     {
         return Task.FromResult("/");
@@ -88,6 +92,11 @@ public class OfflineUserInformationService : IUserInformationService
     }
         
     public bool SetLanguage(string language)
+    {
+        return true;
+    }
+    
+    public bool SetTheme(string theme)
     {
         return true;
     }

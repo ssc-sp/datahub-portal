@@ -1,9 +1,0 @@
-﻿@use '../common/' as c;
-
-@mixin styles {
-
-    code {
-        background-color: c.$grey-300;
-    }
-   
-}

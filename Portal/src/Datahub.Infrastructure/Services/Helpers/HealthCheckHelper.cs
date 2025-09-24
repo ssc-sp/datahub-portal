@@ -1,4 +1,4 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -10,7 +10,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Health;
+using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
@@ -24,7 +24,9 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using MudBlazor;
+using Microsoft.TeamFoundation.Common;
 
 namespace Datahub.Infrastructure.Services.Helpers
 {
@@ -55,7 +57,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string BugReportUsername = "Datahub Portal";
     }
 
-    public class HealthCheckHelper(IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    public class HealthCheckHelper(
+        IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IProjectStorageConfigurationService projectStorageConfigurationService,
         IWorkspaceWebAppManagementService workspaceWebAppManagementService,
         IConfiguration configuration,
@@ -64,11 +67,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
-        IHttpContextAccessor httpContextAccessor)
+        IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
+        IGCNotifyService? gcNotifyService = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
-        private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
-
+        private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
+        private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
 
         private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
         private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
@@ -86,7 +90,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         [
             InfrastructureHealthResourceType.AzureSqlDatabase,
             InfrastructureHealthResourceType.AzureKeyVault,
-            InfrastructureHealthResourceType.AzureFunction
+            InfrastructureHealthResourceType.AzureFunction,
+            InfrastructureHealthResourceType.GCNotify
         ];
 
         public static List<InfrastructureHealthResourceType> WorkspaceHealthChecks { get; } =
@@ -257,6 +262,59 @@ namespace Datahub.Infrastructure.Services.Helpers
             if (errors.Count > 0)
             {
                 status = InfrastructureHealthStatus.Unhealthy;
+            }
+
+            return new(status, errors);
+        }
+
+        /// <summary>
+        /// Function that checks the health of the GC Notify service.
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        public async Task<IntermediateHealthCheckResult> CheckGCNotify(InfrastructureHealthCheckMessage request)
+        {
+            var errors = new List<string>();
+            var status = InfrastructureHealthStatus.Healthy;
+
+            try
+            {
+                string mappings = gcNotifyService.GetTemplateMappings(portalConfiguration);
+                if (mappings.IsNullOrEmpty())
+                {
+                    status = InfrastructureHealthStatus.Unhealthy;
+                    errors.Add("Failed to retrieve the GC Notify template file mappings. Verify this is present in the root of the docs container in the static asset storage.");
+                }
+                else
+                {
+                    List<string> templateNames = new List<string>
+                    {
+                        "cost-alert", "error", "user-invited", "user-lock-notice", "user-delete-notice", "workspace-resource-deleted"
+                    };
+
+                    foreach (var templateName in templateNames)
+                    {
+                        try
+                        {
+                            var templateId = gcNotifyService.GetTemplateId(templateName, mappings);
+                            if (string.IsNullOrEmpty(templateId))
+                            {
+                                status = InfrastructureHealthStatus.Degraded;
+                                errors.Add($"Failed to retrieve the GC Notify template ID for {templateName}.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            status = InfrastructureHealthStatus.Unhealthy;
+                            errors.Add($"Error while checking GC Notify template {templateName}: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                status = InfrastructureHealthStatus.Unhealthy;
+                errors.Add($"Error while checking GC Notify health: {ex.Message}");
             }
 
             return new(status, errors);
@@ -732,6 +790,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 InfrastructureHealthResourceType.AzureFunction => await CheckAzureFunctions(request),
                 InfrastructureHealthResourceType.WorkspaceSync => await TriggerWorkspaceSync(request),
                 InfrastructureHealthResourceType.DatabricksSync => await TriggerWorkspaceSync(request),
+                InfrastructureHealthResourceType.GCNotify => await CheckGCNotify(request),
                 _ => throw new InvalidOperationException()
             };
 
@@ -921,7 +980,7 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         private string GetCorrelationId()
         {
-            var httpContext = _httpContextAccessor.HttpContext;
+            var httpContext = _httpContextAccessor?.HttpContext;
             if (httpContext != null && httpContext.Request.Headers.TryGetValue("X-Correlation-ID", out var correlationId))
             {
                 return correlationId.ToString();

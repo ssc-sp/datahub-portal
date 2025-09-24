@@ -8,7 +8,7 @@
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
 <MudContainer MaxWidth=@MaxWidth.Medium>
-    <MudPaper Class="pt-12 px-12 mt-20">
+    <MudPaper Class="pt-12 px-12 mt-12">
         <MudStack>
             <MudGrid>
                 <MudItem xs="11">
@@ -21,7 +21,9 @@
             <DHMainContentTitle Title="@Localizer["MainTitle"]" />
         </MudStack>
         <MudText Typo="Typo.body1" Class="mt-4">
-            @Localizer["To learn more about the FSDH, visit our "]
+            @Localizer["To learn more about the FSDH, visit the "]
+            <MudLink Href="@Localizer["https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html"]" Typo="Typo.body1">@Localizer["Canada.ca pages"]</MudLink>
+            @Localizer[" about the platform. For Government of Canada employees, more detailed information is available on the "]
             <MudLink Href="@Localizer["https://gcxgce.sharepoint.com/teams/10002160"]" Typo="Typo.body1">@Localizer["GCxchange"]</MudLink>
             @Localizer[" site (only available within the GC network)."]
         </MudText>
@@ -38,9 +40,9 @@
                     </strong>
                 </MudText>
                 <div class="form-group" style="width: 100%">
-                    <MudTextField Class="form-control" InputId="Email" For="() => loginModel.Email" Variant="Variant.Outlined"
+                    <MudTextField Class="form-control" InputId="Email"
                                   @bind-Value="loginModel.Email" Label="@Localizer["Email"]" Required="true"
-                                  RequiredError="@Localizer["Email is required"]" FullWidth="true" />
+                                  RequiredError="@Localizer["Email is required"]" FullWidth="true" Variant="Variant.Outlined" />
                 </div>
                 <div class="form-group">
                     <MudCheckBox T="bool"

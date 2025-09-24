@@ -75,16 +75,14 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await base.OnParametersSetAsync();
         _viewedUser = await _userInformationService.GetPortalUserAsync(ViewedUserGraphId);
     }
 
     protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
+    {        
         _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
         DateTime? lastLoginDt = null;
-        if ((lastLoginDt ??= _telemetryService.GetUserLastLogin()) is not null)
+        if ((lastLoginDt ??= await _telemetryService.GetUserLastLoginAsync()) is not null)
         {
             var localTz = await _localTz.GetLocalTimeZoneAsync(null);
             _timezone = GetTimeZoneShortCode(localTz);

@@ -1,7 +1,8 @@
 ﻿@using Datahub.Application.Services.Announcements
 @using MudBlazor.Utilities
 
-@inject NavigationManager _navigationManager
+@inject IAnnouncementService _announcementService
+@inject ICultureService CultureService
 
 @if (_previewCount > 0)
 {
@@ -16,25 +17,30 @@
             if (!preview.Preview.StartsWith("!["))
             {
                 <li class="flex-1">
-
-                    <MudPaper Elevation="0" Outlined Class="py-2 px-3">
-                        <MudStack Justify="Justify.SpaceBetween" Style="height: 208px;" Spacing="1">
+                    <MudAlert Severity="_announcementService.GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
+                        <div style="display: flex;">
+                            <MudChip T="string" Color="_announcementService.GetColor(preview.Severity, true)">
+                                <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" />
+                                <MudText Typo="Typo.button">@Localizer[_announcementService.GetText(preview.Severity)]</MudText>
+                            </MudChip>
+                        </div>
+                        <MudStack Justify="Justify.SpaceBetween" Style="height: 184px;" Spacing="1">
                             <MudElement>
                                 <DHMarkdown Content="@preview.Preview" Style="@_descriptionTextStyle"/>
                             </MudElement>
                             <MudElement>
                                 <DHButton Href="@Localizer[PageRoutes.News]"
-                                          Color="@Color.Primary"
-                                          Variant="@Variant.Text"
-                                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
-                                          Underline 
-                                          NoWrap>
+                                Color="@Color.Primary"
+                                Variant="@Variant.Text"
+                                EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight"
+                                Underline 
+                                NoWrap>
                                     <span class="sr-only">@preview.Preview</span>
                                     @Localizer["Read more"]
                                 </DHButton>
                             </MudElement>
                         </MudStack>
-                    </MudPaper>
+                    </MudAlert>
                 </li>
             }
         }
@@ -42,29 +48,18 @@
 </ul>
 
 @code {
-    public const int CarouselHeight = 320;
+    private bool _isLoading = true;
 
-    [Parameter] public List<AnnouncementPreview> Previews { get; set; } = new();
+    public List<AnnouncementPreview> Previews { get; set; } = new();
 
-    [Parameter] public string BackgroundUrl { get; set; }
-
-
-    // private string _glassStyle;
-    // private string _carouselStyle;
-    // private string _backgroundImageStyle;
     private string _descriptionTextStyle;
 
     private int _previewCount;
     private int[] _announcementIndices = new int[3] { -1, -1, -1 };
 
-    // get the style so it's always at the bottom of the carousel
-    // private string _readMoreStyle => "position: absolute; bottom: 1rem; left: 2rem;";
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
-
-        var hasBackgroundUrl = !string.IsNullOrEmpty(BackgroundUrl);
 
         _descriptionTextStyle = new StyleBuilder()
             .AddStyle("overflow", "hidden")
@@ -72,25 +67,19 @@
             .AddStyle("-webkit-box-orient", "vertical")
             .AddStyle("display", "-webkit-box")
             .Build();
-        int count = 0;
-        for (int i = 0; i < Previews.Count; i++)
+
+        Previews = (await _announcementService.GetActivePreviews(CultureService.IsFrench)).OrderBy(o => o.Severity).ToList();
+
+        for (int i = 0; i < Math.Min(Previews.Count, 3); i++)
         {
             var preview = Previews[i];
-            if (!preview.Preview.StartsWith("!["))
-            {
-                _announcementIndices[count] = i;
-                count++;
-            }
-
-            if (count == 3)
-            {
-                break;
-            }
+            _announcementIndices[i] = i;
         }
 
         // There should really only be 1, 2, or 3 announcements at a time
         // The # of columns for the announcements is displayed accordingly
-        _previewCount = count;
+        _previewCount = Math.Min(Previews.Count, 3);
+        _isLoading = false;
     }
 }
 

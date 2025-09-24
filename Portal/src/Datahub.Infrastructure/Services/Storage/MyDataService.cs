@@ -28,7 +28,7 @@ namespace Datahub.Infrastructure.Services.Storage;
 /// </summary>
 public class MyDataService
 {
-    private IOptions<APITarget> _targets;
+    private IOptions<APITargets> _targets;
     private DataLakeClientService _dataLakeClientService;
     private readonly IHttpClientFactory _httpClient;
     private readonly ILogger _logger;
@@ -45,7 +45,7 @@ public class MyDataService
         IHttpClientFactory clientFactory,
         IUserInformationService userInformationService,
         IKeyVaultService keyVaultService,
-        IOptions<APITarget> targets,
+        IOptions<APITargets> targets,
         NotifierService notifierService,
         IJSRuntime jSRuntime,
         DataRetrievalService dataRetrievalService,

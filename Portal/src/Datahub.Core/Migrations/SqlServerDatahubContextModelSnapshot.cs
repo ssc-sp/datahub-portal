@@ -382,6 +382,9 @@ namespace Datahub.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("StartDateTime")
                         .HasColumnType("datetime2");
 
@@ -1643,6 +1646,10 @@ namespace Datahub.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
+
+                    b.Property<string>("Theme")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(128)

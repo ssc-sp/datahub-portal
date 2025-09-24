@@ -46,7 +46,6 @@ using Datahub.Metadata.Model;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
-using Datahub.Portal.Services.Notification;
 using Datahub.Portal.Services.Offline;
 using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authorization;
@@ -174,22 +173,26 @@ public class Startup
         services.AddBlazoredSessionStorage();
         services.AddHttpContextAccessor();
         services.AddScoped<ApiTelemetryService>();
-        services.AddScoped<GetDimensionsService>();
 
         services.AddUserAchievementServices();
         services.AddSecurityServices();
 
-        //services.AddElemental();
         services.AddMudServices();
         services.AddMudMarkdownServices();
 
         // configure db contexts in this method
         ConfigureDbContexts(services);
 
-        services.Configure<DataProjectsConfiguration>(Configuration.GetSection("DataProjectsConfiguration"));
-        services.Configure<APITarget>(Configuration.GetSection("APITargets"));
+        services.Configure<DataProjectsConfiguration>(Configuration.GetSection(nameof(DataProjectsConfiguration)));
+        services.Configure<APITargets>(Configuration.GetSection(nameof(APITargets)));
         services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
+
+        // Diagnostic dump (redacted) using shared Core utility
+        ConfigurationHelper.DumpRedactedToConsole("Data Projects Configuration", Configuration.GetSection(nameof(DataProjectsConfiguration)));
+        ConfigurationHelper.DumpRedactedToConsole("API targets", Configuration.GetSection(nameof(APITargets)));
+        ConfigurationHelper.DumpRedactedToConsole("Application Insights", Configuration.GetSection("ApplicationInsights"));
+
         services.AddScoped<IPortalVersionService, PortalVersionService>();
 
         services.AddScoped<CatalogImportService>();
@@ -445,8 +448,7 @@ public class Startup
         services.AddScoped<NotificationsService>();
         services.AddScoped<NotifierService>();
 
-        services.AddScoped<IEmailNotificationService, EmailNotificationService>();
-        services.AddScoped<PortalEmailService>();
+        services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, PropagationService>();
 

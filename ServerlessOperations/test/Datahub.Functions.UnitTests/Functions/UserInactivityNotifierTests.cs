@@ -1,5 +1,6 @@
 ﻿using Datahub.Application.Commands;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
@@ -40,9 +41,9 @@ namespace Datahub.Functions.UnitTests.Functions
 
 
         private AzureConfig _azConfig;
-        private QueuePongService _pongService;
+        private IQueuePongService _pongService;
         private EmailValidator _emailValidator;
-        private IEmailService _emailService;
+        private IGCNotifyService _gcNotifyService;
         private ISendEndpointProvider _iSendEndpointProvider;
 
         [SetUp]
@@ -53,10 +54,10 @@ namespace Datahub.Functions.UnitTests.Functions
             _azConfig = new AzureConfig(_config);
             _pongService = new QueuePongService(_iSendEndpointProvider);
             _emailValidator = new EmailValidator();
-            _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
+            _gcNotifyService = Substitute.For<IGCNotifyService>();
             _sut = new UserInactivityNotifier(_loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
                 _pongService, _emailValidator, _userInactivityNotificationService, _iSendEndpointProvider,
-                _projectUserManagementService, _emailService);
+                _projectUserManagementService, _gcNotifyService);
         }
 
         [Test]
@@ -72,7 +73,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _sut.CheckIfUserToBeNotified(10, daysUntilLocked, 999, "test@example.com");
 
             // Assert
-            result.Should().BeOfType<EmailRequestMessage>();
+            result.Should().BeTrue();
         }
 
         [Test]
@@ -88,7 +89,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _sut.CheckIfUserToBeNotified(10, 999, daysUntilDeleted, "test@example.com");
 
             // Assert
-            result.Should().BeOfType<EmailRequestMessage>();
+            result.Should().BeTrue();
         }
 
         [Test]
@@ -105,31 +106,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var result = await _sut.CheckIfUserToBeNotified(10, daysUntilLocked, daysUntilDeleted, "test@example.com");
 
             // Assert
-            result.Should().BeNull();
-        }
-
-        [Test]
-        public async Task GetLockedEmailRequestMessage_ReturnsCorrectMessage()
-        {
-            // Act
-            var result = _sut.GetEmailRequestMessage(20, 10, "user_lock", "test@example.com");
-
-            // Assert
-            result.Body.Should()
-                .Contain("If you do not login to your account in the next 10 day(s), your account will be locked.");
-            result.To.Should().Contain("test@example.com");
-        }
-
-        [Test]
-        public async Task GetDeletedEmailRequestMessage_ReturnsCorrectMessage()
-        {
-            // Act
-            var result = _sut.GetEmailRequestMessage(20, 10, "user_deletion", "test@example.com");
-
-            // Assert
-            result.Body.Should()
-                .Contain("If you do not login to your account in the next 10 day(s), your account will be deleted.");
-            result.To.Should().Contain("test@example.com");
+            result.Should().BeFalse();
         }
 
         [Test]
@@ -148,18 +125,18 @@ namespace Datahub.Functions.UnitTests.Functions
             _projectUserManagementService.GetProjectListForPortalUser(portalUserId).Returns(projects);
 
             // Mock the project users for each project
-            var projectUser1 = new Datahub_Project_User
+            var projectUser1 = new UserRoleLinks
             {
                 PortalUser = new PortalUser { Id = portalUserId, GraphGuid = Guid.NewGuid().ToString() },
                 Role = new Project_Role { Id = (int)Project_Role.RoleNames.WorkspaceLead }
             };
-            var projectUser2 = new Datahub_Project_User
+            var projectUser2 = new UserRoleLinks
             {
                 PortalUser = new PortalUser { Id = portalUserId, GraphGuid=Guid.NewGuid().ToString() },
                 Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator }
             };
-            _projectUserManagementService.GetProjectUsersAsync(projectId1).Returns(new List<Datahub_Project_User> { projectUser1 });
-            _projectUserManagementService.GetProjectUsersAsync(projectId2).Returns(new List<Datahub_Project_User> { projectUser2 });
+            _projectUserManagementService.GetProjectUsersAsync(projectId1).Returns(new List<UserRoleLinks> { projectUser1 });
+            _projectUserManagementService.GetProjectUsersAsync(projectId2).Returns(new List<UserRoleLinks> { projectUser2 });
 
             // Act
             await _sut.DisablePortalUser(portalUserId);

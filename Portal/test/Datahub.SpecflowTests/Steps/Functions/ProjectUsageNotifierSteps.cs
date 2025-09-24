@@ -1,4 +1,5 @@
 using Datahub.Application.Services;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -15,6 +16,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
+using Datahub.Application.Services.Notification;
 
 namespace Datahub.SpecflowTests.Steps.Functions;
 
@@ -24,7 +26,7 @@ public class ProjectUsageNotifierSteps(
     AzureConfig azureConfig,
     IResourceMessagingService resourceMessagingService,
     ISendEndpointProvider sendEndpointProvider,
-    IEmailService emailService,
+    IGCNotifyService gCNotifyService,
     ScenarioContext scenarioContext)
 {
     [Given(@"a workspace with usage exceeding its budget")]
@@ -77,7 +79,6 @@ public class ProjectUsageNotifierSteps(
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
         var emailValidator = Substitute.For<EmailValidator>();
-        var emailService = Substitute.For<IEmailService>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -86,7 +87,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            emailService,
+            null,
             resourceMessagingService);
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -143,11 +144,9 @@ public class ProjectUsageNotifierSteps(
     [When(@"the notifier verifies overbudget is deleted")]
     public async Task WhenTheNotifierVerifiesOverbudgetIsDeleted()
     {
-        var logger = Substitute.For<ILoggerFactory>();
-        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        var logger = Substitute.For<ILoggerFactory>();        
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
-        var emailValidator = Substitute.For<EmailValidator>();
-        emailService = Substitute.For<IEmailService>();
+        var emailValidator = Substitute.For<EmailValidator>();        
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
@@ -156,7 +155,7 @@ public class ProjectUsageNotifierSteps(
             pongService,
             emailValidator,
             sendEndpointProvider,
-            emailService,
+            gCNotifyService,
             resourceMessagingService);
 
         await projectNotifier.VerifyOverBudgetIsDeleted(Testing.WorkspaceAcronym, CancellationToken.None);
@@ -254,7 +253,7 @@ public class ProjectUsageNotifierSteps(
         await ctx.PortalUsers.AddAsync(workspaceLead);
         await ctx.PortalUsers.AddRangeAsync(adminUsers);
 
-        var projectUsers = new List<Datahub_Project_User>()
+        var projectUsers = new List<UserRoleLinks>()
         {
             new()
             {
@@ -266,7 +265,7 @@ public class ProjectUsageNotifierSteps(
 
         foreach (var adminUser in adminUsers)
         {
-            projectUsers.Add(new Datahub_Project_User()
+            projectUsers.Add(new UserRoleLinks()
             {
                 Project = workspace,
                 PortalUser = adminUser,
@@ -274,7 +273,7 @@ public class ProjectUsageNotifierSteps(
             });
         }
 
-        await ctx.Project_Users.AddRangeAsync(projectUsers);
+        await ctx.UserRolesLinks.AddRangeAsync(projectUsers);
 
         await ctx.SaveChangesAsync();
     }
@@ -282,8 +281,10 @@ public class ProjectUsageNotifierSteps(
     [Then(@"the (.*) admin users and workspace lead should be emailed")]
     public void ThenTheAdminUsersAndWorkspaceLeadShouldBeEmailed(int p0)
     {
-        emailService.Received(5).BuildEmail(Arg.Is<string>(s => s.Equals("delete_notification.html")),
-            Arg.Is<List<string>>(l => l.Count == p0 + 1),
-            Arg.Any<List<string>>(), Arg.Any<Dictionary<string, string>>(), Arg.Any<Dictionary<string, string>>());
+
+        gCNotifyService.Received(6).SendDatahubResourceDeletedNotification(Arg.Is<string>(s => s.Contains("@")),
+            Arg.Any<string>(),
+            Arg.Any<string>(),
+            Arg.Is<string>(Testing.WorkspaceAcronym));
     }
 }

@@ -1,5 +1,6 @@
 ﻿@using Datahub.Application.Services.Notifications;
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services.Notification;
 @using Markdig
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -8,8 +9,31 @@
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
+@inject IGCNotifyService _gcNotifyService
 
 <MudStack Class="mb-4">
+    <MudText Typo="Typo.h2">@Localizer["Test Standard Emails"]</MudText>
+    <MudText Typo="Typo.body1">@Localizer["This allows you to test the standard FSDH email templates. Emails will only be sent to you."]</MudText>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountCreatedNotification">
+        @Localizer["Send Account Created Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountDeletionNoticeNotification">
+        @Localizer["Send Account Deletion Notice Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountLockingNoticeNotification">
+        @Localizer["Send Account Locking Notice Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestWorkspaceCostNotification">
+        @Localizer["Send Workspace Cost Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestDataHubErrorNotification">
+        @Localizer["Send DataHub Error Notification"]
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestDatahubResourceDeletedNotification">
+        @Localizer["Send Datahub Resource Deleted Notification"]
+    </MudButton>
+    <MudDivider />
+
     @*title*@
     <MudStack Row Justify="Justify.SpaceBetween">
         <MudText Typo="Typo.h2">@Localizer["DataHub Email"]</MudText>
@@ -218,6 +242,36 @@
         var pipeline = new MarkdownPipelineBuilder().UseAdvancedExtensions().Build();
         var valueHtml = Markdown.ToHtml(_emailBody ?? string.Empty, pipeline);
         return valueHtml;
+    }
+
+    private async Task TestAccountCreatedNotification()
+    {
+        await _gcNotifyService.SendAccountCreatedNotification(await _userInformationService.GetUserEmail());
+    }
+
+    private async Task TestAccountDeletionNoticeNotification()
+    {
+        await _gcNotifyService.SendAccountDeletionNoticeNotification(await _userInformationService.GetUserEmail(), "25", "5");
+    }
+
+    private async Task TestAccountLockingNoticeNotification()
+    {
+        await _gcNotifyService.SendAccountLockingNoticeNotification(await _userInformationService.GetUserEmail(), "25", "5");
+    }
+
+    private async Task TestWorkspaceCostNotification()
+    {
+        await _gcNotifyService.SendWorkspaceCostNotification(await _userInformationService.GetUserEmail(), "90", "TEST-EMAIL");
+    }
+
+    private async Task TestDataHubErrorNotification()
+    {
+        await _gcNotifyService.SendDataHubErrorNotification("This is a test error", await _userInformationService.GetUserEmail());
+    }
+
+    private async Task TestDatahubResourceDeletedNotification()
+    {
+        await _gcNotifyService.SendDatahubResourceDeletedNotification(await _userInformationService.GetUserEmail(), "Storage", "Stockage", "TEST-EMAIL");
     }
 
     enum RecipientType

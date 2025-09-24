@@ -367,6 +367,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Severity")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("StartDateTime")
                         .HasColumnType("TEXT");
 
@@ -1585,6 +1588,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasDefaultValue(true);
+
+                    b.Property<string>("Theme")
+                        .HasMaxLength(128)
+                        .HasColumnType("TEXT");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(128)
