@@ -140,7 +140,18 @@
         </MudContainer>
     }
 
-    <MudTable Items="@_outdatedWorkspaces" Loading="@_loadingOutdated" Hover Dense>
+    <MudTable Items="@_outdatedWorkspaces" Loading="@_loadingOutdated" Hover Dense Filter="new Func<Datahub_Project, bool>(FilterOutdatedWorkspaces)">
+        <ToolBarContent>
+            <MudTextField @bind-Value="@_searchString"
+                          Label="@Localizer["Search by Acronym"]"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Small"
+                          Class="mt-0"
+                          Clearable="true"
+                          Placeholder="@Localizer["Enter workspace acronym..."]" />
+            <MudSpacer />
+        </ToolBarContent>
         <ColGroup>
             <col style="width: 35%" />
             <col style="width: 25%" />
@@ -193,6 +204,7 @@
     private List<Datahub_Project> _outdatedWorkspaces = new();
     private WorkspaceVersionStatistics _statistics = null;
     private string _latestVersion = string.Empty;
+    private string _searchString = string.Empty;
 
     private bool _loading = true;
     private bool _loadingOutdated = true;
@@ -418,7 +430,7 @@
             
             // Use the exact same logic as HomeWorkspaceCard.TriggerUpdate
             var updateType = workspace.GetUpdateType(_latestVersion);
-            var result = await GetDialogMessage(updateType);
+            var result = await GetDialogMessage(updateType, workspace.Project_Acronym_CD);
 
             if (result.Canceled)
             {
@@ -450,18 +462,9 @@
     }
 
     // Replicate the exact dialog logic from HomeWorkspaceCard
-    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType)
+    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType, string workspaceAcronym)
     {
-        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
-        var majorUpdatePrompt = Localizer["This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours"];        
-        var prompt = updateType switch
-        {
-            VersionUpdateType.Minor => minorUpdatePrompt,
-            VersionUpdateType.Major => majorUpdatePrompt,
-            VersionUpdateType.Build => minorUpdatePrompt,
-            _ => Localizer["No Update Required"]
-        };
-
+        var prompt = Localizer[$"Are you sure you want to update workspace: {workspaceAcronym}"];
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
         var parameters = new DialogParameters
         {
@@ -480,5 +483,13 @@
         _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
         _loadingOutdated = false;
         await InvokeAsync(StateHasChanged);
+    }
+
+    private bool FilterOutdatedWorkspaces(Datahub_Project workspace)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        
+        return workspace.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
     }
 }
