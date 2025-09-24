@@ -3345,5 +3345,8 @@
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
   "INFO": "INFO",
   "NOTICE": "AVIS",
-  "IMPORTANT": "IMPORTANT"
+  "IMPORTANT": "IMPORTANT",
+  "Severity": "Sévérité",
+  "Notice": "Avis",
+  "Info": "Info"
 }
