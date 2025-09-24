@@ -129,7 +129,7 @@
                 <MudPaper Outlined Elevation="0" Class="pa-4" Style="@GetUpdateRequestsCardStyle()">
                     <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
                         <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
-                            <MudText Typo="Typo.subtitle2" Style="@GetUpdateRequestsTextStyle()">@Localizer["Update Requests Pending"]</MudText>
+                            <MudText Typo="Typo.subtitle2" Style="@GetUpdateRequestsTextStyle()">@Localizer["In Progress"]</MudText>
                         </MudItem>
                         <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
                             <MudText Typo="Typo.h4" Class="font-weight-bold" Style="@GetUpdateRequestsTextStyle()">@_statistics.WorkspacesWithUpdateRequests.ToString()</MudText>
@@ -310,7 +310,7 @@
                 var announcement = new Announcement
                 {
                     StartDateTime = DateTime.UtcNow,
-                    EndDateTime = DateTime.UtcNow.AddDays(30),  
+                    EndDateTime = DateTime.UtcNow.AddDays(30),                      
                     PreviewEn = $"A new version {versionTag.Tag} of the FSDH workspaces has been released. Check out the details in the description.",
                     PreviewFr = $"Une nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée. Consultez les détails dans la description.",
                     BodyEn = Markdown.ToHtml(versionTag.VersionDescription),
