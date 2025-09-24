@@ -7,13 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-		<PackageReference Include="Azure.Identity" Version="1.14.*" />
+		<PackageReference Include="Azure.Identity" Version="1.16.*" />
 		<PackageReference Include="Microsoft.TeamFoundationServer.Client" Version="19.225.1" />
       <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" Version="19.225.1" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.*" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.*" />
     </ItemGroup>
 
     <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 
 </Project>
+
+
 
