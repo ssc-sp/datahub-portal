@@ -14,18 +14,22 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Core" Version="1.47.2.0" />
-		<PackageReference Include="Azure.Identity" Version="1.14.*" />
+		<PackageReference Include="Azure.Core" Version="1.49.*" />
+		<PackageReference Include="Azure.Identity" Version="1.16.*" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.*">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.*" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.*" />
-		<PackageReference Include="Microsoft.Identity.Client" Version="4.74.*" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.13.*" />
+		<PackageReference Include="Microsoft.Identity.Client" Version="4.77.*" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.*" />
 	</ItemGroup>
 
 </Project>
+
+
+
+
 
 
