@@ -11,7 +11,10 @@
   "Successfully added version: {0}": "Successfully added version: {0}",
   "Version already exists": "Version already exists",
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Invalid version format. Please use vX.X.X. e.g. v1.2.3",
-  "To learn more about the FSDH, visit our ": "To learn more about the FSDH, visit our ",
+  "To learn more about the FSDH, visit the ": "To learn more about the FSDH, visit the ",
+  "Canada.ca pages": "Canada.ca pages",
+  "https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html": "https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html",
+  " about the platform. For Government of Canada employees, more detailed information is available on the ": " about the platform. For Government of Canada employees, more detailed information is available on the ",
   "GCxchange": "GCXchange",
   " site (only available within the GC network).": " site (only available within the GC network).",
   "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160",
@@ -19,5 +22,5 @@
   "English Description": "English Description",
   "Please provide an English description.": "Please provide an English description.",
   "French Description": "French Description",
-  "Please provide a French description.": "Please provide a French description."    
+  "Please provide a French description.": "Please provide a French description."
 }
