@@ -27,7 +27,7 @@
   <ItemGroup>
     <PackageReference Include="CommandLineParser" Version="2.9.1" />
     <PackageReference Include="DeepL.net" Version="1.15.*" />
-    <PackageReference Include="Markdig" Version="0.41.*" />
+    <PackageReference Include="Markdig" Version="0.42.*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.*" />
     <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.*" />
     <PackageReference Include="YamlDotNet" Version="16.3.*" />
@@ -39,6 +39,7 @@
   </ItemGroup>
 
 </Project>
+
 
 
 
