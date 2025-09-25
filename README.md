@@ -119,7 +119,7 @@ Ce repo héberge le *portail* et le code d'infrastructure de soutien pour la PFD
 
 ## Publication et versionnage
 
-Ce projet utilise [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) pour les messages de commit. Cela aide à automatiser le processus de publication et à générer des journaux de modifications.
+Ce projet utilise les [Commits Conventionnels](https://www.conventionalcommits.org/fr/v1.0.0/) pour les messages de commit. Cela aide à automatiser le processus de publication et à générer des journaux de modifications.
 
 * Types de commits :
   - `feat` : Une nouvelle fonctionnalité
