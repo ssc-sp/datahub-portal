@@ -70,7 +70,7 @@ For detailed documentation, setup guides, and FAQs, please refer to the [DataHub
 
 For developer support, you can open an issue in this repository or reach out to the maintainers directly.
 
-For general information about the Federal Science DataHub, visit the [official page](https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html). Government of Canada employees can also visit our [GCXchange page](https://gcxgce.sharepoint.com/teams/10002160/SitePages/Home.aspx) (accessible within the GC network).
+For general information about the Federal Science DataHub, visit the [Canada.ca site](https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html). Government of Canada employees can also visit our [GCXchange page](https://gcxgce.sharepoint.com/teams/10002160/SitePages/Home.aspx) (accessible within the GC network).
 
 
 ---
@@ -147,4 +147,4 @@ Pour une documentation détaillée, des guides d'installation et des FAQ, veuill
 
 Pour le support aux développeurs, vous pouvez ouvrir un problème dans ce dépôt ou contacter directement les mainteneurs.
 
-Pour des informations générales sur la Plateforme fédérale de données scientifiques, visitez la [page officielle](https://www.canada.ca/fr/services-partages/services/outils-pour-personnes-travaillant-gc/outils-scientifique/plateforme-federale-donnees-scientifiques.html). Les employés du gouvernement du Canada peuvent également visiter notre [site GCÉchange](https://gcxgce.sharepoint.com/teams/10002160/SitePages/Home.aspx) (accessible au sein du réseau GC).
+Pour des informations générales sur la Plateforme fédérale de données scientifiques, visitez le [site Canada.ca](https://www.canada.ca/fr/services-partages/services/outils-pour-personnes-travaillant-gc/outils-scientifique/plateforme-federale-donnees-scientifiques.html). Les employés du gouvernement du Canada peuvent également visiter notre [site GCÉchange](https://gcxgce.sharepoint.com/teams/10002160/SitePages/Home.aspx) (accessible au sein du réseau GC).
