@@ -387,7 +387,7 @@
                                                     @if (IsConfigurable(context))
                                                     {
                                                         <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
-                                                            @DisplayDiff(context.Diff())
+                                                            @DisplayDiff(context.Diff(), context.Tool)
                                                         </MudText>
                                                     }
                                                     break;

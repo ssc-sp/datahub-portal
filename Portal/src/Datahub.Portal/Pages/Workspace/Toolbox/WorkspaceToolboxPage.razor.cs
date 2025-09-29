@@ -48,8 +48,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     [
                         new VersionAwareWorkspaceToolConfigInfo
                         {
-                            MinVersion = new Version(5, 2, 0)
-                            //TODO config details
+                            MinVersion = new Version(5, 2, 0),
+                            ConfigClass = typeof(DatabricksConfiguration)
                         },
                     ],
                     ToolCostInformation = ("The cost of Databricks is completely dependent on your usage. The idle costs of Databricks when not using it at all are nearly $0. Small compute clusters will cost about {0:C2} to {1:C2} per hour of usage, regular compute clusters will cost about {2:C2} to {3:C2} per hour of usage and large compute clusters will cost {4:C2} to {5:C2} per hour of usage. Additional costs may be incurred by other usage (data catalog, compute creation, etc.) and prices mentioned refer to default configurations. Make sure to read the additional information below for more details on costs.", [0.80, 2.40, 1.60, 4.80, 3.20, 9.60]),
@@ -105,7 +105,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     [
                         new VersionAwareWorkspaceToolConfigInfo
                         {
-                            MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS
+                            MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                            ConfigClass = typeof(PostgresConfiguration)
                         }
                     ],
                     ToolCostInformation = ("The default Postgres offered costs about {0:C2} per month plus {1:C2} per month per GB of storage, regardless of usage. Changing configurations will affect the cost of this resource. Read more about this resource below.", [20.0, 0.18] ),
@@ -350,16 +351,20 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         /// <param name="diff">The difference dictionary.</param>
         /// <returns>A human-readable string representing the differences.</returns>
-        private string DisplayDiff(Dictionary<string, (object Original, object Updated)> diff)
+        private string DisplayDiff(Dictionary<string, (object Original, object Updated)> diff, string toolName)
         {
+            var toolInfo = GetToolInfo(toolName);
+            var configInfo = toolInfo.GetApplicableConfigInfo(_workspaceVersion) ?? 
+                throw new InvalidOperationException($"No applicable configuration found for tool '{toolName}' in workspace version {_workspaceVersion}.");
             var diffStrings = diff.Select(kv =>
             {
                 var key = kv.Key;
+                var propertyLabel = Localizer[configInfo.GetPropertyLabel(key)].ToString().ToLower();
                 var originalValue = DisplayValue(kv.Value.Original);
                 var updatedValue = DisplayValue(kv.Value.Updated);
                 return originalValue == null
-                    ? Localizer["Selected {0}: {1}", PropertyLabel(key).ToLower(), updatedValue]
-                    : Localizer["Updated {0}: {1} → {2}", PropertyLabel(key).ToLower(), originalValue, updatedValue];
+                    ? Localizer["Selected {0}: {1}", propertyLabel, updatedValue]
+                    : Localizer["Updated {0}: {1} → {2}", propertyLabel, originalValue, updatedValue];
             });
 
             return string.Join(" / ", diffStrings);
@@ -378,25 +383,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             if (value is bool booleanValue) return booleanValue ? Localizer["Yes"] : Localizer["No"];
             return value;
-        }
-
-        /// <summary>
-        /// Converts a configuration property name into a human-readable string.
-        /// </summary>
-        /// <param name="propertyName">The property name.</param>
-        /// <returns>The localized label for the property.</returns>
-        private string PropertyLabel(string propertyName)
-        {
-            return propertyName switch
-            {
-                nameof(PostgresConfiguration.PSQL_SKU) => Localizer["Database tier"],
-                nameof(DatabricksConfiguration.GeneralPurposeTierSku) => Localizer["General purpose tier"],
-                nameof(DatabricksConfiguration.MachineLearningTierSku) => Localizer["ML tier"],
-                nameof(DatabricksConfiguration.MachineLearningGpuTierSku) => Localizer["ML (GPU) tier"],
-                nameof(DatabricksConfiguration.EnableMachineLearning) => Localizer["Enable ML"],
-                nameof(DatabricksConfiguration.EnableMachineLearningGpu) => Localizer["Enable ML (GPU)"],
-                _ => propertyName
-            };
         }
 
         private IEnumerable<ToolboxTransaction> AllUpdateTransactions => _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update);
@@ -593,18 +579,15 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
                 // Apply tool specific changes
                 var resource = workspace.Resources.First(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));
-                switch (template.Name)
+                var toolInfo = GetToolInfo(template.Name);
+                var configInfo = toolInfo.GetApplicableConfigInfo(_workspaceVersion);
+                if (configInfo != null)
                 {
-                    case TerraformTemplate.AzurePostgres:
-                        var postgresJson = new JsonObject
-                        {
-                            ["postgres_sku"] = _builtWorkspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU
-                        };
-                        resource.InputJsonContent = postgresJson.ToString();
-                        break;
-                    case TerraformTemplate.AzureDatabricks:
-                        resource.InputJsonContent = JsonSerializer.Serialize(_builtWorkspaceDefinition.AppData.DatabricksConfiguration);
-                        break;
+                    var configuration = configInfo.GetConfigurationFromWorkspaceDefinition(_builtWorkspaceDefinition);
+                    if (configuration != null)
+                    {
+                        resource.InputJsonContent = configuration.GenerateResourceInputJson();
+                    }
                 }
             }
         }
@@ -635,17 +618,38 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             Log($"Adding tool: {tool}");
             _transactions.AddTool(tool, OriginalData(tool));
-            var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
-            dependencies.ForEach(dependency =>
+            //var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
+            //dependencies.ForEach(dependency =>
+            //{
+            //    if (_workspaceDefinition.Templates.All(template => template.Name != dependency.Name) &&
+            //        _transactions.DoesNotContainTool(dependency.Name))
+            //        //_transactions.All(transaction => transaction.Tool != dependency.Name))
+            //    {
+            //        Log($"Adding dependency: {dependency.Name}");
+            //        _transactions.AddTool(dependency.Name, OriginalData(dependency.Name));
+            //    }
+            //});
+            var dependencyNames = GetToolInfo(tool).ToolDependencies;
+            foreach (var dependency in dependencyNames)
             {
-                if (_workspaceDefinition.Templates.All(template => template.Name != dependency.Name) &&
-                    _transactions.DoesNotContainTool(dependency.Name))
-                    //_transactions.All(transaction => transaction.Tool != dependency.Name))
+                if (_workspaceDefinition.Templates.All(template => template.Name != dependency) &&
+                    _transactions.DoesNotContainTool(dependency))
                 {
-                    Log($"Adding dependency: {dependency.Name}");
-                    _transactions.AddTool(dependency.Name, OriginalData(dependency.Name));
+                    Log($"Adding dependency: {dependency}");
+                    _transactions.AddTool(dependency, OriginalData(dependency));
                 }
-            });
+            }
+
+            //dependencyNames.ForEach(dependency =>
+            //{
+            //    if (_workspaceDefinition.Templates.All(template => template.Name != dependency.Name) &&
+            //        _transactions.DoesNotContainTool(dependency.Name))
+            //    //_transactions.All(transaction => transaction.Tool != dependency.Name))
+            //    {
+            //        Log($"Adding dependency: {dependency.Name}");
+            //        _transactions.AddTool(dependency.Name, OriginalData(dependency.Name));
+            //    }
+            //});
         }
 
         /// <summary>
@@ -692,83 +696,121 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             _transactions.Revert(transaction);
         }
 
+        private object GetToolData(string tool, bool clone = false)
+        {
+            var configInfo = GetToolInfo(tool).GetApplicableConfigInfo(_workspaceVersion);
+            if (configInfo == null)
+            {
+                return null;
+            }
+
+            var config = configInfo.GetConfigurationFromWorkspaceDefinition(_workspaceDefinition);
+
+            if (config is IWorkspaceToolWithSuffix configWithSuffix)
+            {
+                configWithSuffix.ResourceNameSuffix = GetResourceNameSuffix(tool);
+            }
+
+            return clone? config.Clone() : config;
+        }
+
         /// <summary>
         /// Gets the original data for a tool.
         /// </summary>
         /// <param name="tool">The tool identifier.</param>
         /// <returns>The original data for the tool.</returns>
-        private object OriginalData(string tool)
-        {
-            switch (tool)
-            {
-                case TerraformTemplate.AzurePostgres:
-                    if (_workspaceDefinition.AppData.PostgresConfiguration == null)
-                    {
-                        Log("No original configuration found for Azure Postgres. Creating new configuration.");
-                        return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-                    }
-                    _workspaceDefinition.AppData.PostgresConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
-                    return _workspaceDefinition.AppData.PostgresConfiguration;
-                case TerraformTemplate.AzureAppService:
-                    if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
-                    {
-                        Log("No original configuration found for Azure App Service. Creating new configuration.");
-                        return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-                    }
-                    _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
-                    return _workspaceDefinition.AppData.AppServiceConfiguration;
-                case TerraformTemplate.AzureDatabricks:
-                    if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
-                    {
-                        Log("No original configuration found for Azure Databricks. Creating new configuration.");
-                        return new DatabricksConfiguration();
-                    }
-                    return _workspaceDefinition.AppData.DatabricksConfiguration;
-                default:
-                    return null;
-            }
-        }
+        /// 
+        private object OriginalData(string tool) => GetToolData(tool);
+
+        //private object OriginalData(string tool)
+        //{
+        //    //switch (tool)
+        //    //{
+        //    //    case TerraformTemplate.AzurePostgres:
+        //    //        if (_workspaceDefinition.AppData.PostgresConfiguration == null)
+        //    //        {
+        //    //            Log("No original configuration found for Azure Postgres. Creating new configuration.");
+        //    //            return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
+        //    //        }
+        //    //        _workspaceDefinition.AppData.PostgresConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
+        //    //        return _workspaceDefinition.AppData.PostgresConfiguration;
+        //    //    case TerraformTemplate.AzureAppService:
+        //    //        if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
+        //    //        {
+        //    //            Log("No original configuration found for Azure App Service. Creating new configuration.");
+        //    //            return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
+        //    //        }
+        //    //        _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
+        //    //        return _workspaceDefinition.AppData.AppServiceConfiguration;
+        //    //    case TerraformTemplate.AzureDatabricks:
+        //    //        if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
+        //    //        {
+        //    //            Log("No original configuration found for Azure Databricks. Creating new configuration.");
+        //    //            return new DatabricksConfiguration();
+        //    //        }
+        //    //        return _workspaceDefinition.AppData.DatabricksConfiguration;
+        //    //    default:
+        //    //        return null;
+        //    //}
+
+        //    var configInfo = GetToolInfo(tool).GetApplicableConfigInfo(_workspaceVersion);
+        //    if (configInfo == null)
+        //    {
+        //        return null;
+        //    }
+
+        //    var config = configInfo.GetConfigurationFromWorkspaceDefinition(_workspaceDefinition);
+
+        //    if (config is IWorkspaceToolWithSuffix configWithSuffix)
+        //    {
+        //        configWithSuffix.ResourceNameSuffix = GetResourceNameSuffix(tool);
+        //    }
+
+        //    return config;
+        //}
 
         /// <summary>
         /// Gets the updated data for a tool.
         /// </summary>
         /// <param name="tool">The tool identifier.</param>
         /// <returns>The updated data for the tool.</returns>
-        private object UpdatedData(string tool)
-        {
-            switch (tool)
-            {
-                case TerraformTemplate.AzurePostgres:
-                    if (_workspaceDefinition.AppData.PostgresConfiguration?.PSQL_SKU == null)
-                    {
-                        Log("No original configuration found for Azure Postgres. Creating new configuration.");
-                        return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-                    }
+        /// 
+        private object UpdatedData(string tool) => GetToolData(tool, clone: true);
+        //private object UpdatedData(string tool)
+        //{
+        //    switch (tool)
+        //    {
+        //        case TerraformTemplate.AzurePostgres:
+        //            if (_workspaceDefinition.AppData.PostgresConfiguration?.PSQL_SKU == null)
+        //            {
+        //                Log("No original configuration found for Azure Postgres. Creating new configuration.");
+        //                return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
+        //            }
 
-                    return new PostgresConfiguration
-                    {
-                        PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU,
-                        ResourceNameSuffix = GetResourceNameSuffix(tool)
-                    };
-                case TerraformTemplate.AzureAppService:
-                    if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
-                    {
-                        Log("No original configuration found for Azure App Service. Creating new configuration.");
-                        return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-                    }
-                    _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
-                    return _workspaceDefinition.AppData.AppServiceConfiguration;
-                case TerraformTemplate.AzureDatabricks:
-                    if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
-                    {
-                        Log("No original configuration found for Azure Databricks. Creating new configuration.");
-                        return new DatabricksConfiguration();
-                    }
-                    return _workspaceDefinition.AppData.DatabricksConfiguration.Clone();
-                default:
-                    return null;
-            }
-        }
+        //            return new PostgresConfiguration
+        //            {
+        //                PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU,
+        //                ResourceNameSuffix = GetResourceNameSuffix(tool)
+        //            };
+        //        case TerraformTemplate.AzureAppService:
+        //            if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
+        //            {
+        //                Log("No original configuration found for Azure App Service. Creating new configuration.");
+        //                return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
+        //            }
+        //            _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
+        //            return _workspaceDefinition.AppData.AppServiceConfiguration;
+        //        case TerraformTemplate.AzureDatabricks:
+        //            if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
+        //            {
+        //                Log("No original configuration found for Azure Databricks. Creating new configuration.");
+        //                return new DatabricksConfiguration();
+        //            }
+        //            return _workspaceDefinition.AppData.DatabricksConfiguration.Clone();
+        //        default:
+        //            return null;
+        //    }
+        //}
         /// <summary>
         /// Returns the resource name suffix that will be appended to the resource name for a given template type on the cloud
         /// </summary>

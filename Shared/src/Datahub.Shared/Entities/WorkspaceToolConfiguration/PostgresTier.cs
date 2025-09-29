@@ -14,11 +14,13 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
         public string MaxIOPS { get; set; } = "N/A";
         public string MaxBandwidth { get; set; } = "N/A";
 
+        public static readonly PostgresTier DefaultTier = new() { SKUName = "B1ms", Cores = 1, MemorySize = "2 GiB", PSQL_SKU = "B_Standard_B1ms", MaxIOPS = "640", MaxBandwidth = "10 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$17.80/month" };
+
         public static List<PostgresTier> GetPostgresTiers()
         {
             var postgresTiers = new List<PostgresTier>
             {
-                new() { SKUName = "B1ms", Cores = 1, MemorySize = "2 GiB", PSQL_SKU = "B_Standard_B1ms", MaxIOPS = "640", MaxBandwidth = "10 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$17.80/month" },
+                DefaultTier,
                 new() { SKUName = "B2s", Cores = 2, MemorySize = "4 GiB", PSQL_SKU = "B_Standard_B2s", MaxIOPS = "1,280", MaxBandwidth = "15 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$71.20/month" },
                 new() { SKUName = "B4ms", Cores = 4, MemorySize = "16 GiB", PSQL_SKU = "B_Standard_B4ms", MaxIOPS = "2,880", MaxBandwidth = "35 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$284.85/month" },
                 new() { SKUName = "B8ms", Cores = 8, MemorySize = "32 GiB", PSQL_SKU = "B_Standard_B8ms", MaxIOPS = "4,320", MaxBandwidth = "50 MiB/sec", Type = "Burstable", IsAvailable = true, Cost = "$569.69/month" },

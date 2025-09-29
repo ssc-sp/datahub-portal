@@ -25,8 +25,9 @@ public class VersionAwareWorkspaceToolInfo
 
     public bool IsAvailable(Version workspaceVersion) => MinAvailableVersion <= workspaceVersion;
 
-    public bool IsConfigurable(Version workspaceVersion) => ConfigurationVersions != null && ConfigurationVersions.Any(c => c.MinVersion <= workspaceVersion);
-    public bool IsConfigurableInFutureVersion(Version workspaceVersion) => ConfigurationVersions != null && ConfigurationVersions.Any(c => c.MinVersion > workspaceVersion);
+    public bool IsConfigurable(Version workspaceVersion) => ConfigurationVersions != null && ConfigurationVersions.Any(c => c.MinVersion <= workspaceVersion && c.HasConfigurationDialog);
+
+    public bool IsConfigurableInFutureVersion(Version workspaceVersion) => ConfigurationVersions != null && ConfigurationVersions.Any(c => c.MinVersion > workspaceVersion && c.HasConfigurationDialog);
 
     public VersionAwareWorkspaceToolConfigInfo? GetApplicableConfigInfo(Version workspaceVersion)
     {
@@ -44,5 +45,29 @@ public class VersionAwareWorkspaceToolInfo
 public class VersionAwareWorkspaceToolConfigInfo
 {
     public Version MinVersion { get; set; } = VersionAwareWorkspaceToolInfo.ALWAYS;
+    public Type ConfigClass { get; set; } = typeof(IWorkspaceToolConfiguration);
+    public bool HasConfigurationDialog { get; set; } = true;
+    public IWorkspaceToolConfiguration GetConfigurationFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    {
+        var methodName = nameof(IWorkspaceToolConfiguration.ReadFromWorkspaceDefinition);
+        var method = ConfigClass.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static) ??
+            throw new InvalidOperationException($"The class {ConfigClass.FullName} does not implement the required static method {methodName}.");
+        if (method.Invoke(null, [workspaceDefinition]) is not IWorkspaceToolConfiguration config)
+        {
+            throw new InvalidOperationException($"The method {methodName} in class {ConfigClass.FullName} did not return a valid IWorkspaceToolConfiguration instance.");
+        }
+        return config;
+    }
+    public string GetPropertyLabel(string propertyName)
+    {
+        var methodName = nameof(IWorkspaceToolConfiguration.GetPropertyLabel);
+        var method = ConfigClass.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static) ??
+            throw new InvalidOperationException($"The class {ConfigClass.FullName} does not implement the required static method {methodName}.");
+        if (method.Invoke(null, [propertyName]) is not string label)
+        {
+            throw new InvalidOperationException($"The method {methodName} in class {ConfigClass.FullName} did not return a valid string label.");
+        }
+        return label;
+    }
     // TODO config methods
 }
