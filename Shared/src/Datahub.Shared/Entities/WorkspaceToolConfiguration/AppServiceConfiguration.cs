@@ -27,7 +27,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
             GitTokenSecretName = gitTokenSecretName;
         }
 
-        IWorkspaceToolConfiguration IWorkspaceToolConfiguration.Clone()
+        public IWorkspaceToolConfiguration Clone()
         {
             return new AppServiceConfiguration()
             {
@@ -43,17 +43,17 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
             };
         }
 
-        void IWorkspaceToolConfiguration.WriteToWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        public void WriteToWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
         {
             workspaceDefinition.AppData.AppServiceConfiguration = this;
         }
 
-        static IWorkspaceToolConfiguration IWorkspaceToolConfiguration.ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        public static IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
         {
             return workspaceDefinition.AppData.AppServiceConfiguration ?? new AppServiceConfiguration();
         }
 
-        static string IWorkspaceToolConfiguration.GetPropertyLabel(string propertyName)
+        public static string GetPropertyLabel(string propertyName)
         {
             return propertyName switch
             {
@@ -61,7 +61,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
             };
         }
 
-        string IWorkspaceToolConfiguration.GenerateResourceInputJson()
+        public string GenerateResourceInputJson()
         {
             return "{}";
         }

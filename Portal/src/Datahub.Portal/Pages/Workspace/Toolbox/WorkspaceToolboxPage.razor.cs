@@ -89,6 +89,15 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     AdditionalLinks = [
                         ("Azure App Service documentation", "https://docs.microsoft.com/en-us/azure/app-service/"),
                         ("Azure App Service pricing", "https://azure.microsoft.com/en-us/pricing/details/app-service/")
+                    ],
+                    ConfigurationVersions =
+                    [
+                        new VersionAwareWorkspaceToolConfigInfo
+                        {
+                            MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
+                            ConfigClass = typeof(AppServiceConfiguration),
+                            HasConfigurationDialog = false
+                        }
                     ]
                 }
             },
