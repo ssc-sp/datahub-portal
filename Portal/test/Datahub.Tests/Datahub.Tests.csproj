@@ -38,7 +38,7 @@
 		<PackageReference Include="Moq" Version="4.20.*" />
 		<PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.*" />
 		<PackageReference Include="NSubstitute" Version="5.3.*" />
-		<PackageReference Include="Xunit.DependencyInjection" Version="10.6.*" />
+		<PackageReference Include="Xunit.DependencyInjection" Version="11.0.*" />
 		<PackageReference Include="xunit.v3.assert" Version="3.0.*" />
 		<PackageReference Include="xunit.v3.core" Version="3.0.*" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
@@ -58,6 +58,7 @@
 		<ProjectReference Include="..\..\utils\SyncDocs\SyncDocs.csproj" />
 	</ItemGroup>
 </Project>
+
 
 
 

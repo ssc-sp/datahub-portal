@@ -17,10 +17,10 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="9.0.*" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
         <PackageReference Include="NSubstitute" Version="5.*" />
-        <PackageReference Include="NUnit" Version="4.3.*" />
+        <PackageReference Include="NUnit" Version="4.4.*" />
 		<PackageReference Include="Moq" Version="4.20.*" />
-        <PackageReference Include="NUnit3TestAdapter" Version="5.0.*" />
-        <PackageReference Include="NUnit.Analyzers" Version="4.9.*">
+        <PackageReference Include="NUnit3TestAdapter" Version="5.1.*" />
+        <PackageReference Include="NUnit.Analyzers" Version="4.10.*">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
@@ -46,6 +46,9 @@
     </ItemGroup>
 
 </Project>
+
+
+
 
 
 

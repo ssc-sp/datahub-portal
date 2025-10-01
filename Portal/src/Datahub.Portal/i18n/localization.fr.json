@@ -1144,6 +1144,7 @@
   "FSDH Support Request": "Demande d'assistance PFDS",
   "FSDH Support Request Form": "formulaire de demande d'assistance de la PFDS.",
   "FSDH Support Team access is enabled until {0}": "L'accès à l'équipe de soutien PFDS est activé jusqu'au {0}",
+  "FSDH on Canada.ca": "PFDS sur Canada.ca",
   "FSSA": "FSSA",
   "FSTII": "IFIST",
   "FTE": "FTE",
@@ -1249,6 +1250,7 @@
   "GCDOCS project": "Projet GCDOCS",
   "GCPRG": "PSCGR",
   "GCU": "USC",
+  "GCxchange Community": "Communauté GCÉchange",
   "GCdocs Folder Location": "Emplacement du dossier GCdocs",
   "GCdocs_Hyperlink_URL": "Emplacement du dossier Gcdocs",
   "GDD": "GD",
@@ -3345,5 +3347,8 @@
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
   "INFO": "INFO",
   "NOTICE": "AVIS",
-  "IMPORTANT": "IMPORTANT"
+  "IMPORTANT": "IMPORTANT",
+  "Severity": "Sévérité",
+  "Notice": "Avis",
+  "Info": "Info"
 }
