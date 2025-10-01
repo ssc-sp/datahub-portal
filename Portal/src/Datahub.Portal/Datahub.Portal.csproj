@@ -39,7 +39,6 @@
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.*" />
 		<PackageReference Include="Microsoft.Graph" Version="5.93.*" />
-		<PackageReference Include="Microsoft.Identity.Client" Version="4.77.*" />
 		<PackageReference Include="Microsoft.Identity.Web" Version="3.14.*" />
 		<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.14.*" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.23.1" />
