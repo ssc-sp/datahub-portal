@@ -9,6 +9,7 @@
     <ItemGroup>
       <PackageReference Include="Azure.Core" Version="1.49.*" />
       <PackageReference Include="Azure.Identity" Version="1.16.*" />
+      <PackageReference Include="Azure.ResourceManager" Version="1.13.2" />
       <PackageReference Include="Azure.ResourceManager.AppService" Version="1.4.*" />
       <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.*" />
       <PackageReference Include="Azure.ResourceManager.CostManagement" Version="1.0.*" />
