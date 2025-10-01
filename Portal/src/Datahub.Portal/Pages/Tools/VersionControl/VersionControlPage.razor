@@ -15,7 +15,6 @@
 @inject IWorkspaceVersionService _workspaceVersionService
 @inject IRequestManagementService _requestManagementService
 @inject IResourceMessagingService _resourceMessagingService
-@inject IEmailNotificationService _emailNotificationService
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
@@ -85,7 +84,7 @@
                 <MudPaper Outlined Elevation="0" Class="pa-4" Style="min-width: 140px; max-width: 180px; height: 100px; background-color: #f5f5f5;">
                     <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
                         <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
-                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center;">@Localizer["Latest Version"]</MudText>
+                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center;">@Localizer["Current Version"]</MudText>
                         </MudItem>
                         <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
                             <MudText Typo="Typo.h4" Class="font-weight-bold">@_statistics.LatestVersion</MudText>
@@ -96,7 +95,7 @@
                 <MudPaper Outlined Elevation="0" Class="pa-4" Style="min-width: 140px; max-width: 180px; height: 100px; background-color: #f5f5f5;">
                     <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
                         <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
-                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center;">@Localizer["Total Workspaces"]</MudText>
+                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center;">@Localizer["Total Active Workspaces"]</MudText>
                         </MudItem>
                         <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
                             <MudText Typo="Typo.h4" Class="font-weight-bold">@_statistics.TotalWorkspaces.ToString()</MudText>
@@ -107,7 +106,7 @@
                 <MudPaper Outlined Elevation="0" Class="pa-4" Style="@GetPercentageCardStyle()">
                     <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
                         <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
-                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center; color: white;">@Localizer["On Latest Version"]</MudText>
+                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center; color: white;">@Localizer["On Current Version"]</MudText>
                         </MudItem>
                         <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
                             <MudText Typo="Typo.h4" Class="font-weight-bold" Style="color: white;">@($"{_statistics.PercentageOnLatest:F1}%")</MudText>
@@ -311,12 +310,13 @@
                 {
                     StartDateTime = DateTime.UtcNow,
                     EndDateTime = DateTime.UtcNow.AddDays(30),                      
-                    PreviewEn = $"A new version {versionTag.Tag} of the FSDH workspaces has been released. Check out the details in the description.",
-                    PreviewFr = $"Une nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée. Consultez les détails dans la description.",
-                    BodyEn = Markdown.ToHtml(versionTag.VersionDescription),
-                    BodyFr = Markdown.ToHtml(versionTag.VersionDescriptionFr),
+                    PreviewEn = $"# New Workspace Version Available\n\nA new version {versionTag.Tag} of the FSDH workspaces has been released. Check out the details in the description.",
+                    PreviewFr = $"# Nouvelle version de l'espace de travail disponible\n\nUne nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée. Consultez les détails dans la description.",
+                    BodyEn = $"# New Workspace Version Available\n\n{Markdown.ToHtml(versionTag.VersionDescription)}",
+                    BodyFr = $"# Nouvelle version de l'espace de travail disponible\n\n{Markdown.ToHtml(versionTag.VersionDescriptionFr)}",
                     CreatedAt = DateTime.UtcNow,
-                    CreatedById = portalUser.Id
+                    CreatedById = portalUser.Id,
+                    Severity = 1,
                 };
 
                 var success = await _announcementService.SaveAnnouncementAsync(announcement);
