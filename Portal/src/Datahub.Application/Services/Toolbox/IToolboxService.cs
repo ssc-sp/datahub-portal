@@ -1,4 +1,5 @@
 ﻿using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Application.Services.Toolbox
 {
@@ -32,8 +33,8 @@ namespace Datahub.Application.Services.Toolbox
     {
         public required string Tool { get; init; }
         public ToolboxTransactionType Type { get; init; }
-        public dynamic? OriginalData { get; init; }
-        public dynamic? UpdatedData { get; init; }
+        public IWorkspaceToolConfiguration? OriginalData { get; init; }
+        public IWorkspaceToolConfiguration? UpdatedData { get; init; }
 
         public override string ToString()
         {

@@ -299,11 +299,11 @@
                                             {
                                                 case TerraformTemplate.AzurePostgres:
                                                     <PostgresConfigurationForm
-                                                        Configuration="@(transaction.UpdatedData!)"/>
+                                                        Configuration="@(transaction.UpdatedData! as PostgresConfiguration)"/>
                                                     break;
                                                 case TerraformTemplate.AzureDatabricks:
                                                     <DatabricksConfigurationForm
-                                                        Configuration="@(transaction.UpdatedData!)"/>
+                                                        Configuration="@(transaction.UpdatedData! as DatabricksConfiguration)"/>
                                                     break;
                                                 default:
                                                     <MudText Style="font-style: italic">

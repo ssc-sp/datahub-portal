@@ -3,6 +3,7 @@ using System.Text.Json;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Infrastructure.Services.Toolbox
 {
@@ -53,15 +54,16 @@ namespace Datahub.Infrastructure.Services.Toolbox
         /// <param name="transaction">The transaction containing the new configuration information</param>
         private void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
         {
-            switch (transaction.Tool)
-            {
-                case TerraformTemplate.AzurePostgres:
-                    workspaceDefinition.AppData.PostgresConfiguration = transaction.UpdatedData;
-                    break;
-                case TerraformTemplate.AzureDatabricks:
-                    workspaceDefinition.AppData.DatabricksConfiguration = transaction.UpdatedData;
-                    break;
-            }
+            transaction.UpdatedData?.WriteToWorkspaceDefinition(workspaceDefinition);
+            //switch (transaction.Tool)
+            //{
+            //    case TerraformTemplate.AzurePostgres:
+            //        workspaceDefinition.AppData.PostgresConfiguration = transaction.UpdatedData;
+            //        break;
+            //    case TerraformTemplate.AzureDatabricks:
+            //        workspaceDefinition.AppData.DatabricksConfiguration = transaction.UpdatedData;
+            //        break;
+            //}
         }
     }
 
@@ -95,7 +97,7 @@ namespace Datahub.Infrastructure.Services.Toolbox
         }
 
         public static ToolboxTransaction UpdateTool(this List<ToolboxTransaction> transactions, string tool,
-            dynamic? originalData, dynamic? updatedData)
+            IWorkspaceToolConfiguration? originalData, IWorkspaceToolConfiguration? updatedData)
         {
             var transaction = new ToolboxTransaction
             {

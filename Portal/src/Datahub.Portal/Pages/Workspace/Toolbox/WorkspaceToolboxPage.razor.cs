@@ -705,7 +705,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             _transactions.Revert(transaction);
         }
 
-        private object GetToolData(string tool, bool clone = false)
+#nullable enable
+        private IWorkspaceToolConfiguration? GetToolData(string tool, bool clone = false)
         {
             var configInfo = GetToolInfo(tool).GetApplicableConfigInfo(_workspaceVersion);
             if (configInfo == null)
@@ -729,7 +730,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <param name="tool">The tool identifier.</param>
         /// <returns>The original data for the tool.</returns>
         /// 
-        private object OriginalData(string tool) => GetToolData(tool);
+        private IWorkspaceToolConfiguration? OriginalData(string tool) => GetToolData(tool);
 
         //private object OriginalData(string tool)
         //{
@@ -784,7 +785,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <param name="tool">The tool identifier.</param>
         /// <returns>The updated data for the tool.</returns>
         /// 
-        private object UpdatedData(string tool) => GetToolData(tool, clone: true);
+        private IWorkspaceToolConfiguration? UpdatedData(string tool) => GetToolData(tool, clone: true);
         //private object UpdatedData(string tool)
         //{
         //    switch (tool)
@@ -820,6 +821,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         //            return null;
         //    }
         //}
+#nullable disable
+
         /// <summary>
         /// Returns the resource name suffix that will be appended to the resource name for a given template type on the cloud
         /// </summary>
