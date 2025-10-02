@@ -30,7 +30,7 @@ docker run --rm -p 8080:8080 \
 ## Prerequisites
 
 * Docker 24+
-* Network access to NuGet feeds used by the repo
+* Network access to NuGet feeds used by the repository
 * If using JFrog-hosted Chainguard mirrors, you’ll need an **Artifactory login** (see below)
 
 > **Why not `COPY . .`?** This monorepo has many projects. We only copy the Portal and its referenced projects to keep the image (and build context) smaller and to avoid restoring/building unrelated code.
@@ -139,7 +139,7 @@ docker login artifacts-artefacts.devops.cloud-nuage.canada.ca
 If login fails, confirm:
 
 * You’re on VPN (if required)
-* Your account has permission to pull from the repo paths
+* Your account has permission to pull from the repository paths
 * Your Docker daemon can reach the registry (proxy/SSL issues)
 
 ---
@@ -188,8 +188,8 @@ If login fails, confirm:
 
 ## FAQ
 
-**Q: Why must I build from the repo root?**
-A: The Dockerfile’s `COPY` statements use paths relative to the repo root to pull in only the projects the Portal needs.
+**Q: Why must I build from the repository root?**
+A: The Dockerfile’s `COPY` statements use paths relative to the repository root to pull in only the projects the Portal needs.
 
 **Q: Why Linux amd64?**
 A: That’s what we deploy to and it avoids platform drift between dev machines.
