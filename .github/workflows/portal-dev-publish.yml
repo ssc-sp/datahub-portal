@@ -84,7 +84,7 @@ jobs:
           EOF
 
           # GHCR tags
-          TAGS="${{ env.IMAGE_GHCR }}:dev-${VERSION}-${DATECODE}-g${SHA_SHORT}"
+          TAGS="${{ env.IMAGE_GHCR }}:dev-${MAJOR}.${MINOR}.${PATCH}-${DATECODE}-g${SHA_SHORT}"
           TAGS="$TAGS,${{ env.IMAGE_GHCR }}:dev-${VERSION}"
           TAGS="$TAGS,${{ env.IMAGE_GHCR }}:dev-${MAJOR}.${MINOR}-latest"
           TAGS="$TAGS,${{ env.IMAGE_GHCR }}:dev-${MAJOR}-latest"
@@ -92,7 +92,7 @@ jobs:
 
           # Optional: also push same tags to JFrog docker repo
           if [ "${{ env.PUSH_TO_JFROG }}" = "true" ]; then
-            TAGS="$TAGS,${{ env.IMAGE_JFROG }}:dev-${VERSION}-${DATECODE}-g${SHA_SHORT}"
+            TAGS="$TAGS,${{ env.IMAGE_JFROG }}:dev-${MAJOR}.${MINOR}.${PATCH}-${DATECODE}-g${SHA_SHORT}"
             TAGS="$TAGS,${{ env.IMAGE_JFROG }}:dev-${VERSION}"
             TAGS="$TAGS,${{ env.IMAGE_JFROG }}:dev-${MAJOR}.${MINOR}-latest"
             TAGS="$TAGS,${{ env.IMAGE_JFROG }}:dev-${MAJOR}-latest"
