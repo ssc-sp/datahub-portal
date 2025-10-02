@@ -4,6 +4,8 @@ on:
   push:
     branches: [develop]
   workflow_dispatch:
+  schedule:
+  - cron: "17 */6 * * *"  # 00:17, 06:17, 12:17, 18:17 UTC
 
 permissions:
   id-token: write 
