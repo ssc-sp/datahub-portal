@@ -1,32 +1,40 @@
 FROM cgr.dev/chainguard/dotnet-sdk:latest AS build
 WORKDIR /workspace
-ENV DOTNET_CLI_HOME=/tmp
+ENV DOTNET_CLI_HOME=/tmp \
+    DOTNET_CLI_TELEMETRY_OPTOUT=1
 
-# copy source and ensure nonroot owns it
+# Copy sources
+USER root
+
 # Global repo files
-COPY --chown=nonroot:nonroot ./stylecop.json                ./stylecop.json
-COPY --chown=nonroot:nonroot ./.editorconfig                ./.editorconfig
-COPY --chown=nonroot:nonroot ./global.json                  ./global.json
-COPY --chown=nonroot:nonroot ./Analyzers.ruleset            ./Analyzers.ruleset
-#COPY --chown=nonroot:nonroot ./Directory.Packages.props     ./Directory.Packages.props
-COPY --chown=nonroot:nonroot ./nuget.config                 ./nuget.config
+COPY stylecop.json                ./
+COPY .editorconfig                ./
+COPY global.json                  ./
+COPY Analyzers.ruleset            ./
+# COPY Directory.Packages.props   ./
+COPY Directory.Build.props        ./
+COPY nuget.config                 ./
 
 # Shared dependency files
-COPY --chown=nonroot:nonroot ./Shared/src/Datahub.Markdown/ ./Shared/src/Datahub.Markdown/
-COPY --chown=nonroot:nonroot ./Shared/src/Datahub.Shared/   ./Shared/src/Datahub.Shared/
-COPY --chown=nonroot:nonroot ./Desktop/Desktop.SharedCode/  ./Desktop/Desktop.SharedCode/
+COPY Shared/src/Datahub.Markdown/ ./Shared/src/Datahub.Markdown/
+COPY Shared/src/Datahub.Shared/   ./Shared/src/Datahub.Shared/
+COPY Desktop/Desktop.SharedCode/  ./Desktop/Desktop.SharedCode/
 
 # Portal dependency files
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Application/                ./Portal/src/Datahub.Application/
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.CatalogSearch/              ./Portal/src/Datahub.CatalogSearch/
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Core/                       ./Portal/src/Datahub.Core/
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Infrastructure/             ./Portal/src/Datahub.Infrastructure/
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Infrastructure.Offline/     ./Portal/src/Datahub.Infrastructure.Offline/
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Metadata/                   ./Portal/src/Datahub.Metadata/
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Portal.Metadata/            ./Portal/src/Datahub.Portal.Metadata/
+COPY Portal/src/Datahub.Application/            ./Portal/src/Datahub.Application/
+COPY Portal/src/Datahub.CatalogSearch/          ./Portal/src/Datahub.CatalogSearch/
+COPY Portal/src/Datahub.Core/                   ./Portal/src/Datahub.Core/
+COPY Portal/src/Datahub.Infrastructure/         ./Portal/src/Datahub.Infrastructure/
+COPY Portal/src/Datahub.Infrastructure.Offline/ ./Portal/src/Datahub.Infrastructure.Offline/
+COPY Portal/src/Datahub.Metadata/               ./Portal/src/Datahub.Metadata/
+COPY Portal/src/Datahub.Portal.Metadata/        ./Portal/src/Datahub.Portal.Metadata/
 
 # Portal files
-COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Portal/ ./Portal/src/Datahub.Portal/
+COPY Portal/src/Datahub.Portal/ ./Portal/src/Datahub.Portal/
+
+# Fixes ownership
+RUN chown -R nonroot:nonroot /workspace
+USER nonroot
 
 RUN mkdir -p /workspace/publish
 
@@ -37,14 +45,19 @@ RUN dotnet publish Portal/src/Datahub.Portal/Datahub.Portal.csproj \
     --no-restore \
     --self-contained false \
     -p:UseAppHost=false \
+    -p:DebugType=None \
+    -p:DebugSymbols=false \
+    -p:GenerateDocumentationFile=false \
     -c Release \
     -o /workspace/publish
 
-# production
+# Production Run
 FROM cgr.dev/chainguard/aspnet-runtime:latest
 WORKDIR /app
 COPY --from=build /workspace/publish ./
-ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1 \
+    DOTNET_EnableDiagnostics=0 \
+    ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
 ENTRYPOINT ["dotnet", "Datahub.Portal.dll"]
