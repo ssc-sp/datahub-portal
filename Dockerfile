@@ -24,26 +24,27 @@ COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Infrastructure/             ./
 COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Infrastructure.Offline/     ./Portal/src/Datahub.Infrastructure.Offline/
 COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Metadata/                   ./Portal/src/Datahub.Metadata/
 COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Portal.Metadata/            ./Portal/src/Datahub.Portal.Metadata/
-COPY --chown=nonroot:nonroot ./Shared/src/Datahub.Markdown/                   ./Shared/src/Datahub.Markdown/
 
 # Portal files
 COPY --chown=nonroot:nonroot ./Portal/src/Datahub.Portal/ ./Portal/src/Datahub.Portal/
 
 RUN mkdir -p /workspace/publish
 
-RUN dotnet restore Portal/src/Datahub.Portal/Datahub.Portal.csproj -r linux-x64
+RUN dotnet restore Portal/src/Datahub.Portal/Datahub.Portal.csproj --runtime linux-x64
+
 RUN dotnet publish Portal/src/Datahub.Portal/Datahub.Portal.csproj \
-    -c Release -r linux-x64 --no-restore \
-    --self-contained true \
-    -p:PublishTrimmed=true \
-    -p:PublishSingleFile=true \
+    --runtime linux-x64 \
+    --no-restore \
+    --self-contained false \
+    -p:UseAppHost=false \
+    -c Release \
     -o /workspace/publish
 
 # production
-FROM cgr.dev/chainguard/dotnet-runtime:latest
+FROM cgr.dev/chainguard/aspnet-runtime:latest
 WORKDIR /app
 COPY --from=build /workspace/publish ./
 ENV ASPNETCORE_URLS=http://+:8080
 EXPOSE 8080
 
-ENTRYPOINT ["./Datahub.Portal"]
+ENTRYPOINT ["dotnet", "Datahub.Portal.dll"]
