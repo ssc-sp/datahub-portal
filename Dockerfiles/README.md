@@ -6,7 +6,7 @@ This folder contains the Dockerfile(s) used to build and run various parts of th
 
 ---
 
-## TL;DR – Build & Run
+## TL;DR – Build & Run Example(Dockerfile.portal)
 
 ```bash
 # From the repo root (keep "." as the context)
