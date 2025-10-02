@@ -29,9 +29,9 @@ docker run --rm -p 8080:8080 \
 
 ## Prerequisites
 
-* Docker 24+
-* Network access to NuGet feeds used by the repository
-* If using JFrog-hosted Chainguard mirrors, you’ll need an **Artifactory login** (see below)
+- Docker 24+
+- Network access to NuGet feeds used by the repository
+- If using JFrog-hosted Chainguard mirrors, you’ll need an **Artifactory login** (see below)
 
 > **Why not `COPY . .`?** This monorepo has many projects. We only copy the Portal and its referenced projects to keep the image (and build context) smaller and to avoid restoring/building unrelated code.
 
@@ -138,15 +138,15 @@ docker login artifacts-artefacts.devops.cloud-nuage.canada.ca
 
 If login fails, confirm:
 
-* You’re on VPN (if required)
-* Your account has permission to pull from the repository paths
-* Your Docker daemon can reach the registry (proxy/SSL issues)
+- You’re on VPN (if required)
+- Your account has permission to pull from the repository paths
+- Your Docker daemon can reach the registry (proxy/SSL issues)
 
 ---
 
 ## Configuration Cheat Sheet
 
-* **DefaultAzureCredential** works if you mount your Azure CLI auth:
+- **DefaultAzureCredential** works if you mount your Azure CLI auth:
 
   ```bash
   -v $HOME/.azure:/root/.azure:ro
@@ -154,9 +154,9 @@ If login fails, confirm:
 
   and use connection strings like `Authentication=Active Directory Default;`.
 
-* **Managed Identity** is typically for Azure hosting. For local containers, prefer `Active Directory Default` (CLI) or `Active Directory Service Principal` (AZURE_* env vars).
+- **Managed Identity** is typically for Azure hosting. For local containers, prefer `Active Directory Default` (CLI) or `Active Directory Service Principal` (AZURE\_\* env vars).
 
-* **Disable DB migrations at startup** (if the app supports it):
+- **Disable DB migrations at startup** (if the app supports it):
 
   ```bash
   -e DATAHUB__DB__MIGRATE_ON_STARTUP=false
@@ -168,21 +168,20 @@ If login fails, confirm:
 
 ## Troubleshooting
 
-* **NuGet restore failures**: confirm `nuget.config` feeds are reachable from the build environment.
-* **403/401 pulling base images**: you’re likely not logged into Artifactory or lack perms.
-* **Antiforgery or Data Protection warnings**: in local dev these are usually safe. To persist keys across restarts, mount a host folder to `/home/nonroot/.aspnet/DataProtection-Keys`.
-* **Az login not seen in container**: mount your Azure CLI folder or use service principal env vars.
+- **NuGet restore failures**: confirm `nuget.config` feeds are reachable from the build environment.
+- **403/401 pulling base images**: you’re likely not logged into Artifactory or lack perms.
+- **Antiforgery or Data Protection warnings**: in local dev these are usually safe. To persist keys across restarts, mount a host folder to `/home/nonroot/.aspnet/DataProtection-Keys`.
+- **Az login not seen in container**: mount your Azure CLI folder or use service principal env vars.
 
 ---
 
 ## Make the image smaller
 
-* We already build in a separate stage and copy only `/workspace/publish`.
-* We turn off symbol/XML generation and disable the apphost to reduce size.
-* Further reductions:
-
-  * Strip unused content from `wwwroot` (fonts, maps, etc.) if allowable
-  * Consider trimming/single-file **only** if you can test thoroughly (trimming can break reflection)
+- We already build in a separate stage and copy only `/workspace/publish`.
+- We turn off symbol/XML generation and disable the apphost to reduce size.
+- Further reductions:
+  - Strip unused content from `wwwroot` (fonts, maps, etc.) if allowable
+  - Consider trimming/single-file **only** if you can test thoroughly (trimming can break reflection)
 
 ---
 

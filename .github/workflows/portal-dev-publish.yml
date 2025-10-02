@@ -5,10 +5,10 @@ on:
     branches: [develop]
   workflow_dispatch:
   schedule:
-  - cron: "17 */6 * * *"  # 00:17, 06:17, 12:17, 18:17 UTC
+    - cron: "17 */6 * * *" # 00:17, 06:17, 12:17, 18:17 UTC
 
 permissions:
-  id-token: write 
+  id-token: write
   contents: read
   packages: write
 
@@ -34,7 +34,7 @@ jobs:
           repo_lc="${GITHUB_REPOSITORY,,}"        # bash lowercase
           echo "REPO_LC=$repo_lc" >> "$GITHUB_ENV"
           echo "IMAGE_GHCR=ghcr.io/${repo_lc}/datahub-portal" >> "$GITHUB_ENV"
-      
+
       - name: Checkout
         uses: actions/checkout@v4
 
