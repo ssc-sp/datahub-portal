@@ -121,7 +121,7 @@ docker run --rm -p 8080:8080 \
 
 The Dockerfile references Chainguard images via an internal Artifactory:
 
-```
+```none
 FROM artifacts-artefacts.devops.cloud-nuage.canada.ca/.../dotnet-sdk:9
 FROM artifacts-artefacts.devops.cloud-nuage.canada.ca/.../aspnet-runtime:9
 ```
