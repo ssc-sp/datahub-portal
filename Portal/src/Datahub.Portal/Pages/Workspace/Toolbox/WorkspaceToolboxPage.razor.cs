@@ -1,9 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Toolbox;
-using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms;
@@ -226,7 +224,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         /// <param name="toolInfo">The tool information containing the deletion status.</param>
         /// <returns><see langword="true"/> if the tool can be deleted; otherwise, <see langword="false"/>.</returns>
-        private bool IsDeletable(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.CanBeDeleted;
+        private static bool IsDeletable(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.CanBeDeleted;
 
         /// <summary>
         /// Gets the label associated with each availability status.
@@ -293,9 +291,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         /// <param name="toolInfo">The tool to get the icon for.</param>
         /// <returns>The icon identifier for the tool.</returns>
-        private string ToolIcon(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.ToolIcon;
+        private static string ToolIcon(VersionAwareWorkspaceToolInfo toolInfo) => toolInfo.ToolIcon;
         
-
         /// <summary>
         /// Calculates how many instances of a tool are currently in use.
         /// </summary>
@@ -484,7 +481,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 await _context.DisposeAsync();
                 return;
             }
-
 
             if (!_mockRequest)
             {
@@ -741,14 +737,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
         private HashSet<string> GetExistingWorkspaceTools() => _workspaceDefinition.Templates.Select(t => t.Name).ToHashSet();
 
-        
-
         /// <summary>
         /// Populates the tool catalog with tools that are not already in the workspace definition.
         /// </summary>
         private void PopulateCatalog()
         {
-            var existingTools = _workspaceDefinition.Templates.Select(t => t.Name).ToHashSet();
+            var existingTools = GetExistingWorkspaceTools();
             _toolCatalog.AddRange(_versionAwareTools.Keys.Where(t => !existingTools.Contains(t)));
         }
 

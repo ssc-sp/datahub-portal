@@ -55,15 +55,6 @@ namespace Datahub.Infrastructure.Services.Toolbox
         private void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
         {
             transaction.UpdatedData?.WriteToWorkspaceDefinition(workspaceDefinition);
-            //switch (transaction.Tool)
-            //{
-            //    case TerraformTemplate.AzurePostgres:
-            //        workspaceDefinition.AppData.PostgresConfiguration = transaction.UpdatedData;
-            //        break;
-            //    case TerraformTemplate.AzureDatabricks:
-            //        workspaceDefinition.AppData.DatabricksConfiguration = transaction.UpdatedData;
-            //        break;
-            //}
         }
     }
 
