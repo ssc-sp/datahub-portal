@@ -47,6 +47,7 @@ DatahubTest/testsettings.json
 /Portal/src/Datahub.Achievements/MissingTranslations.json
 /Portal/utils/SyncDocs/config.deepl.json
 **/*/*.PublishSettings
+/Dockerfiles/your.appsettings.json
 
 ResourceProvisioner/venv/**
 **/__pycache__/**

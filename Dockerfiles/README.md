@@ -21,7 +21,7 @@ docker build \
 # Run (basic)
 docker run --rm -p 8080:8080 \
   --platform linux/amd64 \
-  -v $(pwd)/your.appsettings.json:/app/appsettings.json:ro \
+  -v $(pwd)/Dockerfiles/your.appsettings.json:/app/appsettings.json:ro \
   datahub-portal:local
 ```
 
@@ -86,7 +86,7 @@ DOCKER_BUILDKIT=1 docker build --progress=plain \
 ```bash
 docker run --rm -p 8080:8080 \
   --platform linux/amd64 \
-  -v $(pwd)/your.appsettings.json:/app/appsettings.json:ro \
+  -v $(pwd)/Dockerfiles/your.appsettings.json:/app/appsettings.json:ro \
   datahub-portal:local
 ```
 
