@@ -6,6 +6,7 @@ using Datahub.Application.Services.Toolbox;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Portal.Layout;
+using Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Entities.WorkspaceToolConfiguration;
@@ -31,7 +32,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     ToolIcon = SidebarIcons.Workspace,
                     MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
                     CanBeDeleted = false,
-                    ToolCostInformation = ("Workspace essentials are the backbone of your workspace in the cloud, and costs related to the various resources this includes sum up to less than {0:C2} per month.", [1.0])
+                    ToolCostInformation = ("Workspace essentials are the backbone of your workspace in the cloud, and costs related to the various resources this includes sum up to less than {0:C2} per month.", [1.0]),
+                    ToolCostSummaryFunction = (config) => ("< {0:C2}/month", [1.0m])
                 }
             },
             { TerraformTemplate.AzureDatabricks, new VersionAwareWorkspaceToolInfo
@@ -49,14 +51,21 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                         new VersionAwareWorkspaceToolConfigInfo
                         {
                             MinVersion = new Version(5, 2, 0),
-                            ConfigClass = typeof(DatabricksConfiguration)
+                            ConfigClass = typeof(DatabricksConfiguration),
+                            ConfigDialogClass = typeof(DatabricksConfigurationForm)
                         },
                     ],
                     ToolCostInformation = ("The cost of Databricks is completely dependent on your usage. The idle costs of Databricks when not using it at all are nearly $0. Small compute clusters will cost about {0:C2} to {1:C2} per hour of usage, regular compute clusters will cost about {2:C2} to {3:C2} per hour of usage and large compute clusters will cost {4:C2} to {5:C2} per hour of usage. Additional costs may be incurred by other usage (data catalog, compute creation, etc.) and prices mentioned refer to default configurations. Make sure to read the additional information below for more details on costs.", [0.80, 2.40, 1.60, 4.80, 3.20, 9.60]),
                     AdditionalLinks = [
                         ("Azure Databricks documentation", "https://docs.microsoft.com/en-us/azure/databricks/"),
                         ("Azure Databricks pricing", "https://azure.microsoft.com/en-us/pricing/details/databricks/")
-                    ]
+                    ],
+                    ToolCostSummaryFunction = (config) =>
+                    {
+                        if (config is not DatabricksConfiguration dbConfig) return ("N/A", []);
+                        var (minCost, maxCost) = dbConfig.GetMinMaxSelectedHourlyCosts();
+                        return ("~ {0:C2} to {1:C2}/hour, depending on usage", [minCost, maxCost]);
+                    }
                 }
             },
             { TerraformTemplate.AzureStorageBlob, new VersionAwareWorkspaceToolInfo
@@ -73,7 +82,8 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     AdditionalLinks = [
                         ("Introduction to Azure Storage", "https://learn.microsoft.com/en-us/azure/storage/common/storage-introduction"),
                         ("Azure Storage pricing", "https://azure.microsoft.com/en-us/pricing/details/storage/blobs/")
-                    ]
+                    ],
+                    ToolCostSummaryFunction = (config) => ("~ {0:C2}/month, more per download/upload", [30.0m])
                 }
             },
             { TerraformTemplate.AzureAppService, new VersionAwareWorkspaceToolInfo
@@ -96,9 +106,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                         {
                             MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
                             ConfigClass = typeof(AppServiceConfiguration),
-                            HasConfigurationDialog = false
                         }
-                    ]
+                    ],
+                    ToolCostSummaryFunction = (config) => ("~ {0:C2}/month", [60.0m])
                 }
             },
             { TerraformTemplate.AzurePostgres, new VersionAwareWorkspaceToolInfo
@@ -115,14 +125,23 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                         new VersionAwareWorkspaceToolConfigInfo
                         {
                             MinVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-                            ConfigClass = typeof(PostgresConfiguration)
+                            ConfigClass = typeof(PostgresConfiguration),
+                            ConfigDialogClass = typeof(PostgresConfigurationForm)
                         }
                     ],
                     ToolCostInformation = ("The default Postgres offered costs about {0:C2} per month plus {1:C2} per month per GB of storage, regardless of usage. Changing configurations will affect the cost of this resource. Read more about this resource below.", [20.0, 0.18] ),
                     AdditionalLinks = [
                         ("Azure Database for PostgreSQL documentation", "https://docs.microsoft.com/en-us/azure/postgresql/"),
                         ("Azure Database for PostgreSQL pricing", "https://azure.microsoft.com/en-us/pricing/details/postgresql/")
-                    ]
+                    ],
+                    ToolCostSummaryFunction = (config) =>
+                    {
+                        if (config is not PostgresConfiguration pgConfig) return ("N/A", []);
+                        var tier = PostgresTier.GetPostgresTiers()
+                            .FirstOrDefault(t => t.PSQL_SKU == pgConfig.PSQL_SKU);
+                        if (tier == null) return ("N/A", []);
+                        return ("~ {0:C2}/month plus {1:C2}/month per GB of storage", [tier.MonthlyCost, 0.18m]);
+                    }
                 }
             },
             { TerraformTemplate.AzureArcGis, new VersionAwareWorkspaceToolInfo
@@ -321,28 +340,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             if (transaction.Type == ToolboxTransactionType.Remove) return string.Empty;
 
-            switch (transaction.Tool)
-            {
-                case TerraformTemplate.NewProjectTemplate:
-                    return Localizer["< {0:C2}/month", 1.0m];
-                case TerraformTemplate.AzureStorageBlob:
-                    return Localizer["~ {0:C2}/month, more per download/upload", 30.0m];
-                case TerraformTemplate.AzurePostgres:
-                    var postgresConfig = (PostgresConfiguration)transaction.UpdatedData;
-                    var postgresCost = PostgresTier.GetPostgresTiers()
-                        .First(t => t.PSQL_SKU == postgresConfig!.PSQL_SKU)
-                        .Cost;
-                    return Localizer["~ {0:C2} plus {1:C2}/month per GB of storage", postgresCost, 0.18m];
-                case TerraformTemplate.AzureAppService:
-                    return Localizer["~ {0:C2}/month", 60.0m];
-                case TerraformTemplate.AzureDatabricks:
-                    var databricksConfig = transaction.UpdatedData as DatabricksConfiguration;
-                    if (databricksConfig == null) return Localizer["N/A"];
-                    var (minCost, maxCost) = databricksConfig.GetMinMaxSelectedHourlyCosts();
-                    return Localizer["~ {0:C2} to {1:C2}/hour, depending on usage", minCost, maxCost];
-                default:
-                    return string.Empty;
-            }
+            var toolInfo = GetToolInfo(transaction.Tool);
+            var (info, args) = toolInfo.ToolCostSummaryFunction(transaction.UpdatedData);
+            return Localizer[info, args];
         }
 
         /// <summary>
@@ -627,17 +627,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         {
             Log($"Adding tool: {tool}");
             _transactions.AddTool(tool, OriginalData(tool));
-            //var dependencies = TerraformTemplate.GetDependenciesToCreate(tool);
-            //dependencies.ForEach(dependency =>
-            //{
-            //    if (_workspaceDefinition.Templates.All(template => template.Name != dependency.Name) &&
-            //        _transactions.DoesNotContainTool(dependency.Name))
-            //        //_transactions.All(transaction => transaction.Tool != dependency.Name))
-            //    {
-            //        Log($"Adding dependency: {dependency.Name}");
-            //        _transactions.AddTool(dependency.Name, OriginalData(dependency.Name));
-            //    }
-            //});
+
             var dependencyNames = GetToolInfo(tool).ToolDependencies;
             foreach (var dependency in dependencyNames)
             {
@@ -648,17 +638,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     _transactions.AddTool(dependency, OriginalData(dependency));
                 }
             }
-
-            //dependencyNames.ForEach(dependency =>
-            //{
-            //    if (_workspaceDefinition.Templates.All(template => template.Name != dependency.Name) &&
-            //        _transactions.DoesNotContainTool(dependency.Name))
-            //    //_transactions.All(transaction => transaction.Tool != dependency.Name))
-            //    {
-            //        Log($"Adding dependency: {dependency.Name}");
-            //        _transactions.AddTool(dependency.Name, OriginalData(dependency.Name));
-            //    }
-            //});
         }
 
         /// <summary>
@@ -732,53 +711,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// 
         private IWorkspaceToolConfiguration? OriginalData(string tool) => GetToolData(tool);
 
-        //private object OriginalData(string tool)
-        //{
-        //    //switch (tool)
-        //    //{
-        //    //    case TerraformTemplate.AzurePostgres:
-        //    //        if (_workspaceDefinition.AppData.PostgresConfiguration == null)
-        //    //        {
-        //    //            Log("No original configuration found for Azure Postgres. Creating new configuration.");
-        //    //            return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-        //    //        }
-        //    //        _workspaceDefinition.AppData.PostgresConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
-        //    //        return _workspaceDefinition.AppData.PostgresConfiguration;
-        //    //    case TerraformTemplate.AzureAppService:
-        //    //        if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
-        //    //        {
-        //    //            Log("No original configuration found for Azure App Service. Creating new configuration.");
-        //    //            return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-        //    //        }
-        //    //        _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
-        //    //        return _workspaceDefinition.AppData.AppServiceConfiguration;
-        //    //    case TerraformTemplate.AzureDatabricks:
-        //    //        if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
-        //    //        {
-        //    //            Log("No original configuration found for Azure Databricks. Creating new configuration.");
-        //    //            return new DatabricksConfiguration();
-        //    //        }
-        //    //        return _workspaceDefinition.AppData.DatabricksConfiguration;
-        //    //    default:
-        //    //        return null;
-        //    //}
-
-        //    var configInfo = GetToolInfo(tool).GetApplicableConfigInfo(_workspaceVersion);
-        //    if (configInfo == null)
-        //    {
-        //        return null;
-        //    }
-
-        //    var config = configInfo.GetConfigurationFromWorkspaceDefinition(_workspaceDefinition);
-
-        //    if (config is IWorkspaceToolWithSuffix configWithSuffix)
-        //    {
-        //        configWithSuffix.ResourceNameSuffix = GetResourceNameSuffix(tool);
-        //    }
-
-        //    return config;
-        //}
-
         /// <summary>
         /// Gets the updated data for a tool.
         /// </summary>
@@ -786,41 +718,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <returns>The updated data for the tool.</returns>
         /// 
         private IWorkspaceToolConfiguration? UpdatedData(string tool) => GetToolData(tool, clone: true);
-        //private object UpdatedData(string tool)
-        //{
-        //    switch (tool)
-        //    {
-        //        case TerraformTemplate.AzurePostgres:
-        //            if (_workspaceDefinition.AppData.PostgresConfiguration?.PSQL_SKU == null)
-        //            {
-        //                Log("No original configuration found for Azure Postgres. Creating new configuration.");
-        //                return new PostgresConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-        //            }
-
-        //            return new PostgresConfiguration
-        //            {
-        //                PSQL_SKU = _workspaceDefinition.AppData.PostgresConfiguration.PSQL_SKU,
-        //                ResourceNameSuffix = GetResourceNameSuffix(tool)
-        //            };
-        //        case TerraformTemplate.AzureAppService:
-        //            if (_workspaceDefinition.AppData.AppServiceConfiguration == null)
-        //            {
-        //                Log("No original configuration found for Azure App Service. Creating new configuration.");
-        //                return new AppServiceConfiguration { ResourceNameSuffix = GetResourceNameSuffix(tool) };
-        //            }
-        //            _workspaceDefinition.AppData.AppServiceConfiguration.ResourceNameSuffix = GetResourceNameSuffix(tool);
-        //            return _workspaceDefinition.AppData.AppServiceConfiguration;
-        //        case TerraformTemplate.AzureDatabricks:
-        //            if (_workspaceDefinition.AppData.DatabricksConfiguration == null)
-        //            {
-        //                Log("No original configuration found for Azure Databricks. Creating new configuration.");
-        //                return new DatabricksConfiguration();
-        //            }
-        //            return _workspaceDefinition.AppData.DatabricksConfiguration.Clone();
-        //        default:
-        //            return null;
-        //    }
-        //}
+        
 #nullable disable
 
         /// <summary>
@@ -830,21 +728,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// <returns>The resource name suffix for the tool.</returns>
         private string GetResourceNameSuffix(string tool)
         {
-            var resourceNumber = 0;
-
             //get total resources of template type
-            switch (tool)
-            {
-                case TerraformTemplate.AzureAppService:
-                    resourceNumber = _workspace.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService)));
-                    break;
-                case TerraformTemplate.AzurePostgres:
-                    resourceNumber = _workspace.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres)));
-                    break;
-                default:
-                    throw new ArgumentException("Invalid template type", nameof(tool));
-            }
-
+            var resourceNumber = _workspace.Resources.Count(r => r.ResourceType.Equals(TerraformTemplate.GetTerraformServiceType(tool)));
+            
             //get next iteration for suffix
             resourceNumber++;
 

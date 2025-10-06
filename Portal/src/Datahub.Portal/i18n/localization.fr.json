@@ -3340,7 +3340,7 @@
   "{0} remaining credits of {1}": "{0} crédits restant de {1}",
   "{0} successfully added to your workspace": "{0} ajouté avec succès à votre espace de travail",
   "{0} {1}": "{0} {1}",
-  "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/mois par GB de stockage",
+  "~ {0:C2}/month plus {1:C2}/month per GB of storage": "~ {0:C2}/mois plus {1:C2}/mois par GB de stockage",
   "~ {0:C2}/month": "~ {0:C2}/mois",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/mois, plus par téléchargement/téléversement",
   "{0} configuration": "Configuration {0}",

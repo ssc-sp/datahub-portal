@@ -295,22 +295,10 @@
                                             </MudText>
                                         </MudStack>
                                         <MudStack Spacing="2" id=@ConfigurationFormsId>
-                                            @switch (transaction.Tool)
-                                            {
-                                                case TerraformTemplate.AzurePostgres:
-                                                    <PostgresConfigurationForm
-                                                        Configuration="@(transaction.UpdatedData! as PostgresConfiguration)"/>
-                                                    break;
-                                                case TerraformTemplate.AzureDatabricks:
-                                                    <DatabricksConfigurationForm
-                                                        Configuration="@(transaction.UpdatedData! as DatabricksConfiguration)"/>
-                                                    break;
-                                                default:
-                                                    <MudText Style="font-style: italic">
-                                                        @Localizer["No configuration available for this tool"]
-                                                    </MudText>
-                                                    break;
-                                            }
+                                            <WorkspaceToolConfigurationForm 
+                                                Configuration="@transaction.UpdatedData" 
+                                                ToolInfo="toolInfo" 
+                                                WorkspaceVersion="@_workspaceVersion" />
                                         </MudStack>
                                     </MudPaper>
                                 }

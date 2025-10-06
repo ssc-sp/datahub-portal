@@ -20,6 +20,8 @@ public class VersionAwareWorkspaceToolInfo
     public bool CanBeDeleted { get; set; } = true;
     public bool IsDisabled { get; set; } = false;
     public (string Name, object[] Parameters) ToolCostInformation { get; set; } = ("No cost information available for this resource.", []);
+    // Unfortunately, we can't use the IWorkspaceToolConfiguration interface here due to language constraints on static abstract members (error CS8920)
+    public Func<object, (string Name, object[] Parameters)>? ToolCostSummaryFunction { get; set; } = (config) => (string.Empty, []);
     public (string Text, string URL)[] AdditionalLinks { get; set; } = [];
     public IEnumerable<VersionAwareWorkspaceToolConfigInfo> ConfigurationVersions { get; set; } = Array.Empty<VersionAwareWorkspaceToolConfigInfo>();
 
@@ -46,7 +48,8 @@ public class VersionAwareWorkspaceToolConfigInfo
 {
     public Version MinVersion { get; set; } = VersionAwareWorkspaceToolInfo.ALWAYS;
     public Type ConfigClass { get; set; } = typeof(IWorkspaceToolConfiguration);
-    public bool HasConfigurationDialog { get; set; } = true;
+    public Type? ConfigDialogClass { get; set; } = null;
+    public bool HasConfigurationDialog => ConfigDialogClass != null;
     public IWorkspaceToolConfiguration GetConfigurationFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
     {
         var methodName = nameof(IWorkspaceToolConfiguration.ReadFromWorkspaceDefinition);
@@ -69,5 +72,4 @@ public class VersionAwareWorkspaceToolConfigInfo
         }
         return label;
     }
-    // TODO config methods
 }
