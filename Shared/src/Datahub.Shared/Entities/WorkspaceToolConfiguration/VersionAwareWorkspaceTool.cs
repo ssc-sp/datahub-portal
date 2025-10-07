@@ -8,14 +8,14 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 public class VersionAwareWorkspaceToolInfo
 {
     public static readonly Version UNDER_DEVELOPMENT = new(9999, 12, 31);
-    public static readonly Version ALWAYS = new(1, 0, 0);
+    public static readonly Version ALWAYS = new(0, 0, 0);
 
     public string ToolName { get; set; } = string.Empty;
     public string ToolLabel { get; set; } = string.Empty;
     public string ToolCategory { get; set; } = string.Empty;
     public string ToolDescription { get; set; } = string.Empty;
     public string ToolIcon { get; set; } = string.Empty;
-    public IEnumerable<string> ToolDependencies => TerraformTemplate.GetDependencyNames(ToolName);
+    public IEnumerable<string> ToolDependencies => TerraformTemplate.GetDependencyNames(ToolName) ?? [];
     public Version MinAvailableVersion { get; set; } = ALWAYS;
     public bool CanBeDeleted { get; set; } = true;
     public bool IsDisabled { get; set; } = false;

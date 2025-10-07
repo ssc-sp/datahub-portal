@@ -98,7 +98,8 @@ public class TerraformTemplate(string name, string status)
         };
     }
 
-    public static IEnumerable<string> GetDependencyNames(string toolName) => toolName switch
+#nullable enable
+    public static IEnumerable<string>? GetDependencyNames(string toolName) => toolName switch
     {
         NewProjectTemplate => [],
         VariableUpdate => [],
@@ -106,14 +107,15 @@ public class TerraformTemplate(string name, string status)
         AzureDatabricks => [NewProjectTemplate, AzureStorageBlob],
         AzureAppService => [NewProjectTemplate, AzureStorageBlob],
         AzurePostgres => [NewProjectTemplate],
-        _ => []
+        _ => null
     };
+#nullable disable
 
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
         return GetDependencyNames(name)
             .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested))
-            .ToList() ?? [];
+            .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {
