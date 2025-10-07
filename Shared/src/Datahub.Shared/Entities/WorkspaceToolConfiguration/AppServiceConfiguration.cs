@@ -1,8 +1,8 @@
 ﻿using static System.String;
 
-namespace Datahub.Shared.Entities
+namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
-    public class AppServiceConfiguration
+    public class AppServiceConfiguration : IWorkspaceToolConfiguration, IWorkspaceToolWithSuffix
     {
         public string Framework { get; set; }
         public string GitRepo { get; set; }
@@ -25,6 +25,45 @@ namespace Datahub.Shared.Entities
             HostName = hostName;
             IsGitRepoPrivate = visibility;
             GitTokenSecretName = gitTokenSecretName;
+        }
+
+        public IWorkspaceToolConfiguration Clone()
+        {
+            return new AppServiceConfiguration()
+            {
+                Framework = Framework,
+                GitRepo = GitRepo,
+                IsGitRepoPrivate = IsGitRepoPrivate,
+                GitTokenSecretName = GitTokenSecretName,
+                GitToken = GitToken,
+                ComposePath = ComposePath,
+                Id = Id,
+                HostName = HostName,
+                ResourceNameSuffix = ResourceNameSuffix
+            };
+        }
+
+        public void WriteToWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        {
+            workspaceDefinition.AppData.AppServiceConfiguration = this;
+        }
+
+        public static IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+        {
+            return workspaceDefinition.AppData.AppServiceConfiguration ?? new AppServiceConfiguration();
+        }
+
+        public static string GetPropertyLabel(string propertyName)
+        {
+            return propertyName switch
+            {
+                _ => propertyName
+            };
+        }
+
+        public string GenerateResourceInputJson()
+        {
+            return "{}";
         }
     }
 

@@ -43,9 +43,10 @@ public class ResourceMessagingService(
             .Include(p => p.Resources)
             .Include(p => p.DatahubAzureSubscription)
             .Include(p => p.ParentGCHostingBudget)
+            .AsSingleQuery()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
-        
-        if(project == null)
+
+        if (project == null)
         {
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }

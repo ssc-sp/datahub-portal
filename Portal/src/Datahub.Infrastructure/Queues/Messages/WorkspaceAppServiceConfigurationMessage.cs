@@ -1,4 +1,4 @@
-﻿using Datahub.Shared.Entities;
+﻿using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages

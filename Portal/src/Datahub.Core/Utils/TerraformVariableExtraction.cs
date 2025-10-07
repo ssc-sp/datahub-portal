@@ -4,6 +4,7 @@ using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Core.Utils;
 
