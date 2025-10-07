@@ -63,7 +63,7 @@
                         else if (_currentStep == Steps.Topics)
                         {
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
-                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef" >
+                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true" AdornmentColor="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef">
                                 @foreach (var topic in _ticketTopicsList)
                                 {  
                                     <MudSelectItem T="string" Value="@topic">@Localizer[topic]</MudSelectItem>  
@@ -88,7 +88,7 @@
                                 @ref="_descriptionFieldRef" />
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
-                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" Color="@Color.Primary" Class="multiselect-textarea">
+                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" AdornmentColor="@Color.Primary" Class="multiselect-textarea">
                                 @foreach (var workspace in _ticketWorkspaces)
                                 {
                                     <MudSelectItem T="string" Value="@workspace.Key">@Localizer[workspace.Key]</MudSelectItem>
@@ -221,7 +221,7 @@
     private string _ticketDescription = "";
     private string _ticketOrg = "";
     private int _ticketPreferredLanguage = 1;
-    private List<Datahub_Project_User> _userRoles;
+    private List<UserRoleLinks> _userRoles;
     private IJSObjectReference _module;
     private List<IssueForDisplaying> _issues = new();
     private MudSelect<string> _landingFieldRef;
@@ -297,10 +297,10 @@
 
         // Retrieve the list of workspaces
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        _userRoles = await dbContext.Project_Users
+        _userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)
-            .ThenInclude(p => p.Users)
+            .ThenInclude(p => p.UserRoles)
             .Include(u => u.PortalUser)
             .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
             .ToListAsync();

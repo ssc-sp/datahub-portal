@@ -32,6 +32,8 @@ namespace Datahub.Core.Model.UserTracking.Configuration
             builder.Property(e => e.HiddenAlerts)
                 .Metadata
                 .SetValueComparer(valueComparer);
+            builder.Property(e => e.Theme)
+                .HasMaxLength(128);
         }
     }
 }

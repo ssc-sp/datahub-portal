@@ -253,7 +253,7 @@ public class ProjectUsageNotifierSteps(
         await ctx.PortalUsers.AddAsync(workspaceLead);
         await ctx.PortalUsers.AddRangeAsync(adminUsers);
 
-        var projectUsers = new List<Datahub_Project_User>()
+        var projectUsers = new List<UserRoleLinks>()
         {
             new()
             {
@@ -265,7 +265,7 @@ public class ProjectUsageNotifierSteps(
 
         foreach (var adminUser in adminUsers)
         {
-            projectUsers.Add(new Datahub_Project_User()
+            projectUsers.Add(new UserRoleLinks()
             {
                 Project = workspace,
                 PortalUser = adminUser,
@@ -273,7 +273,7 @@ public class ProjectUsageNotifierSteps(
             });
         }
 
-        await ctx.Project_Users.AddRangeAsync(projectUsers);
+        await ctx.UserRolesLinks.AddRangeAsync(projectUsers);
 
         await ctx.SaveChangesAsync();
     }
@@ -282,7 +282,7 @@ public class ProjectUsageNotifierSteps(
     public void ThenTheAdminUsersAndWorkspaceLeadShouldBeEmailed(int p0)
     {
 
-        gCNotifyService.Received(30).SendDatahubResourceDeletedNotification(Arg.Is<string>(s => s.Contains("@")),
+        gCNotifyService.Received(6).SendDatahubResourceDeletedNotification(Arg.Is<string>(s => s.Contains("@")),
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Is<string>(Testing.WorkspaceAcronym));

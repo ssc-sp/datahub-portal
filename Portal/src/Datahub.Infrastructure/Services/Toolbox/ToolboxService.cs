@@ -52,9 +52,9 @@ namespace Datahub.Infrastructure.Services.Toolbox
         /// </summary>
         /// <param name="workspaceDefinition">Workspace definition to apply this switch to</param>
         /// <param name="transaction">The transaction containing the new configuration information</param>
-        private void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
+        private static void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
         {
-            transaction.UpdatedData?.WriteToWorkspaceDefinition(workspaceDefinition);
+            (transaction.UpdatedData as IWorkspaceToolConfiguration)?.WriteToWorkspaceDefinition(workspaceDefinition);
         }
     }
 

@@ -71,5 +71,6 @@ public class Hooks
         substituteHostingEnvironment.EnvironmentName.Returns("Hosting:SpecflowUnitTestingEnvironment");
 
         objectContainer.RegisterInstanceAs(substituteHostingEnvironment);
+        
     }
 }

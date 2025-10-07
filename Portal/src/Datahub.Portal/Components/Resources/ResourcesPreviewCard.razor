@@ -86,7 +86,7 @@
 
         _cardStyle = new StyleBuilder()
             .AddStyle("height", "150px", when: !ShortVersion)
-            .AddStyle("height", "90px", when: ShortVersion)
+            .AddStyle("min-height", "90px", when: ShortVersion)
             .Build();
     }
 

@@ -17,11 +17,11 @@ public static class Testing
     public static readonly string WorkspaceSubscriptionGuid = Guid.NewGuid().ToString();
     public static readonly string WorkspaceSubscriptionGuid2 = Guid.NewGuid().ToString();
 
-    public static readonly string WorkspaceAcronym = Guid.NewGuid().ToString().Replace("-", "")[..5];
-    public static readonly string WorkspaceAcronym2 = Guid.NewGuid().ToString().Replace("-", "")[..5];
+    public static readonly string WorkspaceAcronym = Guid.NewGuid().ToString().Replace("-", "")[..5].ToUpperInvariant();
+    public static readonly string WorkspaceAcronym2 = Guid.NewGuid().ToString().Replace("-", "")[..5].ToUpperInvariant();
 
-    public static readonly string ResourceGroupName1 = $"fsdh_proj_{WorkspaceAcronym}_test_rg";
-    public static readonly string ResourceGroupName2 = $"fsdh_proj_{WorkspaceAcronym2}_test_rg";
+    public static readonly string ResourceGroupName1 = $"fsdh_proj_{WorkspaceAcronym.ToLowerInvariant()}_test_rg";
+    public static readonly string ResourceGroupName2 = $"fsdh_proj_{WorkspaceAcronym2.ToLowerInvariant()}_test_rg";
 
     public const string StorageAccountId = "storageaccountid";
     public const string BudgetId = "budget-id";

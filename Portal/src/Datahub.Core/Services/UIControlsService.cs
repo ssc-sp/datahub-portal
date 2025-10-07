@@ -46,7 +46,7 @@ public class UiControlsService
         NotifyErrorModalShow();
     }
 
-    public void ShowDialog(string dialogTitle, RenderFragment contentFragment)
+    public async Task ShowDialog(string dialogTitle, RenderFragment contentFragment)
     {
         var parameters = new DialogParameters();
         parameters.Add("Content", contentFragment);
@@ -60,7 +60,7 @@ public class UiControlsService
             BackdropClick = false
         };
 
-        _dialogReference = _dialogService.Show<DialogModalFrame>(dialogTitle, parameters, options);
+        _dialogReference = await _dialogService.ShowAsync<DialogModalFrame>(dialogTitle, parameters, options);
     }
 
     public void HideDialog()

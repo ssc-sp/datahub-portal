@@ -111,7 +111,7 @@
   "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members": "Access the Databricks notebooks for the workspace to write, execute and share analytics with all workspace members",
   "Access the connection details for the IoT devices connected to this project": "Access the connection details for the IoT devices connected to this project",
   "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members.",
-  "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.",
+  "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data.": "Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on the Open Government Portal.",
   "Access to PostgreSQL is disabled when going over budget. You will no longer be able to access any data or make any changes to the database.": "Access to PostgreSQL is disabled when going over budget. You will no longer be able to access any data or make any changes to the database.",
   "Access to storage is disabled when going over budget. You will no longer be able to access any data or make any changes to the files.": "Access to storage is disabled when going over budget. You will no longer be able to access any data or make any changes to the files.",
   "Access to storage was disabled due to workspace being over budget.": "Access to storage was disabled due to workspace being over budget.",
@@ -768,6 +768,7 @@
   "FSDH Support Request": "FSDH Support Request",
   "FSDH Support Request Form": "FSDH Support Request Form.",
   "FSDH Support Team access is enabled until {0}": "FSDH Support Team access is enabled until {0}",
+  "FSDH on Canada.ca": "FSDH on Canada.ca",
   "FTE": "FTE",
   "FTE_Accomodations_Location_Values": "FTE Accommodations: Intended Location",
   "FTE_Accomodations_Req_Values": "FTE Accommodations Requirements",
@@ -841,6 +842,7 @@
   "GC Hosting Services Portal": "GC Hosting Services Portal",
   "GC_Docs_URL": "GC Docs Link",
   "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
+  "GCxchange Community": "GCXchange Community",
   "Generate Acronym": "Generate Acronym",
   "Generate Container Token": "Generate Container Token",
   "Generate IMSO Approval Form": "Generate IMSO Approval Form",
@@ -2356,5 +2358,8 @@
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
   "{0} configuration": "{0} configuration",
   "Please upgrade your workspace version to add this tool.": "Please upgrade your workspace version to add this tool.",
-  "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.": "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features."
+  "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.": "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.",
+  "INFO": "INFO",
+  "NOTICE": "NOTICE",
+  "IMPORTANT": "IMPORTANT"
 }

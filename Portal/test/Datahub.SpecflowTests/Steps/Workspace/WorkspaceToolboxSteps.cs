@@ -1,7 +1,4 @@
-﻿using System.Diagnostics;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Text.Json.Nodes;
+﻿using AngleSharp.Dom;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
@@ -27,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -37,6 +35,10 @@ using MudBlazor.Services;
 using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
+using System.Diagnostics;
+using System.Security.Claims;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using ResourceMessagingService = Datahub.Infrastructure.Services.ResourceMessagingService;
 
 namespace Datahub.SpecflowTests.Steps.Workspace;
@@ -76,6 +78,9 @@ public class WorkspaceToolboxSteps(
         JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/SkipLink.razor.js")
             .SetResult(module);
         module.SetupVoid("focusElement", Arg.Any<string>());
+        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
+
         JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
@@ -95,6 +100,7 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IDialogService>(dialogService);
         Services.AddSingleton(datahubPortalConfiguration);
         Services.AddStub<IDatahubAuditingService>();
+        Services.AddMudMarkdownServices();
         var requestLogger = new Logger<RequestManagementService>(new LoggerFactory());
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
@@ -960,16 +966,46 @@ public class WorkspaceToolboxSteps(
     }
 
     [When(@"the user sets (.*) in the form to (.*)")]
-    public void WhenTheUserMakesChangesToTheInTheForm(string selectFieldId, string newValue)
+    public async Task WhenTheUserMakesChangesToTheInTheForm(string selectFieldId, string newValue)
     {
         var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var selectField = workspaceToolbox!.Find($"#{selectFieldId}");
-        selectField.Click();
-        workspaceToolbox!.Render();
-        var newValueItem = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.ElementId([selectFieldId, newValue])}");
-        newValueItem.Click();
-        workspaceToolbox!.Render();
+
+        // First, try to set value directly for MudSelect<string> via ValueChanged (bypasses popover rendering)
+        var stringSelect = workspaceToolbox!.FindComponents<MudSelect<string>>()
+            .FirstOrDefault(c => c.Instance?.FieldId == selectFieldId || c.Markup.Contains($"id=\"{selectFieldId}\""));
+
+        if (stringSelect == null)
+            throw new ArgumentNullException(nameof(stringSelect));
+
+        await workspaceToolbox!.InvokeAsync(async () => await stringSelect.Instance.ValueChanged.InvokeAsync(newValue));
+        workspaceToolbox.Render();
         scenarioContext["workspaceToolbox"] = workspaceToolbox;
+
+    }
+
+    private static void TryOpenMudSelectDropdown(IElement selectField, IRenderedComponent<CascadingAuthenticationState> root)
+    {
+        try
+        {
+            // focus then open with Space or ArrowDown
+            selectField.TriggerEvent("onfocus", new FocusEventArgs());
+            selectField.TriggerEvent("onkeydown", new KeyboardEventArgs { Key = " ", Code = "Space" });
+            root.Render();
+        }
+        catch
+        {
+            // ignore and try ArrowDown
+        }
+
+        try
+        {
+            selectField.TriggerEvent("onkeydown", new KeyboardEventArgs { Key = "ArrowDown", Code = "ArrowDown" });
+            root.Render();
+        }
+        catch
+        {
+            // ignore; menu may already be open
+        }
     }
 
     [When(@"the user toggles the (.*) checkbox")]

@@ -514,12 +514,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 .AsNoTracking()
                 .Include(p => p.Resources)
                 .Include(p => p.Credits)
-                .Include(p => p.Users)
+                .Include(p => p.UserRoles)
                 .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
             Log("Checking workspace state");
             if (workspace.IsDeleted) throw new Exception("Workspace has been deleted");
-            if (workspace.Users.Count == 0) throw new Exception("Workspace has no users");
+            if (workspace.UserRoles.Count == 0) throw new Exception("Workspace has no users");
             if (workspace.IsOverBudget) throw new Exception("Workspace is over budget");
 
             Log("Checking workspace for existing resources");

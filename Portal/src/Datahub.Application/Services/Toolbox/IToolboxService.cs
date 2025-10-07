@@ -33,8 +33,8 @@ namespace Datahub.Application.Services.Toolbox
     {
         public required string Tool { get; init; }
         public ToolboxTransactionType Type { get; init; }
-        public IWorkspaceToolConfiguration? OriginalData { get; init; }
-        public IWorkspaceToolConfiguration? UpdatedData { get; init; }
+        public object? OriginalData { get; init; }
+        public object? UpdatedData { get; init; }
 
         public override string ToString()
         {

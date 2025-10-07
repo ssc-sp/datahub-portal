@@ -14,7 +14,6 @@
 @inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService RequestManagementService
 @inject IWorkspaceVersionService WorkspaceVersionService
-@inject IEmailNotificationService EmailNotificationService
 @inject ISnackbar Snackbar
 @inject IMemoryCache MemoryCache
 
@@ -29,26 +28,6 @@
                 (@Workspace.Project_Acronym_CD)
             </MudText>
             <MudSpacer />
-            @* <MudText Align="Align.Right">
-                @if (IsLead && (Workspace.GetUpdateType(LatestVersion) != VersionUpdateType.None && !Workspace.IsVersionUpdateRequested))  
-                {
-                    <DHButton 
-                    Underline 
-                    NoWrap 
-                    Color="Color.Primary"                        
-                    OnClick="@(() => TriggerUpdate(Workspace))"
-                    >
-                        @($"{Workspace.Version} ({Localizer["Update"]})")  
-                    </DHButton>  
-                }
-                else
-                {
-                    <MudText Style="@WorkspaceNameStyle">
-                        @Workspace.Version
-                    </MudText>
-                }
-            </MudText>             
-            <MudSpacer/>*@
             <FeaturedProjectToggle Project="@Workspace" />
         </MudStack>
         <MudStack Row>
@@ -202,7 +181,7 @@
         .Build();
 
     // Display state
-    private int NumberOfUsers => Workspace?.Users?.Count(x => x.RoleId != (int)Project_Role.RoleNames.Removed) ?? 0;
+    private int NumberOfUsers => Workspace?.UserRoles?.Count(x => x.RoleId != (int)Project_Role.RoleNames.Removed) ?? 0;
     private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
@@ -287,65 +266,6 @@
             TerraformTemplate.AzureAppService => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", Workspace!.Project_Acronym_CD),
             _ => throw new ArgumentOutOfRangeException(nameof(toolName), toolName, null)
         };
-    }
-
-    private async Task TriggerUpdate(Datahub_Project workspace)
-    {
-        var UpdateType = Workspace.GetUpdateType(LatestVersion);
-        var result = await GetDialogMessage(UpdateType);
-
-        if (result.Canceled)
-        {
-            return;
-        }
-
-        if (UpdateType == VersionUpdateType.Major)
-        {            
-            var message = $"{UserEmail} has requested for workspace {workspace.Project_Acronym_CD} to be updated to the latest version. Please run the update at the end of the work day.";
-            var messageFr = $"{UserEmail} a demandé que l'espace de travail {workspace.Project_Acronym_CD} soit mis à jour vers la dernière version. Veuillez exécuter la mise à jour à la fin de la journée de travail.";
-            await EmailNotificationService.EmailAdminsAsync(Localizer["Workspace Update Request"].ToString(), UserEmail, message, workspace.Project_Acronym_CD);                       
-        }
-        else
-        {
-            var workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, UserEmail);
-            await WorkspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
-            await RequestManagementService.SendVersionUpdateToQueueAsync(LatestVersion, workspaceDefinition);
-
-        }
-
-        await WorkspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
-        workspace.IsVersionUpdateRequested = true;
-
-        var successMessage = UpdateType == VersionUpdateType.Major ? Localizer["Notification Sent"] : Localizer["Workspace Version Update Triggered"];
-        Snackbar.Add(successMessage, Severity.Success);
-        await InvokeAsync(StateHasChanged);
-    }
-
-
-
-    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType)
-    {
-
-        var minorUpdatePrompt = Localizer["Running this update will temporarily lock you out of your workspace. It is recommended to run the update at the end of your work day. Do you wish to continue?"];
-        var majorUpdatePrompt = Localizer["This update needs to be run by a Datahub Admin. Click 'Yes' to grant the Datahub Admins permission to update the workspace. You can continue to use the workspace. The update will run outside of office hours"];        
-        var prompt = updateType switch
-        {
-            VersionUpdateType.Minor => minorUpdatePrompt,
-            VersionUpdateType.Major => majorUpdatePrompt,
-            VersionUpdateType.Build => minorUpdatePrompt,
-            _ => Localizer["No Update Required"]
-        };
-
-
-        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
-        var parameters = new DialogParameters
-               {
-                   { "PromptText", prompt.ToString() },
-                   { "ConfirmText", Localizer["Yes"].ToString() },
-                   { "CancelText", Localizer["No"].ToString() }                   
-               };
-        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
-        return await dialog.Result;
     }
 }
           

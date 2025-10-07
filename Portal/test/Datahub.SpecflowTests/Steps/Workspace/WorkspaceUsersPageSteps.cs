@@ -44,7 +44,7 @@ namespace Datahub.SpecflowTests.Steps
 
         private static readonly string WORKSPACE_USERS_PAGE_CTX_KEY = "workspaceUsersPage";
 
-        private static IEnumerable<Datahub_Project_User> SetupProjectUsers()
+        private static IEnumerable<UserRoleLinks> SetupProjectUsers()
         {
             var workspaceLeadRole = new Project_Role()
             {
@@ -65,7 +65,7 @@ namespace Datahub.SpecflowTests.Steps
                 Description = RoleConstants.GUEST_ROLE
             };
 
-            yield return new Datahub_Project_User()
+            yield return new UserRoleLinks()
             {
                 PortalUserId = 1,
                 PortalUser = new PortalUser() { Id = 1, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Walter Lead", Email = "wlead@example.com" },
@@ -74,7 +74,7 @@ namespace Datahub.SpecflowTests.Steps
                 IsDataSteward = true
             };
 
-            yield return new Datahub_Project_User()
+            yield return new UserRoleLinks()
             {
                 PortalUserId = 2,
                 PortalUser = new PortalUser() { Id = 2, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Nathan Admi", Email = "admin@example.com" },
@@ -82,7 +82,7 @@ namespace Datahub.SpecflowTests.Steps
                 RoleId = adminRole.Id
             };
 
-            yield return new Datahub_Project_User()
+            yield return new UserRoleLinks()
             {
                 PortalUserId = 3,
                 PortalUser = new PortalUser() { Id = 3, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Gary Guest", Email = "guest@example.com" },
@@ -151,7 +151,7 @@ namespace Datahub.SpecflowTests.Steps
 
             await using var context = await dbContextFactory.CreateDbContextAsync();
             context.Projects.Add(workspace);
-            context.Project_Users.AddRange(mockProjectUsers);
+            context.UserRolesLinks.AddRange(mockProjectUsers);
 
             foreach (var role in context.Project_Roles)
             {
@@ -198,9 +198,9 @@ namespace Datahub.SpecflowTests.Steps
 
         private static IRenderedComponent<MudTr>? FindUserTableRowWithGivenEmail(IRenderedComponent<WorkspaceUsersPage> workspaceUsersPage, string userEmail)
         {
-            var usersTable = workspaceUsersPage.FindComponent<MudTable<Datahub_Project_User>>();
+            var usersTable = workspaceUsersPage.FindComponent<MudTable<UserRoleLinks>>();
             var rows = usersTable.FindComponents<MudTr>();
-            var userRow = rows.FirstOrDefault(r => r.Instance.Item is Datahub_Project_User user && user.PortalUser.Email == userEmail);
+            var userRow = rows.FirstOrDefault(r => r.Instance.Item is UserRoleLinks user && user.PortalUser.Email == userEmail);
             return userRow;
         }
 
@@ -297,7 +297,7 @@ namespace Datahub.SpecflowTests.Steps
             var userRow = FindUserTableRowWithGivenEmail(usersPage, email);
             userRow.Should().NotBeNull();
 
-            var user = userRow!.Instance.Item as Datahub_Project_User;
+            var user = userRow!.Instance.Item as UserRoleLinks;
             user.Should().NotBeNull();
             user!.IsDataSteward.Should().Be(status);
         }
@@ -377,9 +377,9 @@ namespace Datahub.SpecflowTests.Steps
             var page = GetWorkspaceUserPageFromContext();
             // Substitute behavior: return a user who is a Workspace Lead
             projectUserManagementService!.GetProjectUsersAsync(Arg.Any<string>())
-                .Returns(new List<Datahub_Project_User>
+                .Returns(new List<UserRoleLinks>
                 {
-            new Datahub_Project_User
+            new UserRoleLinks
             {
                 RoleId = (int)Project_Role.RoleNames.WorkspaceLead,
                 PortalUser = new PortalUser { GraphGuid = Guid.NewGuid().ToString() }

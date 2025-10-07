@@ -102,7 +102,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             await using var context = await _contextFactory.CreateDbContextAsync();
             
             var project = await context.Projects
-                .Include(p => p.Users)
+                .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
             
@@ -122,7 +122,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
         foreach (var projectUserUpdateCommand in projectUserUpdateCommands)
         {
-            var userToUpdate = await context.Project_Users
+            var userToUpdate = await context.UserRolesLinks
                 .FirstOrDefaultAsync(pu => pu.ProjectUser_ID == projectUserUpdateCommand.ProjectUser.ProjectUser_ID);
 
             if (userToUpdate == null)
@@ -191,7 +191,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
             }
 
-            var projectUser = await context.Project_Users
+            var projectUser = await context.UserRolesLinks
                 .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
                                           && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
 
@@ -205,7 +205,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             else
             {
 
-                var newProjectUser = new Datahub_Project_User()
+                var newProjectUser = new UserRoleLinks()
                 {
                     Project_ID = project.Project_ID,
                     PortalUserId = portalUser.Id,
@@ -213,7 +213,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                     Approved_DT = DateTime.UtcNow,
                     RoleId = projectUserAddUserCommand.RoleId,
                 };
-                await context.Project_Users.AddAsync(newProjectUser);
+                await context.UserRolesLinks.AddAsync(newProjectUser);
             }
            
             // If current user is not the user being added to the project
@@ -228,10 +228,10 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
-    public async Task<List<Datahub_Project_User>> GetProjectUsersAsync(string projectAcronym)
+    public async Task<List<UserRoleLinks>> GetProjectUsersAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
-        return await context.Project_Users
+        return await context.UserRolesLinks
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
@@ -245,7 +245,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         
-        var projectAcronyms = await context.Project_Users
+        var projectAcronyms = await context.UserRolesLinks
             .Include(pu => pu.Project)
             .Where(pu => pu.PortalUserId == portalUserId)
             .Select(pu => pu.Project.Project_Acronym_CD)
@@ -254,7 +254,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         return projectAcronyms;
     }
 
-    public async Task<Datahub_Project_User?> GetProjectLeadAsync(string projectAcronym)
+    public async Task<UserRoleLinks?> GetProjectLeadAsync(string projectAcronym)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         var users = await GetProjectUsersAsync(projectAcronym);

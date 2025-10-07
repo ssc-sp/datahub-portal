@@ -11,7 +11,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 {
     public static class CommonCbrTestUtils
     {
-        public static readonly PortalUser CbrOwnerUser = new()
+        public static PortalUser CreateCbrOwnerUser() => new()
         {
             GraphGuid = Guid.NewGuid().ToString(),
             Id = 1,
@@ -19,7 +19,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             Email = "cbrowner@example.com",
         };
 
-        public static readonly PortalUser OtherWorkspaceLead = new()
+        public static PortalUser CreateOtherWorkspaceLead() => new()
         {
             GraphGuid = Guid.NewGuid().ToString(),
             Id = 2,
@@ -27,7 +27,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             Email = "wlead@example.com"
         };
 
-        public async static Task<SpecFlowDbContextFactory> GenerateCbrTestDatabase()
+        public async static Task<SpecFlowDbContextFactory> GenerateCbrTestDatabase(PortalUser cbrOwnerUser, PortalUser otherWorkspaceLead)
         {
             var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
@@ -42,8 +42,6 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 Name = RoleConstants.WORKSPACE_LEAD_ROLE,
                 Description = RoleConstants.WORKSPACE_LEAD_ROLE
             };
-
-   
 
             var mainCbrWorkspace = new Datahub_Project()
             {
@@ -61,17 +59,17 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 Project_Budget = 1000
             };
 
-            var w1cbrOwnerUser = new Datahub_Project_User()
+            var w1cbrOwnerUser = new UserRoleLinks()
             {
-                PortalUser = CbrOwnerUser,
+                PortalUser = cbrOwnerUser,
                 Role = workspaceLeadRole,
                 Project = mainCbrWorkspace
             };
 
-            var w2LeadUser = new Datahub_Project_User()
+            var w2LeadUser = new UserRoleLinks()
             {
                 Role = workspaceLeadRole,
-                PortalUser = OtherWorkspaceLead,
+                PortalUser = otherWorkspaceLead,
                 Project = otherWorkspace
             };
 
@@ -79,7 +77,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             {
                 Datahub_Project = mainCbrWorkspace,
                 GcHostingId = Guid.NewGuid().ToString(),
-                LeadEmail = CbrOwnerUser.Email,
+                LeadEmail = cbrOwnerUser.Email,
                 WorkspaceBudget = 10000,
                 CBRName = "Example CBR",
                 CBRID = "ABC123",
@@ -102,9 +100,9 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             otherWorkspace.ParentGCHostingBudget = gcHosting;
 
             await context.Project_Roles.AddAsync(workspaceLeadRole);
-            await context.PortalUsers.AddRangeAsync(CbrOwnerUser, OtherWorkspaceLead);
+            await context.PortalUsers.AddRangeAsync(cbrOwnerUser, otherWorkspaceLead);
             await context.Projects.AddRangeAsync(mainCbrWorkspace, otherWorkspace);
-            await context.Project_Users.AddRangeAsync(w1cbrOwnerUser, w2LeadUser);
+            await context.UserRolesLinks.AddRangeAsync(w1cbrOwnerUser, w2LeadUser);
             await context.GCHostingWorkspaceDetails.AddAsync(gcHosting);
 
             await context.SaveChangesAsync();

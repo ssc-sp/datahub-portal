@@ -1,0 +1,15 @@
+[
+  {
+    "outputFileName": "wwwroot/css/site.min.css",
+    "inputFiles": [
+      "wwwroot/css/site.css",
+      "wwwroot/css/site.dark.css",
+      "wwwroot/css/accessibility/a11y.css"
+    ],
+    "minify": {
+      "enabled": true,
+      "commentMode": "None"
+    },
+    "sourceMap": false
+  }
+]

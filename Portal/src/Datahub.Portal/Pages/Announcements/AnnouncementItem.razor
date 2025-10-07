@@ -1,9 +1,11 @@
 @using Datahub.Core.Model.Announcements
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services.Announcements
 @using Datahub.Application.Services
 
 @inject IUserInformationService _userInformationService
 @inject IUserSettingsService _userSettingsService
+@inject IAnnouncementService _announcementService
 
 <MudGrid>
     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
@@ -11,7 +13,15 @@
             <AnnouncementAdminControl Announcement="@Announcement" OnAnnouncementDeleted="OnAnnouncementDeleted" />
         </MudItem>
     </DatahubAuthView>
+    
     <MudItem xs="12" sm="@(_isAdminView ? 8 : 12)">
+        @if (Announcement.Severity != 2)
+        {
+            <MudChip T="string" Color="_announcementService.GetColor(Announcement.Severity, Announcement.IsVisible())" Disabled="!Announcement.IsVisible()">
+                <DHIcon Icon="@_announcementService.GetIcon(Announcement.Severity)" Class="mr-1"/>
+                <MudText Typo="Typo.button">@Localizer[_announcementService.GetText(Announcement.Severity)]</MudText>
+            </MudChip>
+        }
         <MudPaper Elevation="0" Outlined Class="px-6 py-4" Style="@_style">
             <MudStack>
                 <DHMarkdown style="order: 1;" Content="@GetBody()" LinkRewriter="RewriteLink"/>
@@ -48,8 +58,6 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        await base.OnParametersSetAsync();
-
         _isFrench = await _userSettingsService.IsFrench();
         _isAdminView = await _userInformationService.IsUserDatahubAdmin();
     }
@@ -63,5 +71,4 @@
     {
         return _isFrench ? Announcement.BodyFr : Announcement.BodyEn;
     }
-
 }

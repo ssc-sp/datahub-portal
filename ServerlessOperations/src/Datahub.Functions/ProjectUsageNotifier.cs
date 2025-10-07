@@ -120,25 +120,29 @@ namespace Datahub.Functions
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
             var project = await ctx.Projects
-                .Include(p => p.Users)
+                .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)
                 .Where(p => p.Project_Acronym_CD == projectAcronym)
                 .FirstAsync(cancellationToken);
 
-            var adminContacts = project.Users
+            var adminContacts = project.UserRoles
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
                 .Where(emailValidator.IsValidEmail)
                 .ToList();
 
-            foreach (var resourceName in resourceNames)
+            string resources;
+
+            if (resourceNames.Count == 1)
+                resources = TerraformTemplate.ConvertTemplateNameToReadableName(resourceNames[0], true);
+            else
+                resources = string.Join(", ", resourceNames.Select(rn => TerraformTemplate.ConvertTemplateNameToReadableName(rn)));
+
+            foreach (var admin in adminContacts)
             {
-                foreach (var admin in adminContacts)
-                {
-                    if (notifyService != null)
-                        await notifyService.SendDatahubResourceDeletedNotification(admin, TerraformTemplate.ConvertTemplateNameToReadableName(resourceName), TerraformTemplate.ConvertTemplateNameToReadableName(resourceName, true), projectAcronym);
-                }
+                if (notifyService != null)
+                    await notifyService.SendDatahubResourceDeletedNotification(admin, resources, resources, projectAcronym);
             }
         }
 
@@ -216,7 +220,7 @@ namespace Datahub.Functions
             try
             {
                 foreach (var contact in details.Contacts)
-                    await notifyService.SendWorkspaceCostNotification(contact, details.ProjectAcro, notificationPerc.ToString());
+                    await notifyService.SendWorkspaceCostNotification(contact, notificationPerc.ToString(), details.ProjectAcro);
 
                 details.Credits.PercNotified = notificationPerc;
                 details.Credits.LastNotified = DateTime.UtcNow;
@@ -242,7 +246,7 @@ namespace Datahub.Functions
             var project = await ctx.Projects
                 .Where(e => e.Project_Acronym_CD == projectAcronym)
                 .Include(e => e.Credits)
-                .Include(e => e.Users)
+                .Include(e => e.UserRoles)
                 .ThenInclude(e => e.PortalUser)
                 .AsSingleQuery()
                 .FirstOrDefaultAsync(cancellationToken);
@@ -250,7 +254,7 @@ namespace Datahub.Functions
             if (project is null)
                 return default;
 
-            var contacts = project.Users
+            var contacts = project.UserRoles
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
