@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace Datahub.Shared.Entities;
+namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
-public class DatabricksConfiguration
+public class DatabricksConfiguration : IWorkspaceToolConfiguration
 {
     public const string GENERAL_PURPOSE_TIER_CONFIG_JSON_KEY = "general_purpose_cluster";
     public const string MACHINE_LEARNING_TIER_CONFIG_JSON_KEY = TerraformVariables.MlCompute;
@@ -62,7 +63,7 @@ public class DatabricksConfiguration
         return (minCost, maxCost);
     }
 
-    public DatabricksConfiguration Clone()
+    public IWorkspaceToolConfiguration Clone()
     {
         return new DatabricksConfiguration
         {
@@ -73,4 +74,29 @@ public class DatabricksConfiguration
             EnableMachineLearningGpu = this.EnableMachineLearningGpu
         };
     }
+
+    public void WriteToWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    {
+        workspaceDefinition.AppData.DatabricksConfiguration = this;
+    }
+
+    public static IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    {
+        return workspaceDefinition.AppData.DatabricksConfiguration ?? new DatabricksConfiguration();
+    }
+
+    public string GenerateResourceInputJson()
+    {
+        return JsonSerializer.Serialize(this);
+    }
+
+    public static string GetPropertyLabel(string propertyName) => propertyName switch
+    {
+        nameof(GeneralPurposeTierSku) => "General purpose tier",
+        nameof(MachineLearningTierSku) => "ML tier",
+        nameof(MachineLearningGpuTierSku) => "ML (GPU) tier",
+        nameof(EnableMachineLearning) => "Enable ML",
+        nameof(EnableMachineLearningGpu) => "Enable ML (GPU)",
+        _ => propertyName
+    };
 }

@@ -1,4 +1,4 @@
-﻿using Datahub.Shared.Entities;
+﻿using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
