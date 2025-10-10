@@ -4,6 +4,7 @@ using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    partial class SqlServerDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20250825185605_Versionannoucement")]
+    partial class Versionannoucement
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -381,9 +384,6 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("PreviewFr")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Severity")
-                        .HasColumnType("int");
 
                     b.Property<DateTime?>("StartDateTime")
                         .HasColumnType("datetime2");
@@ -1646,10 +1646,6 @@ namespace Datahub.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
-
-                    b.Property<string>("Theme")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("UserName")
                         .HasMaxLength(128)
