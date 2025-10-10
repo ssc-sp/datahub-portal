@@ -48,5 +48,8 @@
   "Actions": "Actions",
   "Version Information": "Informations sur la version",
   "Workspace Version": "Version de l'espace de travail",
-  "Current FSDH Version": "Version actuelle de FSDH"
+  "Current FSDH Version": "Version actuelle de FSDH",
+  "Workspace is up to date": "L'espace de travail est à jour",
+  "Version {0} is available": "La version {0} est disponible",
+  "Version information": "Informations sur la version"
 }

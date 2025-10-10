@@ -37,6 +37,8 @@
   "Total Active Workspaces": "Total Active Workspaces",
   "Version Information": "Version Information",
   "Workspace Version": "Workspace Version",
-  "Current FSDH Version": "Current FSDH Version"
-
+  "Current FSDH Version": "Current FSDH Version",
+  "Workspace is up to date": "Workspace is up to date",
+  "Version {0} is available": "Version {0} is available",
+  "Version information": "Version information"
 }

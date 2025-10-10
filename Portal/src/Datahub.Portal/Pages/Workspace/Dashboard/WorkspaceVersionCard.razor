@@ -5,19 +5,22 @@
     <MudText Class="sr-only" Typo="Typo.h2">
         @Localizer["Version Information"]
     </MudText>
-    <MudStack>
-        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-            <MudText Typo="Typo.h3">@Localizer["Workspace Version"]</MudText>
-        </MudStack>                
-            <MudStack>
-                <MudText Typo="Typo.body1">
-                    <strong>@Localizer["Workspace Version:"]</strong> @_workspaceVersionUIText
-                </MudText>
-            <MudText Typo="Typo.body1">
-                <strong>@Localizer["Current FSDH Version:"]</strong> @LatestVersion
-            </MudText>                
-            </MudStack>        
+
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h3">@Localizer["Workspace Version"]</MudText>
+        
+        <MudTooltip Text="@GetTooltipText()">
+            <MudPaper Elevation="0" Outlined Class="pa-3" Style="@GetVersionCardStyle()">
+                <MudStack row Spacing="2">                    
+                    <MudIcon Icon="@_versionIcon" Color="@_versionColor" Size="Size.Small" />
+                    <MudText Typo="Typo.h5" Class="font-weight-bold" Color="@_versionColor">
+                        @_workspaceVersionUIText
+                    </MudText>                    
+                </MudStack>
+            </MudPaper>
+        </MudTooltip>
     </MudStack>
+
 </DatahubAuthView>
 
 @code {
@@ -28,19 +31,65 @@
     [Parameter] public string LatestVersion { get; set; }
 
     private string _workspaceVersion => WorkspaceVersion ?? "Unknown";
-    private DateTime? _lastUpdated => LastUpdated;
-    private string _dateUIText;
     private string _workspaceVersionUIText;
-    private string _updateRequired;
+    private string _versionIcon;
+    private Color _versionColor;
+    private bool _isUpToDate;
 
     protected override async Task OnInitializedAsync()
-    {            
-        _dateUIText = LastUpdated is null ? string.Empty : $"(updated on {LastUpdated?.ToString("yyyy-MM-dd")})";
+    {                    
         _workspaceVersionUIText = $"{(_workspaceVersion ?? "N/A")}";
-        if(LatestVersion != WorkspaceVersion)
+
+        // Check if versions match
+        _isUpToDate = !string.IsNullOrEmpty(LatestVersion) && LatestVersion == WorkspaceVersion;
+        
+        // Set visual state based on version comparison
+        if (_isUpToDate)
         {
-            _updateRequired += $"Workspace Version {LatestVersion} is available. Your workspace will be updated shortly";
+            // Green when up to date
+            _versionIcon = Icons.Material.Filled.CheckCircle;
+            _versionColor = Color.Success;
+        }
+        else if (!string.IsNullOrEmpty(LatestVersion) && LatestVersion != WorkspaceVersion)
+        {
+            // Orange when outdated
+            _versionIcon = Icons.Material.Filled.Schedule;
+            _versionColor = Color.Warning;
+        }
+        else
+        {
+            // Default state
+            _versionIcon = Icons.Material.Filled.Info;
+            _versionColor = Color.Default;
         }
     }
 
+    private string GetVersionCardStyle()
+    {
+        var backgroundColor = _isUpToDate ? "#e8f5e8" : 
+                             (!string.IsNullOrEmpty(LatestVersion) && LatestVersion != WorkspaceVersion) ? "#fff3e0" : 
+                             "var(--mud-palette-surface)";
+        
+        var borderColor = _isUpToDate ? "#4caf50" :
+                         (!string.IsNullOrEmpty(LatestVersion) && LatestVersion != WorkspaceVersion) ? "#ff9800" :
+                         "#e0e0e0";
+        
+        return $"background-color: {backgroundColor}; border-left: 4px solid {borderColor}; max-width: 200px;";
+    }
+
+    private string GetTooltipText()
+    {
+        if (_isUpToDate)
+        {
+            return Localizer["Workspace is up to date"];
+        }
+        else if (!string.IsNullOrEmpty(LatestVersion) && LatestVersion != WorkspaceVersion)
+        {
+            return Localizer["Version {0} is available", LatestVersion];
+        }
+        else
+        {
+            return Localizer["Version information"];
+        }
+    }
 }

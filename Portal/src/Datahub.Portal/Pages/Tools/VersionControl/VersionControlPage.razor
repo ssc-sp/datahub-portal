@@ -310,8 +310,8 @@
                 {
                     StartDateTime = DateTime.UtcNow,
                     EndDateTime = DateTime.UtcNow.AddDays(30),                      
-                    PreviewEn = $"# New Workspace Version Available\n\nA new version {versionTag.Tag} of the FSDH workspaces has been released. Check out the details in the description.",
-                    PreviewFr = $"# Nouvelle version de l'espace de travail disponible\n\nUne nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée. Consultez les détails dans la description.",
+                    PreviewEn = $"# New Workspace Version Available\n\nA new version {versionTag.Tag} of the FSDH workspaces has been released.",
+                    PreviewFr = $"# Nouvelle version de l'espace de travail disponible\n\nUne nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée.",
                     BodyEn = $"# New Workspace Version Available\n\n{Markdown.ToHtml(versionTag.VersionDescription)}",
                     BodyFr = $"# Nouvelle version de l'espace de travail disponible\n\n{Markdown.ToHtml(versionTag.VersionDescriptionFr)}",
                     CreatedAt = DateTime.UtcNow,
