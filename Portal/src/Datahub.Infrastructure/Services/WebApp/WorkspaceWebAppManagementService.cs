@@ -15,6 +15,7 @@ using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;

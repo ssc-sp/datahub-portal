@@ -1,4 +1,5 @@
 ﻿using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Portal.Model
 {
