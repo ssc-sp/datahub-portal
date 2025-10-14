@@ -6,6 +6,7 @@
 @using Datahub.Shared
 @using Datahub.Core.Services.Projects
 @using Datahub.Infrastructure.Services.Toolbox
+@using Datahub.Shared.Entities.WorkspaceToolConfiguration
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms
 
@@ -149,13 +150,16 @@
                                 @Localizer["Tool catalog"]
                             </MudText>
                             <MudStack Spacing="2" Class="mb-2" Style="flex-shrink: 0" id=@CatalogId>
-                                @foreach (var tool in _toolCatalog.Where(t => _transactions.All(tr => tr.Tool != t)))
+                                @foreach (var tool in _toolCatalog.Where(_transactions.DoesNotContainTool))
                                 {
-                                    <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
-                                                    ToolCategory="@ToolCategory(tool)"
+                                    var toolInfo = GetToolInfo(tool);
+                                    var availability = GetAvailabilityStatus(toolInfo);
+
+                                    <ToolboxItem ToolName="@ToolLabel(toolInfo)" ToolIcon="@ToolIcon(toolInfo)"
+                                                    ToolCategory="@ToolCategory(toolInfo)"
                                                     ShowDetails="@(_ => ShowInfoSheet(tool, ElementId([CatalogId, tool])))"
                                                     ToolId=@ElementId([CatalogId, tool])>
-                                        @switch (_toolAvailabilityStatusMap[tool])
+                                        @switch (availability)
                                         {
                                             case AvailabilityStatus.Available:
                                                 <DHButton OnClick="@(_ => AddTool(tool))"
@@ -168,14 +172,15 @@
                                                     @Localizer["Add"]
                                                 </DHButton>
                                                 break;
-                                            case AvailabilityStatus.Disabled:
+                                            case AvailabilityStatus.UpgradeWorkspace:
                                                 <MudText Style="font-style: italic">
-                                                    @Localizer["Disabled"]
+                                                    @Localizer["Please upgrade your workspace version to add this tool."]
                                                 </MudText>
                                                 break;
+                                            case AvailabilityStatus.Disabled:
                                             case AvailabilityStatus.UnderDevelopment:
                                                 <MudText Style="font-style: italic">
-                                                    @Localizer["Under Development"]
+                                                    @AvailabilityLabel(availability)
                                                 </MudText>
                                                 break;
                                         }
@@ -193,23 +198,29 @@
                                     </MudText>
                                 </MudStack>
                                 <MudStack Spacing="2" Class="mb-2" id=@ExistingId>
-                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove).All(tr => tr.Tool != t.Name)))
+                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => AllRemoveTransactions.DoesNotContainTool(t.Name)))
                                     {
                                         var tool = template.Name;
-                                        <ToolboxItem ToolName="@ToolLabel(tool)" ToolIcon="@ToolIcon(tool)"
-                                                        ToolCategory="@ToolCategory(tool)"
+                                        var toolInfo = GetToolInfo(tool);
+                                        <ToolboxItem ToolName="@ToolLabel(toolInfo)" ToolIcon="@ToolIcon(toolInfo)"
+                                                        ToolCategory="@ToolCategory(toolInfo)"
                                                         ShowDetails="@(_ => ShowInfoSheet(tool, ElementId([ExistingId, tool])))"
                                                         ToolId=@ElementId([ExistingId, tool])>
                                             @switch (template.Status)
                                             {
                                                 case TerraformStatus.Completed:
-
-                                                    // TODO: implement generic version gating for all tools instead of hardcoding Databricks
-                                                    var configurable = _configurableToolList.Contains(tool) && 
-                                                        _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && 
-                                                        (tool != TerraformTemplate.AzureDatabricks || _workspaceVersion >= DatabricksConfiguration.MinimumConfigurableWorkspaceVersion) &&
+                                                    var configurable = IsConfigurable(toolInfo) && 
+                                                        AllUpdateTransactions.DoesNotContainTool(tool) && 
                                                         !(_disableActiveRequest || _disableOverBudget);
-                                                    var deletable = !_permanentToolList.Contains(tool) && _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update).All(tr => tr.Tool != tool) && !(_disableActiveRequest || _disableOverBudget);
+                                                    var deletable = IsDeletable(toolInfo) && 
+                                                        AllUpdateTransactions.DoesNotContainTool(tool) && 
+                                                        !(_disableActiveRequest || _disableOverBudget);
+                                                    var futureConfigurable = IsConfigurableInFutureVersion(toolInfo);
+
+                                                    @if (futureConfigurable)
+                                                    {
+                                                        <DHIcon Icon="@Icons.Material.Outlined.ArrowCircleUp" Title="@Localizer["There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features."]" />
+                                                    }
 
                                                     <DHButton EndIcon="@SidebarIcons.Gear"
                                                                 Variant="Variant.Filled" Color="Color.Default"
@@ -262,7 +273,7 @@
                             }
                         </MudStep>
                         <MudStep Title=@Localizer["Configure"]
-                                    Disabled="@(!_transactions.Any(IsConfigurableForCurrentWorkspace))">
+                                    Disabled="@(!_transactions.Any(IsConfigurable))">
                             <MudText Typo="Typo.h2" Class="mb-2">
                                 @Localizer["Configure the tools you have added to your workspace"]
                             </MudText>
@@ -270,33 +281,24 @@
                                 @Localizer["You can configure the tools you have added to your workspace here."]
                             </MudText>
                             <MudStack Spacing="4">
-                                @foreach (var transaction in _transactions.Where(IsConfigurableForCurrentWorkspace))
+                                @foreach (var transaction in _transactions.Where(IsConfigurable))
                                 {
+                                    var tool = transaction.Tool;
+                                    var toolInfo = GetToolInfo(tool);
+
                                     <MudPaper Elevation="0" Outlined Class="py-4 px-8"
                                                 Style=@ConfigurationFormStyle>
                                         <MudStack Row AlignItems="AlignItems.Center" Class="mb-4">
-                                            <DHIcon Icon="@ToolIcon(transaction.Tool)"/>
+                                            <DHIcon Icon="@ToolIcon(toolInfo)"/>
                                             <MudText Typo="Typo.h3">
-                                                @ToolLabel(transaction.Tool) configuration
+                                                @Localizer["{0} configuration", ToolLabel(toolInfo)]
                                             </MudText>
                                         </MudStack>
                                         <MudStack Spacing="2" id=@ConfigurationFormsId>
-                                            @switch (transaction.Tool)
-                                            {
-                                                case TerraformTemplate.AzurePostgres:
-                                                    <PostgresConfigurationForm
-                                                        Configuration="@(transaction.UpdatedData!)"/>
-                                                    break;
-                                                case TerraformTemplate.AzureDatabricks:
-                                                    <DatabricksConfigurationForm
-                                                        Configuration="@(transaction.UpdatedData!)"/>
-                                                    break;
-                                                default:
-                                                    <MudText Style="font-style: italic">
-                                                        @Localizer["No configuration available for this tool"]
-                                                    </MudText>
-                                                    break;
-                                            }
+                                            <WorkspaceToolConfigurationForm 
+                                                Configuration="@transaction.UpdatedData" 
+                                                ToolInfo="toolInfo" 
+                                                WorkspaceVersion="@_workspaceVersion" />
                                         </MudStack>
                                     </MudPaper>
                                 }
@@ -362,7 +364,7 @@
                                                         OnClick="@(_ => ShowInfoSheet(context.Tool, ElementId([ReviewTableId, context.Tool])))"
                                                         DisableRipple
                                                         HtmlTag="button">
-                                                @ToolLabel(context.Tool)
+                                                @ToolLabel(GetToolInfo(context.Tool))
                                             </DHButton>
                                         </MudTd>
                                         <MudTd>
@@ -370,11 +372,10 @@
                                             {
                                                 case ToolboxTransactionType.Add:
                                                 case ToolboxTransactionType.Update:
-                                                    // TODO: this is a bandaid fix; when general version-gating is implemented, this should be removed
-                                                    @if (IsConfigurableForCurrentWorkspace(context))
+                                                    @if (IsConfigurable(context))
                                                     {
                                                         <MudText id=@ElementId([ReviewConfigurationId, context.Tool])>
-                                                            @DisplayDiff(context.Diff())
+                                                            @DisplayDiff(context.Diff(), context.Tool)
                                                         </MudText>
                                                     }
                                                     break;
@@ -443,13 +444,14 @@
                                 @Localizer["You can edit your selection in the select step."]
                             </MudText>
                         }
+
                         @if (_transactions.Any(tr => tr.Type == ToolboxTransactionType.Add))
                         {
                             <MudText Typo="Typo.h3" Class="mb-2">
                                 @Localizer["Add:"]
                             </MudText>
                             <MudStack Spacing="0" Class="mb-4" id=@SummaryAddId>
-                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Add))
+                                @foreach (var transaction in AllAddTransactions)
                                 {
                                     <MudStack Row AlignItems="AlignItems.Center"
                                                 id=@ElementId([SummaryAddId, transaction.Tool])>
@@ -462,7 +464,7 @@
                                                             id=@ElementId([SummaryAddId, transaction.Tool, CancelButtonId])/>
                                         }
                                         <MudText>
-                                            @ToolLabel(transaction.Tool)
+                                            @ToolLabel(GetToolInfo(transaction.Tool))
                                         </MudText>
                                     </MudStack>
                                 }
@@ -474,7 +476,7 @@
                                 @Localizer["Configure:"]
                             </MudText>
                             <MudStack Spacing="0" Class="mb-4" id=@SummaryConfigureId>
-                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Update))
+                                @foreach (var transaction in AllUpdateTransactions)
                                 {
                                     <MudStack Row AlignItems="AlignItems.Center"
                                                 id=@ElementId([SummaryConfigureId, transaction.Tool])>
@@ -487,7 +489,7 @@
                                                             id=@ElementId([SummaryConfigureId, transaction.Tool, CancelButtonId])/>
                                         }
                                         <MudText>
-                                            @ToolLabel(transaction.Tool)
+                                            @ToolLabel(GetToolInfo(transaction.Tool))
                                         </MudText>
                                     </MudStack>
                                 }
@@ -499,7 +501,7 @@
                                 @Localizer["Remove:"]
                             </MudText>
                             <MudStack Spacing="0" Class="mb-4" id=@SummaryRemoveId>
-                                @foreach (var transaction in _transactions.Where(tr => tr.Type == ToolboxTransactionType.Remove))
+                                @foreach (var transaction in AllRemoveTransactions)
                                 {
                                     <MudStack Row AlignItems="AlignItems.Center"
                                                 id=@ElementId([SummaryRemoveId, transaction.Tool])>
@@ -512,7 +514,7 @@
                                                             id=@ElementId([SummaryRemoveId, transaction.Tool, CancelButtonId])/>
                                         }
                                         <MudText>
-                                            @ToolLabel(transaction.Tool)
+                                            @ToolLabel(GetToolInfo(transaction.Tool))
                                         </MudText>
                                     </MudStack>
                                 }
@@ -726,8 +728,6 @@
 
         return ParseVersionTag(workspace.Version);
     }
-
-    private bool IsConfigurableForCurrentWorkspace(ToolboxTransaction transaction) => IsConfigurable(transaction, _workspaceVersion);
 
     protected override async Task OnInitializedAsync()
     {
