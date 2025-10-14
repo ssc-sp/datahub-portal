@@ -2353,9 +2353,12 @@
   "{0} remaining credits of {1}": "{0} remaining credits of {1}",
   "{0} successfully added to your workspace": "{0} successfully added to your workspace",
   "{0} {1}": "{0} {1}",
-  "~ {0:C2} plus {1:C2}/month per GB of storage": "~ {0:C2} plus {1:C2}/month per GB of storage",
+  "~ {0:C2}/month plus {1:C2}/month per GB of storage": "~ {0:C2}/month plus {1:C2}/month per GB of storage",
   "~ {0:C2}/month": "~ {0:C2}/month",
   "~ {0:C2}/month, more per download/upload": "~ {0:C2}/month, more per download/upload",
+  "{0} configuration": "{0} configuration",
+  "Please upgrade your workspace version to add this tool.": "Please upgrade your workspace version to add this tool.",
+  "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.": "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.",
   "INFO": "INFO",
   "NOTICE": "NOTICE",
   "IMPORTANT": "IMPORTANT"
