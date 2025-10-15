@@ -44,11 +44,6 @@
 
                                     if (isDoc)
                                     {
-                                        @*                             <MudToggleIconButton aria-label="Notifications toggle"
-                                                 ToggledIcon="@Icons.Material.Filled.Notifications"
-                                                 ToggledChanged="@ToggleNotificationsList"
-                                                 Toggled="IsNotificationsListOpen"
-                                                 Icon="@Icons.Material.Outlined.Notifications" /> *@
                                         <li>
                                             <MudNavLink Match="NavLinkMatch.All" Href=@BuildResourceLink(cat)
                                                         Icon="@(cat.GetSidebarIcon())">
@@ -140,5 +135,4 @@
     [Parameter] public bool PageIsLoading { get; set; }
 
     [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
-
 }
