@@ -456,6 +456,7 @@ public class Startup
         
         services.AddScoped<ITbsOpenDataService, TbsOpenDataService>();
         services.AddScoped<IOpenDataPublishingService, OpenDataPublishingService>();
+        services.AddScoped<IOpenGovBlocklistService, OpenGovBlocklistService>();
 
         services.AddSingleton<IGlobalSessionManager, GlobalSessionManager>();
         services.AddScoped<IUserCircuitCounterService, UserCircuitCounterService>();
