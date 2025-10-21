@@ -1,8 +1,17 @@
 @using Datahub.Core.Data
+@using Datahub.Metadata.Model
+@using System.Security.Claims
 
 <AuthorizeView Roles="@GetRoles()">
     <Authorized>
-        @(Authorized ?? ChildContent)
+        @if (IsUserTrustedForClassificationLevel())
+        {
+            @AuthorizedContent
+        }
+        else
+        {
+            @NotAuthorized
+        }
     </Authorized>
     <NotAuthorized>
         @NotAuthorized
@@ -38,6 +47,18 @@
     [Parameter]
     public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
+    [Parameter]
+    public ClassificationType Classification { get; set; } = ClassificationType.Unclassified;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    #nullable enable
+    private ClaimsPrincipal? _user;
+    #nullable disable
+
+    private RenderFragment AuthorizedContent => Authorized ?? ChildContent;
+
     public enum AuthLevels
     {
         Authenticated,
@@ -52,6 +73,24 @@
         Unauthorized,
         CbrOwner,
         WorkspaceCbrOwner
+    }
+
+    private bool IsUserTrustedForClassificationLevel()
+    {
+        return Classification switch
+        {
+            ClassificationType.Unclassified => true,
+            ClassificationType.ProtectedA => _user?.IsInRole(RoleConstants.TRUSTED_FOR_PROTECTED_A) ?? false,
+            ClassificationType.ProtectedB => _user?.IsInRole(RoleConstants.TRUSTED_FOR_PROTECTED_B) ?? false,
+            _ => false,
+        };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        _user = authState.User;
+        await base.OnInitializedAsync();
     }
 
     protected override void OnParametersSet()
