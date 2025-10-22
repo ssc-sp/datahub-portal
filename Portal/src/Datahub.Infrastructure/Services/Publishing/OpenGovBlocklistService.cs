@@ -47,25 +47,15 @@ public class OpenGovBlocklistService : IOpenGovBlocklistService
 
     public async Task<bool> IsUserBlockedAsync(string emailDomain, string? departmentName = null)
     {
-        if (string.IsNullOrWhiteSpace(emailDomain) && string.IsNullOrWhiteSpace(departmentName))
+        if (string.IsNullOrWhiteSpace(emailDomain))
             return false;
 
         await using var ctx = await _dbContextFactory.CreateDbContextAsync();
 
-        var query = ctx.OpenGovPublishingBlocklist
-            .Where(b => b.Status == BlocklistStatus.Active);
-
-        if (!string.IsNullOrWhiteSpace(emailDomain))
-        {
-            query = query.Where(b => b.EmailHostname == emailDomain);
-        }
-
-        if (!string.IsNullOrWhiteSpace(departmentName))
-        {
-            query = query.Where(b => b.DepartmentName == departmentName);
-        }
-
-        return await query.AnyAsync();
+        // Check if the email domain is blocked (department is informational only, not used for matching)
+        return await ctx.OpenGovPublishingBlocklist
+            .Where(b => b.Status == BlocklistStatus.Active && b.EmailHostname == emailDomain)
+            .AnyAsync();
     }
 
     public async Task<OpenGovPublishingBlocklist> AddBlocklistEntryAsync(string departmentName, string emailHostname, string notes)
