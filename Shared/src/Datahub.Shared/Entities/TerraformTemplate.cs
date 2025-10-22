@@ -1,3 +1,5 @@
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
+
 namespace Datahub.Shared.Entities;
 
 public class TerraformTemplate(string name, string status)
@@ -96,30 +98,24 @@ public class TerraformTemplate(string name, string status)
         };
     }
 
+#nullable enable
+    public static IEnumerable<string>? GetDependencyNames(string toolName) => toolName switch
+    {
+        NewProjectTemplate => [],
+        VariableUpdate => [],
+        AzureStorageBlob => [NewProjectTemplate],
+        AzureDatabricks => [NewProjectTemplate, AzureStorageBlob],
+        AzureAppService => [NewProjectTemplate, AzureStorageBlob],
+        AzurePostgres => [NewProjectTemplate],
+        _ => null
+    };
+#nullable disable
+
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
-        return name switch
-        {
-            NewProjectTemplate => [],
-            VariableUpdate => [],
-            AzureStorageBlob => [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-            ],
-            AzureDatabricks =>
-            [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-                new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
-            ],
-            AzureAppService =>
-            [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-                new TerraformTemplate(AzureStorageBlob, TerraformStatus.CreateRequested),
-            ],
-            AzurePostgres => [
-                new TerraformTemplate(NewProjectTemplate, TerraformStatus.CreateRequested),
-            ],
-            _ => throw new ArgumentException($"Unknown template name: {name}")
-        };
+        return GetDependencyNames(name)
+            .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested))
+            .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {

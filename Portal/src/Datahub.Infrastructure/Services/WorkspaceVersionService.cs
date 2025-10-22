@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -54,6 +55,21 @@ namespace Datahub.Infrastructure.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error getting all versions");
+                throw;
+            }
+        }
+
+        public async Task<VersionTag?> GetVersionByIdAsync(int versionTagId)
+        {
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                return await db.VersionTags
+                    .FirstOrDefaultAsync(v => v.VersionTagId == versionTagId);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting version by ID: {VersionTagId}", versionTagId);
                 throw;
             }
         }
@@ -145,6 +161,79 @@ namespace Datahub.Infrastructure.Services
             catch (Exception ex)
             {
                 logger.LogError(ex, "Error setting workspace to update requested for project ID: {ProjectId}", projectId);
+                throw;
+            }
+        }
+
+        public async Task<List<Datahub_Project>> GetWorkspacesNotOnLatestVersionAsync()
+        {
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                
+                // Get the latest version
+                var latestVersion = await GetLatestVersionAsync();
+                
+                // Get all projects that are not deleted and have a version different from the latest
+                var outdatedWorkspaces = await db.Projects
+                    .Where(p => p.Deleted_DT == null && 
+                               p.Version != null && 
+                               p.Version != latestVersion &&
+                               p.Version != "latest")
+                    .OrderBy(p => p.Project_Acronym_CD)
+                    .ToListAsync();
+
+                return outdatedWorkspaces;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting workspaces not on latest version");
+                throw;
+            }
+        }
+
+        public async Task<WorkspaceVersionStatistics> GetWorkspaceVersionStatisticsAsync()
+        {
+            try
+            {
+                await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
+                
+                // Get the latest version
+                var latestVersion = await GetLatestVersionAsync();
+                
+                // Get all active workspaces (not deleted)
+                var allWorkspaces = await db.Projects
+                    .Where(p => p.Deleted_DT == null)
+                    .ToListAsync();
+
+                var totalWorkspaces = allWorkspaces.Count;
+                
+                // Count workspaces on latest version (including those with "latest" version)
+                var latestVersionWorkspaces = allWorkspaces.Count(p => 
+                    p.Version == latestVersion || p.Version == "latest");
+                
+                var outdatedWorkspaces = totalWorkspaces - latestVersionWorkspaces;
+                
+                // Count workspaces with pending update requests
+                var workspacesWithUpdateRequested = allWorkspaces.Count(p => p.IsVersionUpdateRequested);
+                
+                var percentageOnLatest = totalWorkspaces > 0 
+                    ? Math.Round((decimal)latestVersionWorkspaces / totalWorkspaces * 100, 1)
+                    : 0;
+
+                return new WorkspaceVersionStatistics
+                {
+                    TotalWorkspaces = totalWorkspaces,
+                    LatestVersionWorkspaces = latestVersionWorkspaces,
+                    OutdatedWorkspaces = outdatedWorkspaces,
+                    PercentageOnLatest = percentageOnLatest,
+                    WorkspacesWithUpdateRequests = workspacesWithUpdateRequested,
+                    LatestVersion = latestVersion
+                };
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error getting workspace version statistics");
                 throw;
             }
         }

@@ -1,3 +1,5 @@
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
+
 namespace Datahub.Shared.Entities;
 public class WorkspaceAppData
 {

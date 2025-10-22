@@ -3,6 +3,7 @@ using System.Text.Json;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Infrastructure.Services.Toolbox
 {
@@ -51,17 +52,9 @@ namespace Datahub.Infrastructure.Services.Toolbox
         /// </summary>
         /// <param name="workspaceDefinition">Workspace definition to apply this switch to</param>
         /// <param name="transaction">The transaction containing the new configuration information</param>
-        private void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
+        private static void ApplyConfigurations(WorkspaceDefinition workspaceDefinition, ToolboxTransaction transaction)
         {
-            switch (transaction.Tool)
-            {
-                case TerraformTemplate.AzurePostgres:
-                    workspaceDefinition.AppData.PostgresConfiguration = transaction.UpdatedData;
-                    break;
-                case TerraformTemplate.AzureDatabricks:
-                    workspaceDefinition.AppData.DatabricksConfiguration = transaction.UpdatedData;
-                    break;
-            }
+            (transaction.UpdatedData as IWorkspaceToolConfiguration)?.WriteToWorkspaceDefinition(workspaceDefinition);
         }
     }
 
@@ -95,7 +88,7 @@ namespace Datahub.Infrastructure.Services.Toolbox
         }
 
         public static ToolboxTransaction UpdateTool(this List<ToolboxTransaction> transactions, string tool,
-            dynamic? originalData, dynamic? updatedData)
+            IWorkspaceToolConfiguration? originalData, IWorkspaceToolConfiguration? updatedData)
         {
             var transaction = new ToolboxTransaction
             {
@@ -112,6 +105,9 @@ namespace Datahub.Infrastructure.Services.Toolbox
         {
             transactions.Remove(transaction);
         }
+
+        public static bool ContainsTool(this IEnumerable<ToolboxTransaction> transactions, string toolName) => transactions.Select(t => t.Tool).Contains(toolName);
+        public static bool DoesNotContainTool(this IEnumerable<ToolboxTransaction> transactions, string toolName) => !ContainsTool(transactions, toolName);
 
         /// <summary>
         /// This method will diff the original and updated data of a transaction. This is very useful
