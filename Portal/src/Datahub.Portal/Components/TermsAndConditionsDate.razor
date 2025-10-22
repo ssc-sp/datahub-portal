@@ -9,9 +9,9 @@
          Style="@Style"
          Tag="@Tag"
          UserAttributes="@UserAttributes">
-    @if(_latestUpdateDate!=null)
+    @if(_lastUpdatedDate!=null)
     {
-        @Localizer["Last updated: {0}", $"{_latestUpdateDate!.Value:yyyy-MM-dd}"]
+        @Localizer["Last updated: {0}", $"{_lastUpdatedDate!.Value:yyyy-MM-dd}"]
     }
 </MudText>
 
@@ -23,13 +23,13 @@
     [Parameter] public object Tag { get; set; } = null;
     [Parameter] public Dictionary<string, object> UserAttributes { get; set; } = null;
 
-    private string _latestUpdateURL = "https://raw.githubusercontent.com/ssc-sp/datahub-docs/refs/heads/next/LAST_UPDATED.md";
-    private DateTime? _latestUpdateDate;
+    private string _lastUpdatedURL = "https://raw.githubusercontent.com/ssc-sp/datahub-docs/refs/heads/next/LAST_UPDATED.md";
+    private DateTime? _lastUpdatedDate;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _latestUpdateDate = LastUpdatedToDateTime(await GetLastUpdatedMarkdownContent());
+        _lastUpdatedDate = LastUpdatedToDateTime(await GetLastUpdatedMarkdownContent());
     }
 
     private async Task<string> GetLastUpdatedMarkdownContent()
@@ -37,7 +37,7 @@
         var client = _httpClientFactory.CreateClient();
         try
         {
-            var output = await client.GetStringAsync(_latestUpdateURL);
+            var output = await client.GetStringAsync(_lastUpdatedURL);
             return MarkdownHelper.RemoveFrontMatter(output);
         }
         catch (Exception ex)
