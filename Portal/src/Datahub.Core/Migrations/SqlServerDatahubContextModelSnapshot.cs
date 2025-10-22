@@ -382,6 +382,9 @@ namespace Datahub.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Severity")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("StartDateTime")
                         .HasColumnType("datetime2");
 
@@ -673,6 +676,9 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VersionTagId"));
+
+                    b.Property<bool>("AnnouncementCreated")
+                        .HasColumnType("bit");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");

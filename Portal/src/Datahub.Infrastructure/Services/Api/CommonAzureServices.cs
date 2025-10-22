@@ -10,13 +10,13 @@ namespace Datahub.Infrastructure.Services.Api;
 
 public class CommonAzureServices
 {    
-    private IOptions<APITarget> _targets;
+    private IOptions<APITargets> _targets;
     private readonly ILogger _logger;
     private readonly IKeyVaultService _keyVaultService;
 
     public CommonAzureServices(ILogger<CommonAzureServices> logger,
         IKeyVaultService keyVaultService,
-        IOptions<APITarget> targets)
+        IOptions<APITargets> targets)
     {
         _logger = logger;
         _keyVaultService = keyVaultService;

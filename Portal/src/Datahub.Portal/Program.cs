@@ -28,10 +28,8 @@ builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>("Microsoft.AspNetCo
 
 // App configuration
 builder.Configuration.AddUserSecrets<Startup>();
-if (!DevTools.IsDevelopment())
-{
-    StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
-}
+
+StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
 // Add services from Startup
 var startup = new Startup(builder.Configuration);

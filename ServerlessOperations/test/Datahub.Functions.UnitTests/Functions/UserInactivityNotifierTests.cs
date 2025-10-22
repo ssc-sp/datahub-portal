@@ -41,7 +41,7 @@ namespace Datahub.Functions.UnitTests.Functions
 
 
         private AzureConfig _azConfig;
-        private QueuePongService _pongService;
+        private IQueuePongService _pongService;
         private EmailValidator _emailValidator;
         private IGCNotifyService _gcNotifyService;
         private ISendEndpointProvider _iSendEndpointProvider;
@@ -125,18 +125,18 @@ namespace Datahub.Functions.UnitTests.Functions
             _projectUserManagementService.GetProjectListForPortalUser(portalUserId).Returns(projects);
 
             // Mock the project users for each project
-            var projectUser1 = new Datahub_Project_User
+            var projectUser1 = new UserRoleLinks
             {
                 PortalUser = new PortalUser { Id = portalUserId, GraphGuid = Guid.NewGuid().ToString() },
                 Role = new Project_Role { Id = (int)Project_Role.RoleNames.WorkspaceLead }
             };
-            var projectUser2 = new Datahub_Project_User
+            var projectUser2 = new UserRoleLinks
             {
                 PortalUser = new PortalUser { Id = portalUserId, GraphGuid=Guid.NewGuid().ToString() },
                 Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator }
             };
-            _projectUserManagementService.GetProjectUsersAsync(projectId1).Returns(new List<Datahub_Project_User> { projectUser1 });
-            _projectUserManagementService.GetProjectUsersAsync(projectId2).Returns(new List<Datahub_Project_User> { projectUser2 });
+            _projectUserManagementService.GetProjectUsersAsync(projectId1).Returns(new List<UserRoleLinks> { projectUser1 });
+            _projectUserManagementService.GetProjectUsersAsync(projectId2).Returns(new List<UserRoleLinks> { projectUser2 });
 
             // Act
             await _sut.DisablePortalUser(portalUserId);

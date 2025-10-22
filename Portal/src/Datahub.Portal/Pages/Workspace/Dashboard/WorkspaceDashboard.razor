@@ -1,3 +1,4 @@
+@using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Repositories
 @using Datahub.Shared
@@ -10,6 +11,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ILogger<WorkspaceDashboard> _logger
 @inject IDatabricksApiService _databricksApiService
+@inject IWorkspaceVersionService _workspaceVersionService
 
 @if (_project is null)
 {
@@ -109,11 +111,18 @@
     <MudItem xs="12" sm="4">
         @if (!_isDeleted)
         {
+
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym"
                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
             </DatahubAuthView>
+            <MudDivider Class="my-4" />
         }
+        <WorkspaceVersionCard ProjectAcronym="@WorkspaceAcronym" 
+                              WorkspaceVersion="@_project.Version" 
+                              LastUpdated="@_project.Last_Updated_DT"
+                              LatestVersion="@_latestWorkspaceVersion"/>
+        <MudDivider Class="my-4" />
         <WorkspaceUserCardList ProjectAcronym="@WorkspaceAcronym"/>
     </MudItem>
 </MudGrid>
@@ -128,6 +137,7 @@
     private bool _isDeleted;
     private List<Project_Resources2> _resources;
     private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
+    private string _latestWorkspaceVersion;
 
     private Dictionary<string, Type> _cardComponents = new()
     {
@@ -161,6 +171,7 @@
 
         _isDeleted = _project.IsDeleted;
         _projectRepositories = await _databricksApiService.ListDisplayedWorkspaceRepositoriesAsync(WorkspaceAcronym);
+        _latestWorkspaceVersion = await _workspaceVersionService.GetLatestVersionAsync();
     }
 
     private string ParseResourceType(string resourceType)

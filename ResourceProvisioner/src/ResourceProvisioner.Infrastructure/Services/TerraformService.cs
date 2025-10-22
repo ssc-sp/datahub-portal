@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Datahub.Shared.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

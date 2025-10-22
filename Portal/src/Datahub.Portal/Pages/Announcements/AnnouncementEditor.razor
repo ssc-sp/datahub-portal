@@ -24,7 +24,7 @@
 			<MudStack>
 				<MudText Typo="Typo.h2">@Localizer["Carousel Preview"]</MudText>
                 <MudPaper>
-                    <AnnouncementCarousel Previews="@_announcementPreviews"  />
+                    <AnnouncementCarousel />
                 </MudPaper>
             </MudStack>
         </MudItem>
@@ -59,17 +59,29 @@
                         <MudDateRangePicker @bind-DateRange="@_dateRange"
                                             Label="@(Localizer["Select the start and end dates"])"/>
                     }
-
-                    <MudStack Row Justify="Justify.Center">
-                        <DHButton Variant="Variant.Filled"
-                                   Class="mt-4 mb-2"
-                                   Color="Color.Primary"
-                                   OnClick="HandleSave">
-                            @Localizer["Save Changes"]
-                        </DHButton>
-                    </MudStack>
                 </MudStack>
             </MudPaper>
+            <MudPaper Elevation="0" Outlined Class="px-6 py-4 sticky">
+                <MudStack Row AlignItems="AlignItems.Center" Class="mb-6">
+                    <DHIcon Icon="@Icons.Material.Outlined.WarningAmber" Color="Color.Default" />
+                    <MudText Typo="Typo.h2">@Localizer["Severity"]</MudText>
+                </MudStack>
+                <MudStack>
+                    <MudRadioGroup @bind-Value="_announcement.Severity">
+                        <MudRadio Value="2" Color="Color.Dark">@Localizer["Info"]</MudRadio>
+                        <MudRadio Value="1" Color="Color.Warning">@Localizer["Notice"]</MudRadio>
+                        <MudRadio Value="0" Color="Color.Error">@Localizer["Important"]</MudRadio>
+                    </MudRadioGroup>
+                </MudStack>
+            </MudPaper>
+            <MudStack Row Justify="Justify.Center">
+                <DHButton Variant="Variant.Filled"
+                          Class="mt-4 mb-2"
+                          Color="Color.Primary"
+                          OnClick="HandleSave">
+                    @Localizer["Save Changes"]
+                </DHButton>
+            </MudStack>
         </MudItem>
         <MudItem xs="8">
             <MudPaper Elevation="0" Outlined Class="px-6 py-4">
@@ -115,8 +127,8 @@
 
     private List<AnnouncementPreview> _announcementPreviews => new()
     {
-        new AnnouncementPreview(0, _announcement?.PreviewEn ?? "English Preview"),
-        new AnnouncementPreview(0, _announcement?.PreviewFr ?? "French Preview"),
+        new AnnouncementPreview(0, _announcement?.PreviewEn ?? "English Preview", _announcement.Severity),
+        new AnnouncementPreview(0, _announcement?.PreviewFr ?? "French Preview", _announcement.Severity),
     };
 
     private int GetArticleId() => int.TryParse(Id, out var value) ? value : 0;

@@ -1,0 +1,33 @@
+﻿@* WorkspaceToolConfigurationForm *@
+
+@namespace Datahub.Portal.Pages.Workspace.Toolbox.ConfigurationForms
+@using Datahub.Shared.Entities.WorkspaceToolConfiguration
+
+@if (ConfigurationFormType is not null)
+{
+    <DynamicComponent Type="@ConfigurationFormType" Parameters="ConfigurationParameters" />
+}
+else
+{
+    <MudText Style="font-style: italic">
+        @Localizer["No configuration available for this tool"]
+    </MudText>
+}
+
+
+
+@code {
+    #nullable enable
+    [Parameter, EditorRequired] public VersionAwareWorkspaceToolInfo ToolInfo { get; set; }
+    [Parameter, EditorRequired] public System.Version WorkspaceVersion { get; set; }
+    [Parameter] public object? Configuration { get; set; }
+
+    private IWorkspaceToolConfiguration? WorkspaceToolConfiguration => Configuration as IWorkspaceToolConfiguration;
+
+    private Dictionary<string, object?> ConfigurationParameters => new()
+    {
+        { "Configuration", WorkspaceToolConfiguration }
+    };
+
+    private Type? ConfigurationFormType => ToolInfo.GetApplicableConfigInfo(WorkspaceVersion)?.ConfigDialogClass;
+}

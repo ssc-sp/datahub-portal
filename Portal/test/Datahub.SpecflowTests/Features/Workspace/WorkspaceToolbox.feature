@@ -112,15 +112,15 @@ the correct information in the page.
         And there should be no underlying Add transaction for <catalog-tool>
 
     Examples:
-	  | catalog-tool         | available | configurable | configuration-type                              | version |
-	  | new-project-template | true      | false        | null                                            | v5.0.6  |
-	  | azure-storage-blob   | true      | false        | null                                            | v5.0.6  |
-	  | azure-databricks     | true      | false        | null                                            | v5.0.6  |
-	  | azure-databricks     | true      | true         | Datahub.Shared.Entities.DatabricksConfiguration | v5.2.1  |
-	  | azure-app-service    | true      | false        | null                                            | v5.0.6  |
-	  | azure-postgres       | true      | true         | Datahub.Shared.Entities.PostgresConfiguration   | v5.0.6  |
-	  | azure-arcgis         | false     | false        | null                                            | v5.0.6  |
-	  | azure-api            | false     | false        | null                                            | v5.0.6  |
+	  | catalog-tool         | available | configurable | configuration-type                                                         | version |
+	  | new-project-template | true      | false        | null                                                                       | v5.0.6  |
+	  | azure-storage-blob   | true      | false        | null                                                                       | v5.0.6  |
+	  | azure-databricks     | true      | false        | null                                                                       | v5.0.6  |
+	  | azure-databricks     | true      | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.DatabricksConfiguration | v5.2.1  |
+	  | azure-app-service    | true      | false        | null                                                                       | v5.0.6  |
+	  | azure-postgres       | true      | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.PostgresConfiguration   | v5.0.6  |
+	  | azure-arcgis         | false     | false        | null                                                                       | v5.0.6  |
+	  | azure-api            | false     | false        | null                                                                       | v5.0.6  |
 
     Scenario: User sees the appropriate tools in the summary after removing them
         Given the workspace has the <existing-tool> tool
@@ -156,14 +156,14 @@ the correct information in the page.
         And there should be no underlying Configure transaction for <existing-tool>
 
     Examples:
-      | existing-tool        | configurable | configuration-type                              | configuration-parameter | db-name                 | existing-configuration | version |
-      | new-project-template | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
-      | azure-storage-blob   | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
-      | azure-databricks     | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
-      | azure-databricks     | true         | Datahub.Shared.Entities.DatabricksConfiguration | general_purpose_cluster | general_purpose_cluster | Standard_D4ds_v5       | v5.2.1  |
-      | azure-app-service    | false        | null                                            | null                    | null                    | null                   | v5.0.6  |
-      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration   | PSQL_SKU                | postgres_sku            | B_Standard_B1ms        | v5.0.6  |
-      | azure-postgres       | true         | Datahub.Shared.Entities.PostgresConfiguration   | PSQL_SKU                | postgres_sku            | null                   | v5.0.6  |
+      | existing-tool        | configurable | configuration-type                                                         | configuration-parameter | db-name                 | existing-configuration | version |
+      | new-project-template | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
+      | azure-storage-blob   | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
+      | azure-databricks     | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
+      | azure-databricks     | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.DatabricksConfiguration | general_purpose_cluster | general_purpose_cluster | Standard_D4ds_v5       | v5.2.1  |
+      | azure-app-service    | false        | null                                                                       | null                    | null                    | null                   | v5.0.6  |
+      | azure-postgres       | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.PostgresConfiguration   | PSQL_SKU                | postgres_sku            | B_Standard_B1ms        | v5.0.6  |
+      | azure-postgres       | true         | Datahub.Shared.Entities.WorkspaceToolConfiguration.PostgresConfiguration   | PSQL_SKU                | postgres_sku            | null                   | v5.0.6  |
 
     Scenario: User sees the appropriate dependencies in the summary after selecting a tool
         Given the workspace does not have <catalog-tool>

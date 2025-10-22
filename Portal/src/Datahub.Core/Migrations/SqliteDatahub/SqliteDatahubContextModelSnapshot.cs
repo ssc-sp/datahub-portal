@@ -367,6 +367,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Severity")
+                        .HasColumnType("INTEGER");
+
                     b.Property<DateTime?>("StartDateTime")
                         .HasColumnType("TEXT");
 
@@ -643,6 +646,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 {
                     b.Property<int>("VersionTagId")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("AnnouncementCreated")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("CreatedBy")

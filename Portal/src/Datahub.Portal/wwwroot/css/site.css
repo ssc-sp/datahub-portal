@@ -207,7 +207,7 @@ button,
     -webkit-appearance: button;
 }
 
-/**
+    /**
 * Remove the inner border and padding in Firefox.
 */
     button::-moz-focus-inner,
@@ -218,7 +218,7 @@ button,
         padding: 0;
     }
 
-/**
+    /**
 * Restore the focus styles unset by the previous rule.
 */
     button:-moz-focusring,
@@ -284,7 +284,7 @@ textarea {
     outline-offset: -2px; /* 2 */
 }
 
-/**
+    /**
 * Remove the inner padding in Chrome and Safari on macOS.
 */
     [type=search]::-webkit-search-decoration {
@@ -339,376 +339,17 @@ body {
     font-family: "Open Sans";
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 @keyframes spinner1 {
     50% {
         transform: scaleY(0.25);
     }
 }
 
-
-
-
-
-
-
-
 @keyframes spinner2 {
     to {
         transform: rotate(360deg);
     }
 }
-
-
-
-
-
-
 
 @keyframes spinner3A {
     0%, 8.33%, 16.66%, 100% {
@@ -775,11 +416,6 @@ body {
     }
 }
 
-
-
-
-
-
 @keyframes spinner5 {
     25% {
         transform: scaleY(2);
@@ -789,13 +425,6 @@ body {
         transform: scaleY(1);
     }
 }
-
-
-
-
-
-
-
 
 @keyframes spinner6 {
     0%, 100% {
@@ -808,8 +437,6 @@ body {
         opacity: 0;
     }
 }
-
-
 
 @keyframes arrow-spin {
     100% {
@@ -824,205 +451,9 @@ body {
 }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 code {
     background-color: #e2e8f0;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 /** Transparent **/
@@ -3078,7 +2509,7 @@ code {
             }
 
             .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight {
-                background-color: red;
+                background-color: var(--mud-palette-table-lines);
             }
 
                 .file-explorer-layout-wrapper .file-explorer-layout .file-list .file-item.highlight .checked {
@@ -3659,18 +3090,18 @@ code {
     --density: 2;
     --design-unit: 4;
     --border-radius: 4px;
-/********************************  
+    /********************************  
                 BUTTON
    ********************************/
     --btn-light-color: #334155;
     --btn-light-bg-color: #f1f5f9;
     --btn-light-bg-color-hover: #e2e8f0;
-/********************************  
+    /********************************  
                 SHADOWS
    ********************************/
     --box-shadow-1: 0 1px 3px rgba(0, 0, 0, 0.02), 0 1px 2px rgba(0, 0, 0, 0.14);
     --box-shadow-2: 0 3px 6px rgba(0, 0, 0, 0.06), 0 3px 6px rgba(0, 0, 0, 0.13);
-/********************************  
+    /********************************  
                 TYPOGRAPHY
    ********************************/
     --primary-text: #1e293b;
@@ -3678,7 +3109,7 @@ code {
     --tertiary-text: #64748b;
     --primary-text-inverse: #f8fafc;
     --secondary-text-inverse: #f1f5f9;
-/********************************  
+    /********************************  
                 COLORS
    ********************************/
     --primary-color: #0ea5e9;

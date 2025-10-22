@@ -120,7 +120,7 @@
 
     private PortalUser _viewedUser;
     private bool _isViewAsAdmin;
-    private List<Datahub_Project_User> _userRoles;
+    private List<UserRoleLinks> _userRoles;
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
@@ -206,7 +206,7 @@
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _userRoles = await dbContext.Project_Users
+        _userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)
             // .ThenInclude(p => p.Users)
@@ -225,7 +225,7 @@
         _isLoaded = true;
     }
 
-    private List<Datahub_Project_User> GetWorkspaces()
+    private List<UserRoleLinks> GetWorkspaces()
     {
         return _showAllWorkspaces
             ? _userRoles

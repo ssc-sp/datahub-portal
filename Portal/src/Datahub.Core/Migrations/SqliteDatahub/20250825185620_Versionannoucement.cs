@@ -1,0 +1,29 @@
+﻿using Microsoft.EntityFrameworkCore.Migrations;
+
+#nullable disable
+
+namespace Datahub.Core.Migrations.SqliteDatahub
+{
+    /// <inheritdoc />
+    public partial class Versionannoucement : Migration
+    {
+        /// <inheritdoc />
+        protected override void Up(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.AddColumn<bool>(
+                name: "AnnouncementCreated",
+                table: "VersionTags",
+                type: "INTEGER",
+                nullable: false,
+                defaultValue: false);
+        }
+
+        /// <inheritdoc />
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropColumn(
+                name: "AnnouncementCreated",
+                table: "VersionTags");
+        }
+    }
+}

@@ -13,7 +13,10 @@
   "Invalid version format. Please use vX.X.X. e.g. v1.2.3": "Format de version non valide. Veuillez utiliser vX.X.X. par ex. v1.2.3",
 
 
-  "To learn more about the FSDH, visit our ": "Pour en savoir plus sur la PFDS, visitez notre site ",
+  "To learn more about the FSDH, visit the ": "Pour en savoir plus sur la PFDS, visitez nos ",
+  "Canada.ca pages": "pages Canada.ca",
+  "https://www.canada.ca/en/shared-services/services/tools-to-equip-gc-workers/tools-science/federal-science-datahub.html": "https://www.canada.ca/fr/services-partages/services/outils-pour-personnes-travaillant-gc/outils-scientifique/plateforme-federale-donnees-scientifiques.html",
+  " about the platform. For Government of Canada employees, more detailed information is available on the ": " concernant la plateforme. Pour les employés du gouvernement du Canada, des informations plus détaillées sont disponibles sur le site ",
   "GCxchange": "GCÉchange",
   " site (only available within the GC network).": "(disponible uniquement dans le réseau du GC).",
   "https://gcxgce.sharepoint.com/teams/10002160": "https://gcxgce.sharepoint.com/teams/10002160/SitePages/fr/Home.aspx",
@@ -28,5 +31,25 @@
   "English Description": "Description en anglais",
   "Please provide an English description.": "Veuillez fournir une description en anglais.",
   "French Description": "Description en français",
-  "Please provide a French description.": "Veuillez fournir une description en français."    
+  "Please provide a French description.": "Veuillez fournir une description en français.",
+
+  "Please provide a description of the update. This description will be used as to indicate what is new in the updated version.*": "Veuillez fournir une description de la mise à jour. Cette description sera utilisée pour indiquer les nouveautés de la version mise à jour.*",
+  "Create Announcement": "Créer une annonce",
+  "Please provide an English description": "Veuillez fournir une description en anglais.",
+  "Announcement created for version: {0}": "Annonce créée pour la version : {0}",
+  "Failed to create announcement": "Échec de la création de l'annonce",
+  "Edit Version": "Modifier la version",
+  "Version updated successfully": "Version mise à jour avec succès",
+  "Error updating version, please try again.": "Erreur lors de la mise à jour de la version, veuillez réessayer.",
+  "Outdated Workspaces": "Espaces de travail obsolètes",
+  "Current Version": "Version actuelle",
+  "On Current Version": "Sur la version actuelle",
+  "Total Active Workspaces": "Total des espaces de travail actifs",
+  "Actions": "Actions",
+  "Version Information": "Informations sur la version",
+  "Workspace Version": "Version de l'espace de travail",
+  "Current FSDH Version": "Version actuelle de FSDH",
+  "Workspace is up to date": "L'espace de travail est à jour",
+  "Version {0} is available": "La version {0} est disponible",
+  "Version information": "Informations sur la version"
 }
