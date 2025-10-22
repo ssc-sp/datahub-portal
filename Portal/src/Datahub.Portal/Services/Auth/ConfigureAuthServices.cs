@@ -17,6 +17,8 @@ public static class ConfigureAuthServices
 {
     public const string GccfOidcScheme = "gccf-oidc";
 
+    public const string GccfSigninURL = "/gccf/signin-oidc";
+
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
         // configure the primary Azure AD authentication
@@ -49,7 +51,7 @@ public static class ConfigureAuthServices
                 options.ClientId = "fsdh-gccf-oidc";
                 options.ClientSecret = "";// configuration["GccfOidc:ClientSecret"]; // From configuration
                 options.ResponseType = "code";
-                options.CallbackPath = "/gccf/signin-oidc";
+                options.CallbackPath = GccfSigninURL;
                 options.SaveTokens = true;
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");

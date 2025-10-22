@@ -4,26 +4,24 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Datahub.Portal.Controllers;
 
+/// <summary>
+/// Temporary controller to handle GCCF OIDC login and logout
+/// The login method is only for testing
+/// </summary>
 [Route("/gccf")]
 public class GCCFController : Controller
 {
-    [HttpGet("gccf-login")]
-    public IActionResult GccfLogin(string? redirectUri)
+    [HttpGet("sector-identifier.json")]
+    public IActionResult SectorIdentifier()
     {
-        var properties = new AuthenticationProperties
+        var host = Request.Host.ToUriComponent();
+        var scheme = Request.Scheme;
+        
+        var redirectUris = new[]
         {
-            RedirectUri = redirectUri ?? "/"
+            $"{scheme}://{host}{ConfigureAuthServices.GccfSigninURL}"
         };
-        return Challenge(properties, ConfigureAuthServices.GccfOidcScheme);
-    }
 
-    [HttpGet("gccf-logout")]
-    public IActionResult GccfLogout(string? redirectUri)
-    {
-        var properties = new AuthenticationProperties
-        {
-            RedirectUri = redirectUri ?? "/"
-        };
-        return SignOut(properties, ConfigureAuthServices.GccfOidcScheme);
+        return Json(redirectUris);
     }
 }
