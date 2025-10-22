@@ -249,19 +249,23 @@
                                                                 id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
                                                         @Localizer["In Progress"]
                                                     </MudText>
-                                                    break;
-                                                case TerraformStatus.Failed:
-                                                    <MudText Style="font-style: italic"
-                                                                id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
-                                                        @Localizer["Failed"]
-                                                    </MudText>
-                                                    break;
+                                                    break;                                                
                                                 case TerraformStatus.DeleteInProgress:
                                                 case TerraformStatus.DeleteRequested:
                                                     <MudText Style="font-style: italic"
                                                                 id=@ElementId([ExistingId, tool, ToolStatusLabelId])>
                                                         @Localizer["Deleting..."]
                                                     </MudText>
+                                                    break;
+                                                case TerraformStatus.Failed:
+                                                    <DHButton EndIcon="@Icons.Material.Outlined.Redo"
+                                                              Variant="Variant.Filled" Color="Color.Primary"
+                                                              DisableRipple
+                                                              OnClick="@(_ => RemoveTool(tool))"
+                                                              HtmlTag="button"                                                              
+                                                              id=@ElementId([ExistingId, tool, FailedButtonId])>
+                                                        @Localizer["Retry"]
+                                                    </DHButton>
                                                     break;
                                             }
                                         </ToolboxItem>
@@ -674,6 +678,7 @@
     public static string MetadataWarningId => "tool-metadata-warning";
     public static string AddButtonId => "add-button";
     public static string RemoveButtonId => "remove-button";
+    public static string FailedButtonId => "failed-button";
     public static string ConfigureButtonId => "configure-button";
     public static string CancelButtonId => "cancel-button";
     public static string NextButtonId => "next-button";

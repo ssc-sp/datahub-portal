@@ -27,13 +27,14 @@ public static class TerraformStatus
             CreateRequested, InProgress
         }.Contains(status);
     }
-    public static bool DeletedOrInProcessOf(string status)
+    public static bool DeleteRequestedOrInProcessOf(string status)
     {
         return new List<string>
         {
-            DeleteInProgress, Deleted, DeleteRequested
+            DeleteInProgress, DeleteRequested
         }.Contains(status);
     }
+
     public static bool ExistsOrInAnyProcess(string status)
     {
         return new List<string>()

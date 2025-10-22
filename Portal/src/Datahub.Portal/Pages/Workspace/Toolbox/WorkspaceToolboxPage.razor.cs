@@ -506,62 +506,71 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// </summary>
         private async Task VerifyRequest()
         {
-            if (!_disableSubmissionDelays)
-                await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2))); // Small delay to make it look better
-
-            var workspace = await _context
-                .Projects
-                .AsNoTracking()
-                .Include(p => p.Resources)
-                .Include(p => p.Credits)
-                .Include(p => p.UserRoles)
-                .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
-
-            Log("Checking workspace state");
-            if (workspace.IsDeleted) throw new Exception("Workspace has been deleted");
-            if (workspace.UserRoles.Count == 0) throw new Exception("Workspace has no users");
-            if (workspace.IsOverBudget) throw new Exception("Workspace is over budget");
-
-            Log("Checking workspace for existing resources");
-            if (AllAddTransactions.Any(tr =>
-                    workspace.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))))
+            try
             {
-                Log("Workspace already has one or more of the requested resources", "warn");
-            }
+                if (!_disableSubmissionDelays)
+                    await Task.Delay(TimeSpan.FromSeconds(new Random().Next(1, 2))); // Small delay to make it look better
 
-            Log("Checking resources to delete");
-            var resourceToDelete = AllRemoveTransactions
-                .Select(tr => workspace.Resources.First(r =>
-                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))).ToList();
-            if (resourceToDelete.Any(r => r.CreatedAt is null || r.Status != TerraformStatus.Completed))
-                throw new Exception("One or more resources to delete are not yet created");
+                var workspace = await _context
+                    .Projects
+                    .AsNoTracking()
+                    .Include(p => p.Resources)
+                    .Include(p => p.Credits)
+                    .Include(p => p.UserRoles)
+                    .AsSplitQuery()
+                    .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-            Log("Checking resources to update");
-            var resourceToUpdate = AllUpdateTransactions
-                .Select(tr => workspace.Resources.First(r =>
-                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))).ToList();
-            if (resourceToUpdate.Any(r => r.CreatedAt is null || r.Status != TerraformStatus.Completed))
-                throw new Exception("One or more resources to update are not yet created");
+                Log("Checking workspace state");
+                if (workspace.IsDeleted) throw new Exception("Workspace has been deleted");
+                if (workspace.UserRoles.Count == 0) throw new Exception("Workspace has no users");
+                if (workspace.IsOverBudget) throw new Exception("Workspace is over budget");
 
-            Log("Checking built workspace definition");
-            if (_builtWorkspaceDefinition == null)
-                throw new Exception("Built workspace definition is null");
-
-            _transactions.ForEach(tr =>
-            {
-                switch (tr.Type)
+                Log("Checking workspace for existing resources");
+                if (AllAddTransactions.Any(tr =>
+                        workspace.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))))
                 {
-                    case ToolboxTransactionType.Add when !_builtWorkspaceDefinition.Templates.Any(template =>
-                        template.Name == tr.Tool && template.Status == TerraformStatus.CreateRequested):
-                        throw new Exception("Built workspace definition does not contain the added tool");
-                    case ToolboxTransactionType.Update when !_builtWorkspaceDefinition.Templates.Any(template =>
-                        template.Name == tr.Tool && template.Status == TerraformStatus.Completed):
-                        throw new Exception("Built workspace definition does not contain the updated tool");
-                    case ToolboxTransactionType.Remove when !_builtWorkspaceDefinition.Templates.Any(template =>
-                        template.Name == tr.Tool && template.Status == TerraformStatus.DeleteRequested):
-                        throw new Exception("Built workspace definition does not contain the removed tool");
+                    Log("Workspace already has one or more of the requested resources", "warn");
                 }
-            });
+
+                Log("Checking resources to delete");
+                var resourceToDelete = AllRemoveTransactions
+                    .Select(tr => workspace.Resources.First(r =>
+                        r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))).ToList();
+                if (resourceToDelete.Any(r => r.CreatedAt is null || (r.Status != TerraformStatus.Completed && r.Status != TerraformStatus.Failed)))
+                    throw new Exception("One or more resources to delete are not yet created");
+
+                Log("Checking resources to update");
+                var resourceToUpdate = AllUpdateTransactions
+                    .Select(tr => workspace.Resources.First(r =>
+                        r.ResourceType == TerraformTemplate.GetTerraformServiceType(tr.Tool))).ToList();
+                if (resourceToUpdate.Any(r => r.CreatedAt is null || r.Status != TerraformStatus.Completed))
+                    throw new Exception("One or more resources to update are not yet created");
+
+                Log("Checking built workspace definition");
+                if (_builtWorkspaceDefinition == null)
+                    throw new Exception("Built workspace definition is null");
+
+                _transactions.ForEach(tr =>
+                {
+                    switch (tr.Type)
+                    {
+                        case ToolboxTransactionType.Add when !_builtWorkspaceDefinition.Templates.Any(template =>
+                            template.Name == tr.Tool && template.Status == TerraformStatus.CreateRequested):
+                            throw new Exception("Built workspace definition does not contain the added tool");
+                        case ToolboxTransactionType.Update when !_builtWorkspaceDefinition.Templates.Any(template =>
+                            template.Name == tr.Tool && template.Status == TerraformStatus.Completed):
+                            throw new Exception("Built workspace definition does not contain the updated tool");
+                        case ToolboxTransactionType.Remove when !_builtWorkspaceDefinition.Templates.Any(template =>
+                            template.Name == tr.Tool && template.Status == TerraformStatus.DeleteRequested):
+                            throw new Exception("Built workspace definition does not contain the removed tool");
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Log($"Error during request verification: {ex.Message}", "error");
+                throw; // Re-throw to maintain existing error handling behavior
+            }
         }
 
         /// <summary>
