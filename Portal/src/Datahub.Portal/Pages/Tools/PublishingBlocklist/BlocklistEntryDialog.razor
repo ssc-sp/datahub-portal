@@ -17,7 +17,8 @@
                           Label=@Localizer["Email Hostname"] 
                           Required="true" 
                           RequiredError=@Localizer["Email hostname is required"]
-                          HelperText=@Localizer["Enter the email hostname (e.g., example.gc.ca)"] />
+                          Validation="@(new Func<string, string>(ValidateEmailHostname))"
+                          HelperText=@Localizer["Enter the email hostname ending with .gc.ca (e.g., dfo-mpo.gc.ca)"] />
             
             <MudTextField @bind-Value="_notes" 
                           Label=@Localizer["Notes"] 
@@ -48,6 +49,21 @@
     private string _notes = string.Empty;
     private int _entryId;
 
+    private string ValidateEmailHostname(string hostname)
+    {
+        if (string.IsNullOrWhiteSpace(hostname))
+        {
+            return Localizer["Email hostname is required"];
+        }
+
+        if (!hostname.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
+        {
+            return Localizer["Email hostname must end with .gc.ca"];
+        }
+
+        return null;
+    }
+
     protected override void OnInitialized()
     {
         if (IsEditMode && Entry != null)
@@ -67,6 +83,13 @@
     private async Task Submit()
     {
         if (string.IsNullOrWhiteSpace(_departmentName) || string.IsNullOrWhiteSpace(_emailHostname))
+        {
+            return;
+        }
+
+        // Validate email hostname format
+        var hostnameValidation = ValidateEmailHostname(_emailHostname);
+        if (hostnameValidation != null)
         {
             return;
         }

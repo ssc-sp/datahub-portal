@@ -87,7 +87,7 @@
                 
                 if (atIndex > 0 && atIndex < email.Length - 1)
                 {
-                    var emailDomain = email.Substring(atIndex + 1);
+                    var emailDomain = email.Substring(atIndex);
                     
                     // Check if this domain is blocked
                     _isPublishingBlockedForWorkspace = await _blocklistService.IsUserBlockedAsync(emailDomain);
