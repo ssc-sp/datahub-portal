@@ -18,7 +18,7 @@
                           Required="true" 
                           RequiredError=@Localizer["Email hostname is required"]
                           Validation="@(new Func<string, string>(ValidateEmailHostname))"
-                          HelperText=@Localizer["Enter the email hostname ending with .gc.ca (e.g., dfo-mpo.gc.ca)"] />
+                          HelperText=@Localizer["Enter the email hostname in format @[...].gc.ca (e.g., @dfo-mpo.gc.ca)"] />
             
             <MudTextField @bind-Value="_notes" 
                           Label=@Localizer["Notes"] 
@@ -54,6 +54,11 @@
         if (string.IsNullOrWhiteSpace(hostname))
         {
             return Localizer["Email hostname is required"];
+        }
+
+        if (!hostname.StartsWith("@"))
+        {
+            return Localizer["Email hostname must start with @"];
         }
 
         if (!hostname.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
