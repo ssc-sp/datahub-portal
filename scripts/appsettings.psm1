@@ -29,6 +29,30 @@ function Export-Settings(
     [string]$TargetFile = $null
 )
 {
+    # Check if required modules are available and offer to install them
+    $requiredModules = @("Az.KeyVault")
+    $missingModules = @()
+    
+    foreach ($moduleName in $requiredModules) {
+        if (-not (Get-Module -ListAvailable -Name $moduleName)) {
+            $missingModules += $moduleName
+        }
+    }
+    
+    if ($missingModules.Count -gt 0) {
+        Write-Warning "The following required modules are missing: $($missingModules -join ', ')"
+        Write-Host "You can install all required modules by running: Install-RequiredModules" -ForegroundColor Yellow
+        Write-Host "Or run the standalone script: ./scripts/install-modules.ps1" -ForegroundColor Yellow
+        
+        $response = Read-Host "Would you like to install the missing modules now? (y/N)"
+        if ($response -eq 'y' -or $response -eq 'Y' -or $response -eq 'yes') {
+            Install-RequiredModules
+        } else {
+            Write-Error "Cannot continue without required modules. Please install them and try again."
+            return
+        }
+    }
+    
     #import module for keyvault
     Import-Module Az.KeyVault -Force -NoClobber
     #check if user is signed in on azure
@@ -161,12 +185,26 @@ function Export-Settings(
             {
                 $key = $entry.Name
                 Write-Host "Setting user secret $key"
-                $secretValue = Read-AllSecrets $entry.Value
-                dotnet user-secrets set $key $secretValue | Out-Null
+                try {
+                    $secretValue = Read-AllSecrets $entry.Value
+                    if ($null -eq $secretValue -or $secretValue -eq "") {
+                        Write-Warning "Secret value for $key is null or empty, skipping..."
+                        continue
+                    }
+                    $result = dotnet user-secrets set $key $secretValue 2>&1
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Warning "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE"
+                        Write-Host "Output: $result" -ForegroundColor Yellow
+                    }
+                } catch {
+                    Write-Warning "Error processing secret $key`: $($_.Exception.Message)"
+                }
             }
 
         } catch {
-            Write-Error "Error setting user secrets"
+            Write-Error "Error setting user secrets: $($_.Exception.Message)"
+            Write-Host "Current directory: $(Get-Location)" -ForegroundColor Yellow
+            Write-Host "Project folder: $ProjectFolder" -ForegroundColor Yellow
         } finally {
             Pop-Location
         }
@@ -200,12 +238,26 @@ function Export-Settings(
             {
                 $key = $entry.Name
                 Write-Host "Setting user secret $key"
-                $secretValue = Read-AllSecrets $entry.Value
-                dotnet user-secrets set $key $secretValue | Out-Null
+                try {
+                    $secretValue = Read-AllSecrets $entry.Value
+                    if ($null -eq $secretValue -or $secretValue -eq "") {
+                        Write-Warning "Secret value for $key is null or empty, skipping..."
+                        continue
+                    }
+                    $result = dotnet user-secrets set $key $secretValue 2>&1
+                    if ($LASTEXITCODE -ne 0) {
+                        Write-Warning "Failed to set user secret for $key. dotnet user-secrets returned exit code $LASTEXITCODE"
+                        Write-Host "Output: $result" -ForegroundColor Yellow
+                    }
+                } catch {
+                    Write-Warning "Error processing secret $key`: $($_.Exception.Message)"
+                }
             }
 
         } catch {
-            Write-Error "Error setting user secrets"
+            Write-Error "Error setting user secrets: $($_.Exception.Message)"
+            Write-Host "Current directory: $(Get-Location)" -ForegroundColor Yellow
+            Write-Host "Project folder: $ProjectFolder" -ForegroundColor Yellow
         } finally {
             Pop-Location
         }
@@ -432,4 +484,111 @@ function ConvertFrom-HashTable {
     return $result
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret
+function Install-RequiredModules
+{
+    <#
+    .SYNOPSIS
+    Downloads and installs all required PowerShell modules for the DataHub Portal project.
+    
+    .DESCRIPTION
+    This function installs the commonly used PowerShell modules across the DataHub Portal project:
+    - Az.KeyVault: For Azure Key Vault operations
+    - Az.ContainerRegistry: For Azure Container Registry operations
+    - Az.Accounts: For Azure authentication
+    - Az.Profile: For Azure context management
+    
+    .PARAMETER Scope
+    Specifies the installation scope. Valid values are 'CurrentUser' (default) and 'AllUsers'.
+    
+    .PARAMETER Force
+    Forces installation even if modules already exist.
+    
+    .EXAMPLE
+    Install-RequiredModules
+    Installs all required modules for the current user.
+    
+    .EXAMPLE
+    Install-RequiredModules -Scope AllUsers -Force
+    Forcefully installs all required modules for all users.
+    #>
+    
+    param (
+        [ValidateSet("CurrentUser", "AllUsers")]
+        [string]$Scope = "CurrentUser",
+        [switch]$Force
+    )
+    
+    # List of required modules for the DataHub Portal project
+    $requiredModules = @(
+        @{
+            Name = "Az.KeyVault"
+            Description = "Azure Key Vault module for secret management"
+        },
+        @{
+            Name = "Az.ContainerRegistry" 
+            Description = "Azure Container Registry module"
+        },
+        @{
+            Name = "Az.Accounts"
+            Description = "Azure authentication and account management (includes profile management)"
+        }
+    )
+    
+    Write-Host "Installing required PowerShell modules for DataHub Portal..." -ForegroundColor Green
+    Write-Host "Installation scope: $Scope" -ForegroundColor Yellow
+    
+    foreach ($module in $requiredModules) {
+        $moduleName = $module.Name
+        $description = $module.Description
+        
+        Write-Host "`nProcessing module: $moduleName" -ForegroundColor Cyan
+        Write-Host "Description: $description" -ForegroundColor Gray
+        
+        try {
+            # Check if module is already installed
+            $installedModule = Get-Module -ListAvailable -Name $moduleName
+            
+            if ($installedModule -and -not $Force) {
+                Write-Host "✓ Module $moduleName is already installed (Version: $($installedModule[0].Version))" -ForegroundColor Green
+                continue
+            }
+            
+            if ($Force -and $installedModule) {
+                Write-Host "⚠ Forcing reinstallation of $moduleName..." -ForegroundColor Yellow
+            }
+            
+            Write-Host "📦 Installing $moduleName..." -ForegroundColor Blue
+            
+            # Install the module
+            Install-Module -Name $moduleName -Force:$Force -Scope $Scope -AllowClobber
+            
+            # Verify installation
+            $verifyModule = Get-Module -ListAvailable -Name $moduleName
+            if ($verifyModule) {
+                Write-Host "✓ Successfully installed $moduleName (Version: $($verifyModule[0].Version))" -ForegroundColor Green
+            } else {
+                Write-Warning "⚠ Installation of $moduleName may have failed - module not found after installation"
+            }
+        }
+        catch {
+            Write-Error "❌ Failed to install module $moduleName`: $($_.Exception.Message)"
+            Write-Host "You may need to run PowerShell as Administrator or check your execution policy." -ForegroundColor Red
+        }
+    }
+    
+    Write-Host "`n🎉 Module installation process completed!" -ForegroundColor Green
+    Write-Host "You can now use the DataHub Portal PowerShell scripts." -ForegroundColor Yellow
+    
+    # Display summary
+    Write-Host "`n📋 Installation Summary:" -ForegroundColor Cyan
+    foreach ($module in $requiredModules) {
+        $installedModule = Get-Module -ListAvailable -Name $module.Name
+        if ($installedModule) {
+            Write-Host "✓ $($module.Name) - Version $($installedModule[0].Version)" -ForegroundColor Green
+        } else {
+            Write-Host "❌ $($module.Name) - Not installed" -ForegroundColor Red
+        }
+    }
+}
+
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret, Install-RequiredModules
