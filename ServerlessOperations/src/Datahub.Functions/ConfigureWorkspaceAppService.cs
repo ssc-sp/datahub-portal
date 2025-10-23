@@ -9,7 +9,7 @@ using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
-using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

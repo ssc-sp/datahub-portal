@@ -2,6 +2,7 @@ using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Reqnroll;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Functions;

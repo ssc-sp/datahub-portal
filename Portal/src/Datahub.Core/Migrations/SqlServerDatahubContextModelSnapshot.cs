@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "9.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -677,6 +677,9 @@ namespace Datahub.Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("VersionTagId"));
 
+                    b.Property<bool>("AnnouncementCreated")
+                        .HasColumnType("bit");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("nvarchar(max)");
 
@@ -752,6 +755,8 @@ namespace Datahub.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
                     b.Property<string>("CBRID")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -759,6 +764,9 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("CBRName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Datahub_ProjectProject_ID")
+                        .HasColumnType("int");
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
@@ -854,6 +862,8 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
@@ -1114,52 +1124,6 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("Project_ID", "Date");
 
                     b.ToTable("Project_Costs");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User", b =>
-                {
-                    b.Property<int>("ProjectUser_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectUser_ID"));
-
-                    b.Property<int?>("ApprovedPortalUserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("Approved_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsDataSteward")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("PortalUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Project_ID")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("int");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
-
-                    b.HasKey("ProjectUser_ID");
-
-                    b.HasIndex("ApprovedPortalUserId");
-
-                    b.HasIndex("PortalUserId");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("Project_ID", "PortalUserId")
-                        .IsUnique()
-                        .HasFilter("[PortalUserId] IS NOT NULL");
-
-                    b.ToTable("Project_Users", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1447,6 +1411,52 @@ namespace Datahub.Core.Migrations
                         .IsUnique();
 
                     b.ToTable("Project_Whitelists");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
+                {
+                    b.Property<int>("ProjectUser_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ProjectUser_ID"));
+
+                    b.Property<int?>("ApprovedPortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("Approved_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDataSteward")
+                        .HasColumnType("bit");
+
+                    b.Property<int?>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Project_ID")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.HasKey("ProjectUser_ID");
+
+                    b.HasIndex("ApprovedPortalUserId");
+
+                    b.HasIndex("PortalUserId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("Project_ID", "PortalUserId")
+                        .IsUnique()
+                        .HasFilter("[PortalUserId] IS NOT NULL");
+
+                    b.ToTable("Project_Users", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Repositories.ProjectRepository", b =>
@@ -1862,9 +1872,9 @@ namespace Datahub.Core.Migrations
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithOne("GCHostingWorkspaceDetails")
-                        .HasForeignKey("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .WithMany()
+                        .HasForeignKey("Datahub_ProjectProject_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Datahub_Project");
@@ -1899,40 +1909,12 @@ namespace Datahub.Core.Migrations
 
                     b.HasOne("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "ParentGCHostingBudget")
                         .WithMany("WorkspacesInBudget")
-                        .HasForeignKey("ParentGCHostingBudgetId");
+                        .HasForeignKey("ParentGCHostingBudgetId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("DatahubAzureSubscription");
 
                     b.Navigation("ParentGCHostingBudget");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
-                        .WithMany()
-                        .HasForeignKey("ApprovedPortalUserId");
-
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
-                        .WithMany()
-                        .HasForeignKey("PortalUserId");
-
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
-                        .WithMany("Users")
-                        .HasForeignKey("Project_ID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId");
-
-                    b.Navigation("ApprovedPortalUser");
-
-                    b.Navigation("PortalUser");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -2006,6 +1988,35 @@ namespace Datahub.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedPortalUserId");
+
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId");
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId");
+
+                    b.Navigation("ApprovedPortalUser");
+
+                    b.Navigation("PortalUser");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Repositories.ProjectRepository", b =>
@@ -2110,8 +2121,6 @@ namespace Datahub.Core.Migrations
 
                     b.Navigation("Credits");
 
-                    b.Navigation("GCHostingWorkspaceDetails");
-
                     b.Navigation("ProjectInactivityNotifications");
 
                     b.Navigation("PublishingSubmissions");
@@ -2120,7 +2129,7 @@ namespace Datahub.Core.Migrations
 
                     b.Navigation("Resources");
 
-                    b.Navigation("Users");
+                    b.Navigation("UserRoles");
 
                     b.Navigation("Whitelist");
                 });
