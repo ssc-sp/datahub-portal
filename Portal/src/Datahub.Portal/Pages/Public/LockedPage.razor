@@ -1,14 +1,33 @@
 ﻿@page "/locked" 
+@page "/verrouille"
 
+@layout BarebonesPublicLayout
 @using Datahub.Application.Services.UserManagement
 
 <PageTitle>@Localizer["Account Locked - Federal Science DataHub"]</PageTitle>
 
-<MudStack Class="my-16 py-16">
-    <MudStack AlignItems="AlignItems.Center" Class="mt-4">
-        <MudText Typo="Typo.h2" Class="text-center">@Localizer["Your account is locked"]</MudText>
-        <MudText Typo="Typo.body1" Class="text-center">
-            @Localizer["Please contact DataSolutions-Solutiondedonnees@ssc-spc.gc.ca to unlock your account."]
-        </MudText>
-    </MudStack>
-</MudStack>
+<MudContainer MaxWidth=@MaxWidth.Medium>
+    <MudPaper Class="pt-12 px-12 mt-12">
+        <MudStack>
+            <MudGrid>
+                <MudItem xs="11">
+                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                </MudItem>
+                <MudItem xs="1">
+                    <LanguageToggle />
+                </MudItem>
+            </MudGrid>
+            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+        </MudStack>
+        <MudStack Class="mt-4">
+            <MudText Typo="Typo.h2">@Localizer["Your account is locked"]</MudText>
+            <MudText Typo="Typo.body1">
+                @Localizer["Please contact DataSolutions-Solutiondedonnees@ssc-spc.gc.ca to unlock your account."]
+            </MudText>
+            <MudButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer["/login"]" style="max-width: fit-content;">
+                <MudText>@Localizer["Return to Login"]</MudText>
+            </MudButton>
+        </MudStack>
+        <DHFooter />
+    </MudPaper>
+</MudContainer>
