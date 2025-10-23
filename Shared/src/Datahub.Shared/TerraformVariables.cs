@@ -56,7 +56,7 @@ public static class TerraformVariables
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
     public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
     public const string AzureLogWorkspaceId = "log_workspace_id";
-    public const string SSCCBRID = "ssc_cbr_id";
+    public const string SSCCBRID = "ssc_cbrid";
 
     // Postgres related variables
     public const string PsqlSku = "psql_sku";

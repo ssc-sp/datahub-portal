@@ -232,6 +232,8 @@ public class Testing
         };
     }
 
+    public const string CBR_ID = "5678";
+
     internal static TerraformWorkspace GenerateTestTerraformWorkspace(string workspaceAcronym, bool withUsers = true, string version = "latest")
     {
         if (!withUsers)
@@ -239,6 +241,7 @@ public class Testing
             return new TerraformWorkspace
             {
                 Acronym = workspaceAcronym,
+                SSCCBRID = CBR_ID,
                 Version = version
             };
         }
@@ -285,6 +288,7 @@ public class Testing
         {
             Acronym = workspaceAcronym,
             Users = users,
+            SSCCBRID = CBR_ID,
             Version = version
         };
     }
