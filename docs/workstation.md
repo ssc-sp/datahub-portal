@@ -8,6 +8,10 @@ WSL is part of the standard catalog of SSC applications. It can be requested thr
 
 PowerShell is required for running the configuration and build scripts in this project. Install PowerShell Core on your WSL environment to ensure compatibility with the project's automation scripts. You can install it using the package manager or download it directly from Microsoft's official repository.
 
+```bash
+sudo snap install powershell --classic
+```
+
 ## Step 3: Install Dotnet 9
 
 The DataHub Portal is built using .NET 9, so you'll need the latest SDK to compile and run the application. The commands below will add Microsoft's package repository and install the .NET 9 SDK with all necessary tools for development, including the runtime, libraries, and command-line tools.
