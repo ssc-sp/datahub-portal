@@ -63,7 +63,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
               });
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
-        _repositoryService.FetchModuleRepository(command.Workspace.Version);
+        await _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var moduleSourcePath =
             DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureAppService);
@@ -114,7 +114,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
 
-        _repositoryService.FetchModuleRepository(command.Workspace.Version);
+        await _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
@@ -157,7 +157,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
-        _repositoryService.FetchModuleRepository(command.Workspace.Version);
+        await _repositoryService.FetchModuleRepository(command.Workspace.Version);
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
