@@ -9,3 +9,9 @@ Feature: Workspace Definition
         Then the new-project-template resource should be in the created status
         And the workspace definition should have a status of created for new-project-template
         
+    @workspace-definition    
+    Scenario: CBR is defined in TF
+        Given a workspace with a new-project-template resource that exists and CBR 1234
+        When the workspace definition is requested
+        Then the new-project-template resource should be in the created status
+        And the workspace definition should have a status of created for new-project-template and CBR 1234

@@ -396,11 +396,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     }
 
     /// <summary>
-    /// Gets or sets the GCHostingWorkspaceDetails for the project.
-    /// </summary>
-    public GCHostingWorkspaceDetails GCHostingWorkspaceDetails { get; set; }
-
-    /// <summary>
     /// Gets or sets the parent GC Hosting budget ID for the workspace.
     /// </summary>
     public int? ParentGCHostingBudgetId { get; set; }
@@ -427,6 +422,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
         {
             Name = Project_Name,
             Acronym = Project_Acronym_CD,
+            SSCCBRID = ParentGCHostingBudget?.CBRID ?? string.Empty,
             BudgetAmount = Convert.ToDouble(Project_Budget),
             Version = Version ?? TerraformWorkspace.DefaultVersion,
             TerraformOrganization = new TerraformOrganization()
