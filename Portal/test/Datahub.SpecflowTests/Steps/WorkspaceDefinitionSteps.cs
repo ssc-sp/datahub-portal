@@ -86,6 +86,7 @@ public class WorkspaceDefinitionSteps(
                 && t.Status == TerraformStatus.Completed)
             .Should()
             .BeTrue();
+        workspaceDefinition!.CBRID.Should().Be(cbr);
     }
 
 }

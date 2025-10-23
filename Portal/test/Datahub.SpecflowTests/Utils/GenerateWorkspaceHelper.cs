@@ -64,7 +64,7 @@ public static class GenerateWorkspaceHelper
                 WorkspaceDescription = "This is a test workspace",
                 WorkspaceName = "Test Workspace"                
             };
-            project.GCHostingWorkspaceDetails = gchostingDetails;
+            project.ParentGCHostingBudget = gchostingDetails;
         }
         ctx.AzureSubscriptions.Add(datahubAzureSubscription);
         ctx.Projects.Add(project);
