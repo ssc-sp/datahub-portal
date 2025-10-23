@@ -14,11 +14,11 @@
                           HelperText=@Localizer["Enter the department name to block"] />
             
             <MudTextField @bind-Value="_emailHostname" 
-                          Label=@Localizer["Email Hostname"] 
+                          Label=@Localizer["Email Domain"] 
                           Required="true" 
-                          RequiredError=@Localizer["Email hostname is required"]
+                          RequiredError=@Localizer["Email Domain is required"]
                           Validation="@(new Func<string, string>(ValidateEmailHostname))"
-                          HelperText=@Localizer["Enter the email hostname in format @[...].gc.ca (e.g., @dfo-mpo.gc.ca)"] />
+                          HelperText=@Localizer["Enter the Email Domain in format @[...].gc.ca (e.g., @dfo-mpo.gc.ca)"] />
             
             <MudTextField @bind-Value="_notes" 
                           Label=@Localizer["Notes"] 
@@ -53,17 +53,17 @@
     {
         if (string.IsNullOrWhiteSpace(hostname))
         {
-            return Localizer["Email hostname is required"];
+            return Localizer["Email Domain is required"];
         }
 
         if (!hostname.StartsWith("@"))
         {
-            return Localizer["Email hostname must start with @"];
+            return Localizer["Email Domain must start with @"];
         }
 
         if (!hostname.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
         {
-            return Localizer["Email hostname must end with .gc.ca"];
+            return Localizer["Email Domain must end with .gc.ca"];
         }
 
         return null;
@@ -92,7 +92,7 @@
             return;
         }
 
-        // Validate email hostname format
+        // Validate Email Domain format
         var hostnameValidation = ValidateEmailHostname(_emailHostname);
         if (hostnameValidation != null)
         {

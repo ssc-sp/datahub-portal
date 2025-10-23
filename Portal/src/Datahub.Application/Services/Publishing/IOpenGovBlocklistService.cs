@@ -15,7 +15,7 @@ public interface IOpenGovBlocklistService
     Task<OpenGovPublishingBlocklist> GetBlocklistEntryAsync(int id);
 
     /// <summary>
-    /// Checks if a user is blocked based on email hostname or department
+    /// Checks if a user is blocked based on Email Domain or department
     /// </summary>
     Task<bool> IsUserBlockedAsync(string emailDomain, string? departmentName = null);
 

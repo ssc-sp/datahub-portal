@@ -22,7 +22,7 @@ public enum BlocklistStatus
 
 /// <summary>
 /// Represents a blocklist entry that restricts access to the Open Government Publishing feature.
-/// Entries can block based on department name or email hostname.
+/// Entries can block based on department name or Email Domain.
 /// </summary>
 public class OpenGovPublishingBlocklist
 {
@@ -40,7 +40,7 @@ public class OpenGovPublishingBlocklist
     public string DepartmentName { get; set; }
 
     /// <summary>
-    /// Gets or sets the email hostname that is blocked (e.g., "example.gc.ca")
+    /// Gets or sets the Email Domain that is blocked (e.g., "example.gc.ca")
     /// Used to block users whose email domain matches this hostname
     /// </summary>
     [MaxLength(200)]

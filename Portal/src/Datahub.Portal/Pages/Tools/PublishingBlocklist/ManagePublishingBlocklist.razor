@@ -26,7 +26,7 @@
     <MudTable Items="@_entries" Dense="true" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Primary">
         <HeaderContent>
             <MudTh>@Localizer["Department Name"]</MudTh>
-            <MudTh>@Localizer["Email Hostname"]</MudTh>
+            <MudTh>@Localizer["Email Domain"]</MudTh>
             <MudTh>@Localizer["Date Added"]</MudTh>
             <MudTh>@Localizer["Added By"]</MudTh>
             <MudTh>@Localizer["Notes"]</MudTh>
@@ -34,7 +34,7 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd DataLabel=@Localizer["Department Name"]>@context.DepartmentName</MudTd>
-            <MudTd DataLabel=@Localizer["Email Hostname"]>@context.EmailHostname</MudTd>
+            <MudTd DataLabel=@Localizer["Email Domain"]>@context.EmailHostname</MudTd>
             <MudTd DataLabel=@Localizer["Date Added"]>@context.DateAdded.ToString("yyyy-MM-dd HH:mm")</MudTd>
             <MudTd DataLabel=@Localizer["Added By"]>@context.AddedByUser?.DisplayName</MudTd>
             <MudTd DataLabel=@Localizer["Notes"]>
