@@ -48,7 +48,7 @@ public class WorkspaceDefinitionSteps(
         var workspace = await ctx.Projects
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
-        
+
         var workspaceDefinition =  await resourceMessagingService.GetWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
         scenarioContext["workspaceDefinition"] = workspaceDefinition;
     }
@@ -64,4 +64,29 @@ public class WorkspaceDefinitionSteps(
             .Should()
             .BeTrue();
     }
+
+    [Given("a workspace with a new-project-template resource that exists and CBR (.*)")]
+    public async Task GivenAWorkspaceWithANew_Project_TemplateResourceThatExistsAndCBR(string cbr)
+    {
+        await GenerateWorkspaceHelper.GenerateWorkspace(
+                dbContextFactory,
+                Testing.WorkspaceAcronym,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformStatus.Completed,
+                cbr);
+    }
+
+    [Then("the workspace definition should have a status of created for new-project-template and CBR (.*)")]
+    public void ThenTheWorkspaceDefinitionShouldHaveAStatusOfCreatedForNew_Project_TemplateAndCBR(string cbr)
+    {
+        var workspaceDefinition = scenarioContext["workspaceDefinition"] as WorkspaceDefinition;
+        workspaceDefinition!.Templates
+            .Any(t =>
+                t.Name.Equals(TerraformTemplate.NewProjectTemplate)
+                && t.Status == TerraformStatus.Completed)
+            .Should()
+            .BeTrue();
+        workspaceDefinition!.CBRID.Should().Be(cbr);
+    }
+
 }
