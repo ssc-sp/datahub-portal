@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.8");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -734,6 +734,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired()
                         .HasColumnType("TEXT");
 
+                    b.Property<int>("Datahub_ProjectProject_ID")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("DepartmentName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -828,6 +831,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
@@ -1080,49 +1085,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("Project_ID", "Date");
 
                     b.ToTable("Project_Costs");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User", b =>
-                {
-                    b.Property<int>("ProjectUser_ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("ApprovedPortalUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime?>("Approved_DT")
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsDataSteward")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("PortalUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("Project_ID")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int?>("RoleId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BLOB");
-
-                    b.HasKey("ProjectUser_ID");
-
-                    b.HasIndex("ApprovedPortalUserId");
-
-                    b.HasIndex("PortalUserId");
-
-                    b.HasIndex("RoleId");
-
-                    b.HasIndex("Project_ID", "PortalUserId")
-                        .IsUnique();
-
-                    b.ToTable("Project_Users", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1400,6 +1362,49 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsUnique();
 
                     b.ToTable("Project_Whitelists");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
+                {
+                    b.Property<int>("ProjectUser_ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("ApprovedPortalUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("Approved_DT")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDataSteward")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("PortalUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("Project_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("RoleId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("ProjectUser_ID");
+
+                    b.HasIndex("ApprovedPortalUserId");
+
+                    b.HasIndex("PortalUserId");
+
+                    b.HasIndex("RoleId");
+
+                    b.HasIndex("Project_ID", "PortalUserId")
+                        .IsUnique();
+
+                    b.ToTable("Project_Users", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Repositories.ProjectRepository", b =>
@@ -1805,9 +1810,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithOne("GCHostingWorkspaceDetails")
-                        .HasForeignKey("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "Id")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .WithMany()
+                        .HasForeignKey("Datahub_ProjectProject_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Datahub_Project");
@@ -1842,40 +1847,12 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasOne("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "ParentGCHostingBudget")
                         .WithMany("WorkspacesInBudget")
-                        .HasForeignKey("ParentGCHostingBudgetId");
+                        .HasForeignKey("ParentGCHostingBudgetId")
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("DatahubAzureSubscription");
 
                     b.Navigation("ParentGCHostingBudget");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_User", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
-                        .WithMany()
-                        .HasForeignKey("ApprovedPortalUserId");
-
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
-                        .WithMany()
-                        .HasForeignKey("PortalUserId");
-
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
-                        .WithMany("Users")
-                        .HasForeignKey("Project_ID")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
-                        .WithMany()
-                        .HasForeignKey("RoleId");
-
-                    b.Navigation("ApprovedPortalUser");
-
-                    b.Navigation("PortalUser");
-
-                    b.Navigation("Project");
-
-                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1949,6 +1926,35 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedPortalUserId");
+
+                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId");
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("UserRoles")
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId");
+
+                    b.Navigation("ApprovedPortalUser");
+
+                    b.Navigation("PortalUser");
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Repositories.ProjectRepository", b =>
@@ -2053,8 +2059,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Navigation("Credits");
 
-                    b.Navigation("GCHostingWorkspaceDetails");
-
                     b.Navigation("ProjectInactivityNotifications");
 
                     b.Navigation("PublishingSubmissions");
@@ -2063,7 +2067,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Navigation("Resources");
 
-                    b.Navigation("Users");
+                    b.Navigation("UserRoles");
 
                     b.Navigation("Whitelist");
                 });
