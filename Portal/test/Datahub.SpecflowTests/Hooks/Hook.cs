@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using NSubstitute.ClearExtensions;
 using Reqnroll;
 using Reqnroll.BoDi;
 
@@ -43,6 +44,7 @@ public class Hooks
         var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, workspaceVersionService);
 
         var substituteResourceMessageService = Substitute.For<IResourceMessagingService>();
+        substituteResourceMessageService.ClearSubstitute();
         substituteResourceMessageService.SendToTerraformQueue(Arg.Any<WorkspaceDefinition>())
             .Returns(Task.CompletedTask);
 
