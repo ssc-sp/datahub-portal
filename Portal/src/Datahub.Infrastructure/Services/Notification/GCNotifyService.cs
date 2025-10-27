@@ -206,6 +206,23 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
+    public async Task SendWelcomePackageNotification(string email)
+    {
+        using var _ = _logger.BeginScope("WelcomePackageNotification {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing welcome package notification.");
+
+        var templateId = GetTemplateId("welcome-package", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId
+        };
+
+        _logger.LogDebug("Dispatching welcome package notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     public string GetTemplateId(string templateName, string mappingsJson)
     {
         _logger.LogDebug("Resolving template id for templateName={TemplateName}", templateName);
