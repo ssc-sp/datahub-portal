@@ -234,6 +234,12 @@ public class TerraformService(
         // {TerraformTemplate.AzureAPI, "api_url"}
     };
 
+    /// <summary>
+    /// Missing Variables are those that are defined in the template but not yet defined in the project
+    /// </summary>
+    /// <param name="templateName"></param>
+    /// <param name="terraformWorkspace"></param>
+    /// <returns>variable name and type</returns>
     private Dictionary<string, (string, bool)> FindMissingVariables(string templateName,
         TerraformWorkspace terraformWorkspace)
     {
@@ -259,6 +265,20 @@ public class TerraformService(
         return existingVariables;
     }
 
+    /// <summary>
+    /// Creates or updates a Terraform variables file for the specified template and workspace, ensuring that all
+    /// required variables are present and up to date.
+    /// </summary>
+    /// <remarks>If a variables file already exists, only the specified variables are updated or added; all
+    /// other existing variables are preserved. If the file does not exist, it is created with only the provided
+    /// variables. The method overwrites the file in both cases.</remarks>
+    /// <param name="templateName">The name of the Terraform template for which the variables file is generated. This determines the filename of
+    /// the variables file.</param>
+    /// <param name="terraformWorkspace">The workspace context containing environment and configuration details used to resolve variable values.</param>
+    /// <param name="missingVariables">A dictionary of variable names and their associated values and required status. Each entry represents a variable
+    /// that must be written or updated in the variables file.</param>
+    /// <param name="workspaceAppData">Application-specific data for the workspace, used to compute or resolve variable values as needed.</param>
+    /// <returns>A task that represents the asynchronous operation of writing the variables file.</returns>
     private async Task WriteVariablesFile(string templateName, TerraformWorkspace terraformWorkspace,
         Dictionary<string, (string Value, bool isRequired)> missingVariables, WorkspaceAppData workspaceAppData)
     {
@@ -327,7 +347,7 @@ public class TerraformService(
             TerraformVariables.EnableMlGpuCluster => workspaceAppData.DatabricksConfiguration?.EnableMachineLearningGpu ?? false,
             TerraformVariables.MlCompute => workspaceAppData.DatabricksConfiguration?.MachineLearningTierSku ?? DatabricksTier.DefaultML.DatabricksSKU,
             TerraformVariables.MlGpuCompute => workspaceAppData.DatabricksConfiguration?.MachineLearningGpuTierSku ?? DatabricksTier.DefaultMLGpu.DatabricksSKU,
-
+            TerraformVariables.SSCCBRID => terraformWorkspace.SSCCBRID,
             // optional variables
             TerraformVariables.AzureLogWorkspaceId => string.Empty,
             TerraformVariables.AllowSourceIp => string.Empty,

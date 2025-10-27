@@ -90,5 +90,7 @@ public class Variables
     public string azure_databricks_enterprise_oid { get; set; }
     public string log_workspace_id { get; set; } = "";
     public string aad_admin_group_oid { get; set; }
+
+    public string ssc_cbrid { get; set; } = "";
     public CommonTags common_tags { get; set; }
 }

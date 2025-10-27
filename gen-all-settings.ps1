@@ -1,3 +1,4 @@
+#!/usr/bin/env pwsh
 param (    
     [ValidateSet("test", "dev", "int", "poc")]
     [string[]]$Environment = @("dev"),
@@ -12,6 +13,8 @@ $CurrentPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 #get full path from $CurrentPath
 
 Import-Module $CurrentPath/scripts/appsettings.psm1 -Force
+
+Install-RequiredModules
 
 foreach ($env in $Environment) {
     # Portal
