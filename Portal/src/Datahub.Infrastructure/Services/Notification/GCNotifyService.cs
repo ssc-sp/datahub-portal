@@ -208,7 +208,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendWelcomePackageNotification(string email)
     {
-        using var _ = _logger.BeginScope("WelcomePackageNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("WelcomePackageNotification");
         _logger.LogInformation("Composing welcome package notification.");
 
         var templateId = GetTemplateId("welcome-package", _mappingsJson);
