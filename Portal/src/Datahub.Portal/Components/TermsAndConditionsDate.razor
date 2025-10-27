@@ -1,0 +1,65 @@
+﻿@using Datahub.Markdown
+@using System.Net.Http
+@using System.Net.Http.Json
+
+@inject ILogger<TermsAndConditionsDate> _logger
+@inject IHttpClientFactory _httpClientFactory
+
+
+<MudText Color="@Color"
+         Class="@Class"
+         Style="@Style"
+         Tag="@Tag"
+         UserAttributes="@UserAttributes">
+    @if(_lastUpdatedDate!=null)
+    {
+        @Localizer["Last updated: {0}", $"{_lastUpdatedDate!.Value:yyyy-MM-dd}"]
+    }
+</MudText>
+
+@code {
+    // Parameters for appearance
+    [Parameter] public Color Color { get; set; } = Color.Inherit;
+    [Parameter] public string Class { get; set; } = null;
+    [Parameter] public string Style { get; set; } = null;
+    [Parameter] public object Tag { get; set; } = null;
+    [Parameter] public Dictionary<string, object> UserAttributes { get; set; } = null;
+
+    private string _lastUpdatedURL = "https://raw.githubusercontent.com/ssc-sp/datahub-docs/refs/heads/next/LAST_UPDATED.md";
+    private DateTime? _lastUpdatedDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _lastUpdatedDate = LastUpdatedToDateTime(await GetLastUpdatedMarkdownContent());
+    }
+
+    private async Task<string> GetLastUpdatedMarkdownContent()
+    {
+        var client = _httpClientFactory.CreateClient();
+        try
+        {
+            var output = await client.GetStringAsync(_lastUpdatedURL);
+            return MarkdownHelper.RemoveFrontMatter(output);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Cannot load date of latest update from documentation website.");
+            return null;
+        }
+    }
+
+    private DateTime? LastUpdatedToDateTime(string dateString)
+    {
+        try
+        {
+            DateTime? date = DateTime.Parse(dateString);
+            return date;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Date given in LAST_UPDATED.md in wrong format.");
+            return null;
+        }
+    }
+}
