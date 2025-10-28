@@ -42,7 +42,7 @@
                             {
                                 var found = _cardComponents.ContainsKey(resource.ResourceType);
 
-                                var deletedStatuses = new[] { TerraformStatus.Deleted, TerraformStatus.DeleteInProgress, TerraformStatus.DeleteRequested, TerraformStatus.Failed };
+                                var deletedStatuses = new[] { TerraformStatus.Deleted, TerraformStatus.DeleteInProgress, TerraformStatus.DeleteRequested };
                                 var isDeleted = deletedStatuses.Contains(resource.Status);
 
                                 if (found && !isDeleted)

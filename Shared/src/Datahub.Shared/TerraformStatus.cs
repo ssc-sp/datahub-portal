@@ -11,6 +11,9 @@ public static class TerraformStatus
 
     public const string Unknown = "Unknown";
     public const string Failed = "Failed";
+    public const string CreateFailed = "CreateFailed";
+    public const string DeleteFailed = "DeleteFailed";
+
     public const string Missing = "Missing";
     public static bool CreatedOrInProcessOf(string status)
     {
@@ -40,6 +43,14 @@ public static class TerraformStatus
         return new List<string>()
         {
             CreateRequested, InProgress, Completed, DeleteRequested, DeleteInProgress, Deleted
+        }.Contains(status);
+    }
+
+    public static bool AllRequestedOrInProcessOf(string status)
+    {
+        return new List<string>
+        {
+            CreateRequested, InProgress, DeleteRequested, DeleteInProgress
         }.Contains(status);
     }
 }

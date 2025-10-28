@@ -83,27 +83,13 @@ public static class ConfigureServices
 
         services.AddMassTransit(x =>
         {
-            if (DevTools.IsDevelopment())
-            {
-                x.UsingInMemory((context, cfg) =>
-                {
-                    cfg.ConfigureEndpoints(context);
-                    cfg.ReceiveEndpoint("infrastructure-health-check",
-                        endpoint => { endpoint.Consumer<HealthCheckConsumer>(); });
-                    cfg.ReceiveEndpoint("infrastructure-health-check-results",
-                        endpoint => { endpoint.Consumer<HealthCheckResultConsumer>(); });
-                });
-            }
-            else
-            {
-                x.UsingAzureServiceBus((context, cfg) =>
+            x.UsingAzureServiceBus((context, cfg) =>
                 {
                     cfg.Host(configuration["DatahubServiceBus:ConnectionString"],
                         hc => hc.TransportType = Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpWebSockets);
                     cfg.PrefetchCount = 1;
                     cfg.ConfigureEndpoints(context);
-                });
-            }
+                });            
         });
 
         return services;

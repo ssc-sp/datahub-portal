@@ -62,33 +62,18 @@ public class ResourceMessagingService(
 
         var workspace = project.ToResourceWorkspace(users);
 
+        var resourcesFailed = project.Resources
+            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate &&
+                        TerraformStatus.AllRequestedOrInProcessOf(r.Status) &&
+                        r.RequestedAt < DateTime.UtcNow.AddHours(-4))
+            .ToList();
 
-        var timedOutResourceIds = project.Resources
-            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && (TerraformStatus.DeleteRequestedOrInProcessOf(r.Status) || r.Status == TerraformStatus.Failed))
-            .Select(r => r.ResourceId)
-            .ToList();        
-
-        if (timedOutResourceIds.Any())
-        {
-            var timedOutResources = await ctx.Project_Resources2
-                .Where(r => timedOutResourceIds.Contains(r.ResourceId))
-                .ToListAsync();
-
-            foreach (var resource in timedOutResources)
-            {
-                if (TerraformStatus.DeleteRequestedOrInProcessOf(resource.Status) && resource.RequestedAt < DateTime.UtcNow.AddHours(-4))
-                {
-                    resource.Status = TerraformStatus.Failed;
-                    resource.UpdatedAt = DateTime.UtcNow;
-                }
-            }            
-
-            await ctx.SaveChangesAsync();
-            await ctx.Entry(project)
-                .Collection(p => p.Resources)
-                .LoadAsync();
-        }
-
+        project.Resources
+            .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && 
+                        TerraformStatus.AllRequestedOrInProcessOf(r.Status) && 
+                        r.RequestedAt < DateTime.UtcNow.AddHours(-4))
+            .ToList()
+            .ForEach(r => r.Status = TerraformStatus.DeleteRequestedOrInProcessOf(r.Status) ? TerraformStatus.DeleteFailed : TerraformStatus.CreateFailed); 
 
         var templates = project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && r.Status != TerraformStatus.Deleted)

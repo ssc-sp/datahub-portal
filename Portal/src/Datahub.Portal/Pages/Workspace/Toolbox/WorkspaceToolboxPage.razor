@@ -190,6 +190,7 @@
                             <MudText Class="mb-4" Style="font-style: italic">
                                 @Localizer["Certain tools have dependencies. As you add tools, they will automatically add their dependencies to your request. Clicking on the name of a tool will show more information about the tool."]
                             </MudText>
+                            @* Tools in workspace section *@
                             @if (_workspace.Resources.Any())
                             {
                                 <MudStack Row>
@@ -198,7 +199,9 @@
                                     </MudText>
                                 </MudStack>
                                 <MudStack Spacing="2" Class="mb-2" id=@ExistingId>
-                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => AllRemoveTransactions.DoesNotContainTool(t.Name)))
+                                    @foreach (var template in _workspaceDefinition.Templates.Where(t => 
+                                        AllRemoveTransactions.DoesNotContainTool(t.Name) && 
+                                        AllAddTransactions.DoesNotContainTool(t.Name)))
                                     {
                                         var tool = template.Name;
                                         var toolInfo = GetToolInfo(tool);
@@ -257,14 +260,24 @@
                                                         @Localizer["Deleting..."]
                                                     </MudText>
                                                     break;
-                                                case TerraformStatus.Failed:
+                                                case TerraformStatus.DeleteFailed:
                                                     <DHButton EndIcon="@Icons.Material.Outlined.Redo"
                                                               Variant="Variant.Filled" Color="Color.Primary"
                                                               DisableRipple
                                                               OnClick="@(_ => RemoveTool(tool))"
                                                               HtmlTag="button"                                                              
                                                               id=@ElementId([ExistingId, tool, FailedButtonId])>
-                                                        @Localizer["Retry"]
+                                                        @Localizer["Retry Delete"]
+                                                    </DHButton>
+                                                    break;
+                                                case TerraformStatus.CreateFailed:
+                                                    <DHButton EndIcon="@Icons.Material.Outlined.Redo"
+                                                              Variant="Variant.Filled" Color="Color.Primary"
+                                                              DisableRipple
+                                                              OnClick="@(_ => AddTool(tool))"
+                                                              HtmlTag="button"
+                                                              id=@ElementId([ExistingId, tool, FailedButtonId])>
+                                                        @Localizer["Retry Add"]
                                                     </DHButton>
                                                     break;
                                             }

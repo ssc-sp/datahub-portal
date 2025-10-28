@@ -51,6 +51,12 @@ public class RequestManagementService(
             if (requestedTemplate.Status == TerraformStatus.DeleteRequested)
             {
                 resource.Status = TerraformStatus.DeleteRequested;
+                resource.RequestedAt = DateTime.UtcNow;
+            }
+            else if (requestedTemplate.Status == TerraformStatus.CreateRequested)
+            { 
+                resource.Status = TerraformStatus.CreateRequested;
+                resource.RequestedAt = DateTime.UtcNow;
             }
             else
             {
