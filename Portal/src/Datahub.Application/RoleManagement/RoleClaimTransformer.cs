@@ -12,7 +12,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
     : IClaimsTransformation
 {
     // Not included in ClaimTypes or ClaimConstants
-    private const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
+    public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
