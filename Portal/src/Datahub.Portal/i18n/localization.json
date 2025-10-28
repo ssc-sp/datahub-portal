@@ -2386,5 +2386,7 @@
   "Blocklist entry deleted successfully": "Blocklist entry deleted successfully",
   "Email Domain": "Email Domain",
   "Add a new blocklist entry to restrict publishing access.": "Add a new blocklist entry to restrict publishing access.",
-  "Publishing Blocklist": "Publishing Blocklist"
+  "Publishing Blocklist": "Publishing Blocklist",
+  "Publishing Disabled": "Publishing Disabled",
+  "Publishing has been disabled for this workspace by the administrator.": "Publishing has been disabled for this workspace by the administrator."
 }

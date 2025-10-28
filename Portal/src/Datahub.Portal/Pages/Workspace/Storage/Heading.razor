@@ -19,6 +19,7 @@
 @inject IOpenDataPublishingService _openDataPublishingService
 @inject IOpenGovBlocklistService _blocklistService
 @inject DatahubPortalConfiguration _config
+@inject IDialogService _dialogService
 
     
 <div class="heading">
@@ -149,7 +150,7 @@
                 
                 if (atIndex > 0 && atIndex < email.Length - 1)
                 {
-                    var emailDomain = email.Substring(atIndex + 1);
+                    var emailDomain = email.Substring(atIndex);
                     
                     // Check if this domain is blocked
                     _isPublishingBlockedForWorkspace = await _blocklistService.IsUserBlockedAsync(emailDomain);
@@ -217,6 +218,15 @@
 
         return await ServiceAuthManager.IsProjectAdmin(userId, ProjectAcronym);
     }
-    
+
+    private async Task ShowPublishingBlockedDialog()
+    {
+        await _dialogService.ShowMessageBox(
+            Localizer["Publishing Disabled"],
+            Localizer["Publishing has been disabled for this workspace by the administrator."],
+            yesText: Localizer["OK"]
+        );
+    }
+
     private const string JobStatusComplete = "Completed";
 }

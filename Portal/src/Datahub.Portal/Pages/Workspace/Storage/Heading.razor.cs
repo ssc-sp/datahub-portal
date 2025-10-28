@@ -46,6 +46,12 @@ public partial class Heading
     {
         if (IsActionDisabled(ButtonAction.Publish)) return;
 
+        if (_isPublishingBlockedForWorkspace)
+        {
+            await ShowPublishingBlockedDialog();
+            return;
+        }
+
         var publishFiles = SelectedItems
             .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
             .Where(f => f is not null);
@@ -179,7 +185,7 @@ public partial class Heading
             ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
             ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Publish => _isPublishingBlockedForWorkspace || !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
             _ => false
         };
     }

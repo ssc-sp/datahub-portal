@@ -3379,5 +3379,7 @@
   "Open Government Publishing Blocklist": "Liste de blocage de publication du gouvernement ouvert",
   "Optional notes about this blocklist entry": "Notes facultatives concernant cette entrée de blocage",
   "Publishing Blocklist": "Liste de blocage de publication",
+  "Publishing Disabled": "Publication désactivée",
+  "Publishing has been disabled for this workspace by the administrator.": "La publication a été désactivée pour cet espace de travail par l'administrateur.",
   "This page allows you to block publishing for specific departments or organizations based on workspace owner email address.": "Cette page vous permet de bloquer la publication pour des ministères ou organisations spécifiques en fonction de l'adresse courriel du propriétaire de l'espace de travail."
 }

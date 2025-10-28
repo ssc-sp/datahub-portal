@@ -20,6 +20,7 @@
 @inject NavigationManager _navigationManager
 @inject IOpenGovBlocklistService _blocklistService
 @inject IProjectUserManagementService _projectUserManagementService
+@inject IDialogService _dialogService
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-4 px-4" AlignItems="AlignItems.Center">
@@ -94,10 +95,10 @@
                                              ProjectAcronym="@WorkspaceAcronym"
                                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
-                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
-                                                Target="@GetTarget(toolSection)"
-                                                Disabled="@IsDisabled(toolSection)">
-                                        <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                                    @if (toolSection == SectionViews.Publishing && _isPublishingBlockedForWorkspace)
+                                    {
+                                        <MudNavLink @onclick="@ShowPublishingBlockedDialog"
+                                                    Disabled="@IsDisabled(toolSection)">
                                             <MudStack Row AlignItems="@AlignItems.Center">
                                                 <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small"
                                                         Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
@@ -105,8 +106,24 @@
                                                     @GetLabel(toolSection)
                                                 </MudText>
                                             </MudStack>
-                                        </span>
-                                    </MudNavLink>
+                                        </MudNavLink>
+                                    }
+                                    else
+                                    {
+                                        <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
+                                                    Target="@GetTarget(toolSection)"
+                                                    Disabled="@IsDisabled(toolSection)">
+                                            <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                                                <MudStack Row AlignItems="@AlignItems.Center">
+                                                    <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small"
+                                                            Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                    <MudText Style="@_workspaceTitleStyle">
+                                                        @GetLabel(toolSection)
+                                                    </MudText>
+                                                </MudStack>
+                                            </span>
+                                        </MudNavLink>
+                                    }
                                 </li>
                             </DatahubAuthView>
                         }
@@ -274,6 +291,14 @@
             // In case of error, default to not blocking
             _isPublishingBlockedForWorkspace = false;
         }
+    }
+
+    private async Task ShowPublishingBlockedDialog()
+    {
+        await _dialogService.ShowMessageBox(
+            Localizer["Publishing Disabled"],
+            Localizer["Publishing has been disabled for this workspace by the administrator."],
+            yesText: Localizer["OK"]);
     }
 
     protected override async Task OnParametersSetAsync()
@@ -447,7 +472,7 @@
             SectionViews.Healthcheck => true,
             SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
             SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.Status != TerraformStatus.Deleted) ?? false,
-            SectionViews.Publishing => !_isPublishingBlockedForWorkspace && _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
+            SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
             SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && r.Status != TerraformStatus.Deleted) ?? false,
             SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Status != TerraformStatus.Deleted) ?? false,
             SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
@@ -464,7 +489,7 @@
             SectionViews.Healthcheck => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.Publishing => _isPublishingBlockedForWorkspace || !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
+            SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
             SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
             SectionViews.Repositories => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
