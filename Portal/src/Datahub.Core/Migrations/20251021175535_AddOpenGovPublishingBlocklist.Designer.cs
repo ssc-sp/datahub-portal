@@ -4,6 +4,7 @@ using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    partial class SqlServerDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20251021175535_AddOpenGovPublishingBlocklist")]
+    partial class AddOpenGovPublishingBlocklist
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -805,8 +808,6 @@ namespace Datahub.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
                     b.Property<string>("CBRID")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -814,9 +815,6 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("CBRName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Datahub_ProjectProject_ID")
-                        .HasColumnType("int");
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
@@ -912,8 +910,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
@@ -1940,9 +1936,9 @@ namespace Datahub.Core.Migrations
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithMany()
-                        .HasForeignKey("Datahub_ProjectProject_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithOne("GCHostingWorkspaceDetails")
+                        .HasForeignKey("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "Id")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("Datahub_Project");
@@ -1977,8 +1973,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasOne("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", "ParentGCHostingBudget")
                         .WithMany("WorkspacesInBudget")
-                        .HasForeignKey("ParentGCHostingBudgetId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .HasForeignKey("ParentGCHostingBudgetId");
 
                     b.Navigation("DatahubAzureSubscription");
 
@@ -2188,6 +2183,8 @@ namespace Datahub.Core.Migrations
                     b.Navigation("CloudStorages");
 
                     b.Navigation("Credits");
+
+                    b.Navigation("GCHostingWorkspaceDetails");
 
                     b.Navigation("ProjectInactivityNotifications");
 
