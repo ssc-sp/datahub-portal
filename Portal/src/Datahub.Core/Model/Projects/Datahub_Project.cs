@@ -396,11 +396,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     }
 
     /// <summary>
-    /// Gets or sets the GCHostingWorkspaceDetails for the project.
-    /// </summary>
-    public GCHostingWorkspaceDetails GCHostingWorkspaceDetails { get; set; }
-
-    /// <summary>
     /// Gets or sets the parent GC Hosting budget ID for the workspace.
     /// </summary>
     public int? ParentGCHostingBudgetId { get; set; }
@@ -409,6 +404,12 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the parent GC Hosting budget details for the workspace.
     /// </summary>
     public GCHostingWorkspaceDetails ParentGCHostingBudget { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this workspace is the primary CBR workspace
+    /// and can be used to create other workspaces under the same CBR budget.
+    /// </summary>
+    public bool IsPrimaryCBRWorkspace { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether an update has been requested for the workspace.

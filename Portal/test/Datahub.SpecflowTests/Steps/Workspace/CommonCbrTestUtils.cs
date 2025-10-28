@@ -48,7 +48,8 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 Project_ID = 1,
                 Project_Acronym_CD = Testing.WorkspaceAcronym,
                 Project_Name = "Main CBR Workspace",
-                Project_Budget = 1000
+                Project_Budget = 1000,
+                IsPrimaryCBRWorkspace = true
             };
 
             var otherWorkspace = new Datahub_Project()
@@ -75,7 +76,6 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
             var gcHosting = new GCHostingWorkspaceDetails()
             {
-                Datahub_Project = mainCbrWorkspace,
                 GcHostingId = Guid.NewGuid().ToString(),
                 LeadEmail = cbrOwnerUser.Email,
                 WorkspaceBudget = 10000,

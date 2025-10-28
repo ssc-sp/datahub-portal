@@ -260,10 +260,9 @@ public class HostingServicesController : ControllerBase
 
             // Retrieve the workspace details.
             var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
-
+            project.IsPrimaryCBRWorkspace = true;
             // Create a new GC Hosting workspace record using the given details.
             _logger.LogInformation("Creating GC Hosting workspace record.");
-            workspaceDetails.Datahub_Project = project;
             _context.GCHostingWorkspaceDetails.Add(workspaceDetails);
             project.ParentGCHostingBudget = workspaceDetails;
             await _context.SaveChangesAsync();
