@@ -1,18 +1,24 @@
 ﻿@using Datahub.Application.Services
-@using Datahub.Application.Services.Notifications;
+@using Datahub.Application.Services.Announcements
+@using Datahub.Application.Services.Notification
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Announcements
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
 @using Datahub.Portal.Components.Dialogs
+@using Datahub.Portal.Pages.Tools.Statistics
+@using Datahub.Shared
 @using Markdig
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
-@inject IDatahubEmailService _emailService
 @inject IUserInformationService _userInformationService
 @inject IWorkspaceVersionService _workspaceVersionService
 @inject IRequestManagementService _requestManagementService
+@inject IResourceMessagingService _resourceMessagingService
 @inject IConfiguration _configuration
 @inject ISnackbar _snackbar
 @inject IJSRuntime _jsRuntime
+@inject IAnnouncementService _announcementService
 @inject IDialogService Dialog
 
 
@@ -40,8 +46,8 @@
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context.Tag</MudTd>
-            <MudTd>
+            <MudTd Style="cursor: pointer;" @onclick="() => EditVersion(context)">@context.Tag</MudTd>
+            <MudTd Style="cursor: pointer;" @onclick="() => EditVersion(context)">
                 <MudStack Spacing="1">
                     <MudText Typo="Typo.body2">@context.VersionDescription</MudText>
                     <MudText Typo="Typo.body2">@context.VersionDescriptionFr</MudText>                    
@@ -57,7 +63,7 @@
                     <MudIconButton Size="Size.Small" Color="Color.Error" Icon="@Icons.Material.Filled.Cancel" OnClick="() => ToggleVersionStatus(context)" />
                 }
             </MudTd>
-            <MudTd>@context.CreatedDate.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd Style="cursor: pointer;" @onclick="() => EditVersion(context)">@context.CreatedDate.ToString("yyyy-MM-dd")</MudTd>
             <MudTd>
                 <MudIconButton Size="Size.Small" Icon="@Icons.Material.Filled.Delete" OnClick="() => DeleteVersion(context)" />
             </MudTd>
@@ -66,19 +72,154 @@
             <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
         </PagerContent>
     </MudTable>
+
+    <MudDivider Class="my-6" />
+
+    <MudText Typo="Typo.h2">@Localizer["Outdated Workspaces"]</MudText>
+
+    @if (_statistics != null)
+    {
+        <MudContainer MaxWidth="MaxWidth.Large" Class="mb-4">
+            <MudStack Row Wrap="Wrap.Wrap" Spacing="3" Justify="Justify.Center" AlignItems="AlignItems.Stretch">
+                <MudPaper Outlined Elevation="0" Class="pa-4" Style="min-width: 140px; max-width: 180px; height: 100px; background-color: #f5f5f5;">
+                    <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
+                        <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
+                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center;">@Localizer["Current Version"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
+                            <MudText Typo="Typo.h4" Class="font-weight-bold">@_statistics.LatestVersion</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+                
+                <MudPaper Outlined Elevation="0" Class="pa-4" Style="min-width: 140px; max-width: 180px; height: 100px; background-color: #f5f5f5;">
+                    <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
+                        <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
+                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center;">@Localizer["Total Active Workspaces"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
+                            <MudText Typo="Typo.h4" Class="font-weight-bold">@_statistics.TotalWorkspaces.ToString()</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+                
+                <MudPaper Outlined Elevation="0" Class="pa-4" Style="@GetPercentageCardStyle()">
+                    <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
+                        <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
+                            <MudText Typo="Typo.subtitle2" Style="width: 100%; text-align: center; color: white;">@Localizer["On Current Version"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
+                            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="color: white;">@($"{_statistics.PercentageOnLatest:F1}%")</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+                
+                <MudPaper Outlined Elevation="0" Class="pa-4" Style="@GetOutdatedWorkspacesCardStyle()">
+                    <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
+                        <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
+                            <MudText Typo="Typo.subtitle2" Style="@GetOutdatedWorkspacesTextStyle()">@Localizer["Outdated Workspaces"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
+                            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="@GetOutdatedWorkspacesTextStyle()">@_statistics.OutdatedWorkspaces.ToString()</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+                
+                <MudPaper Outlined Elevation="0" Class="pa-4" Style="@GetUpdateRequestsCardStyle()">
+                    <MudGrid Style="height: 100%;" Spacing="0" Justify="Justify.Center">
+                        <MudItem xs="12" Style="height: 50%; display: flex; align-items: center; text-align: center;">
+                            <MudText Typo="Typo.subtitle2" Style="@GetUpdateRequestsTextStyle()">@Localizer["In Progress"]</MudText>
+                        </MudItem>
+                        <MudItem xs="12" Class="d-flex align-center justify-center" Style="height: 50%;">
+                            <MudText Typo="Typo.h4" Class="font-weight-bold" Style="@GetUpdateRequestsTextStyle()">@_statistics.WorkspacesWithUpdateRequests.ToString()</MudText>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
+            </MudStack>
+        </MudContainer>
+    }
+
+    <MudTable Items="@_outdatedWorkspaces" Loading="@_loadingOutdated" Hover Dense Filter="new Func<Datahub_Project, bool>(FilterOutdatedWorkspaces)">
+        <ToolBarContent>
+            <MudTextField @bind-Value="@_searchString"
+                          Label="@Localizer["Search by Acronym"]"
+                          Adornment="Adornment.End"
+                          AdornmentIcon="@Icons.Material.Filled.Search"
+                          IconSize="Size.Small"
+                          Class="mt-0"
+                          Clearable="true"
+                          Placeholder="@Localizer["Enter workspace acronym..."]" />
+            <MudSpacer />
+        </ToolBarContent>
+        <ColGroup>
+            <col style="width: 35%" />
+            <col style="width: 25%" />
+            <col style="width: 25%" />
+            <col style="width: 15%" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh>@Localizer["Workspace Name"]</MudTh>
+            <MudTh>@Localizer["Workspace Acronym"]</MudTh>
+            <MudTh>@Localizer["Current Version"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Project_Name</MudTd>
+            <MudTd>@context.Project_Acronym_CD</MudTd>
+            <MudTd>@context.Version</MudTd>
+            <MudTd>
+                @if (context.IsVersionUpdateRequested)
+                {
+                    <MudTooltip Text="@Localizer["Update in progress"]">
+                        <MudIcon Size="Size.Small" 
+                                 Icon="@Icons.Material.Filled.Autorenew" 
+                                 Color="Color.Info" />
+                    </MudTooltip>
+                }
+                else
+                {
+                    <MudTooltip Text="@Localizer["Trigger workspace update"]">
+                        <MudIconButton Size="Size.Small" 
+                                       Icon="@Icons.Material.Filled.Upgrade" 
+                                       Color="Color.Primary"
+                                       OnClick="@(() => TriggerWorkspaceUpdate(context.Project_Acronym_CD))" />
+                    </MudTooltip>
+                }
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
+        </PagerContent>
+        <NoRecordsContent>
+            <MudText>@Localizer["All workspaces are on the latest version."]</MudText>
+        </NoRecordsContent>
+    </MudTable>
 </MudStack>
 
 
 @code {
 
     private List<VersionTag> _versions = new();
+    private List<Datahub_Project> _outdatedWorkspaces = new();
+    private WorkspaceVersionStatistics _statistics = null;
+    private string _latestVersion = string.Empty;
+    private string _searchString = string.Empty;
 
     private bool _loading = true;
+    private bool _loadingOutdated = true;
+
     protected override async Task OnInitializedAsync()
     {
         _loading = true;
+        _loadingOutdated = true;
+
         _versions = await _workspaceVersionService.GetAllVersionsAsync();
+        _outdatedWorkspaces = await _workspaceVersionService.GetWorkspacesNotOnLatestVersionAsync();
+        _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
+        _latestVersion = await _workspaceVersionService.GetLatestVersionAsync();
+
         _loading = false;
+        _loadingOutdated = false;
     }
 
     private async Task DeleteVersion(VersionTag version)
@@ -114,6 +255,14 @@
     {
         version.IsActive = !version.IsActive;
         var isUpdated = await _workspaceVersionService.UpdateVersionTag(version);
+        
+        if (isUpdated)
+        {
+            // Refresh outdated workspaces and statistics since the latest version might have changed
+            _outdatedWorkspaces = await _workspaceVersionService.GetWorkspacesNotOnLatestVersionAsync();
+            _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
+        }
+        
         await InvokeAsync(StateHasChanged);
     }
 
@@ -123,10 +272,12 @@
         var parameters = new DialogParameters { { "ExistingVersions", _versions } };
         var dialog = await Dialog.ShowAsync<AddVersionDialog>(Localizer["Add New Version"], parameters, dialogOptions);
         var result = await dialog.Result;
-        var email = await _userInformationService.GetUserEmail();
+        
         if (!result.Canceled)
         {
             var versionTag = (VersionTag)result.Data;
+            var email = await _userInformationService.GetUserEmail();
+            var portalUser = await _userInformationService.GetCurrentPortalUserAsync();
             versionTag.CreatedBy = email;
             var isAdded = await _workspaceVersionService.AddNewVersion(versionTag);
             if (!isAdded)
@@ -142,12 +293,203 @@
                 .OrderByDescending(v => System.Version.Parse(v.Tag.TrimStart('v')))
                 .ToList();
 
-            await InvokeAsync(StateHasChanged);
+            // Refresh outdated workspaces and statistics since we have a new latest version
+            _outdatedWorkspaces = await _workspaceVersionService.GetWorkspacesNotOnLatestVersionAsync();
+            _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
 
+            await InvokeAsync(StateHasChanged);
 
             await _requestManagementService.TriggerBuildVersionUpdates(versionTag.Tag, email);
 
             _snackbar.Add(Localizer["Successfully added version: {0}", versionTag.Tag], Severity.Success);
+
+            // Handle announcement creation if requested
+            if (versionTag.AnnouncementCreated)
+            {
+                var announcement = new Announcement
+                {
+                    StartDateTime = DateTime.UtcNow,
+                    EndDateTime = DateTime.UtcNow.AddDays(30),                      
+                    PreviewEn = $"# New Workspace Version Available\n\nA new version {versionTag.Tag} of the FSDH workspaces has been released.",
+                    PreviewFr = $"# Nouvelle version de l'espace de travail disponible\n\nUne nouvelle version {versionTag.Tag} des espaces de travail FSDH a été publiée.",
+                    BodyEn = $"# New Workspace Version Available\n\n{Markdown.ToHtml(versionTag.VersionDescription)}",
+                    BodyFr = $"# Nouvelle version de l'espace de travail disponible\n\n{Markdown.ToHtml(versionTag.VersionDescriptionFr)}",
+                    CreatedAt = DateTime.UtcNow,
+                    CreatedById = portalUser.Id,
+                    Severity = 1,
+                };
+
+                var success = await _announcementService.SaveAnnouncementAsync(announcement);
+
+                if (success)
+                {
+                    _snackbar.Add(Localizer["Announcement created for version: {0}", versionTag.Tag], Severity.Info);                    
+                }
+                else
+                {
+                    _snackbar.Add(Localizer["Failed to create announcement"], Severity.Error);
+                }
+            }
         }
+    }
+
+    private async Task EditVersion(VersionTag version)
+    {
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters 
+        { 
+            { "EditingVersion", version }
+        };
+        var dialog = await Dialog.ShowAsync<AddVersionDialog>(Localizer["Edit Version"], parameters, dialogOptions);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            var updatedVersionTag = (VersionTag)result.Data;
+            var isUpdated = await _workspaceVersionService.UpdateVersionTag(updatedVersionTag);
+            
+            if (isUpdated)
+            {
+                // Update the version in the local list
+                var index = _versions.FindIndex(v => v.VersionTagId == updatedVersionTag.VersionTagId);
+                if (index >= 0)
+                {
+                    _versions[index] = updatedVersionTag;
+                }
+                
+                _snackbar.Add(Localizer["Version updated successfully."], Severity.Success);
+                await InvokeAsync(StateHasChanged);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["Error updating version, please try again."], Severity.Error);
+            }
+        }
+    }
+
+    private string GetPercentageCardStyle()
+    {
+        if (_statistics == null) return "min-width: 140px; max-width: 180px; height: 100px;";
+        
+        var backgroundColor = _statistics.PercentageOnLatest >= 100m ? "#4caf50" : // Green for 100%
+                             _statistics.PercentageOnLatest >= 90m ? "#ff9800" :   // Orange for 90-99%
+                             "#f44336";                                            // Red for <90%
+        
+        return $"min-width: 140px; max-width: 180px; height: 100px; background-color: {backgroundColor};";
+    }
+
+    private string GetOutdatedWorkspacesCardStyle()
+    {
+        if (_statistics == null) return "min-width: 140px; max-width: 180px; height: 100px;";
+        
+        var backgroundColor = _statistics.OutdatedWorkspaces == 0 ? "#4caf50" : "#f44336"; // Green if 0, Red if not 0
+        
+        return $"min-width: 140px; max-width: 180px; height: 100px; background-color: {backgroundColor};";
+    }
+
+    private string GetOutdatedWorkspacesTextStyle()
+    {
+        return "width: 100%; text-align: center; color: white;";
+    }
+
+    private string GetUpdateRequestsCardStyle()
+    {
+        if (_statistics == null) return "min-width: 140px; max-width: 180px; height: 100px;";
+        
+        var backgroundColor = _statistics.WorkspacesWithUpdateRequests == 0 ? "#4caf50" : "#f44336"; // Green if 0, Red if not 0
+        
+        return $"min-width: 140px; max-width: 180px; height: 100px; background-color: {backgroundColor};";
+    }
+
+    private string GetUpdateRequestsTextStyle()
+    {
+        return "width: 100%; text-align: center; color: white;";
+    }
+
+    // Replicate the exact logic from HomeWorkspaceCard
+    private async Task TriggerWorkspaceUpdate(string workspaceAcronym)
+    {
+        try
+        {
+            // Find the workspace in our current list first
+            var workspaceInList = _outdatedWorkspaces.FirstOrDefault(w => w.Project_Acronym_CD == workspaceAcronym);
+            
+            // Get the workspace project by acronym with resources included
+            await using var db = await _dbContextFactory.CreateDbContextAsync();
+            var workspace = await db.Projects
+                .Include(p => p.Resources)
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym && p.Deleted_DT == null);
+
+            if (workspace == null)
+            {
+                _snackbar.Add(Localizer["Workspace {0} not found.", workspaceAcronym], Severity.Error);
+                return;
+            }
+
+            var userEmail = await _userInformationService.GetUserEmail();
+            
+            // Use the exact same logic as HomeWorkspaceCard.TriggerUpdate
+            var updateType = workspace.GetUpdateType(_latestVersion);
+            var result = await GetDialogMessage(updateType, workspace.Project_Acronym_CD);
+
+            if (result.Canceled)
+            {
+                return;
+            }
+
+            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, userEmail);
+            await _workspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
+            await _requestManagementService.SendVersionUpdateToQueueAsync(_latestVersion, workspaceDefinition);            
+            await _workspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);
+            
+            // Update local state
+            workspace.IsVersionUpdateRequested = true;
+            if (workspaceInList != null)
+            {
+                workspaceInList.IsVersionUpdateRequested = true;
+            }
+
+            var successMessage = Localizer["Workspace Version Update Triggered"];
+            _snackbar.Add(successMessage, Severity.Success);
+            
+            // Refresh the data
+            await RefreshWorkspaceData();
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(Localizer["Error triggering workspace update: {0}", ex.Message], Severity.Error);
+        }
+    }
+
+    // Replicate the exact dialog logic from HomeWorkspaceCard
+    private async Task<DialogResult> GetDialogMessage(VersionUpdateType updateType, string workspaceAcronym)
+    {
+        var prompt = Localizer[$"Are you sure you want to update workspace: {workspaceAcronym}"];
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true, CloseButton = true };
+        var parameters = new DialogParameters
+        {
+            { "PromptText", prompt.ToString() },
+            { "ConfirmText", Localizer["Yes"].ToString() },
+            { "CancelText", Localizer["No"].ToString() }                   
+        };
+        var dialog = await Dialog.ShowAsync<SimpleChoiceDialog>(Localizer["Confirm Workspace Update"], parameters, dialogOptions);
+        return await dialog.Result;
+    }
+
+    private async Task RefreshWorkspaceData()
+    {
+        _loadingOutdated = true;
+        _outdatedWorkspaces = await _workspaceVersionService.GetWorkspacesNotOnLatestVersionAsync();
+        _statistics = await _workspaceVersionService.GetWorkspaceVersionStatisticsAsync();
+        _loadingOutdated = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool FilterOutdatedWorkspaces(Datahub_Project workspace)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+        
+        return workspace.Project_Acronym_CD.Contains(_searchString, StringComparison.OrdinalIgnoreCase);
     }
 }

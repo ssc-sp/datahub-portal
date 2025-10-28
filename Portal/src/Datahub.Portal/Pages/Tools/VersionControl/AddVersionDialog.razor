@@ -2,11 +2,14 @@
     <DialogContent>
         <MudTextField T="string"
                       @bind-Value="_version"
+                      Label="@Localizer["Version Tag"]"
                       Placeholder="vX.X.X"
                       Margin="Margin.Dense"
                       Error="@_hasValidationError.Item1"
                       ErrorText="@_errorText"
+                      Disabled="@_isEditMode"
                       Class="no-margin-textarea" />
+                
         <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide a description of the update. This description will be used as to indicate what is new in the updated version."]*</MudText>
         <MudTextField T="string"
                       @bind-Value="@_versionDescription"
@@ -24,10 +27,20 @@
                       Variant="Variant.Outlined"
                       Lines="3"
                       Class="no-margin-textarea mb-3" />
+        @if (!_isEditMode)
+        {
+            <MudCheckBox T="bool"
+                         @bind-Value="@_createAnnouncement"
+                         Label="@Localizer["Create Announcement"]"
+                         Color="Color.Primary"
+                         Class="mt-4" />
+        }
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="Submit">@Localizer["Ok"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">
+            @(_isEditMode ? Localizer["Update"] : Localizer["Ok"])
+        </MudButton>
     </DialogActions>
 </MudDialog>
 
@@ -36,30 +49,51 @@
     [CascadingParameter]
     IMudDialogInstance MudDialog { get; set; }
     [Parameter]
-    public List<VersionTag> ExistingVersions { get; set; }
+    public List<VersionTag>? ExistingVersions { get; set; }
+    
+    [Parameter]
+    public VersionTag? EditingVersion { get; set; }
 
     private string _version = string.Empty;
     private string _versionDescription = string.Empty;
     private string _versionDescriptionFrench = string.Empty;
+    private bool _createAnnouncement = false;
     private (bool, bool, bool) _hasValidationError = (false, false, false);
     private string _errorText = string.Empty;
+    private bool _isEditMode => EditingVersion != null;
 
-    private async Task Submit()
+    protected override void OnParametersSet()
+    {
+        if (_isEditMode && EditingVersion != null)
+        {
+            _version = EditingVersion.Tag;
+            _versionDescription = EditingVersion.VersionDescription;
+            _versionDescriptionFrench = EditingVersion.VersionDescriptionFr;
+            _createAnnouncement = EditingVersion.AnnouncementCreated;
+        }
+    }
+
+    private void Submit()
     {
         _hasValidationError = (false, false, false);
 
-        if (ExistingVersions.Any(v => v.Tag.Equals(_version, StringComparison.OrdinalIgnoreCase)))
+        // Only validate version format and duplicates for new versions
+        if (!_isEditMode)
         {
-            _errorText = Localizer["Version already exists"];
-            _hasValidationError.Item1 = true;
+            if (ExistingVersions?.Any(v => v.Tag.Equals(_version, StringComparison.OrdinalIgnoreCase)) == true)
+            {
+                _errorText = Localizer["Version already exists"];
+                _hasValidationError.Item1 = true;
+            }
+
+            if (!IsValidVersionFormat(_version))
+            {
+                _errorText = Localizer["Invalid version format. Please use vX.X.X. e.g. v1.2.3"];
+                _hasValidationError.Item1 = true;  
+            }
         }
 
-        if(!IsValidVersionFormat(_version))
-        {
-            _errorText = Localizer["Invalid version format. Please use vX.X.X. e.g. v1.2.3"];
-            _hasValidationError.Item1 = true;  
-        }
-
+        // Always validate descriptions
         if (string.IsNullOrWhiteSpace(_versionDescription))
         {
             _hasValidationError.Item2 = true;
@@ -75,20 +109,29 @@
             return;
         }
 
-        if (IsValidVersionFormat(_version))
+        VersionTag versionTag;
+        if (_isEditMode && EditingVersion != null)
         {
-            _hasValidationError = (false, false, false);
-            var versionTag = new VersionTag 
+            // Update existing version - only modify descriptions
+            versionTag = EditingVersion;
+            versionTag.VersionDescription = _versionDescription;
+            versionTag.VersionDescriptionFr = _versionDescriptionFrench;
+        }
+        else
+        {
+            // Create new version
+            versionTag = new VersionTag 
             { 
                 Tag = _version, 
                 VersionDescription = _versionDescription,  
                 VersionDescriptionFr = _versionDescriptionFrench,
                 CreatedDate = DateTime.UtcNow, 
-                IsActive = true 
+                IsActive = true,
+                AnnouncementCreated = _createAnnouncement
             };
-
-            MudDialog.Close(DialogResult.Ok(versionTag));
         }
+
+        MudDialog.Close(DialogResult.Ok(versionTag));
     }
 
     private void Cancel() => MudDialog.Cancel();

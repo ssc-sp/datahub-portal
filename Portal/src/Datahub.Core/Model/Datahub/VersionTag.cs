@@ -51,5 +51,10 @@ namespace Datahub.Core.Model.Datahub
         /// Gets or sets the identifier of the user who created the version tag.
         /// </summary>
         public string CreatedBy { get; set; }
+
+        /// <summary>
+        /// Gets or sets a value indicating whether an announcement was created for this version tag.
+        /// </summary>
+        public bool AnnouncementCreated { get; set; }
     }
 }
