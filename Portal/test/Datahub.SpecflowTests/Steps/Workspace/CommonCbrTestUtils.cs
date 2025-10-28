@@ -48,8 +48,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 Project_ID = 1,
                 Project_Acronym_CD = Testing.WorkspaceAcronym,
                 Project_Name = "Main CBR Workspace",
-                Project_Budget = 1000,
-                IsPrimaryCBRWorkspace = true
+                Project_Budget = 1000
             };
 
             var otherWorkspace = new Datahub_Project()

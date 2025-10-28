@@ -406,12 +406,6 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public GCHostingWorkspaceDetails ParentGCHostingBudget { get; set; }
 
     /// <summary>
-    /// Gets or sets a value indicating whether this workspace is the primary CBR workspace
-    /// and can be used to create other workspaces under the same CBR budget.
-    /// </summary>
-    public bool IsPrimaryCBRWorkspace { get; set; }
-
-    /// <summary>
     /// Gets or sets a value indicating whether an update has been requested for the workspace.
     /// </summary>
     public bool IsVersionUpdateRequested { get; set; }
