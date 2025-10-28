@@ -4,7 +4,7 @@
 
 <AuthorizeView Roles="@GetRoles()">
     <Authorized>
-        @if (IsUserTrustedForClassificationLevel())
+        @if (IsAllowedUserType())
         {
             @AuthorizedContent
         }
@@ -22,6 +22,13 @@
 </AuthorizeView>
 
 @code {
+
+    public enum UserType
+    {
+        AllUsers,
+        TrustedGOCOnly,
+        ExternalOnly,
+    }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
@@ -48,7 +55,7 @@
     public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     [Parameter]
-    public ClassificationType Classification { get; set; } = ClassificationType.Unclassified;
+    public UserType AllowedUsers { get; set; } = UserType.AllUsers;
 
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; }
@@ -75,16 +82,14 @@
         WorkspaceCbrOwner
     }
 
-    private bool IsUserTrustedForClassificationLevel()
+    private bool IsAllowedUserType() => AllowedUsers switch
     {
-        return Classification switch
-        {
-            ClassificationType.Unclassified => true,
-            ClassificationType.ProtectedA => _user?.IsInRole(RoleConstants.TRUSTED_FOR_PROTECTED_A) ?? false,
-            ClassificationType.ProtectedB => _user?.IsInRole(RoleConstants.TRUSTED_FOR_PROTECTED_B) ?? false,
-            _ => false,
-        };
-    }
+        UserType.AllUsers => true,
+        UserType.TrustedGOCOnly => _user?.IsInRole(RoleConstants.TRUSTED_GOC_LOGIN) ?? false,
+        UserType.ExternalOnly => _user?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false,
+        _ => false,
+    };
+    
 
     protected override async Task OnInitializedAsync()
     {

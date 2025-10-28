@@ -44,20 +44,14 @@
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal" 
                                 UserGraphId="@ViewedUser.GraphGuid" 
-                                Classification="Datahub.Metadata.Model.ClassificationType.Unclassified">
-                                <MudChip T="string" Text="Unclassified" Color="Color.Success" Class="ml-2" Tag=UNCLASSIFIED_TAG />
+                                AllowedUsers="DatahubAuthView.UserType.TrustedGOCOnly">
+                                <MudChip T="string" Text="Trusted GOC Login" Color="Color.Success" Class="ml-2" Tag=TRUSTED_LOGIN_TAG />
                             </DatahubAuthView>
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal" 
                                 UserGraphId="@ViewedUser.GraphGuid"
-                                Classification="Datahub.Metadata.Model.ClassificationType.ProtectedA">
-                                <MudChip T="string" Text="Protected A" Color="Color.Warning" Class="ml-2" Tag=PROTECTED_A_TAG />
-                            </DatahubAuthView>
-                            <DatahubAuthView 
-                                AuthLevel="DatahubAuthView.AuthLevels.Personal" 
-                                UserGraphId="@ViewedUser.GraphGuid"
-                                Classification="Datahub.Metadata.Model.ClassificationType.ProtectedB">
-                                <MudChip T="string" Text="Protected B" Color="Color.Error" Class="ml-2" Tag=PROTECTED_B_TAG />
+                                AllowedUsers="DatahubAuthView.UserType.ExternalOnly">
+                                <MudChip T="string" Text="External Login" Color="Color.Info" Class="ml-2" Tag=EXTERNAL_USER_TAG />
                             </DatahubAuthView>
                         </MudStack>
                         }
@@ -84,9 +78,8 @@
 
 @code {
 
-    public const string UNCLASSIFIED_TAG = "Unclassified";
-    public const string PROTECTED_A_TAG = "Protected A";
-    public const string PROTECTED_B_TAG = "Protected B";
+    public const string TRUSTED_LOGIN_TAG = "TrustedLoginChip";
+    public const string EXTERNAL_USER_TAG = "ExternalUserChip";
 
     private PortalUser _currentUser;
     [Parameter] public PortalUser ViewedUser { get; set; }
