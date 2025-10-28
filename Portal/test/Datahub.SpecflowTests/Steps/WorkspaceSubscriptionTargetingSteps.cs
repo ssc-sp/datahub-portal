@@ -22,19 +22,24 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     public async Task GivenAWorkspaceThatHasASubscriptionId()
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var workspace = new Datahub_Project
-        {
-            Project_Acronym_CD = Testing.WorkspaceAcronym,
-        };
         
+        // First, add and save the subscription
         var datahubAzureSubscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid,
             SubscriptionName = Testing.SubscriptionName
         };
+        ctx.AzureSubscriptions.Add(datahubAzureSubscription);
+        await ctx.SaveChangesAsync();
         
-        workspace.DatahubAzureSubscription = datahubAzureSubscription;
+        // Then create and add the workspace with the subscription ID reference
+        var workspace = new Datahub_Project
+        {
+            Project_Acronym_CD = Testing.WorkspaceAcronym,
+            DatahubAzureSubscription = datahubAzureSubscription,
+            DatahubAzureSubscriptionId = datahubAzureSubscription.Id
+        };
         
         ctx.Projects.Add(workspace);
         await ctx.SaveChangesAsync();
