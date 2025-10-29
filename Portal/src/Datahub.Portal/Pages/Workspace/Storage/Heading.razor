@@ -17,7 +17,9 @@
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IProjectUserManagementService _projectUserManagementService
 @inject IOpenDataPublishingService _openDataPublishingService
+@inject IOpenGovBlocklistService _blocklistService
 @inject DatahubPortalConfiguration _config
+@inject IDialogService _dialogService
 
     
 <div class="heading">
@@ -116,6 +118,7 @@
     private bool _ownsSelectedFiles;
     private bool _isUnclassifiedSingleFile;
     private bool _isElectron = true;
+    private bool _isPublishingBlockedForWorkspace = false;
 
     // private bool _isDatahubAdmin;
     // private bool _isProjectMember;
@@ -128,6 +131,37 @@
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
         _currentUserRole = projectUsers.FirstOrDefault(pu => pu.PortalUser.Id == currentUser.Id)?.Role;
+        
+        await CheckPublishingBlocklistAsync();
+    }
+
+    private async Task CheckPublishingBlocklistAsync()
+    {
+        try
+        {
+            // Get the workspace lead
+            var workspaceLead = await _projectUserManagementService.GetProjectLeadAsync(ProjectAcronym);
+            
+            if (workspaceLead?.PortalUser?.Email != null)
+            {
+                // Extract the email domain (everything after @)
+                var email = workspaceLead.PortalUser.Email;
+                var atIndex = email.IndexOf('@');
+                
+                if (atIndex > 0 && atIndex < email.Length - 1)
+                {
+                    var emailDomain = email.Substring(atIndex);
+                    
+                    // Check if this domain is blocked
+                    _isPublishingBlockedForWorkspace = await _blocklistService.IsUserBlockedAsync(emailDomain);
+                }
+            }
+        }
+        catch
+        {
+            // In case of error, default to not blocking
+            _isPublishingBlockedForWorkspace = false;
+        }
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -184,6 +218,15 @@
 
         return await ServiceAuthManager.IsProjectAdmin(userId, ProjectAcronym);
     }
-    
+
+    private async Task ShowPublishingBlockedDialog()
+    {
+        await _dialogService.ShowMessageBox(
+            Localizer["Publishing Disabled"],
+            Localizer["Publishing has been disabled for this workspace by the administrator."],
+            yesText: Localizer["OK"]
+        );
+    }
+
     private const string JobStatusComplete = "Completed";
 }
