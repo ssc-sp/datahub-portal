@@ -88,7 +88,7 @@ namespace Datahub.SpecflowTests.Steps
                 "mock-totals.json",
                 false);
             scenarioContext.Set(message, "message");
-            scenarioContext.Set(Testing.WorkspaceAcronym, "workspaceAcronym");
+            scenarioContext.Set(Testing.WorkspaceAcronym2, "workspaceAcronym"); // Fixed: was WorkspaceAcronym, should be WorkspaceAcronym2
         }
 
         [Given(@"an existing file in blob storage")]

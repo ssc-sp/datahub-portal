@@ -12,10 +12,8 @@ public static class GenerateWorkspaceHelper
     public static async Task GenerateWorkspace(IDbContextFactory<DatahubProjectDBContext> dbContextFactory, string projectAcronym, string? resourceType = null, string? resourceStatus = null, string? cbrid = null)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var project = new Datahub_Project()
-        {
-            Project_Acronym_CD = projectAcronym,
-        };
+        
+        // First, add and save the subscription
         var datahubAzureSubscription = new DatahubAzureSubscription()
         {
             Nickname = "Test Subscription",
@@ -23,8 +21,16 @@ public static class GenerateWorkspaceHelper
             SubscriptionId = "00000000-0000-0000-0000-000000000000",
             SubscriptionName = "Test Subscription Name"
         };
-            
-        project.DatahubAzureSubscription = datahubAzureSubscription;
+        ctx.AzureSubscriptions.Add(datahubAzureSubscription);
+        await ctx.SaveChangesAsync();
+        
+        // Then create and add the project with the subscription ID reference
+        var project = new Datahub_Project()
+        {
+            Project_Acronym_CD = projectAcronym,
+            DatahubAzureSubscription = datahubAzureSubscription,
+            DatahubAzureSubscriptionId = datahubAzureSubscription.Id
+        };
 
         if (resourceType != null)
         {
@@ -66,7 +72,6 @@ public static class GenerateWorkspaceHelper
             };
             project.ParentGCHostingBudget = gchostingDetails;
         }
-        ctx.AzureSubscriptions.Add(datahubAzureSubscription);
         ctx.Projects.Add(project);
         await ctx.SaveChangesAsync();
     }
