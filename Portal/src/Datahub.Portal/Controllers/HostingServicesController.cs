@@ -17,6 +17,7 @@ using Datahub.Application.Configuration;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Datahub.Metadata.Model;
+using Datahub.Application.Services.Notification;
 
 
 namespace Datahub.Portal.Controllers;
@@ -30,9 +31,10 @@ public class HostingServicesController : ControllerBase
     private readonly IUserInformationService _userInformationService;
     private readonly IUserEnrollmentService _userEnrollmentService;
     private readonly ISendEndpointProvider _sendEndpointProvider;
-    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;    
+    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+    private readonly IGCNotifyService _gcNotifyService;
 
-    public HostingServicesController(DatahubProjectDBContext context, IWorkspaceCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration)
+    public HostingServicesController(DatahubProjectDBContext context, IWorkspaceCreationService projectCreationService, IUserInformationService userInformationService, IUserEnrollmentService userEnrollmentService, ILogger<HostingServicesController> logger, ISendEndpointProvider sendEndpointProvider, DatahubPortalConfiguration datahubPortalConfiguration, IGCNotifyService gcNotifyService)
     {
         _context = context;
         _workspaceCreationService = projectCreationService;
@@ -41,6 +43,7 @@ public class HostingServicesController : ControllerBase
         _logger = logger;
         _sendEndpointProvider = sendEndpointProvider;
         _datahubPortalConfiguration = datahubPortalConfiguration;
+        _gcNotifyService = gcNotifyService;
     }
 
     /// <summary>
@@ -269,6 +272,10 @@ public class HostingServicesController : ControllerBase
             await _context.SaveChangesAsync();
 
             await _workspaceCreationService.SaveWorkspaceMetadataFromGCHostingDetails(acronym, workspaceDetails);
+
+            _logger.LogInformation("Workspace creation details saved successfully.");
+            _logger.LogInformation("Sending notification email to workspace lead.");
+            await _gcNotifyService.SendWelcomePackageNotification(workspaceDetails.LeadEmail);
 
             // Return the workspace acronym, resource group name, and tenant ID.
             return Ok(new Dictionary<string, string>
