@@ -78,12 +78,11 @@ public class WorkspaceSettingsSteps(
         var dbContextFactory = new SpecFlowDbContextFactory(options);
         Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
+        await using var context = await dbContextFactory.CreateDbContextAsync();
         var workspace = new Datahub_Project()
         {
             Project_Acronym_CD = Testing.WorkspaceAcronym,
         };
-
-        await using var context = await dbContextFactory.CreateDbContextAsync();
         context.Projects.Add(workspace);
         await context.SaveChangesAsync();
 
