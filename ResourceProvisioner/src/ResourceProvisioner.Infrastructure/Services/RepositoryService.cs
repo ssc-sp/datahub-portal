@@ -431,7 +431,7 @@ public partial class RepositoryService(
 
     public async Task FetchRepositoriesAndCheckoutProjectBranch(TerraformWorkspace terraformWorkspace)
     {
-        FetchModuleRepository(terraformWorkspace.Version);
+        await FetchModuleRepository(terraformWorkspace.Version);
         await FetchInfrastructureRepository();
         await CheckoutInfrastructureBranch(terraformWorkspace.Acronym!);
     }

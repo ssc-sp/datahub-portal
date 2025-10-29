@@ -30,6 +30,7 @@ public class TerraformWorkspace
     public int StorageSizeLimitInTB { get; set; } = 5;
     public TerraformOrganization? TerraformOrganization { get; set; }
     public IEnumerable<TerraformUser>? Users { get; set; }
+    public string SSCCBRID { get; set; } = null!;
 
     public JsonNode ToUserList()
     {
