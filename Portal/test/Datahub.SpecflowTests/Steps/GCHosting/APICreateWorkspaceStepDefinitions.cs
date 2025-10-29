@@ -1,6 +1,7 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
+using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
@@ -47,6 +48,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
         private readonly DatahubProjectDBContext _dbContext;
         private readonly HostingServicesController _controller;
         private readonly IMetadataBrokerService _metadataService;
+        private readonly IGCNotifyService _gcNotifyService;
 
         private const string REQUEST_BODY_CONTEXT_KEY = "requestBody";
         private const string CREATED_WORKSPACE_ACRONYM_CONTEXT_KEY = "workspaceAcronym";
@@ -63,6 +65,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             _userEnrollmentService = Substitute.For<IUserEnrollmentService>();
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _datahubPortalConfiguration = Substitute.For<DatahubPortalConfiguration>();
+            _gcNotifyService = Substitute.For<IGCNotifyService>();
             _metadataService = CreateMockMetadataService();
             _projectCreationService = CreateMockedWorkspaceCreationService(_datahubPortalConfiguration, dbContextFactory, _userInformationService, _metadataService);
             _scenarioContext = scenarioContext;
@@ -74,7 +77,8 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 _userEnrollmentService,
                 _logger,
                 _sendEndpointProvider,
-                _datahubPortalConfiguration
+                _datahubPortalConfiguration,
+                _gcNotifyService
             );
         }
 

@@ -32,6 +32,9 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestDatahubResourceDeletedNotification">
         @Localizer["Send Datahub Resource Deleted Notification"]
     </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestDatahubWelcomeNotification">
+        @Localizer["Send Welcome Package Notification"]
+    </MudButton>
     <MudDivider />
 
     @*title*@
@@ -272,6 +275,11 @@
     private async Task TestDatahubResourceDeletedNotification()
     {
         await _gcNotifyService.SendDatahubResourceDeletedNotification(await _userInformationService.GetUserEmail(), "Storage", "Stockage", "TEST-EMAIL");
+    }
+
+    private async Task TestDatahubWelcomeNotification()
+    {
+        await _gcNotifyService.SendWelcomePackageNotification(await _userInformationService.GetUserEmail());
     }
 
     enum RecipientType
