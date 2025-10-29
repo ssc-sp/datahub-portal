@@ -275,7 +275,14 @@ public class HostingServicesController : ControllerBase
 
             _logger.LogInformation("Workspace creation details saved successfully.");
             _logger.LogInformation("Sending notification email to workspace lead.");
-            await _gcNotifyService.SendWelcomePackageNotification(workspaceDetails.LeadEmail);
+            try
+            {
+                await _gcNotifyService.SendWelcomePackageNotification(workspaceDetails.LeadEmail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending welcome package notification email.");
+            }
 
             // Return the workspace acronym, resource group name, and tenant ID.
             return Ok(new Dictionary<string, string>
