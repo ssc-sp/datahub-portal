@@ -38,6 +38,23 @@
                             <strong>@ViewedUser?.DisplayName</strong>
                         </MudText>
                         <MudText Typo="Typo.caption" Class="ml-2">@ViewedUser?.Email</MudText>
+                        @if (IsViewingOwnProfile)
+                        {
+                        <MudStack Row>
+                            <DatahubAuthView 
+                                AuthLevel="DatahubAuthView.AuthLevels.Personal" 
+                                UserGraphId="@ViewedUser.GraphGuid" 
+                                AllowedUsers="DatahubAuthView.UserType.TrustedGOCOnly">
+                                <MudChip T="string" Text="@Localizer["Trusted GC Login"]" Color="Color.Success" Class="ml-2" Tag=TRUSTED_LOGIN_TAG />
+                            </DatahubAuthView>
+                            <DatahubAuthView 
+                                AuthLevel="DatahubAuthView.AuthLevels.Personal" 
+                                UserGraphId="@ViewedUser.GraphGuid"
+                                AllowedUsers="DatahubAuthView.UserType.ExternalOnly">
+                                <MudChip T="string" Text="@Localizer["External Login"]" Color="Color.Info" Class="ml-2" Tag=EXTERNAL_USER_TAG />
+                            </DatahubAuthView>
+                        </MudStack>
+                        }
                     </MudStack>
                 </MudStack>
             </MudItem>
@@ -61,11 +78,16 @@
 
 @code {
 
+    public const string TRUSTED_LOGIN_TAG = "TrustedLoginChip";
+    public const string EXTERNAL_USER_TAG = "ExternalUserChip";
+
     private PortalUser _currentUser;
     [Parameter] public PortalUser ViewedUser { get; set; }
     [Parameter] public EventCallback<PortalUser> OnViewedUserChanged { get; set; }
     private string _userProjectGuid;
     private string _achievementsUrl => $"{PageRoutes.AccountPrefix}/{PersonalSidebar.SectionViews.Achievements}{(string.IsNullOrWhiteSpace(UserIdBase64) ? "" : $"?u={UserIdBase64}")}";
+
+    private bool IsViewingOwnProfile => _currentUser != null && _currentUser.GraphGuid == ViewedUser.GraphGuid;
 
     protected override async Task OnParametersSetAsync()
     {

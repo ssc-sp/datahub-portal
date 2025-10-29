@@ -3,6 +3,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 
 namespace Datahub.Application.RoleManagement;
 
@@ -10,6 +11,9 @@ namespace Datahub.Application.RoleManagement;
 public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogger<RoleClaimTransformer> logger)
     : IClaimsTransformation
 {
+    // Not included in ClaimTypes or ClaimConstants
+    public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
+
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
         try
@@ -41,6 +45,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                     claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
                 }
 
+                VerifyTrustedGovernmentLogin(claims);
+
                 // Ensure that the user can't be both approver and admin
                 bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
 
@@ -70,5 +76,34 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
             logger.LogCritical(ex, "Cannot load project permissions");
         }
         return principal!;
+    }
+
+    private void VerifyTrustedGovernmentLogin(ClaimsIdentity claims)
+    {
+        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_GOC_LOGIN) || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
+        {
+            // User is already marked as trusted or external
+            return;
+        }
+
+        var utid = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.UniqueTenantIdentifier)?.Value;
+
+        // we can inject config and get expected tenant id from there if needed
+        var tenantId = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.TenantId)?.Value;
+
+        var identityProviderClaim = claims.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE);
+
+        var tenantIssuer = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+        var idProvider = $"https://sts.windows.net/{utid}/";
+
+        //TODO verify that external logins don't match this criteria
+        bool trusted = identityProviderClaim != null && 
+            identityProviderClaim.Value == idProvider && 
+            identityProviderClaim.Issuer == tenantIssuer;
+
+        var trustedRole = trusted ? RoleConstants.TRUSTED_GOC_LOGIN : RoleConstants.EXTERNAL_LOGIN;
+        var trustedClaim = new Claim(ClaimTypes.Role, trustedRole);
+
+        claims.AddClaim(trustedClaim);
     }
 }
