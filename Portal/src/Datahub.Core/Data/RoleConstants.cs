@@ -24,7 +24,7 @@ public static class RoleConstants
     public const string DATAHUB_APPROVER_PROJECT = "DHAPPRV"; // 7 character max
     public const string DATAHUB_APPROVER_ROLE = DATAHUB_APPROVER_PROJECT + "-approver";
 
-    public const string TRUSTED_GOC_LOGIN = "trusted-goc-login";
+    public const string TRUSTED_ENTRA_LOGIN = "trusted-entra-login";
     public const string EXTERNAL_LOGIN = "external-login";
 
     public static string GetRoleConstants(Project_Role role)

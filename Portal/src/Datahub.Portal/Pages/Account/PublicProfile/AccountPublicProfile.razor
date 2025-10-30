@@ -44,8 +44,8 @@
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal" 
                                 UserGraphId="@ViewedUser.GraphGuid" 
-                                AllowedUsers="DatahubAuthView.UserType.TrustedGOCOnly">
-                                <MudChip T="string" Text="@Localizer["Trusted GC Login"]" Color="Color.Success" Class="ml-2" Tag=TRUSTED_LOGIN_TAG />
+                                AllowedUsers="DatahubAuthView.UserType.TrustedEntraOnly">
+                                <MudChip T="string" Text="@Localizer["Trusted Entra Login"]" Color="Color.Success" Class="ml-2" Tag=TRUSTED_LOGIN_TAG />
                             </DatahubAuthView>
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal" 

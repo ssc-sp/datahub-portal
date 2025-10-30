@@ -26,7 +26,7 @@
     public enum UserType
     {
         AllUsers,
-        TrustedGOCOnly,
+        TrustedEntraOnly,
         ExternalOnly,
     }
 
@@ -85,7 +85,7 @@
     private bool IsAllowedUserType() => AllowedUsers switch
     {
         UserType.AllUsers => true,
-        UserType.TrustedGOCOnly => _user?.IsInRole(RoleConstants.TRUSTED_GOC_LOGIN) ?? false,
+        UserType.TrustedEntraOnly => _user?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false,
         UserType.ExternalOnly => _user?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false,
         _ => false,
     };

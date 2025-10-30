@@ -45,7 +45,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                     claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
                 }
 
-                VerifyTrustedGovernmentLogin(claims);
+                VerifyTrustedEntraLogin(claims);
 
                 // Ensure that the user can't be both approver and admin
                 bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
@@ -78,9 +78,9 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
         return principal!;
     }
 
-    private void VerifyTrustedGovernmentLogin(ClaimsIdentity claims)
+    private void VerifyTrustedEntraLogin(ClaimsIdentity claims)
     {
-        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_GOC_LOGIN) || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
+        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN) || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
         {
             // User is already marked as trusted or external
             return;
@@ -101,7 +101,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
             identityProviderClaim.Value == idProvider && 
             identityProviderClaim.Issuer == tenantIssuer;
 
-        var trustedRole = trusted ? RoleConstants.TRUSTED_GOC_LOGIN : RoleConstants.EXTERNAL_LOGIN;
+        var trustedRole = trusted ? RoleConstants.TRUSTED_ENTRA_LOGIN : RoleConstants.EXTERNAL_LOGIN;
         var trustedClaim = new Claim(ClaimTypes.Role, trustedRole);
 
         claims.AddClaim(trustedClaim);

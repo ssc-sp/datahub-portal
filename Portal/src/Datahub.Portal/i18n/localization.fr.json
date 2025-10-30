@@ -3354,6 +3354,6 @@
   "Severity": "Sévérité",
   "Notice": "Avis",
   "Info": "Info",
-  "Trusted GC Login": "Connexion GC sécurisée",
+  "Trusted Entra Login": "Connexion Entra sécurisée",
   "External Login": "Connexion externe"
 }
