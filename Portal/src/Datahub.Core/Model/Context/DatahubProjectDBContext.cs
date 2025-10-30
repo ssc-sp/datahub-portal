@@ -303,6 +303,13 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<OpenGovPublishingBlocklist>()
             .HasIndex(b => b.Status);
 
+        modelBuilder.Entity<Datahub_Project>()
+            .HasOne(p => p.ParentGCHostingBudget)
+            .WithMany(g => g.WorkspacesInBudget)
+            .HasForeignKey(p => p.ParentGCHostingBudgetId)
+            .IsRequired(false);
+
+
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
             // SQLite does not have proper support for DateTimeOffset via Entity Framework Core, see the limitations

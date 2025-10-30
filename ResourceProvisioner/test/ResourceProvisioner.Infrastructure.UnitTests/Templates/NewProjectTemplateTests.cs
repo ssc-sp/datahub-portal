@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Datahub.Shared.Entities;
+using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 using ResourceProvisioner.Infrastructure.UnitTests.Collections;
@@ -143,7 +144,8 @@ public class NewProjectTemplateTests : TemplateTestCollection
             ["automation_account_uai_name"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_name,
             ["automation_account_uai_rg"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_rg,
             ["automation_account_uai_sub"] = _resourceProvisionerConfiguration.Terraform.Variables.automation_account_uai_sub,
-            ["log_analytics_workspace_id"] = _resourceProvisionerConfiguration.Terraform.Variables.log_analytics_workspace_id
+            ["log_analytics_workspace_id"] = _resourceProvisionerConfiguration.Terraform.Variables.log_analytics_workspace_id,
+            [nameof(Variables.ssc_cbrid)] = _resourceProvisionerConfiguration.Terraform.Variables.ssc_cbrid
         };
     }
 

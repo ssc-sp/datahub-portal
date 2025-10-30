@@ -86,7 +86,7 @@ namespace Datahub.Tests
             _component = new RegisterPage();
         }
 
-        private Bunit.TestContext SetupTestContext()
+        private Bunit.TestContext SetupTestContext(bool includeHttpClientFactory = false)
         {
             var workSpaces = new[] { "AAA", "BBB" };
             _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
@@ -141,6 +141,12 @@ namespace Datahub.Tests
             ctx.Services.AddSingleton<NavigationManager>(fakeNavigationManager);
 
             ctx.Services.AddMudServices();
+
+            if(includeHttpClientFactory)
+            {
+                ctx.Services.AddHttpClient();
+            }
+
             return ctx;
         }
 
@@ -198,7 +204,7 @@ namespace Datahub.Tests
                 IsLocked = true
             };
 
-            var ctx = SetupTestContext();
+            var ctx = SetupTestContext(includeHttpClientFactory: true);
 
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
@@ -241,7 +247,7 @@ namespace Datahub.Tests
                 IsLocked = false
             };
 
-            var ctx = SetupTestContext();
+            var ctx = SetupTestContext(includeHttpClientFactory: true);
 
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
