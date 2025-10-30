@@ -1,8 +1,17 @@
 @using Datahub.Core.Data
+@using Datahub.Metadata.Model
+@using System.Security.Claims
 
 <AuthorizeView Roles="@GetRoles()">
     <Authorized>
-        @(Authorized ?? ChildContent)
+        @if (IsAllowedUserType())
+        {
+            @AuthorizedContent
+        }
+        else
+        {
+            @NotAuthorized
+        }
     </Authorized>
     <NotAuthorized>
         @NotAuthorized
@@ -13,6 +22,13 @@
 </AuthorizeView>
 
 @code {
+
+    public enum UserType
+    {
+        AllUsers,
+        TrustedEntraOnly,
+        ExternalOnly,
+    }
 
     [Parameter]
     public RenderFragment ChildContent { get; set; }
@@ -38,6 +54,18 @@
     [Parameter]
     public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
+    [Parameter]
+    public UserType AllowedUsers { get; set; } = UserType.AllUsers;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+
+    #nullable enable
+    private ClaimsPrincipal? _user;
+    #nullable disable
+
+    private RenderFragment AuthorizedContent => Authorized ?? ChildContent;
+
     public enum AuthLevels
     {
         Authenticated,
@@ -52,6 +80,22 @@
         Unauthorized,
         CbrOwner,
         WorkspaceCbrOwner
+    }
+
+    private bool IsAllowedUserType() => AllowedUsers switch
+    {
+        UserType.AllUsers => true,
+        UserType.TrustedEntraOnly => _user?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false,
+        UserType.ExternalOnly => _user?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false,
+        _ => false,
+    };
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        _user = authState.User;
+        await base.OnInitializedAsync();
     }
 
     protected override void OnParametersSet()

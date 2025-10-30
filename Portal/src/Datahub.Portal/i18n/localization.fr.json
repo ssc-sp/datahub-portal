@@ -3353,5 +3353,7 @@
   "IMPORTANT": "IMPORTANT",
   "Severity": "Sévérité",
   "Notice": "Avis",
-  "Info": "Info"
+  "Info": "Info",
+  "Trusted Entra Login": "Connexion Entra sécurisée",
+  "External Login": "Connexion externe"
 }
