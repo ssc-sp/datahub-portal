@@ -220,30 +220,35 @@ namespace Datahub.SpecflowTests.Hooks
         {
             using var context = contextFactory.CreateDbContext();
 
+            // First, add and save the subscription
             var sub = new DatahubAzureSubscription
             {
                 TenantId = Testing.WorkspaceTenantGuid,
                 SubscriptionId = Testing.WorkspaceSubscriptionGuid,
                 SubscriptionName = Testing.SubscriptionName,
             };
+            context.AzureSubscriptions.Add(sub);
+            context.SaveChanges();
 
+            // Then create and add the projects with the subscription ID reference
             var projects = new List<Datahub_Project>
             {
                 new()
                 {
                     Project_Name = Testing.WorkspaceName,
                     Project_Acronym_CD = Testing.WorkspaceAcronym,
-                    DatahubAzureSubscription = sub
+                    DatahubAzureSubscription = sub,
+                    DatahubAzureSubscriptionId = sub.Id
                 },
                 new()
                 {
                     Project_Name = Testing.WorkspaceName2,
                     Project_Acronym_CD = Testing.WorkspaceAcronym2,
-                    DatahubAzureSubscription = sub
+                    DatahubAzureSubscription = sub,
+                    DatahubAzureSubscriptionId = sub.Id
                 }
             };
 
-            context.AzureSubscriptions.Add(sub);
             context.Projects.AddRange(projects);
             context.SaveChanges();
 
