@@ -3,8 +3,7 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
 @inject DatahubPortalConfiguration _config
-@inject IOpenGovBlocklistService _blocklistService
-@inject IProjectUserManagementService _projectUserManagementService
+@inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
 
 
@@ -82,36 +81,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await CheckPublishingBlocklistAsync();
-    }
-
-    private async Task CheckPublishingBlocklistAsync()
-    {
-        try
-        {
-            // Get the workspace lead
-            var workspaceLead = await _projectUserManagementService.GetProjectLeadAsync(WorkspaceAcronym);
-            
-            if (workspaceLead?.PortalUser?.Email != null)
-            {
-                // Extract the email domain (everything after @)
-                var email = workspaceLead.PortalUser.Email;
-                var atIndex = email.IndexOf('@');
-                
-                if (atIndex > 0 && atIndex < email.Length - 1)
-                {
-                    var emailDomain = email.Substring(atIndex);
-                    
-                    // Check if this domain is blocked
-                    _isPublishingBlockedForWorkspace = await _blocklistService.IsUserBlockedAsync(emailDomain);
-                }
-            }
-        }
-        catch
-        {
-            // In case of error, default to not blocking
-            _isPublishingBlockedForWorkspace = false;
-        }
+        _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
     }
 
     private async Task ShowPublishingBlockedDialog()

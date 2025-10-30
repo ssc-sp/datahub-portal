@@ -17,7 +17,6 @@
 @inject IMetadataBrokerService MetadataBrokerService
 @inject IProjectUserManagementService _projectUserManagementService
 @inject IOpenDataPublishingService _openDataPublishingService
-@inject IOpenGovBlocklistService _blocklistService
 @inject DatahubPortalConfiguration _config
 @inject IDialogService _dialogService
 
@@ -132,36 +131,8 @@
         var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
         _currentUserRole = projectUsers.FirstOrDefault(pu => pu.PortalUser.Id == currentUser.Id)?.Role;
         
-        await CheckPublishingBlocklistAsync();
-    }
-
-    private async Task CheckPublishingBlocklistAsync()
-    {
-        try
-        {
-            // Get the workspace lead
-            var workspaceLead = await _projectUserManagementService.GetProjectLeadAsync(ProjectAcronym);
-            
-            if (workspaceLead?.PortalUser?.Email != null)
-            {
-                // Extract the email domain (everything after @)
-                var email = workspaceLead.PortalUser.Email;
-                var atIndex = email.IndexOf('@');
-                
-                if (atIndex > 0 && atIndex < email.Length - 1)
-                {
-                    var emailDomain = email.Substring(atIndex);
-                    
-                    // Check if this domain is blocked
-                    _isPublishingBlockedForWorkspace = await _blocklistService.IsUserBlockedAsync(emailDomain);
-                }
-            }
-        }
-        catch
-        {
-            // In case of error, default to not blocking
-            _isPublishingBlockedForWorkspace = false;
-        }
+        // Check if publishing is blocked for this workspace
+        _isPublishingBlockedForWorkspace = await _openDataPublishingService.IsPublishingBlockedForWorkspaceAsync(ProjectAcronym);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -1,19 +1,23 @@
+using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Publishing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 
 namespace Datahub.Infrastructure.UnitTests.Services;
 
 using static Testing;
 
-public class OpenGovBlocklistServiceTests
+public class OpenDataPublishingServiceTests
 {
     private Mock<IDbContextFactory<DatahubProjectDBContext>> _mockFactory = null!;
     private Mock<IUserInformationService> _mockUserInformationService = null!;
+    private Mock<IMemoryCache> _mockMemoryCache = null!;
+    private Mock<IProjectUserManagementService> _mockProjectUserManagementService = null!;
     private DatahubProjectDBContext _dbContext = null!;
     private PortalUser _testCurrentUser = null!;
 
@@ -50,6 +54,19 @@ public class OpenGovBlocklistServiceTests
         _mockUserInformationService
             .Setup(f => f.GetCurrentPortalUserAsync())
             .ReturnsAsync(_testCurrentUser);
+
+        // Create a mock memory cache
+        _mockMemoryCache = new Mock<IMemoryCache>();
+        object? outValue = null;
+        _mockMemoryCache
+            .Setup(m => m.TryGetValue(It.IsAny<object>(), out outValue))
+            .Returns(false);
+        _mockMemoryCache
+            .Setup(m => m.CreateEntry(It.IsAny<object>()))
+            .Returns(Mock.Of<ICacheEntry>());
+
+        // Create a mock project user management service
+        _mockProjectUserManagementService = new Mock<IProjectUserManagementService>();
     }
 
     [TearDown]
@@ -64,7 +81,7 @@ public class OpenGovBlocklistServiceTests
     public async Task GetActiveBlocklistEntriesAsync_ShouldReturnOnlyActiveEntries()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -82,7 +99,7 @@ public class OpenGovBlocklistServiceTests
     public async Task GetActiveBlocklistEntriesAsync_ShouldOrderByDateAddedDescending()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -100,7 +117,7 @@ public class OpenGovBlocklistServiceTests
     public async Task GetActiveBlocklistEntriesAsync_ShouldIncludeAddedByUser()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -114,7 +131,7 @@ public class OpenGovBlocklistServiceTests
     public async Task GetActiveBlocklistEntriesAsync_ShouldReturnEmptyListWhenNoActiveEntries()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act
         var result = await service.GetActiveBlocklistEntriesAsync();
@@ -131,7 +148,7 @@ public class OpenGovBlocklistServiceTests
     public async Task GetBlocklistEntryAsync_ShouldReturnEntryWithUserDetails()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -152,7 +169,7 @@ public class OpenGovBlocklistServiceTests
     public void GetBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<InvalidOperationException>(
@@ -168,7 +185,7 @@ public class OpenGovBlocklistServiceTests
     public async Task IsUserBlockedAsync_ShouldReturnTrueWhenEmailDomainIsBlocked()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -182,7 +199,7 @@ public class OpenGovBlocklistServiceTests
     public async Task IsUserBlockedAsync_ShouldReturnFalseWhenEmailDomainNotBlocked()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -196,7 +213,7 @@ public class OpenGovBlocklistServiceTests
     public async Task IsUserBlockedAsync_ShouldReturnFalseWhenEmailDomainIsNull()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -210,7 +227,7 @@ public class OpenGovBlocklistServiceTests
     public async Task IsUserBlockedAsync_ShouldReturnFalseWhenEmailDomainIsWhitespace()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
 
         // Act
@@ -224,7 +241,7 @@ public class OpenGovBlocklistServiceTests
     public async Task IsUserBlockedAsync_ShouldReturnFalseWhenEntryIsDeleted()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         
         ctx.OpenGovPublishingBlocklist.Add(new OpenGovPublishingBlocklist
@@ -252,7 +269,7 @@ public class OpenGovBlocklistServiceTests
     public async Task AddBlocklistEntryAsync_ShouldCreateNewEntry()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         var departmentName = "Test Department";
         var emailHostname = "@test.gc.ca";
         var notes = "Test notes";
@@ -277,7 +294,7 @@ public class OpenGovBlocklistServiceTests
     public async Task AddBlocklistEntryAsync_ShouldTrimAndLowercaseEmailHostname()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         var emailHostname = "  @TEST.GC.CA  ";
 
         // Act
@@ -291,7 +308,7 @@ public class OpenGovBlocklistServiceTests
     public async Task AddBlocklistEntryAsync_ShouldTrimDepartmentName()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         var departmentName = "  Test Department  ";
 
         // Act
@@ -305,7 +322,7 @@ public class OpenGovBlocklistServiceTests
     public async Task AddBlocklistEntryAsync_ShouldHandleNullNotes()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act
         var result = await service.AddBlocklistEntryAsync("Test Dept", "@test.gc.ca", null);
@@ -318,7 +335,7 @@ public class OpenGovBlocklistServiceTests
     public async Task AddBlocklistEntryAsync_ShouldHandleEmptyDepartmentName()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act
         var result = await service.AddBlocklistEntryAsync("", "@test.gc.ca", "");
@@ -334,7 +351,7 @@ public class OpenGovBlocklistServiceTests
         _mockUserInformationService
             .Setup(f => f.GetCurrentPortalUserAsync())
             .ReturnsAsync((PortalUser)null);
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<InvalidOperationException>(
@@ -346,7 +363,7 @@ public class OpenGovBlocklistServiceTests
     public async Task AddBlocklistEntryAsync_ShouldPersistToDatabase()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         var departmentName = "Test Department";
         var emailHostname = "@test.gc.ca";
 
@@ -372,7 +389,7 @@ public class OpenGovBlocklistServiceTests
     public async Task UpdateBlocklistEntryAsync_ShouldUpdateExistingEntry()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -400,7 +417,7 @@ public class OpenGovBlocklistServiceTests
     public async Task UpdateBlocklistEntryAsync_ShouldTrimAndLowercaseValues()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -424,7 +441,7 @@ public class OpenGovBlocklistServiceTests
     public async Task UpdateBlocklistEntryAsync_ShouldSetNullForWhitespaceDepartmentName()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -444,7 +461,7 @@ public class OpenGovBlocklistServiceTests
     public async Task UpdateBlocklistEntryAsync_ShouldSetNullForWhitespaceEmailHostname()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -464,7 +481,7 @@ public class OpenGovBlocklistServiceTests
     public void UpdateBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<InvalidOperationException>(
@@ -476,7 +493,7 @@ public class OpenGovBlocklistServiceTests
     public async Task UpdateBlocklistEntryAsync_ShouldPersistChangesToDatabase()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -503,7 +520,7 @@ public class OpenGovBlocklistServiceTests
     public async Task DeleteBlocklistEntryAsync_ShouldMarkEntryAsDeleted()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -526,7 +543,7 @@ public class OpenGovBlocklistServiceTests
     public async Task DeleteBlocklistEntryAsync_ShouldSetDateRemoved()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -550,7 +567,7 @@ public class OpenGovBlocklistServiceTests
     public void DeleteBlocklistEntryAsync_ShouldThrowWhenEntryNotFound()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<InvalidOperationException>(
@@ -569,7 +586,7 @@ public class OpenGovBlocklistServiceTests
         _mockUserInformationService
             .Setup(f => f.GetCurrentPortalUserAsync())
             .ReturnsAsync((PortalUser)null);
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
 
         // Act & Assert
         var ex = Assert.ThrowsAsync<InvalidOperationException>(
@@ -581,7 +598,7 @@ public class OpenGovBlocklistServiceTests
     public async Task DeleteBlocklistEntryAsync_ShouldNotRemoveFromDatabase()
     {
         // Arrange
-        var service = GetBlocklistService();
+        var service = GetPublishingService();
         await SeedBlocklistData();
         await using var ctx = await _mockFactory.Object.CreateDbContextAsync();
         var existingEntry = await ctx.OpenGovPublishingBlocklist.FirstAsync();
@@ -600,11 +617,13 @@ public class OpenGovBlocklistServiceTests
 
     #region Helper Methods
 
-    private OpenGovBlocklistService GetBlocklistService()
+    private OpenDataPublishingService GetPublishingService()
     {
-        return new OpenGovBlocklistService(
+        return new OpenDataPublishingService(
+            _mockUserInformationService.Object,
             _mockFactory.Object,
-            _mockUserInformationService.Object);
+            _mockMemoryCache.Object,
+            _mockProjectUserManagementService.Object);
     }
 
     private async Task SeedBlocklistData()

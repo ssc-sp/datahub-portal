@@ -1,7 +1,7 @@
 @using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Datahub
 @using MudBlazor
-@inject IOpenGovBlocklistService _blocklistService
+@inject IOpenDataPublishingService _publishingService
 @inject IStringLocalizer Localizer
 
 <MudDialog>
@@ -103,7 +103,7 @@
         {
             if (IsEditMode)
             {
-                await _blocklistService.UpdateBlocklistEntryAsync(
+                await _publishingService.UpdateBlocklistEntryAsync(
                     _entryId,
                     _departmentName.Trim(),
                     _emailHostname.Trim(),
@@ -111,7 +111,7 @@
             }
             else
             {
-                await _blocklistService.AddBlocklistEntryAsync(
+                await _publishingService.AddBlocklistEntryAsync(
                     _departmentName.Trim(),
                     _emailHostname.Trim(),
                     _notes?.Trim());

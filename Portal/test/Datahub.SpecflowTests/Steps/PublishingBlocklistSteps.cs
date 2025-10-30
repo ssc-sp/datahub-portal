@@ -1,3 +1,4 @@
+using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
@@ -6,6 +7,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Services.Publishing;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using NSubstitute;
 using Reqnroll;
 
@@ -17,7 +19,9 @@ public sealed class PublishingBlocklistSteps
     private readonly ScenarioContext _scenarioContext;
     private IDbContextFactory<DatahubProjectDBContext> _mockFactory = null!;
     private IUserInformationService _mockUserInformationService = null!;
-    private IOpenGovBlocklistService _blocklistService = null!;
+    private IMemoryCache _mockMemoryCache = null!;
+    private IProjectUserManagementService _mockProjectUserManagementService = null!;
+    private IOpenDataPublishingService _publishingService = null!;
     private DatahubProjectDBContext _dbContext = null!;
     private PortalUser _testCurrentUser = null!;
     private OpenGovPublishingBlocklist _currentEntry = null!;
@@ -59,9 +63,14 @@ public sealed class PublishingBlocklistSteps
             .GetCurrentPortalUserAsync()
             .Returns(Task.FromResult<PortalUser?>(_testCurrentUser));
 
-        _blocklistService = new OpenGovBlocklistService(
+        _mockMemoryCache = Substitute.For<IMemoryCache>();
+        _mockProjectUserManagementService = Substitute.For<IProjectUserManagementService>();
+
+        _publishingService = new OpenDataPublishingService(
+            _mockUserInformationService,
             _mockFactory,
-            _mockUserInformationService);
+            _mockMemoryCache,
+            _mockProjectUserManagementService);
     }
 
     [Given(@"a publishing blocklist service with no existing entries")]
@@ -74,7 +83,7 @@ public sealed class PublishingBlocklistSteps
     public async Task GivenAPublishingBlocklistServiceWithAnEntryForEmailDomain(string emailDomain)
     {
         SetupService();
-        _currentEntry = await _blocklistService.AddBlocklistEntryAsync(
+        _currentEntry = await _publishingService.AddBlocklistEntryAsync(
             "Test Department",
             emailDomain,
             "Test notes");
@@ -88,7 +97,7 @@ public sealed class PublishingBlocklistSteps
         // Add active entries
         for (int i = 0; i < activeCount; i++)
         {
-            await _blocklistService.AddBlocklistEntryAsync(
+            await _publishingService.AddBlocklistEntryAsync(
                 $"Active Department {i + 1}",
                 $"@active{i + 1}.gc.ca",
                 $"Active notes {i + 1}");
@@ -97,18 +106,18 @@ public sealed class PublishingBlocklistSteps
         // Add and delete entries
         for (int i = 0; i < deletedCount; i++)
         {
-            var entry = await _blocklistService.AddBlocklistEntryAsync(
+            var entry = await _publishingService.AddBlocklistEntryAsync(
                 $"Deleted Department {i + 1}",
                 $"@deleted{i + 1}.gc.ca",
                 $"Deleted notes {i + 1}");
-            await _blocklistService.DeleteBlocklistEntryAsync(entry.Id);
+            await _publishingService.DeleteBlocklistEntryAsync(entry.Id);
         }
     }
 
     [When(@"a new blocklist entry is added with department ""(.*)"" and email domain ""(.*)""")]
     public async Task WhenANewBlocklistEntryIsAddedWithDepartmentAndEmailDomain(string department, string emailDomain)
     {
-        _currentEntry = await _blocklistService.AddBlocklistEntryAsync(
+        _currentEntry = await _publishingService.AddBlocklistEntryAsync(
             department,
             emailDomain,
             "Test notes");
@@ -117,13 +126,13 @@ public sealed class PublishingBlocklistSteps
     [When(@"checking if email domain ""(.*)"" is blocked")]
     public async Task WhenCheckingIfEmailDomainIsBlocked(string emailDomain)
     {
-        _isUserBlocked = await _blocklistService.IsUserBlockedAsync(emailDomain);
+        _isUserBlocked = await _publishingService.IsUserBlockedAsync(emailDomain);
     }
 
     [When(@"the blocklist entry is updated with department ""(.*)"" and email domain ""(.*)""")]
     public async Task WhenTheBlocklistEntryIsUpdatedWithDepartmentAndEmailDomain(string department, string emailDomain)
     {
-        _currentEntry = await _blocklistService.UpdateBlocklistEntryAsync(
+        _currentEntry = await _publishingService.UpdateBlocklistEntryAsync(
             _currentEntry.Id,
             department,
             emailDomain,
@@ -133,7 +142,7 @@ public sealed class PublishingBlocklistSteps
     [When(@"the blocklist entry is deleted")]
     public async Task WhenTheBlocklistEntryIsDeleted()
     {
-        await _blocklistService.DeleteBlocklistEntryAsync(_currentEntry.Id);
+        await _publishingService.DeleteBlocklistEntryAsync(_currentEntry.Id);
         // Refresh the entry from the database
         await using var ctx = await _mockFactory.CreateDbContextAsync();
         _currentEntry = (await ctx.OpenGovPublishingBlocklist.FindAsync(_currentEntry.Id))!;
@@ -142,7 +151,7 @@ public sealed class PublishingBlocklistSteps
     [When(@"retrieving active blocklist entries")]
     public async Task WhenRetrievingActiveBlocklistEntries()
     {
-        _activeEntries = await _blocklistService.GetActiveBlocklistEntriesAsync();
+        _activeEntries = await _publishingService.GetActiveBlocklistEntriesAsync();
     }
 
     [Then(@"the blocklist should contain (\d+) entry")]
@@ -199,7 +208,7 @@ public sealed class PublishingBlocklistSteps
     [Then(@"the user should not be blocked when checking email domain ""(.*)""")]
     public async Task ThenTheUserShouldNotBeBlockedWhenCheckingEmailDomain(string emailDomain)
     {
-        var isBlocked = await _blocklistService.IsUserBlockedAsync(emailDomain);
+        var isBlocked = await _publishingService.IsUserBlockedAsync(emailDomain);
         isBlocked.Should().BeFalse();
     }
 
