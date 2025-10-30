@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Microsoft.AspNetCore.Authentication;
@@ -8,7 +9,7 @@ using Microsoft.Identity.Web;
 namespace Datahub.Application.RoleManagement;
 
 //https://stackoverflow.com/questions/58483620/net-core-3-0-claimstransformation
-public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogger<RoleClaimTransformer> logger)
+public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, DatahubPortalConfiguration portalConfiguration, ILogger<RoleClaimTransformer> logger)
     : IClaimsTransformation
 {
     // Not included in ClaimTypes or ClaimConstants
@@ -88,8 +89,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
 
         var utid = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.UniqueTenantIdentifier)?.Value;
 
-        // we can inject config and get expected tenant id from there if needed
-        var tenantId = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.TenantId)?.Value;
+        var tenantId = portalConfiguration.AzureAd.TenantId;
 
         var identityProviderClaim = claims.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE);
 
@@ -97,8 +97,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
         var idProvider = $"https://sts.windows.net/{utid}/";
 
         //TODO verify that external logins don't match this criteria
-        bool trusted = identityProviderClaim != null && 
-            identityProviderClaim.Value == idProvider && 
+        bool trusted = identityProviderClaim != null &&
+            identityProviderClaim.Value == idProvider &&
             identityProviderClaim.Issuer == tenantIssuer;
 
         var trustedRole = trusted ? RoleConstants.TRUSTED_ENTRA_LOGIN : RoleConstants.EXTERNAL_LOGIN;

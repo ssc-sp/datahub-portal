@@ -37,6 +37,7 @@ public class AccountPageSteps : TestContext
 {
     private readonly ScenarioContext _scenarioContext;
     private IRenderedComponent<CascadingAuthenticationState>? _accountPageRender;
+    private readonly DatahubPortalConfiguration _portalConfig = new();
 
     private const string TEST_USER_EMAIL = "test@example.com";
     private const string TEST_USER_DISPLAY_NAME = "Test User";
@@ -54,10 +55,12 @@ public class AccountPageSteps : TestContext
                 new Claim(ClaimConstants.ObjectId, TEST_USER_OID),
             ], "TestAuth");
 
+        var tenantId = Guid.NewGuid().ToString();
+        _portalConfig.AzureAd.TenantId = tenantId;
+
         if (gocUser)
         {
             var utid = Guid.NewGuid().ToString();
-            var tenantId = Guid.NewGuid().ToString();
             userClaimsIdentity.AddClaim(new Claim(ClaimConstants.UniqueTenantIdentifier, utid));
             userClaimsIdentity.AddClaim(new Claim(ClaimConstants.TenantId, tenantId));
 
@@ -71,7 +74,7 @@ public class AccountPageSteps : TestContext
         var serviceAuthManager = Substitute.For<IServiceAuthManager>();
         serviceAuthManager.GetUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
 
-        var transformer = new RoleClaimTransformer(serviceAuthManager, Substitute.For<ILogger<RoleClaimTransformer>>());
+        var transformer = new RoleClaimTransformer(serviceAuthManager, _portalConfig, Substitute.For<ILogger<RoleClaimTransformer>>());
         userPrincipal = await transformer.TransformAsync(userPrincipal);
 
         var authContext = new TestAuthorizationContext
@@ -143,9 +146,8 @@ public class AccountPageSteps : TestContext
         Services.AddSingleton<IUserInformationService>(mockUserInfo);
         Services.AddSingleton<ILogger<AccountPage>>(new LoggerFactory().CreateLogger<AccountPage>());
 
-        var config = new DatahubPortalConfiguration();
-        Services.AddSingleton(config);
-        Services.AddDatahubLocalization(config);
+        Services.AddSingleton(_portalConfig);
+        Services.AddDatahubLocalization(_portalConfig);
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         workspaceVersionService.GetLatestVersionAsync().Returns(Task.FromResult("v1.0.0"));
