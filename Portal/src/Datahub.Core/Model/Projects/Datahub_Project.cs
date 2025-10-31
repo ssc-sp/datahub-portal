@@ -422,6 +422,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
         {
             Name = Project_Name,
             Acronym = Project_Acronym_CD,
+            SSCCBRID = ParentGCHostingBudget?.CBRID ?? string.Empty,
             BudgetAmount = Convert.ToDouble(Project_Budget),
             Version = Version ?? TerraformWorkspace.DefaultVersion,
             TerraformOrganization = new TerraformOrganization()
