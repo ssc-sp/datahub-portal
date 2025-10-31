@@ -1,5 +1,7 @@
 # Setting up a workstation to develop with FSDH
 
+## Option 1: WSL
+
 ## Step 1: Install WSL 2
 
 WSL is part of the standard catalog of SSC applications. It can be requested through the `Employee Service Portal`. WSL 2 provides a complete Linux environment on Windows, which is essential for running the development tools and scripts used in this project. Once installed, you'll have access to a Linux terminal where you can run bash commands and install Linux packages needed for development.
@@ -18,6 +20,20 @@ sudo apt install dotnet-sdk-9.0
 ```
 
 ## Step 4: Populate settings
+
+This step generates all the necessary configuration files and settings required for local development. The script will create template configuration files with default values that you can customize for your development environment. Make sure you're in the root directory of the project before running this command.
+
+```bash
+./gen-all-settings.ps1
+```
+
+## Option 2: Windows Native
+
+### Step 1: Install Powershell
+
+PowerShell 7 is required for running the configuration and build scripts in this project. This is available through the Company Portal. 
+
+## Step 2: Populate settings
 
 This step generates all the necessary configuration files and settings required for local development. The script will create template configuration files with default values that you can customize for your development environment. Make sure you're in the root directory of the project before running this command.
 
