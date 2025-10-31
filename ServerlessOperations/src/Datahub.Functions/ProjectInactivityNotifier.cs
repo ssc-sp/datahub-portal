@@ -121,11 +121,6 @@ namespace Datahub.Functions
                    !hasCostRecovery;
         }
 
-        public async Task<WorkspaceDefinition?> DeleteProject(string acronym)
-        {
-            return await _resourceMessagingService.GetWorkspaceDefinition(acronym);
-        }
-
         private async Task<(List<string>, string)> GetProjectDetails(int projectId, CancellationToken cancellationToken)
         {
             var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
