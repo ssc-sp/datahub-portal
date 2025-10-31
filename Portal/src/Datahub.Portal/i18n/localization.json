@@ -2362,5 +2362,7 @@
   "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.": "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.",
   "INFO": "INFO",
   "NOTICE": "NOTICE",
-  "IMPORTANT": "IMPORTANT"
+  "IMPORTANT": "IMPORTANT",
+  "Trusted Entra Login": "Trusted Entra Login",
+  "External Login": "External Login"
 }
