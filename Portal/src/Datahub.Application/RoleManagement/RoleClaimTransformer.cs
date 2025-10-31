@@ -1,15 +1,20 @@
 ﻿using System.Security.Claims;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Logging;
+using Microsoft.Identity.Web;
 
 namespace Datahub.Application.RoleManagement;
 
 //https://stackoverflow.com/questions/58483620/net-core-3-0-claimstransformation
-public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogger<RoleClaimTransformer> logger)
+public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, DatahubPortalConfiguration portalConfiguration, ILogger<RoleClaimTransformer> logger)
     : IClaimsTransformation
 {
+    // Not included in ClaimTypes or ClaimConstants
+    public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
+
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
         try
@@ -41,6 +46,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
                     claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
                 }
 
+                VerifyTrustedEntraLogin(claims);
+
                 // Ensure that the user can't be both approver and admin
                 bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
 
@@ -70,5 +77,33 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, ILogge
             logger.LogCritical(ex, "Cannot load project permissions");
         }
         return principal!;
+    }
+
+    private void VerifyTrustedEntraLogin(ClaimsIdentity claims)
+    {
+        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN) || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
+        {
+            // User is already marked as trusted or external
+            return;
+        }
+
+        var utid = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.UniqueTenantIdentifier)?.Value;
+
+        var tenantId = portalConfiguration.AzureAd.TenantId;
+
+        var identityProviderClaim = claims.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE);
+
+        var tenantIssuer = $"https://login.microsoftonline.com/{tenantId}/v2.0";
+        var idProvider = $"https://sts.windows.net/{utid}/";
+
+        //TODO verify that external logins don't match this criteria
+        bool trusted = identityProviderClaim != null &&
+            identityProviderClaim.Value == idProvider &&
+            identityProviderClaim.Issuer == tenantIssuer;
+
+        var trustedRole = trusted ? RoleConstants.TRUSTED_ENTRA_LOGIN : RoleConstants.EXTERNAL_LOGIN;
+        var trustedClaim = new Claim(ClaimTypes.Role, trustedRole);
+
+        claims.AddClaim(trustedClaim);
     }
 }
