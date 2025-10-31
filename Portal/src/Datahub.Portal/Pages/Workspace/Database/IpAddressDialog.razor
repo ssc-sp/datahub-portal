@@ -1,0 +1,83 @@
+﻿@using MudBlazor
+@using System.Net
+@inject Microsoft.Extensions.Localization.IStringLocalizer<IpAddressDialog> Localizer
+
+<MudDialog Style="min-width: 40vw; max-width: 50vw;">
+    <DialogContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="StartIp" Label="@Localizer["Start IP Address"]" Required="true" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="EndIp" Label="@Localizer["End IP Address"]" />
+            </MudItem>
+        </MudGrid>
+        <MudText Color="Color.Error">@ErrorMessage</MudText>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Submit" Color="Color.Primary">@Localizer["Ok"]</MudButton>
+        <MudButton OnClick="Cancel" Color="Color.Secondary">@Localizer["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; }
+    public string StartIp { get; set; }
+    public string EndIp { get; set; }
+    public string ErrorMessage { get; set; }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        if (!IPAddress.TryParse(StartIp, out var startIp))
+        {
+            ErrorMessage = Localizer["Invalid IP address."];
+            return;
+        }
+
+        bool isRange = !string.IsNullOrWhiteSpace(EndIp);
+
+        if (isRange)
+        {
+            if (!IPAddress.TryParse(EndIp, out var endIp))
+            {
+                ErrorMessage = Localizer["Invalid IP address."];
+                return;
+            }
+
+            if (!IsValidRange(startIp, endIp))
+            {
+                ErrorMessage = Localizer["Invalid IP range."];
+                return;
+            }
+        }
+
+        MudDialog.Close(DialogResult.Ok(new IpDialogResult
+            {
+                StartIp = StartIp,
+                EndIp = isRange ? EndIp : StartIp
+            }));
+    }
+
+    private bool IsValidRange(IPAddress start, IPAddress end)
+    {
+        var startBytes = start.GetAddressBytes();
+        var endBytes = end.GetAddressBytes();
+
+        // Check if first 3 octets are the same (i.e., within 255.255.255.0)
+        for (int i = 0; i < 3; i++)
+        {
+            if (startBytes[i] != endBytes[i])
+                return false;
+        }
+        // Ensure start <= end
+        return startBytes[3] <= endBytes[3];
+    }
+
+    public class IpDialogResult
+    {
+        public string StartIp { get; set; }
+        public string EndIp { get; set; }
+    }
+}
