@@ -170,6 +170,22 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
+    public async Task SendWorkspaceInactiveNotification(string email, string daysSinceLastLogin)
+    {
+        using var _ = _logger.BeginScope("WorkspaceInactiveNotification {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing workspace inactive notification. daysSinceLastLogin={daysSinceLastLogin}", daysSinceLastLogin);
+        var templateId = GetTemplateId("workspace-inactive", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId,
+            personalisation = new { daysSinceLastLogin }
+        };
+        _logger.LogDebug("Dispatching workspace inactive notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     public async Task SendDataHubErrorNotification(string errorMessage, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca")
     {
         using var _ = _logger.BeginScope("DataHubErrorNotification {Email}", MaskEmail(email));
