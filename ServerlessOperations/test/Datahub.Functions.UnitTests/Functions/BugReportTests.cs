@@ -16,6 +16,7 @@ using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using Datahub.Application.Services.Notification;
 
 namespace Datahub.Functions.UnitTests.Functions;
 
@@ -63,11 +64,11 @@ public class BugReportTests
         _config["BugReportTeamsWebhookUrl"].Returns("https://fake_webhook_url.tld");
         _azureConfig = new AzureConfig(_config);
 
-        _emailService = new EmailService(_loggerFactory.CreateLogger<EmailService>());
+        var gcNotifyService = Substitute.For<IGCNotifyService>();
  
         _alertRecordService = Substitute.For<IAlertRecordService>();
 
-        _bugReport = new BugReport(_logger, _azureConfig, _emailService, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
+        _bugReport = new BugReport(_logger, _azureConfig, gcNotifyService, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",
@@ -84,25 +85,6 @@ public class BugReportTests
             BugReportType: BugReportTypes.SupportRequest,
             Description: "Test report"
         );
-    }
-
-    [Test]
-    public void BuildEmail_WithValidInputs_ReturnsEmailRequestMessage()
-    {
-        // Arrange
-        var response = new WorkItem()
-        {
-            Id = 0,
-            Url = "Test Url"
-        };
-
-        // Act
-        var result = _bugReport.BuildEmail(_bugReportMessage, response);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.To[0].Should().Be(_azureConfig.Email.AdminEmail);
-        result.Template.Should().Be("bug_report.html");
     }
 
     [Test]
