@@ -75,14 +75,13 @@
         <MudItem xs="10">
             @if (_recipientType == RecipientType.Projects)
             {
-                <MudSelect
-                    T="string"
-                    SelectedValues=@_selectedProjects
-                    MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
-                    SelectedValuesChanged=@HandleSelectedValuesChanged
-                    MultiSelection="true"
-                    Label="Select workspaces"
-                    Variant="Variant.Outlined">
+                <MudSelect T="string"
+                           SelectedValues=@_selectedProjects
+                           MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
+                           SelectedValuesChanged=@HandleSelectedValuesChanged
+                           MultiSelection="true"
+                           Label="Select workspaces"
+                           Variant="Variant.Outlined">
 
                     @foreach (var p in _projects)
                     {
@@ -104,7 +103,7 @@
                               HelperText=@Localizer["Enter email addresses separated by commas"]
                               Adornment=@Adornment.End
                               AdornmentIcon=@Icons.Material.Filled.Email
-                              Variant="Variant.Outlined"/>
+                              Variant="Variant.Outlined" />
             }
         </MudItem>
     </MudGrid>
@@ -115,25 +114,25 @@
                   Label=@Localizer["Subject"]
                   Adornment="@Adornment.End"
                   AdornmentIcon="@Icons.Material.Filled.Subject"
-                  Variant="Variant.Outlined"/>
+                  Variant="Variant.Outlined" />
 
     @*body*@
-    <DHMarkdownEditor InitialValue="@_emailBody" ValueChanged="HandleBodyChanged"/>
+    <DHMarkdownEditor InitialValue="@_emailBody" ValueChanged="HandleBodyChanged" />
 
     @*buttons*@
     <MudStack Row Justify="Justify.FlexStart">
         <DHButton Variant="Variant.Filled"
-                   EndIcon="@Icons.Material.Filled.Send"
-                   Color="Color.Warning"
-                   Disabled="@IsPreviewDisabled()"
-                   OnClick="@HandleEmailYourself">
+                  EndIcon="@Icons.Material.Filled.Send"
+                  Color="Color.Warning"
+                  Disabled="@IsPreviewDisabled()"
+                  OnClick="@HandleEmailYourself">
             @Localizer["Send Preview to yourself"]
         </DHButton>
         <DHButton Variant="Variant.Filled"
-                   EndIcon="@Icons.Material.Filled.Send"
-                   Color="Color.Primary"
-                   Disabled="@IsSendDisabled()"
-                   OnClick="@HandleSendEmail">
+                  EndIcon="@Icons.Material.Filled.Send"
+                  Color="Color.Primary"
+                  Disabled="@IsSendDisabled()"
+                  OnClick="@HandleSendEmail">
             @Localizer["Send"]
         </DHButton>
     </MudStack>
