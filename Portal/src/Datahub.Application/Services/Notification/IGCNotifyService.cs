@@ -12,6 +12,7 @@ public interface IGCNotifyService
     Task SendDataHubErrorNotification(string errorMessage, string email);
     Task SendDatahubResourceDeletedNotification(string email, string resource, string resource_fr, string acro);
     Task SendWelcomePackageNotification(string email);
+    Task SendWorkspaceInactiveNotification(string email, string daysSince);
     string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration);
     string GetTemplateId(string templateName, string mappingsJson);
     Task<bool> CheckHealthAsync();

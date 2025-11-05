@@ -154,7 +154,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendWorkspaceCostNotification(string email, string perc, string acro)
     {
-        using var _ = _logger.BeginScope("WorkspaceCostNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("WorkspaceCostNotification {Email}", "<redacted>");
         _logger.LogInformation("Composing workspace cost notification. perc={Perc}, acro={Acro}", perc, acro);
 
         var templateId = GetTemplateId("cost-alert", _mappingsJson);
@@ -166,6 +166,22 @@ public class GCNotifyService : IGCNotifyService
         };
 
         _logger.LogDebug("Dispatching workspace cost notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
+    public async Task SendWorkspaceInactiveNotification(string email, string daysSinceLastLogin)
+    {
+        using var _ = _logger.BeginScope("WorkspaceInactiveNotification {Email}", "<redacted>");
+        _logger.LogInformation("Composing workspace inactive notification. daysSinceLastLogin={daysSinceLastLogin}", daysSinceLastLogin);
+        var templateId = GetTemplateId("workspace-inactive", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId,
+            personalisation = new { daysSinceLastLogin }
+        };
+        _logger.LogDebug("Dispatching workspace inactive notification with template {TemplateId}", templateId);
         string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
