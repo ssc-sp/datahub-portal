@@ -1048,6 +1048,7 @@
   "Last Modified": "Last Modified",
   "Last Name": "Last Name",
   "Last Update": "Last Update",
+  "Last update: {0}": "Last update: {0}",
   "Last day": "Last day",
   "Last login date": "Last login date",
   "Last login: {0}": "Last login: {0}",
@@ -2361,5 +2362,7 @@
   "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.": "There is a configuration update available for this tool. Please upgrade your workspace version in order to access the latest features.",
   "INFO": "INFO",
   "NOTICE": "NOTICE",
-  "IMPORTANT": "IMPORTANT"
+  "IMPORTANT": "IMPORTANT",
+  "Trusted Entra Login": "Trusted Entra Login",
+  "External Login": "External Login"
 }
