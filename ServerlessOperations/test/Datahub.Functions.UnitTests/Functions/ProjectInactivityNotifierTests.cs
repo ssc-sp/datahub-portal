@@ -74,7 +74,7 @@ public class ProjectInactivityNotifierTests
         _dateProvider.ProjectNotificationDays().Returns(notificationDays);
 
         // Act
-        var result = await _sut.CheckIfProjectToBeNotified(10, daysUntilDeletion, null,
+        var result = _sut.CheckIfProjectToBeNotified(10, daysUntilDeletion, null,
              "", new List<string>());
 
         // Assert
@@ -93,7 +93,7 @@ public class ProjectInactivityNotifierTests
         _dateProvider.ProjectNotificationDays().Returns(notificationDays);
 
         // Act
-        var result = await _sut.CheckIfProjectToBeNotified(daysUntilDeletion, 10, null,
+        var result = _sut.CheckIfProjectToBeNotified(daysUntilDeletion, 10, null,
             "", new List<string>());
 
         // Assert
@@ -110,7 +110,7 @@ public class ProjectInactivityNotifierTests
         _dateProvider.ProjectNotificationDays().Returns(new[] { 10 });
 
         // Act
-        var result = await _sut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
+        var result = _sut.CheckIfProjectToBeNotified(10, 10, operationalWindow,
             "", new List<string>());
 
         // Assert

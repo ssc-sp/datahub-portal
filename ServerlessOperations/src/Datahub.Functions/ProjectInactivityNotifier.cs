@@ -96,7 +96,7 @@ namespace Datahub.Functions
             }
         }
 
-        public async Task<bool> CheckIfProjectToBeNotified(int daysUntilDeletion,
+        public bool CheckIfProjectToBeNotified(int daysUntilDeletion,
             int daysSinceLastLogin, DateTime? operationalWindow, string acronym,
             List<string> contacts)
         {
