@@ -76,7 +76,7 @@ namespace Datahub.Functions
             _logger.LogInformation("Project {Acronym} (ID: {ProjectId}) last activity: {LastLoginDate}, inactive for {DaysSinceLastLogin} days, {DaysUntilDeletion} days until soft deletion.",
                 acronym, message.ProjectId, lastLoginDate, daysSinceLastLogin, daysUntilDeletion);
         
-            if (await CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow, acronym, contacts))
+            if (CheckIfProjectToBeNotified(daysUntilDeletion, daysSinceLastLogin, operationalWindow, acronym, contacts))
             {
                 var adminContact = new List<string>() { config.Email.AdminEmail };
                 await gcNotifyService.SendWorkspaceInactiveNotification(adminContact[0], daysSinceLastLogin.ToString());
