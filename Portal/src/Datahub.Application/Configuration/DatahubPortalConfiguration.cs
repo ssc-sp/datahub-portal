@@ -76,10 +76,10 @@ public class Media
 public class TermsAndConditionsUrl
 {
     public string En { get; set; } =
-        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/UserGuide/POC-Terms-And-Conditions.md";
+        "https://fsdhstaticassetstorage.blob.core.windows.net/docs/UserGuide/POC-Terms-And-Conditions.md";
 
     public string Fr { get; set; } =
-        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/fr/UserGuide/Conditions-g%C3%A9n%C3%A9rales-de-POC.md";
+        "https://fsdhstaticassetstorage.blob.core.windows.net/docs/fr/UserGuide/Conditions-g%C3%A9n%C3%A9rales-de-POC.md";
 }
 
 public class PreRegistrationDocumentationUrl
