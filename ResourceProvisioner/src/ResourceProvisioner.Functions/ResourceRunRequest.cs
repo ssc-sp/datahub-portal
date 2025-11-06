@@ -20,6 +20,12 @@ public class ResourceRunRequest(ILoggerFactory loggerFactory, IRepositoryService
     {
         _logger.LogInformation("C# Queue trigger function started");
         
+        _logger.LogInformation("Processing ServiceBus message - MessageId: {MessageId}, DeliveryCount: {DeliveryCount}, EnqueuedTime: {EnqueuedTime}", 
+            myQueueItem.MessageId, myQueueItem.DeliveryCount, myQueueItem.EnqueuedTime);
+
+
+        _logger.LogInformation("ServiceBus message body: {MessageBody}", myQueueItem.Body.ToString());
+
         var deserializeOptions = new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
