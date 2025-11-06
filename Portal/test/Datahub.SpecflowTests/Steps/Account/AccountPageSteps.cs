@@ -164,6 +164,9 @@ public class AccountPageSteps : TestContext
         localTz.GetLocalTimeZoneAsync(null).Returns(ValueTask.FromResult(TimeZoneInfo.Utc));
         Services.AddSingleton(localTz);
 
+        var cultureService = Substitute.For<ICultureService>();
+        Services.AddSingleton(cultureService);
+
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
     }
 
