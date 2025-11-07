@@ -34,6 +34,12 @@ public class TerraformOutputHandler(
     {
         _logger.LogInformation($"C# Queue trigger function started");
 
+        // Log ServiceBusReceivedMessage details
+        _logger.LogInformation("ServiceBus message received - MessageId: {MessageId}, CorrelationId: {CorrelationId}, Subject: {Subject}, ContentType: {ContentType}", 
+            message.MessageId, message.CorrelationId, message.Subject, message.ContentType);
+        
+        _logger.LogInformation("ServiceBus message body: {MessageBody}", message.Body.ToString());
+                
         // test for ping
         // if (await pongService.Pong(message.Body.ToString()))
         // return;
@@ -59,7 +65,6 @@ public class TerraformOutputHandler(
         }
 
         await ProcessPostTerraformTriggers(output);
-
 
         _logger.LogInformation("C# Queue trigger function finished");
     }
