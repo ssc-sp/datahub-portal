@@ -10,23 +10,18 @@ namespace Datahub.Core.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // Drop FK from GCHostingWorkspaceDetails to Projects (legacy1:1 using the same Id)
-            migrationBuilder.DropForeignKey(
-                name: "FK_GCHostingWorkspaceDetails_Projects_Id",
-                table: "GCHostingWorkspaceDetails");
+            // Drop FK from GCHostingWorkspaceDetails to Projects (legacy1:1 using the same Id) - only if it exists
+            migrationBuilder.Sql(@"
+IF EXISTS (SELECT 1 FROM sys.foreign_keys WHERE name = N'FK_GCHostingWorkspaceDetails_Projects_Id' AND parent_object_id = OBJECT_ID(N'[dbo].[GCHostingWorkspaceDetails]'))
+BEGIN
+ ALTER TABLE [dbo].[GCHostingWorkspaceDetails] DROP CONSTRAINT [FK_GCHostingWorkspaceDetails_Projects_Id];
+END
+");
 
             // Drop FK from Projects -> GCHostingWorkspaceDetails so we can rebuild the table
             migrationBuilder.DropForeignKey(
                 name: "FK_Projects_GCHostingWorkspaceDetails_ParentGCHostingBudgetId",
                 table: "Projects");
-
-            // New column unrelated to the identity change
-            migrationBuilder.AddColumn<bool>(
-                name: "AnnouncementCreated",
-                table: "VersionTags",
-                type: "bit",
-                nullable: false,
-                defaultValue: false);
 
             // Rebuild GCHostingWorkspaceDetails with Id as IDENTITY; preserve data and Id values
             migrationBuilder.Sql(@"
@@ -106,11 +101,6 @@ COMMIT;
             migrationBuilder.DropForeignKey(
                 name: "FK_Projects_GCHostingWorkspaceDetails_ParentGCHostingBudgetId",
                 table: "Projects");
-
-            // Remove the extra column
-            migrationBuilder.DropColumn(
-                name: "AnnouncementCreated",
-                table: "VersionTags");
 
             // Rebuild GCHostingWorkspaceDetails with Id as non-identity and restore legacy FK to Projects(Id)
             migrationBuilder.Sql(@"
