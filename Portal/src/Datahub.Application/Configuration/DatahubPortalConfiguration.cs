@@ -260,7 +260,7 @@ public class CkanConfiguration
 
 public class StorageConfiguration
 {
-    public string BlockedFileExtensions { get; set; } = ".exe,.dll,.bat,.cmd,.sh,.js,.jar,.msi,.com,.scr,.pif,.cpl";
+    public string BlockedFileExtensions { get; set; } = ".ace,.ade,.adp,.ani,.app,.apk,.bas,.bat,.chm,.cmd,.com,.cpl,.crt,.docm,.dll,.exe,.hlp,.ht,.hta,.inf,.ins,.isp,.jar,.job,.js,.jse,.lnk,.mda,.mdb,.mde,.mdz,.msc,.msi,.msp,.mst,.pcd,.pif,.reg,.scr,.sct,.shs,.url,.vb,.vbe,.vbs,.wsc,.wsf,.wsh";
     public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
         .AsReadOnly();
