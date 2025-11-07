@@ -252,7 +252,7 @@
             }
 
             _logger.LogInformation("User has been registered");
-            _snackbar.Add(Localizer["Registration successful! Please login to continue"], Severity.Success);
+            _snackbar.Add(Localizer["Registration successful! Please log in to continue"], Severity.Success);
             _navigationManager.NavigateTo(Localizer["/login"]);
         }
         else

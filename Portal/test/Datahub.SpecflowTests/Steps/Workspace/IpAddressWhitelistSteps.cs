@@ -16,27 +16,31 @@ public class IpAddressWhitelistSteps(ScenarioContext scenarioContext)
     {
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .EnableSensitiveDataLogging()
             .Options;
         var dbContextFactory = new SpecFlowDbContextFactory(options);
 
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
+        
+        // First, add and save the subscription
         var azureSubscription = new DatahubAzureSubscription
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             SubscriptionName = Testing.SubscriptionName,
             TenantId = Testing.WorkspaceTenantGuid,
         };
+        dbContext.AzureSubscriptions.Add(azureSubscription);
+        await dbContext.SaveChangesAsync();
 
+        // Then create and add the workspace with the subscription ID reference
         var workspace = new Datahub_Project
         {
             Project_Name = Testing.WorkspaceName,
             Project_Acronym_CD = Testing.WorkspaceAcronym,
-            DatahubAzureSubscription = azureSubscription
+            DatahubAzureSubscription = azureSubscription,
+            DatahubAzureSubscriptionId = azureSubscription.Id
         };
-
-        dbContext.AzureSubscriptions.Add(azureSubscription);
         dbContext.Projects.Add(workspace);
-
         await dbContext.SaveChangesAsync();
         
         scenarioContext["dbContextFactory"] = dbContextFactory;
