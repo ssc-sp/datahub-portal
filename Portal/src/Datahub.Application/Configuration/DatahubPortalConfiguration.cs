@@ -49,6 +49,7 @@ public class DatahubPortalConfiguration
     public int DefaultProjectBudget { get; set; } = 100;
     public DatahubServiceBus DatahubServiceBus { get; set; } = new();
     public ToolboxConfig ToolboxConfig { get; set; } = new();
+    public StorageConfiguration StorageConfiguration { get; set; } = new();
 }
 
 public class Achievements
@@ -255,6 +256,14 @@ public class CkanConfiguration
             return Enabled && baseUrlConfigured;
         }
     }
+}
+
+public class StorageConfiguration
+{
+    public string BlockedFileExtensions { get; set; } = ".exe,.dll,.bat,.cmd,.sh,.js,.jar,.msi,.com,.scr,.pif,.cpl";
+    public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .AsReadOnly();
 }
 
 public class ToolboxConfig
