@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    [Migration("20251023040027_CBR_Cleanup")]
+    [Migration("20251028212132_CBR_Cleanup")]
     partial class CBR_Cleanup
     {
         /// <inheritdoc />
@@ -737,9 +737,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("Datahub_ProjectProject_ID")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("DepartmentName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -834,8 +831,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
@@ -1808,17 +1803,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Project");
 
                     b.Navigation("RequestingUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithMany()
-                        .HasForeignKey("Datahub_ProjectProject_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
