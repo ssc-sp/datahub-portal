@@ -2364,5 +2364,6 @@
   "NOTICE": "NOTICE",
   "IMPORTANT": "IMPORTANT",
   "Trusted Entra Login": "Trusted Entra Login",
-  "External Login": "External Login"
+  "External Login": "External Login",
+  "{0} has been blocked.": "{0} has been blocked."
 }
