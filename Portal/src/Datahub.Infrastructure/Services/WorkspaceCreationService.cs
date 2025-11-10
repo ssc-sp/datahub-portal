@@ -288,7 +288,6 @@ public class WorkspaceCreationService(
 
         return await ctx.GCHostingWorkspaceDetails
             .Where(d => includeAll || d.LeadEmail == userEmail)
-            .Include(d => d.Datahub_Project)
             .Include(d => d.WorkspacesInBudget)
             .AsNoTracking()
             .ToListAsync();

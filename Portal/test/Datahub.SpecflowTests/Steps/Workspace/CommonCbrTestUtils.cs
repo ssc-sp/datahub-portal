@@ -75,7 +75,6 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
             var gcHosting = new GCHostingWorkspaceDetails()
             {
-                Datahub_Project = mainCbrWorkspace,
                 GcHostingId = Guid.NewGuid().ToString(),
                 LeadEmail = cbrOwnerUser.Email,
                 WorkspaceBudget = 10000,

@@ -276,7 +276,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Id");
 
-                    b.ToTable("PortalUserRoleChange");
+                    b.ToTable("PortalUserRoleChange", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -495,7 +495,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("SubmissionId");
 
-                    b.ToTable("OpenDataPublishFiles");
+                    b.ToTable("OpenDataPublishFiles", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
@@ -538,7 +538,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("OpenDataSubmissions");
+                    b.ToTable("OpenDataSubmissions", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -599,7 +599,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("SharedDataFiles");
+                    b.ToTable("SharedDataFiles", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -639,7 +639,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Notification_ID");
 
-                    b.ToTable("SystemNotifications");
+                    b.ToTable("SystemNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.VersionTag", b =>
@@ -675,7 +675,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("VersionTagId");
 
-                    b.ToTable("VersionTags");
+                    b.ToTable("VersionTags", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Documentation.DocumentationResource", b =>
@@ -717,7 +717,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasAlternateKey("TypeName", "Id");
 
-                    b.ToTable("MiscStoredObjects");
+                    b.ToTable("MiscStoredObjects", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
@@ -733,9 +733,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<string>("CBRName")
                         .IsRequired()
                         .HasColumnType("TEXT");
-
-                    b.Property<int>("Datahub_ProjectProject_ID")
-                        .HasColumnType("INTEGER");
 
                     b.Property<string>("DepartmentName")
                         .IsRequired()
@@ -831,8 +828,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
@@ -1054,7 +1049,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("ProjectApiUser_ID");
 
-                    b.ToTable("Project_ApiUsers");
+                    b.ToTable("Project_ApiUsers", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
@@ -1084,7 +1079,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("Project_ID", "Date");
 
-                    b.ToTable("Project_Costs");
+                    b.ToTable("Project_Costs", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1190,7 +1185,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Delete_Questionnaires");
+                    b.ToTable("Project_Delete_Questionnaires", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Resources2", b =>
@@ -1244,7 +1239,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Project_Resources2");
+                    b.ToTable("Project_Resources2", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Role", b =>
@@ -1361,7 +1356,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("ProjectId")
                         .IsUnique();
 
-                    b.ToTable("Project_Whitelists");
+                    b.ToTable("Project_Whitelists", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
@@ -1680,7 +1675,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<DateTime?>("OpenGovPublicationDate")
                         .HasColumnType("TEXT");
 
-                    b.ToTable("TbsOpenGovSubmissions");
+                    b.ToTable("TbsOpenGovSubmissions", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -1711,7 +1706,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<int>("UploadStatus_CD")
                         .HasColumnType("INTEGER");
 
-                    b.ToTable("OpenDataSharedFile");
+                    b.ToTable("OpenDataSharedFile", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -1805,17 +1800,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Project");
 
                     b.Navigation("RequestingUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithMany()
-                        .HasForeignKey("Datahub_ProjectProject_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
