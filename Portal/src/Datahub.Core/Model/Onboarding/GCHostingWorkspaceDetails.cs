@@ -134,11 +134,6 @@ public class GCHostingWorkspaceDetails
     /// </summary>
     public string CBRID { get; set; } = null!;
 
-    /// <summary>
-    /// Gets or sets the project that the workspace is associated with.
-    /// </summary>
-    public Datahub_Project Datahub_Project { get; set; } = null!;
-
     public IEnumerable<Datahub_Project> WorkspacesInBudget { get; set; } = new List<Datahub_Project>();
 }
 #nullable disable
