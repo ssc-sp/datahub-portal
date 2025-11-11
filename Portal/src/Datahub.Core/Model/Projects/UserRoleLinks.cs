@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 using MudBlazor.Forms;
 
 namespace Datahub.Core.Model.Projects

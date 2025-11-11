@@ -17,13 +17,13 @@ using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Core.Data.Databricks;
 using Datahub.Application.Services.WebApp;
 using Microsoft.Graph.Invitations;
 using Microsoft.Graph.Models;
 using MediatR;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Functions.UnitTests
 {

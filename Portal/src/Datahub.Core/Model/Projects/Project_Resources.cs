@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Newtonsoft.Json;

@@ -1,8 +1,8 @@
 ﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.UserTracking;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Achievements;
 
-namespace Datahub.Core.Model.Achievements;
+namespace Datahub.Core.Model.Users;
 
 /// <summary>
 /// Represents a user within the portal, managing achievements, activity data, and related user information.

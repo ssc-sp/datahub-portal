@@ -1,4 +1,6 @@
-﻿namespace Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Users;
+
+namespace Datahub.Core.Model.Achievements;
 
 /// <summary>
 /// Represents a user's progress or completion of a specific achievement.

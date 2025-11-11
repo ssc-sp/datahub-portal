@@ -108,6 +108,7 @@
 	<ItemGroup>
 	  <Folder Include="Diagnostics\" />
 	  <Folder Include="Migrations\" />
+	  <Folder Include="Model\GCCF\" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">

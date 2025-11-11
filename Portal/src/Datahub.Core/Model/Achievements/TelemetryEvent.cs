@@ -1,4 +1,6 @@
-﻿namespace Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Users;
+
+namespace Datahub.Core.Model.Achievements;
 
 /// <summary>
 /// Represents a telemetry event record, capturing user interactions and system events.

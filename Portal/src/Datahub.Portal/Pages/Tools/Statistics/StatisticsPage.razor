@@ -1,6 +1,5 @@
 @using System.Diagnostics
 @using ApexCharts
-@using Datahub.Portal.Pages.Workspace.Reports
 @using Color = MudBlazor.Color
 @using Datahub.Application.Services.Cost
 @using Datahub.Application.Services.Metadata
@@ -8,12 +7,14 @@
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Onboarding
 @using Datahub.Core.Model.Projects
-@using Datahub.Portal.Pages.Workspace.Reports.Charts
-@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Components.Tables
 @using Datahub.Portal.Pages.Tools.Statistics.Charts
+@using Datahub.Portal.Pages.Tools.Statistics.Objects
+@using Datahub.Portal.Pages.Workspace.Reports
+@using Datahub.Portal.Pages.Workspace.Reports.Charts
 @using Datahub.Shared
 @using Datahub.Shared.Entities
-@using Datahub.Portal.Components.Tables
 
 @inject IDbContextFactory<DatahubProjectDBContext> DbContextFactory
 @inject IMetadataBrokerService MetadataBrokerService

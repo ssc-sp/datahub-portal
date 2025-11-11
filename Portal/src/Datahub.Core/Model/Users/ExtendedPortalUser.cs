@@ -1,7 +1,7 @@
 ﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 
-namespace Datahub.Core.Model.Achievements;
+namespace Datahub.Core.Model.Users;
 
 public class ExtendedPortalUser
 {

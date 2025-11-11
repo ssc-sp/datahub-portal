@@ -1,7 +1,6 @@
 using Datahub.Core.Components;
-using Datahub.Core.Model.Achievements;
 
-namespace Datahub.Core.Model.UserTracking
+namespace Datahub.Core.Model.Users
 {
     /// <summary>
     /// Represents a link recently accessed by a user, capturing related URL and metadata information.

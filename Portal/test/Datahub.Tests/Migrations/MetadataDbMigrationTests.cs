@@ -24,9 +24,9 @@ public class MetadataDbMigrationTests : IAsyncLifetime
         if (!OperatingSystem.IsWindows()) return ValueTask.CompletedTask; // LocalDB only on Windows
         _metaDbName = LocalDbUtils.CreateUniqueLocalDbDatabase("MetaDb");
         _options = new DbContextOptionsBuilder<SqlServerMetadataDbContext>()
-        .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_metaDbName};Integrated Security=true;TrustServerCertificate=true;")
-        .UseLoggerFactory(_loggerFactory)
-        .Options;
+                        .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_metaDbName};Integrated Security=true;TrustServerCertificate=true;")
+                        .UseLoggerFactory(_loggerFactory)
+                        .Options;
         return ValueTask.CompletedTask;
     }
 

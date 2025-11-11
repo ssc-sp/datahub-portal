@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Datahub
 {
