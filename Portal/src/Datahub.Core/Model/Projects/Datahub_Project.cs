@@ -51,21 +51,21 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the email for the user who created the workspace.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-    public string Contact_List { get; set; }
+    public string? Contact_List { get; set; }
 
     /// <summary>
     /// Gets or sets the English name of the workspace.
     /// </summary>
     [StringLength(100)]
     [AeFormCategory("Workspace Information")]
-    public string Project_Name { get; set; }
+    public string? Project_Name { get; set; }
 
     /// <summary>
     /// Gets or sets the French name of the workspace.
     /// </summary>
     [StringLength(100)]
     [AeFormCategory("Workspace Information")]
-    public string Project_Name_Fr { get; set; }
+    public string? Project_Name_Fr { get; set; }
 
     /// <summary>
     /// Gets or sets the acronym code for the workspace.
@@ -73,7 +73,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [Required]
     [StringLength(10)]
     [AeFormCategory("Workspace Information")]
-    public string Project_Acronym_CD { get; set; }
+    public string Project_Acronym_CD { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the budget allocated to the workspace.
@@ -86,19 +86,19 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the administrator of the workspace. Same as the owner today.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-    public string Project_Admin { get; set; }
+    public string? Project_Admin { get; set; }
 
     /// <summary>
     /// Gets or sets the summary description of the workspace in English.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-    public string Project_Summary_Desc { get; set; }
+    public string? Project_Summary_Desc { get; set; }
 
     /// <summary>
     /// Gets or sets the summary description of the workspace in French.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-    public string Project_Summary_Desc_Fr { get; set; }
+    public string? Project_Summary_Desc_Fr { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the workspace is private.
@@ -124,7 +124,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the description of the workspace's status.
     /// </summary>
     [AeFormIgnore]
-    public string Project_Status_Desc { get; set; }
+    public string? Project_Status_Desc { get; set; }
 
     /// <summary>
     /// Gets or sets the numerical status of the workspace, corresponding to the <see cref="ProjectStatus"/> enum.
@@ -137,13 +137,13 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormCategory("Workspace Information")]
     [MudForm(IsDropDown=true)]
-    public string Project_Phase { get; set; }
+    public string? Project_Phase { get; set; }
 
     /// <summary>
     /// Gets or sets the icon for the workspace.
     /// </summary>
     [AeFormCategory("Workspace Information")]
-    public string Project_Icon { get; set; }
+    public string? Project_Icon { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time when the workspace was last updated.
@@ -155,7 +155,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Gets or sets the user ID of the person who last updated the workspace.
     /// </summary>
     [AeFormIgnore]
-    public string Last_Updated_UserId { get; set; }
+    public string? Last_Updated_UserId { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time when the workspace was marked as deleted. Null if not deleted.
@@ -177,7 +177,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Gets or sets the Azure subscription of the workspace in Datahub.
     /// </summary>
-    public DatahubAzureSubscription DatahubAzureSubscription { get; set; }
+    public DatahubAzureSubscription? DatahubAzureSubscription { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the workspace is marked as deleted.
@@ -188,34 +188,34 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Gets or sets the list of roles and users associated with the workspace.
     /// </summary>
-    public List<UserRoleLinks> UserRoles { get; set; }
+    public List<UserRoleLinks>? UserRoles { get; set; }
 
     /// <summary>
     /// Gets or sets the credits for the workspace.
     /// </summary>
-    public Project_Credits Credits { get; set; }
+    public Project_Credits? Credits { get; set; }
 
     /// <summary>
     /// Gets or sets the whitelist for the workspace.
     /// </summary>
-    public Project_Whitelist Whitelist { get; set; }
+    public Project_Whitelist? Whitelist { get; set; }
 
     /// <summary>
     /// Gets or sets the list of inactivity notifications for the workspace.
     /// </summary>
-    public List<ProjectInactivityNotifications> ProjectInactivityNotifications { get; set; }
+    public List<ProjectInactivityNotifications>? ProjectInactivityNotifications { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the workspace is over budget.
     /// </summary>
-    public bool IsOverBudget => Credits is null ? false : Credits.Current >= (double)Project_Budget;
+    public bool IsOverBudget => Credits is null ? false : Credits.Current >= (double)(Project_Budget ?? Decimal.Zero);
 
     /// <summary>
     /// Gets or sets the timestamp for concurrency control.
     /// </summary>
     [AeFormIgnore]
     [Timestamp]
-    public byte[] Timestamp { get; set; }
+    public byte[]? Timestamp { get; set; }
 
     /// <summary>
     /// Gets or sets the database type for the workspace.
@@ -223,7 +223,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     [AeFormCategory("Initiative Connections")]
     [StringLength(100)]
     [MudForm(ValidValues= new[] { SQL_SERVER_DB_TYPE, POSTGRES_DB_TYPE })]
-    public string DB_Type { get; set; }
+    public string? DB_Type { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether the workspace uses a Postgres database.
@@ -240,17 +240,17 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Gets or sets the list of resources associated with the workspace.
     /// </summary>
-    public IList<Project_Resources2> Resources { get; set; }
+    public IList<Project_Resources2>? Resources { get; set; }
 
     /// <summary>
     /// Gets or sets the list of repositories associated with the workspace.
     /// </summary>
-    public List<ProjectRepository> Repositories { get; set; }
+    public List<ProjectRepository>? Repositories { get; set; }
 
     /// <summary>
     /// Gets or sets the list of publishing submissions for the workspace.
     /// </summary>
-    public IList<OpenDataSubmission> PublishingSubmissions { get; set; }
+    public IList<OpenDataSubmission>? PublishingSubmissions { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether metadata has been added to the workspace.
@@ -281,7 +281,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
         {
             if (UserRoles != null)
             {
-                return UserRoles.Select(x => x.PortalUser.LastLoginDateTime).Max();
+                return UserRoles.Select(x => x.PortalUser?.LastLoginDateTime).Max();
             }
             return Last_Updated_DT;
         }
@@ -298,26 +298,26 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormIgnore]
     [StringLength(128)]
-    public string WebApp_URL { get; set; }
+    public string? WebApp_URL { get; set; }
 
     /// <summary>
     /// Gets or sets the version of the workspace, typically related to its Terraform configuration.
     /// </summary>
     [AeFormIgnore]
     [StringLength(16)]
-    public string Version { get; set; } = TerraformWorkspace.DefaultVersion;
+    public string? Version { get; set; } = TerraformWorkspace.DefaultVersion;
 
     /// <summary>
     /// Gets or sets the URL of the Git repository associated with the workspace.
     /// </summary>
     [AeFormIgnore]
     [StringLength(150)]
-    public string GitRepo_URL { get; set; }
+    public string? GitRepo_URL { get; set; }
 
     /// <summary>
     /// Gets or sets the list of cloud storage resources for the workspace.
     /// </summary>
-    public List<ProjectCloudStorage> CloudStorages { get; set; }
+    public List<ProjectCloudStorage>? CloudStorages { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the project should be prevented from auto-deletion.
@@ -335,7 +335,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormIgnore]
     [NotMapped]
-    public string ProjectName
+    public string? ProjectName
     {
         get
         {
@@ -353,7 +353,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormIgnore]
     [NotMapped]
-    public string ProjectDescription
+    public string? ProjectDescription
     {
         get
         {
@@ -374,22 +374,23 @@ public class Datahub_Project : IComparable<Datahub_Project>
     {
         get
         {
-            return new DatahubProjectInfo(Project_Name, Project_Name_Fr, Project_Acronym_CD);
+            return new DatahubProjectInfo(Project_Name ?? string.Empty, Project_Name_Fr ?? string.Empty, Project_Acronym_CD);
         }
     }
 
     /// <summary>
     /// Gets or sets the hashed API token for the workspace. This is for future use and is not currently used.
     /// </summary>
-    public string HashedAPIToken { get; set; }
+    public string? HashedAPIToken { get; set; }
 
     /// <summary>
     /// Gets or sets the expiry date for the workspace.
     /// </summary>
     public DateTime ExpiryDate { get; set; }
 
-    public int CompareTo(Datahub_Project other)
+    public int CompareTo(Datahub_Project? other)
     {
+        if (other is null) return 1;
         if (Project_Acronym_CD is null || other.Project_Acronym_CD is null)
             return Project_ID.CompareTo(other.Project_ID);
         return Project_Acronym_CD.CompareTo(other.Project_Acronym_CD);
@@ -403,7 +404,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Gets or sets the parent GC Hosting budget details for the workspace.
     /// </summary>
-    public GCHostingWorkspaceDetails ParentGCHostingBudget { get; set; }
+    public GCHostingWorkspaceDetails? ParentGCHostingBudget { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether an update has been requested for the workspace.
@@ -435,9 +436,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
         };
     }
 
-    public VersionUpdateType GetUpdateType(string latestVersion)
+    public VersionUpdateType GetUpdateType(string? latestVersion)
     {
-        if (Version != null && Version != "latest")
+        if (Version != null && Version != "latest" && latestVersion is not null)
         {
             var inputVersion = System.Version.Parse(Version.TrimStart('v'));
             var latestParsedVersion = System.Version.Parse(latestVersion.TrimStart('v'));

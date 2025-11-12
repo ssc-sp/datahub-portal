@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
+		<Nullable>enable</Nullable>
 		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -118,6 +119,34 @@
 	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
 	<Import Project="..\..\..\Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
 </Project>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

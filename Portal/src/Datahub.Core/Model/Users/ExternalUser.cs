@@ -10,16 +10,16 @@ namespace Datahub.Core.Model.Users
     public class ExternalUser
     {
         [Key]
-        public string ExternalUserID { get; set; }
+        public string? ExternalUserID { get; set; }
 
-        public string OID { get; set; }
+        public string? OID { get; set; }
 
         [Required]
         [StringLength(256)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [StringLength(128)]
-        public string DisplayName { get; set; }
+        public string? DisplayName { get; set; }
 
         public DateTime? FirstLogin_DT { get; set; }
 
@@ -27,6 +27,6 @@ namespace Datahub.Core.Model.Users
 
         public DateTime? LastPermissionsUpdated_DT { get; set; }
 
-        public ICollection<ExternalUserInvite> Requests { get; set; }
+        public ICollection<ExternalUserInvite>? Requests { get; set; }
     }
 }

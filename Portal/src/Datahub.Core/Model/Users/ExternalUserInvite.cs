@@ -10,14 +10,14 @@ namespace Datahub.Core.Model.Users
         public int RequestID { get; set; }
 
         [Required]
-        public string UserOID { get; set; }
+        public string? UserOID { get; set; }
 
         [ForeignKey("UserOID")]
-        public ExternalUser User { get; set; }
+        public ExternalUser? User { get; set; }
 
         public DateTimeOffset Request_DT { get; set; }
 
         [Required]
-        public string RequestContent { get; set; }
+        public string? RequestContent { get; set; }
     }
 }

@@ -22,12 +22,12 @@ public class PortalUser
     /// <summary>
     /// Gets or sets the user's email address.
     /// </summary>
-    public string Email { get; set; }
+    public string? Email { get; set; }
 
     /// <summary>
     /// Gets or sets the user's display name.
     /// </summary>
-    public string DisplayName { get; set; }
+    public string? DisplayName { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time of the user's first login.
@@ -42,44 +42,44 @@ public class PortalUser
     /// <summary>
     /// Gets or sets the URL of the user's banner picture.
     /// </summary>
-    public string BannerPictureUrl { get; set; }
+    public string? BannerPictureUrl { get; set; }
 
     /// <summary>
     /// Gets or sets the URL of the user's profile picture.
     /// </summary>
-    public string ProfilePictureUrl { get; set; }
+    public string? ProfilePictureUrl { get; set; }
 
     /// <summary>
     /// Gets or sets the list of inactivity notifications for the user.
     /// </summary>
-    public List<UserInactivityNotifications> InactivityNotifications { get; set; }
+    public List<UserInactivityNotifications>? InactivityNotifications { get; set; }
 
     #region Navigation props
 
     /// <summary>
     /// Gets or sets the collection of achievements associated with this user.
     /// </summary>
-    public ICollection<UserAchievement> Achievements { get; set; }
+    public ICollection<UserAchievement>? Achievements { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of telemetry events performed by this user.
     /// </summary>
-    public ICollection<TelemetryEvent> TelemetryEvents { get; set; }
+    public ICollection<TelemetryEvent>? TelemetryEvents { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of recent links accessed by this user.
     /// </summary>
-    public ICollection<UserRecentLink> RecentLinks { get; set; }
+    public ICollection<UserRecentLink>? RecentLinks { get; set; }
 
     /// <summary>
     /// Gets or sets the user-defined settings for this user.
     /// </summary>
-    public UserSettings UserSettings { get; set; }
+    public UserSettings? UserSettings { get; set; }
 
     /// <summary>
     /// Gets or sets the collection of Open Data submissions made by this user.
     /// </summary>
-    public ICollection<OpenDataSubmission> OpenDataSubmissions { get; set; }
+    public ICollection<OpenDataSubmission>? OpenDataSubmissions { get; set; }
 
     #endregion
 
@@ -105,7 +105,7 @@ public class PortalUser
     public IEnumerable<Achievement> GetUnEarnedAchievements()
     {
         return Achievement.GetAll()
-            .Where(a => Achievements?.All(ua => ua.Achievement.Id != a.Id) ?? false)
+            .Where(a => Achievements?.All(ua => ua.Achievement.Id != a.Id) ?? true)
             .OrderBy(a => a.Id)
             .ToList();
     }

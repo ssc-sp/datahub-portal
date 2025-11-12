@@ -4,17 +4,17 @@ namespace Datahub.Core.Data.Databricks
 {
     public class DatabricksUser
     {
-        public List<string> schemas { get; set; }
-        public string id { get; set; }
-        public string userName { get; set; }
-        public List<Email> emails { get; set; }
-        public Name name { get; set; }
-        public string displayName { get; set; }
-        public List<Group> groups { get; set; }
-        public List<Role> roles { get; set; }
-        public List<Entitlement> entitlements { get; set; }
-        public string externalId { get; set; }
-        public bool active { get; set; }
+        public List<string> schemas { get; set; } = new();
+        public string id { get; set; } = null!;
+        public string userName { get; set; } = null!;
+        public List<Email> emails { get; set; } = new();
+        public Name name { get; set; } = null!;
+        public string displayName { get; set; } = null!;
+        public List<Group> groups { get; set; } = new();
+        public List<Role> roles { get; set; } = new();
+        public List<Entitlement> entitlements { get; set; } = new();
+        public string externalId { get; set; } = null!;
+        public bool active { get; set; } = false;
 
         public DatabricksUser()
         {
@@ -24,6 +24,7 @@ namespace Datahub.Core.Data.Databricks
         public DatabricksUser(string json)
         {
             var value = JsonConvert.DeserializeObject<DatabricksUser>(json);
+            if (value is null) throw new InvalidOperationException("Deserialization resulted in null DatabricksUser");
             schemas = value.schemas;
             id = value.id;
             userName = value.userName;
@@ -39,55 +40,55 @@ namespace Datahub.Core.Data.Databricks
     public class Email
     {
         [JsonProperty("$ref")]
-        public string @ref { get; set; }
-        public string value { get; set; }
-        public string display { get; set; }
-        public bool primary { get; set; }
-        public string type { get; set; }
+        public string @ref { get; set; } = null!;
+        public string value { get; set; } = null!;
+        public string display { get; set; } = null!;
+        public bool primary { get; set; } = false;
+        public string type { get; set; } = null!;
     }
 
     public class Entitlement
     {
         [JsonProperty("$ref")]
-        public string @ref { get; set; }
-        public string value { get; set; }
-        public string display { get; set; }
-        public bool primary { get; set; }
-        public string type { get; set; }
+        public string @ref { get; set; } = null!;
+        public string value { get; set; } = null!;
+        public string display { get; set; } = null!;
+        public bool primary { get; set; } = false;
+        public string type { get; set; } = null!;
     }
 
     public class Group
     {
         [JsonProperty("$ref")]
-        public string @ref { get; set; }
-        public string value { get; set; }
-        public string display { get; set; }
-        public bool primary { get; set; }
-        public string type { get; set; }
+        public string @ref { get; set; } = null!;
+        public string value { get; set; } = null!;
+        public string display { get; set; } = null!;
+        public bool primary { get; set; } = false;
+        public string type { get; set; } = null!;
     }
 
     public class Name
     {
-        public string givenName { get; set; }
-        public string familyName { get; set; }
+        public string givenName { get; set; } = null!;
+        public string familyName { get; set; } = null!;
     }
 
     public class Role
     {
         [JsonProperty("$ref")]
-        public string @ref { get; set; }
-        public string value { get; set; }
-        public string display { get; set; }
-        public bool primary { get; set; }
-        public string type { get; set; }
+        public string @ref { get; set; } = null!;
+        public string value { get; set; } = null!;
+        public string display { get; set; } = null!;
+        public bool primary { get; set; } = false;
+        public string type { get; set; } = null!;
     }
 
     public class DatabricksUserList
     {
-        public List<string> schemas { get; set; }
-        public int totalResults { get; set; }
-        public int startIndex { get; set; }
-        public int itemsPerPage { get; set; }
-        public List<DatabricksUser> Resources { get; set; }
+        public List<string> schemas { get; set; } = new();
+        public int totalResults { get; set; } = 0;
+        public int startIndex { get; set; } = 0;
+        public int itemsPerPage { get; set; } = 0;
+        public List<DatabricksUser> Resources { get; set; } = new();
     }
 }

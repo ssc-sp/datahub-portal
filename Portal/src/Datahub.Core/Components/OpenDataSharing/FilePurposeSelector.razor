@@ -24,10 +24,10 @@
 
 @code {
     [Parameter]
-    public OpenDataSubmission Submission { get; set; }
+    public OpenDataSubmission Submission { get; set; } = default!;
 
     [Parameter]
-    public string FilePurpose { get; set; }
+    public string FilePurpose { get; set; } = string.Empty;
 
     [Parameter]
     public bool MultiSelect { get; set; } = false;
@@ -36,11 +36,11 @@
     public bool Required { get; set; }
 
     [Parameter]
-    public GenericSyncer Syncer { get; set; }
+    public GenericSyncer Syncer { get; set; } = null!;
 
     private bool _initialized = false;
 
-    private OpenDataPublishFile _selectedValue;
+    private OpenDataPublishFile? _selectedValue;
 
     private IEnumerable<OpenDataPublishFile> _selectedValues = new HashSet<OpenDataPublishFile>();
 

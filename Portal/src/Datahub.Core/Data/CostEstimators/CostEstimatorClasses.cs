@@ -7,26 +7,26 @@ public record class UnitPrice(decimal BasePrice, int Units);
 
 public class AzurePriceAPIItem
 {
-    public string MeterId { get; set; }
-    public string MeterName { get; set; }
-    public string ProductId { get; set; }
-    public string ProductName { get; set; }
-    public string SkuId { get; set; }
-    public string SkuName { get; set; }
-    public string ServiceId { get; set; }
-    public string ServiceName { get; set; }
-    public string ServiceFamily { get; set; }
-    public string UnitOfMeasure { get; set; }
+    public string MeterId { get; set; } = null!;
+    public string MeterName { get; set; } = null!;
+    public string ProductId { get; set; } = null!;
+    public string ProductName { get; set; } = null!;
+    public string SkuId { get; set; } = null!;
+    public string SkuName { get; set; } = null!;
+    public string ServiceId { get; set; } = null!;
+    public string ServiceName { get; set; } = null!;
+    public string ServiceFamily { get; set; } = null!;
+    public string UnitOfMeasure { get; set; } = null!;
     public decimal UnitPrice { get; set; }
     public decimal RetailPrice { get; set; }
-    public string ArmSkuName { get; set; }
-    public string ArmRegionName { get; set; }
-    public string Location { get; set; }
-    public string CurrencyCode { get; set; }
+    public string ArmSkuName { get; set; } = null!;
+    public string ArmRegionName { get; set; } = null!;
+    public string Location { get; set; } = null!;
+    public string CurrencyCode { get; set; } = null!;
     public decimal TierMinimumUnits { get; set; }
     public DateTime EffectiveStartDate { get; set; }
     public bool IsPrimaryMeterRegion { get; set; }
-    public string Type { get; set; }
+    public string Type { get; set; } = null!;
 }
 
 public interface IAzurePriceAPIItemContainer
@@ -36,12 +36,12 @@ public interface IAzurePriceAPIItemContainer
 
 public class AzurePriceAPIResult : IAzurePriceAPIItemContainer
 {
-    public string BillingCurrency { get; set; }
+    public string BillingCurrency { get; set; } = null!;
     public int Count { get; set; }
-    public string NextPageLink { get; set; }
-    public string CustomerEntityType { get; set; }
-    public string CustomerEntityId { get; set; }
-    public IList<AzurePriceAPIItem> Items { get; set; }
+    public string NextPageLink { get; set; } = null!;
+    public string CustomerEntityType { get; set; } = null!;
+    public string CustomerEntityId { get; set; } = null!;
+    public IList<AzurePriceAPIItem> Items { get; set; } = null!;
 }
 
 public class AzurePriceAPIItemList : IAzurePriceAPIItemContainer
