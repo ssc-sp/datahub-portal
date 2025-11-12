@@ -1,4 +1,5 @@
-﻿using Datahub.Infrastructure.Services.Azure;
+﻿using Azure.Identity;
+using Datahub.Infrastructure.Services.Azure;
 using Datahub.Shared.Configuration;
 using Microsoft.Extensions.Configuration;
 
@@ -72,6 +73,14 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string InfrastructureAlertDebounceTimeSpan => _config["InfrastructureAlertDebounceTimeSpan"] ?? "1";
 
     public string? BugReportTeamsWebhookUrl => _config["BugReportTeamsWebhookUrl"];
+
+    /// <summary>
+    /// Gets Azure credential for authenticating with Azure services
+    /// </summary>
+    public ClientSecretCredential GetAzureCredential()
+    {
+        return new ClientSecretCredential(TenantId, ClientId, ClientSecret);
+    }
 }
 
 public class EmailNotification

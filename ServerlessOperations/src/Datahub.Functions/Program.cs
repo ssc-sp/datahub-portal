@@ -99,6 +99,9 @@ builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
 builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
 
+// Blob ACL service for virus scan processing
+builder.Services.AddScoped<IBlobAclService, BlobAclService>();
+
 // in-memory cache for health result
 builder.Services.AddMemoryCache();
 
