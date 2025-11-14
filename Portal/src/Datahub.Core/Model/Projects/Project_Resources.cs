@@ -90,6 +90,11 @@ public class Project_Resources2
     public int? UpdatedById { get; set; }
 
     /// <summary>
+    /// Gets or sets the ID of the pipeline run linked to the resource.
+    /// </summary>
+    public int? PipelineId { get; set; }
+
+    /// <summary>
     /// Gets or sets the PortalUser who last updated the resource.
     /// </summary>
     public PortalUser UpdatedBy { get; set; }

@@ -576,11 +576,12 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 .Include(p => p.Resources)
                 .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
+            var requestTime = DateTime.UtcNow;
             foreach (var template in _builtWorkspaceDefinition.Templates)
             {
                 Log($"Scaffolding local changes for {template.Name}");
                 // Create project resource records for each template
-                await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context);
+                await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context, requestTime);
 
                 // Apply tool specific changes
                 var resource = workspace.Resources.First(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));

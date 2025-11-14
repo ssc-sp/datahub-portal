@@ -56,7 +56,14 @@ public class TerraformOutputHandler(
 
         try
         {
-            await ProcessTerraformOutputVariables(output);
+            if (output.ContainsKey(TerraformVariables.PipelineRunId))
+            {
+                await ProcessTerraformInputVariables(output);
+            }
+            else
+            { 
+                await ProcessTerraformOutputVariables(output);            
+            }
         }
         catch (Exception e)
         {
@@ -67,6 +74,27 @@ public class TerraformOutputHandler(
         await ProcessPostTerraformTriggers(output);
 
         _logger.LogInformation("C# Queue trigger function finished");
+    }
+
+    private async Task ProcessTerraformInputVariables(Dictionary<string, TerraformOutputVariable> output)
+    {
+        var projectAcronym = output[TerraformVariables.ProjectAcronym];
+    
+        var project = await projectDbContext.Projects
+            .Include(p => p.Resources)
+            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+
+        if (project is null)
+        {
+            _logger.LogError("Project not found for acronym {ProjectAcronym}", projectAcronym.Value);
+            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+        }
+
+        var projectResources = project.Resources;
+    
+        _logger.LogInformation("Retrieved {ResourceCount} project resources for project {ProjectAcronym}", 
+            projectResources?.Count ?? 0, projectAcronym.Value);
+
     }
 
     private async Task ProcessPostTerraformTriggers(IReadOnlyDictionary<string, TerraformOutputVariable> output)
