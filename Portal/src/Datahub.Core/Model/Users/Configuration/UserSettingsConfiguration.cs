@@ -9,7 +9,7 @@ namespace Datahub.Core.Model.UserTracking.Configuration
         public void Configure(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<UserSettings> builder)
         {
             var valueComparer = new ValueComparer<List<string>>(
-                (c1, c2) => c1.SequenceEqual(c2),
+                (c1, c2) => c1 != null && c2 != null && c1.SequenceEqual(c2),
                 c => c.Aggregate(0, (a, v) => HashCode.Combine(a, v.GetHashCode())),
                 c => c.ToList());
 
@@ -28,7 +28,7 @@ namespace Datahub.Core.Model.UserTracking.Configuration
                 .HasDefaultValue(false);
             builder.Property(e => e.HiddenAlerts)
                 .HasConversion(
-                    v => string.Join(',', v),
+                    v => string.Join(',', v ?? new List<string>()),
                     v => string.IsNullOrEmpty(v) ? new List<string>() : v.Split(',', System.StringSplitOptions.RemoveEmptyEntries).ToList());
             builder.Property(e => e.HiddenAlerts)
                 .Metadata

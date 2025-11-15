@@ -180,7 +180,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             {
                 PortalUser = new PortalUser()
                 {
-                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"),
+                    GraphGuid = initialSetup.GetValue<string>("AdminGUID") ?? throw new InvalidOperationException("AdminGUID not defined in configuration"),
                 },
                 Project = p1,
                 RoleId = (int)Project_Role.RoleNames.Admin

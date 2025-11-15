@@ -14,7 +14,7 @@
         /// <summary>
         /// Gets or sets the <see cref="PortalUser"/> associated with this record.
         /// </summary>
-        public PortalUser User { get; set; }
+        public PortalUser User { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the date and time the notification was issued.

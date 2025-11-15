@@ -20,7 +20,7 @@ public class TelemetryEvent
     /// <summary>
     /// Gets or sets the name of the event.
     /// </summary>
-    public string EventName { get; set; }
+    public string EventName { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the date and time when the event occurred.
@@ -32,7 +32,7 @@ public class TelemetryEvent
     /// <summary>
     /// Gets or sets the navigation property for the portal user associated with this event.
     /// </summary>
-    public virtual PortalUser PortalUser { get; set; }
+    public virtual PortalUser PortalUser { get; set; } = null!;
     #endregion
 }
 

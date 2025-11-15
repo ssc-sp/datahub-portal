@@ -20,7 +20,7 @@ public class UserAchievement
     /// <summary>
     /// Gets or sets the identifier of the achievement.
     /// </summary>
-    public string AchievementId { get; set; }
+    public string AchievementId { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the count or progress towards completing the achievement.
@@ -39,12 +39,12 @@ public class UserAchievement
     /// <summary>
     /// Gets or sets the navigation property for the portal user associated with this achievement.
     /// </summary>
-    public virtual PortalUser PortalUser { get; set; }
+    public virtual PortalUser PortalUser { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the navigation property for the achievement definition.
     /// </summary>
-    public virtual Achievement Achievement { get; set; }
+    public virtual Achievement Achievement { get; set; } = null!;
     #endregion
 
     #region Utility functions

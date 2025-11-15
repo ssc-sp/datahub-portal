@@ -68,7 +68,7 @@
 
     // if a file is already selected for another purpose, show that in the list
     private string GetFileLabel(OpenDataPublishFile file) => file == null ? string.Empty : string.IsNullOrEmpty(file.FilePurpose) || file.FilePurpose == FilePurpose ?
-        file.FileName :
+        file.FileName ?? "-" :
         $"{file.FileName} - {GetFilePurposeLabel(file.FilePurpose)}";
 
     private string GetFilePurposeLabel(string filePurpose) => Localizer[$"{Submission.LocalizationPrefix}.FileTypes.{filePurpose}"];

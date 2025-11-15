@@ -21,7 +21,7 @@ public class ProjectCreationDetails
     /// <summary>
     /// Gets or sets the joined string of the features that the user is interested in.
     /// </summary>
-    public string InterestedFeatures { get; set; }
+    public string? InterestedFeatures { get; set; }
 
     /// <summary>
     /// Gets or sets the id of the user that is creating the details for the project.

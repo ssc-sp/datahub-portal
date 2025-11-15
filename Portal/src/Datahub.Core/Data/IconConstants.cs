@@ -4,9 +4,9 @@ namespace Datahub.Core.Data;
 
 public class Icon
 {
-    public string Name { get; init; }
-    public string Color { get; init; }
-    public string HexColor { get; init; }
+    public required string Name { get; init; }
+    public required string Color { get; init; }
+    public required string HexColor { get; init; }
 
     public static readonly string DEFAULT_PROJECT_ICON = "swatchbook";
 
@@ -44,12 +44,6 @@ public class Icon
         Name = "fad fa-tools",
         Color = "orange",
         HexColor = Colors.Orange.Default,
-    };
-
-    public static readonly Icon CATALOG = new()
-    {
-        Name = "fad fa-books",
-        Color = "grey",
     };
 
     public static readonly Icon DATASETS = new()

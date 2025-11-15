@@ -2,7 +2,7 @@
 
 public class PropagationService : IPropagationService
 {
-    public event Func<IEnumerable<string>, Task> UpdateSystemNotifications;
+    public event Func<IEnumerable<string>, Task>? UpdateSystemNotifications;
 
     public async Task PropagateSystemNotificationUpdate(IEnumerable<string> userIds)
     {

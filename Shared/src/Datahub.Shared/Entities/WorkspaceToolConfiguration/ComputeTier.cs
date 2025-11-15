@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
-public class ComputeTier
+public abstract class ComputeTier
 {
-    public string SKUName { get; set; }
-    public string TerraformSku { get; set; }
-    public int Cores { get; set; }
-    public string MemorySize { get; set; }
-    public string Cost { get; set; }
-    public string Type { get; set; } = "N/A";
-    public bool IsAvailable { get; set; }
+    public required string SKUName { get; set; }
+    public required string TerraformSku { get; set; }
+    public required int Cores { get; set; }
+    public required string MemorySize { get; set; }
+    public abstract string Cost { get; }
+    public required string Type { get; set; } = "N/A";
+    public bool IsAvailable { get; set; } = true;
 }

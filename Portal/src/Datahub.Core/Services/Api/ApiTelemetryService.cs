@@ -10,7 +10,7 @@ public class ApiTelemetryService
     public const string FileUploadBPMSMetricName = "FIleUploadBPMS";
     private readonly TelemetryConfiguration _config = TelemetryConfiguration.CreateDefault();
 
-    private TelemetryClient _client;
+    private TelemetryClient? _client;
     protected TelemetryClient Client
     {
         get
@@ -25,6 +25,7 @@ public class ApiTelemetryService
     }
     public ApiTelemetryService()
     {
+        _client = new TelemetryClient(_config);
     }
 
     public void LogMetric(string metricName, double value, string filename)

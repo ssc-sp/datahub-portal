@@ -14,7 +14,7 @@ public class GraphUser
     /// <value>
     /// User Id
     /// </value>
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     /// <summary>
     /// Gets or sets name of user
@@ -22,7 +22,7 @@ public class GraphUser
     /// <value>
     /// Name of user
     /// </value>
-    public string DisplayName { get; set; }
+    public required string DisplayName { get; set; }
 
     /// <summary>
     /// Gets or sets mail Address
@@ -30,7 +30,7 @@ public class GraphUser
     /// <value>
     /// Mail Address
     /// </value>
-    public MailAddress mailAddress { get; set; }
+    public required MailAddress mailAddress { get; set; }
 
     /// <summary>
     /// Gets the user's email address
@@ -82,7 +82,7 @@ public class GraphUser
         }
     }
 
-    public string Department { get; set; }
+    public string? Department { get; set; }
 
     /// <summary>
     /// Static ctor to create from GraphUser
@@ -94,8 +94,8 @@ public class GraphUser
         var email = user.Mail ?? "unknown@unknown.com";
         var instance = new GraphUser()
         {
-            Id = user.Id,
-            DisplayName = user.DisplayName,
+            Id = user.Id ?? throw new ArgumentNullException(nameof(user.Id)),
+            DisplayName = user.DisplayName ?? throw new ArgumentNullException(nameof(user.DisplayName)),
             mailAddress = new MailAddress(email),
             Department = user.Department
         };

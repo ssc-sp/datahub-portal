@@ -2,10 +2,10 @@
 
 public class StorageMetadata
 {
-    public string AccountName { get; set; }
-    public string Url { get; set; }
-    public string StorageAccountType { get; set; }
-    public string GeoRedundancy { get; set; }
-    public string Versioning { get; set; }
-    public string Container { get; set; }
+    public required string AccountName { get; set; }
+    public required string Url { get; set; }
+    public required string StorageAccountType { get; set; }
+    public required string GeoRedundancy { get; set; }
+    public required string Versioning { get; set; }
+    public required string Container { get; set; }
 }

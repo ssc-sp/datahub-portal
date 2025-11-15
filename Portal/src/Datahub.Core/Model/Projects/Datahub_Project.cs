@@ -240,17 +240,17 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Gets or sets the list of resources associated with the workspace.
     /// </summary>
-    public IList<Project_Resources2>? Resources { get; set; }
+    public IList<Project_Resources2> Resources { get; set; } = new List<Project_Resources2>();
 
     /// <summary>
     /// Gets or sets the list of repositories associated with the workspace.
     /// </summary>
-    public List<ProjectRepository>? Repositories { get; set; }
+    public List<ProjectRepository> Repositories { get; set; } = new List<ProjectRepository>();
 
     /// <summary>
     /// Gets or sets the list of publishing submissions for the workspace.
     /// </summary>
-    public IList<OpenDataSubmission>? PublishingSubmissions { get; set; }
+    public IList<OpenDataSubmission> PublishingSubmissions { get; set; } = new List<OpenDataSubmission>();
 
     /// <summary>
     /// Gets or sets a value indicating whether metadata has been added to the workspace.
