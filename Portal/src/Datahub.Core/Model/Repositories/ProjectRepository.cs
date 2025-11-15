@@ -37,7 +37,7 @@ public sealed class ProjectRepository
     /// <summary>
     /// Gets or sets the repository head commit id
     /// </summary>
-    public required string HeadCommitId { get; set; }
+    public string? HeadCommitId { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether whether the repository is public
