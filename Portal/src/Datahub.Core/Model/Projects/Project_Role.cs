@@ -10,12 +10,12 @@ public class Project_Role
     /// <summary>
     /// Gets or sets the friendly name of the project role.
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; }
 
     /// <summary>
     /// Gets or sets a brief description of the project role's purpose or responsibilities.
     /// </summary>
-    public string Description { get; set; }
+    public required string Description { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether this should be used to determine if the user is at least an admin or not.

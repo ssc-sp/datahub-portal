@@ -42,7 +42,9 @@ public sealed class ResourceRunRequestSteps(
                 DatabricksHostUrl = "test",
                     AppServiceConfiguration = new AppServiceConfiguration()
                 {
-                    Framework = "test"
+                    Framework = "test",
+                    GitRepo = "test",
+                    ComposePath = "test"
                 }
             }
         };

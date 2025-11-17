@@ -1,8 +1,8 @@
 using Azure.Core;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Infrastructure.Offline;
 

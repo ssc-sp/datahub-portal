@@ -72,7 +72,8 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = p0,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
         
         ctx.AzureSubscriptions.Add(subscription);

@@ -1,5 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Projects
 {
@@ -47,11 +47,11 @@ namespace Datahub.Core.Model.Projects
         /// <summary>
         /// Gets or sets the project associated with this questionnaire.
         /// </summary>
-        public Datahub_Project Project { get; set; }
+        public Datahub_Project Project { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the user who deleted the project.
         /// </summary>
-        public PortalUser DeletedBy { get; set; }
+        public PortalUser DeletedBy { get; set; } = null!;
     }
 }

@@ -59,7 +59,7 @@
     public string ProjectAcronym { get; set; }
 
     [CascadingParameter(Name = "StorageAccountMetadata")]
-    public StorageMetadata StorageAccountMetadata { get; set; }
+    public AzureStorageMetadata StorageAccountMetadata { get; set; }
 
     [Parameter]
     public int? ProjectId { get; set; }

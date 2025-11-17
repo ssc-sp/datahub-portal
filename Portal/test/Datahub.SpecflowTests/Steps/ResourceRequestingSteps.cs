@@ -4,6 +4,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.Projects;
 using Datahub.Shared;
 using Datahub.Shared.Entities;

@@ -1,12 +1,11 @@
-﻿
-@code {
+﻿@code {
 
     public AnchorLink()
     {
         this.Attributes = new Dictionary<string, object>();
     }
 
-    private string targetId = null;
+    private string? targetId = null;
     private bool preventDefault = false;
 
     /// <summary>
@@ -26,15 +25,15 @@
     /// </summary>
     /// <see href="https://docs.microsoft.com/en-us/aspnet/core/blazor/components#child-content"/>
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
     [Inject]
-    protected IJSRuntime JsInterop { get; set; }
+    protected IJSRuntime JsInterop { get; set; } = default!;
 
 
     protected override void OnParametersSet()
     {
-        string href = null;
+        string? href = null;
         if (this.Attributes.ContainsKey("href"))
         {
             // If the href attribute has been specified, we examine the value of it. If if starts with '#'
@@ -63,4 +62,4 @@
 
 }
 
-<a @attributes="this.Attributes" @onclick="this.AnchorOnClickAsync" @onclick:preventDefault="@this.preventDefault">@this.ChildContent</a>
+<a @attributes="this.Attributes" @onclick="this.AnchorOnClickAsync" @onclick:preventDefault="@this.preventDefault">@this.ChildContent</a><a @attributes="this.Attributes" @onclick="this.AnchorOnClickAsync" @onclick:preventDefault="@this.preventDefault">@this.ChildContent</a>
