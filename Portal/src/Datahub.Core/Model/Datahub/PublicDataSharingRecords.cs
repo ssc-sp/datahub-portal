@@ -78,17 +78,17 @@ public class SharedDataFile
     /// <summary>
     /// Gets or sets the name of the file.
     /// </summary>
-    public string Filename_TXT { get; set; } = string.Empty;
+    public string? Filename_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the folder path where the file is located.
     /// </summary>
-    public string FolderPath_TXT { get; set; } = string.Empty;
+    public string? FolderPath_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the code of the project that owns this file.
     /// </summary>
-    public string ProjectCode_CD { get; set; } = string.Empty;
+    public string? ProjectCode_CD { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether this file is associated with a project.
