@@ -1,3 +1,8 @@
+using System.ComponentModel.DataAnnotations;
+using System.Runtime.ExceptionServices;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Shared;
@@ -6,9 +11,6 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Reqnroll;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Functions;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using Xunit;
 
 namespace ResourceProvisioner.SpecflowTests.Steps;
@@ -46,7 +48,9 @@ public sealed class ResourceRunRequestSteps(
                     GitRepo = "test",
                     ComposePath = "test"
                 }
-            }
+            },
+            RequestingUserEmail = "john@test.gc.ca",
+            ResourceGroupName   = "test-rg"
         };
 
         scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
@@ -67,7 +71,9 @@ public sealed class ResourceRunRequestSteps(
         {
             Templates = [],
             Workspace = new TerraformWorkspace(),
-            AppData = new WorkspaceAppData()
+            AppData = new WorkspaceAppData(),
+            RequestingUserEmail = "john@test.gc.ca",
+            ResourceGroupName = "test-rg"
         };
 
         scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
@@ -78,16 +84,25 @@ public sealed class ResourceRunRequestSteps(
     {
         var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
 
-        // HOWTO: Create a ServiceBusReceivedMessage from an object
         var messageEnvelope = new JsonObject
         {
             ["message"] = JsonSerializer.SerializeToNode(createResourceRunCommand)
         };
+
+        var bodyBytes = Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString());
+        var amqpMessage = new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
+        {
+            bodyBytes
+        }));
+
+        amqpMessage.Header.DeliveryCount =1; // first delivery
+        amqpMessage.Properties.MessageId = new AmqpMessageId(Guid.NewGuid().ToString());
+        amqpMessage.MessageAnnotations["x-opt-enqueued-time"] = DateTime.UtcNow;
+        amqpMessage.MessageAnnotations["x-opt-sequence-number"] =1L;
+
         var serviceBusReceivedMessage = ServiceBusReceivedMessage.FromAmqpMessage(
-            new AmqpAnnotatedMessage(new AmqpMessageBody(new List<ReadOnlyMemory<byte>>
-            {
-                Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString())
-            })), new BinaryData("lockToken"u8.ToArray()));
+            amqpMessage,
+            new BinaryData(Guid.NewGuid().ToString())); // lock token
         
         try
         {
@@ -95,16 +110,16 @@ public sealed class ResourceRunRequestSteps(
         }
         catch (Exception e)
         {
-            scenarioContext["exception"] = e;
+            scenarioContext["exception"] = ExceptionDispatchInfo.Capture(e);
         }
     }
 
     [Then(@"the resource run request should parse the workspace definition without errors")]
     public void ThenTheResourceRunRequestShouldParseTheWorkspaceDefinitionWithoutErrors()
     {
-        if (scenarioContext.TryGetValue("exception", out object? value) && value is Exception exception)
+        if (scenarioContext.TryGetValue("exception", out object? value) && value is ExceptionDispatchInfo exception)
         {
-            throw exception;
+            exception.Throw();
         }
     }
 
@@ -112,9 +127,9 @@ public sealed class ResourceRunRequestSteps(
     [Then(@"the resource run request should parse the workspace definition with errors")]
     public void ThenTheResourceRunRequestShouldParseTheWorkspaceDefinitionWithErrors()
     {
-        if (!scenarioContext.TryGetValue("exception", out object? value) || value is not Exception exception)
+        if (scenarioContext.TryGetValue("exception", out object? value) && value is not ExceptionDispatchInfo exception)
         {
-            throw new Exception("Expected exception was not thrown");
+            throw new Exception("Expected an Exception");
         }
     }
 }
