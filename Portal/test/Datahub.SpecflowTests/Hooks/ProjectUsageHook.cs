@@ -185,30 +185,35 @@ namespace Datahub.SpecflowTests.Hooks
         {
             using var context = contextFactory.CreateDbContext();
 
+            // First, add and save the subscription
             var sub = new DatahubAzureSubscription
             {
                 TenantId = Testing.WorkspaceTenantGuid,
                 SubscriptionId = Testing.WorkspaceSubscriptionGuid,
                 SubscriptionName = Testing.SubscriptionName,
             };
+            context.AzureSubscriptions.Add(sub);
+            context.SaveChanges();
 
+            // Then create and add the projects with the subscription ID reference
             var projects = new List<Datahub_Project>
             {
                 new()
                 {
                     Project_Name = Testing.WorkspaceName,
                     Project_Acronym_CD = Testing.WorkspaceAcronym,
-                    DatahubAzureSubscription = sub
+                    DatahubAzureSubscription = sub,
+                    DatahubAzureSubscriptionId = sub.Id
                 },
                 new()
                 {
                     Project_Name = Testing.WorkspaceName2,
                     Project_Acronym_CD = Testing.WorkspaceAcronym2,
-                    DatahubAzureSubscription = sub
+                    DatahubAzureSubscription = sub,
+                    DatahubAzureSubscriptionId = sub.Id
                 }
             };
 
-            context.AzureSubscriptions.Add(sub);
             context.Projects.AddRange(projects);
             context.SaveChanges();
 
@@ -287,6 +292,19 @@ namespace Datahub.SpecflowTests.Hooks
                 LastUpdate = DateTime.UtcNow.AddHours(-6),
             };
             context.Project_Credits.Add(projectCredit);
+            
+            // Add Project_Credits for project2 with LastUpdate in previous fiscal year to trigger rollover
+            var projectCredit2 = new Project_Credits
+            {
+                ProjectId = project2.Project_ID,
+                Current = (double)current,
+                CurrentPerDay = JsonSerializer.Serialize(currentByDate),
+                CurrentPerService = JsonSerializer.Serialize(currentBySource),
+                YesterdayCredits = (double)yesterday,
+                YesterdayPerService = JsonSerializer.Serialize(yesterdayBySource),
+                LastUpdate = DateTime.UtcNow.AddYears(-1), // Previous fiscal year to trigger rollover
+            };
+            context.Project_Credits.Add(projectCredit2);
             context.SaveChanges();
         }
     }

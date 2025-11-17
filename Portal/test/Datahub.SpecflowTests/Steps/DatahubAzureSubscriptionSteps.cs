@@ -68,8 +68,8 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = portalConfiguration.AzureAd.SubscriptionId,
-            TenantId = portalConfiguration.AzureAd.TenantId,
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
             SubscriptionName = Testing.SubscriptionName
         };
 
@@ -83,7 +83,7 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscriptions = await ctx.AzureSubscriptions.ToListAsync();
         subscriptions.Should().NotBeNull();
         subscriptions!.Count.Should().BeGreaterThan(0);
-        subscriptions!.Any(s => s.SubscriptionId == portalConfiguration.AzureAd.SubscriptionId).Should().BeTrue();
+        subscriptions!.Any(s => s.SubscriptionId == Testing.WorkspaceSubscriptionGuid).Should().BeTrue();
     }
 
     [When(@"an invalid subscription is added")]
@@ -344,7 +344,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         var workspace = new Datahub_Project()
         {
             Project_Name = Testing.WorkspaceName,
-            DatahubAzureSubscription = subscription,
+            DatahubAzureSubscription = subscription!,
+            DatahubAzureSubscriptionId = subscription!.Id,
             Project_Acronym_CD = Testing.WorkspaceAcronym
         };
         
@@ -392,9 +393,9 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
-            SubscriptionId = portalConfiguration.AzureAd.SubscriptionId,
-            TenantId = portalConfiguration.AzureAd.TenantId,
             SubscriptionName = Testing.SubscriptionName
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            TenantId = Testing.WorkspaceTenantGuid
         };
 
         await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
