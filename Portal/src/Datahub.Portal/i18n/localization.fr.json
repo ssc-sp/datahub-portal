@@ -3357,5 +3357,6 @@
   "Notice": "Avis",
   "Info": "Info",
   "Trusted Entra Login": "Connexion Entra sécurisée",
-  "External Login": "Connexion externe"
+  "External Login": "Connexion externe",
+  "{0} has been blocked.": "{0} a été bloqué."
 }
