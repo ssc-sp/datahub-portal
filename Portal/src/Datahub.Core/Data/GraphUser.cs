@@ -30,7 +30,7 @@ public class GraphUser
     /// <value>
     /// Mail Address
     /// </value>
-    public required MailAddress mailAddress { get; set; }
+    public required MailAddress MailAddress { get; set; }
 
     /// <summary>
     /// Gets the user's email address
@@ -42,7 +42,7 @@ public class GraphUser
     {
         get
         {
-            return mailAddress?.Address?.ToLower() ?? string.Empty;
+            return MailAddress?.Address?.ToLower() ?? string.Empty;
         }
     }
 
@@ -56,7 +56,7 @@ public class GraphUser
     {
         get
         {
-            return mailAddress?.User?.ToLower() ?? string.Empty;
+            return MailAddress?.User?.ToLower() ?? string.Empty;
         }
     }
 
@@ -70,7 +70,7 @@ public class GraphUser
     {
         get
         {
-            return mailAddress?.Host?.ToLower() ?? string.Empty;
+            return MailAddress?.Host?.ToLower() ?? string.Empty;
         }
     }
 
@@ -96,7 +96,7 @@ public class GraphUser
         {
             Id = user.Id ?? throw new ArgumentNullException(nameof(user.Id)),
             DisplayName = user.DisplayName ?? throw new ArgumentNullException(nameof(user.DisplayName)),
-            mailAddress = new MailAddress(email),
+            MailAddress = new MailAddress(email),
             Department = user.Department
         };
         return instance;

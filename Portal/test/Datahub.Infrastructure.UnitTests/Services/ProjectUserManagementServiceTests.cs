@@ -90,8 +90,9 @@ public class ProjectUserManagementServiceTests
                 CancellationToken.None))
             .Returns((string id, CancellationToken _) => Task.FromResult(new GraphUser
                 {
-                    mailAddress = new MailAddress(TestUserEmail),
-                    Id = id,
+                    MailAddress = new MailAddress(TestUserEmail),
+                    DisplayName = TestUserEmail,
+                Id = id,
                 })
             );
 

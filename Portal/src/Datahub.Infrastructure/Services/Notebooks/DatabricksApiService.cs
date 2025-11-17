@@ -76,7 +76,7 @@ public class DatabricksApiService : IDatabricksApiService
 
         var results = content?["repos"]?
             .AsArray()
-            .Select(node => new RepositoryInfoDto(node))
+            .Select(node => new RepositoryInfoDto(node ?? throw new InvalidOperationException("Invalid repository information")))
             .ToList() ?? new List<RepositoryInfoDto>();
 
         foreach (var repositoryInfo in results)

@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Nodes;
 using Datahub.Core.Model.Repositories;
 
@@ -14,6 +15,7 @@ public class RepositoryInfoDto
 
     public bool IsPublic { get; set; }
 
+    [SetsRequiredMembers]
     public RepositoryInfoDto(JsonNode jsonNode)
     {
         Id = jsonNode["id"]?.ToString();
@@ -25,6 +27,7 @@ public class RepositoryInfoDto
         IsPublic = false;
     }
 
+    [SetsRequiredMembers]
     public RepositoryInfoDto(ProjectRepository projectRepository)
     {
         Id = projectRepository.Id.ToString();

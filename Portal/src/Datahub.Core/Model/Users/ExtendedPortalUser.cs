@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Datahub;
+﻿using System.Diagnostics.CodeAnalysis;
+using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Users;
@@ -20,6 +21,7 @@ public class ExtendedPortalUser
     {
     }
 
+    [SetsRequiredMembers]
     public ExtendedPortalUser(PortalUser portalUser)
     {
         GraphGuid = portalUser.GraphGuid;

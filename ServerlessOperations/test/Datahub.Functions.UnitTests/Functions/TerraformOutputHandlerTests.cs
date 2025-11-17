@@ -396,7 +396,7 @@ public class TerraformOutputHandlerTests
         // Arrange
         var terraformMessage = new Dictionary<string, TerraformOutputVariable>
         {
-            { TerraformVariables.OutputAzureAppServiceStatus, new TerraformOutputVariable() }
+            { TerraformVariables.OutputAzureAppServiceStatus, new TerraformOutputVariable() {  Value = "aaa" } }
         };
         var messageEnvelope = new
         {

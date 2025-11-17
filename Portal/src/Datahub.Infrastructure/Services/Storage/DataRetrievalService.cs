@@ -426,7 +426,7 @@ public class DataRetrievalService : BaseService
         return file;
     }
 
-    public async Task<StorageMetadata> GetStorageMetadata(string project)
+    public async Task<AzureStorageMetadata> GetStorageMetadata(string project)
     {
         var connectionString = await GetProjectConnectionString(project?.ToLower());
         var blobServiceClient = new BlobServiceClient(connectionString);
@@ -434,7 +434,7 @@ public class DataRetrievalService : BaseService
 
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
-        StorageMetadata storageMetadata = new()
+        AzureStorageMetadata storageMetadata = new()
         {
             AccountName = blobServiceClient.AccountName,
             Container = "datahub",

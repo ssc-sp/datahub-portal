@@ -24,6 +24,7 @@ using Microsoft.Graph.Invitations;
 using Microsoft.Graph.Models;
 using MediatR;
 using Datahub.Core.Model.Users;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Functions.UnitTests
 {
@@ -34,6 +35,17 @@ namespace Datahub.Functions.UnitTests
         public const string INACTIVE_WEB_APP_PROJECT_ACRONYM = "IWAP";
         public const string OVERBUDGET_WEB_APP_PROJECT_ACRONYM = "OVER";
         public const string ACTIVE_WEB_APP_SERVICE_ID = "active-webapp";
+
+        public static readonly WorkspaceDefinition TestWorkspaceDefinition =
+            new WorkspaceDefinition
+            {
+                Templates = new List<TerraformTemplate>(),
+                // Add required members to fix CS9035
+                Workspace = new TerraformWorkspace(), // Replace with appropriate constructor/initialization
+                AppData = new WorkspaceAppData(),     // Replace with appropriate constructor/initialization
+                RequestingUserEmail = "admin@test.com",
+                ResourceGroupName = "test-resource-group"
+            };
 
         /// <summary>
         /// Mocking GraphServiceClient
@@ -52,21 +64,21 @@ namespace Datahub.Functions.UnitTests
             _requestAdapterMock.Setup(adapter => adapter.EnableBackingStore(It.IsAny<IBackingStoreFactory>()));
             _requestAdapterMock.SetupGet(adapter => adapter.SerializationWriterFactory).Returns(_serializationWriterFactoryMock.Object);
 
-             // Mock SendAsync to return a fake Invitation when called by Invitations.PostAsync
-             _requestAdapterMock.Setup(adapter => adapter.SendAsync<Invitation>(
-                    It.IsAny<RequestInformation>(),
-                    It.IsAny<ParsableFactory<Invitation>>(),
-                    It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
-                    It.IsAny<CancellationToken>()
-            )).ReturnsAsync(new Invitation
-            {
-                Id = "mock-invitation-id",
-                InviteRedeemUrl = "https://mocked-invite-link.com",
-                Status = "Pending",
-                InvitedUser = new User { Id= "mockUser" } 
-                // "mockUser" is used in CreateGraphUser to skip hard-to-mock call like follows:
-                // await graphClient.Groups[$"{groupId}"].Members.Ref.PostAsync(requestBody);
-            });
+            // Mock SendAsync to return a fake Invitation when called by Invitations.PostAsync
+            _requestAdapterMock.Setup(adapter => adapter.SendAsync<Invitation>(
+                   It.IsAny<RequestInformation>(),
+                   It.IsAny<ParsableFactory<Invitation>>(),
+                   It.IsAny<Dictionary<string, ParsableFactory<IParsable>>>(),
+                   It.IsAny<CancellationToken>()
+           )).ReturnsAsync(new Invitation
+           {
+               Id = "mock-invitation-id",
+               InviteRedeemUrl = "https://mocked-invite-link.com",
+               Status = "Pending",
+               InvitedUser = new User { Id = "mockUser" }
+               // "mockUser" is used in CreateGraphUser to skip hard-to-mock call like follows:
+               // await graphClient.Groups[$"{groupId}"].Members.Ref.PostAsync(requestBody);
+           });
             return new GraphServiceClient(_requestAdapterMock.Object);
         }
 

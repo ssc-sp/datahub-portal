@@ -7,6 +7,6 @@ public interface IResourceMessagingService
     public Task SendToTerraformQueue(WorkspaceDefinition project);
     
     public Task SendToUserQueue(WorkspaceDefinition workspaceDefinition);
-    
-    public Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = null, string? cbrId = null);
+
+    public Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string requestingUserEmail = "system-generated", string? cbrId = null);
 }
