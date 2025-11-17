@@ -7,7 +7,7 @@ namespace Datahub.Core.Extensions
 {
     public static class ProjectResourceGroupExtension
     {
-        public static string GetResourceGroupName(this Datahub_Project project)
+        public static string? GetResourceGroupName(this Datahub_Project project)
         {
             var newProjectTemplateType =
                 TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate);
@@ -23,8 +23,7 @@ namespace Datahub.Core.Extensions
                 if (rgName == "Missing") throw new Exception("Resource group name not found");
                 return rgName;
             }
-
-            throw new Exception("Resource group name not found");
+            return null;
         }
 
         public static string GetPostgresId(this Project_Resources2 postgresResource)

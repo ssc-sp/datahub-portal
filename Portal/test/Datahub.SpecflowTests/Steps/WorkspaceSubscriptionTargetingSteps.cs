@@ -5,6 +5,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
 using Datahub.Shared.Entities;
+using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Reqnroll;
@@ -21,28 +22,9 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     [Given(@"a workspace that has a subscription id")]
     public async Task GivenAWorkspaceThatHasASubscriptionId()
     {
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        
-        // First, add and save the subscription
-        var datahubAzureSubscription = new DatahubAzureSubscription()
-        {
-            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionName = Testing.SubscriptionName
-        };
-        ctx.AzureSubscriptions.Add(datahubAzureSubscription);
-        await ctx.SaveChangesAsync();
-        
-        // Then create and add the workspace with the subscription ID reference
-        var workspace = new Datahub_Project
-        {
-            Project_Acronym_CD = Testing.WorkspaceAcronym,
-            DatahubAzureSubscription = datahubAzureSubscription,
-            DatahubAzureSubscriptionId = datahubAzureSubscription.Id
-        };
-        
-        ctx.Projects.Add(workspace);
-        await ctx.SaveChangesAsync();
+        await GenerateWorkspaceHelper.GenerateWorkspace(
+            dbContextFactory,
+            Testing.WorkspaceAcronym);
     }
 
 
@@ -58,7 +40,10 @@ public sealed class WorkspaceSubscriptionTargetingSteps(
     [Given(@"a new workspace is created")]
     public async Task GivenANewWorkspaceIsCreated()
     {
-        await projectCreationService.CreateWorkspaceAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
+        await GenerateWorkspaceHelper.GenerateWorkspace(
+            dbContextFactory,
+            Testing.WorkspaceAcronym);
+        //await projectCreationService.CreateWorkspaceAsync(Testing.WorkspaceName, Testing.WorkspaceAcronym, "Unspecified");
     }
 
     [Given(@"the next available subscription id is ""(.*)""")]
