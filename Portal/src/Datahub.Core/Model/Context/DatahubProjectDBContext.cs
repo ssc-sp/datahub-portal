@@ -124,9 +124,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<VersionTag> VersionTags { get; set; }
 
-    public DbSet<ExternalUser> ExternalUsers { get; set; }
-    public DbSet<ExternalUserInvite> ExternalUserRequests { get; set; }
-
     // below are used for migrations
 #if MIGRATION
     public DatahubProjectDBContext() { }
@@ -286,11 +283,6 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .WithMany(g => g.WorkspacesInBudget)
             .HasForeignKey(p => p.ParentGCHostingBudgetId)
             .IsRequired(false);
-
-        modelBuilder.Entity<ExternalUser>()
-            .HasMany(e => e.Requests)
-            .WithOne(r => r.User)
-            .HasForeignKey(r => r.UserOID);
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {
