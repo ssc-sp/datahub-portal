@@ -69,7 +69,7 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
             SubscriptionName = Testing.SubscriptionName
         };
 
@@ -393,7 +393,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
-            SubscriptionName = Testing.SubscriptionName
+            SubscriptionName = Testing.SubscriptionName,
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid
         };
