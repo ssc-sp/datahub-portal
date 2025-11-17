@@ -84,8 +84,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return Task.FromResult<bool>(fileClient.Exists());
     }
 
-    public Task<Uri> DownloadFileAsync(string container, string filePath)
+    public async Task<Uri> DownloadFileAsync(string container, string filePath)
     {
+        // Check if file is quarantined before allowing download
+        await CheckFileQuarantineStatusAsync(container, filePath);
+        
         var containerClient = GetBlobContainerClient(container);
         var sasBuilder = GetBlobSasBuilder(container, filePath, 1, BlobSasPermissions.Read);
         var sharedKeyCred = GetSharedKeyCredentialAsync();
@@ -97,7 +100,60 @@ public class AzureCloudStorageManager : ICloudStorageManager
             Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
         };
 
-        return Task.FromResult(blobUriBuilder.ToUri());
+        return blobUriBuilder.ToUri();
+    }
+
+    private async Task CheckFileQuarantineStatusAsync(string container, string filePath)
+    {
+        try
+        {
+            var fs = GetFileSystemClient(container);
+            var fileClient = fs.GetFileClient(filePath);
+            
+            // Check if file exists first
+            if (!fileClient.Exists())
+            {
+                throw new FileNotFoundException($"File not found: {filePath}");
+            }
+            
+            // Get file properties and metadata
+            var properties = await fileClient.GetPropertiesAsync();
+            var metadata = properties.Value.Metadata;
+            
+            // Check for quarantine metadata
+            if (metadata.TryGetValue("quarantine_status", out var quarantineStatus) && 
+                quarantineStatus == "locked")
+            {
+                var reason = metadata.TryGetValue("quarantine_reason", out var quarantineReason) 
+                    ? quarantineReason 
+                    : "unknown";
+                    
+                var method = metadata.TryGetValue("quarantine_method", out var quarantineMethod) 
+                    ? quarantineMethod 
+                    : "standard";
+                    
+                var timestamp = metadata.TryGetValue("quarantine_timestamp", out var quarantineTimestamp) 
+                    ? quarantineTimestamp 
+                    : "unknown";
+                    
+                throw new UnauthorizedAccessException(
+                    $"File access denied. File is quarantined using {method} approach. " +
+                    $"Reason: {reason}. " +
+                    $"Quarantined at: {timestamp}. " +
+                    $"Please wait for virus scan completion before accessing this file.");
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            // Re-throw access denied exceptions
+            throw;
+        }
+        catch (Exception ex)
+        {
+            // Log other exceptions but don't block download for metadata check failures
+            // (In production, you might want to be more strict)
+            System.Diagnostics.Debug.WriteLine($"Warning: Could not check quarantine status for {filePath}: {ex.Message}");
+        }
     }
 
     public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
