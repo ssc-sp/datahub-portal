@@ -53,7 +53,7 @@ public record CreateResourceData
         [
             new TerraformTemplate(
                 TerraformTemplate.NormalizeTemplateName(TerraformTemplate.NewProjectTemplate),
-                TerraformStatus.CreateRequested)
+                TerraformStatus.CreateRequested, DateTime.UtcNow)
         ];
         Workspace = new TerraformWorkspace()
         {

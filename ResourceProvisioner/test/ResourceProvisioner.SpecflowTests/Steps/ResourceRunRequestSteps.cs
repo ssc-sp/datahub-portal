@@ -25,8 +25,8 @@ public sealed class ResourceRunRequestSteps(
         var createResourceRunCommand = new CreateResourceRunCommand()
         {
             Templates = [
-                new TerraformTemplate("test", TerraformStatus.CreateRequested),
-                new TerraformTemplate("test2", TerraformStatus.CreateRequested)
+                new TerraformTemplate("test", TerraformStatus.CreateRequested, DateTime.UtcNow),
+                new TerraformTemplate("test2", TerraformStatus.CreateRequested, DateTime.UtcNow)
             ],
             Workspace = new TerraformWorkspace()
             {

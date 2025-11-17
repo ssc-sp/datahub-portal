@@ -29,7 +29,7 @@ public class CreateResourceRunTests
         {
             Templates = new List<TerraformTemplate>
             {
-                new("azure-storage-blob", TerraformStatus.CreateRequested),
+                new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
             },
             Workspace = new TerraformWorkspace
             {

@@ -32,10 +32,9 @@ public interface IRequestManagementService
     /// <param name="requestingUser">The current portal user making the request.</param>
     /// <param name="requestedTemplate">The terraform template to scaffold for.</param>
     /// <param name="ctx">The db context to use to scaffold the changes</param>
-    /// <param name="requestTime">The time all resources are added to the run</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
     Task ScaffoldLocalChanges(Datahub_Project project, PortalUser requestingUser, TerraformTemplate requestedTemplate,
-        DatahubProjectDBContext ctx, DateTime requestTime);
+        DatahubProjectDBContext ctx);
 
     public Task<bool> TriggerBuildVersionUpdates(string versionTag, string email);
     public Task SendVersionUpdateToQueueAsync(string versionTag, WorkspaceDefinition workspaceDefinition);

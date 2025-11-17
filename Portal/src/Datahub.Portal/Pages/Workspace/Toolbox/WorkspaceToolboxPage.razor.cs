@@ -581,7 +581,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             {
                 Log($"Scaffolding local changes for {template.Name}");
                 // Create project resource records for each template
-                await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context, requestTime);
+                await RequestManagementService.ScaffoldLocalChanges(workspace, _viewedPortalUser, template, _context);
 
                 // Apply tool specific changes
                 var resource = workspace.Resources.First(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(template.Name));

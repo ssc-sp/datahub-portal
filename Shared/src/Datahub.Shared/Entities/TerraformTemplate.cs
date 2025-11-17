@@ -2,7 +2,7 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Shared.Entities;
 
-public class TerraformTemplate(string name, string status)
+public class TerraformTemplate(string name, string status, DateTime requestedAt)
 {
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
@@ -24,6 +24,8 @@ public class TerraformTemplate(string name, string status)
     public string Name { get; } = name;
 
     public string Status { get; } = status ?? TerraformStatus.Unknown;
+
+    public DateTime RequestedAt { get; } = requestedAt;
 
     /// <summary>
     /// Converts a template name to a readable name based on the specified culture.
@@ -114,7 +116,7 @@ public class TerraformTemplate(string name, string status)
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
         return GetDependencyNames(name)
-            .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested))
+            .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested, DateTime.UtcNow))
             .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)

@@ -35,8 +35,7 @@ public class RequestManagementService(
     /// <param name="ctx">The db context to use</param>
     public async Task ScaffoldLocalChanges(Datahub_Project project, PortalUser requestingUser,
         TerraformTemplate requestedTemplate,
-        DatahubProjectDBContext ctx,
-        DateTime requestTime)
+        DatahubProjectDBContext ctx)
     {
         ctx.Projects.Attach(project);
 
@@ -60,6 +59,7 @@ public class RequestManagementService(
                     : requestedTemplate.Status;
             }
 
+            resource.RequestedAt = requestedTemplate.RequestedAt;
             ctx.Project_Resources2.Update(resource);
         }
         else
@@ -70,7 +70,7 @@ public class RequestManagementService(
                 RequestedById = requestingUser.Id,
                 ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name),
                 Status = requestedTemplate.Status,
-                RequestedAt = requestTime
+                RequestedAt = requestedTemplate.RequestedAt
             };
 
             await ctx.Project_Resources2.AddAsync(resource);

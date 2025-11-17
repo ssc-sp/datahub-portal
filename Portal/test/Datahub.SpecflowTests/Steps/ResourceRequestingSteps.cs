@@ -69,7 +69,7 @@ namespace Datahub.SpecflowTests.Steps
             var currentUser = await ctx.PortalUsers
                 .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
-            var terraformTemplate = new TerraformTemplate(TerraformTemplate.AzurePostgres, TerraformStatus.CreateRequested);
+            var terraformTemplate = new TerraformTemplate(TerraformTemplate.AzurePostgres, TerraformStatus.CreateRequested, DateTime.UtcNow);
             
             await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser);
         }
@@ -80,7 +80,7 @@ namespace Datahub.SpecflowTests.Steps
         {
             
             var resourceType = TransformResourceName(resourceName);
-            var terraformTemplate = new TerraformTemplate(resourceType, TerraformStatus.CreateRequested);
+            var terraformTemplate = new TerraformTemplate(resourceType, TerraformStatus.CreateRequested, DateTime.UtcNow);
             var projectAcronym = scenarioContext[$"acronym:{resourceName}"] as string;
             
             await using var ctx = await dbContextFactory.CreateDbContextAsync();

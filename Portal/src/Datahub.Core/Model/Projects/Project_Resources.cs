@@ -107,10 +107,10 @@ public class Project_Resources2
     /// <summary>
     /// Converts the current instance of Project_Resource to a TerraformTemplate object.
     /// </summary>
-    /// <returns>A new instance of TerraformTemplate with the ResourceType and Status properties set.</returns>
+    /// <returns>A new instance of TerraformTemplate with the ResourceType, Status, and RequestedAt properties set.</returns>
     public TerraformTemplate ToTerraformTemplate()
     {
-        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status);
+        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status, DateTime.UtcNow);
     }
 }
 
