@@ -58,13 +58,11 @@
     public UserType AllowedUsers { get; set; } = UserType.AllUsers;
 
     [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
-    #nullable enable
     private ClaimsPrincipal? _user;
-    #nullable disable
 
-    private RenderFragment AuthorizedContent => Authorized ?? ChildContent;
+    private RenderFragment? AuthorizedContent => Authorized ?? ChildContent;
 
     public enum AuthLevels
     {
