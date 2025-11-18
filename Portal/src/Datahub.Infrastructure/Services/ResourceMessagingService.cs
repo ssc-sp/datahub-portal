@@ -9,6 +9,7 @@ using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
+using Datahub.Core.Extensions;
 using Foundatio.Queues;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ public class ResourceMessagingService(
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition); 
     }
 
-    public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string? requestingUserEmail = "system-generated", string? cbrId = null)
+    public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string requestingUserEmail = "system-generated", string? cbrId = null)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var project = await ctx.Projects
@@ -46,7 +47,7 @@ public class ResourceMessagingService(
             .AsSingleQuery()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
 
-        if (project == null)
+        if (project is null)
         {
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }
@@ -83,6 +84,7 @@ public class ResourceMessagingService(
                 DatabricksConfiguration = TerraformVariableExtraction.ExtractDatabricksConfiguration(project)
             },
             RequestingUserEmail = requestingUserEmail,
+            ResourceGroupName = project.GetResourceGroupName(),
             CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty
         };
     }

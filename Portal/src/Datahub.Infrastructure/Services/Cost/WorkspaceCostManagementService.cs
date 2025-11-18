@@ -297,7 +297,6 @@ namespace Datahub.Infrastructure.Services.Cost
                     var cost = new Datahub_Project_Costs()
                     {
                         CadCost = amount,
-                        CloudProvider = AZURE_IDENTIFIER,
                         Date = date,
                         Project_ID = project.Project_ID,
                         ServiceName = s

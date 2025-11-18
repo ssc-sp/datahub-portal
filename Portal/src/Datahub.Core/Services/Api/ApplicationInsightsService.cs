@@ -37,8 +37,8 @@ public class ApplicationInsightsService
             new QueryTimeRange(TimeSpan.FromDays(1)));
         List<InfrastructureHealthResult> results = response.Value.Table.Rows.Select(x => new InfrastructureHealthResult
         {
-            ResourceType = x["tostring_customDimesions_resourceType"].ToString(),
-            Status = x["tostring_customDimesions_status"].ToString(),
+            ResourceType = x["tostring_customDimesions_resourceType"].ToString() ?? "-",
+            Status = x["tostring_customDimesions_status"].ToString() ?? "-",
             Count = Convert.ToInt32(x["count_"].ToString())
         }).ToList();
         return results;

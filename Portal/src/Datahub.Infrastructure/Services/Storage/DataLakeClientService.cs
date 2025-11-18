@@ -137,9 +137,11 @@ public class DataLakeClientService
 
         foreach (var item in accessControlList.Where(i => i.AccessControlType == AccessControlType.User && !string.IsNullOrEmpty(i.EntityId) && i.EntityId != file.ownedby))
         {
-            Sharedwith sharedwith = new Sharedwith();
-            sharedwith.userid = item.EntityId;
-            sharedwith.role = item.Permissions.HasFlag(RolePermissions.Write) ? "Editor" : "Viewer";
+            Sharedwith sharedwith = new Sharedwith
+            {
+                userid = item.EntityId,
+                role = item.Permissions.HasFlag(RolePermissions.Write) ? "Editor" : "Viewer"
+            };
             file.sharedwith.Add(sharedwith);
         }
     }

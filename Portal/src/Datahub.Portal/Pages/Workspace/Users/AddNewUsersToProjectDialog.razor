@@ -5,6 +5,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
 @inject IMSGraphService _msGraphService 
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
@@ -174,7 +175,7 @@
             case -1 when _emailValidator.IsValid(search):
                 _searchResultUsers.Insert(0, new GraphUser()
                 {
-                    mailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddUserCommand.NEW_USER_GUID
+                    MailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddUserCommand.NEW_USER_GUID
                 });
                 break;
         }
