@@ -3,6 +3,7 @@
 @inject IJSRuntime _jsRuntime
 @inject ILogger<DropZone> _logger
 
+@implements IAsyncDisposable
 @implements IDisposable
 
 <div @ref="_dropZoneElement" class="dropzone-container @(MaxHeight ? "max-height" : "")">
@@ -20,13 +21,13 @@
 
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
-    
+
     [Parameter]
     public EventCallback<InputFileChangeEventArgs> OnFilesDrop { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> OnFileItemDrop { get; set; }
-    
+
     [Parameter]
     public bool MaxHeight { get; set; }
 
@@ -54,6 +55,18 @@
     {
         _logger.LogInformation("File dragged: {Filename}", filename);
         await OnFileItemDrop.InvokeAsync(filename);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            await _module.DisposeAsync();
+        }
+        if (_dropZoneInstance is not null)
+        {
+            await _dropZoneInstance.DisposeAsync();
+        }
     }
 
     public void Dispose()

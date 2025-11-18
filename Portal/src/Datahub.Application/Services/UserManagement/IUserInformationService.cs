@@ -1,6 +1,5 @@
 ﻿using System.Security.Claims;
 using Datahub.Core.Model.Users;
-using Datahub.Core.Model.Users;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Graph.Models;
 
