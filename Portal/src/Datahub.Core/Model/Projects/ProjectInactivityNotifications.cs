@@ -14,7 +14,7 @@
         /// <summary>
         /// Gets or sets the navigation property for the workspace associated with this inactivity notification.
         /// </summary>
-        public Datahub_Project Project { get; set; }
+        public Datahub_Project Project { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the date and time when the inactivity notification was sent.
@@ -31,6 +31,6 @@
         /// Gets or sets a string indicating the recipient(s) of the inactivity notification.
         /// This could be an email address or a list of recipients.
         /// </summary>
-        public string SentTo { get; set; }
+        public required string SentTo { get; set; }
     }
 }

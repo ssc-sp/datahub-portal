@@ -52,7 +52,7 @@ namespace Datahub.Core.Utils
             _ => OpenDataPublishingUtils.NotStarted(step),
         };
 
-        public static TbsOpenGovSubmission.ProcessSteps GetCurrentStatus(TbsOpenGovSubmission submission)
+        public static TbsOpenGovSubmission.ProcessSteps? GetCurrentStatus(TbsOpenGovSubmission submission)
         {
             if (CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.Published).Completed)
             {
@@ -62,7 +62,7 @@ namespace Datahub.Core.Utils
             {
                 return Enum.GetValues<TbsOpenGovSubmission.ProcessSteps>()
                     .Select(s => CheckStepStatus(submission, s))
-                    .FirstOrDefault(s => s.Started && !s.Completed).Step;
+                    .FirstOrDefault(s => s.Started && !s.Completed)?.Step;
             }
         }
 
@@ -81,7 +81,7 @@ namespace Datahub.Core.Utils
                 TbsOpenGovSubmission.DATASET_FILE_TYPE,
                 TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
-            var relevantFiles = files.Where(f => relevantPurposes.Contains(f.FilePurpose));
+            var relevantFiles = files.Where(f => f.FilePurpose is not null && relevantPurposes.Contains(f.FilePurpose));
 
             if (relevantFiles.All(f => f.UploadStatus == OpenDataPublishFileUploadStatus.NotStarted))
             {
@@ -106,7 +106,7 @@ namespace Datahub.Core.Utils
                 TbsOpenGovSubmission.GUIDE_FILE_TYPE
             };
 
-            var requiredFiles = files.Where(f => requiredPurposes.Contains(f.FilePurpose));
+            var requiredFiles = files.Where(f => f.FilePurpose is not null && requiredPurposes.Contains(f.FilePurpose));
 
             if (files == null || files.Count < 1)
             {

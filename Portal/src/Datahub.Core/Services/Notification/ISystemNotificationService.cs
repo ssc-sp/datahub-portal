@@ -9,8 +9,8 @@ public interface ISystemNotificationService
     Task<int> CreateSystemNotification(string userId, string textKey, params object[] arguments) =>
         CreateSystemNotifications(new List<string>() { userId }, textKey, arguments);
 
-    Task<int> CreateSystemNotificationsWithLink(IEnumerable<string> userIds, string actionLink, string linkKey, string textKey, params object[] arguments);
-    Task<int> CreateSystemNotificationWithLink(string userId, string actionLink, string linkKey, string textKey, params object[] arguments) =>
+    Task<int> CreateSystemNotificationsWithLink(IEnumerable<string> userIds, string actionLink, string? linkKey, string textKey, params object[] arguments);
+    Task<int> CreateSystemNotificationWithLink(string userId, string actionLink, string? linkKey, string textKey, params object[] arguments) =>
         CreateSystemNotificationsWithLink(new List<string>() { userId }, actionLink, linkKey, textKey, arguments);
     Task<int> CreateSystemNotificationsWithLink(IEnumerable<string> userIds, string actionLink, string textKey, params object[] arguments) =>
         CreateSystemNotificationsWithLink(userIds, actionLink, null, textKey, arguments);
@@ -24,7 +24,7 @@ public interface ISystemNotificationService
 
     int GetNotificationPageSize();
 
-    event Func<string, Task> Notify;
+    event Func<string, Task>? Notify;
 }
 
 // These classes (or similar) may be useful in a more general context

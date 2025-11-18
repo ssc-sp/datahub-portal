@@ -20,7 +20,7 @@ public static class EFTools
     public static void InitializeDatabase<T>(ILogger logger, IConfiguration configuration, IServiceProvider serviceProvider, bool offline, bool migrate = true, bool ensureDeleteinOffline = true)
         where T : DbContext
     {
-        var factory = serviceProvider.GetService(typeof(IDbContextFactory<T>)) as IDbContextFactory<T>;
+        var factory = serviceProvider.GetRequiredService<IDbContextFactory<T>>();
         InitializeDatabase<T>(logger, configuration, factory, offline, migrate, ensureDeleteinOffline);
     }
 
@@ -72,7 +72,7 @@ public static class EFTools
         return configuration.GetConnectionString(name) ?? throw new ArgumentNullException($"ASPNETCORE_CONNECTION STRING ({name}) in Enviroment ({environment.EnvironmentName}).");
     }
 
-    public static DbDriver GetDriver(this IConfiguration configuration) => configuration.GetValue(typeof(string), "DbDriver", "azure").ToString().ToLowerInvariant() switch
+    public static DbDriver GetDriver(this IConfiguration configuration) => (configuration.GetValue(typeof(string), "DbDriver", "azure").ToString()!).ToLowerInvariant() switch
     {
         "sqlite" => DbDriver.Sqlite,
         "memory" => DbDriver.Memory,

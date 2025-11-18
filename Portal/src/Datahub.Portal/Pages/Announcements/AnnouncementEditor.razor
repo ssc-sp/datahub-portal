@@ -2,10 +2,11 @@
 
 @page "/announcements/edit/{Id}"
 
-@using Datahub.Core.Model.Announcements;
 @using Datahub.Application.Services.Announcements
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Announcements;
+@using Datahub.Core.Model.Users
 
 @inject IAnnouncementService _announcementService
 @inject ISnackbar _snackbar
