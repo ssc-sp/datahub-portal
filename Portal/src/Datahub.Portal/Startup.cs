@@ -446,7 +446,6 @@ public class Startup
         services.AddSingleton<TranslationService>();
 
         services.AddScoped<NotificationsService>();
-        services.AddScoped<NotifierService>();
 
         services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();

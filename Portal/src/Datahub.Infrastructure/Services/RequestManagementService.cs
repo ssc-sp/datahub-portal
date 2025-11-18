@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Datahub.Application.Services;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
 using Datahub.Core.Model.Context;
 using Datahub.Shared;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Infrastructure.Services;
 

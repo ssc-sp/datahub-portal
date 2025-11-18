@@ -59,6 +59,7 @@ public partial class AzureSubscriptionsPage : ComponentBase
             TenantId = ((DatahubAzureSubscription)subscription).TenantId,
             SubscriptionId = ((DatahubAzureSubscription)subscription).SubscriptionId,
             Nickname = ((DatahubAzureSubscription)subscription).Nickname,
+            SubscriptionName = ((DatahubAzureSubscription)subscription).SubscriptionName,
         };
         
         _logger.LogInformation("Backing up item {SubscriptionId} for editing.", ((DatahubAzureSubscription)subscription).SubscriptionId);
