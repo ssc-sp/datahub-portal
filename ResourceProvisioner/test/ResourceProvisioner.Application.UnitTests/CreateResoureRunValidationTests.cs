@@ -40,7 +40,7 @@ public class CreateResourceRunValidationTests
             {
                 new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested)
             },
-            RequestingUserEmail = anyString,
+            RequestingUserEmail = "john.doe@test.gc.ca",
             ResourceGroupName = anyString
         };
         var validator = new CreateResourceRunCommandValidator();
