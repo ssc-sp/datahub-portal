@@ -1,6 +1,4 @@
-﻿
-
-<h3>NRCan DataHub Notification Test</h3>
+﻿<h3>NRCan DataHub Notification Test</h3>
 
 @if(string.IsNullOrEmpty(Name))
 {
@@ -16,6 +14,6 @@ else
 @code {
 
     [Parameter]
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
 }

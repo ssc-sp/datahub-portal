@@ -322,7 +322,7 @@ public class DocumentationService
     {
         var allFolders = new List<string>();
         if (!string.IsNullOrEmpty(locale)) allFolders.Add(locale);
-        if (!string.IsNullOrEmpty(guide.GetStringValue())) allFolders.Add(guide.GetStringValue());
+        if (!string.IsNullOrEmpty(guide.GetStringValue())) allFolders.Add(guide.GetStringValue()!);
         if (folders != null) allFolders.AddRange(folders);
 
         StringBuilder sb = new();

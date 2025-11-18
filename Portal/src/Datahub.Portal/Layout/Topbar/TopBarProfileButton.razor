@@ -2,10 +2,11 @@
 @inject NavigationManager _navigationManager
 
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Users;
+@using Datahub.Portal.Components.User
 @using Microsoft.Identity.Web
 @using MudBlazor.Utilities
-@using Datahub.Core.Model.Achievements
-@using Datahub.Portal.Components.User
 
 @if (_viewedUser is null)
 {

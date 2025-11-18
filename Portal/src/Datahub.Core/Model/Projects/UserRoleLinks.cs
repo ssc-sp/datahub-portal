@@ -1,5 +1,5 @@
 using System.ComponentModel.DataAnnotations;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 using MudBlazor.Forms;
 
 namespace Datahub.Core.Model.Projects
@@ -51,22 +51,22 @@ namespace Datahub.Core.Model.Projects
         /// <summary>
         /// Gets or sets the associated workspace.
         /// </summary>
-        public Datahub_Project Project { get; set; }
+        public Datahub_Project? Project { get; set; }
 
         /// <summary>
         /// Gets or sets the associated role.
         /// </summary>
-        public Project_Role Role { get; set; }
+        public Project_Role? Role { get; set; }
 
         /// <summary>
         /// Gets or sets the portal user. This includes email and graph GUID.
         /// </summary>
-        public PortalUser PortalUser { get; set; }
+        public PortalUser? PortalUser { get; set; }
 
         /// <summary>
         /// Gets or sets the portal user who approved this record.
         /// </summary>
-        public PortalUser ApprovedPortalUser { get; set; }
+        public PortalUser? ApprovedPortalUser { get; set; }
 
         #endregion
 
@@ -74,6 +74,6 @@ namespace Datahub.Core.Model.Projects
         /// Gets or sets the timestamp for concurrency control.
         /// </summary>
         [Timestamp]
-        public byte[] Timestamp { get; set; }
+        public byte[]? Timestamp { get; set; }
     }
 }

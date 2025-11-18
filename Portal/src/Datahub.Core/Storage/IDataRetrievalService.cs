@@ -20,10 +20,10 @@ public interface IDataRetrievalService
     Task<List<string>> GetSubFolders(DataLakeFileSystemClient fileSystemClient, string folderName);
     Task<List<string>> GetAllFolders(string rootFolderName, User user);
     Task<Datahub.Core.Data.Folder> GetFileList(Datahub.Core.Data.Folder folder, User user, bool onlyFolders = false, bool recursive = false);
-    Task<StorageMetadata> GetStorageMetadata(string project);
+    Task<AzureStorageMetadata> GetStorageMetadata(string project);
     Task<List<string>> ListContainers(string projectAcronym, User user);
     Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, string container, User user);
-    Task<(List<string> A, List<FileMetaData> B, string C)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default);
+    Task<(List<string> A, List<FileMetaData> B, string C)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string? continuationToken = default);
     Task<List<string>> GetProjectContainersAsync(string projectAcronymParam, User user);
     Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName);
 }
