@@ -13,6 +13,13 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class FileExplorer
 {
+    internal enum FileCheckResult
+    {
+        Allowed,
+        ExtensionBlocked,
+        SizeExceeded
+    }
+
     private async Task RefreshStoragePageAsync()
     {
         _lastContainer = Container;
@@ -198,13 +205,22 @@ public partial class FileExplorer
         return string.Join("/", splitPath);
     }
 
-    private bool CheckAcceptedFileExtension(IBrowserFile browserFile)
+    private FileCheckResult CheckAllowedFile(IBrowserFile browserFile)
     {
         var blockedExtensions = _config.StorageConfiguration.BlockedFileExtensionCollection;
         var filename = browserFile.Name;
         var extension = Path.GetExtension(filename)?.ToLowerInvariant();
+        if (blockedExtensions.Contains(extension)) 
+        {
+            return FileCheckResult.ExtensionBlocked;
+        }
 
-        return !blockedExtensions.Contains(extension);
+        if (browserFile.Size > _config.StorageConfiguration.DefaultMaxUploadSize)
+        {
+            return FileCheckResult.SizeExceeded;
+        }
+
+        return FileCheckResult.Allowed;
     }
 
     private async Task UploadFile(IBrowserFile browserFile, string folder)
@@ -212,10 +228,17 @@ public partial class FileExplorer
         if (browserFile == null)
             return;
 
-        var isAccepted = CheckAcceptedFileExtension(browserFile);
-        if (!isAccepted)
+        var allowedFileCheck = CheckAllowedFile(browserFile);
+        if (allowedFileCheck != FileCheckResult.Allowed)
         {
-            _blockedFiles.Add(browserFile.Name);
+            var localizedReasonKey = allowedFileCheck switch
+            {
+                FileCheckResult.ExtensionBlocked => "The file type is not allowed",
+                FileCheckResult.SizeExceeded => "The file is too large",
+                _ => "The file cannot be uploaded"
+            };
+
+            _blockedFiles.Add(browserFile.Name, localizedReasonKey);
             return;
         }
 

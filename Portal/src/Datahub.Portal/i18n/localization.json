@@ -2365,5 +2365,8 @@
   "IMPORTANT": "IMPORTANT",
   "Trusted Entra Login": "Trusted Entra Login",
   "External Login": "External Login",
-  "{0} has been blocked.": "{0} has been blocked."
+  "{0} has been blocked: {1}": "{0} has been blocked: {1}",
+  "The file type is not allowed": "The file type is not allowed",
+  "The file is too large": "The file is too large",
+  "The file cannot be uploaded": "The file cannot be uploaded"
 }

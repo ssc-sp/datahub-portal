@@ -3357,5 +3357,8 @@
   "Info": "Info",
   "Trusted Entra Login": "Connexion Entra sécurisée",
   "External Login": "Connexion externe",
-  "{0} has been blocked.": "{0} a été bloqué."
+  "{0} has been blocked: {1}": "{0} a été bloqué: {1}",
+  "The file type is not allowed": "Le type de fichier n'est pas permis",
+  "The file is too large": "Le fichier est trop volumineux",
+  "The file cannot be uploaded": "Le fichier ne peut pas être téléchargé"
 }
