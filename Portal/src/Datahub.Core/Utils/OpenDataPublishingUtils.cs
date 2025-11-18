@@ -108,7 +108,7 @@ namespace Datahub.Core.Utils
 
             var requiredFiles = files.Where(f => f.FilePurpose is not null && requiredPurposes.Contains(f.FilePurpose));
 
-            if (files == null || files.Count < 1)
+            if (files.Count < 1)
             {
                 // no files => not started, unless criteria is met
                 return CheckStepStatus(submission, TbsOpenGovSubmission.ProcessSteps.AwaitingMetadata).Completed ?

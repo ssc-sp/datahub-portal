@@ -51,7 +51,7 @@
         {
             foreach (var f in _selectedValues.Except(value))
             {
-                f.FilePurpose = string.Empty;
+                f.FilePurpose = null;
             }
 
             foreach (var f in value)
