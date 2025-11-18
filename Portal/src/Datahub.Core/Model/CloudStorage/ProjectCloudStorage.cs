@@ -21,23 +21,23 @@ public class ProjectCloudStorage
     /// <summary>
     /// Gets or sets the navigation property for the Datahub workspace.
     /// </summary>
-    public virtual Datahub_Project Project { get; set; }
+    public virtual Datahub_Project Project { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the cloud storage provider (e.g., Azure Blob Storage).
     /// </summary>
-    public string Provider { get; set; }
+    public required string Provider { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the cloud storage account.
     /// </summary>
-    public string Name { get; set; }
+    public string? Name { get; set; }
 
     /// <summary>
     /// Gets or sets the connection data or relevant configuration for the cloud storage.
     /// This might include connection strings or other provider-specific data.
     /// </summary>
-    public string ConnectionData { get; set; }
+    public string? ConnectionData { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the cloud storage is enabled.
@@ -47,5 +47,5 @@ public class ProjectCloudStorage
     /// <summary>
     /// Gets or sets the list of files associated with this cloud storage for open data publishing submissions.
     /// </summary>
-    public IList<OpenDataPublishFile> PublishingSubmissionFiles { get; set; }
+    public IList<OpenDataPublishFile> PublishingSubmissionFiles { get; set; } = new List<OpenDataPublishFile>();
 }

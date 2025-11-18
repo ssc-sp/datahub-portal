@@ -1,5 +1,5 @@
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Onboarding;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Application.Services;
 

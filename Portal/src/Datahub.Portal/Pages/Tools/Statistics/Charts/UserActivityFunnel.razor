@@ -1,5 +1,6 @@
-﻿@using Datahub.Core.Model.Achievements
-@using ApexCharts
+﻿@using ApexCharts
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Users
 <MudPaper Elevation="0" Outlined Class="pa-4" Style="width: 100%">
     <ApexChart TItem="UserActivity" Title="@Title" Options="@_userActivityFunnelChartOptions"
                @ref="@_userActivityFunnelChart" Height="300">

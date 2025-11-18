@@ -47,7 +47,7 @@ namespace Datahub.Infrastructure.Services
                     resource.Project.Deleted_DT = resource.Project.Deleted_DT ?? DateTime.Now;
                     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
                     {
-                        rgName = resource.Project.GetResourceGroupName();
+                        rgName = resource.Project.GetResourceGroupName() ?? throw new InvalidOperationException("no resource group name");
                     }
                     ctx.Project_Resources2.Update(resource);
                 }

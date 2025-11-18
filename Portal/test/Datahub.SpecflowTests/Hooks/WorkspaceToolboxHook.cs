@@ -4,12 +4,15 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using Datahub.SpecflowTests.Utils;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Configuration;
 using NSubstitute;
 using NSubstitute.Extensions;
@@ -41,9 +44,9 @@ namespace Datahub.SpecflowTests.Hooks
                 .Options;
 
             var dbContextFactory = new SpecFlowDbContextFactory(options);
-            var ctx = await dbContextFactory.CreateDbContextAsync();
-            await SeedDb(ctx);
-
+            await GenerateWorkspaceHelper.GenerateWorkspace(
+                dbContextFactory,
+                Testing.WorkspaceAcronym, generateResourceGroup: false);
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
@@ -54,48 +57,5 @@ namespace Datahub.SpecflowTests.Hooks
         {
         }
 
-        private async Task SeedDb(DatahubProjectDBContext context)
-        {
-            var sub = new DatahubAzureSubscription
-            {
-                SubscriptionId = "00000000-0000-0000-0000-000000000000",
-                TenantId = "00000000-0000-0000-0000-000000000000",
-                Nickname = "Test",
-                SubscriptionName = "Test",
-            };
-            context.AzureSubscriptions.Add(sub);
-
-            var project = new Datahub_Project
-            {
-                Project_Acronym_CD = Testing.WorkspaceAcronym,
-                DatahubAzureSubscriptionId = sub.Id,
-                MetadataAdded = true,
-                Project_Budget = 100.0M
-            };
-            context.Projects.Add(project);
-
-            var credits = new Project_Credits
-            {
-                ProjectId = project.Project_ID,
-                Current = 0
-            };
-            context.Project_Credits.Add(credits);
-
-            var user = new PortalUser
-            {
-                Email = Testing.CurrentUserEmail,
-                GraphGuid = "00000000-0000-0000-0000-000000000000",
-                DisplayName = "Test User"
-            };
-            context.PortalUsers.Add(user);
-
-            var projectUser = new UserRoleLinks
-            {
-                PortalUserId = user.Id,
-                Project_ID = project.Project_ID
-            };
-            context.UserRolesLinks.Add(projectUser);
-            await context.SaveChangesAsync();
-        }
     }
 }

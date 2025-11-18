@@ -1,4 +1,5 @@
-﻿using Datahub.Application.Services.UserManagement;
+﻿using System.Net.Mail;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Microsoft.Extensions.Configuration;
 
@@ -21,11 +22,11 @@ public class OfflineMSGraphService : IMSGraphService
             {
                 UsersDict = new Dictionary<string, GraphUser>
                 {
-                    { "1", new GraphUser() { Id = "1", DisplayName = "Offline User"} },
-                    { "2", new GraphUser() { Id = "2", DisplayName = "Mennie, Todd"} },
-                    { "3", new GraphUser() { Id = "3", DisplayName = "Shelat, Yask"} },
-                    { "4", new GraphUser() { Id = "4", DisplayName = "Wang, Simon"} },
-                    { "5", new GraphUser() { Id = "5", DisplayName = "Yuldashev, Alisher"} }
+                    { "1", new GraphUser() { Id = "1", DisplayName = "Offline User", MailAddress = new MailAddress("offlineuser@example.com") } },
+                    { "2", new GraphUser() { Id = "2", DisplayName = "Mennie, Todd", MailAddress = new MailAddress("todd.mennie@example.com") } },
+                    { "3", new GraphUser() { Id = "3", DisplayName = "Shelat, Yask", MailAddress = new MailAddress("yask.shelat@example.com") } },
+                    { "4", new GraphUser() { Id = "4", DisplayName = "Wang, Simon", MailAddress = new MailAddress("simon.wang@example.com") } },
+                    { "5", new GraphUser() { Id = "5", DisplayName = "Yuldhev, Alisher", MailAddress = new MailAddress("alisher.yuldhev@example.com") } }
                 };
             }
         });
