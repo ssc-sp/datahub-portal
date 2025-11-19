@@ -13,12 +13,12 @@ public class SelfRegistrationDetails
     /// <summary>
     /// Gets or sets the email address provided by the user during registration.
     /// </summary>
-    public string Email { get; set; }
+    public string Email { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets any comments or additional information provided by the user during registration.
     /// </summary>
-    public string Comment { get; set; }
+    public string? Comment { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time when the self-registration entry was created.

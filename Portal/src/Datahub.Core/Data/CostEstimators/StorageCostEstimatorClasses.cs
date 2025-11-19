@@ -2,13 +2,13 @@
 
 public class StorageCostEstimatorResult
 {
-    public EstimatorResultLine WriteOperations { get; set; }
-    public EstimatorResultLine ListCreateOperations { get; set; }
-    public EstimatorResultLine ReadOperations { get; set; }
-    public EstimatorResultLine OtherOperations { get; set; }
-    public EstimatorResultLine DataRetrieval { get; set; }
-    public EstimatorResultLine DataWrite { get; set; }
-    public EstimatorResultLine GeoReplication { get; set; }
+    public EstimatorResultLine WriteOperations { get; set; } = null!;
+    public EstimatorResultLine ListCreateOperations { get; set; } = null!;
+    public EstimatorResultLine ReadOperations { get; set; } = null!;
+    public EstimatorResultLine OtherOperations { get; set; } = null!;
+    public EstimatorResultLine DataRetrieval { get; set; } = null!;
+    public EstimatorResultLine DataWrite { get; set; } = null!;
+    public EstimatorResultLine GeoReplication { get; set; } = null!;
 
     private decimal Cost(EstimatorResultLine l) => l?.Cost ?? 0.0000M;
     public bool HasValues => (WriteOperations ?? ListCreateOperations ?? ReadOperations ?? OtherOperations ?? DataRetrieval ?? DataWrite ?? GeoReplication) != null;
@@ -17,15 +17,15 @@ public class StorageCostEstimatorResult
 }
 public class StorageCostEstimatorPriceList
 {
-    public UnitPrice Capacity { get; set; }
-    public UnitPrice WriteOperations { get; set; }
-    public UnitPrice ListCreateOperations { get; set; }
-    public UnitPrice ReadOperations { get; set; }
-    public UnitPrice ArchiveHPRead { get; set; }
-    public UnitPrice DataRetrieval { get; set; }
-    public UnitPrice DataWrite { get; set; }
-    public UnitPrice OtherOperations { get; set; }
-    public UnitPrice GeoReplication { get; set; }
+    public UnitPrice Capacity { get; set; } = null!;
+    public UnitPrice WriteOperations { get; set; } = null!;
+    public UnitPrice ListCreateOperations { get; set; } = null!;
+    public UnitPrice ReadOperations { get; set; } = null!;
+    public UnitPrice ArchiveHPRead { get; set; } = null!;
+    public UnitPrice DataRetrieval { get; set; } = null!;
+    public UnitPrice DataWrite { get; set; } = null!;
+    public UnitPrice OtherOperations { get; set; } = null!;
+    public UnitPrice GeoReplication { get; set; } = null!;
 }
 
 public enum AccessTierType
@@ -46,5 +46,5 @@ public class SavedStorageCostPriceGrid
 {
     public DateTime LastUpdatedUtc { get; set; }
 
-    public Dictionary<string, StorageCostEstimatorPriceList> PriceLists { get; set; }
+    public Dictionary<string, StorageCostEstimatorPriceList> PriceLists { get; set; } = new();
 }

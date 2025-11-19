@@ -34,7 +34,6 @@ public class MyDataService
     private readonly ILogger _logger;
     private readonly IUserInformationService _userInformationService;
     private readonly IKeyVaultService _keyVaultService;
-    private readonly NotifierService _notifierService;
     private readonly IJSRuntime _jsRuntime;
     private readonly DataRetrievalService dataRetrievalService;
     private CommonAzureServices _commonAzureServices;
@@ -46,7 +45,6 @@ public class MyDataService
         IUserInformationService userInformationService,
         IKeyVaultService keyVaultService,
         IOptions<APITargets> targets,
-        NotifierService notifierService,
         IJSRuntime jSRuntime,
         DataRetrievalService dataRetrievalService,
         DataLakeClientService dataLakeClientService,
@@ -58,7 +56,6 @@ public class MyDataService
         _httpClient = clientFactory;
         _userInformationService = userInformationService;
         _keyVaultService = keyVaultService;
-        _notifierService = notifierService;
         _jsRuntime = jSRuntime;
         this.dataRetrievalService = dataRetrievalService;
         _targets = targets;
@@ -182,7 +179,6 @@ public class MyDataService
         await UploadGen2File(fileMetadata, projectUploadCode, containerName, (progress) =>
         {
             fileMetadata.uploadedBytes = progress;
-            _ = _notifierService.Update($"adddata", false);
         });
     }
     public async Task UploadGen2File(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
@@ -228,11 +224,6 @@ public class MyDataService
             _logger.LogError(e, $"Error uploading file: {fileMetadata.folderpath}/{fileMetadata.filename} User: {fileMetadata.ownedby}");
 
         }
-
-        // Done upload, update ONE last time!
-        await _notifierService.Update($"{fileMetadata.folderpath}/{fileMetadata.filename}", true);
-
-
     }
 
     private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
@@ -270,7 +261,6 @@ public class MyDataService
                 ProgressHandler = new Progress<long>((progress) =>
                 {
                     fileMetadata.uploadedBytes = progress;
-                    _ = _notifierService.Update($"adddata", false);
                 })
             };
 

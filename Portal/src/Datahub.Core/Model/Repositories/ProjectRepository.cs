@@ -17,27 +17,27 @@ public sealed class ProjectRepository
     /// <summary>
     /// Gets or sets repository URL
     /// </summary>
-    public string RepositoryUrl { get; set; }
+    public required string RepositoryUrl { get; set; }
 
     /// <summary>
     /// Gets or sets the location of the repository in the workspace
     /// </summary>
-    public string Path { get; set; }
+    public required string Path { get; set; }
 
     /// <summary>
     /// Gets or sets the repository provider (ie. GitHub)
     /// </summary>
-    public string Provider { get; set; }
+    public required string Provider { get; set; }
 
     /// <summary>
     /// Gets or sets the repository branch
     /// </summary>
-    public string Branch { get; set; }
+    public required string Branch { get; set; }
 
     /// <summary>
     /// Gets or sets the repository head commit id
     /// </summary>
-    public string HeadCommitId { get; set; }
+    public string? HeadCommitId { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether whether the repository is public
@@ -47,5 +47,5 @@ public sealed class ProjectRepository
     /// <summary>
     /// Gets or sets project instance
     /// </summary>
-    public Datahub_Project Project { get; set; }
+    public Datahub_Project Project { get; set; } = null!;
 }

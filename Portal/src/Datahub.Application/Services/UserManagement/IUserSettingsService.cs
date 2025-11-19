@@ -1,6 +1,6 @@
 ﻿#nullable enable
 
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Application.Services.UserManagement
 {

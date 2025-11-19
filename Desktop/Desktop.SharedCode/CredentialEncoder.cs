@@ -49,11 +49,11 @@ namespace Datahub.Core.DataTransfers
             }
         }
 
-        public static UploadCredentials DecodeCredentials(string base64)
+        public static UploadCredentials? DecodeCredentials(string base64)
         {
             if (string.IsNullOrEmpty(base64))
             {
-                throw new ArgumentException($"'{nameof(base64)}' cannot be null or empty.", nameof(base64));
+                return null;
             }
             try
             {

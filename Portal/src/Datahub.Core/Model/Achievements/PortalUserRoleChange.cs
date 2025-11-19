@@ -1,5 +1,5 @@
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 using static Datahub.Core.Model.Projects.Project_Role;
 
 namespace Datahub.Core.Model.Achievements;
