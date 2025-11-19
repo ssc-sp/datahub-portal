@@ -6,16 +6,16 @@ namespace Datahub.Core.Services;
 
 public class UiControlsService
 {
-    public RenderFragment CurrentRightSidebarRenderFragment { get; set; }
-    public RenderFragment CurrentModalRenderFragment { get; set; }
+    public RenderFragment? CurrentRightSidebarRenderFragment { get; set; }
+    public RenderFragment? CurrentModalRenderFragment { get; set; }
     public bool AllowEscape { get; set; } = true;
 
-    public event Action OnRightSidebarChange;
-    public event Action OnModalChange;
-    public event Action OnErrorModalShow;
+    public event Action? OnRightSidebarChange;
+    public event Action? OnModalChange;
+    public event Action? OnErrorModalShow;
 
-    private IDialogService _dialogService;
-    private IDialogReference _dialogReference = null;
+    private readonly IDialogService _dialogService;
+    private IDialogReference? _dialogReference;
 
     public UiControlsService(IDialogService dialogService)
     {
@@ -26,13 +26,13 @@ public class UiControlsService
     private void NotifyModalChange() => OnModalChange?.Invoke();
     private void NotifyErrorModalShow() => OnErrorModalShow?.Invoke();
 
-    public void ToggleRightSidebar(RenderFragment rightSidebarRenderFragment = null)
+    public void ToggleRightSidebar(RenderFragment? rightSidebarRenderFragment = null)
     {
         CurrentRightSidebarRenderFragment = (CurrentRightSidebarRenderFragment == rightSidebarRenderFragment) ? null : rightSidebarRenderFragment;
         NotifyRightSidebarChange();
     }
 
-    public async Task ToggleModal(RenderFragment modalRenderFragment = null)
+    public async Task ToggleModal(RenderFragment? modalRenderFragment = null)
     {
         await Task.Run(() =>
         {

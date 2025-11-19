@@ -113,7 +113,7 @@ public class TerraformTemplate(string name, string status)
 
     public static List<TerraformTemplate> GetDependenciesToCreate(string name)
     {
-        return GetDependencyNames(name)
+        return GetDependencyNames(name)?
             .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested))
             .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }

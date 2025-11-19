@@ -25,6 +25,7 @@ public class ApiTelemetryService
     }
     public ApiTelemetryService()
     {
+        _client = new TelemetryClient(_config);
     }
 
     public void LogMetric(string metricName, double value, string filename)

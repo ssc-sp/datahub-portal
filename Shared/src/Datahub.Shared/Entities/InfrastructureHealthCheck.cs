@@ -16,19 +16,19 @@ public class InfrastructureHealthCheck
     ///
     /// Example: Datahub Core, Datahub Queues, Workspace Acronyms
     /// </summary>
-    public string Group { get; set; }
+    public required string Group { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the name of the resource, a bit more specific than the group
     ///
     /// Example: Portal Database, Portal Web App, Portal Storage Account
     /// </summary>
-    public string Name { get; set; }
+    public required string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the url of the resource, if applicable, to open directly into Azure Portal
     /// </summary>
-    public string Url { get; set; }
+    public string? Url { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the resource type of what is being checked
@@ -50,7 +50,7 @@ public class InfrastructureHealthCheck
     /// <summary>
     /// Gets or sets the details of the unsuccessful health check
     /// </summary>
-    public string Details { get; set; }
+    public string? Details { get; set; } = string.Empty;
 }
 
 /// <summary>

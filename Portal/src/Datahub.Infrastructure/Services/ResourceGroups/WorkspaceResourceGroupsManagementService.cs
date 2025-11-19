@@ -121,7 +121,7 @@ namespace Datahub.Infrastructure.Services.ResourceGroups
 
             try
             {
-                var rgName = project.GetResourceGroupName();
+                var rgName = project.GetResourceGroupName() ?? throw new InvalidOperationException("no resource group name"); ;
                 rgNames.Add(rgName);
             }
             catch

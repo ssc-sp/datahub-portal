@@ -1,6 +1,6 @@
 ﻿using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Infrastructure.Services

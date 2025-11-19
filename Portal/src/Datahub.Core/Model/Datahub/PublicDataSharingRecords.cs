@@ -78,17 +78,17 @@ public class SharedDataFile
     /// <summary>
     /// Gets or sets the name of the file.
     /// </summary>
-    public string Filename_TXT { get; set; }
+    public string? Filename_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the folder path where the file is located.
     /// </summary>
-    public string FolderPath_TXT { get; set; }
+    public string? FolderPath_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the code of the project that owns this file.
     /// </summary>
-    public string ProjectCode_CD { get; set; }
+    public string? ProjectCode_CD { get; set; }
 
     /// <summary>
     /// Gets a value indicating whether this file is associated with a project.
@@ -100,13 +100,13 @@ public class SharedDataFile
     /// </summary>
     [Required]
     [StringLength(200)]
-    public string RequestingUser_ID { get; set; }
+    public string RequestingUser_ID { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the user ID of the individual responsible for approving the publication of this file.
     /// </summary>
     [StringLength(200)]
-    public string ApprovingUser_ID { get; set; }
+    public string? ApprovingUser_ID { get; set; }
 
     /// <summary>
     /// Gets or sets the date when the file was requested for sharing.
@@ -217,7 +217,7 @@ public class OpenDataSharedFile : SharedDataFile
     /// <summary>
     /// Gets or sets the URL to the signed approval form for this file.
     /// </summary>
-    public string SignedApprovalForm_URL { get; set; }
+    public string? SignedApprovalForm_URL { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the approval form has been read.
@@ -237,12 +237,12 @@ public class OpenDataSharedFile : SharedDataFile
     /// <summary>
     /// Gets or sets any error messages that occurred during the file upload process.
     /// </summary>
-    public string UploadError_TXT { get; set; }
+    public string? UploadError_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the public URL of the file once it has been uploaded.
     /// </summary>
-    public string FileUrl_TXT { get; set; }
+    public string? FileUrl_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether the approval form has been edited after loading.
