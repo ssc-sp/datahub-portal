@@ -24,7 +24,7 @@ public static class TerraformStatus
     {
         return new List<string>
         {
-            CreateRequested, InProgress
+            CreateRequested, InProgress, DeleteRequested, DeleteInProgress
         }.Contains(status);
     }
     public static bool DeletedOrInProcessOf(string status)

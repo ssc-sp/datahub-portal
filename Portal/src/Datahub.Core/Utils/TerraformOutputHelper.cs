@@ -48,6 +48,29 @@ public static class TerraformOutputHelper
         return $"{{\n{content}\n}}";
     }
 
+    public static string GetExpectedTerraformInput(Datahub_Project project)
+    {
+        var message = @"{              
+                ""pipeline_run_id"": {
+                  ""sensitive"": false,
+                  ""type"": ""string"",
+                  ""value"": ""6458""
+                },
+                ""pipeline_run_url"": {
+                  ""sensitive"": false,
+                  ""type"": ""string"",
+                  ""value"": ""https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_build/results?buildId=6458""
+                },
+                ""project_cd"": {
+                  ""sensitive"": false,
+                  ""type"": ""string"",
+                  ""value"": ""PIPELINEID""
+                }              
+            }";
+
+        message = message.Replace("PIPELINEID", project.Project_Acronym_CD);
+        return message;
+    }
     private static string GetExpectedTerraformOutputAzurePostgresString()
     {
         return @"  ""azure_postgresql_db_name"": {

@@ -512,6 +512,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             var workspace = await _context
                 .Projects
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.Resources)
                 .Include(p => p.Credits)
                 .Include(p => p.UserRoles)

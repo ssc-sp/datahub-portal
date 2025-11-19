@@ -76,25 +76,61 @@ public class TerraformOutputHandler(
         _logger.LogInformation("C# Queue trigger function finished");
     }
 
-    private async Task ProcessTerraformInputVariables(Dictionary<string, TerraformOutputVariable> output)
+    internal async Task ProcessTerraformInputVariables(Dictionary<string, TerraformOutputVariable> output)
     {
-        var projectAcronym = output[TerraformVariables.ProjectAcronym];
-    
-        var project = await projectDbContext.Projects
-            .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym.Value);
+        var projectAcronym = output[TerraformVariables.ProjectAcronym].Value;
+        var pipelineId = int.Parse(output[TerraformVariables.PipelineRunId].Value);
+        
 
-        if (project is null)
+        var projects = await projectDbContext.Projects            
+            .ToListAsync();
+        var resourcesall = await projectDbContext.Project_Resources2
+            .ToListAsync();
+
+        var resources = await projectDbContext.Projects
+            .Where(p => p.Project_Acronym_CD == projectAcronym)
+            .SelectMany(p => p.Resources.Where(r => r.PipelineId == null && TerraformStatus.RequestedOrInProcessOf(r.Status)))
+            .ToListAsync();
+
+        if (resources is null || !resources.Any())
         {
-            _logger.LogError("Project not found for acronym {ProjectAcronym}", projectAcronym.Value);
-            throw new Exception($"Project not found for acronym {projectAcronym.Value}");
+            _logger.LogError("No current resources found for {projectAcronym} that need to be created or deleted", projectAcronym);
+            throw new Exception($"Project not found for acronym {projectAcronym}");
         }
 
-        var projectResources = project.Resources;
-    
-        _logger.LogInformation("Retrieved {ResourceCount} project resources for project {ProjectAcronym}", 
-            projectResources?.Count ?? 0, projectAcronym.Value);
+        // Get unique RequestedAt dates and find the earliest one
+        var uniqueRequestedAtDates = resources
+            .Select(r => r.RequestedAt)
+            .Distinct()
+            .ToList();
 
+        if (uniqueRequestedAtDates.Any())
+        {
+            var earliestRequestedAt = uniqueRequestedAtDates.Min();
+            _logger.LogInformation("Earliest RequestedAt date found: {EarliestRequestedAt}", earliestRequestedAt);
+
+            // Update resources with the earliest RequestedAt date
+            var resourcesToUpdate = resources
+                .Where(r => r.RequestedAt == earliestRequestedAt)
+                .ToList();
+
+            foreach (var resource in resourcesToUpdate)
+            {
+                resource.PipelineId = pipelineId;
+            }
+
+            _logger.LogInformation("Updated {ResourceCount} resources with PipelineId {PipelineId}", 
+                resourcesToUpdate.Count, pipelineId);
+            
+            await projectDbContext.SaveChangesAsync();
+        }
+        else
+        {
+            _logger.LogInformation("No RequestedAt dates found in the resources");
+        }
+
+        _logger.LogInformation("Retrieved {ResourceCount} project resources for project {ProjectAcronym}", 
+            resources.Count, projectAcronym);
     }
 
     private async Task ProcessPostTerraformTriggers(IReadOnlyDictionary<string, TerraformOutputVariable> output)
