@@ -5,10 +5,10 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Services;
@@ -90,8 +90,9 @@ public class ProjectUserManagementServiceTests
                 CancellationToken.None))
             .Returns((string id, CancellationToken _) => Task.FromResult(new GraphUser
                 {
-                    mailAddress = new MailAddress(TestUserEmail),
-                    Id = id,
+                    MailAddress = new MailAddress(TestUserEmail),
+                    DisplayName = TestUserEmail,
+                Id = id,
                 })
             );
 

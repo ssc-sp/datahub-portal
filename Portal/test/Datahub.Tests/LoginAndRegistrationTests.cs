@@ -8,7 +8,6 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
@@ -30,6 +29,7 @@ using MudBlazor.Services;
 using Datahub.Portal.Pages.Public;
 using MassTransit;
 using Datahub.Application.Services.Metadata;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Tests
 {

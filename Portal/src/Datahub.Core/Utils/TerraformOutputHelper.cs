@@ -5,7 +5,7 @@ namespace Datahub.Core.Utils;
 
 public static class TerraformOutputHelper
 {
-    public static string GetExpectedTerraformOutput(Datahub_Project project, string workspaceId = null, string workspaceUrl = null, string envAcronym = "dev")
+    public static string GetExpectedTerraformOutput(Datahub_Project project, string? workspaceId = null, string? workspaceUrl = null, string envAcronym = "dev")
     {
         var expectedTerraformOutput = GetExpectedTerraformOutputResourceGroupString();
         // var workspaceId = "";

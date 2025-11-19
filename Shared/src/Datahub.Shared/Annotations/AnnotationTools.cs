@@ -12,19 +12,19 @@ public static class AnnotationTools
     /// </summary>
     /// <param name="value"></param>
     /// <returns>Value of the Description annotation</returns>
-    public static string GetStringValue(this Enum value)
+    public static string? GetStringValue(this Enum value)
     {
         // Get the type
         Type type = value.GetType();
 
         // Get fieldinfo for this type
-        FieldInfo fieldInfo = type.GetField(value.ToString());
+        FieldInfo? fieldInfo = type.GetField(value.ToString());
 
         // Get the stringvalue attributes
-        DescriptionAttribute[] attribs = fieldInfo.GetCustomAttributes(
+        var attribs = fieldInfo?.GetCustomAttributes(
             typeof(DescriptionAttribute), false) as DescriptionAttribute[];
 
         // Return the first if there was a match.
-        return attribs.Length > 0 ? attribs[0].Description : null;
+        return attribs?.Length > 0 ? attribs[0].Description : null;
     }
 }

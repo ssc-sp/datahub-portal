@@ -2,7 +2,7 @@
 
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Extensions;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services;
 using Microsoft.AspNetCore.Components;
 

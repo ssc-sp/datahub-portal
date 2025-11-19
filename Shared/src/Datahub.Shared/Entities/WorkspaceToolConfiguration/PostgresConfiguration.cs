@@ -8,7 +8,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
     public class PostgresConfiguration : IWorkspaceToolConfiguration, IWorkspaceToolWithSuffix
     {
         public string PSQL_SKU { get; set; } = PostgresTier.DefaultTier.PSQL_SKU;
-        public string ResourceNameSuffix { get; set; }
+        public string? ResourceNameSuffix { get; set; }
 
         public static string GetPropertyLabel(string propertyName) => propertyName switch
         {
