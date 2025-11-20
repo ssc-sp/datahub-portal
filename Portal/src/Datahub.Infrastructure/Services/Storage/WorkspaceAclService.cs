@@ -224,7 +224,7 @@ public class WorkspaceAclService : IWorkspaceAclService
         return aclList;
     }
 
-    private async Task<DataLakeServiceClient> GetDataLakeServiceClientAsync(string workspaceAcronym)
+    protected virtual async Task<DataLakeServiceClient> GetDataLakeServiceClientAsync(string workspaceAcronym)
     {
         var storageAccountName = _storageConfig.GetProjectStorageAccountName(workspaceAcronym);
         var storageAccountKey = await _storageConfig.GetProjectStorageAccountKey(workspaceAcronym);
