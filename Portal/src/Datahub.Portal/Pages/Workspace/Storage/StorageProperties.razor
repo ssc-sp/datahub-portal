@@ -75,11 +75,14 @@ else
             var storageMetadata = await Container.StorageManager.GetStorageMetadataAsync(Container.Name);
             _properties = new Dictionary<string, (string, RenderFragment)>();
             TryAdd(_properties, Localizer["Container Name"], storageMetadata.Container);
-            TryAdd(_properties, Localizer["AccountName"], storageMetadata.AccountName);
-            TryAdd(_properties, Localizer["Account Kind"], storageMetadata.StorageAccountType);
-            TryAdd(_properties, Localizer["Replication"], storageMetadata.GeoRedundancy);
-            TryAdd(_properties, Localizer["Versioning"], storageMetadata.Versioning);
-            TryAdd(_properties, Localizer["Url"], (storageMetadata.Url, @<InlineCodeWithCopy>@storageMetadata.Url</InlineCodeWithCopy>));
+            if (storageMetadata is AzureStorageMetadata azureMetadata)
+            {
+                TryAdd(_properties, Localizer["AccountName"], azureMetadata.AccountName);
+                TryAdd(_properties, Localizer["Account Kind"], azureMetadata.StorageAccountType);
+                TryAdd(_properties, Localizer["Replication"], azureMetadata.GeoRedundancy);
+                TryAdd(_properties, Localizer["Versioning"], azureMetadata.Versioning);
+                TryAdd(_properties, Localizer["Url"], (azureMetadata.Url, @<InlineCodeWithCopy>@azureMetadata.Url</InlineCodeWithCopy>));
+            }
 
             _loading = false;
         }

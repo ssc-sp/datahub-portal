@@ -7,7 +7,6 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Datahub.Core.Model.Achievements;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Infrastructure.Queues.Messages;
 using MassTransit;
@@ -17,6 +16,7 @@ using Datahub.Application.Configuration;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Datahub.Metadata.Model;
+using Datahub.Core.Model.Users;
 using Datahub.Application.Services.Notification;
 
 
@@ -263,10 +263,8 @@ public class HostingServicesController : ControllerBase
 
             // Retrieve the workspace details.
             var project = await _context.Projects.FirstOrDefaultAsync(e => e.Project_Acronym_CD == acronym);
-
             // Create a new GC Hosting workspace record using the given details.
             _logger.LogInformation("Creating GC Hosting workspace record.");
-            workspaceDetails.Datahub_Project = project;
             _context.GCHostingWorkspaceDetails.Add(workspaceDetails);
             project.ParentGCHostingBudget = workspaceDetails;
             await _context.SaveChangesAsync();

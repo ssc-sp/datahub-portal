@@ -6,10 +6,10 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Utils;
@@ -288,7 +288,6 @@ public class WorkspaceCreationService(
 
         return await ctx.GCHostingWorkspaceDetails
             .Where(d => includeAll || d.LeadEmail == userEmail)
-            .Include(d => d.Datahub_Project)
             .Include(d => d.WorkspacesInBudget)
             .AsNoTracking()
             .ToListAsync();

@@ -42,7 +42,18 @@ public class ExternalSearchService : IExternalSearchService
 
                     var content = await response.Content.ReadAsStringAsync();
                     var result = JsonConvert.DeserializeObject<GeoCoreSearchResult>(content);
-
+                    if (result is null)
+                    {
+                        _logger.LogWarning($"FGP search for '{keyword}' returned invalid content");
+                        return new GeoCoreSearchResult
+                        {
+                            Count = 0,
+                            DataScannedInMB = 0,
+                            EngineExecutionTimeInMillis = 0,
+                            Items = Array.Empty<GeoCoreItem>(),
+                            QueryCostInUSD = 0
+                        };
+                    }
                     _logger.LogDebug($"Got {result.Count} FGP results for '{keyword}'");
 
                     return result;
@@ -82,7 +93,15 @@ public class ExternalSearchService : IExternalSearchService
                     var content = await response.Content.ReadAsStringAsync();
                     var wrapper = JsonConvert.DeserializeObject<OpenDataResultWrapper>(content);
 
-                    //TODO check wrapper.success
+                    if (wrapper is null || wrapper.Result is null)
+                    {
+                        _logger.LogWarning($"Open Data search for '{keyword}' returned invalid content");
+                        return new OpenDataResult
+                        {
+                            Count = 0,
+                            Results = Array.Empty<OpenDataItem>()
+                        };
+                    }
                     return wrapper.Result;
                 }
             }

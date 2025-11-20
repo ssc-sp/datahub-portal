@@ -14,7 +14,7 @@ public static class FileMetaDataExtensions
             {
                 if (metadata.ContainsKey(propertyName))
                 {
-                    PropertyInfo info = fileType.GetProperty(propertyName);
+                    PropertyInfo? info = fileType.GetProperty(propertyName);
                     if (info != null)
                     {
                         var value = metadata[propertyName];
@@ -77,7 +77,7 @@ public static class FileMetaDataExtensions
 
     public static string GetMetadataPropertyValue(this FileMetaData fileMetadata, string propertyName)
     {
-        PropertyInfo info = fileType.GetProperty(propertyName);
+        PropertyInfo? info = fileType.GetProperty(propertyName);
         if (info != null)
         {
             var value = info.GetValue(fileMetadata);
@@ -88,7 +88,7 @@ public static class FileMetaDataExtensions
                     return JsonConvert.SerializeObject(value);
                 }
 
-                return value.ToString();
+                return value.ToString()!;
             }
         }
 
@@ -106,7 +106,7 @@ public static class FileMetaDataExtensions
         return metadata;
     }
 
-    public static List<(string Key, bool InSearch, bool IsVisible)> GetMetadataProperties(this FileMetaData fileMetadata)
+    public static List<(string Key, bool InSearch, bool IsVisible)> GetMetadataProperties(this FileMetaData? fileMetadata)
     {
         return new List<(string Key, bool InSearch, bool IsVisible)>
         {
@@ -131,9 +131,9 @@ public static class FileMetaDataExtensions
         };
     }
 
-    public static List<(string Username, string Verb, string Filename, string Location, string TimeSince)> GetActivity(this FileMetaData fileMetadata)
+    public static List<(string? Username, string Verb, string? Filename, string Location, string TimeSince)> GetActivity(this FileMetaData fileMetadata)
     {
-        return new List<(string Username, string Verb, string Filename, string Location, string TimeSince)>()
+        return new()
         {
             (fileMetadata.createdby, "created", fileMetadata.filename, "Root", fileMetadata.createdts.ToShortDateString())
         };

@@ -1,6 +1,6 @@
-﻿using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Context;
+﻿using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Services.Projects;

@@ -111,10 +111,10 @@ public static class TerraformVariableExtraction
     {
         var appServiceFramework = ExtractStringVariable(
             projectResource?.InputJsonContent,
-            "app_service_framework");
+            "app_service_framework", true)!;
         var appServiceGitRepo = ExtractStringVariable(
             projectResource?.InputJsonContent,
-            "app_service_git_repo");
+            "app_service_git_repo", true)!;
         var appServiceGitRepoVisibility = bool.TryParse(
             ExtractStringVariable(
                 projectResource?.InputJsonContent,
@@ -122,18 +122,26 @@ public static class TerraformVariableExtraction
             out var visibility) && visibility;
         var appServiceGitTokenSecretName = ExtractStringVariable(
             projectResource?.InputJsonContent,
-            "app_service_git_token_secret_name");
+            "app_service_git_token_secret_name", true)!;
         var appServiceComposePath = ExtractStringVariable(
             projectResource?.InputJsonContent,
-            "app_service_compose_path");
+            "app_service_compose_path", true)!;
         var appServiceId = ExtractStringVariable(
             projectResource?.JsonContent,
-            "app_service_id");
+            "app_service_id", true)!;
         var appServiceHostName = ExtractStringVariable(
             projectResource?.JsonContent,
-            "app_service_host_name");
-        return new AppServiceConfiguration(appServiceFramework, appServiceGitRepo, appServiceComposePath, appServiceId,
-            appServiceHostName, appServiceGitRepoVisibility, appServiceGitTokenSecretName);
+            "app_service_host_name", true)!;
+        return new AppServiceConfiguration
+        {
+            Framework = appServiceFramework,
+            GitRepo = appServiceGitRepo,
+            ComposePath = appServiceComposePath,
+            Id = appServiceId,
+            HostName = appServiceHostName!,
+            IsGitRepoPrivate = appServiceGitRepoVisibility,
+            GitTokenSecretName = appServiceGitTokenSecretName
+        };
     }
 
     /// <summary>
@@ -157,11 +165,11 @@ public static class TerraformVariableExtraction
     public static PostgresConfiguration ExtractPostgresConfiguration(Project_Resources2? projectResource)
     {
         var postgresSku = ExtractStringVariable(
-            projectResource?.InputJsonContent, "postgres_sku");
+            projectResource?.InputJsonContent, "postgres_sku", true);
 
         return new PostgresConfiguration
         {
-            PSQL_SKU = postgresSku
+            PSQL_SKU = postgresSku!,
         };
     }
 
@@ -180,7 +188,7 @@ public static class TerraformVariableExtraction
         var databricksResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == databricksTemplateName);
 
-        if (databricksResource != null)
+        if (databricksResource != null && databricksResource.InputJsonContent != null)
         {
             var databricksConfiguration = JsonSerializer.Deserialize<DatabricksConfiguration>(
                 databricksResource.InputJsonContent, CaseInsensitiveSerializerOptions);
@@ -328,9 +336,12 @@ public static class TerraformVariableExtraction
     /// </summary>
     /// <param name="projectResourceJsonContent">The JSON content from which to extract the variable.</param>
     /// <param name="variableName">The name of the variable to extract.</param>
+    /// <param name="isRequired">Indicates whether the variable is required. If true and the variable is not found, an exception may be thrown.</param>
     /// <returns>The extracted string variable.</returns>
-    private static string? ExtractStringVariable(string? projectResourceJsonContent, string variableName)
+    private static string? ExtractStringVariable(string? projectResourceJsonContent, string variableName, bool isRequired = false)
     {
+        if (isRequired && string.IsNullOrWhiteSpace(projectResourceJsonContent))
+            throw new ArgumentException($"The project resource JSON content is required to extract the variable '{variableName}'.");
         if (string.IsNullOrWhiteSpace(projectResourceJsonContent))
             return null;
 
