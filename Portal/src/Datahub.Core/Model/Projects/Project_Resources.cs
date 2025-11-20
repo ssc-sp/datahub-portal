@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Newtonsoft.Json;
@@ -25,7 +25,7 @@ public class Project_Resources2
     /// </summary>
     [Required]
     [StringLength(200)]
-    public string ResourceType { get; set; }
+    public string ResourceType { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the class name of the resource, defaulting to "legacy".
@@ -37,7 +37,7 @@ public class Project_Resources2
     /// <summary>
     /// Gets or sets the JSON content representing the resource's configuration or metadata. Defaults to an empty JSON object.
     /// </summary>
-    public string JsonContent { get; set; } = "{}";
+    public string? JsonContent { get; set; } = "{}";
 
     /// <summary>
     /// Gets or sets the foreign key referencing the Datahub_Project this resource belongs to.
@@ -58,7 +58,7 @@ public class Project_Resources2
     /// <summary>
     /// Gets or sets the PortalUser who requested the resource.
     /// </summary>
-    public PortalUser RequestedBy { get; set; }
+    public PortalUser? RequestedBy { get; set; }
 
     /// <summary>
     /// Gets or sets the timestamp when the resource was created.
@@ -68,7 +68,7 @@ public class Project_Resources2
     /// <summary>
     /// Gets or sets the Datahub_Project this resource is associated with.
     /// </summary>
-    public Datahub_Project Project { get; set; }
+    public Datahub_Project? Project { get; set; }
 
     /// <summary>
     /// Gets or sets the status of the project resource.
@@ -77,7 +77,7 @@ public class Project_Resources2
     /// See <see cref="TerraformStatus"/> for possible values.
     /// </summary>
     // ReSharper disable once EntityFramework.ModelValidation.UnlimitedStringLength
-    public string Status { get; set; }
+    public string? Status { get; set; }
 
     /// <summary>
     /// Gets or sets the timestamp when the resource was last updated.
@@ -97,12 +97,12 @@ public class Project_Resources2
     /// <summary>
     /// Gets or sets the PortalUser who last updated the resource.
     /// </summary>
-    public PortalUser UpdatedBy { get; set; }
+    public PortalUser? UpdatedBy { get; set; }
 
     /// <summary>
     /// Gets or sets the input JSON content for the resource. Defaults to an empty JSON object.
     /// </summary>
-    public string InputJsonContent { get; set; } = "{}";
+    public string? InputJsonContent { get; set; } = "{}";
 
     /// <summary>
     /// Converts the current instance of Project_Resource to a TerraformTemplate object.

@@ -12,7 +12,10 @@ public class CreateResourceRunValidationTests
     [Test]
     public void ShouldRequireMinimumFields()
     {
-        var command = new CreateResourceRunCommand();
+        var command = new CreateResourceRunCommand() {
+            RequestingUserEmail = "John@test.gc.ca",
+            ResourceGroupName = "test-rg"
+        };
         var validator = new CreateResourceRunCommandValidator();
         validator.Validate(command).Errors.Should().NotBeEmpty();
     }
@@ -35,8 +38,10 @@ public class CreateResourceRunValidationTests
             },
             Templates = new List<TerraformTemplate>()
             {
-                new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)
-            }
+                new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)            
+            },
+            RequestingUserEmail = "john.doe@test.gc.ca",
+            ResourceGroupName = anyString
         };
         var validator = new CreateResourceRunCommandValidator();
         validator.Validate(command).Errors.Should().BeEmpty();

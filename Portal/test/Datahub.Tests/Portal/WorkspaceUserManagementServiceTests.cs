@@ -17,6 +17,7 @@ using System.Linq;
 using System.Threading;
 using Datahub.Application.Commands;
 using Microsoft.Extensions.Logging;
+using Datahub.Core.Model.Users;
 
 [assembly: CaptureConsole]
 

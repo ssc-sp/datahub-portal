@@ -4,14 +4,17 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.Projects;
 using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.VisualStudio.Services.Commerce;
 using NSubstitute;
 using Reqnroll;
+using Xunit;
 
 namespace Datahub.SpecflowTests.Steps
 {
@@ -64,19 +67,30 @@ namespace Datahub.SpecflowTests.Steps
             
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+                .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
+                .FirstAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
             
             var terraformTemplate = new TerraformTemplate(TerraformTemplate.AzurePostgres, TerraformStatus.CreateRequested, DateTime.UtcNow);
             
-            await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser);
+            Assert.True(await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser));
+
         }
-        
-        
+
+        [When(@"a current user requests to run an unreleased (.*) for a workspace")]
+        public async Task WhenACurrentUserRequestsToRunUnreleasedForAWorkspace(string resourceName)
+        {
+            await RequestsToRunAForAWorkspace(resourceName, false);
+        }
+
         [When(@"a current user requests to run a (.*) for a workspace")]
         public async Task WhenACurrentUserRequestsToRunAForAWorkspace(string resourceName)
+        {
+            await RequestsToRunAForAWorkspace(resourceName, true);
+        }
+
+        private async Task RequestsToRunAForAWorkspace(string resourceName, bool doCheck)
         {
             
             var resourceType = TransformResourceName(resourceName);
@@ -85,12 +99,14 @@ namespace Datahub.SpecflowTests.Steps
             
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var project = await ctx.Projects
-                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectAcronym);
+                .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstOrDefaultAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
-            
-            await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser);
+                .FirstAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
+
+            var isSuccessful = await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser);
+            if (doCheck)
+                Assert.True(isSuccessful, "Error handling terraform request");
         }
 
         [Then(@"there should be a workspace database resource created")]

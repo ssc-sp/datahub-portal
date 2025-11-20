@@ -18,7 +18,7 @@ public class SystemNotification
     /// </summary>
     [Required]
     [StringLength(200)]
-    public string ReceivingUser_ID { get; set; }
+    public required string ReceivingUser_ID { get; set; }
 
     /// <summary>
     /// Gets or sets the date and time when the notification was generated.
@@ -35,23 +35,23 @@ public class SystemNotification
     /// Gets or sets the text of the notification in English.
     /// </summary>
     [Required]
-    public string NotificationTextEn_TXT { get; set; }
+    public required string NotificationTextEn_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the text of the notification in French.
     /// </summary>
     [Required]
-    public string NotificationTextFr_TXT { get; set; }
+    public required string NotificationTextFr_TXT { get; set; }
 
     /// <summary>
     /// Gets or sets the URI to an action or resource related to this notification.
     /// </summary>
     [StringLength(512)]
-    public string ActionLink_URL { get; set; }
+    public string? ActionLink_URL { get; set; }
 
     /// <summary>
     /// Gets or sets a key representing the action or link context.
     /// </summary>
     [StringLength(128)]
-    public string ActionLink_Key { get; set; }
+    public string? ActionLink_Key { get; set; }
 }

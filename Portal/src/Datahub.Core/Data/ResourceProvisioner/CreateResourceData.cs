@@ -69,8 +69,4 @@ public record CreateResourceData
         };
         RequestingUserEmail = requestingUserEmail;
     }
-
-    public CreateResourceData()
-    {
-    }
 }

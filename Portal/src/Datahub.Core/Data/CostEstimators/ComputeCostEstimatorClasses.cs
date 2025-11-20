@@ -10,8 +10,8 @@ public enum ComputeCostEstimateWorkloadType
 
 public class ComputeCostEstimatorResult
 {
-    public EstimatorResultLineDecimal VmHours { get; set; }
-    public EstimatorResultLineDecimal Dbu { get; set; }
+    public EstimatorResultLineDecimal VmHours { get; set; } = null!;
+    public EstimatorResultLineDecimal Dbu { get; set; } = null!;
 
     private decimal Cost(EstimatorResultLineDecimal l) => l?.Cost ?? 0.0000M;
     public decimal TotalCost => Cost(VmHours) + Cost(Dbu);

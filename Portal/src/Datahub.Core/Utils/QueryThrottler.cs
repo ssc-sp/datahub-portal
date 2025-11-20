@@ -9,7 +9,7 @@ public class QueryThrottler<T>
 {
     private readonly TimeSpan _delay;
     private readonly Func<T, Task> _callback;
-    private T _query;
+    private T? _query;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="QueryThrottler{T}"/> class.

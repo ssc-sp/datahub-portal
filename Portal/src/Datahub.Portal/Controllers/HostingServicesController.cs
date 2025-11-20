@@ -7,7 +7,6 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Datahub.Core.Model.Achievements;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Infrastructure.Queues.Messages;
 using MassTransit;
@@ -17,6 +16,7 @@ using Datahub.Application.Configuration;
 using Microsoft.Azure.Storage;
 using Microsoft.Azure.Storage.Blob;
 using Datahub.Metadata.Model;
+using Datahub.Core.Model.Users;
 using Datahub.Application.Services.Notification;
 
 

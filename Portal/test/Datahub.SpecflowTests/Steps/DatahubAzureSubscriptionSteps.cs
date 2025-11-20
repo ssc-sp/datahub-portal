@@ -69,7 +69,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
 
         await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
@@ -93,7 +94,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             var subscription = new DatahubAzureSubscription()
             {
                 SubscriptionId = "invalid-subscription-id",
-                TenantId = "invalid-tenant-id"
+                TenantId = "invalid-tenant-id",
+                SubscriptionName = "Invalid Subscription"
             };
 
             await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
@@ -128,7 +130,8 @@ public sealed class DatahubAzureSubscriptionSteps(
         var subscription = new DatahubAzureSubscription()
         {
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            TenantId = Testing.WorkspaceTenantGuid
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
 
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
@@ -157,7 +160,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             var subscription = new DatahubAzureSubscription()
             {
                 SubscriptionId = "non-existing-subscription-id",
-                TenantId = "non-existing-tenant-id"
+                TenantId = "non-existing-tenant-id",
+                SubscriptionName = "Non-existing Subscription"
             };
 
             await datahubAzureSubscriptionService.DisableSubscriptionAsync(subscription.SubscriptionId);
@@ -317,6 +321,8 @@ public sealed class DatahubAzureSubscriptionSteps(
             var subscription = new DatahubAzureSubscription()
             {
                 SubscriptionId = "invalid-subscription-id",
+                TenantId = "invalid-tenant-id",
+                SubscriptionName = "Invalid Subscription"
             };
 
             await datahubAzureSubscriptionService.AddSubscriptionAsync(subscription);
@@ -387,6 +393,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         var subscription = new DatahubAzureSubscription()
         {
+            SubscriptionName = Testing.SubscriptionName,
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             TenantId = Testing.WorkspaceTenantGuid
         };

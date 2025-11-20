@@ -14,7 +14,4 @@ public class Datahub_Project_Costs
 
     [StringLength(64)]
     public required string ServiceName { get; set; }
-
-    [StringLength(5)]
-    public string CloudProvider { get; set; } = "azure";
 }

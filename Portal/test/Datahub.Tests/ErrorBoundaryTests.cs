@@ -31,6 +31,7 @@ using Datahub.Application.Services.Achievements;
 using Microsoft.Extensions.Configuration;
 using Datahub.Core.Model.Context;
 using Blazored.SessionStorage;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Tests;
 

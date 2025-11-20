@@ -31,25 +31,25 @@
     }
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public RenderFragment Authorizing { get; set; }
+    public RenderFragment? Authorizing { get; set; }
 
     [Parameter]
-    public RenderFragment Authorized { get; set; }
+    public RenderFragment? Authorized { get; set; }
 
     [Parameter]
-    public RenderFragment NotAuthorized { get; set; }
+    public RenderFragment? NotAuthorized { get; set; }
 
     [Parameter]
     public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
 
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string? ProjectAcronym { get; set; }
 
     [Parameter]
-    public string UserGraphId { get; set; }
+    public string? UserGraphId { get; set; }
 
     [Parameter]
     public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
@@ -58,13 +58,11 @@
     public UserType AllowedUsers { get; set; } = UserType.AllUsers;
 
     [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
-    #nullable enable
     private ClaimsPrincipal? _user;
-    #nullable disable
 
-    private RenderFragment AuthorizedContent => Authorized ?? ChildContent;
+    private RenderFragment? AuthorizedContent => Authorized ?? ChildContent;
 
     public enum AuthLevels
     {
@@ -120,7 +118,7 @@
         }
     }
 
-    private string GetRoles()
+    private string? GetRoles()
     {
         var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
         var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
