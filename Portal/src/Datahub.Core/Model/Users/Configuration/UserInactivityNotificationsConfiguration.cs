@@ -1,8 +1,7 @@
-﻿using Datahub.Core.Model.Users;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Datahub.Core.Model.UserTracking.Configuration
+namespace Datahub.Core.Model.Users.Configuration
 {
     public class UserInactivityNotificationsConfiguration : IEntityTypeConfiguration<UserInactivityNotifications>
     {

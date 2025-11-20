@@ -62,7 +62,7 @@
                             <MudGrid>
                                 <MudItem xs="4">
                                     <MudStack Row AlignItems="AlignItems.Center">
-                                        @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+                                        @if (userToBeAdded.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID)
                                         {
                                             <MudAvatar>
                                                 <DHIcon Icon="@Icons.Material.Outlined.PersonAdd" />
@@ -73,7 +73,7 @@
                                             <UserAvatar ViewedUser="@userToBeAdded.PortalUser" Size="@Size.Medium" />
                                         }
                                         <MudText>
-                                            @if (userToBeAdded.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+                                            @if (userToBeAdded.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID)
                                             {
                                                 @userToBeAdded.Email
                                             }
@@ -260,7 +260,7 @@
 
     private int? _currentRoleFilter = default;
 
-    private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
+    private readonly List<ProjectUserAddEntraUserCommand> _usersToAdd = new();
     private readonly List<ProjectUserUpdateCommand> _usersToUpdate = new();
 
     private string _modifiedCellStyle;

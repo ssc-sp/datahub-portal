@@ -149,7 +149,7 @@ namespace Datahub.Functions.UnitTests.Functions
                     commands.Any(c => c.ProjectUser == projectUser1 && c.NewRoleId == (int)Project_Role.RoleNames.DisabledUser) &&
                     commands.Any(c => c.ProjectUser == projectUser2 && c.NewRoleId == (int)Project_Role.RoleNames.DisabledUser)
                 ),
-                Arg.Is<List<ProjectUserAddUserCommand>>(addCommands => addCommands.Count == 0),
+                Arg.Is<List<ProjectUserAddEntraUserCommand>>(addCommands => addCommands.Count == 0),
                 portalUserId.ToString()
             );
         }

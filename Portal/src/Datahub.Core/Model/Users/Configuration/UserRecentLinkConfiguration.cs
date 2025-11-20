@@ -1,7 +1,6 @@
-using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 
-namespace Datahub.Core.Model.UserTracking.Configuration
+namespace Datahub.Core.Model.Users.Configuration
 {
     public class UserRecentLinkConfiguration : IEntityTypeConfiguration<UserRecentLink>
     {

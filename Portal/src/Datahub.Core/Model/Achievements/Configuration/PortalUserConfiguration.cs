@@ -15,16 +15,6 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
         builder.Property(e => e.Id)
             .ValueGeneratedOnAdd();
 
-        builder.Property(e => e.GraphGuid)
-            .IsRequired()
-            .HasMaxLength(64);
-
-        builder.HasIndex(e => e.GraphGuid)
-            .IsUnique();
-
-        builder.Property(e => e.Email)
-            .HasMaxLength(64);
-
         builder.HasMany(e => e.Achievements)
             .WithOne(e => e.PortalUser)
             .OnDelete(DeleteBehavior.NoAction);

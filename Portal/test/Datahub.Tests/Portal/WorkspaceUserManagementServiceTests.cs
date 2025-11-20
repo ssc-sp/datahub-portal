@@ -300,7 +300,7 @@ namespace Datahub.Tests
             // Act
             await _projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand> { updateCommand },
-                new List<ProjectUserAddUserCommand>(),
+                new List<ProjectUserAddEntraUserCommand>(),
                 "1"
             );
 

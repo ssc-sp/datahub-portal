@@ -116,7 +116,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             InvokeAsync(StateHasChanged);
         }
 
-        private void UpdateProjectMemberRoleCommand(ProjectUserAddUserCommand projectUser, int newRoleId)
+        private void UpdateProjectMemberRoleCommand(ProjectUserAddEntraUserCommand projectUser, int newRoleId)
         {
             projectUser.RoleId = newRoleId;
             if (projectUser.RoleId == (int)Project_Role.RoleNames.Removed)
@@ -164,7 +164,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             var result = await dialog.Result;
             if (!result.Canceled)
             {
-                if (result.Data is not List<ProjectUserAddUserCommand> userAddUserCommands)
+                if (result.Data is not List<ProjectUserAddEntraUserCommand> userAddUserCommands)
                 {
                     _snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
                 }

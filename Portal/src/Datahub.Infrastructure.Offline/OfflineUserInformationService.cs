@@ -137,7 +137,7 @@ public class OfflineUserInformationService : IUserInformationService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         
-        return (await context.PortalUsers.FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))!;
+        return (await context.EntraUsers.Include(u => u.PortalUser).FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))?.PortalUser!;
     }
 
     public Task HandleDeletedUserRegistration(string email, string graphId, int portalUserId)
@@ -235,7 +235,7 @@ public class OfflineUserInformationService : IUserInformationService
 
     public Task<PortalUser> GetAuthenticatedPortalUser()
     {
-        return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
+        return Task.FromResult(new PortalUser() { EntraUser = new EntraUser() { GraphGuid = AnonymousUser.Id!, PortalUser = null! } });
     }
 
     public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)

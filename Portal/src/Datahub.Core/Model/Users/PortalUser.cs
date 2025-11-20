@@ -1,32 +1,35 @@
-﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
+﻿using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Users;
 
 /// <summary>
 /// Represents a user within the portal, managing achievements, activity data, and related user information.
 /// </summary>
-public class PortalUser
+public class PortalUser : IValidatableObject
 {
     /// <summary>
     /// Gets or sets the unique identifier of this user.
     /// </summary>
     public int Id { get; set; }
 
-    /// <summary>
-    /// Gets or sets the user's unique Graph identifier.
-    /// </summary>
-    public required string GraphGuid { get; set; }
+    public ExternalUser? ExternalUser { get; set; }
+
+    public EntraUser? EntraUser { get; set; }
 
     /// <summary>
-    /// Gets or sets the user's email address.
+    /// Gets or sets the email address associated with the user.
     /// </summary>
+    [Required]
+    [StringLength(256)]
     public string? Email { get; set; }
 
     /// <summary>
     /// Gets or sets the user's display name.
     /// </summary>
+    [StringLength(128)]
     public string? DisplayName { get; set; }
 
     /// <summary>
@@ -54,8 +57,6 @@ public class PortalUser
     /// </summary>
     public List<UserInactivityNotifications>? InactivityNotifications { get; set; }
 
-    #region Navigation props
-
     /// <summary>
     /// Gets or sets the collection of achievements associated with this user.
     /// </summary>
@@ -72,6 +73,11 @@ public class PortalUser
     public ICollection<UserRecentLink>? RecentLinks { get; set; }
 
     /// <summary>
+    /// Gets or sets the collection of recent links accessed by this user.
+    /// </summary>
+    public ICollection<UserRoleLinks> UserRoles { get; set; } = new List<UserRoleLinks>();
+
+    /// <summary>
     /// Gets or sets the user-defined settings for this user.
     /// </summary>
     public UserSettings? UserSettings { get; set; }
@@ -80,8 +86,6 @@ public class PortalUser
     /// Gets or sets the collection of Open Data submissions made by this user.
     /// </summary>
     public ICollection<OpenDataSubmission>? OpenDataSubmissions { get; set; }
-
-    #endregion
 
     #region Utility functions
 
@@ -110,5 +114,15 @@ public class PortalUser
             .ToList();
     }
 
-    #endregion
+    #endregion Utility functions
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+       if (ExternalUser is null && EntraUser is null)
+       {
+           yield return new ValidationResult(
+               "A PortalUser must be associated with either an ExternalUser or an EntraUser.",
+               new[] { nameof(ExternalUser), nameof(EntraUser) });
+        }
+    }
 }

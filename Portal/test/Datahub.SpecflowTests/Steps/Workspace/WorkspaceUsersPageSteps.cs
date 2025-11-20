@@ -400,10 +400,10 @@ namespace Datahub.SpecflowTests.Steps
             var fieldUsersToAdd = instance.GetType().GetField("_usersToAdd", BindingFlags.NonPublic | BindingFlags.Instance);
             fieldUsersToAdd.Should().NotBeNull("The _usersToAdd field should exist in the component");
             
-            var usersToAdd = (List<ProjectUserAddUserCommand>)fieldUsersToAdd.GetValue(instance);
+            var usersToAdd = (List<ProjectUserAddEntraUserCommand>)fieldUsersToAdd.GetValue(instance);
             usersToAdd.Should().NotBeNull("The _usersToAdd list should be initialized");
 
-            usersToAdd.Add(new ProjectUserAddUserCommand
+            usersToAdd.Add(new ProjectUserAddEntraUserCommand
             {
                 Email = "second_lead@test.com",
                 RoleId = (int)Project_Role.RoleNames.WorkspaceLead

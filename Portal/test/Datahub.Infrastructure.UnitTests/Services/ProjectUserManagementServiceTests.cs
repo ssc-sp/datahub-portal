@@ -130,7 +130,7 @@ public class ProjectUserManagementServiceTests
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>(),
-                new List<ProjectUserAddUserCommand>(), "");
+                new List<ProjectUserAddEntraUserCommand>(), "");
 
         Assert.That(result, Is.True);
 
@@ -162,7 +162,7 @@ public class ProjectUserManagementServiceTests
         var foreignProject = await _dbContext.Projects
             .FirstAsync(p => existingProjectUser.Project.Project_Acronym_CD != p.Project_Acronym_CD);
 
-        var command = new ProjectUserAddUserCommand
+        var command = new ProjectUserAddEntraUserCommand
         {
             DisplayName = existingProjectUser.PortalUser.DisplayName,
             Email = existingProjectUser.PortalUser.Email,
@@ -174,7 +174,7 @@ public class ProjectUserManagementServiceTests
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>(),
-                new List<ProjectUserAddUserCommand> { command }, "");
+                new List<ProjectUserAddEntraUserCommand> { command }, "");
 
         if (roleId == (int)Project_Role.RoleNames.Removed)
         {
@@ -203,11 +203,11 @@ public class ProjectUserManagementServiceTests
 
         var firstProject = await _dbContext.Projects.FirstAsync();
 
-        var command = new ProjectUserAddUserCommand
+        var command = new ProjectUserAddEntraUserCommand
         {
             DisplayName = TestUserEmail,
             Email = TestUserEmail,
-            GraphGuid = ProjectUserAddUserCommand.NEW_USER_GUID,
+            GraphGuid = ProjectUserAddEntraUserCommand.NEW_USER_GUID,
             ProjectAcronym = firstProject.Project_Acronym_CD,
             RoleId = (int)Project_Role.RoleNames.Collaborator,
         };
@@ -215,7 +215,7 @@ public class ProjectUserManagementServiceTests
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>(),
-                new List<ProjectUserAddUserCommand> { command }, "");
+                new List<ProjectUserAddEntraUserCommand> { command }, "");
 
         Assert.That(result, Is.True);
 
@@ -252,7 +252,7 @@ public class ProjectUserManagementServiceTests
             .Include(u => u.PortalUser)
             .FirstAsync();
 
-        var command = new ProjectUserAddUserCommand
+        var command = new ProjectUserAddEntraUserCommand
         {
             DisplayName = existingProjectUser.PortalUser.DisplayName,
             Email = existingProjectUser.PortalUser.Email,
@@ -264,7 +264,7 @@ public class ProjectUserManagementServiceTests
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>(),
-                new List<ProjectUserAddUserCommand> { command }, "");
+                new List<ProjectUserAddEntraUserCommand> { command }, "");
 
         Assert.That(result, Is.False);
         _mockRequestManagementService.Verify(f => f.HandleTerraformRequestServiceAsync(It.IsAny<Datahub_Project>(),
@@ -289,7 +289,7 @@ public class ProjectUserManagementServiceTests
         var datahubProject = await _dbContext.Projects
             .FirstAsync(p => existingProjectUser.Project.Project_Acronym_CD == p.Project_Acronym_CD);
 
-        var command = new ProjectUserAddUserCommand
+        var command = new ProjectUserAddEntraUserCommand
         {
             DisplayName = existingProjectUser.PortalUser.DisplayName,
             Email = existingProjectUser.PortalUser.Email,
@@ -301,7 +301,7 @@ public class ProjectUserManagementServiceTests
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>(),
-                new List<ProjectUserAddUserCommand> { command }, "");
+                new List<ProjectUserAddEntraUserCommand> { command }, "");
 
         Assert.That(result, Is.False);
 
@@ -341,7 +341,7 @@ public class ProjectUserManagementServiceTests
         var result =
             await projectUserManagementService.ProcessProjectUserCommandsAsync(
                 new List<ProjectUserUpdateCommand>() { command },
-                new List<ProjectUserAddUserCommand>(), "");
+                new List<ProjectUserAddEntraUserCommand>(), "");
 
         Assert.That(result, Is.True);
 
