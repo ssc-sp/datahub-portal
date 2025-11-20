@@ -19,14 +19,14 @@
 
 @code{
     [Parameter]
-    public string Header { get; set; }
+    public string? Header { get; set; }
 
     [Parameter]
-    public string AcceptLabel { get; set; }
+    public string? AcceptLabel { get; set; }
 
     [Parameter]
-    public Action<bool> OnDecision { get; set; }
+    public Action<bool>? OnDecision { get; set; }
 
     [Parameter]
-    public List<string> WarningTextString { get; set; }
+    public required List<string> WarningTextString { get; set; }
 }

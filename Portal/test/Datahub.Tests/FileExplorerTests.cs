@@ -29,6 +29,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Components.FileUpload;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Tests
 {
@@ -109,7 +110,7 @@ namespace Datahub.Tests
                     {
                         PortalUser = portalUser,
                         PortalUserId = portalUser.Id,
-                        Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator, Name = "Collaborator" }
+                        Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator, Name = "Collaborator", Description = "Collaborator" }
                     }
                 });
 
@@ -172,12 +173,12 @@ namespace Datahub.Tests
             mockStorageManager.Setup(m => m.GetDfsPagesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
                 .ReturnsAsync(new DfsPage(["/folder1/"],
                     [
-                        new FileMetaData { filename = "existing.txt", filesize = "123", name = "existing.txt" }
+                        new FileMetaData { filename = "existing.txt", filesize = "123", name = "existing.txt", id = "12345" }
                     ],
                     null));
 
             mockStorageManager.Setup(m => m.GetStorageMetadataAsync(It.IsAny<string>()))
-                .ReturnsAsync(new StorageMetadata { Container = "test", Url = "https://example.com" });
+                .ReturnsAsync(new AzureStorageMetadata { Container = "test", Url = "https://example.com", GeoRedundancy = "test", StorageAccountType = "test", Versioning = "test" });
 
             mockStorageManager.Setup(m => m.ListFoldersAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new System.Collections.Generic.Dictionary<string, int>());

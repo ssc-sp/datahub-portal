@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.11");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -24,6 +24,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ConcatenatedRules")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Description")
@@ -221,44 +222,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         });
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("BannerPictureUrl")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("DisplayName")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("FirstLoginDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("GraphGuid")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime?>("LastLoginDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("ProfilePictureUrl")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GraphGuid")
-                        .IsUnique();
-
-                    b.ToTable("PortalUsers", (string)null);
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUserRoleChange", b =>
                 {
                     b.Property<int>("Id")
@@ -276,7 +239,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Id");
 
-                    b.ToTable("PortalUserRoleChange", (string)null);
+                    b.ToTable("PortalUserRoleChange");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -309,6 +272,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("AchievementId")
+                        .IsRequired()
                         .HasMaxLength(8)
                         .HasColumnType("TEXT");
 
@@ -495,7 +459,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("SubmissionId");
 
-                    b.ToTable("OpenDataPublishFiles", (string)null);
+                    b.ToTable("OpenDataPublishFiles");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
@@ -538,7 +502,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("OpenDataSubmissions", (string)null);
+                    b.ToTable("OpenDataSubmissions");
 
                     b.UseTptMappingStrategy();
                 });
@@ -599,7 +563,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("SharedDataFiles", (string)null);
+                    b.ToTable("SharedDataFiles");
 
                     b.UseTptMappingStrategy();
                 });
@@ -639,7 +603,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("Notification_ID");
 
-                    b.ToTable("SystemNotifications", (string)null);
+                    b.ToTable("SystemNotifications");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.VersionTag", b =>
@@ -675,7 +639,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("VersionTagId");
 
-                    b.ToTable("VersionTags", (string)null);
+                    b.ToTable("VersionTags");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Documentation.DocumentationResource", b =>
@@ -717,7 +681,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasAlternateKey("TypeName", "Id");
 
-                    b.ToTable("MiscStoredObjects", (string)null);
+                    b.ToTable("MiscStoredObjects");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
@@ -1049,7 +1013,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasKey("ProjectApiUser_ID");
 
-                    b.ToTable("Project_ApiUsers", (string)null);
+                    b.ToTable("Project_ApiUsers");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
@@ -1061,10 +1025,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<double>("CadCost")
                         .HasColumnType("REAL");
 
-                    b.Property<string>("CloudProvider")
-                        .HasMaxLength(5)
-                        .HasColumnType("TEXT");
-
                     b.Property<DateTime>("Date")
                         .HasColumnType("TEXT");
 
@@ -1072,6 +1032,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("ServiceName")
+                        .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
@@ -1079,7 +1040,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("Project_ID", "Date");
 
-                    b.ToTable("Project_Costs", (string)null);
+                    b.ToTable("Project_Costs");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1155,7 +1116,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("DeletedById")
+                    b.Property<int>("DeletedById")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("DeletedDate")
@@ -1176,7 +1137,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<bool>("IsWorkspaceNotRequired")
                         .HasColumnType("INTEGER");
 
-                    b.Property<int?>("Project_ID")
+                    b.Property<int>("Project_ID")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -1185,7 +1146,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Delete_Questionnaires", (string)null);
+                    b.ToTable("Project_Delete_Questionnaires");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Resources2", b =>
@@ -1239,7 +1200,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Project_Resources2", (string)null);
+                    b.ToTable("Project_Resources2");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Role", b =>
@@ -1311,6 +1272,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("REAL");
 
                     b.Property<string>("CloudProvider")
+                        .IsRequired()
                         .HasMaxLength(16)
                         .HasColumnType("TEXT");
 
@@ -1356,7 +1318,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("ProjectId")
                         .IsUnique();
 
-                    b.ToTable("Project_Whitelists", (string)null);
+                    b.ToTable("Project_Whitelists");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
@@ -1476,7 +1438,45 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserInactivityNotifications", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("BannerPictureUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("FirstLoginDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("GraphGuid")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("LastLoginDateTime")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ProfilePictureUrl")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GraphGuid")
+                        .IsUnique();
+
+                    b.ToTable("PortalUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
                 {
                     b.Property<int>("User_ID")
                         .ValueGeneratedOnAdd()
@@ -1491,7 +1491,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<DateTime>("NotificationDate")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("UserId")
+                    b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("User_ID");
@@ -1501,7 +1501,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("UserInactivityNotifications", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Users.UserRecentLink", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -1559,7 +1559,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("UserRecentLink", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Users.UserSettings", b =>
                 {
                     b.Property<int>("PortalUserId")
                         .HasColumnType("INTEGER");
@@ -1675,7 +1675,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<DateTime?>("OpenGovPublicationDate")
                         .HasColumnType("TEXT");
 
-                    b.ToTable("TbsOpenGovSubmissions", (string)null);
+                    b.ToTable("TbsOpenGovSubmissions");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -1706,12 +1706,12 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<int>("UploadStatus_CD")
                         .HasColumnType("INTEGER");
 
-                    b.ToTable("OpenDataSharedFile", (string)null);
+                    b.ToTable("OpenDataSharedFile");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
                         .WithMany("TelemetryEvents")
                         .HasForeignKey("PortalUserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1725,9 +1725,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasOne("Datahub.Core.Model.Achievements.Achievement", "Achievement")
                         .WithMany("UserAchievements")
                         .HasForeignKey("AchievementId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
                         .WithMany("Achievements")
                         .HasForeignKey("PortalUserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1740,13 +1741,13 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
             modelBuilder.Entity("Datahub.Core.Model.Announcements.Announcement", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "CreatedBy")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "UpdatedBy")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
@@ -1791,7 +1792,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "RequestingUser")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "RequestingUser")
                         .WithMany("OpenDataSubmissions")
                         .HasForeignKey("RequestingUserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1804,7 +1805,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "CreatedBy")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "CreatedBy")
                         .WithMany()
                         .HasForeignKey("CreatedById")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1863,13 +1864,17 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Delete_Questionnaire", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "DeletedBy")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "DeletedBy")
                         .WithMany()
-                        .HasForeignKey("DeletedById");
+                        .HasForeignKey("DeletedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany()
-                        .HasForeignKey("Project_ID");
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("DeletedBy");
 
@@ -1884,13 +1889,13 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "RequestedBy")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "RequestedBy")
                         .WithMany()
                         .HasForeignKey("RequestedById")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "UpdatedBy")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "UpdatedBy")
                         .WithMany()
                         .HasForeignKey("UpdatedById");
 
@@ -1914,11 +1919,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "ApprovedPortalUser")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "ApprovedPortalUser")
                         .WithMany()
                         .HasForeignKey("ApprovedPortalUserId");
 
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "PortalUser")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
                         .WithMany()
                         .HasForeignKey("PortalUserId");
 
@@ -1952,19 +1957,20 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Project");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserInactivityNotifications", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
                         .WithMany("InactivityNotifications")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserRecentLink", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Users.UserRecentLink", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
                         .WithMany("RecentLinks")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.NoAction)
@@ -1973,11 +1979,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.UserTracking.UserSettings", b =>
+            modelBuilder.Entity("Datahub.Core.Model.Users.UserSettings", b =>
                 {
-                    b.HasOne("Datahub.Core.Model.Achievements.PortalUser", "User")
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
                         .WithOne("UserSettings")
-                        .HasForeignKey("Datahub.Core.Model.UserTracking.UserSettings", "PortalUserId")
+                        .HasForeignKey("Datahub.Core.Model.Users.UserSettings", "PortalUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
@@ -2005,21 +2011,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
                     b.Navigation("UserAchievements");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUser", b =>
-                {
-                    b.Navigation("Achievements");
-
-                    b.Navigation("InactivityNotifications");
-
-                    b.Navigation("OpenDataSubmissions");
-
-                    b.Navigation("RecentLinks");
-
-                    b.Navigation("TelemetryEvents");
-
-                    b.Navigation("UserSettings");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.CloudStorage.ProjectCloudStorage", b =>
@@ -2059,6 +2050,21 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
                 {
                     b.Navigation("Workspaces");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
+                {
+                    b.Navigation("Achievements");
+
+                    b.Navigation("InactivityNotifications");
+
+                    b.Navigation("OpenDataSubmissions");
+
+                    b.Navigation("RecentLinks");
+
+                    b.Navigation("TelemetryEvents");
+
+                    b.Navigation("UserSettings");
                 });
 #pragma warning restore 612, 618
         }
