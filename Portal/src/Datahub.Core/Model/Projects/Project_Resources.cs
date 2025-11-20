@@ -110,7 +110,7 @@ public class Project_Resources2
     /// <returns>A new instance of TerraformTemplate with the ResourceType, Status, and RequestedAt properties set.</returns>
     public TerraformTemplate ToTerraformTemplate()
     {
-        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status, DateTime.UtcNow);
+        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status ?? string.Empty, DateTime.UtcNow);
     }
 }
 
