@@ -167,6 +167,8 @@
         public const string MetadataDefinitions = "metadata/definitions";
         public const string VersionControl = "version-control";
         public const string VersionControl_FR = "controle-de-version";
+        public const string StorageAdministration = "storage-administration";
+        public const string StorageAdministration_FR = "administration-stockage";
     }
 
 
@@ -189,7 +191,8 @@
         SectionViews.AzureSubscriptions,
         SectionViews.HostingServices,
         SectionViews.MetadataDefinitions,
-        SectionViews.VersionControl
+        SectionViews.VersionControl,
+        SectionViews.StorageAdministration
     };
 
 
@@ -268,6 +271,7 @@
             SectionViews.HostingServices => SidebarIcons.HostingServices,
             SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
             SectionViews.VersionControl => SidebarIcons.VersionControl,
+            SectionViews.StorageAdministration => Icons.Material.Filled.Security,
             _ => SidebarIcons.Profile
         };
     }
@@ -291,6 +295,7 @@
             SectionViews.HostingServices => Localizer["Hosting Services"],
             SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
             SectionViews.VersionControl => Localizer["Version Control"],
+            SectionViews.StorageAdministration => Localizer["Storage Administration"],
 
             _ => Localizer["Public Profile"]
         };
