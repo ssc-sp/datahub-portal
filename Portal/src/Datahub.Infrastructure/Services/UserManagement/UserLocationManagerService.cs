@@ -2,7 +2,7 @@
 using Datahub.Core.Components;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 

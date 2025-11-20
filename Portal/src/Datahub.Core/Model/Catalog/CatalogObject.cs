@@ -18,32 +18,32 @@ public class CatalogObject
     /// <summary>
     /// Gets or sets the unique identifier of the actual object being cataloged (e.g., user ID, workspace ID).
     /// </summary>
-    public string ObjectId { get; set; }
+    public string? ObjectId { get; set; }
 
     /// <summary>
     /// Gets or sets the English name of the catalog object.
     /// </summary>
-    public string Name_English { get; set; }
+    public string? Name_English { get; set; }
 
     /// <summary>
     /// Gets or sets the French name of the catalog object.
     /// </summary>
-    public string Name_French { get; set; }
+    public string? Name_French { get; set; }
 
     /// <summary>
     /// Gets or sets the English description of the catalog object.
     /// </summary>
-    public string Desc_English { get; set; }
+    public string? Desc_English { get; set; }
 
     /// <summary>
     /// Gets or sets the French description of the catalog object.
     /// </summary>
-    public string Desc_French { get; set; }
+    public string? Desc_French { get; set; }
 
     /// <summary>
     /// Gets or sets the location or source of the catalog object (e.g., URL, path).
     /// </summary>
-    public string Location { get; set; }
+    public string? Location { get; set; }
 }
 
 /// <summary>

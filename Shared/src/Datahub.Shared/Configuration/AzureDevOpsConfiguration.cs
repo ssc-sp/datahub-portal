@@ -2,9 +2,9 @@ namespace Datahub.Shared.Configuration;
 
 public class AzureDevOpsConfiguration
 {
-    public string TenantId { get; set; }
-    public string ClientId { get; set; }
-    public string ClientSecret { get; set; }
+    public string TenantId { get; set; } = string.Empty;
+    public string ClientId { get; set; } = string.Empty;
+    public string ClientSecret { get; set; } = string.Empty;
     public string SupportIterationName { get; set; } = "POC 2";
     public string AreaPathName { get; set; } = "FSDH Support Team";
     public int? SupportRequestId { get; set; }

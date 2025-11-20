@@ -4,6 +4,8 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services;
 using Lucene.Net.Documents;
 using Microsoft.EntityFrameworkCore;

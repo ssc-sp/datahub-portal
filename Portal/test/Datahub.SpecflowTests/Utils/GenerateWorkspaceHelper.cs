@@ -2,6 +2,8 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Core.Model.Users;
+using Datahub.Shared;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,7 +11,14 @@ namespace Datahub.SpecflowTests.Utils;
 
 public static class GenerateWorkspaceHelper
 {
-    public static async Task GenerateWorkspace(IDbContextFactory<DatahubProjectDBContext> dbContextFactory, string projectAcronym, string? resourceType = null, string? resourceStatus = null, string? cbrid = null)
+    public const string JSON_RG = "{\"resource_group_name\":\"fsdh_proj_abc_dev_rg\"}";
+
+    public static async Task GenerateWorkspace(IDbContextFactory<DatahubProjectDBContext> dbContextFactory, 
+        string projectAcronym, 
+        string? resourceType = null,
+        string? resourceStatus = null,
+        string? cbrid = null,
+        bool generateResourceGroup = true)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         
@@ -17,9 +26,9 @@ public static class GenerateWorkspaceHelper
         var datahubAzureSubscription = new DatahubAzureSubscription()
         {
             Nickname = "Test Subscription",
-            TenantId = "00000000-0000-0000-0000-000000000000",
-            SubscriptionId = "00000000-0000-0000-0000-000000000000",
-            SubscriptionName = "Test Subscription Name"
+            TenantId = Testing.WorkspaceTenantGuid,
+            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
+            SubscriptionName = Testing.SubscriptionName
         };
         ctx.AzureSubscriptions.Add(datahubAzureSubscription);
         await ctx.SaveChangesAsync();
@@ -29,21 +38,56 @@ public static class GenerateWorkspaceHelper
         {
             Project_Acronym_CD = projectAcronym,
             DatahubAzureSubscription = datahubAzureSubscription,
-            DatahubAzureSubscriptionId = datahubAzureSubscription.Id
+            DatahubAzureSubscriptionId = datahubAzureSubscription.Id,
+            MetadataAdded = true,
+            Project_Budget = 100.0M
         };
-
+        var credits = new Project_Credits
+        {
+            Project = project,
+            Current = 0
+        };
+        ctx.Project_Credits.Add(credits);
         if (resourceType != null)
         {
             var resource = new Project_Resources2()
             {
                 ResourceType = TerraformTemplate.GetTerraformServiceType(resourceType),
-                JsonContent = "{}",
+                JsonContent = JSON_RG,
                 Project = project,
-                Status = resourceStatus
+                Status = resourceStatus,
+                CreatedAt = DateTime.Now
             };
                 
             ctx.Project_Resources2.Add(resource);
         }
+        if (resourceType != TerraformTemplate.NewProjectTemplate && generateResourceGroup)
+        {
+            var rg = new Project_Resources2()
+            {
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
+                JsonContent = "{\"resource_group_name\":\"fsdh_proj_abc_dev_rg\"}",
+                Project = project,
+                Status = TerraformStatus.Completed,
+                CreatedAt = DateTime.Now
+            };
+            ctx.Project_Resources2.Add(rg);
+        }
+
+        var user = new PortalUser
+        {
+            Email = Testing.CurrentUserEmail,
+            GraphGuid = "00000000-0000-0000-0000-000000000000",
+            DisplayName = "Test User"
+        };
+        ctx.PortalUsers.Add(user);
+
+        var projectUser = new UserRoleLinks
+        {
+            PortalUser = user,
+            Project = project   
+        };
+        ctx.UserRolesLinks.Add(projectUser);
 
         //{'DepartmentName', 'FinancialAuthorityCommitmentIsOrg', 'FinancialAuthorityCommitmentIsRef',
         //'FinancialAuthorityEmail', 'FinancialAuthorityFirstName', 'FinancialAuthorityLastName',

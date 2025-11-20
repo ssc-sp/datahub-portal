@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Model.Achievements;
+﻿using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Announcements;
 
@@ -24,22 +24,22 @@ public class Announcement
     /// <summary>
     /// Gets or sets the English preview text for the announcement.
     /// </summary>
-    public string PreviewEn { get; set; }
+    public string PreviewEn { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the French preview text for the announcement.
     /// </summary>
-    public string PreviewFr { get; set; }
+    public string PreviewFr { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the English body content of the announcement.
     /// </summary>
-    public string BodyEn { get; set; }
+    public string BodyEn { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets the French body content of the announcement.
     /// </summary>
-    public string BodyFr { get; set; }
+    public string BodyFr { get; set; } = string.Empty;
 
     /// <summary>
     /// Gets or sets an int representing the alert level of the announcement.
@@ -118,10 +118,10 @@ public class Announcement
     /// <summary>
     /// Gets or sets the navigation property for the user who created the announcement.
     /// </summary>
-    public PortalUser CreatedBy { get; set; }
+    public PortalUser CreatedBy { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the navigation property for the user who last updated the announcement.
     /// </summary>
-    public PortalUser UpdatedBy { get; set; }
+    public PortalUser? UpdatedBy { get; set; }
 }

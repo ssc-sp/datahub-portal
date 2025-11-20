@@ -6,5 +6,5 @@ public class GeoCoreSearchResult
     public int EngineExecutionTimeInMillis { get; set; }
     public int Count { get; set; }
     public int DataScannedInMB { get; set; }
-    public IList<GeoCoreItem> Items { get; set; }
+    public IList<GeoCoreItem> Items { get; set; } = new List<GeoCoreItem>();
 }

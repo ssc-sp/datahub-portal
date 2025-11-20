@@ -2,14 +2,14 @@
 
 public class APITargets
 {
-    public string SearchServiceName { get; set; }
-    public string StorageAccountName { get; set; }
-    public string KeyVaultName { get; set; }
-    public string KeyVaultApiKeyPath { get; set; }
-    public string FileSystemName { get; set; }
-    public string CognitiveSearchURL { get; set; }
-    public string LogoutURL { get; set; }
-    public string LoginURL { get; set; }
-    public string FileIndexName { get; set; }
-    public string FileIndexerName { get; set; }
+    public string SearchServiceName { get; set; } = null!;
+    public string StorageAccountName { get; set; } = null!;
+    public string KeyVaultName { get; set; } = null!;
+    public string KeyVaultApiKeyPath { get; set; } = null!;
+    public string FileSystemName { get; set; } = null!;
+    public string CognitiveSearchURL { get; set; } = null!;
+    public string LogoutURL { get; set; } = null!;
+    public string LoginURL { get; set; } = null!;
+    public string FileIndexName { get; set; } = null!;
+    public string FileIndexerName { get; set; } = null!;
 }
