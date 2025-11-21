@@ -1210,6 +1210,9 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("JsonContent")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("PipelineId")
+                        .HasColumnType("int");
+
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 

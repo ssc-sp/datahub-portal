@@ -41,7 +41,7 @@ public class Testing
     internal const string RequestingAdminUser = "Unit Test Admin User";
     internal const string ResourceGroup = "TestResourceGroup";
 
-    internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformStatus.CreateRequested);
+    internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformStatus.CreateRequested, DateTime.UtcNow);
 
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
@@ -202,7 +202,7 @@ public class Testing
             });
 
         var module = new TerraformTemplate(TerraformTemplate.NewProjectTemplate,
-            TerraformStatus.CreateRequested);
+            TerraformStatus.CreateRequested, DateTime.UtcNow);
 
         await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
@@ -223,7 +223,7 @@ public class Testing
         return new CreateResourceRunCommand
         {
             Templates = terraformTemplates
-                .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested))
+                .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested, DateTime.UtcNow))
                 .ToList(),
             Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestingWorkspace.Version),
             RequestingUserEmail = RequestingUser,
@@ -295,6 +295,6 @@ public class Testing
 
     internal static TerraformTemplate GenerateTerraformTemplate(string template)
     {
-        return new TerraformTemplate(template, TerraformStatus.CreateRequested);
+        return new TerraformTemplate(template, TerraformStatus.CreateRequested, DateTime.UtcNow);
     }
 }

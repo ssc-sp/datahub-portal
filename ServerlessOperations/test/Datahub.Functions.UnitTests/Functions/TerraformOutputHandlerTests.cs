@@ -56,6 +56,111 @@ public class TerraformOutputHandlerTests
 
 
     [Test]
+    public async Task FindEarliestResourceRequestsInProcess()
+    {
+        var project = new Datahub_Project()
+        {
+            Project_Acronym_CD = "PIPELINEID"
+        };
+        _context.Projects.Add(project);
+        await _context.SaveChangesAsync();
+
+        var currentPortalUser = new PortalUser
+        {
+            Email = "tst",
+            GraphGuid = Guid.NewGuid().ToString(),
+        };
+        
+        _context.PortalUsers.Add(currentPortalUser);
+        await _context.SaveChangesAsync();
+
+        var earlyrequest = DateTime.UtcNow;
+        var laterequest = DateTime.UtcNow.AddMinutes(5);
+
+        var storageResources = new List<Project_Resources2>
+        {
+            new Project_Resources2
+            {
+                Project = project,
+                RequestedBy = currentPortalUser,
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob),
+                RequestedAt = laterequest,
+                Status = TerraformStatus.CreateRequested
+            },
+            new Project_Resources2
+            {
+                Project = project,
+                RequestedBy = currentPortalUser,
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres),
+                RequestedAt = earlyrequest,
+                Status = TerraformStatus.CreateRequested
+            },
+            new Project_Resources2
+            {
+                Project = project,
+                RequestedBy = currentPortalUser,
+                ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks),
+                RequestedAt = earlyrequest,
+                Status = TerraformStatus.CreateRequested
+            }
+        };
+        
+        _context.Project_Resources2.AddRange(storageResources);
+        await _context.SaveChangesAsync();
+
+
+        
+        var terraformOutput = TerraformOutputHelper.GetExpectedTerraformInput(project);
+
+        // pass the terraform output to the output variables
+        var deserializeOptions = new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        };
+
+        var outputVariables =
+            JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(terraformOutput,
+                deserializeOptions);
+
+        await _terraformOutputHandler.ProcessTerraformInputVariables(outputVariables!);
+
+
+
+        var processedResources = await _context.Project_Resources2.ToListAsync();
+
+
+
+        Assert.That(processedResources, Is.Not.Null);
+        Assert.That(processedResources.Count, Is.EqualTo(3));
+        Assert.That(processedResources[0].PipelineId, Is.Null);
+        Assert.That(processedResources[1].PipelineId, Is.EqualTo(6458));
+        Assert.That(processedResources[2].PipelineId, Is.EqualTo(6458));
+        //Assert.That(processedResource!.CreatedAt, Is.Not.Null);
+        //Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
+
+
+        //var processedResourceJsonContent =
+        //    JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
+        //var accountName = outputVariables![TerraformVariables.OutputAzureStorageAccountName];
+        //var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
+        //var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
+
+        //Assert.That(processedResourceJsonContent, Is.Not.Null);
+        //Assert.That(processedResourceJsonContent!["storage_account"], Is.EqualTo(accountName.Value));
+        //Assert.That(processedResourceJsonContent!["container"], Is.EqualTo(containerName.Value));
+        //Assert.That(processedResourceJsonContent!["resource_group_name"], Is.EqualTo(resourceGroupName.Value));
+        //Assert.That(processedResourceJsonContent!["storage_type"], Is.EqualTo(TerraformVariables.AzureStorageType));
+
+        //var processedResourceInputJsonContent =
+        //    JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent,
+        //        deserializeOptions);
+
+        //Assert.That(processedResourceInputJsonContent, Is.Not.Null);
+        //Assert.That(processedResourceInputJsonContent!["storage_type"],
+        //    Is.EqualTo(TerraformVariables.AzureStorageType));
+    }
+
+    [Test]
     public async Task ShouldProcessAzureStorageBlobOutputVariables()
     {
         var project = new Datahub_Project()

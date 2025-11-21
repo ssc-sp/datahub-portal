@@ -187,7 +187,7 @@ else
         }
 
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested);
+        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested, DateTime.UtcNow);
 
         foreach (var b in _budgetItems.Where(b => b.RequiresTerraformUpdate))
         {
