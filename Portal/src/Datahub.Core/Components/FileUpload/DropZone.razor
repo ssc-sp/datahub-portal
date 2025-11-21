@@ -3,6 +3,7 @@
 @inject IJSRuntime _jsRuntime
 @inject ILogger<DropZone> _logger
 
+@implements IAsyncDisposable
 @implements IDisposable
 
 <div @ref="_dropZoneElement" class="dropzone-container @(MaxHeight ? "max-height" : "")">
@@ -19,23 +20,23 @@
 @code {
 
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
-    
+    public RenderFragment? ChildContent { get; set; }
+
     [Parameter]
     public EventCallback<InputFileChangeEventArgs> OnFilesDrop { get; set; }
-    
+
     [Parameter]
     public EventCallback<string> OnFileItemDrop { get; set; }
-    
+
     [Parameter]
     public bool MaxHeight { get; set; }
 
     private ElementReference _dropZoneElement;
-    private InputFile _inputFile;
+    private InputFile? _inputFile;
 
-    private IJSObjectReference _module;
-    private IJSObjectReference _dropZoneInstance;
-    private DotNetObjectReference<DropZone> _dotNetHelper;
+    private IJSObjectReference? _module;
+    private IJSObjectReference? _dropZoneInstance;
+    private DotNetObjectReference<DropZone>? _dotNetHelper;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -56,9 +57,20 @@
         await OnFileItemDrop.InvokeAsync(filename);
     }
 
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is not null)
+        {
+            await _module.DisposeAsync();
+        }
+        if (_dropZoneInstance is not null)
+        {
+            await _dropZoneInstance.DisposeAsync();
+        }
+    }
+
     public void Dispose()
     {
-        ((IDisposable) _inputFile)?.Dispose();
         _dotNetHelper?.Dispose();
     }
 

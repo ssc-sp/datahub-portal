@@ -123,7 +123,7 @@ namespace Datahub.Functions.UnitTests
             var cancellationToken = CancellationToken.None;
 
             _resourceMessagingServiceMock.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
-                .Returns(new WorkspaceDefinition());
+                .Returns(TestHelper.TestWorkspaceDefinition);
 
             // Act
             Func<Task> act = async () => await _notifier.VerifyOverBudgetIsDeleted(projectAcronym, cancellationToken);

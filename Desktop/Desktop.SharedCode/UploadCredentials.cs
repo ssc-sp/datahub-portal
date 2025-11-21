@@ -2,9 +2,9 @@
 {
     public record UploadCredentials
     {
-        public string WorkspaceCode { get; set; }
-        public string SASToken { get; set; }
+        public string? WorkspaceCode { get; set; }
+        public string? SASToken { get; set; }
         public DateTimeOffset SASTokenExpiry { get; set; }
-        public string DataHubEnvironment { get; set; }
+        public string? DataHubEnvironment { get; set; }
     }
 }

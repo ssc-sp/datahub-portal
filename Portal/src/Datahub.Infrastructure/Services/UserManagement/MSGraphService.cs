@@ -132,14 +132,17 @@ public class MSGraphService : IMSGraphService
                 }, token
             );
             
-            
-            return user.Value == null ? null : GraphUser.Create(user.Value[0]);
+            if (user is null || user.Value is null || user.Value.Count == 0)
+            {
+                throw new InvalidOperationException($"User not found: {filter}");
+            }
+            return GraphUser.Create(user.Value[0]);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error fetching user: {filter}: {ex.Message}");
-        }
-        return new();
+            throw;
+        }        
     }
 
     public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
@@ -155,14 +158,17 @@ public class MSGraphService : IMSGraphService
                     requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
                 }, token
             );
+            if (user is null || user.Value is null || user.Value.Count == 0)
+            {
+                throw new InvalidOperationException($"User not found: {userName}");
+            }
 
-
-            return user.Value == null ? null : GraphUser.Create(user.Value[0]);
+            return GraphUser.Create(user.Value[0]);
         }
         catch (Exception ex)
         {
             _logger.LogError($"Error fetching user: {userName}: {ex.Message}");
-        }
-        return new();
+            throw;
+        }        
     }
 }

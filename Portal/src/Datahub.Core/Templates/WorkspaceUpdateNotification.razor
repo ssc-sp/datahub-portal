@@ -14,15 +14,15 @@
 @code {
 
     [Parameter]
-    public string Date { get; set; }
+    public required string Date { get; set; }
 
     [Parameter]
-    public string User { get; set; }
+    public required string User { get; set; }
 
     [Parameter]
-    public string Message { get; set; }
+    public string? Message { get; set; }
 
     [Parameter]
-    public string WorkspaceAcronym { get; set; }
+    public required string WorkspaceAcronym { get; set; }
 
 }

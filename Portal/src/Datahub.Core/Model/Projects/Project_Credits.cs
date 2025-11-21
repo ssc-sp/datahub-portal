@@ -18,7 +18,7 @@ public class Project_Credits
     /// <summary>
     /// Gets or sets project instance
     /// </summary>
-    public virtual Datahub_Project Project { get; set; }
+    public virtual Datahub_Project? Project { get; set; }
 
     /// <summary>
     /// Gets or sets last updated (once a day)
@@ -43,12 +43,12 @@ public class Project_Credits
     /// <summary>
     /// Gets or sets jSON serialized cost per service (ServiceName, Cost)
     /// </summary>
-    public string CurrentPerService { get; set; }
+    public string? CurrentPerService { get; set; }
 
     /// <summary>
     /// Gets or sets jSON serialized cost per day (Date, Cost)
     /// </summary>
-    public string CurrentPerDay { get; set; }
+    public string? CurrentPerDay { get; set; }
 
     /// <summary>
     /// Gets or sets current credits yesterday.
@@ -58,7 +58,7 @@ public class Project_Credits
     /// <summary>
     /// Gets or sets jSON serialized cost per service yesterday (ServiceName, Cost)
     /// </summary>
-    public string YesterdayPerService { get; set; }
+    public string? YesterdayPerService { get; set; }
 
     /// <summary>
     /// Gets or sets consumed notification date

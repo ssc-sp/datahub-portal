@@ -7,23 +7,23 @@ namespace Datahub.Core.Data;
 
 public class VersionMetadata
 {
-    public string folderowner { get; set; }
-    public string folderid { get; set; }
-    public string createdby { get; set; }
-    public string lastmodifiedby { get; set; }
-    public string filename { get; set; }
-    public string fileformat { get; set; }
-    public string securityclass { get; set; }
-    public string ownedby { get; set; }
+    public required string folderowner { get; set; }
+    public required string folderid { get; set; }
+    public required string createdby { get; set; }
+    public required string lastmodifiedby { get; set; }
+    public required string filename { get; set; }
+    public required string fileformat { get; set; }
+    public required string securityclass { get; set; }
+    public required string ownedby { get; set; }
     public int filesize { get; set; }
     public DateTime uploadeddate { get; set; }
 }
 
 public class Version
 {
-    public string versionid { get; set; }
-    public VersionMetadata metadata { get; set; }
-    public string timestamp { get; set; }
+    public required string versionid { get; set; }
+    public required VersionMetadata metadata { get; set; }
+    public required string timestamp { get; set; }
     public int index { get; set; }
 }
 
@@ -42,13 +42,13 @@ public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
     public MetadataType dataType { get; set; }
 
     [JsonIgnore]
-    public Folder parent { get; set; }
+    public Folder parent { get; set; } = null!;
 
     [JsonIgnore]
-    public string id { get; set; }
+    public required string id { get; set; }
 
     [JsonIgnore]
-    public string name { get; set; }
+    public string? name { get; set; }
 
     [JsonIgnore]
     public bool isShared { get; set; }
@@ -57,21 +57,21 @@ public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
     public List<Activity> activities { get; set; } = new List<Activity>();
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string createdby { get; set; }
+    public string? createdby { get; set; }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public virtual string ownedby { get; set; }
+    public virtual string? ownedby { get; set; }
 
     [SimpleField(IsFilterable = true, IsSortable = true)]
     public DateTime createdts { get; set; }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string lastmodifiedby { get; set; }
+    public string? lastmodifiedby { get; set; }
 
     [SimpleField(IsFilterable = true, IsSortable = true)]
     public DateTime lastmodifiedts { get; set; }
 
-    public int CompareTo(BaseMetadata other)
+    public int CompareTo(BaseMetadata? other)
     {
         // A null value means that this object is greater.
         if (other == null)
@@ -81,7 +81,7 @@ public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
 
         // Folder's go before Files
         int cmp = ((int)this.dataType).CompareTo((int)other.dataType);
-        if (cmp == 0)
+        if (cmp == 0 && this.name is not null)
         {
             cmp = this.name.CompareTo(other.name);
         }
@@ -89,7 +89,7 @@ public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
         return cmp;
     }
 
-    public bool Equals(BaseMetadata other)
+    public bool Equals(BaseMetadata? other)
     {
         return this.CompareTo(other) == 0;
     }
@@ -104,7 +104,7 @@ public class Folder : BaseMetadata
 
     public bool sortAscending { get; set; } = true;
 
-    public override string ownedby
+    public override string? ownedby
     {
         get
         {
@@ -244,23 +244,23 @@ public class NonHierarchicalFolder : Folder
 public class Customfield
 {
     [SearchableField(IsFilterable = true)]
-    public string key { get; set; }
+    public required string key { get; set; }
     [SearchableField(IsFilterable = true)]
-    public string value { get; set; }
+    public required string value { get; set; }
 }
 
 public class Sharedwith
 {
     [SearchableField(IsFilterable = true)]
-    public string userid { get; set; }
+    public required string userid { get; set; }
     [SearchableField(IsFilterable = true)]
-    public string role { get; set; }
+    public required string role { get; set; }
 }
 
 public class Activity
 {
-    public string activity { get; set; }
-    public string userid { get; set; }
+    public required string activity { get; set; }
+    public required string userid { get; set; }
     public DateTime activityts { get; set; }
 }
 
@@ -276,6 +276,15 @@ public class FileMetaData : BaseMetadata
     public FileMetaData()
     {
         dataType = MetadataType.File;
+        folderpath = string.Empty;
+        securityclass = string.Empty;
+        description = string.Empty;
+        filesize = string.Empty;
+        fileData = Stream.Null;
+        _customKey = string.Empty;
+        _customValue = string.Empty;
+        _tags = string.Empty;
+        BrowserFile = null!;
     }
 
     public DateTime Modified => lastmodifiedts;
@@ -294,7 +303,7 @@ public class FileMetaData : BaseMetadata
     }
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
-    public string filename
+    public string? filename
     {
         get
         {
@@ -373,7 +382,7 @@ public class FileMetaData : BaseMetadata
     public long bytesToUpload { get; set; }
 
     [JsonIgnore]
-    public Stream fileData { get; set; }
+    public Stream? fileData { get; set; }
 
     [JsonIgnore]
     public Dictionary<string, string> permissionsDict { get; set; } = new Dictionary<string, string>();
@@ -391,7 +400,7 @@ public class FileMetaData : BaseMetadata
     public IBrowserFile BrowserFile { get; set; }
 
     [JsonIgnore]
-    public string fullPathFromRoot
+    public string? fullPathFromRoot
     {
         get
         {
@@ -420,7 +429,7 @@ public class FileMetaData : BaseMetadata
 
 public class ExpandableItem<T>
 {
-    public T item { get; set; }
+    public required T item { get; set; }
     public bool expanded { get; set; }
     public bool selected { get; set; }
 
@@ -445,7 +454,7 @@ public class ExpandableItem<T>
         }
     }
 
-    public ExpandableItem<T> parent { get; set; }
+    public required ExpandableItem<T> parent { get; set; }
     public List<ExpandableItem<T>> children { get; set; } = new List<ExpandableItem<T>>();
 
     public void Add(ExpandableItem<T> child)
