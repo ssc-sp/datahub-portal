@@ -264,8 +264,22 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {
-        var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
-        await _module.InvokeVoidAsync("downloadFile", uri.ToString());
+        try
+        {
+            var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
+            await _module.InvokeVoidAsync("downloadFile", uri.ToString());
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // File is quarantined - show user-friendly message
+            _snackbar.Add($"File access denied: {filename}. The file is currently quarantined and awaiting virus scan completion. Please try again later.", Severity.Warning);
+            _logger.LogWarning("Download blocked for quarantined file: {FileName}. {Message}", filename, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Failed to download file: {filename}", Severity.Error);
+            _logger.LogError(ex, "Error downloading file: {FileName}", filename);
+        }
     }
 
     private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
