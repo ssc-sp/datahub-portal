@@ -89,7 +89,7 @@ public class UserLocationManagerService : IUserLocationManagerService
         }
     }
 
-    public async Task<ICollection<UserRecentLink>> GetRecentLinks(string userId, int maxRecentLinks)
+    public async Task<ICollection<UserRecentLink>> GetRecentLinks(PortalUser user, int maxRecentLinks)
     {
         await using var efCoreDatahubContext = await portalContext.CreateDbContextAsync();
 
@@ -101,10 +101,12 @@ public class UserLocationManagerService : IUserLocationManagerService
             DatahubLinkType.ResourceArticle
         };
 
+        // use user.Id directly (EF relationship) or EntraUser.GraphGuid if needed
         return efCoreDatahubContext.UserRecentLinks
             .AsNoTracking()
             .Include(l => l.User)
-            .Where(l => l.User.GraphGuid == userId && (l.DataProject != null || l.ResourceArticleId != null) && allowedLinks.Contains(l.LinkType))
+            .Where(l => l.User != null && l.User.Id == user.Id
+                        && (l.DataProject != null || l.ResourceArticleId != null) && allowedLinks.Contains(l.LinkType))
             .OrderByDescending(l => l.AccessedTime)
             .Take(maxRecentLinks)
             .ToList();

@@ -50,7 +50,7 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _currentGuid = await _userInformationService.GetCurrentUserGraphId();
+        _currentGuid = await _userInformationService.GetCurrentUserEntraId();
         _viewedPortalUser = await GetViewedPortalUserAsync();
         if (_viewedPortalUser.GraphGuid != _currentGuid)
         {

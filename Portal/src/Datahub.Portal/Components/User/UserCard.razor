@@ -77,7 +77,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        _viewedUser = await _userInformationService.GetPortalUserAsync(ViewedUserGraphId);
+        _viewedUser = await _userInformationService.GetEntraUserAsync(ViewedUserGraphId);
     }
 
     protected override async Task OnInitializedAsync()

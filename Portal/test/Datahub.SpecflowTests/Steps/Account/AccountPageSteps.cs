@@ -141,8 +141,8 @@ public class AccountPageSteps : TestContext
 
         mockUserInfo.GetCurrentPortalUserWithAchievementsAsync().Returns(Task.FromResult(testPortalUser));
         mockUserInfo.GetCurrentPortalUserAsync().Returns(Task.FromResult<PortalUser?>(testPortalUser));
-        mockUserInfo.GetPortalUserAsync(Arg.Any<string>()).Returns(Task.FromResult(testPortalUser));
-        mockUserInfo.GetCurrentUserGraphId().Returns(TEST_USER_OID);
+        mockUserInfo.GetEntraUserAsync(Arg.Any<string>()).Returns(Task.FromResult(testPortalUser));
+        mockUserInfo.GetCurrentUserEntraId().Returns(TEST_USER_OID);
 
         Services.AddSingleton<IUserInformationService>(mockUserInfo);
         Services.AddSingleton<ILogger<AccountPage>>(new LoggerFactory().CreateLogger<AccountPage>());

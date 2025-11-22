@@ -62,7 +62,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(AnonymousUser);
     }
 
-    public Task<string> GetCurrentUserGraphId()
+    public Task<string> GetCurrentUserEntraId()
     {
         return Task.FromResult(UserGuid.ToString());
     }
@@ -133,14 +133,14 @@ public class OfflineUserInformationService : IUserInformationService
         return randomUser!;
     }
 
-    public async Task<PortalUser> GetPortalUserAsync(string userGraphId)
+    public async Task<PortalUser> GetEntraUserAsync(string userGraphId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         
         return (await context.EntraUsers.Include(u => u.PortalUser).FirstOrDefaultAsync(u => u.GraphGuid == userGraphId))?.PortalUser!;
     }
 
-    public Task HandleDeletedUserRegistration(string email, string graphId, int portalUserId)
+    public Task HandleDeletedEntraUserRegistration(string email, string graphId, int portalUserId)
     {
         throw new NotImplementedException();
     }
@@ -161,7 +161,7 @@ public class OfflineUserInformationService : IUserInformationService
         
         return randomUser!;
     }
-    public async Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email)
+    public async Task<ExtendedPortalUser?> GetEntraUserByEmailAsync(string email)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -172,7 +172,7 @@ public class OfflineUserInformationService : IUserInformationService
         }
         return null;
     }
-    public Task<bool> IsUserWithoutInitiatives()
+    public Task<bool> IsUserWithoutWorkspaces()
     {
         return Task.FromResult(false);
     }
@@ -228,7 +228,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(true);
     }
 
-    public Task CreatePortalUserAsync(string userGraphId)
+    public Task<PortalUser?> CreatePortalUserAsync(string userGraphId)
     {
         throw new NotImplementedException();
     }

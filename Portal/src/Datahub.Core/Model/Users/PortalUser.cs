@@ -2,7 +2,6 @@
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
-using Datahub.Core.Model.Achievements;
 
 namespace Datahub.Core.Model.Users;
 
@@ -61,17 +60,17 @@ public class PortalUser : IValidatableObject
     /// <summary>
     /// Gets or sets the collection of achievements associated with this user.
     /// </summary>
-    public ICollection<UserAchievement>? Achievements { get; set; }
+    public ICollection<UserAchievement> Achievements { get; set; } = new List<UserAchievement>();
 
     /// <summary>
     /// Gets or sets the collection of telemetry events performed by this user.
     /// </summary>
-    public ICollection<TelemetryEvent>? TelemetryEvents { get; set; }
+    public ICollection<TelemetryEvent> TelemetryEvents { get; set; } = new List<TelemetryEvent>();
 
     /// <summary>
     /// Gets or sets the collection of recent links accessed by this user.
     /// </summary>
-    public ICollection<UserRecentLink>? RecentLinks { get; set; }
+    public ICollection<UserRecentLink> RecentLinks { get; set; } = new List<UserRecentLink>();
 
     /// <summary>
     /// Gets or sets the collection of recent links accessed by this user.

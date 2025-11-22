@@ -56,7 +56,7 @@ public class ViewUserBase<T> : ComponentBase
                 {
                     return _portalUser;
                 }
-                _portalUser = await _userInformationService.GetPortalUserAsync(UserIdBase64.Base64Decode());
+                _portalUser = await _userInformationService.GetEntraUserAsync(UserIdBase64.Base64Decode());
                 return _portalUser;
             }
         }

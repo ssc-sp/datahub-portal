@@ -178,7 +178,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
             }
 
-            var portalUser = await _userInformationService.GetPortalUserAsync(projectUserAddUserCommand.GraphGuid);
+            var portalUser = await _userInformationService.GetEntraUserAsync(projectUserAddUserCommand.GraphGuid);
 
             await using var context = await _contextFactory.CreateDbContextAsync();
             var project = await context.Projects

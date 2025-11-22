@@ -16,23 +16,23 @@ public interface IUserInformationService
     /// <returns>The current portal user if logged in</returns>
     Task<PortalUser?> GetCurrentPortalUserAsync();
 
-    Task<PortalUser> GetPortalUserAsync(string userGraphId);
+    Task<PortalUser> GetEntraUserAsync(string userGraphId);
 
-    Task<ExtendedPortalUser?> GetPortalUserByEmailAsync(string email);
+    Task<ExtendedPortalUser?> GetEntraUserByEmailAsync(string email);
 
-    Task HandleDeletedUserRegistration(string email, string graphId,  int portalUserId);
+    Task HandleDeletedEntraUserRegistration(string email, string graphId,  int portalUserId);
 
     Task<PortalUser> GetCurrentPortalUserWithAchievementsAsync();
     Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId);
 
     Task<User> GetAnonymousGraphUserAsync();
-    Task<string> GetCurrentUserGraphId();
+    Task<string?> GetCurrentUserEntraId();
     Task<string> GetDisplayName();
     Task<string> GetUserEmail();
     Task<string> GetUserEmailDomain();
     Task<string> GetUserEmailPrefix();
     Task<string> GetUserRootFolder();
-    Task<bool> IsUserWithoutInitiatives();
+    Task<bool> IsUserWithoutWorkspaces();
     Task<bool> IsViewingAsGuest();
     Task<bool> IsViewingAsVisitor();
     Task SetViewingAsGuest(bool isGuest);
@@ -43,7 +43,7 @@ public interface IUserInformationService
     Task<bool> IsUserProjectMember(string projectAcronym);
     Task<bool> IsUserDatahubAdmin();
     Task RegisterAuthenticatedPortalUser();
-    public Task CreatePortalUserAsync(string userGraphId);
+    public Task<PortalUser?> CreatePortalUserAsync(string userGraphId);
     Task<bool> UpdatePortalUserAsync(PortalUser updatedUser);
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated;
     Task<bool> IsDailyLogin();

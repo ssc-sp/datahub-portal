@@ -246,7 +246,7 @@
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _userProjectGuid = await _userInformationService.GetCurrentUserGraphId();
+        _userProjectGuid = await _userInformationService.GetCurrentUserEntraId();
         var userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)

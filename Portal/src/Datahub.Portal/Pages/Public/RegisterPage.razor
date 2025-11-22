@@ -215,7 +215,7 @@
     {
         await Task.Delay(3000);
 
-        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(_email);
+        var existingUser = await _userInformationService.GetEntraUserByEmailAsync(_email);
         if (existingUser != null)
         {
             _wasDeleted = existingUser.IsDeleted;
@@ -231,7 +231,7 @@
         {
             if (_wasDeleted)
             {
-                await _userInformationService.HandleDeletedUserRegistration(_email, userId, existingUser!.Id);
+                await _userInformationService.HandleDeletedEntraUserRegistration(_email, userId, existingUser!.Id);
                 var projectList = await _projectUserManagementService.GetProjectListForPortalUser(existingUser!.Id);
                 if (projectList.Count > 0)
                 {

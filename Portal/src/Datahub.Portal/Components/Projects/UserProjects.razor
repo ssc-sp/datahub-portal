@@ -13,7 +13,7 @@
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
 @inject IWorkspaceVersionService WorkspaceVersionService
 
-@if (_userRoles is null)
+@if (_entraUserRoles is null)
 {
     <DHLoadingInitializer Message="@Localizer["Getting your workspaces..."]"/>
     return;
@@ -202,7 +202,7 @@ else
 
 
     // User, Roles, and Projects
-    private List<UserRoleLinks> _userRoles;
+    private List<UserRoleLinks> _entraUserRoles;
     private List<Datahub_Project> _allWorkspaces;
     private List<Datahub_Project> _leadWorkspaces;
     private List<Datahub_Project> _adminWorkspaces;
@@ -248,11 +248,11 @@ else
 
     private async Task QueryWorkspaces()
     {
-        if (_userRoles != null)
+        if (_entraUserRoles != null)
         {
             return;
 		}
-        var portalUserGuid = await UserInformationService.GetCurrentUserGraphId();
+        var portalUserGuid = await UserInformationService.GetCurrentUserEntraId();
         var userId = UserId ?? portalUserGuid;
         
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
@@ -260,9 +260,10 @@ else
         //getting all the projects where this users is a member
         await using var dbContext = await DbContextFactory.CreateDbContextAsync();
 
-        _userRoles = await dbContext
+        _entraUserRoles = await dbContext
             .UserRolesLinks
-            .Include(u => u.PortalUser)            
+            .Include(u => u.PortalUser) 
+			.ThenInclude(u => u.EntraUser)
             .Include(u => u.Role)
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
@@ -272,15 +273,15 @@ else
             .ThenInclude(p => p.Resources)
 			.AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser.GraphGuid == userId)
+			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser.EntraUser!.GraphGuid == userId)
             .ToListAsync();
-		_userEmail = _userRoles.First().PortalUser.Email;
+		_userEmail = _entraUserRoles.First().PortalUser.Email;
 
-        _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _leadWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _adminWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _collaboratorWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _guestWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _allWorkspaces = _entraUserRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _leadWorkspaces = _entraUserRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _adminWorkspaces = _entraUserRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _collaboratorWorkspaces = _entraUserRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _guestWorkspaces = _entraUserRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
     }
 
     private void InitiateDisplayState()

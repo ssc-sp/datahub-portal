@@ -246,7 +246,7 @@
 
         if (!user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID))
         {
-            var existingPortalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+            var existingPortalUser = await _userInformationService.GetEntraUserAsync(user.Id);
             addUserCommand.PortalUser = existingPortalUser;
         }
 

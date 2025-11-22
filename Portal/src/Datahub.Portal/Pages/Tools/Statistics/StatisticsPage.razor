@@ -252,7 +252,7 @@ else
     private async Task LoadUsersAsync()
     {
         await using var ctx = await DbContextFactory.CreateDbContextAsync();
-        var allUsers = await ctx.PortalUsers.ToListAsync();
+        var allUsers = await ctx.PortalUsers.Include(u => u.EntraUser).Include(u => u.ExternalUser).ToListAsync();
         var allRegistrations = await ctx.SelfRegistrationDetails.ToListAsync();
         var allWorkspaceMembers = await ctx.UserRolesLinks.Include(m => m.Project).ToListAsync();
 
@@ -272,11 +272,12 @@ else
                 .FirstOrDefault(),
             LastLogin = u.LastLoginDateTime ?? default,
             FirstLogin = u.FirstLoginDateTime ?? default,
-            GraphGuid = u.GraphGuid,
+            GraphGuid = u.EntraUser?.GraphGuid,
+			ExternalOID = u.ExternalUser?.OID,
             Workspaces = new DHTableLinkList
             {
                 Links = allWorkspaceMembers
-                    .Where(m => m.PortalUser.GraphGuid == u.GraphGuid)
+                    .Where(m => m.PortalUser == u)
                     .Select(m => ValueTuple.Create(
                         $"{m.Project.Project_Name} ({m.Project.Project_Acronym_CD})",
                         $"{PageRoutes.WorkspacePrefix}/{m.Project.Project_Acronym_CD}"

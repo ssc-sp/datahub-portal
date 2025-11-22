@@ -91,7 +91,7 @@
         // If user is locked, redirect to locked page
         if (existingUser is { IsLocked: true })
         {
-            _navigationManager.NavigateTo(Localizer["/locked"]);
+Entra      _navigationManager.NavigateTo(Localizer["/locked"]);
             return;
         }
 
