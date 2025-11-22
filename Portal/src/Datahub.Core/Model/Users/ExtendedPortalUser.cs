@@ -1,4 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Users;
 

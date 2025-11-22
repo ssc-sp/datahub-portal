@@ -1,3 +1,4 @@
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Core.Model.Users.Configuration
