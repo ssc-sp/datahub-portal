@@ -1,8 +1,8 @@
 ﻿using System.Security.Claims;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
@@ -116,7 +116,7 @@ public class OfflineUserInformationService : IUserInformationService
         });
     }
 
-    public async Task<PortalUser> GetCurrentPortalUserAsync()
+    public async Task<PortalUser?> GetCurrentPortalUserAsync()
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         
@@ -237,12 +237,13 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult(new PortalUser(){GraphGuid = AnonymousUser.Id});
     }
-    
+
     public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
     {
         PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
         throw new NotImplementedException();
     }
+
     public event EventHandler<PortalUserUpdatedEventArgs>? PortalUserUpdated;
     public Task<bool> IsDailyLogin()
     {

@@ -1,18 +1,19 @@
-﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.UserTracking;
+﻿using System.Diagnostics.CodeAnalysis;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
 
-namespace Datahub.Core.Model.Achievements;
+namespace Datahub.Core.Model.Users;
 
 public class ExtendedPortalUser
 {
     public int Id { get; set; }
-    public string GraphGuid { get; set; }
-    public string Email { get; set; }
-    public string DisplayName { get; set; }
+    public required string GraphGuid { get; set; }
+    public string? Email { get; set; }
+    public string? DisplayName { get; set; }
     public DateTime? FirstLoginDateTime { get; set; }
     public DateTime? LastLoginDateTime { get; set; }
-    public string BannerPictureUrl { get; set; }
-    public string ProfilePictureUrl { get; set; }
+    public string? BannerPictureUrl { get; set; }
+    public string? ProfilePictureUrl { get; set; }
     public bool IsDeleted { get; set; }
     public bool IsLocked { get; set; }
 
@@ -20,6 +21,7 @@ public class ExtendedPortalUser
     {
     }
 
+    [SetsRequiredMembers]
     public ExtendedPortalUser(PortalUser portalUser)
     {
         GraphGuid = portalUser.GraphGuid;

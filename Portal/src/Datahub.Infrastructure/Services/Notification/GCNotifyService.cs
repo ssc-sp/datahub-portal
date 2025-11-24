@@ -222,6 +222,22 @@ public class GCNotifyService : IGCNotifyService
         string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
+    public async Task SendBugReportNotification(string id, string title, string body, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca")
+    {
+        using var _ = _logger.BeginScope("BugReportNotification ID={Id}", id);
+        _logger.LogInformation("Composing bug report notification. title={Title}", title);
+        var templateId = GetTemplateId("bug-report", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId,
+            personalisation = new { id, title, body }
+        };
+
+        _logger.LogDebug("Dispatching bug report notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
 
     public string GetTemplateId(string templateName, string mappingsJson)
     {

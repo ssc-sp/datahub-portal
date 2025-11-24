@@ -4,6 +4,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared;
@@ -395,7 +396,7 @@ public class TerraformOutputHandlerTests
         // Arrange
         var terraformMessage = new Dictionary<string, TerraformOutputVariable>
         {
-            { TerraformVariables.OutputAzureAppServiceStatus, new TerraformOutputVariable() }
+            { TerraformVariables.OutputAzureAppServiceStatus, new TerraformOutputVariable() {  Value = "aaa" } }
         };
         var messageEnvelope = new
         {

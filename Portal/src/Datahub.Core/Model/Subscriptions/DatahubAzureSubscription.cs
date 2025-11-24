@@ -16,25 +16,25 @@ public class DatahubAzureSubscription
     /// <summary>
     /// Gets or sets the tenant identifier for the associated Azure subscription.
     /// </summary>
-    public string TenantId { get; set; }
+    public required string TenantId { get; set; }
 
     /// <summary>
     /// Gets or sets the subscription identifier for the Azure Subscription.
     /// </summary>
-    public string SubscriptionId { get; set; }
+    public required string SubscriptionId { get; set; }
 
     /// <summary>
     /// Gets or sets the name of the Azure Subscription.
     /// </summary>
-    public string SubscriptionName { get; set; }
+    public required string SubscriptionName { get; set; }
 
     /// <summary>
     /// Gets or sets the user-friendly alias or nickname for the subscription.
     /// </summary>
-    public string Nickname { get; set; }
+    public string? Nickname { get; set; }
 
     /// <summary>
     /// Gets or sets the list of Datahub workspaces associated with this Azure subscription.
     /// </summary>
-    public List<Datahub_Project> Workspaces { get; set; }
+    public List<Datahub_Project> Workspaces { get; set; } = new();
 }

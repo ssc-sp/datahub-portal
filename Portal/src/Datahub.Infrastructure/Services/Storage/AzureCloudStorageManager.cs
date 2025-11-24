@@ -168,7 +168,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         var containerClient = blobServiceClient.GetBlobContainerClient(container);
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
-        StorageMetadata storageMetadata = new()
+        AzureStorageMetadata storageMetadata = new()
         {
             Container = container,
             Url = containerClient.Uri.ToString(),

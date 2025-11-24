@@ -42,7 +42,7 @@ else
 
 @code {
     [Parameter]
-    public string Variant { get; set; }
+    public string? Variant { get; set; }
 
     private string _classname => $"nrcan-typography {Variant} {InputClass}";
 

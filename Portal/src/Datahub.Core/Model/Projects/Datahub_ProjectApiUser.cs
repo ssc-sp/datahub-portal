@@ -12,17 +12,17 @@ public class Datahub_ProjectApiUser
     [Required]
     [StringLength(32)]
     [MudForm("Name")]
-    public string Client_Name_TXT { get; set; }
+    public required string Client_Name_TXT { get; set; }
 
     [Required]
     [StringLength(10)]
     [MudForm("Project")]
-    public string Project_Acronym_CD { get; set; }
+    public required string Project_Acronym_CD { get; set; }
 
     [Required]
     [StringLength(128)]
     [MudForm("Email")]
-    public string Email_Contact_TXT { get; set; }
+    public required string Email_Contact_TXT { get; set; }
 
     [MudForm("Expiration")]
     public DateTime? Expiration_DT { get; set; }

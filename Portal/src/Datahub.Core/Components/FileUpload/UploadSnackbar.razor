@@ -39,14 +39,14 @@
 
 @code {
 
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
 
-    [Parameter]
-    public List<FileMetaData> UploadingFiles { get; set; }
+    [Parameter, EditorRequired]
+    public required List<FileMetaData> UploadingFiles { get; set; }
 
-    [Parameter]
-    public Dictionary<string, string> BlockedFiles { get; set; }
+    [Parameter, EditorRequired]
+    public required Dictionary<string, string> BlockedFiles { get; set; }
 
     private bool ShowSnackbar => (UploadingFiles?.Any() ?? false) || (BlockedFiles?.Any() ?? false);
 
