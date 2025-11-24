@@ -241,7 +241,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendInfectedFileNotification(string email, string fileName, string workspace, string date)
     {
-        using var _ = _logger.BeginScope("InfectedFileNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("InfectedFileNotification {Email}", "<redacted>");
         _logger.LogInformation("Composing infected file notification. fileName={FileName}, workspace={Workspace}, date={Date}", fileName, workspace, date);
         var templateId = GetTemplateId("virus-upload-detected", _mappingsJson);
         var postData = new
