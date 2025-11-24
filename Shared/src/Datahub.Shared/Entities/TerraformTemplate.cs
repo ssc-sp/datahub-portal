@@ -2,7 +2,7 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Shared.Entities;
 
-public class TerraformTemplate(string name, string status, DateTime requestedAt)
+public class TerraformTemplate(string name, string status, DateTimeOffset requestedAtUtc)
 {
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
@@ -25,7 +25,7 @@ public class TerraformTemplate(string name, string status, DateTime requestedAt)
 
     public string Status { get; } = status ?? TerraformStatus.Unknown;
 
-    public DateTime RequestedAt { get; } = requestedAt;
+    public DateTimeOffset RequestedAt { get; } = requestedAtUtc;
 
     /// <summary>
     /// Converts a template name to a readable name based on the specified culture.

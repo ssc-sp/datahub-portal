@@ -48,13 +48,13 @@ public static class TerraformOutputHelper
         return $"{{\n{content}\n}}";
     }
 
-    public static string GetExpectedTerraformInput(Datahub_Project project)
+    public static string GetExpectedTerraformInput(Datahub_Project project, int pipelineId)
     {
         var message = @"{              
                 ""pipeline_run_id"": {
                   ""sensitive"": false,
                   ""type"": ""string"",
-                  ""value"": ""6458""
+                  ""value"": ""pipelineId""
                 },
                 ""pipeline_run_url"": {
                   ""sensitive"": false,
@@ -64,11 +64,12 @@ public static class TerraformOutputHelper
                 ""project_cd"": {
                   ""sensitive"": false,
                   ""type"": ""string"",
-                  ""value"": ""PIPELINEID""
+                  ""value"": ""Project_Acronym_CD""
                 }              
             }";
 
-        message = message.Replace("PIPELINEID", project.Project_Acronym_CD);
+        message = message.Replace("Project_Acronym_CD", project.Project_Acronym_CD);
+        message = message.Replace("pipelineId", pipelineId.ToString());
         return message;
     }
     private static string GetExpectedTerraformOutputAzurePostgresString()

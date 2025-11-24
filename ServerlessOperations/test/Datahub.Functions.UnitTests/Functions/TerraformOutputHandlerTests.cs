@@ -60,7 +60,7 @@ public class TerraformOutputHandlerTests
     {
         var project = new Datahub_Project()
         {
-            Project_Acronym_CD = "PIPELINEID"
+            Project_Acronym_CD = "TESTPROJ"
         };
         _context.Projects.Add(project);
         await _context.SaveChangesAsync();
@@ -109,8 +109,8 @@ public class TerraformOutputHandlerTests
         await _context.SaveChangesAsync();
 
 
-        
-        var terraformOutput = TerraformOutputHelper.GetExpectedTerraformInput(project);
+        var testPipeLineId = 1234;
+        var terraformOutput = TerraformOutputHelper.GetExpectedTerraformInput(project, testPipeLineId);
 
         // pass the terraform output to the output variables
         var deserializeOptions = new JsonSerializerOptions
@@ -133,8 +133,8 @@ public class TerraformOutputHandlerTests
         Assert.That(processedResources, Is.Not.Null);
         Assert.That(processedResources.Count, Is.EqualTo(3));
         Assert.That(processedResources[0].PipelineId, Is.Null);
-        Assert.That(processedResources[1].PipelineId, Is.EqualTo(6458));
-        Assert.That(processedResources[2].PipelineId, Is.EqualTo(6458));
+        Assert.That(processedResources[1].PipelineId, Is.EqualTo(testPipeLineId));
+        Assert.That(processedResources[2].PipelineId, Is.EqualTo(testPipeLineId));
         //Assert.That(processedResource!.CreatedAt, Is.Not.Null);
         //Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
 

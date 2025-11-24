@@ -1,9 +1,8 @@
 ﻿// See https://aka.ms/new-console-template for more information
 
-using System.Diagnostics;
-using System.Text;
 using Azure.Identity;
 using CatalogIngestTool;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
 using Datahub.Core.Model.Context;
@@ -17,6 +16,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Text;
 using GraphServiceClient = Microsoft.Graph.GraphServiceClient;
 
 #region Config
@@ -37,10 +38,9 @@ string clientSecret = config["ClientSecret"]!;
 #region Services and Database config
 
 var services = new ServiceCollection();
-services.AddDbContext<MetadataDbContext>(options => options.UseSqlServer(metadataDbConnectionString));
-services.AddPooledDbContextFactory<MetadataDbContext>(options => options.UseSqlServer(metadataDbConnectionString));
-services.AddDbContext<DatahubProjectDBContext>(options => options.UseSqlServer(projectDbConnectionString));
-
+services.AddDbContext<MetadataDbContext>(options => options.UseSqlServer(metadataDbConnectionString, sql => sql.CommandTimeout(180)));
+services.AddPooledDbContextFactory<MetadataDbContext>(options => options.UseSqlServer(metadataDbConnectionString, sql => sql.CommandTimeout(180)));
+services.AddDbContext<DatahubProjectDBContext>(options => options.UseSqlServer(projectDbConnectionString, sql => sql.CommandTimeout(180)));
 services.AddLogging(configure => configure.AddConsole());
 
 services.AddScoped<IDatahubAuditingService, DummyDatahubAuditingService>();

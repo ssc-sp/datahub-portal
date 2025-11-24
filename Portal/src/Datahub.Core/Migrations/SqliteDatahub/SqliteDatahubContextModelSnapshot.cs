@@ -1175,8 +1175,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<int>("ProjectId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("RequestedAt")
-                        .HasColumnType("TEXT");
+                    b.Property<long>("RequestedAt")
+                        .HasColumnType("INTEGER");
 
                     b.Property<int>("RequestedById")
                         .HasColumnType("INTEGER");
