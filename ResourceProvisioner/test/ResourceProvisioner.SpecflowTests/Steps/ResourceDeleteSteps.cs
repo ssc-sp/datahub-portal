@@ -45,7 +45,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     public void GivenATemplateIsSetToBeDeleted()
     {
         const string templateName = "template";
-        var terraformTemplate = new TerraformTemplate(templateName, TerraformStatus.DeleteRequested);
+        var terraformTemplate = new TerraformTemplate(templateName, TerraformStatus.DeleteRequested, DateTime.UtcNow);
         var terraformWorkspace = scenarioContext.Get<TerraformWorkspace>("terraformWorkspace");
 
         var command = new CreateResourceRunCommand() {
