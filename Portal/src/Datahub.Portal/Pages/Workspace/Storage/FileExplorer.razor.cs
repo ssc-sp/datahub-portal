@@ -6,6 +6,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -205,7 +206,7 @@ public partial class FileExplorer
         return string.Join("/", splitPath);
     }
 
-    private FileCheckResult CheckAllowedFile(IBrowserFile browserFile)
+    private async Task<FileCheckResult> CheckAllowedFile(IBrowserFile browserFile)
     {
         var blockedExtensions = _config.StorageConfiguration.BlockedFileExtensionCollection;
         var filename = browserFile.Name;
@@ -215,9 +216,17 @@ public partial class FileExplorer
             return FileCheckResult.ExtensionBlocked;
         }
 
-        if (browserFile.Size > _config.StorageConfiguration.DefaultMaxUploadSize)
+        var isTrustedUser = await _userInformationService.IsLoggedInThroughEntra();
+
+        if (!isTrustedUser)
         {
-            return FileCheckResult.SizeExceeded;
+            using var ctx = await _dbFactoryProject.CreateDbContextAsync();
+            var workspace = await ctx.Projects.FirstOrDefaultAsync(w => w.Project_Acronym_CD == ProjectAcronym);
+            var maxSizeInBytes = workspace?.MaxUploadMBForGccf * 1024 * 1024 ?? 0;
+            if (browserFile.Size > maxSizeInBytes)
+            {
+                return FileCheckResult.SizeExceeded;
+            }
         }
 
         return FileCheckResult.Allowed;
@@ -228,7 +237,7 @@ public partial class FileExplorer
         if (browserFile == null)
             return;
 
-        var allowedFileCheck = CheckAllowedFile(browserFile);
+        var allowedFileCheck = await CheckAllowedFile(browserFile);
         if (allowedFileCheck != FileCheckResult.Allowed)
         {
             var localizedReasonKey = allowedFileCheck switch

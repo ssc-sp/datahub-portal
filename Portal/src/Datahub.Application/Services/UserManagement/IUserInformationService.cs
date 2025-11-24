@@ -35,6 +35,7 @@ public interface IUserInformationService
     Task<bool> IsUserWithoutInitiatives();
     Task<bool> IsViewingAsGuest();
     Task<bool> IsViewingAsVisitor();
+    Task<bool> IsLoggedInThroughEntra();
     Task SetViewingAsGuest(bool isGuest);
     Task SetViewingAsVisitor(bool isVisitor);
     Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
