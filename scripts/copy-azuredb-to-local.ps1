@@ -93,6 +93,26 @@ Write-Host "`nPublishing dacpac to LocalDB..." -ForegroundColor Cyan
 Write-Host "Target Instance: $targetInstance" -ForegroundColor Gray
 Write-Host "Target Database: $DatabaseName" -ForegroundColor Gray
 
+# Ensure contained database authentication is enabled on LocalDB instance (idempotent)
+# This aligns closer with Azure SQL which often uses contained database users.
+# LocalDB supports partial containment; enabling this lets contained users function after publish.
+try {
+    if (Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue) {
+        $containedStatus = Invoke-Sqlcmd -ServerInstance $targetInstance -Database master -Query "SELECT value_in_use FROM sys.configurations WHERE name='contained database authentication';" | Select-Object -ExpandProperty value_in_use -ErrorAction Stop
+        if ($containedStatus -ne 1) {
+            Write-Host "Enabling contained database authentication on instance $targetInstance..." -ForegroundColor Cyan
+            Invoke-Sqlcmd -ServerInstance $targetInstance -Database master -Query "EXEC sp_configure 'contained database authentication', 1; RECONFIGURE;" -ErrorAction Stop
+            Write-Host "Contained database authentication enabled." -ForegroundColor Green
+        } else {
+            Write-Host "Contained database authentication already enabled." -ForegroundColor Gray
+        }
+    } else {
+        Write-Host "Invoke-Sqlcmd not available (SqlServer module missing). Skipping containment enable step." -ForegroundColor Yellow
+    }
+} catch {
+    Write-Host "Failed to verify/enable contained database authentication: $($_.Exception.Message)" -ForegroundColor Yellow
+}
+
 # Create publish profile
 $profilePath = Join-Path $tempDir "publish-profile.xml"
 $targetConnection = "Data Source=$targetInstance;Initial Catalog=$DatabaseName;Integrated Security=True"
