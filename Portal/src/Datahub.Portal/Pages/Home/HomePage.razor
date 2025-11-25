@@ -13,7 +13,7 @@
 
 
 <MudStack>
-    @if (_viewedPortalUser is null || _viewedPortalUser.GraphGuid == _currentGuid)
+    @if (_viewedPortalUser is null || _viewedPortalUser == _currentGuid)
     {
         <div role="group">
             <MudStack Row AlignItems="AlignItems.End">
@@ -37,7 +37,7 @@
                   Height="320"
                   ObjectPosition="ObjectPosition.Center" />
     }    
-    <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle />
+    <UserProjects EntraGraphID="@_userProjectGuid" SmSize="6" NewStyle />
 </MudStack>
 
 @code {

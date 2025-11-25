@@ -215,7 +215,7 @@
     {
         await Task.Delay(3000);
 
-        var existingUser = await _userInformationService.GetEntraUserByEmailAsync(_email);
+        var existingUser = await _userInformationService.GetUserByEmailAsync(_email);
         if (existingUser != null)
         {
             _wasDeleted = existingUser.IsDeleted;

@@ -46,13 +46,13 @@
     <MudSpacer/>
     @if (ShowProfileLink)
     {
-        <UserViewProfileIconButton ViewedUserGraphId="@ViewedUserGraphId"/>
+        <UserViewProfileIconButton ViewedUser="@ViewedUser" />
     }
 </MudStack>
 
 @code {
 
-    [Parameter] public string ViewedUserGraphId { get; set; }
+    // [Parameter] public string ViewedUserGraphId { get; set; }
 
     [Parameter] public PortalUser ViewedUser { get; set; }
 
@@ -75,10 +75,10 @@
     private IJSObjectReference _module;
     private string _timezone;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        _viewedUser = await _userInformationService.GetEntraUserAsync(ViewedUserGraphId);
-    }
+    // protected override async Task OnParametersSetAsync()
+    // {
+    //     _viewedUser = await _userInformationService.GetEntraUserAsync(ViewedUserGraphId);
+    // }
 
     protected override async Task OnInitializedAsync()
     {        

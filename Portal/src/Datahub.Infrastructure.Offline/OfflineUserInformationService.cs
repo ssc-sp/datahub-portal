@@ -101,7 +101,7 @@ public class OfflineUserInformationService : IUserInformationService
         return true;
     }
 
-    public Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    public Task<PortalUser> GetEntraUserWithAchievementsAsync(string userGraphId)
     {
         throw new NotImplementedException();
     }
@@ -161,7 +161,7 @@ public class OfflineUserInformationService : IUserInformationService
         
         return randomUser!;
     }
-    public async Task<ExtendedPortalUser?> GetEntraUserByEmailAsync(string email)
+    public async Task<ExtendedPortalUser?> GetUserByEmailAsync(string email)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -228,7 +228,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(true);
     }
 
-    public Task<PortalUser?> CreatePortalUserAsync(string userGraphId)
+    public Task<PortalUser?> CreatePortalEntraUserAsync(string userGraphId)
     {
         throw new NotImplementedException();
     }
@@ -251,6 +251,11 @@ public class OfflineUserInformationService : IUserInformationService
     }
 
     public Task<bool> CheckUserInTenant(string email)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid)
     {
         throw new NotImplementedException();
     }

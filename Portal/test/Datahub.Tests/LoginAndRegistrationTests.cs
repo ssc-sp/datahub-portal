@@ -164,7 +164,7 @@ namespace Datahub.Tests
             var fakeClaimsPrincipal = new ClaimsPrincipal(fakeIdentity); 
 
             var ctx = SetupTestContext();
-            _userInformationMock.Setup(s => s.GetEntraUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
 
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
@@ -206,7 +206,7 @@ namespace Datahub.Tests
 
             var ctx = SetupTestContext(includeHttpClientFactory: true);
 
-            _userInformationMock.Setup(s => s.GetEntraUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
 
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
@@ -249,7 +249,7 @@ namespace Datahub.Tests
 
             var ctx = SetupTestContext(includeHttpClientFactory: true);
 
-            _userInformationMock.Setup(s => s.GetEntraUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
 
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
@@ -284,7 +284,7 @@ namespace Datahub.Tests
             };
 
             var ctx = SetupTestContext();
-            _userInformationMock.Setup(s => s.GetEntraUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(),It.IsAny<string>()))
                 .ReturnsAsync("1");
@@ -312,7 +312,7 @@ namespace Datahub.Tests
             var email = "fake_user@gc.ca"; 
 
             var ctx = SetupTestContext();
-            _userInformationMock.Setup(s => s.GetEntraUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync("1");

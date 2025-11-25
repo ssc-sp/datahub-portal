@@ -61,7 +61,7 @@ namespace Datahub.Core.Model.Projects
         /// <summary>
         /// Gets or sets the portal user. This includes email and graph GUID.
         /// </summary>
-        public PortalUser? PortalUser { get; set; }
+        public PortalUser PortalUser { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the portal user who approved this record.

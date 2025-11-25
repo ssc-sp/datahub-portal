@@ -12,7 +12,6 @@
 
 @inherits ViewUserBase<WorkspaceSidebar>
 
-@inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -154,13 +153,13 @@
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public required string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
-    [CascadingParameter] private DHSidebarDrawer Drawer { get; set; }
+    [CascadingParameter] private DHSidebarDrawer Drawer { get; set; } = null!;
 
     private Datahub_Project _project;
     private List<Datahub_Project> _allProjects;
-    private string _userProjectGuid;
+    private string? _entraUserGuid;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -240,13 +239,19 @@
 
 
         // check the resources against what to display in the sidebar
+
+        // If project not found, throw a404 HttpRequestException so callers can handle it as a404.
+        if (_project == null)
+        {
+            throw new System.Net.Http.HttpRequestException($"Workspace '{WorkspaceAcronym}' not found.", null, System.Net.HttpStatusCode.NotFound);
+        }
     }
 
     protected override async Task OnParametersSetAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _userProjectGuid = await _userInformationService.GetCurrentUserEntraId();
+        _entraUserGuid = await _userInformationService.GetCurrentUserEntraId();
         var userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)
@@ -254,7 +259,7 @@
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
             .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser.GraphGuid == _userProjectGuid)
+            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null && u.PortalUser.EntraUser.GraphGuid == _entraUserGuid)
             .ToListAsync();
 
         _allProjects = userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();

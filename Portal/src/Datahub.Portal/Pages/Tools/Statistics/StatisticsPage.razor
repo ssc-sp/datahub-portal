@@ -325,7 +325,7 @@ else
                 .Count(m => m.Project_ID == w.Project_ID && m.RoleId != (int)Project_Role.RoleNames.Removed),
             Members = new DHTableLinkList
             {
-                Links = w.UserRoles.Select(u => ValueTuple.Create(u.PortalUser.DisplayName, $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.GraphGuid.Base64Encode()}")).ToList()
+                Links = w.UserRoles.Select(u => ValueTuple.Create(u.PortalUser.DisplayName ?? "-", $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.UserProfileLink()}")).ToList()
             },
             CreatedAt = w.Created_DT,
             UpdatedAt = w.Last_Updated_DT,
@@ -333,7 +333,7 @@ else
             WorkspaceLeadEmail = w.Project_Admin,
             WorkspaceLead = _portalUsers
                 .Where(u => string.Equals(u.Email?.ToLower() ?? string.Empty, w.Project_Admin ?? string.Empty, StringComparison.InvariantCultureIgnoreCase))
-                .Select(u => u.DisplayName)
+                .Select(u => u.DisplayName ?? "-")
                 .FirstOrDefault(),
         }).ToList();
 

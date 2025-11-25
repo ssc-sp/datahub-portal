@@ -204,7 +204,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                     GraphGuid = cGuid
                 });
 
-            _userInformationService.CreatePortalUserAsync(Arg.Any<string>())
+            _userInformationService.CreatePortalEntraUserAsync(Arg.Any<string>())
                 .ReturnsForAnyArgs(async userName => {
                     Assert.Equal(cGuid, userName[0]);
                     _dbContext.PortalUsers.Add(new PortalUser

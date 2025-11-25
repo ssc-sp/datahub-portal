@@ -72,7 +72,7 @@ public class ProjectUserManagementServiceTests
             .ReturnsAsync((string id) => _dbContext.PortalUsers.First(u => u.EntraUser != null && u.EntraUser.GraphGuid == id));
 
         _mockUserInformationService
-            .Setup(f => f.CreatePortalUserAsync(It.IsAny<string>()))
+            .Setup(f => f.CreatePortalEntraUserAsync(It.IsAny<string>()))
             .Callback((string graphId) =>
             {
                 var pu = new PortalUser()

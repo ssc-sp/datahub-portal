@@ -170,7 +170,8 @@ else
     // Parameters
     [Parameter] public bool ShowTitle { get; set; } = true;
     [Parameter] public int SmSize { get; set; } = 4;
-    [Parameter] public string UserId { get; set; }
+    [Parameter] public string? EntraGraphID { get; set; }
+    [Parameter] public string? ExternalOID { get; set; }
     [Parameter] public bool NewStyle { get; set; }
 
     // Display state
@@ -252,8 +253,8 @@ else
         {
             return;
 		}
-        var portalUserGuid = await UserInformationService.GetCurrentUserEntraId();
-        var userId = UserId ?? portalUserGuid;
+        var entraUserID = await UserInformationService.GetCurrentUserEntraId();
+        var entraUserID = EntraGraphID ?? entraUserID;
         
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
@@ -273,7 +274,7 @@ else
             .ThenInclude(p => p.Resources)
 			.AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser.EntraUser!.GraphGuid == userId)
+			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser.EntraUser!.GraphGuid == entraUserID)
             .ToListAsync();
 		_userEmail = _entraUserRoles.First().PortalUser.Email;
 

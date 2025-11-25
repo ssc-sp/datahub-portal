@@ -5,6 +5,8 @@ using Datahub.Core.Extensions;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services;
 using Microsoft.AspNetCore.Components;
+using System.Net;
+using System.Net.Http;
 
 namespace Datahub.Portal.Pages;
 
@@ -13,28 +15,36 @@ public class ViewUserBase<T> : ComponentBase
     [Parameter]
     [SupplyParameterFromQuery(Name = "u")]
     public string UserIdBase64 { get; set; }
-    
+
     [Inject]
     protected IUserInformationService _userInformationService { get; set; } = null!;
     [Inject]
-    protected ILogger<T> _logger { get; set; } = null!;   
+    protected ILogger<T> _logger { get; set; } = null!;
 
     private PortalUser? _portalUserWithAchievements;
     private PortalUser _portalUser;
 
     protected async Task<PortalUser> GetViewedPortalUserWithAchievementsAsync()
     {
+        // If the user id parameter is missing, surface a404
+        if (string.IsNullOrWhiteSpace(UserIdBase64))
+        {
+            throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
+        }
+
         try
         {
-            if (!string.IsNullOrWhiteSpace(UserIdBase64))
+            var (entra, external) = UserIdBase64.DecodeUserProfileLink();
+            var id = entra ?? external ?? throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
+
+            if (_portalUserWithAchievements != null && _portalUserWithAchievements.UserUID() == id)
             {
-                if (_portalUserWithAchievements != null && _portalUserWithAchievements.GraphGuid == UserIdBase64.Base64Decode())
-                {
-                    return _portalUserWithAchievements;
-                }
-                _portalUserWithAchievements = await _userInformationService.GetPortalUserWithAchievementsAsync(UserIdBase64.Base64Decode());
                 return _portalUserWithAchievements;
             }
+
+            _portalUserWithAchievements = await _userInformationService.GetEntraUserWithAchievementsAsync(id);
+            return _portalUserWithAchievements ?? throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
+
         }
         catch (Exception ex)
         {
@@ -48,17 +58,25 @@ public class ViewUserBase<T> : ComponentBase
 
     protected async Task<PortalUser> GetViewedPortalUserAsync()
     {
+        // If the user id parameter is missing, surface a404
+        if (string.IsNullOrWhiteSpace(UserIdBase64))
+        {
+            throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
+        }
+
         try
         {
-            if (!string.IsNullOrWhiteSpace(UserIdBase64))
+            var (entra, external) = UserIdBase64.DecodeUserProfileLink();
+            var id = entra ?? external ?? throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
+
+
+            if (_portalUser != null && _portalUser.UserUID() == id)
             {
-                if (_portalUser != null && _portalUser.GraphGuid == UserIdBase64.Base64Decode())
-                {
-                    return _portalUser;
-                }
-                _portalUser = await _userInformationService.GetEntraUserAsync(UserIdBase64.Base64Decode());
                 return _portalUser;
             }
+
+            _portalUser = await _userInformationService.GetEntraUserAsync(id);
+            return _portalUser;
         }
         catch (Exception ex)
         {
@@ -67,6 +85,6 @@ public class ViewUserBase<T> : ComponentBase
                 UserIdBase64?.Replace("\r", "").Replace("\n", ""));
         }
 
-        return await _userInformationService.GetCurrentPortalUserAsync();
+        return await _userInformationService.GetCurrentPortalUserAsync() ?? throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
     }
 }

@@ -175,7 +175,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 projectUserAddUserCommand.GraphGuid =
                     await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email,
                         currentUser.DisplayName);
-                await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
+                await _userInformationService.CreatePortalEntraUserAsync(projectUserAddUserCommand.GraphGuid);
             }
 
             var portalUser = await _userInformationService.GetEntraUserAsync(projectUserAddUserCommand.GraphGuid);

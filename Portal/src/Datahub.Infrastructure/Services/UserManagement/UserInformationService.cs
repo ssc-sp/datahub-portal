@@ -51,7 +51,23 @@ public class UserInformationService(
     public async Task<string?> GetCurrentUserEntraId()
     {
         await CheckUser();
-        return GetOid();
+        return GetEntraOid();
+    }
+
+    /// <summary>
+    /// Gets the current authenticated user's subject claim ("sub" or NameIdentifier) from the authentication claims.
+    /// Returns null when the claim is not present or the user is not authenticated.
+    /// </summary>
+    public async Task<string?> GetCurrentUserSubjectAsync()
+    {
+        var user = await GetAuthenticatedUser();
+        if (user == null) return null;
+
+        // Common claim types that represent subject:
+        // - JWT 'sub' for GCCF
+        var subjectClaim = user.Claims?.FirstOrDefault(c => string.Equals(c.Type, "sub", StringComparison.OrdinalIgnoreCase));
+
+        return subjectClaim?.Value;
     }
 
     public async Task<string> GetUserEmail()
@@ -116,7 +132,7 @@ public class UserInformationService(
         try
         {
             var email = (await GetAuthenticatedUser())?.Identity?.Name;
-            var userId = GetOid();
+            var userId = GetEntraOid();
             if (email is null)
             {
                 throw new InvalidOperationException("Cannot resolve user email");
@@ -140,13 +156,13 @@ public class UserInformationService(
         }
     }
 
-    private bool HasOid()
+    private bool HasEntraOid()
     {
         return authenticatedUser?.Claims?
                    .Any(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? false;
     }
 
-    private string GetOid()
+    private string GetEntraOid()
     {
         // ReSharper disable once ConstantConditionalAccessQualifier
         return (authenticatedUser?.Claims?
@@ -289,7 +305,7 @@ public class UserInformationService(
     /// </summary>
     /// <param name="userGraphId"></param>
     /// <returns>Portal User</returns>
-    public async Task<PortalUser?> CreatePortalUserAsync(string userGraphId)
+    public async Task<PortalUser?> CreatePortalEntraUserAsync(string userGraphId)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var exists = await ctx.EntraUsers
@@ -376,7 +392,7 @@ public class UserInformationService(
         }
     }
 
-    public async Task<ExtendedPortalUser?> GetEntraUserByEmailAsync(string email)
+    public async Task<ExtendedPortalUser?> GetUserByEmailAsync(string email)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var matchingUsers = await ctx.PortalUsers
@@ -480,7 +496,7 @@ public class UserInformationService(
         var portalUser = await GetEntraUserAsync(graphId);
         if (portalUser is null)
         {
-            await CreatePortalUserAsync(graphId);
+            await CreatePortalEntraUserAsync(graphId);
             await UpdatePortalUserFirstLogin(graphId);
         }
         else
@@ -519,7 +535,7 @@ public class UserInformationService(
 
     public async Task<PortalUser?> GetCurrentPortalUserAsync()
     {
-        if (!HasOid())
+        if (!HasEntraOid())
         {
             return null;
         }
@@ -545,7 +561,28 @@ public class UserInformationService(
         }
 
         logger.LogInformation("User with GraphId: {GraphId} does not exist", userGraphId);
-        return await CreatePortalUserAsync(userGraphId) ?? throw new InvalidOperationException("Failed to create portal user");
+        return await CreatePortalEntraUserAsync(userGraphId) ?? throw new InvalidOperationException("Failed to create portal user");
+    }
+
+    public async Task<PortalUser> GetExternalUserAsync(string userOID)
+    {
+        PortalUser? portalUser;
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
+        {
+            portalUser = await ctx.PortalUsers
+                .AsNoTracking()
+                .Include(u => u.UserSettings)
+                .Include(u => u.ExternalUser)
+                .FirstOrDefaultAsync(p => p.ExternalUser != null && p.ExternalUser.OID == userOID);
+
+            if (portalUser is not null)
+            {
+                return portalUser;
+            }
+        }
+
+        logger.LogInformation("User with OID: {userOID} does not exist", userOID);
+        return await CreatePortalExternalUserAsync(userOID) ?? throw new InvalidOperationException("Failed to create portal user");
     }
 
     public async Task<bool> IsDailyLogin()
@@ -566,32 +603,39 @@ public class UserInformationService(
     {
         if (_userWithAchievements != null)
             return _userWithAchievements;
-        var graphId = await GetCurrentUserEntraId();
-        _userWithAchievements = await LoadPortalUserWithAchievementsAsync(graphId);
+        _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetCurrentUserSubjectAsync());
+        var externalUser = await GetCurrentPortalUserAsync();
+
         return _userWithAchievements;
     }
 
-    private async Task<PortalUser> LoadPortalUserWithAchievementsAsync(string userGraphId)
+    private async Task<PortalUser> LoadUserWithAchievementsAsync(string? entraId = null, string? userOID = null)
     {
+        if (entraId is null && userOID is null)
+            throw new ArgumentException("Either entraId or userOID must be provided");
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
 
-        var portalUser = await ctx.PortalUsers
+        var query = ctx.PortalUsers
             .AsNoTracking()
             .Include(p => p.EntraUser)
             .Include(p => p.UserSettings)
             .Include(p => p.Achievements)
             .ThenInclude(a => a.Achievement)
-            .AsSingleQuery()
-            .FirstAsync(p => p.EntraUser != null && p.EntraUser.GraphGuid == userGraphId);
+            .AsSingleQuery();
 
+        PortalUser portalUser = null!;
+        if (entraId is not null)
+            portalUser = await query.FirstAsync(p => p.EntraUser != null && p.EntraUser.GraphGuid == entraId);
+        if (userOID is not null)
+            portalUser = await query.FirstAsync(p => p.ExternalUser != null && p.ExternalUser.OID == userOID);
         return portalUser;
     }
 
-    public async Task<PortalUser> GetPortalUserWithAchievementsAsync(string userGraphId)
+    public async Task<PortalUser> GetEntraUserWithAchievementsAsync(string userGraphId)
     {
         if (userGraphId == (await GetCurrentUserEntraId()))
             return await GetCurrentPortalUserWithAchievementsAsync();
-        return await LoadPortalUserWithAchievementsAsync(userGraphId);
+        return await LoadUserWithAchievementsAsync(userGraphId);
     }
 
     public async Task<bool> CheckUserInTenant(string email)
@@ -601,5 +645,60 @@ public class UserInformationService(
             request => request.QueryParameters.Filter = $"mail eq '{email}'");
         if (users?.Value != null) return users.Value.Count > 0;
         return false;
+    }
+
+    public async Task<PortalUser?> CreatePortalExternalUserAsync(string userOid)
+    {
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
+        var exists = await ctx.ExternalUsers
+            .FirstOrDefaultAsync(p => p.OID == userOid);
+
+        if (exists is not null)
+        {
+            logger.LogInformation("External user with OID: {Oid} already exists", userOid);
+            return null;
+        }
+
+        try
+        {
+            PrepareAuthenticatedClient();
+            var graphUser = await graphServiceClient.Users[userOid].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
+            var portalUser = new PortalUser
+            {
+                ExternalUser = new ExternalUser
+                {
+                    OID = userOid,
+                    PortalUser = null!,
+                },
+                Email = graphUser.Mail,
+                DisplayName = graphUser.DisplayName,
+            };
+
+            ctx.PortalUsers.Add(portalUser);
+            await ctx.SaveChangesAsync();
+            logger.LogInformation("Created new External Portal User with OID: {Oid}", userOid);
+
+            var catalogObject = new Core.Model.Catalog.CatalogObject()
+            {
+                ObjectType = Core.Model.Catalog.CatalogObjectType.User,
+                ObjectId = userOid,
+                Name_English = graphUser.DisplayName,
+                Name_French = graphUser.DisplayName,
+                Desc_English = graphUser.Department,
+                Desc_French = graphUser.Department
+            };
+
+            await datahubCatalogSearch.AddCatalogObject(catalogObject);
+            await userEnrollmentService.InviteUserToGroup(userOid);
+            return portalUser;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(
+                e,
+                "Error Loading External User from Graph with OID: {Oid}. It's possible they no longer exist",
+                userOid);
+            return null;
+        }
     }
 }
