@@ -14,7 +14,7 @@ namespace Datahub.SpecflowTests.Steps;
 public sealed class NewsCarouselSteps(
     ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-    ) : TestContext
+    ) : BunitContext
 {
     // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
 
@@ -42,7 +42,7 @@ public sealed class NewsCarouselSteps(
         JSInterop.Mode = JSRuntimeMode.Loose;
         
         
-        var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
+        var newsCarousel = Render<AnnouncementCarousel>(p => p
             .Add(p => p.Previews, new List<AnnouncementPreview>
             {
                 new(1, @"![](/api/media//uploads/upload-11ade686-9bca-43e0-b449-caf4eb74d223.png)", 1)
@@ -88,7 +88,7 @@ public sealed class NewsCarouselSteps(
         JSInterop.Mode = JSRuntimeMode.Loose;
         
         
-        var newsCarousel = RenderComponent<AnnouncementCarousel>(p => p
+        var newsCarousel = Render<AnnouncementCarousel>(p => p
             .Add(p => p.Previews, new List<AnnouncementPreview>
             {
                 new(1, "## hello world", 1)
