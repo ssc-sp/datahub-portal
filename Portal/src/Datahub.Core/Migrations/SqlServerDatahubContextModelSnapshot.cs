@@ -1216,8 +1216,8 @@ namespace Datahub.Core.Migrations
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
 
-                    b.Property<DateTimeOffset>("RequestedAt")
-                        .HasColumnType("datetimeoffset");
+                    b.Property<DateTime?>("RequestedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("RequestedById")
                         .HasColumnType("int");

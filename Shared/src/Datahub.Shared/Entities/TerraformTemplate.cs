@@ -1,8 +1,9 @@
+using System.Text.Json.Serialization;
 using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Shared.Entities;
 
-public class TerraformTemplate(string name, string status, DateTimeOffset requestedAtUtc)
+public class TerraformTemplate
 {
     public static string GetTerraformServiceType(string templateName) => $"terraform:{templateName}";
 
@@ -21,11 +22,37 @@ public class TerraformTemplate(string name, string status, DateTimeOffset reques
 
     public const string NewProjectTemplateFile = "main";
 
-    public string Name { get; } = name;
+    // Parameterless constructor for deserialization
+    public TerraformTemplate()
+    {
+        Name = string.Empty;
+        Status = TerraformStatus.Unknown;
+        RequestedAt = null;
+    }
 
-    public string Status { get; } = status ?? TerraformStatus.Unknown;
+    // Primary constructor
+    [JsonConstructor]
+    public TerraformTemplate(string name, string status)
+    {
+        Name = name;
+        Status = status ?? TerraformStatus.Unknown;
+        RequestedAt = null;
+    }
 
-    public DateTimeOffset RequestedAt { get; } = requestedAtUtc;
+    // Constructor with requestedAt for internal use
+    public TerraformTemplate(string name, string status, DateTime requestedAtUtc)
+    {
+        Name = name;
+        Status = status ?? TerraformStatus.Unknown;
+        RequestedAt = requestedAtUtc;
+    }
+
+    public string Name { get; set; }
+
+    public string Status { get; set; }
+
+    [JsonIgnore]
+    public DateTime? RequestedAt { get; set; }
 
     /// <summary>
     /// Converts a template name to a readable name based on the specified culture.

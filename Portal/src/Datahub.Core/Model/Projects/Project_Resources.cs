@@ -48,7 +48,7 @@ public class Project_Resources2
     /// <summary>
     /// Gets or sets the timestamp when the resource was requested. Defaults to the current UTC time.
     /// </summary>
-    public DateTimeOffset RequestedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTime? RequestedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Gets or sets the ID of the user who requested the resource.
