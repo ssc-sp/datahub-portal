@@ -184,9 +184,9 @@ else
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
-    private string _selectedItem => _selectedItems.FirstOrDefault("/");
+    private string _selectedItem => _selectedItems.FirstOrDefault(_root);
 
-    private HashSet<string> _selectedItems = new();
+    private HashSet<string> _selectedItems = new() { "/" };
 
     private List<string> _folders = new();
     private List<FileMetaData> _files = new();

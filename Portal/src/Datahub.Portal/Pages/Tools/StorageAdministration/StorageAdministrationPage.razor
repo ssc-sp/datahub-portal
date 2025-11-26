@@ -15,8 +15,8 @@
     
     <MudAlert Severity="Severity.Info" Class="mb-6" Elevation="1">
         <MudText Typo="Typo.body2" Class="mb-2"><strong>Test Functions Available:</strong></MudText>
-        <MudText Typo="Typo.caption" Class="d-block"><strong>Lock Files:</strong> Removes read permissions from all files in the workspace root to simulate files awaiting virus scan.</MudText>
-        <MudText Typo="Typo.caption" Class="d-block"><strong>Simulate Scan Success:</strong> Updates metadata on files in workspace root to simulate successful AV scan, which should trigger the Azure Function to automatically grant read access.</MudText>
+        <MudText Typo="Typo.caption" Class="d-block"><strong>Lock Files:</strong> Removes read permissions from all files in the workspace <code>upload</code> folder to simulate files awaiting virus scan.</MudText>
+        <MudText Typo="Typo.caption" Class="d-block"><strong>Simulate Scan Success:</strong> Updates metadata on files in the <code>upload</code> folder to simulate successful AV scan, which should trigger the Azure Function to automatically grant read access.</MudText>
     </MudAlert>
 
     @if (_loading)
@@ -58,7 +58,7 @@
                                    Variant="Variant.Outlined"
                                    Color="Color.Warning"
                                    Size="Size.Small"
-                                   title="Lock all files in workspace root (test button)">
+                                   title="Lock all files in workspace upload folder (test button)">
                             @if (_processingWorkspace == context.Project_Acronym_CD)
                             {
                                 <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
@@ -105,6 +105,7 @@
     private string? _processingWorkspace;
     private string? _lastResult;
     private Severity _lastResultSeverity = Severity.Info;
+    private const string UploadFolderPath = "/upload";
 
     protected override async Task OnInitializedAsync()
     {
@@ -146,8 +147,8 @@
         try
         {
             var updatedCount = await AclService.ApplyWorkspaceMemberAclsAsync(
-                workspaceAcronym, 
-                "/",  // Apply to entire container
+                workspaceAcronym,
+                UploadFolderPath,
                 recursive: true);
 
             _lastResult = $"✓ Successfully applied ACLs to {updatedCount} items in workspace {workspaceAcronym}";
@@ -175,11 +176,11 @@
         try
         {
             var updatedCount = await AclService.RemoveAllUserAclsFromPathAsync(
-                workspaceAcronym, 
-                "/", 
+                workspaceAcronym,
+                UploadFolderPath,
                 recursive: true);
 
-            _lastResult = $"Successfully locked {updatedCount} files in workspace root for workspace {workspaceAcronym}";
+            _lastResult = $"Successfully locked {updatedCount} files in upload folder for workspace {workspaceAcronym}";
             _lastResultSeverity = Severity.Warning;
             Snackbar.Add(_lastResult, Severity.Warning);
         }
@@ -204,10 +205,10 @@
         try
         {
             var updatedCount = await AclService.SimulateScanSuccessAsync(
-                workspaceAcronym, 
-                "/");
+                workspaceAcronym,
+                UploadFolderPath);
 
-            _lastResult = $"Successfully simulated scan success for {updatedCount} files in workspace root for workspace {workspaceAcronym}. The ACL function should now automatically grant read access.";
+            _lastResult = $"Successfully simulated scan success for {updatedCount} files in upload folder for workspace {workspaceAcronym}. The ACL function should now automatically grant read access.";
             _lastResultSeverity = Severity.Success;
             Snackbar.Add(_lastResult, Severity.Success);
         }

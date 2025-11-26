@@ -1,4 +1,5 @@
-﻿using Azure.Storage;
+﻿using Azure;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
@@ -9,6 +10,7 @@ using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Microsoft.VisualStudio.Services.Common;
 using Datahub.Infrastructure.Services.Helpers;
+using System.Net;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -54,6 +56,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
         List<FileMetaData> files = new();
 
         var dirClient = GetDirectoryClient(container, folderPath);
+
+        if (!IsRootPath(folderPath) && !await dirClient.ExistsAsync())
+        {
+            return new DfsPage(folders, files, continuationToken ?? string.Empty);
+        }
 
         // iterate the folder
         await IterateDataLakeDirectoryAsync(dirClient, continuationToken, folders.Add, files.Add, ct => continuationToken = ct);
@@ -185,8 +192,15 @@ public class AzureCloudStorageManager : ICloudStorageManager
     public async Task<bool> CreateFolderAsync(string container, string currentWorkingDirectory, string directoryPath)
     {
         var dirClient = GetDirectoryClient(container, currentWorkingDirectory);
-        var createResult = await dirClient.CreateSubDirectoryAsync(directoryPath);
-        return createResult is not null;
+        try
+        {
+            var createResult = await dirClient.CreateSubDirectoryAsync(directoryPath);
+            return createResult is not null;
+        }
+        catch (RequestFailedException ex) when (ex.Status == (int)HttpStatusCode.Conflict)
+        {
+            return true;
+        }
     }
 
     public async Task<bool> DeleteFileAsync(string container, string filePath)
@@ -315,6 +329,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
             throw new ArgumentException($"'{nameof(container)}' cannot be null or whitespace.", nameof(container));
         }
     }
+
+    private static bool IsRootPath(string? path)
+        => string.IsNullOrEmpty(path) || path == "/";
 
     private DataLakeDirectoryClient GetDirectoryClient(string containerName, string path)
     {
