@@ -48,7 +48,7 @@ public class Project_Resources2
     /// <summary>
     /// Gets or sets the timestamp when the resource was requested. Defaults to the current UTC time.
     /// </summary>
-    public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
+    public DateTime? RequestedAt { get; set; } = DateTime.UtcNow;
 
     /// <summary>
     /// Gets or sets the ID of the user who requested the resource.
@@ -90,6 +90,11 @@ public class Project_Resources2
     public int? UpdatedById { get; set; }
 
     /// <summary>
+    /// Gets or sets the ID of the pipeline run linked to the resource.
+    /// </summary>
+    public int? PipelineId { get; set; }
+
+    /// <summary>
     /// Gets or sets the PortalUser who last updated the resource.
     /// </summary>
     public PortalUser? UpdatedBy { get; set; }
@@ -102,10 +107,10 @@ public class Project_Resources2
     /// <summary>
     /// Converts the current instance of Project_Resource to a TerraformTemplate object.
     /// </summary>
-    /// <returns>A new instance of TerraformTemplate with the ResourceType and Status properties set.</returns>
+    /// <returns>A new instance of TerraformTemplate with the ResourceType, Status, and RequestedAt properties set.</returns>
     public TerraformTemplate ToTerraformTemplate()
     {
-        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status ?? TerraformStatus.Unknown);
+        return new TerraformTemplate(TerraformTemplate.NormalizeTemplateName(ResourceType), Status ?? string.Empty, DateTime.UtcNow);
     }
 }
 

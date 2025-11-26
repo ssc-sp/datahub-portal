@@ -117,7 +117,7 @@
 
             var isRecentLinksCleaned = await _projectDeletionService.CleanResourceFromRecentLinks(SubSection, WorkspaceAcronym);
 
-            var template = new TerraformTemplate(SubSection, TerraformStatus.DeleteRequested);
+            var template = new TerraformTemplate(SubSection, TerraformStatus.DeleteRequested, DateTime.UtcNow);
             await _requestManagementService.HandleTerraformRequestServiceAsync(workspace, template, currentUser);
             
             _snackbar.Add(Localizer["Deletion request has been sent."], Severity.Success);
