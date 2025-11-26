@@ -27,8 +27,19 @@
                 </strong>
                 (@Workspace.Project_Acronym_CD)
             </MudText>
-            <MudSpacer />
             <FeaturedProjectToggle Project="@Workspace" />
+            <MudSpacer />
+            <MudChip T="string" Color="@GetColor(Workspace.Data_Sensitivity)" Size="Size.Small">
+                <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
+                @if (!Workspace.Data_Sensitivity.Equals("Unclassified"))
+                {
+                    <MudText Typo="Typo.body1">
+                        <strong>
+                            @Localizer[(Workspace.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
+                        </strong>
+                    </MudText>
+                }
+            </MudChip>
         </MudStack>
         <MudStack Row>
             <ProjectPreviewCardIconDetails
@@ -266,6 +277,23 @@
             TerraformTemplate.AzureAppService => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", Workspace!.Project_Acronym_CD),
             _ => throw new ArgumentOutOfRangeException(nameof(toolName), toolName, null)
         };
+    }
+
+        public Color GetColor(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return Color.Error;
+                case "Protected A":
+                    return Color.Warning;
+                default:
+                    return Color.Primary;
+            }
+        }
+        return Color.Primary;
     }
 
    

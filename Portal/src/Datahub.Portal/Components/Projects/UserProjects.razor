@@ -38,19 +38,37 @@
                 </DHButton>
             </DatahubAuthView>
             <MudChipSet T="string"
-            SelectionMode="SelectionMode.MultiSelection"
-            Ripple="false"
-            CheckMark>
+                        SelectionMode="SelectionMode.MultiSelection"
+                        Ripple="false"
+                        CheckMark>
                 @foreach (var group in WorkspaceDisplayGroups)
                 {
                     <MudChip Class="dh_themed_chip" T="string"
                              title=@group.FilterLabel
                              Text=@group.Label
-                             @bind-Selected=@(group.FilterToggle)>
+                             @bind-Selected=@(group.FilterToggle)
+                             Color=@group.Color
+                             @onclick="() => CheckWorkspaceRoleFilter(group.Workspaces)">
                         @group.Label
                     </MudChip>
                 }
             </MudChipSet>
+@*             <MudChipSet T="string"
+                        SelectionMode="SelectionMode.MultiSelection"
+                        Ripple="false"
+                        CheckMark>
+                @foreach (var group in SecurityDisplayGroups)
+                {
+                    <MudChip Class="dh_themed_chip" T="string"
+                             title=@group.FilterLabel
+                             Text=@group.Label
+                             @bind-Selected=@(group.FilterToggle)
+                             Color=@group.Color
+                             @onclick = "() => CheckWorkspaceRoleFilter(group.Workspaces)">
+                        @group.Label
+                    </MudChip>
+                }
+            </MudChipSet> *@
             <MudSpacer/>
             <DHButton Color="Color.Primary"
             Underline
@@ -177,6 +195,7 @@ else
     private class WorkspaceDisplayGroup
     {
         public string Label { get; init; }
+        public Color Color { get; init; }
         public bool FilterToggle { get; set; }
         public string FilterLabel { get; init; }
         public bool ShowCost { get; init; }
@@ -187,11 +206,19 @@ else
     private WorkspaceDisplayGroup _adminGroup = new();
     private WorkspaceDisplayGroup _collaboratorGroup = new();
     private WorkspaceDisplayGroup _guestGroup = new();
+    private WorkspaceDisplayGroup _unclassifiedGroup = new();
+    private WorkspaceDisplayGroup _protectedAGroup = new();
+    private WorkspaceDisplayGroup _protectedBGroup = new();
 
     private List<WorkspaceDisplayGroup> WorkspaceDisplayGroups =>
     [
-        _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup
+        _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup, _unclassifiedGroup, _protectedAGroup, _protectedBGroup
     ];
+
+    private List<WorkspaceDisplayGroup> SecurityDisplayGroups =>
+   [
+       _unclassifiedGroup, _protectedAGroup, _protectedBGroup
+   ];
 
     bool AnyFilter => WorkspaceDisplayGroups.Any(g => g.FilterToggle);
     bool HasWorkspaces => _allWorkspaces.Count > 0;
@@ -204,10 +231,14 @@ else
     // User, Roles, and Projects
     private List<UserRoleLinks> _userRoles;
     private List<Datahub_Project> _allWorkspaces;
+    private List<Datahub_Project> _filteredWorkspaces;
     private List<Datahub_Project> _leadWorkspaces;
     private List<Datahub_Project> _adminWorkspaces;
     private List<Datahub_Project> _collaboratorWorkspaces;
     private List<Datahub_Project> _guestWorkspaces;
+    private List<Datahub_Project> _unclassifiedWorkspaces;
+    private List<Datahub_Project> _protectedAWorkspaces;
+    private List<Datahub_Project> _protectedBWorkspaces;
     private string _latestVersion;
     private string _userEmail;
 
@@ -251,10 +282,10 @@ else
         if (_userRoles != null)
         {
             return;
-		}
+        }
         var portalUserGuid = await UserInformationService.GetCurrentUserGraphId();
         var userId = UserId ?? portalUserGuid;
-        
+
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
         //getting all the projects where this users is a member
@@ -270,17 +301,34 @@ else
             .ThenInclude(p => p.Repositories)
             .Include(u => u.Project)
             .ThenInclude(p => p.Resources)
-			.AsNoTracking()
+            .AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser.GraphGuid == userId)
+            .Where(u => u.PortalUser.GraphGuid == userId)
             .ToListAsync();
-		_userEmail = _userRoles.First().PortalUser.Email;
+        _userEmail = _userRoles.First().PortalUser.Email;
 
         _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _filteredWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _leadWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _adminWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _collaboratorWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _guestWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Unclassified")).ToList();
+        _protectedAWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected A")).ToList();
+        _protectedBWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected B")).ToList();
+    }
+
+    private void CheckWorkspaceRoleFilter(List<Datahub_Project> clickedWorkspace)
+    {
+        if (clickedWorkspace == _leadWorkspaces || clickedWorkspace == _adminWorkspaces || clickedWorkspace == _collaboratorWorkspaces || clickedWorkspace == _guestWorkspaces)
+        {
+            _filteredWorkspaces = clickedWorkspace;
+            return;
+        }
+        if(clickedWorkspace == _protectedAWorkspaces)
+        {
+            _protectedAWorkspaces = _protectedAWorkspaces.Intersect(_filteredWorkspaces).ToList();
+        }
     }
 
     private void InitiateDisplayState()
@@ -288,6 +336,7 @@ else
         _leadGroup = new WorkspaceDisplayGroup
         {
             Label = Localizer["Lead"],
+            Color = Color.Default,
             Workspaces = _leadWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces you are a lead of."],
@@ -296,6 +345,7 @@ else
         _adminGroup = new WorkspaceDisplayGroup
         {
             Label = Localizer["Admin"],
+            Color = Color.Default,
             Workspaces = _adminWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces you are an admin of."],
@@ -304,16 +354,47 @@ else
         _collaboratorGroup = new()
         {
             Label = Localizer["Collaborator"],
+            Color = Color.Default,
             Workspaces = _collaboratorWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces you are a collaborator of."],
+            ShowCost = true
         };
         _guestGroup = new()
         {
             Label = Localizer["Guest"],
+            Color = Color.Default,
             Workspaces = _guestWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces you are a guest of."],
+            ShowCost = true
+        };
+        _unclassifiedGroup = new()
+        {
+            Label = Localizer["Unclassified"],
+            Color = Color.Primary,
+            Workspaces = _unclassifiedWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces with unclassified security level."],
+            ShowCost = true
+        };
+        _protectedAGroup = new()
+        {
+            Label = Localizer["Protected A"],
+            Color = Color.Warning,
+            Workspaces = _protectedAWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces with protected A security level."],
+            ShowCost = true
+        };
+        _protectedBGroup = new()
+        {
+            Label = Localizer["Protected B"],
+            Color = Color.Error,
+            Workspaces = _protectedBWorkspaces,
+            FilterToggle = false,
+            FilterLabel = Localizer["Show only workspaces with protected B security level."],
+            ShowCost = true
         };
     }
 

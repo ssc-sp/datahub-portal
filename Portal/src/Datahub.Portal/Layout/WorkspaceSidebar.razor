@@ -44,14 +44,21 @@
                     {
                         <MudSelectItem Value="@project.Project_Acronym_CD">
                             <MudStack Row AlignItems="AlignItems.Center">
-                                <MudAvatar Size="Size.Small">
-                                    <MudImage
-                                        Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
-                                        Alt="@Localizer["Workspace avatar"]"></MudImage>
-                                </MudAvatar>
                                 <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                                     @project.Project_Acronym_CD
                                 </MudText>
+                                <MudSpacer/>
+                                <MudChip T="string" Color="@GetColor(project.Data_Sensitivity)" Size="Size.Small">
+                                    <DHIcon Icon=@(project.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
+                                    @if (!project.Data_Sensitivity.Equals("Unclassified"))
+                                    {
+                                        <MudText Typo="Typo.body1">
+                                            <strong>
+                                                @Localizer[(project.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
+                                            </strong>
+                                        </MudText>
+                                    }
+                                </MudChip>
                             </MudStack>
                         </MudSelectItem>
                     }
@@ -61,11 +68,6 @@
             else
             {
                 <MudStack Row AlignItems="AlignItems.Center">
-                    <MudAvatar Size="Size.Small">
-                        <MudImage
-                            Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
-                            Alt="@Localizer["Workspace avatar"]"></MudImage>
-                    </MudAvatar>
                     <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                         @WorkspaceAcronym
                     </MudText>
@@ -437,5 +439,22 @@
             SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue) ?? true,
             _ => true
         };
+    }
+
+    public Color GetColor(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return Color.Error;
+                case "Protected A":
+                    return Color.Warning;
+                default:
+                    return Color.Primary;
+            }
+        }
+        return Color.Primary;
     }
 }

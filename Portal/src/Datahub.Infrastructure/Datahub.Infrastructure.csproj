@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Azure.Core" Version="1.49.*" />
-      <PackageReference Include="Azure.Identity" Version="1.16.*" />
+      <PackageReference Include="Azure.Core" Version="1.50.*" />
+      <PackageReference Include="Azure.Identity" Version="1.17.*" />
       <PackageReference Include="Azure.ResourceManager" Version="1.13.2" />
       <PackageReference Include="Azure.ResourceManager.AppService" Version="1.4.*" />
       <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.*" />
@@ -27,7 +27,7 @@
       <PackageReference Include="Azure.Storage.Queues" Version="12.23.*" />
       <PackageReference Include="Microsoft.Azure.Databricks.Client" Version="2.9.*" />
       <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.*" />
-      <PackageReference Include="Microsoft.Identity.Client" Version="4.77.*" />
+      <PackageReference Include="Microsoft.Identity.Client" Version="4.78.*" />
       <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.*" />
 	  <PackageReference Include="AWSSDK.S3" Version="4.0.*" />
 	  <PackageReference Include="System.Text.Json" Version="9.0.*" />
