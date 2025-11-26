@@ -13,6 +13,7 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class FileExplorer
 {
+    private const string DefaultUploadFolderName = "upload";
     private async Task RefreshStoragePageAsync()
     {
         _lastContainer = Container;
@@ -36,6 +37,7 @@ public partial class FileExplorer
         {
             try
             {
+                await EnsureDefaultUploadFolderAsync();
                 await SetCurrentFolder(_root);
             }
             catch (Exception e)
@@ -44,6 +46,14 @@ public partial class FileExplorer
                 _logger.LogError(e, "Failed to load file explorer");
             }
         }
+    }
+
+    private async Task EnsureDefaultUploadFolderAsync()
+    {
+        if (StorageManager is null || string.IsNullOrWhiteSpace(ContainerName))
+            return;
+
+        await StorageManager.CreateFolderAsync(ContainerName, _root, DefaultUploadFolderName);
     }
 
     private async Task HandleNewFolder(string folderName)
@@ -203,6 +213,8 @@ public partial class FileExplorer
         if (browserFile == null)
             return;
 
+        folder = DefaultUploadFolderName;
+
         var newFilePath = JoinPath(folder, browserFile.Name);
 
         var (fileExists, allowOverride) = await VerifyOverwrite(newFilePath);
@@ -257,6 +269,10 @@ public partial class FileExplorer
                     _files.Add(fileMetadata);
                 }
             }
+            else if (succeeded)
+            {
+                await SetCurrentFolder(DefaultUploadFolderName);
+            }
 
             await InvokeAsync(StateHasChanged);
         });
@@ -264,8 +280,22 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {
-        var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
-        await _module.InvokeVoidAsync("downloadFile", uri.ToString());
+        try
+        {
+            var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
+            await _module.InvokeVoidAsync("downloadFile", uri.ToString());
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            // File is quarantined - show user-friendly message
+            _snackbar.Add($"File access denied: {filename}. The file is currently quarantined and awaiting virus scan completion. Please try again later.", Severity.Warning);
+            _logger.LogWarning("Download blocked for quarantined file: {FileName}. {Message}", filename, ex.Message);
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Failed to download file: {filename}", Severity.Error);
+            _logger.LogError(ex, "Error downloading file: {FileName}", filename);
+        }
     }
 
     private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
