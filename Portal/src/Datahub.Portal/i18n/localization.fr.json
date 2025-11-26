@@ -3361,5 +3361,11 @@
   "Notice": "Avis",
   "Info": "Info",
   "Trusted Entra Login": "Connexion Entra sécurisée",
-  "External Login": "Connexion externe"
+  "External Login": "Connexion externe",
+  "{0} has been blocked: {1}": "{0} a été bloqué: {1}",
+  "The file type is not allowed": "Le type de fichier n'est pas permis",
+  "The file is too large": "Le fichier est trop volumineux",
+  "The file cannot be uploaded": "Le fichier ne peut pas être téléchargé",
+  "Maximum File Upload Size for External Users": "Taille maximale des fichiers téléchargés pour les utilisateurs externes",
+  "The maximum file size, in MB, that can be uploaded by external users. Note: Setting this to 0 will prevent external users from uploading any files.": "Taille maximale en Mo des fichiers pouvant être téléchargés par les utilisateurs externes. Remarque : si vous définissez cette valeur sur 0, les utilisateurs externes ne pourront télécharger aucun fichier."
 }

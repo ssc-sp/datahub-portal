@@ -902,6 +902,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<string>("Last_Updated_UserId")
                         .HasColumnType("TEXT");
 
+                    b.Property<long>("MaxUploadMBForGccf")
+                        .HasColumnType("INTEGER");
+
                     b.Property<bool?>("MetadataAdded")
                         .HasColumnType("INTEGER");
 
