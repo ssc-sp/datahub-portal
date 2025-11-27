@@ -602,4 +602,10 @@ public class UserInformationService(
         if (users?.Value != null) return users.Value.Count > 0;
         return false;
     }
+
+    public async Task<bool> IsLoggedInThroughEntra()
+    {
+        var currentUser = await GetAuthenticatedUser();
+        return currentUser.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN);
+    }
 }

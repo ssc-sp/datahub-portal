@@ -4,7 +4,7 @@
     @ChildContent
 }
 
-@if (UploadingFiles != null && UploadingFiles.Any())
+@if (ShowSnackbar)
 {
     <div class="upload-snackbar">
         @foreach (var file in UploadingFiles)
@@ -24,16 +24,31 @@
                 </div>
             </div>
         }
+
+        @foreach (var file in BlockedFiles)
+        {
+            <MudAlert Severity="Severity.Error" 
+                ShowCloseIcon CloseIconClicked="() => BlockedFileClosed(file.Key)" 
+                Icon="@Icons.Material.Filled.Block" 
+                Variant="Variant.Filled" Elevation="6">
+                @Localizer["{0} has been blocked: {1}", file.Key, file.Value]
+            </MudAlert>
+        }
     </div>
 }
 
 @code {
-    
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
-    
-    [Parameter]
-    public List<FileMetaData>? UploadingFiles { get; set; }
+
+    [Parameter, EditorRequired]
+    public required RenderFragment ChildContent { get; set; }
+
+    [Parameter, EditorRequired]
+    public required List<FileMetaData> UploadingFiles { get; set; }
+
+    [Parameter, EditorRequired]
+    public required Dictionary<string, string> BlockedFiles { get; set; }
+
+    private bool ShowSnackbar => (UploadingFiles?.Any() ?? false) || (BlockedFiles?.Any() ?? false);
 
     private string UploadedByteSize(long size)
     {
@@ -43,6 +58,11 @@
     private float CalculateProgress(FileMetaData file)
     {
         return file.bytesToUpload > 0 ? (float) file.uploadedBytes / file.bytesToUpload * 100F : -1F;
+    }
+
+    private void BlockedFileClosed(string file)
+    {
+        BlockedFiles?.Remove(file);
     }
 
 }

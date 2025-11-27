@@ -254,4 +254,9 @@ public class OfflineUserInformationService : IUserInformationService
     {
         throw new NotImplementedException();
     }
+
+    public Task<bool> IsLoggedInThroughEntra()
+    {
+        throw new NotImplementedException();
+    }
 }

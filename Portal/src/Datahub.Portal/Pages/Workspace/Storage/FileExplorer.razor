@@ -63,7 +63,7 @@
                 }
                 else
                 {
-                    <UploadSnackbar UploadingFiles="_uploadingFiles">
+                    <UploadSnackbar UploadingFiles="_uploadingFiles" BlockedFiles="_blockedFiles">
                         <DropZone MaxHeight OnFilesDrop="UploadFiles">
                             @if (_currentFolder != _root)
                             {
@@ -178,7 +178,8 @@ else
 
     private bool _loading = true;
     private bool _failed = false;
-    private List<FileMetaData> _uploadingFiles;
+    private List<FileMetaData> _uploadingFiles = [];
+    private Dictionary<string, string> _blockedFiles = [];
     private string _continuationToken;
 
     private readonly string _root = "/";
