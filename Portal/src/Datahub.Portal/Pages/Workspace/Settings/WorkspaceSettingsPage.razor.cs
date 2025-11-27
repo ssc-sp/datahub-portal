@@ -76,7 +76,7 @@ public partial class WorkspaceSettingsPage
     internal async Task RunTerraformUpdate()
     {
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested);
+        var template = new TerraformTemplate(TerraformTemplate.VariableUpdate, TerraformStatus.CreateRequested, DateTime.UtcNow);
         
         await _requestManagementService.HandleTerraformRequestServiceAsync(_workspace, template, currentUser);
         _snackbar.Add(Localizer["Queued Terraform update for workspace changes"], Severity.Info);
