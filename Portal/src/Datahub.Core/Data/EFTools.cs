@@ -51,7 +51,27 @@ public static class EFTools
                         logger.LogInformation("No pending migrations.");
                     }
 
-                    context.Database.Migrate();
+                    // Set a longer timeout for migrations (10 minutes)
+                    var originalTimeout = context.Database.GetCommandTimeout();
+                    try
+                    {
+                        context.Database.SetCommandTimeout(TimeSpan.FromMinutes(10));
+                        logger.LogInformation("Set migration command timeout to 10 minutes");
+                        context.Database.Migrate();
+                    }
+                    finally
+                    {
+                        // Restore the original timeout
+                        context.Database.SetCommandTimeout(originalTimeout);
+                        if (originalTimeout.HasValue)
+                        {
+                            logger.LogInformation("Restored command timeout to {Timeout} seconds", originalTimeout.Value);
+                        }
+                        else
+                        {
+                            logger.LogInformation("Restored command timeout to default");
+                        }
+                    }
                     //TODO:
                     //GetMigrations()
                     //GetAppliedMigrations()
@@ -98,7 +118,11 @@ public static class EFTools
         Action<DbContextOptionsBuilder> BuildSqlServerOptions()
             => options =>
             {
-                options.UseSqlServer(connectionString);
+                options.UseSqlServer(connectionString, sqlOptions =>
+                {
+                    // Set default command timeout to 30 seconds for application operations
+                    sqlOptions.CommandTimeout(30);
+                });
                 if (isDev)
                 {
                     options.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));
@@ -108,7 +132,11 @@ public static class EFTools
         Action<DbContextOptionsBuilder> BuildSqliteOptions()
             => options =>
             {
-                options.UseSqlite(connectionString);
+                options.UseSqlite(connectionString, sqliteOptions =>
+                {
+                    // Set default command timeout to 30 seconds for application operations
+                    sqliteOptions.CommandTimeout(30);
+                });
                 if (isDev)
                 {
                     options.ConfigureWarnings(w => w.Throw(RelationalEventId.MultipleCollectionIncludeWarning));

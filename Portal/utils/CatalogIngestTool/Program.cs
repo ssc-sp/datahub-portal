@@ -37,9 +37,13 @@ string clientSecret = config["ClientSecret"]!;
 #region Services and Database config
 
 var services = new ServiceCollection();
-services.AddDbContext<MetadataDbContext>(options => options.UseSqlServer(metadataDbConnectionString));
-services.AddPooledDbContextFactory<MetadataDbContext>(options => options.UseSqlServer(metadataDbConnectionString));
-services.AddDbContext<DatahubProjectDBContext>(options => options.UseSqlServer(projectDbConnectionString));
+
+services.AddDbContext<MetadataDbContext>(options => 
+    options.UseSqlServer(metadataDbConnectionString, sqlOptions => sqlOptions.CommandTimeout(30)));
+services.AddPooledDbContextFactory<MetadataDbContext>(options => 
+    options.UseSqlServer(metadataDbConnectionString, sqlOptions => sqlOptions.CommandTimeout(30)));
+services.AddDbContext<DatahubProjectDBContext>(options => 
+    options.UseSqlServer(projectDbConnectionString, sqlOptions => sqlOptions.CommandTimeout(30)));
 
 services.AddLogging(configure => configure.AddConsole());
 
