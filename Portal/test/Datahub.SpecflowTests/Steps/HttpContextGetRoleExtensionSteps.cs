@@ -18,7 +18,11 @@ public class HttpContextGetRoleExtensionSteps(ScenarioContext scenarioContext)
         {
             new Claim(ClaimTypes.Role, workspaceAcronym + workspaceRoleSuffix)
         };
-        httpContextSubstitute.User.Returns(new ClaimsPrincipal(new ClaimsIdentity(claims)));
+        var claimsPrincipal = new ClaimsPrincipal(new ClaimsIdentity(claims));
+        
+        // Set the User property
+        httpContextSubstitute.User = claimsPrincipal;
+        
         scenarioContext["httpContext"] = httpContextSubstitute;
     }
 
