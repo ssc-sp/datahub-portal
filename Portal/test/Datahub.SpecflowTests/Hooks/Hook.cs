@@ -14,6 +14,9 @@ using NSubstitute;
 using NSubstitute.ClearExtensions;
 using Reqnroll;
 using Reqnroll.BoDi;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.Extensions.FileProviders;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -66,13 +69,32 @@ public class Hooks
         objectContainer.RegisterInstanceAs<IRequestManagementService>(requestManagementService);
     }
 
-    [BeforeScenario("IWebHostEnvironment")]
-    public void BeforeScenarioRequiringOffline(IObjectContainer objectContainer, ScenarioContext scenarioContext)
-    {
-        var substituteHostingEnvironment = Substitute.For<IWebHostEnvironment>();
-        substituteHostingEnvironment.EnvironmentName.Returns("Hosting:SpecflowUnitTestingEnvironment");
 
-        objectContainer.RegisterInstanceAs(substituteHostingEnvironment);
-        
+    [BeforeScenario("IWebHostEnvironment")]
+    public async Task BeforeScenarioRequiringOffline(IObjectContainer objectContainer, ScenarioContext scenarioContext)
+    {
+        // Use a concrete test implementation of IWebHostEnvironment instead of a substitute
+        var testEnvironment = new TestWebHostEnvironment
+        {
+            EnvironmentName = "Hosting:SpecflowUnitTestingEnvironment",
+            ApplicationName = "Datahub.SpecflowTests",
+            ContentRootPath = System.IO.Directory.GetCurrentDirectory(),
+            WebRootPath = System.IO.Directory.GetCurrentDirectory(),
+            ContentRootFileProvider = new PhysicalFileProvider(System.IO.Directory.GetCurrentDirectory()),
+            WebRootFileProvider = new PhysicalFileProvider(System.IO.Directory.GetCurrentDirectory())
+        };
+
+        objectContainer.RegisterInstanceAs<IWebHostEnvironment>(testEnvironment);
+    }
+
+    // Simple concrete IWebHostEnvironment implementation for tests
+    private class TestWebHostEnvironment : IWebHostEnvironment
+    {
+        public string EnvironmentName { get; set; } = string.Empty;
+        public string ApplicationName { get; set; } = string.Empty;
+        public string WebRootPath { get; set; } = string.Empty;
+        public IFileProvider? WebRootFileProvider { get; set; }
+        public string ContentRootPath { get; set; } = string.Empty;
+        public IFileProvider? ContentRootFileProvider { get; set; }
     }
 }

@@ -60,6 +60,7 @@ public class WorkspaceSubscriptionHook
             .Options;
 
         var dbContextFactory = new SpecFlowDbContextFactory(options);
+        objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
         var mockISendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
 
