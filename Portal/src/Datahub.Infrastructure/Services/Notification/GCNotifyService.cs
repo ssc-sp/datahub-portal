@@ -239,6 +239,22 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
+    public async Task SendInfectedFileNotification(string email, string fileName, string workspace, string date)
+    {
+        using var _ = _logger.BeginScope("InfectedFileNotification {Email}", "<redacted>");
+        _logger.LogInformation("Composing infected file notification. fileName={FileName}, workspace={Workspace}, date={Date}", fileName, workspace, date);
+        var templateId = GetTemplateId("virus-upload-detected", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId,
+            personalisation = new { fileName, workspace, date }
+        };
+        _logger.LogDebug("Dispatching infected file notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     public string GetTemplateId(string templateName, string mappingsJson)
     {
         _logger.LogDebug("Resolving template id for templateName={TemplateName}", templateName);
