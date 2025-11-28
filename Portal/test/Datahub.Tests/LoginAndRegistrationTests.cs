@@ -57,7 +57,6 @@ namespace Datahub.Tests
         private readonly Mock<IPortalUserTelemetryService> _portalUserTelemetryServiceMock;
         private readonly Mock<IStringLocalizer> _stringLocalizerMock;
         private readonly ISendEndpointProvider _sendEndpointProvider;
-        private readonly INavigationManager _navigationManagerMock;
         private readonly RegisterPage _component;
         public LoginAndRegistrationTests()
         {
@@ -73,7 +72,6 @@ namespace Datahub.Tests
             _jsRuntimeMock = new Mock<IJSRuntime>();
             _jsModuleMock = new Mock<IJSObjectReference> { CallBase = true };
             _localStorageMock = new Mock<ILocalStorageService>();
-            _navigationManagerMock = new FakeNavigationManager();
             _mediatrMock = new Mock<IMediator>();
             _snackBarMock = new Mock<ISnackbar>();
             _portalUserTelemetryServiceMock = new Mock<IPortalUserTelemetryService>();
@@ -160,8 +158,9 @@ namespace Datahub.Tests
                 new Claim(ClaimTypes.NameIdentifier, "1")
             }, "mock");
             var fakeClaimsPrincipal = new ClaimsPrincipal(fakeIdentity); 
-
+            
             var ctx = SetupBunitContext();
+            var navigationManager = ctx.Services.GetRequiredService<NavigationManager>();
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
 
@@ -177,7 +176,7 @@ namespace Datahub.Tests
             cut.Instance.HandleLogin();
 
             // verify redirect to register page
-            Assert.Equal($"/register?email={email}", _navigationManagerMock.LastUri);
+            Assert.Equal($"/register?email={email}", navigationManager.Uri);
         }
 
         [Fact]
@@ -202,6 +201,7 @@ namespace Datahub.Tests
             };
 
             var ctx = SetupBunitContext(includeHttpClientFactory: true);
+            var navigationManager = ctx.Services.GetRequiredService<NavigationManager>();
 
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
@@ -210,7 +210,10 @@ namespace Datahub.Tests
                 .ReturnsAsync(fakeClaimsPrincipal);
 
             // Act
-            var cut = ctx.Render<Login>(parameters => parameters.Add(p => p.redirectUri, "https://sso_url"));
+            var navManager = ctx.Services.GetRequiredService<NavigationManager>();
+            var uri = navManager.GetUriWithQueryParameter("redirectUri", "https://sso_url");
+            navManager.NavigateTo(uri);
+            var cut = ctx.Render<Login>();
 
             var emailInput = cut.Find("#Email");
             emailInput.Change(email);
@@ -218,7 +221,7 @@ namespace Datahub.Tests
             cut.Instance.HandleLogin();
 
             // verify redirect to locked user page
-            Assert.Equal("/locked", _navigationManagerMock.LastUri);
+            Assert.Equal("http://localhost/locked", navigationManager.Uri);
         }
 
 
@@ -229,10 +232,10 @@ namespace Datahub.Tests
             var email = "fake_user@gc.ca";
             var fakeIdentity = new ClaimsIdentity(new Claim[]
             {
-                //new Claim(ClaimTypes.Name, "Test User"),
-                //new Claim(ClaimTypes.Email, email),
-                //new Claim(ClaimTypes.NameIdentifier, "1")
-            }, "mock");
+                new Claim(ClaimTypes.Name, "Test User"),
+                new Claim(ClaimTypes.Email, email),
+                new Claim(ClaimTypes.NameIdentifier, "1")
+            }, null);
             var fakeClaimsPrincipal = new ClaimsPrincipal(fakeIdentity);
             var fakePortalUser = new ExtendedPortalUser
             {
@@ -245,6 +248,9 @@ namespace Datahub.Tests
 
             var ctx = SetupBunitContext(includeHttpClientFactory: true);
 
+            var conf = ctx.Services.GetRequiredService<DatahubPortalConfiguration>();
+            conf.ShowLoginPage = false;
+
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
 
@@ -253,13 +259,14 @@ namespace Datahub.Tests
 
             // Act
             var navManager = ctx.Services.GetRequiredService<NavigationManager>();
-            var uri = navManager.GetUriWithQueryParameter("redirectUri", "sso_url");
+            var uri = navManager.GetUriWithQueryParameter("redirectUri", "https://sso_url");
             navManager.NavigateTo(uri);
             var cut = ctx.Render<Login>();
             
 
             var emailInput = cut.Find("#Email");
             emailInput.Change(email);
+            cut.Render(); // re-render to reflect the input change
 
             cut.Instance.HandleLogin();
 
@@ -288,10 +295,14 @@ namespace Datahub.Tests
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(),It.IsAny<string>()))
                 .ReturnsAsync("1");
 
-            // Act
-            var cut = ctx.Render<RegisterPage>(parameters => parameters.Add(p => p.Email, email));
+
+            var navManager = ctx.Services.GetRequiredService<NavigationManager>();
+            var uri = navManager.GetUriWithQueryParameter("Email", email);
+            navManager.NavigateTo(uri);
+            var cut = ctx.Render<RegisterPage>();
 
             await cut.Instance.HandleValidSubmit();
+            cut.Render();
 
             // Verify that GetProjectListForPortalUser was called
             _projectUserManagementServiceMock.Verify(x => x.GetProjectListForPortalUser(It.IsAny<int>()), Times.Once);
@@ -300,7 +311,7 @@ namespace Datahub.Tests
             _projectUserManagementServiceMock.Verify(x => x.RunWorkspaceSync(It.IsAny<string>()), Times.Exactly(2));
 
             // verify redirect to login
-            Assert.Equal("/login", _navigationManagerMock.LastUri);
+            Assert.Equal("http://localhost/login", navManager.Uri);
         }
 
         [Fact]
@@ -310,21 +321,27 @@ namespace Datahub.Tests
             var email = "fake_user@gc.ca"; 
 
             var ctx = SetupBunitContext();
+            var navManager = ctx.Services.GetRequiredService<NavigationManager>();
+
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync("1");
 
+            var uri = navManager.GetUriWithQueryParameter("Email", email);
+            navManager.NavigateTo(uri);
             // Act
-            var cut = ctx.Render<RegisterPage>(parameters => parameters.Add(p => p.Email, email));
+            var cut = ctx.Render<RegisterPage>();
 
             await cut.Instance.HandleValidSubmit();
+
+            cut.Render();
 
             // Verify that GetProjectListForPortalUser was not called
             _projectUserManagementServiceMock.Verify(x => x.GetProjectListForPortalUser(It.IsAny<int>()), Times.Never);
             
             // verify redirect to login
-            Assert.Equal("/login", _navigationManagerMock.LastUri);
+            Assert.Equal("http://localhost/login", navManager.Uri);
         }
     }  
 }
