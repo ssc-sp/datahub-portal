@@ -157,7 +157,8 @@ public class WorkspaceToolboxSteps(
             CreatedAt = DateTime.Now,
             ProjectId = project.Project_ID,
             Status = TerraformStatus.Completed,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(tool)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(tool),
+            JsonContent = GenerateWorkspaceHelper.JSON_RG
         };
         dbContext.Project_Resources2.Add(resource);
         dbContext.SaveChanges();

@@ -13,7 +13,11 @@ public class CreateResourceRunTests
     [Test]
     public async Task ShouldRequireMinimumFields()
     {
-        var command = new CreateResourceRunCommand();
+        var command = new CreateResourceRunCommand()
+        {
+            RequestingUserEmail = "John@test.gc.ca",
+            ResourceGroupName = "test-rg"
+        };
         
         await FluentActions.Invoking(() =>
             SendAsync(command)).Should().ThrowAsync<ValidationException>();
@@ -29,7 +33,7 @@ public class CreateResourceRunTests
         {
             Templates = new List<TerraformTemplate>
             {
-                new("azure-storage-blob", TerraformStatus.CreateRequested),
+                new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
             },
             Workspace = new TerraformWorkspace
             {
@@ -40,7 +44,9 @@ public class CreateResourceRunTests
                     Name = "SBDA Number 42",
                     Code = "SBDA-42"
                 }
-            }
+            },
+            RequestingUserEmail = "John@test.gc.ca",
+            ResourceGroupName = "test-rg"
         };
         
         var id = await SendAsync(command);

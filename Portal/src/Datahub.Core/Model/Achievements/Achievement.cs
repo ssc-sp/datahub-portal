@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents an achievement that can be earned by users within the DataHub portal.
 /// </summary>
-public class Achievement
+public class Achievement(string id, string name, string description, int points, params string[] rules)
 {
     /// <summary>
     /// Separator used to split rules within the achievement definitions.
@@ -12,59 +12,41 @@ public class Achievement
 
     /// <summary>
     /// Initializes a new instance of the <see cref="Achievement"/> class.
+    /// This constructor is used by Entity Framework Core.
     /// </summary>
-    private Achievement()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="Achievement"/> class with the specified parameters.
-    /// </summary>
-    /// <param name="id">Unique identifier for this achievement.</param>
-    /// <param name="name">Name of the achievement.</param>
-    /// <param name="description">Description of the achievement.</param>
-    /// <param name="points">Point value awarded by this achievement.</param>
-    /// <param name="rules">Rules used to evaluate this achievement.</param>
-    public Achievement(string id, string name, string description, int points, params string[] rules)
-    {
-        Id = id;
-        Name = name;
-        Description = description;
-        Points = points;
-        ConcatenatedRules = string.Join($"{RuleSeparator}", rules);
-    }
+    public Achievement() : this(string.Empty, string.Empty, string.Empty, 0) { }
 
     /// <summary>
     /// Gets or sets the unique identifier for this achievement.
     /// </summary>
-    public string Id { get; set; }
+    public string Id { get; set; } = id;
 
     /// <summary>
     /// Gets or sets the name of the achievement.
     /// </summary>
-    public string Name { get; set; }
+    public string Name { get; set; } = name;
 
     /// <summary>
     /// Gets or sets the description of the achievement.
     /// </summary>
-    public string Description { get; set; }
+    public string Description { get; set; } = description;
 
     /// <summary>
     /// Gets or sets the point value of this achievement.
     /// </summary>
-    public int Points { get; set; } = 1;
+    public int Points { get; set; } = points;
 
     /// <summary>
     /// Gets or sets the concatenated rules used to evaluate this achievement.
     /// </summary>
-    public string ConcatenatedRules { get; set; }
+    public string ConcatenatedRules { get; set; } = string.Join($"{RuleSeparator}", rules);
 
     #region Navigation props
 
     /// <summary>
     /// Gets or sets the collection of user achievements linked to this achievement.
     /// </summary>
-    public virtual ICollection<UserAchievement> UserAchievements { get; set; }
+    public virtual ICollection<UserAchievement> UserAchievements { get; set; } = new List<UserAchievement>();
 
     #endregion
 

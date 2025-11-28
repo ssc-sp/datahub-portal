@@ -53,7 +53,7 @@ public record CreateResourceData
         [
             new TerraformTemplate(
                 TerraformTemplate.NormalizeTemplateName(TerraformTemplate.NewProjectTemplate),
-                TerraformStatus.CreateRequested)
+                TerraformStatus.CreateRequested, DateTime.UtcNow)
         ];
         Workspace = new TerraformWorkspace()
         {
@@ -68,9 +68,5 @@ public record CreateResourceData
             Users = new List<TerraformUser>()
         };
         RequestingUserEmail = requestingUserEmail;
-    }
-
-    public CreateResourceData()
-    {
     }
 }

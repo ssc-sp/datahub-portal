@@ -1,4 +1,4 @@
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Services.UserManagement;
 

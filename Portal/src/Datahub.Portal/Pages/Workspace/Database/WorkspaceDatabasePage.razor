@@ -109,7 +109,7 @@
                 {
                     var skuName = parts[1];
                     var postgresTiers = PostgresTier.GetPostgresTiers();
-                    instance.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier();                 
+                    instance.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier() { Type = "-", SKUName = skuName, Cores = -1, MemorySize = "-", TerraformSku = skuName };          
                 }
                 instance.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
             }

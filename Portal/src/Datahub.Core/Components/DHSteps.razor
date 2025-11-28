@@ -2,56 +2,57 @@
 
 @typeparam T
 
+@if (StepItems is not null)
+{
+    <MudTimeline TimelineOrientation=@Orientation TimelinePosition=@Position >
+        @foreach(var (index, item) in StepItems.Select((x,i) => (i,x)))
+        {
+            var dotAppearance = StepStatusIcon(item);
+            <MudTimelineItem 
+                Size=@Size.Large
+                Variant=@dotAppearance.Variant
+                Icon=@dotAppearance.Icon 
+                Color=@dotAppearance.Colour>
 
- <MudTimeline TimelineOrientation=@Orientation TimelinePosition=@Position >
-     @foreach(var (index, item) in StepItems.Select((x,i) => (i,x)))
-    {
-        var dotAppearance = StepStatusIcon(item);
-        <MudTimelineItem 
-            Size=@Size.Large
-            Variant=@dotAppearance.Variant
-            Icon=@dotAppearance.Icon 
-            Color=@dotAppearance.Colour>
+                <ItemDot>
+                    @if (string.IsNullOrEmpty(dotAppearance.Icon))
+                    {
+                        <MudText Typo=@Typo.h3 Align=@Align.Center>@(index+1)</MudText>
+                    }
+                    else
+                    {
+                        <MudIcon aria-hidden="true" focusable="false" Icon=@dotAppearance.Icon Size=@Size.Large />
+                    }
+                </ItemDot>
 
-            <ItemDot>
-                @if (string.IsNullOrEmpty(dotAppearance.Icon))
-                {
-                    <MudText Typo=@Typo.h3 Align=@Align.Center>@(index+1)</MudText>
-                }
-                else
-                {
-                    <MudIcon aria-hidden="true" focusable="false" Icon=@dotAppearance.Icon Size=@Size.Large />
-                }
-            </ItemDot>
+                <ChildContent>
+                    
+                    <MudText Typo=@Typo.h4>@StepTitleFunc(item)</MudText>
+                    @if (!Collapsed)
+                    {
+                        <MudText Typo=@Typo.caption>@StepMessageFunc(item)</MudText>
+                    }
+                </ChildContent>
 
-            <ChildContent>
-                
-                <MudText Typo=@Typo.h4>@StepTitleFunc(item)</MudText>
-                @if (!Collapsed)
-                {
-                    <MudText Typo=@Typo.caption>@StepMessageFunc(item)</MudText>
-                }
-            </ChildContent>
-
-        </MudTimelineItem>
-    }
-</MudTimeline>
-
+            </MudTimelineItem>
+        }
+    </MudTimeline>
+}
 
 
 @code {
 
     [Parameter]
-    public List<T> StepItems { get; set; }
+    public List<T>? StepItems { get; set; }
 
     [Parameter]
-    public Func<T, StepState> CurrentStepStateFunc { get; set; }
+    public Func<T, StepState> CurrentStepStateFunc { get; set; } = default!;
 
     [Parameter]
-    public Func<T, string> StepTitleFunc { get; set; }
+    public Func<T, string> StepTitleFunc { get; set; } = default!;
 
     [Parameter]
-    public Func<T, string> StepMessageFunc { get; set; }
+    public Func<T, string> StepMessageFunc { get; set; } = default!;
 
     [Parameter]
     public bool Collapsed { get; set; }
@@ -72,7 +73,7 @@
         Failed
     }
 
-    private record StepDotAppearance(string Icon, Color Colour, Variant Variant);
+    private record StepDotAppearance(string? Icon, Color Colour, Variant Variant);
 
     private TimelineOrientation Orientation => Collapsed ? TimelineOrientation.Horizontal : TimelineOrientation.Vertical;
     private TimelinePosition Position => Collapsed ? TimelinePosition.Top : TimelinePosition.Left;

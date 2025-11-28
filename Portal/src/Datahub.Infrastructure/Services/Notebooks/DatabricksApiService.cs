@@ -5,10 +5,10 @@ using System.Text.Json.Nodes;
 using Azure.Core;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Core.Data.Databricks;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -76,7 +76,7 @@ public class DatabricksApiService : IDatabricksApiService
 
         var results = content?["repos"]?
             .AsArray()
-            .Select(node => new RepositoryInfoDto(node))
+            .Select(node => new RepositoryInfoDto(node ?? throw new InvalidOperationException("Invalid repository information")))
             .ToList() ?? new List<RepositoryInfoDto>();
 
         foreach (var repositoryInfo in results)
@@ -109,17 +109,30 @@ public class DatabricksApiService : IDatabricksApiService
 
         if (projectRepository == null)
         {
-            projectRepository = new ProjectRepository();
+            projectRepository = new ProjectRepository
+            {
+                Project = project,
+                RepositoryUrl = repositoryInfoDto.Url,
+                IsPublic = repositoryInfoDto.IsPublic,
+                Branch = repositoryInfoDto.Branch,
+                HeadCommitId = repositoryInfoDto.HeadCommitId,
+                Provider = repositoryInfoDto.Provider,
+                Path = repositoryInfoDto.Path
+            };
             dbContext.ProjectRepositories.Add(projectRepository);
         }
-            
-        projectRepository.Project = project;
-        projectRepository.RepositoryUrl = repositoryInfoDto.Url;
-        projectRepository.IsPublic = repositoryInfoDto.IsPublic;
-        projectRepository.Branch = repositoryInfoDto.Branch;
-        projectRepository.HeadCommitId = repositoryInfoDto.HeadCommitId;
-        projectRepository.Provider = repositoryInfoDto.Provider;
-        projectRepository.Path = repositoryInfoDto.Path;
+        else
+        {
+            projectRepository.Project = project;
+            projectRepository.RepositoryUrl = repositoryInfoDto.Url;
+            projectRepository.IsPublic = repositoryInfoDto.IsPublic;
+            projectRepository.Branch = repositoryInfoDto.Branch;
+            projectRepository.HeadCommitId = repositoryInfoDto.HeadCommitId;
+            projectRepository.Provider = repositoryInfoDto.Provider;
+            projectRepository.Path = repositoryInfoDto.Path;
+        }
+
+
         
         await dbContext.SaveChangesAsync();
 

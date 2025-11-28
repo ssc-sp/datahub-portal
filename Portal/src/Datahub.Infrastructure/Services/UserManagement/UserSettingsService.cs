@@ -1,6 +1,6 @@
 ﻿using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

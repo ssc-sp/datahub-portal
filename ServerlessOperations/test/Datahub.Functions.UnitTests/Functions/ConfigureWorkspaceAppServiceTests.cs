@@ -110,7 +110,13 @@ public class ConfigureWorkspaceAppServiceTests
     public async Task PostPipelineRun_ShouldReturnGoodResponse_GivenGoodUrlAndConfiguration()
     {
         // Arrange
-        var appServiceConfiguration = new AppServiceConfiguration("test", "test", "test", id: "/test");
+        var appServiceConfiguration = new AppServiceConfiguration
+        {
+            Framework = "test",
+            GitRepo = "test",
+            ComposePath = "test",
+            Id = "/test"
+        };
         var pipelineId = 101; 
         var projectAcronym = "TEST";
 
@@ -126,7 +132,12 @@ public class ConfigureWorkspaceAppServiceTests
     public async Task PostPipelineRun_ShouldThrowError_GivenBadUrlOrConfiguration()
     {
         // Arrange
-        var appServiceConfiguration = new AppServiceConfiguration("test", "test", "test");
+        var appServiceConfiguration = new AppServiceConfiguration
+        {
+            Framework = "test",
+            GitRepo = "test",
+            ComposePath = "test"
+        };
         var pipelineId = int.MaxValue;
         var projectAcronym = "TEST";
 

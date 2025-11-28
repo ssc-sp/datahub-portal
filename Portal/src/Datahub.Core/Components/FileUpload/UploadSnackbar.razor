@@ -30,10 +30,10 @@
 @code {
     
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public RenderFragment? ChildContent { get; set; }
     
     [Parameter]
-    public List<FileMetaData> UploadingFiles { get; set; }
+    public List<FileMetaData>? UploadingFiles { get; set; }
 
     private string UploadedByteSize(long size)
     {
