@@ -3224,6 +3224,7 @@
   "You cannot have more than one workspace lead.": "Vous ne pouvez pas avoir plus d'un responsable d'un espace de travail.",
   "You currently do not have access to this project": "Vous n’avez actuellement pas accès à ce projet",
   "You currently do not have access to this project.": "Vous n’avez actuellement pas accès à ce projet.",
+  "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.": "Vous n'avez pas de compte actif sur la Plateforme fédérale de données scientifiques. Visitez les liens dans le pied de page pour plus d'informations sur la plateforme. Contactez-nous si vous pensez qu'il s'agit d'une erreur.",
   "You do not have a lot of time to create and configure environments if you are to remain flexible and focused on the task at hand.": "Vous n’avez pas beaucoup de temps pour créer et configurer des environnements si vous souhaitez rester souple et concentré sur la tâche à accomplir.",
   "You have no notifications.": "Vous n'avez aucune notification.",
   "You have unsaved changes. Please save them before leaving this page.": "Vous avez des modifications non enregistrées. Veuillez les enregistrer avant de quitter la page.",
@@ -3361,5 +3362,6 @@
   "Notice": "Avis",
   "Info": "Info",
   "Trusted Entra Login": "Connexion Entra sécurisée",
-  "External Login": "Connexion externe"
+  "External Login": "Connexion externe",
+  "{0} has been blocked.": "{0} a été bloqué."
 }
