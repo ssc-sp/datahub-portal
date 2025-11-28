@@ -34,7 +34,7 @@ namespace Datahub.SpecflowTests.Steps
     public class WorkspaceUsersSteps(
         ScenarioContext scenarioContext,
         IWebHostEnvironment hostingEnvironment
-    ) : BunitContext
+    ) : BunitTestSteps
     {
 
         private const string RelativePathToSrc = "../../../../../src";

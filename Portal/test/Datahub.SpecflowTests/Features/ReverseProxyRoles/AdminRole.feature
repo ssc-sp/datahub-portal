@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Apply Datahub Admin role for proxy access
 Validate ContextRequestHeaderTransform when user has Datahub Admin role
 

@@ -3,6 +3,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Announcements;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Components.Announcements;
+using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,7 +15,7 @@ namespace Datahub.SpecflowTests.Steps;
 public sealed class NewsCarouselSteps(
     ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-    ) : BunitContext
+    ) : BunitTestSteps
 {
     // For additional details on SpecFlow step definitions see https://go.specflow.org/doc-stepdef
 

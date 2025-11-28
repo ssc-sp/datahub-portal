@@ -34,7 +34,7 @@ using Toolbelt.Blazor.Globalization;
 namespace Datahub.SpecflowTests.Steps.Account;
 
 [Binding]
-public class AccountPageSteps : BunitContext
+public class AccountPageSteps : BunitTestSteps
 {
     private readonly ScenarioContext _scenarioContext;
     private IRenderedComponent<CascadingAuthenticationState>? _accountPageRender;
@@ -86,6 +86,7 @@ public class AccountPageSteps : BunitContext
         Services.AddScoped<AuthenticationStateProvider>(sp => new TestAuthStateProvider(authContext));
         Services.AddScoped<IAuthorizationService>(sp => new TestAuthorizationService(authContext));
         Services.AddSingleton<IAuthorizationPolicyProvider, TestAuthorizationPolicyProvider>();
+        JSInterop.SetupMudBlazor();
     }
 
     private IDbContextFactory<DatahubProjectDBContext> CreateDbContextWithMinimalNecessaryData(PortalUser portalUser)

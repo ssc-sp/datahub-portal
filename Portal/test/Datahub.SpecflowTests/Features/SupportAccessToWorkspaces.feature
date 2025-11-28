@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Support Access to Workspaces
 	To protect the privacy of users, the system should only allow the admin team access to workspaces on request. This will allow the admin team to provide support to users who are experiencing issues with their workspace. The admin team should be able to access the workspace for a limited period of time to diagnose and resolve the issue. This will help to ensure that the admin team only accesses workspaces when necessary and that users are aware of when their workspace is being accessed.
 

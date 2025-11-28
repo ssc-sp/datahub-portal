@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Get Workspace Role Http Context Extension
 Adds an extension method to fetch the role of a user in a workspace from the HttpContext
 

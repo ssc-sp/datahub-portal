@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Terraform Template Readable
 This is to create a user friendly string based on the Terraform template value
 

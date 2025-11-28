@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Hosting Services Integration
 	To integrate with hosting services, we have an endpoint that currently echoes the message that was sent to it. We also have a test page that can be used to test the endpoint.
 

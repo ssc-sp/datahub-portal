@@ -23,9 +23,9 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 
 [Binding]
 public class WorkspaceCbrSettingsPageSteps(
-    ScenarioContext scenarioContext, 
+    ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-) : BunitContext
+) : BunitTestSteps
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -63,16 +63,7 @@ public class WorkspaceCbrSettingsPageSteps(
         var mockRequestManagementService = Substitute.For<IRequestManagementService>();
         Services.AddSingleton(mockRequestManagementService);
 
-        JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
-        JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
-        JSInterop.SetupVoid("mudPopover.initialize", _ => true);
-        JSInterop.Setup<int>("mudpopoverHelper.countProviders");
-        JSInterop.SetupVoid("mudPopover.connect", _ => true);
-        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
-        JSInterop.SetupVoid("mudPointerEventsNone.dispose").SetVoidResult();
-        JSInterop.SetupVoid("mudPopover.dispose").SetVoidResult();
-        JSInterop.SetupVoid("mudKeyInterceptor.dispose").SetVoidResult();
+        JSInterop.SetupMudBlazor();
         Services.AddStub<IDatahubAuditingService>();
     }
 
@@ -132,7 +123,7 @@ public class WorkspaceCbrSettingsPageSteps(
     {
         var budgetTable = cbrPage.FindComponent<MudTable<WorkspaceBudgetManagementItem>>();
         var rows = budgetTable.FindComponents<MudTr>();
-        var budgetRow = rows.FirstOrDefault(r => r.Instance.Item is WorkspaceBudgetManagementItem budgetItem && budgetItem.Workspace.Project_Acronym_CD ==  workspaceAcronym);
+        var budgetRow = rows.FirstOrDefault(r => r.Instance.Item is WorkspaceBudgetManagementItem budgetItem && budgetItem.Workspace.Project_Acronym_CD == workspaceAcronym);
         return budgetRow;
     }
 
@@ -207,7 +198,7 @@ public class WorkspaceCbrSettingsPageSteps(
         var budgetInput = FindBudgetInputInBudgetRow(budgetRow!);
         budgetInput.Should().NotBeNull();
         await cbrPage.InvokeAsync(async () => await budgetInput!.Instance.ValueChanged.InvokeAsync(amount));
-        
+
         cbrPage.Render();
     }
 

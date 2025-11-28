@@ -13,6 +13,7 @@ using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Portal.Pages.Workspace;
+using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -32,7 +33,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
     public class CreateNewWorkspaceFormSteps(
         ScenarioContext scenarioContext,
         IWebHostEnvironment hostingEnvironment
-        ):BunitContext
+        ): BunitTestSteps
     {
         private const string RelativePathToSrc = "../../../../../src";
 
@@ -76,15 +77,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             Services.AddMudServices();
             Services.AddDatahubLocalization(portalConfiguration);
 
-            JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
-            JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
-            JSInterop.SetupVoid("mudPopover.initialize", _ => true);
-            JSInterop.Setup<int>("mudpopoverHelper.countProviders");
-            JSInterop.SetupVoid("mudPopover.connect", _ => true);
-            JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-            JSInterop.SetupVoid("mudPointerEventsNone.dispose").SetVoidResult();
-            JSInterop.SetupVoid("mudPopover.dispose").SetVoidResult();
-            JSInterop.SetupVoid("mudKeyInterceptor.dispose").SetVoidResult();
+            JSInterop.SetupMudBlazor();
         }
 
         private static IWorkspaceCreationService CreateMockedWorkspaceCreationService(
@@ -446,12 +439,6 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             var workspaceUrl = $"/w/{workspaceAcronym}";
             bunitNavObject!.History.Count.Should().Be(1);
             bunitNavObject!.History.First().Uri.Should().Be(workspaceUrl);
-        }
-
-        [AfterScenario]
-        public async Task AfterScenarioRequiringCreateWorkspaceForm()
-        {
-            await DisposeAsync();
         }
     }
 }

@@ -1,4 +1,5 @@
 @terraform
+@IWebHostEnvironment
 Feature: Terraform Variable Extraction
 Static class to extract specific variables from the output json of a terraform resource. Simply pass in the project with its resources
 and call the method to extract the variable you want. The method will return either a null or the value of the variable you want.

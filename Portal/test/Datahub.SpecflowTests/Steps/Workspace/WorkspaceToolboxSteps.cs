@@ -47,7 +47,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 public class WorkspaceToolboxSteps(
     ScenarioContext scenarioContext,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    DatahubPortalConfiguration datahubPortalConfiguration) : BunitContext
+    DatahubPortalConfiguration datahubPortalConfiguration) : BunitTestSteps
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -55,8 +55,7 @@ public class WorkspaceToolboxSteps(
     [Given(@"the user is on the workspace toolbox page")]
     public void GivenTheUserIsOnTheWorkspaceToolboxPage()
     {
-        AddRequiredServices();
-        SetupJS();
+        AddRequiredServices();        
 
         var workspaceToolbox = Render<CascadingAuthenticationState>(parameters =>
         {
@@ -70,18 +69,6 @@ public class WorkspaceToolboxSteps(
         });
 
         scenarioContext.Add("workspaceToolbox", workspaceToolbox);
-    }
-
-    private void SetupJS()
-    {
-        var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/SkipLink.razor.js");
-        JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/SkipLink.razor.js")
-            .SetResult(module);
-        module.SetupVoid("focusElement", Arg.Any<string>());
-        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
-
-        JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
     private void AddRequiredServices()
@@ -138,6 +125,7 @@ public class WorkspaceToolboxSteps(
         Services.AddMudLocalization();
         Services.AddMudServices();
         Services.AddLocalization();
+        JSInterop.SetupMudBlazor();
     }
 
     [Then(@"the user should see the toolbox")]
