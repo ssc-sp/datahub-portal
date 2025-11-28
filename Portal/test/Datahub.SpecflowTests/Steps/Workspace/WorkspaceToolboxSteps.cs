@@ -1105,7 +1105,7 @@ public class WorkspaceToolboxSteps(
         workspaceToolbox!.Render();
         Testing.GetPrivateField(workspaceToolbox!, "_transactions", out var transactions);
         Testing.GetPrivateField(workspaceToolbox!, "_workspaceDefinition", out var workspaceDefinition);
-        var toolboxService = Services.GetService<IToolboxService>();
+        var toolboxService = Services.GetRequiredService<IToolboxService>();
         var generatedDefinition = toolboxService.ApplyTransaction(workspaceDefinition as WorkspaceDefinition,
             transactions as List<ToolboxTransaction>);
         var dependencies = TerraformTemplate.GetDependenciesToCreate(tool) ?? [];

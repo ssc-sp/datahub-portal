@@ -32,11 +32,13 @@ namespace Datahub.SpecflowTests.Utils
             markdown.SetupVoid("highlightCodeElement", _ => true).SetVoidResult();
             markdown.SetupVoid("setHighlightStylesheet", _ => true).SetVoidResult();
             JSInterop.SetupVoid("setHighlightStylesheet", _ => true).SetVoidResult();
-            JSInterop.SetupVoid("mudPopover.initialize", _ => true);
+            JSInterop.SetupVoid("mudPopover.initialize", _ => true).SetVoidResult();
             // Setup handler to return an int result (number of providers)
             JSInterop.Setup<int>("mudpopoverHelper.countProviders").SetResult(1);
-            JSInterop.SetupVoid("mudPopover.connect", _ => true).SetVoidResult(); 
+            JSInterop.SetupVoid("mudPopover.connect", _ => true).SetVoidResult();
+            JSInterop.SetupVoid("mudScrollManager.lockScroll", _ => true).SetVoidResult();
             JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true).SetVoidResult();
+            JSInterop.SetupVoid("mudElementRef.saveFocus", _ => true).SetVoidResult();
             JSInterop.SetupVoid("mudPointerEventsNone.dispose").SetVoidResult();
             JSInterop.SetupVoid("mudPopover.dispose").SetVoidResult();
             JSInterop.SetupVoid("mudKeyInterceptor.dispose").SetVoidResult();
