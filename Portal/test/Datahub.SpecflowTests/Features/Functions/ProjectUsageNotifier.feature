@@ -1,4 +1,5 @@
 @ProjectUsageNotifier
+@IWebHostEnvironment
 Feature: Project Usage Notifier
     This serverless function is responsible for notifying users when their project usage exceeds a certain threshold and for updating the project resources to be deleted when it's exceeded 100% of the budget
     

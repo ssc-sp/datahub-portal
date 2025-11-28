@@ -1,4 +1,5 @@
 ﻿@IWebHostEnvironment
+@toolbox
 Feature: CreateWorkspacePage
 
 The create workspace page should show the workspace creation form to appropriate users, 
