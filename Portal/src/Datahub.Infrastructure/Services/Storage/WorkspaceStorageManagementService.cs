@@ -29,8 +29,6 @@ namespace Datahub.Infrastructure.Services.Storage
             {
                 storageAccountIds = await GetStorageAccountIds(workspaceAcronym);
             }
-            if (storageAccountIds?.Count == 0)
-                throw new InvalidOperationException("Cannot resolve storage capacity for workspace with no storage accounts.");
             logger.LogInformation("Storage account ids: {Join}", string.Join(", ", storageAccountIds));
 
             var today = DateTime.UtcNow;
@@ -132,6 +130,10 @@ namespace Datahub.Infrastructure.Services.Storage
             using var ctx = await dbContextFactory.CreateDbContextAsync();
 
             var rgIds = await rgMgmtService.GetWorkspaceResourceGroupsIdentifiersAsync(workspaceAcronym);
+            if (rgIds is null || rgIds.Count == 0)
+            {
+                throw new Exception($"No resource groups found for workspace {workspaceAcronym}");
+            }
             var storageIds = new List<string>();
 
             foreach (var rgId in rgIds)
