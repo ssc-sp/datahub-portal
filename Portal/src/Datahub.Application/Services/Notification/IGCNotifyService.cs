@@ -12,6 +12,7 @@ public interface IGCNotifyService
     Task SendDataHubErrorNotification(string errorMessage, string email);
     Task SendDatahubResourceDeletedNotification(string email, string resource, string resource_fr, string acro);
     Task SendWelcomePackageNotification(string email);
+    Task SendWorkspaceInactiveNotification(string email, string daysSince);
     Task SendBugReportNotification(string id, string title, string body, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca");
     Task SendInfectedFileNotification(string email, string fileName, string workspace, string date);
     string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration);
