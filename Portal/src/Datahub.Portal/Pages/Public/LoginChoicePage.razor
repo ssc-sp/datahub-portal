@@ -1,0 +1,47 @@
+﻿@page "/login"
+@page "/connexion"
+@layout BarebonesPublicLayout
+@inject NavigationManager _navigationManager
+@inject IUserInformationService _userInformationService
+@inject DatahubPortalConfiguration _portalConfiguration
+
+<PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
+
+<MudContainer MaxWidth=@MaxWidth.Medium>
+    <MudPaper Class="pt-12 px-12 mt-12">
+        <MudStack>
+            <MudGrid>
+                <MudItem xs="11">
+                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                </MudItem>
+                <MudItem xs="1">
+                    <LanguageToggle />
+                </MudItem>
+            </MudGrid>
+            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+        </MudStack>
+        <MudStack AlignItems="AlignItems.Center" Class="mt-4" Style="width: 100%">
+            <MudText Typo="Typo.h5" Class="text-center">
+                <strong>
+                    @Localizer["Log in as:"]
+                </strong>
+            </MudText>
+            <DHButton Class="px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" Style="width:50%;" Href="@Localizer[PageRoutes.LoginEntra]">
+                <span>
+                    @Localizer["Government of Canada employee"]
+                    <span class="sr-only"></span>
+                </span>
+            </DHButton>
+            <DHButton Class="px-16 my-2" Variant="Variant.Filled" Style="width:50%;" Disabled="true">
+                <span>
+                    @Localizer["External user (coming soon)"]
+                    <span class="sr-only"></span>
+                </span>
+            </DHButton>
+        </MudStack>
+        <DHFooter />
+    </MudPaper>
+</MudContainer>
+
+@code {
+}
