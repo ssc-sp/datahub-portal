@@ -11,6 +11,7 @@ using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Management.Storage.Fluent.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -24,7 +25,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 public class WorkspaceCbrSettingsPageSteps(
     ScenarioContext scenarioContext, 
     IWebHostEnvironment hostingEnvironment
-) : TestContext
+) : BunitContext
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -69,6 +70,9 @@ public class WorkspaceCbrSettingsPageSteps(
         JSInterop.SetupVoid("mudPopover.connect", _ => true);
         JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
         JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
+        JSInterop.SetupVoid("mudPointerEventsNone.dispose").SetVoidResult();
+        JSInterop.SetupVoid("mudPopover.dispose").SetVoidResult();
+        JSInterop.SetupVoid("mudKeyInterceptor.dispose").SetVoidResult();
         Services.AddStub<IDatahubAuditingService>();
     }
 
@@ -96,7 +100,7 @@ public class WorkspaceCbrSettingsPageSteps(
         var dbContextFactory = await CommonCbrTestUtils.GenerateCbrTestDatabase(cbrOwnerUser, otherWorkspaceLeadUser);
         Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
-        var authenticatedCbrBudgetPage = RenderComponent<CascadingAuthenticationState>(parameters =>
+        var authenticatedCbrBudgetPage = Render<CascadingAuthenticationState>(parameters =>
         {
             parameters.AddChildContent<MudPopoverProvider>();
             parameters.AddChildContent<CBRBudgetManagementPage>(childParams =>

@@ -47,7 +47,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 public class WorkspaceToolboxSteps(
     ScenarioContext scenarioContext,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    DatahubPortalConfiguration datahubPortalConfiguration) : TestContext
+    DatahubPortalConfiguration datahubPortalConfiguration) : BunitContext
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -58,7 +58,7 @@ public class WorkspaceToolboxSteps(
         AddRequiredServices();
         SetupJS();
 
-        var workspaceToolbox = RenderComponent<CascadingAuthenticationState>(parameters =>
+        var workspaceToolbox = Render<CascadingAuthenticationState>(parameters =>
         {
             parameters.AddChildContent<MudPopoverProvider>();
             parameters.AddChildContent<MudDialogProvider>();
@@ -119,7 +119,7 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IResourceMessagingService>(resourceMessagingService);
         var logger = new Logger<WorkspaceToolboxPage>(new LoggerFactory());
         Services.AddSingleton(logger);
-        Services.AddSingleton<NavigationManager>(new FakeNavigationManager(this));
+        Services.AddSingleton<NavigationManager>(new BunitNavigationManager(this));
         Services.AddSingleton(dbContextFactory);
         Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
         var authContext = new TestAuthorizationContext

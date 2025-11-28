@@ -34,7 +34,7 @@ namespace Datahub.SpecflowTests.Steps
     public class WorkspaceUsersSteps(
         ScenarioContext scenarioContext,
         IWebHostEnvironment hostingEnvironment
-    ) : TestContext
+    ) : BunitContext
     {
 
         private const string RelativePathToSrc = "../../../../../src";
@@ -168,7 +168,7 @@ namespace Datahub.SpecflowTests.Steps
             mockAuthorizationPolicyProvider.GetDefaultPolicyAsync()
                 .Returns(new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build());
 
-            var authContext = this.AddTestAuthorization();
+            var authContext = this.AddAuthorization();
             authContext.SetAuthorized("TEST USER");
             authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN, $"{workspace.Project_Acronym_CD}{RoleConstants.WORKSPACE_LEAD_SUFFIX}");
 
@@ -182,7 +182,7 @@ namespace Datahub.SpecflowTests.Steps
                 .SetResult(module);
             module.SetupVoid("styleCodeblocks");
             JSInterop.Mode = JSRuntimeMode.Loose;
-            var workspaceUsersPage = RenderComponent<WorkspaceUsersPage>(parameterCollection =>
+            var workspaceUsersPage = Render<WorkspaceUsersPage>(parameterCollection =>
                 parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym));
             
             workspaceUsersPage.Should().NotBeNull();

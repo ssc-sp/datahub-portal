@@ -34,7 +34,7 @@ using Toolbelt.Blazor.Globalization;
 namespace Datahub.SpecflowTests.Steps.Account;
 
 [Binding]
-public class AccountPageSteps : TestContext
+public class AccountPageSteps : BunitContext
 {
     private readonly ScenarioContext _scenarioContext;
     private IRenderedComponent<CascadingAuthenticationState>? _accountPageRender;
@@ -125,7 +125,7 @@ public class AccountPageSteps : TestContext
     private void AddRequiredServices()
     {
         Services.AddMudServices();
-        Services.AddSingleton<NavigationManager>(new Bunit.TestDoubles.FakeNavigationManager(this));
+        Services.AddSingleton<NavigationManager>(new Bunit.TestDoubles.BunitNavigationManager(this));
 
         var testPortalUser = new PortalUser
         {
@@ -188,7 +188,7 @@ public class AccountPageSteps : TestContext
     [Given(@"the user is on the account page")]
     public void GivenTheUserIsOnTheAccountPage()
     {
-        _accountPageRender = RenderComponent<CascadingAuthenticationState>(parameters =>
+        _accountPageRender = Render<CascadingAuthenticationState>(parameters =>
         {
             parameters.AddChildContent<AccountPage>();
         });
