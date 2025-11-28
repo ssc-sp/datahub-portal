@@ -30,6 +30,7 @@ using Datahub.Portal.Pages.Public;
 using MassTransit;
 using Datahub.Application.Services.Metadata;
 using Datahub.Core.Model.Users;
+using Bunit.TestDoubles;
 
 namespace Datahub.Tests
 {
@@ -131,14 +132,11 @@ namespace Datahub.Tests
             ctx.Services.AddSingleton(_httpContextAccessorMock.Object);
             ctx.Services.AddSingleton(_jsRuntimeMock.Object);
             ctx.Services.AddSingleton(_localStorageMock.Object);
-            ctx.Services.AddSingleton<NavigationManager, FakeNavigationManager>();
             ctx.Services.AddSingleton(_mediatrMock.Object);
             ctx.Services.AddSingleton(_stringLocalizerMock.Object);
             ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
             ctx.Services.AddSingleton(_projectUserManagementServiceMock.Object);
             ctx.Services.AddSingleton(_sendEndpointProvider);
-            var fakeNavigationManager = new FakeNavigationManager();
-            ctx.Services.AddSingleton<NavigationManager>(fakeNavigationManager);
 
             ctx.Services.AddMudServices();
 
@@ -231,9 +229,9 @@ namespace Datahub.Tests
             var email = "fake_user@gc.ca";
             var fakeIdentity = new ClaimsIdentity(new Claim[]
             {
-                new Claim(ClaimTypes.Name, "Test User"),
-                new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.NameIdentifier, "1")
+                //new Claim(ClaimTypes.Name, "Test User"),
+                //new Claim(ClaimTypes.Email, email),
+                //new Claim(ClaimTypes.NameIdentifier, "1")
             }, "mock");
             var fakeClaimsPrincipal = new ClaimsPrincipal(fakeIdentity);
             var fakePortalUser = new ExtendedPortalUser
@@ -254,8 +252,11 @@ namespace Datahub.Tests
                 .ReturnsAsync(fakeClaimsPrincipal);
 
             // Act
-            var cut = ctx.Render<Login>(parameters => parameters.Add(p => p.redirectUri, "https://sso_url"));
-
+            var navManager = ctx.Services.GetRequiredService<NavigationManager>();
+            var uri = navManager.GetUriWithQueryParameter("redirectUri", "sso_url");
+            navManager.NavigateTo(uri);
+            var cut = ctx.Render<Login>();
+            
 
             var emailInput = cut.Find("#Email");
             emailInput.Change(email);
@@ -263,9 +264,9 @@ namespace Datahub.Tests
             cut.Instance.HandleLogin();
 
             // verify redirect to register
-            var ssoRedirect = $"https://example.com/MicrosoftIdentity/Account/Challenge?redirectUri=sso_url&scope=user.read%20openid%20offline_access%20profile&loginHint={email}&domainHint=&claims=&policy=";
+            var ssoRedirect = $"http://localhost/MicrosoftIdentity/Account/Challenge?redirectUri=https%3A%2F%2Fsso_url&scope=user.read%20openid%20offline_access%20profile&loginHint={email}&domainHint=&claims=&policy=";
 
-            Assert.Equal(ssoRedirect, _navigationManagerMock.LastUri);
+            Assert.Equal(ssoRedirect, navManager.Uri);
         }
 
         [Fact]

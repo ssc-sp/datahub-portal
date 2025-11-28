@@ -137,6 +137,8 @@ public class ErrorBoundaryTests
 
         await cut.Instance.ReportIssue(ex, corrlationId);
 
+        await ctx.DisposeComponentsAsync();
+        await ctx.DisposeAsync();
         _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
     }
 }
