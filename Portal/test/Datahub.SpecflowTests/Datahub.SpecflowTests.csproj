@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
     <PropertyGroup>
         <TargetFramework>net9.0</TargetFramework>
@@ -14,7 +14,8 @@
         <PackageReference Include="Azure.ResourceManager.Billing" Version="1.2.*" />
         <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.*" />
         <PackageReference Include="Azure.ResourceManager.Resources" Version="1.11.*" />
-        <PackageReference Include="bunit" Version="1.40.*" />
+        <PackageReference Include="bunit" Version="2.1.*" />
+		<PackageReference Include="bunit.generators" Version="2.1.*" />
         <PackageReference Include="Deque.AxeCore.Commons" Version="4.10.*" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.*" />
         <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
@@ -24,9 +25,9 @@
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include="NUnit.ConsoleRunner" Version="3.20.*" />
-        <PackageReference Include="FluentAssertions" Version="7.1.*" />
-        <PackageReference Include="Reqnroll" Version="2.4.*" />
-        <PackageReference Include="Reqnroll.xUnit" Version="2.4.*" />
+        <PackageReference Include="FluentAssertions" Version="8.8.0" />
+        <PackageReference Include="Reqnroll" Version="3.2.1" />
+        <PackageReference Include="Reqnroll.xUnit" Version="3.2.1" />
         <PackageReference Include="xunit" Version="2.9.*" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
 			<PrivateAssets>all</PrivateAssets>

@@ -109,7 +109,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             return dbContextFactory;
         }
 
-        public static void AddLoggedInUserAuthorization(TestContextBase testContext, string workspaceName, bool isCbrOwner, bool isDhAdmin)
+        public static void AddLoggedInUserAuthorization(BunitContext bunitContext, string workspaceName, bool isCbrOwner, bool isDhAdmin)
         {
             var roleNames = new List<string>
             {
@@ -128,7 +128,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 roleNames.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
             }
 
-            var authContext = testContext.AddTestAuthorization();
+            var authContext = bunitContext.AddAuthorization();
             authContext.SetAuthorized("TEST USER");
             authContext.SetRoles([.. roleNames]);
         }

@@ -16,7 +16,7 @@ namespace Datahub.SpecflowTests.Steps;
 public class WorkspaceBudgetAlertComponentSteps(
     ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-) : TestContext
+) : BunitContext
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -35,7 +35,7 @@ public class WorkspaceBudgetAlertComponentSteps(
         Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
         Services.AddMudLocalization();
 
-        var workspaceBudgetAlert = RenderComponent<WorkspaceBudgetAlert>(opt =>
+        var workspaceBudgetAlert = Render<WorkspaceBudgetAlert>(opt =>
             opt.Add(p => p.PercentBudgetSpent, percent));
 
         scenarioContext["workspaceBudgetAlert"] = workspaceBudgetAlert;
