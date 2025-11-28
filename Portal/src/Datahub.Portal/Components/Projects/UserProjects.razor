@@ -41,35 +41,19 @@
                         SelectionMode="SelectionMode.MultiSelection"
                         Ripple="false"
                         CheckMark>
-                @foreach (var group in WorkspaceDisplayGroups)
+                @foreach (var group in AllDisplayGroups)
                 {
                     <MudChip Class="dh_themed_chip" T="string"
                              title=@group.FilterLabel
                              Text=@group.Label
                              @bind-Selected=@(group.FilterToggle)
                              Color=@group.Color
-                             @onclick="() => CheckWorkspaceRoleFilter(group.Workspaces)">
+                             @onclick="() => CheckWorkspaceRoleFilter()">
                         @group.Label
                     </MudChip>
                 }
             </MudChipSet>
-@*             <MudChipSet T="string"
-                        SelectionMode="SelectionMode.MultiSelection"
-                        Ripple="false"
-                        CheckMark>
-                @foreach (var group in SecurityDisplayGroups)
-                {
-                    <MudChip Class="dh_themed_chip" T="string"
-                             title=@group.FilterLabel
-                             Text=@group.Label
-                             @bind-Selected=@(group.FilterToggle)
-                             Color=@group.Color
-                             @onclick = "() => CheckWorkspaceRoleFilter(group.Workspaces)">
-                        @group.Label
-                    </MudChip>
-                }
-            </MudChipSet> *@
-            <MudSpacer/>
+            <MudFlexBreak/>
             <DHButton Color="Color.Primary"
             Underline
             NoWrap
@@ -85,17 +69,11 @@
             @FilterLabel()
         </MudText>
         <ul style=@DisplayGroupStyle>
-            @foreach (var group in WorkspaceDisplayGroups)
+            @foreach (var workspace in _filteredWorkspaces)
             {
-                @if (Show(group))
-                {
-                    @foreach (var workspace in group.Workspaces)
-                    {
-                        <li class="d-flex flex-1">
-                            <HomeWorkspaceCard Workspace=@workspace ShowCost=@group.ShowCost LatestVersion="@_latestVersion" UserEmail="@_userEmail" IsLead="@IsLeadGroup(group)" />
-                        </li>
-                    }
-                }
+                <li class="d-flex flex-1">
+                    <HomeWorkspaceCard Workspace=@workspace ShowCost="true" LatestVersion="@_latestVersion" UserEmail="@_userEmail" IsLead="false" />
+                </li>
             }
         </ul>
     }
@@ -210,9 +188,14 @@ else
     private WorkspaceDisplayGroup _protectedAGroup = new();
     private WorkspaceDisplayGroup _protectedBGroup = new();
 
-    private List<WorkspaceDisplayGroup> WorkspaceDisplayGroups =>
+    private List<WorkspaceDisplayGroup> AllDisplayGroups =>
     [
         _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup, _unclassifiedGroup, _protectedAGroup, _protectedBGroup
+    ];
+
+    private List<WorkspaceDisplayGroup> WorkspaceDisplayGroups =>
+    [
+        _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup
     ];
 
     private List<WorkspaceDisplayGroup> SecurityDisplayGroups =>
@@ -220,12 +203,12 @@ else
        _unclassifiedGroup, _protectedAGroup, _protectedBGroup
    ];
 
-    bool AnyFilter => WorkspaceDisplayGroups.Any(g => g.FilterToggle);
+    bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
     bool HasWorkspaces => _allWorkspaces.Count > 0;
 
     int FilteredWorkspacesCount => AnyFilter
-        ? WorkspaceDisplayGroups.Where(g => g.FilterToggle).SelectMany(g => g.Workspaces).Count()
-        : WorkspaceDisplayGroups.Sum(g => g.Workspaces.Count);
+        ? AllDisplayGroups.Where(g => g.FilterToggle).SelectMany(g => g.Workspaces).Distinct().Count()
+        : AllDisplayGroups.Sum(g => g.Workspaces.Count);
 
 
     // User, Roles, and Projects
@@ -318,17 +301,55 @@ else
         _protectedBWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected B")).ToList();
     }
 
-    private void CheckWorkspaceRoleFilter(List<Datahub_Project> clickedWorkspace)
+    private void CheckWorkspaceRoleFilter()
     {
-        if (clickedWorkspace == _leadWorkspaces || clickedWorkspace == _adminWorkspaces || clickedWorkspace == _collaboratorWorkspaces || clickedWorkspace == _guestWorkspaces)
+        List<Datahub_Project> _tempSecurityWorkspaces = new List<Datahub_Project>();
+        List<Datahub_Project> _tempRoleWorkspaces = new List<Datahub_Project>();
+        bool securityShow = false;
+        bool roleShow = false;
+        foreach (var group in SecurityDisplayGroups)
         {
-            _filteredWorkspaces = clickedWorkspace;
+            if (Show(group))
+            {
+                securityShow = true;
+                foreach (var workspace in group.Workspaces)
+                {
+                    _tempSecurityWorkspaces.Add(workspace);
+                } 
+            }
+        }
+        foreach (var group2 in WorkspaceDisplayGroups)
+        {
+            if (Show(group2))
+            {
+                roleShow = true;
+                foreach (var workspace in group2.Workspaces)
+                {
+                    _tempRoleWorkspaces.Add(workspace);
+                }
+            }
+        }
+        if(!_tempSecurityWorkspaces.Any()) // if there are no security workspaces
+        {
+            if(securityShow) // if there is a security workspace filter applied
+            {
+                _filteredWorkspaces.Clear();
+                return;
+            }
+            _filteredWorkspaces = _tempRoleWorkspaces;
             return;
         }
-        if(clickedWorkspace == _protectedAWorkspaces)
+        else if(!_tempRoleWorkspaces.Any())
         {
-            _protectedAWorkspaces = _protectedAWorkspaces.Intersect(_filteredWorkspaces).ToList();
+            if(roleShow)
+            {
+                _filteredWorkspaces.Clear();
+                return;
+            }
+            _filteredWorkspaces = _tempSecurityWorkspaces;
+            return;
         }
+        _filteredWorkspaces = _tempRoleWorkspaces.Intersect(_tempSecurityWorkspaces).ToList();
     }
 
     private void InitiateDisplayState()
@@ -410,15 +431,30 @@ else
         {
             return Localizer["Showing all workspaces ({0})", FilteredWorkspacesCount];
         }
-        
+
         if (FilteredWorkspacesCount == 0)
         {
             return Localizer["No workspaces match the filter"];
         }
 
-        string label = Localizer["Showing workspaces where you are a "];
+        string label = Localizer["Showing "];// workspaces where you are a "];
         bool anyCondition = false;
+        foreach(var group2 in SecurityDisplayGroups)
+        {
+            if(Show(group2))
+            {
+                if (anyCondition)
+                {
+                    label += Localizer[", "];
+                }
+                label += group2.Label;
+                label += Localizer[" ({0})", group2.Workspaces.Count];
+                anyCondition = true;
+            }
+        }
+        label += Localizer[" workspaces where you are a "];
 
+        anyCondition = false;
         foreach (var group in WorkspaceDisplayGroups)
         {
             if (Show(group))
@@ -432,7 +468,6 @@ else
                 anyCondition = true;
             }
         }
-
         return label;
     }
 
