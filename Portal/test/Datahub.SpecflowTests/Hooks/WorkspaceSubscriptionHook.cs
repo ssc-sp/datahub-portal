@@ -68,7 +68,7 @@ public class WorkspaceSubscriptionHook
 
         resourceMessagingSubstitute.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
             .Returns(callInfo =>
-                resourceMessagingService.GetWorkspaceDefinition(callInfo.Arg<string>(), callInfo.Arg<string>()));
+                resourceMessagingService.GetWorkspaceDefinition((string)callInfo[0], (string)callInfo[1])); 
 
         var currentUser = new PortalUser
         {
