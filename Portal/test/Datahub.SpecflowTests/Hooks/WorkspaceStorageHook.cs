@@ -263,6 +263,10 @@ namespace Datahub.SpecflowTests.Hooks
                         $"/subscriptions/{Testing.WorkspaceSubscriptionGuid}/resourceGroups/{Testing.ResourceGroupName2}")
                 });
 
+            workspaceRgManagementService
+                .GetWorkspaceResourceGroupsIdentifiersAsync(Testing.InvalidWorkspaceAcronym)
+                .Returns(new List<ResourceIdentifier>());
+
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
             objectContainer.RegisterInstanceAs(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs<IWorkspaceStorageManagementService>(workspaceStorageManagementService);
