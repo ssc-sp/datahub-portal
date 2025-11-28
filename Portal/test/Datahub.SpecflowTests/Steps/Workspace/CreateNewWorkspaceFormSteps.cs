@@ -1,4 +1,5 @@
 ﻿using Bunit;
+using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
@@ -12,6 +13,7 @@ using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services;
 using Datahub.Portal.Pages.Workspace;
+using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -23,6 +25,7 @@ using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
+using System.Threading.Tasks;
 
 namespace Datahub.SpecflowTests.Steps.Workspace
 {
@@ -30,7 +33,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
     public class CreateNewWorkspaceFormSteps(
         ScenarioContext scenarioContext,
         IWebHostEnvironment hostingEnvironment
-        ):TestContext
+        ): BunitTestSteps
     {
         private const string RelativePathToSrc = "../../../../../src";
 
@@ -65,18 +68,16 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                     InfraClientSecret = Guid.NewGuid().ToString()
                 }
             };
+            var hostEnv = Substitute.For<IWebHostEnvironment>();
+            hostEnv.EnvironmentName.Returns("Development");
+            Services.AddScoped(_ => hostEnv);
 
             Services.AddSingleton(portalConfiguration);
 
             Services.AddMudServices();
             Services.AddDatahubLocalization(portalConfiguration);
 
-            JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
-            JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
-            JSInterop.SetupVoid("mudPopover.initialize", _ => true);
-            JSInterop.Setup<int>("mudpopoverHelper.countProviders");
-            JSInterop.SetupVoid("mudPopover.connect", _ => true);
-            JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
+            JSInterop.SetupMudBlazor();
         }
 
         private static IWorkspaceCreationService CreateMockedWorkspaceCreationService(
@@ -227,7 +228,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             var workspaceCreationService = CreateMockedWorkspaceCreationService(portalConfiguration, dbContextFactory, userInfoService);
             Services.AddSingleton(workspaceCreationService);
 
-            var authenticatedNewWorkspacePage = RenderComponent<CascadingAuthenticationState>(parameters =>
+            var authenticatedNewWorkspacePage = Render<CascadingAuthenticationState>(parameters =>
             {
                 parameters.AddChildContent<MudPopoverProvider>();
                 parameters.AddChildContent<CreateWorkspacePage>();
@@ -430,7 +431,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         public void ThenTheNavigationManagerShouldBeRedirectedToTheCreatedWorkspace()
         {
             var navManager = Services.GetService<NavigationManager>();
-            var bunitNavObject = navManager as Bunit.TestDoubles.FakeNavigationManager;
+            var bunitNavObject = navManager as Bunit.TestDoubles.BunitNavigationManager;
             bunitNavObject.Should().NotBeNull();
 
             var workspaceAcronym = scenarioContext[WORKSPACE_ACRONYM_CTX_KEY] as string;
