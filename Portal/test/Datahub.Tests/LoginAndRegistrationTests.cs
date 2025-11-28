@@ -30,6 +30,7 @@ using Datahub.Portal.Pages.Public;
 using MassTransit;
 using Datahub.Application.Services.Metadata;
 using Datahub.Core.Model.Users;
+using Bunit.TestDoubles;
 
 namespace Datahub.Tests
 {
@@ -86,7 +87,7 @@ namespace Datahub.Tests
             _component = new RegisterPage();
         }
 
-        private Bunit.TestContext SetupTestContext(bool includeHttpClientFactory = false)
+        private Bunit.BunitContext SetupBunitContext(bool includeHttpClientFactory = false)
         {
             var workSpaces = new[] { "AAA", "BBB" };
             _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
@@ -117,7 +118,7 @@ namespace Datahub.Tests
             var datahubPortalConfiguration = new DatahubPortalConfiguration();
             configuration.Bind(datahubPortalConfiguration);
 
-            using var ctx = new Bunit.TestContext();
+            using var ctx = new Bunit.BunitContext();
             ctx.Services.AddSingleton(_dbConextFactoryMock);
             ctx.Services.AddSingleton(datahubPortalConfiguration);
             ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
@@ -131,14 +132,11 @@ namespace Datahub.Tests
             ctx.Services.AddSingleton(_httpContextAccessorMock.Object);
             ctx.Services.AddSingleton(_jsRuntimeMock.Object);
             ctx.Services.AddSingleton(_localStorageMock.Object);
-            ctx.Services.AddSingleton<NavigationManager, FakeNavigationManager>();
             ctx.Services.AddSingleton(_mediatrMock.Object);
             ctx.Services.AddSingleton(_stringLocalizerMock.Object);
             ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
             ctx.Services.AddSingleton(_projectUserManagementServiceMock.Object);
             ctx.Services.AddSingleton(_sendEndpointProvider);
-            var fakeNavigationManager = new FakeNavigationManager();
-            ctx.Services.AddSingleton<NavigationManager>(fakeNavigationManager);
 
             ctx.Services.AddMudServices();
 
@@ -163,7 +161,7 @@ namespace Datahub.Tests
             }, "mock");
             var fakeClaimsPrincipal = new ClaimsPrincipal(fakeIdentity); 
 
-            var ctx = SetupTestContext();
+            var ctx = SetupBunitContext();
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
 
@@ -171,8 +169,7 @@ namespace Datahub.Tests
                 .ReturnsAsync(fakeClaimsPrincipal);
 
             // Act
-            var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("redirectUri", "https://sso_url") };
-            var cut = ctx.RenderComponent<Login>(pageParams.ToArray());
+            var cut = ctx.Render<Login>(parameters => parameters.Add(p => p.redirectUri, "https://sso_url"));
 
             var emailInput = cut.Find("#Email");
             emailInput.Change(email);
@@ -204,7 +201,7 @@ namespace Datahub.Tests
                 IsLocked = true
             };
 
-            var ctx = SetupTestContext(includeHttpClientFactory: true);
+            var ctx = SetupBunitContext(includeHttpClientFactory: true);
 
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
@@ -213,8 +210,7 @@ namespace Datahub.Tests
                 .ReturnsAsync(fakeClaimsPrincipal);
 
             // Act
-            var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("redirectUri", "https://sso_url") };
-            var cut = ctx.RenderComponent<Login>(pageParams.ToArray());
+            var cut = ctx.Render<Login>(parameters => parameters.Add(p => p.redirectUri, "https://sso_url"));
 
             var emailInput = cut.Find("#Email");
             emailInput.Change(email);
@@ -233,9 +229,9 @@ namespace Datahub.Tests
             var email = "fake_user@gc.ca";
             var fakeIdentity = new ClaimsIdentity(new Claim[]
             {
-                new Claim(ClaimTypes.Name, "Test User"),
-                new Claim(ClaimTypes.Email, email),
-                new Claim(ClaimTypes.NameIdentifier, "1")
+                //new Claim(ClaimTypes.Name, "Test User"),
+                //new Claim(ClaimTypes.Email, email),
+                //new Claim(ClaimTypes.NameIdentifier, "1")
             }, "mock");
             var fakeClaimsPrincipal = new ClaimsPrincipal(fakeIdentity);
             var fakePortalUser = new ExtendedPortalUser
@@ -247,7 +243,7 @@ namespace Datahub.Tests
                 IsLocked = false
             };
 
-            var ctx = SetupTestContext(includeHttpClientFactory: true);
+            var ctx = SetupBunitContext(includeHttpClientFactory: true);
 
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
@@ -256,8 +252,11 @@ namespace Datahub.Tests
                 .ReturnsAsync(fakeClaimsPrincipal);
 
             // Act
-            var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("redirectUri", "sso_url") };
-            var cut = ctx.RenderComponent<Login>(pageParams.ToArray());
+            var navManager = ctx.Services.GetRequiredService<NavigationManager>();
+            var uri = navManager.GetUriWithQueryParameter("redirectUri", "sso_url");
+            navManager.NavigateTo(uri);
+            var cut = ctx.Render<Login>();
+            
 
             var emailInput = cut.Find("#Email");
             emailInput.Change(email);
@@ -265,9 +264,9 @@ namespace Datahub.Tests
             cut.Instance.HandleLogin();
 
             // verify redirect to register
-            var ssoRedirect = $"https://example.com/MicrosoftIdentity/Account/Challenge?redirectUri=sso_url&scope=user.read%20openid%20offline_access%20profile&loginHint={email}&domainHint=&claims=&policy=";
+            var ssoRedirect = $"http://localhost/MicrosoftIdentity/Account/Challenge?redirectUri=https%3A%2F%2Fsso_url&scope=user.read%20openid%20offline_access%20profile&loginHint={email}&domainHint=&claims=&policy=";
 
-            Assert.Equal(ssoRedirect, _navigationManagerMock.LastUri);
+            Assert.Equal(ssoRedirect, navManager.Uri);
         }
 
         [Fact]
@@ -283,16 +282,15 @@ namespace Datahub.Tests
                 IsDeleted = true,
             };
 
-            var ctx = SetupTestContext();
+            var ctx = SetupBunitContext();
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(),It.IsAny<string>()))
                 .ReturnsAsync("1");
 
             // Act
-            var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("Email", email) };
-            var cut = ctx.RenderComponent<RegisterPage>(pageParams.ToArray());
-            
+            var cut = ctx.Render<RegisterPage>(parameters => parameters.Add(p => p.Email, email));
+
             await cut.Instance.HandleValidSubmit();
 
             // Verify that GetProjectListForPortalUser was called
@@ -311,15 +309,14 @@ namespace Datahub.Tests
             // Arrange
             var email = "fake_user@gc.ca"; 
 
-            var ctx = SetupTestContext();
+            var ctx = SetupBunitContext();
             _userInformationMock.Setup(s => s.GetPortalUserByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync("1");
 
             // Act
-            var pageParams = new List<ComponentParameter> { ComponentParameter.CreateParameter("Email", email) };
-            var cut = ctx.RenderComponent<RegisterPage>(pageParams.ToArray());
+            var cut = ctx.Render<RegisterPage>(parameters => parameters.Add(p => p.Email, email));
 
             await cut.Instance.HandleValidSubmit();
 
