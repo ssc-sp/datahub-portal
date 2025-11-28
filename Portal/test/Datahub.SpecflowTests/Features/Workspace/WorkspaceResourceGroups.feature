@@ -1,4 +1,5 @@
 ﻿@WorkspaceResourceGroups
+@IWebHostEnvironment
 Feature: WorkspaceResourceGroups
     Tests for the workspace resource groups service
     

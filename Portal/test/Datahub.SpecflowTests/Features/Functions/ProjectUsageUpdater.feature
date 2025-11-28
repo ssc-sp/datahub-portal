@@ -1,4 +1,5 @@
 ﻿@ProjectUsage
+@IWebHostEnvironment
 Feature: ProjectUsageUpdater
 Tests for the ProjectUsageUpdater class, which includes simple storage, budget and costs updating and also the more complicated rollover feature
 

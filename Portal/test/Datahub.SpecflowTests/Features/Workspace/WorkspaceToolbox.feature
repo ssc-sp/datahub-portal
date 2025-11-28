@@ -1,4 +1,5 @@
 ﻿@toolbox
+@IWebHostEnvironment
 Feature: WorkspaceToolbox
 The workspace toolbox page should allow adding, configuring and removing tools properly while displaying
 the correct information in the page.

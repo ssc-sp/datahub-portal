@@ -1,4 +1,5 @@
 @IWebHostEnvironment
+@toolbox
 Feature: IP Address Whitelist
 Allows a user to add an IP address to the whitelist of a cloud resource
     
