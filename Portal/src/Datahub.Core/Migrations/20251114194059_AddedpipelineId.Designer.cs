@@ -12,15 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    [Migration("20251023040016_CBR_Cleanup")]
-    partial class CBR_Cleanup
+    [Migration("20251114194059_AddedpipelineId")]
+    partial class AddedpipelineId
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.10")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -768,9 +768,6 @@ namespace Datahub.Core.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("Datahub_ProjectProject_ID")
-                        .HasColumnType("int");
-
                     b.Property<string>("DepartmentName")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -865,8 +862,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.ToTable("GCHostingWorkspaceDetails", (string)null);
                 });
@@ -1258,6 +1253,9 @@ namespace Datahub.Core.Migrations
 
                     b.Property<string>("JsonContent")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PipelineId")
+                        .HasColumnType("int");
 
                     b.Property<int>("ProjectId")
                         .HasColumnType("int");
@@ -1870,17 +1868,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("RequestingUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithMany()
-                        .HasForeignKey("Datahub_ProjectProject_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Datahub_Project");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>

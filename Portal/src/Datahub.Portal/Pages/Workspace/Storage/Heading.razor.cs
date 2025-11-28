@@ -60,12 +60,6 @@ public partial class Heading
         //TODO telemetry
     }
 
-    private async Task HandleAzSyncDown()
-    {
-        var uri = await _dataRetrievalService.GenerateSasToken(DataRetrievalService.DEFAULT_CONTAINER_NAME, ProjectAcronym, 14);
-        await _module.InvokeAsync<string>("azSyncDown", uri.ToString(), _dotNetHelper);
-    }
-
     private async Task HandleShare()
     {
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserShareFile);

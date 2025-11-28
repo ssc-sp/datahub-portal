@@ -49,6 +49,7 @@ public class DatahubPortalConfiguration
     public int DefaultProjectBudget { get; set; } = 100;
     public DatahubServiceBus DatahubServiceBus { get; set; } = new();
     public ToolboxConfig ToolboxConfig { get; set; } = new();
+    public StorageConfiguration StorageConfiguration { get; set; } = new();
 }
 
 public class Achievements
@@ -75,10 +76,10 @@ public class Media
 public class TermsAndConditionsUrl
 {
     public string En { get; set; } =
-        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/UserGuide/POC-Terms-And-Conditions.md";
+        "https://fsdhstaticassetstorage.blob.core.windows.net/docs/UserGuide/POC-Terms-And-Conditions.md";
 
     public string Fr { get; set; } =
-        "https://raw.githubusercontent.com/ssc-sp/datahub-docs/main/fr/UserGuide/Conditions-g%C3%A9n%C3%A9rales-de-POC.md";
+        "https://fsdhstaticassetstorage.blob.core.windows.net/docs/fr/UserGuide/Conditions-g%C3%A9n%C3%A9rales-de-POC.md";
 }
 
 public class PreRegistrationDocumentationUrl
@@ -255,6 +256,14 @@ public class CkanConfiguration
             return Enabled && baseUrlConfigured;
         }
     }
+}
+
+public class StorageConfiguration
+{
+    public string BlockedFileExtensions { get; set; } = ".ace,.ade,.adp,.ani,.app,.apk,.bas,.bat,.chm,.cmd,.com,.cpl,.crt,.docm,.dll,.exe,.hlp,.ht,.hta,.inf,.ins,.isp,.jar,.job,.js,.jse,.lnk,.mda,.mdb,.mde,.mdz,.msc,.msi,.msp,.mst,.pcd,.pif,.reg,.scr,.sct,.shs,.url,.vb,.vbe,.vbs,.wsc,.wsf,.wsh";
+    public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
+        .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+        .AsReadOnly();
 }
 
 public class ToolboxConfig

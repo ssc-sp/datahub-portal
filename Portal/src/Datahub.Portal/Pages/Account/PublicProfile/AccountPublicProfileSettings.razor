@@ -1,6 +1,7 @@
 @using Datahub.Application.Services.UserManagement
-@using Datahub.Portal.Components.User
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Components.User
 
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject IDialogService _dialogService
@@ -33,10 +34,10 @@
                     OnImageSelected="@(code => HandleImageSelected(code, false))"/>
             </SettingsField>
             <MudDivider/>
-            <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["You can choose whether to hide or display your achievements in the DataHub. This will also prevent the achievement notifications from displaying on your screen. You can change it at any time."]">
+            <SettingsField Label="@Localizer["Display Achievements"]" Description="@Localizer["Choose whether to hide or display your achievements in DataHub. This will also prevent the achievement notifications from displaying on your screen."]">
                 <MudSwitch T="bool" Label="@Localizer["Show Achievements"]" Value="@(!ViewedUser.UserSettings.HideAchievements)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAchievementsChanged"/>
             </SettingsField>
-            <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether or not to display alert and tutorial dialogs in Datahub."]">
+            <SettingsField Label="@Localizer["Display page alerts and tutorials"]" Description="@Localizer["Choose whether to hide or display alert and tutorial dialogs in Datahub."]">
                 <MudSwitch T="bool" Label="@Localizer["Show alerts and tutorials"]" Value="@(!ViewedUser.UserSettings.HideAlerts)" Color="Color.Primary" UnCheckedColor="@Color.Dark" ValueChanged="HandleHideAlertsChanged"/>
                 <DHButton OnClick="@ClearAlerts">@Localizer["Reset alert settings"]</DHButton>
             </SettingsField>

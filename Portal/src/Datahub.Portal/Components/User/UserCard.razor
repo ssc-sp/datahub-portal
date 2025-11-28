@@ -1,10 +1,12 @@
 @using Datahub.Application.Services.UserManagement
-@using Microsoft.Graph.Models
-@using Datahub.Core.Model.Achievements
 @using Datahub.Core.Extensions
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Users;
+@using Microsoft.Graph.Models
 @using Toolbelt.Blazor.Globalization
 
 @inject IUserInformationService _userInformationService
+@inject ICultureService CultureService
 @inject ILogger<UserCard> _logger;
 @inject IPortalUserTelemetryService _telemetryService;
 @inject IJSRuntime _jsRuntime;
@@ -85,7 +87,7 @@
         if ((lastLoginDt ??= await _telemetryService.GetUserLastLoginAsync()) is not null)
         {
             var localTz = await _localTz.GetLocalTimeZoneAsync(null);
-            _timezone = GetTimeZoneShortCode(localTz);
+            _timezone = LocalizeTimeZone(GetTimeZoneShortCode(localTz));
             _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
         }
     }
@@ -99,6 +101,45 @@
 
         // Extract the first letter of each word
         return string.Concat(name.Split(' ').Select(word => word[0])).ToUpperInvariant();
+    }
+
+    private string LocalizeTimeZone(string engTimeZone)
+    {
+        if (CultureService.IsFrench)
+        {
+            switch (engTimeZone)
+            {
+                case("UTC"): // Universal time zone
+                    return "UTC";
+                case ("PST"):
+                    return "HNP";
+                case ("MST"):
+                    return "HNR";
+                case ("CST"):
+                    return "HNC";
+                case ("EST"):
+                    return "HNE";
+                case ("AST"):
+                    return "HNA";
+                case ("NST"):
+                    return "HNT";
+                case ("PDT"): // Daylight timezones
+                    return "HAP";
+                case ("MDT"):
+                    return "HAR";
+                case ("CDT"):
+                    return "HAC";
+                case ("EDT"):
+                    return "HAE";
+                case ("ADT"):
+                    return "HAA";
+                case ("NDT"):
+                    return "HAT";
+                default:
+                    return String.Empty;
+            }
+        }
+        return engTimeZone;
     }
 
     private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)

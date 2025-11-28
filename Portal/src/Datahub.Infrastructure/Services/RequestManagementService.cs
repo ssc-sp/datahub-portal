@@ -2,12 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Datahub.Application.Services;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Enums;
 using Datahub.Core.Model.Context;
 using Datahub.Shared;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -59,6 +59,7 @@ public class RequestManagementService(
                     : requestedTemplate.Status;
             }
 
+            resource.RequestedAt = requestedTemplate.RequestedAt;
             ctx.Project_Resources2.Update(resource);
         }
         else
@@ -69,6 +70,7 @@ public class RequestManagementService(
                 RequestedById = requestingUser.Id,
                 ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name),
                 Status = requestedTemplate.Status,
+                RequestedAt = requestedTemplate.RequestedAt
             };
 
             await ctx.Project_Resources2.AddAsync(resource);

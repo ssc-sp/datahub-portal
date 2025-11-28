@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Datahub;
 
@@ -37,14 +37,14 @@ public class OpenGovPublishingBlocklist
     /// Gets or sets the department name that is blocked (optional, if blocking by department)
     /// </summary>
     [MaxLength(500)]
-    public string DepartmentName { get; set; }
+    public string? DepartmentName { get; set; }
 
     /// <summary>
     /// Gets or sets the Email Domain that is blocked (e.g., "example.gc.ca")
     /// Used to block users whose email domain matches this hostname
     /// </summary>
     [MaxLength(200)]
-    public string EmailHostname { get; set; }
+    public string? EmailHostname { get; set; }
 
     /// <summary>
     /// Gets or sets the status of this blocklist entry
@@ -73,7 +73,7 @@ public class OpenGovPublishingBlocklist
     /// Gets or sets the user who added this blocklist entry
     /// </summary>
     [ForeignKey(nameof(AddedByUserId))]
-    public PortalUser AddedByUser { get; set; }
+    public PortalUser AddedByUser { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the ID of the user who removed this blocklist entry (nullable)
@@ -84,11 +84,11 @@ public class OpenGovPublishingBlocklist
     /// Gets or sets the user who removed this blocklist entry (nullable)
     /// </summary>
     [ForeignKey(nameof(RemovedByUserId))]
-    public PortalUser RemovedByUser { get; set; }
+    public PortalUser? RemovedByUser { get; set; }
 
     /// <summary>
     /// Gets or sets optional notes or reason for blocking
     /// </summary>
     [MaxLength(2000)]
-    public string Notes { get; set; }
+    public string? Notes { get; set; }
 }

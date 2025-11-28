@@ -93,7 +93,8 @@
         {
             TenantId = _tenantId,
             SubscriptionId = _subscriptionId,
-            Nickname = _subscriptionNickname
+            Nickname = _subscriptionNickname,
+			SubscriptionName = _subscriptionName
         };
 
         await OnSubscriptionSubmitted.InvokeAsync(subscription);

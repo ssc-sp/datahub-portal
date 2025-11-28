@@ -1,4 +1,5 @@
 @IWebHostEnvironment
+@toolbox
 Feature: Workspace Settings Page
     The workspace settings page should display settings for the workspace
 

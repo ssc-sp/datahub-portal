@@ -1,8 +1,17 @@
 @using Datahub.Core.Data
+@using Datahub.Metadata.Model
+@using System.Security.Claims
 
 <AuthorizeView Roles="@GetRoles()">
     <Authorized>
-        @(Authorized ?? ChildContent)
+        @if (IsAllowedUserType())
+        {
+            @AuthorizedContent
+        }
+        else
+        {
+            @NotAuthorized
+        }
     </Authorized>
     <NotAuthorized>
         @NotAuthorized
@@ -14,29 +23,46 @@
 
 @code {
 
-    [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public enum UserType
+    {
+        AllUsers,
+        TrustedEntraOnly,
+        ExternalOnly,
+    }
 
     [Parameter]
-    public RenderFragment Authorizing { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
     [Parameter]
-    public RenderFragment Authorized { get; set; }
+    public RenderFragment? Authorizing { get; set; }
 
     [Parameter]
-    public RenderFragment NotAuthorized { get; set; }
+    public RenderFragment? Authorized { get; set; }
+
+    [Parameter]
+    public RenderFragment? NotAuthorized { get; set; }
 
     [Parameter]
     public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
 
     [Parameter]
-    public string ProjectAcronym { get; set; }
+    public string? ProjectAcronym { get; set; }
 
     [Parameter]
-    public string UserGraphId { get; set; }
+    public string? UserGraphId { get; set; }
 
     [Parameter]
     public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+
+    [Parameter]
+    public UserType AllowedUsers { get; set; } = UserType.AllUsers;
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+    private ClaimsPrincipal? _user;
+
+    private RenderFragment? AuthorizedContent => Authorized ?? ChildContent;
 
     public enum AuthLevels
     {
@@ -52,6 +78,22 @@
         Unauthorized,
         CbrOwner,
         WorkspaceCbrOwner
+    }
+
+    private bool IsAllowedUserType() => AllowedUsers switch
+    {
+        UserType.AllUsers => true,
+        UserType.TrustedEntraOnly => _user?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false,
+        UserType.ExternalOnly => _user?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false,
+        _ => false,
+    };
+    
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authState = await AuthenticationStateTask;
+        _user = authState.User;
+        await base.OnInitializedAsync();
     }
 
     protected override void OnParametersSet()
@@ -76,7 +118,7 @@
         }
     }
 
-    private string GetRoles()
+    private string? GetRoles()
     {
         var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
         var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";

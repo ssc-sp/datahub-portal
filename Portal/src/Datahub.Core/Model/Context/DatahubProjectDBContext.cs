@@ -5,11 +5,12 @@ using Datahub.Core.Model.Catalog;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Documentation;
+
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
-using Datahub.Core.Model.UserTracking;
+using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -43,15 +44,15 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
 
     public DbSet<Datahub_ProjectApiUser> Project_ApiUsers { get; set; }
     public DbSet<Achievements.Achievement> Achievements { get; set; }
-    public DbSet<Achievements.PortalUser> PortalUsers { get; set; }
+    public DbSet<PortalUser> PortalUsers { get; set; }
     public DbSet<PortalUserRoleChange> PortalUserStatusChanges { get; set; }
 
     public DbSet<Achievements.UserAchievement> UserAchievements { get; set; }
     public DbSet<Achievements.TelemetryEvent> TelemetryEvents { get; set; }
 
-    public DbSet<UserTracking.UserSettings> UserSettings { get; set; }
+    public DbSet<UserSettings> UserSettings { get; set; }
 
-    public DbSet<UserTracking.UserRecentLink> UserRecentLinks { get; set; }
+    public DbSet<UserRecentLink> UserRecentLinks { get; set; }
 
     public DbSet<Announcement> Announcements { get; set; }
 
@@ -181,7 +182,7 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             {
                 PortalUser = new PortalUser()
                 {
-                    GraphGuid = initialSetup.GetValue<string>("AdminGUID"),
+                    GraphGuid = initialSetup.GetValue<string>("AdminGUID") ?? throw new InvalidOperationException("AdminGUID not defined in configuration"),
                 },
                 Project = p1,
                 RoleId = (int)Project_Role.RoleNames.Admin

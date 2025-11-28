@@ -5,7 +5,7 @@ namespace Datahub.Core.Utils;
 
 public static class TerraformOutputHelper
 {
-    public static string GetExpectedTerraformOutput(Datahub_Project project, string workspaceId = null, string workspaceUrl = null, string envAcronym = "dev")
+    public static string GetExpectedTerraformOutput(Datahub_Project project, string? workspaceId = null, string? workspaceUrl = null, string envAcronym = "dev")
     {
         var expectedTerraformOutput = GetExpectedTerraformOutputResourceGroupString();
         // var workspaceId = "";
@@ -48,6 +48,30 @@ public static class TerraformOutputHelper
         return $"{{\n{content}\n}}";
     }
 
+    public static string GetExpectedTerraformInput(Datahub_Project project, int pipelineId)
+    {
+        var message = @"{              
+                ""pipeline_run_id"": {
+                  ""sensitive"": false,
+                  ""type"": ""string"",
+                  ""value"": ""pipelineId""
+                },
+                ""pipeline_run_url"": {
+                  ""sensitive"": false,
+                  ""type"": ""string"",
+                  ""value"": ""https://dev.azure.com/DataSolutionsDonnees/FSDH%20SSC/_build/results?buildId=6458""
+                },
+                ""project_cd"": {
+                  ""sensitive"": false,
+                  ""type"": ""string"",
+                  ""value"": ""Project_Acronym_CD""
+                }              
+            }";
+
+        message = message.Replace("Project_Acronym_CD", project.Project_Acronym_CD);
+        message = message.Replace("pipelineId", pipelineId.ToString());
+        return message;
+    }
     private static string GetExpectedTerraformOutputAzurePostgresString()
     {
         return @"  ""azure_postgresql_db_name"": {

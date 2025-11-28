@@ -31,6 +31,7 @@ using Datahub.Application.Services.Achievements;
 using Microsoft.Extensions.Configuration;
 using Datahub.Core.Model.Context;
 using Blazored.SessionStorage;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Tests;
 
@@ -111,7 +112,7 @@ public class ErrorBoundaryTests
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
 
-        using var ctx = new Bunit.TestContext();
+        using var ctx = new Bunit.BunitContext();
         ctx.Services.AddSingleton(_dbConextFactoryMock); 
         ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
@@ -132,10 +133,12 @@ public class ErrorBoundaryTests
         ctx.Services.AddMudServices();
 
         // Act
-        var cut = ctx.RenderComponent<PortalLayout>();
+        var cut = ctx.Render<PortalLayout>();
 
         await cut.Instance.ReportIssue(ex, corrlationId);
 
+        await ctx.DisposeComponentsAsync();
+        await ctx.DisposeAsync();
         _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
     }
 }

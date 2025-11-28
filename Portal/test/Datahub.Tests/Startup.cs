@@ -40,7 +40,6 @@ public class Startup
         services.AddHttpClient();
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();
-        services.AddScoped<NotifierService>();
     }
 }
 
