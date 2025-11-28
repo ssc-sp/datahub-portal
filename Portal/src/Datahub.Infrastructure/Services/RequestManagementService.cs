@@ -59,6 +59,7 @@ public class RequestManagementService(
                     : requestedTemplate.Status;
             }
 
+            resource.RequestedAt = requestedTemplate.RequestedAt;
             ctx.Project_Resources2.Update(resource);
         }
         else
@@ -69,6 +70,7 @@ public class RequestManagementService(
                 RequestedById = requestingUser.Id,
                 ResourceType = TerraformTemplate.GetTerraformServiceType(requestedTemplate.Name),
                 Status = requestedTemplate.Status,
+                RequestedAt = requestedTemplate.RequestedAt
             };
 
             await ctx.Project_Resources2.AddAsync(resource);
