@@ -22,21 +22,21 @@ namespace Datahub.Infrastructure.Services.Toolbox
             WorkspaceDefinition newWorkspaceDefinition;
             var wdString = JsonSerializer.Serialize(workspaceDefinition);
             newWorkspaceDefinition = JsonSerializer.Deserialize<WorkspaceDefinition>(wdString)!;
-
+            var requestedDate = DateTime.UtcNow;
             foreach (var transaction in transactions)
             {
                 switch (transaction.Type)
                 {
                     case ToolboxTransactionType.Add:
                         newWorkspaceDefinition.Templates.Add(new TerraformTemplate(transaction.Tool,
-                            TerraformStatus.CreateRequested));
+                            TerraformStatus.CreateRequested, requestedDate));
                         ApplyConfigurations(newWorkspaceDefinition, transaction);
                         break;
                     case ToolboxTransactionType.Remove:
                         newWorkspaceDefinition.Templates.RemoveAll(t =>
                             t.Name == transaction.Tool);
                         newWorkspaceDefinition.Templates.Add(new TerraformTemplate(transaction.Tool,
-                            TerraformStatus.DeleteRequested));
+                            TerraformStatus.DeleteRequested, requestedDate));
                         break;
                     case ToolboxTransactionType.Update:
                         ApplyConfigurations(newWorkspaceDefinition, transaction);

@@ -512,6 +512,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
             var workspace = await _context
                 .Projects
                 .AsNoTracking()
+                .AsSplitQuery()
                 .Include(p => p.Resources)
                 .Include(p => p.Credits)
                 .Include(p => p.UserRoles)
@@ -576,6 +577,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 .Include(p => p.Resources)
                 .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
+            var requestTime = DateTime.UtcNow;
             foreach (var template in _builtWorkspaceDefinition.Templates)
             {
                 Log($"Scaffolding local changes for {template.Name}");

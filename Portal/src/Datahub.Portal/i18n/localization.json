@@ -2262,6 +2262,7 @@
   "You can edit your selection in the select step.": "You can edit your selection in the select step.",
   "You can explore existing projects and users on the platform using the Explore page": "You can explore existing projects and users on the platform using the Explore page",
   "You can request workspace tools from the \u0027Toolbox\u0027 tab.": "You can request workspace tools from the \u0027Toolbox\u0027 tab.",
+  "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.": "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.",
   "You have no notifications.": "You have no notifications.",
   "You have unsaved changes. Please save them before leaving this page.": "You have unsaved changes. Please save them before leaving this page.",
   "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.",
@@ -2369,5 +2370,6 @@
   "NOTICE": "NOTICE",
   "IMPORTANT": "IMPORTANT",
   "Trusted Entra Login": "Trusted Entra Login",
-  "External Login": "External Login"
+  "External Login": "External Login",
+  "{0} has been blocked.": "{0} has been blocked."
 }

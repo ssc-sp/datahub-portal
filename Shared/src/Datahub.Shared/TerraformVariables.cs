@@ -57,6 +57,8 @@ public static class TerraformVariables
     public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
     public const string AzureLogWorkspaceId = "log_workspace_id";
     public const string SSCCBRID = "ssc_cbrid";
+    public const string PipelineRunId = "pipeline_run_id";
+    public const string PipelineReunUrl = "pipeline_run_url";
 
     // Postgres related variables
     public const string PsqlSku = "psql_sku";
