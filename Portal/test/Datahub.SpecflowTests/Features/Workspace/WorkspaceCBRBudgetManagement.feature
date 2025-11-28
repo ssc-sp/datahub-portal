@@ -1,4 +1,5 @@
 ﻿@IWebHostEnvironment
+@toolbox
 Feature: Workspace CBR Budget Management Page
 	The workspace CBR budget management page should show budget allocation settings for
 	workspaces in the same CBR as the current workspace (including this workspace).

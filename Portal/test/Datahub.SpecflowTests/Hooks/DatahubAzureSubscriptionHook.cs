@@ -17,7 +17,7 @@ namespace Datahub.SpecflowTests.Hooks;
 public class DatahubAzureSubscriptionHook
 {
     [BeforeScenario("AzureDatahubSubscription")]
-    public async Task BeforeScenarioAzureDatahubSubscription(IObjectContainer objectContainer,
+    public void BeforeScenarioAzureDatahubSubscription(IObjectContainer objectContainer,
         ScenarioContext scenarioContext)
     {
         var configuration = new ConfigurationBuilder()
@@ -54,7 +54,7 @@ public class DatahubAzureSubscriptionHook
         datahubAzureSubscriptionService
             .Configure()
             .FetchSubscriptionResource(Arg.Is<string>("invalid-subscription-id"))!
-            .Throws(new InvalidOperationException("Subscription not found. Please check the subscription id and access permissions."));
+            .ThrowsAsync(new InvalidOperationException("Subscription not found. Please check the subscription id and access permissions."));
         
         
         var unstubbedDatahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);

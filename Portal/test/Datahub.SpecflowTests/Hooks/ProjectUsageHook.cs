@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using Azure.Core;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
@@ -148,6 +149,10 @@ namespace Datahub.SpecflowTests.Hooks
             workspaceRgManagementService
                 .GetAllSubscriptionResourceGroupsAsync(Arg.Any<string>())
                 .Returns(new List<string> { Testing.ResourceGroupName1 });
+
+            workspaceRgManagementService.
+                GetWorkspaceResourceGroupsIdentifiersAsync(Arg.Any<string>())
+                .Returns(new List<ResourceIdentifier> ());
 
             var projectUsageScheduler = new ProjectUsageScheduler(loggerFactory, dbContextFactory, sendEndpointProvider,
                 workspaceCostsManagementService, workspaceStorageManagementService, workspaceRgManagementService,
