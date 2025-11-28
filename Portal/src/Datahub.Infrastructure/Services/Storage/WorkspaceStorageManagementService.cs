@@ -29,7 +29,8 @@ namespace Datahub.Infrastructure.Services.Storage
             {
                 storageAccountIds = await GetStorageAccountIds(workspaceAcronym);
             }
-
+            if (storageAccountIds?.Count == 0)
+                throw new InvalidOperationException("Cannot resolve storage capacity for workspace with no storage accounts.");
             logger.LogInformation("Storage account ids: {Join}", string.Join(", ", storageAccountIds));
 
             var today = DateTime.UtcNow;
