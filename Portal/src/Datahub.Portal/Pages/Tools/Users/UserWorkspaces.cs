@@ -1,5 +1,5 @@
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Portal.Pages.Tools.Users
 {

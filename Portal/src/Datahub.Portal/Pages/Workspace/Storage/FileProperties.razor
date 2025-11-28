@@ -8,7 +8,6 @@
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Portal.Components.User
 
-@inject DataRetrievalService _dataRetrievalService
 @inject CommonAzureServices _commonAzureServices;
 
 @if (File != null)
@@ -59,7 +58,7 @@
     public string ProjectAcronym { get; set; }
 
     [CascadingParameter(Name = "StorageAccountMetadata")]
-    public StorageMetadata StorageAccountMetadata { get; set; }
+    public AzureStorageMetadata StorageAccountMetadata { get; set; }
 
     [Parameter]
     public int? ProjectId { get; set; }

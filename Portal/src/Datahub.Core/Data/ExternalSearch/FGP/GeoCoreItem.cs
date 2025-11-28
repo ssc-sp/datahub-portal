@@ -5,28 +5,28 @@ namespace Datahub.Core.Data.ExternalSearch.FGP;
 public class GeoCoreItem
 {
     public Guid Id { get; set; }
-    public string Published { get; set; } // TODO potentially incomplete dates (yyyy-mm or yyyy)
-    public string Organisation { get; set; }
-    public string Type { get; set; }
-    public string TopicCategory { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-    public string Keywords { get; set; } // TODO turn it into a list
-    public string SpatialRepresentation { get; set; }
-    public string Language { get; set; } // json source: "eng; CAN" -> maybe turn it into a CultureInfo
-    public string TemporalExtent { get; set; } // TODO some processing? (pair of month dates)
-    public string Coordinates { get; set; } // TODO some processing (list of points)
-    public string Created { get; set; } // TODO some processing (month date)
+    public string? Published { get; set; } // TODO potentially incomplete dates (yyyy-mm or yyyy)
+    public string? Organisation { get; set; }
+    public string? Type { get; set; }
+    public string? TopicCategory { get; set; }
+    public string? Title { get; set; }
+    public string? Description { get; set; }
+    public string? Keywords { get; set; } // TODO turn it into a list
+    public string? SpatialRepresentation { get; set; }
+    public string? Language { get; set; } // json source: "eng; CAN" -> maybe turn it into a CultureInfo
+    public string? TemporalExtent { get; set; } // TODO some processing? (pair of month dates)
+    public string? Coordinates { get; set; } // TODO some processing (list of points)
+    public string? Created { get; set; } // TODO some processing (month date)
 
-    public string Options { get; set; } // TODO lots of processing (JSON w/ multiple escape, multiple quotes)
-    public string GraphicOverview { get; set; } // TODO lots of processing (same)
-    public string Contact { get; set; } // TODO lots of processing (same)
+    public string? Options { get; set; } // TODO lots of processing (JSON w/ multiple escape, multiple quotes)
+    public string? GraphicOverview { get; set; } // TODO lots of processing (same)
+    public string? Contact { get; set; } // TODO lots of processing (same)
 
-    private GeoCoreOptionsList _optionsList = null;
-    private GeoCoreContactList _contactList = null;
-    private GeoCoreGraphicOverviewList _graphicsList = null;
+    private GeoCoreOptionsList? _optionsList = null;
+    private GeoCoreContactList? _contactList = null;
+    private GeoCoreGraphicOverviewList? _graphicsList = null;
 
-    public GeoCoreOptionsList OptionsList
+    public GeoCoreOptionsList? OptionsList
     {
         get
         {
@@ -38,7 +38,7 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreContactList ContactList
+    public GeoCoreContactList? ContactList
     {
         get
         {
@@ -50,9 +50,9 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreContact FirstContact => ContactList.Count > 0 ? ContactList[0] : null;
+    public GeoCoreContact? FirstContact => ContactList?.Count > 0 ? ContactList[0] : null;
 
-    public GeoCoreGraphicOverviewList GraphicOverviewList
+    public GeoCoreGraphicOverviewList? GraphicOverviewList
     {
         get
         {
@@ -64,16 +64,20 @@ public class GeoCoreItem
         }
     }
 
-    public GeoCoreGraphicOverview FirstGraphicOverview => GraphicOverviewList.Count > 0 ? GraphicOverviewList[0] : null;
+    public GeoCoreGraphicOverview? FirstGraphicOverview => GraphicOverviewList?.Count > 0 ? GraphicOverviewList[0] : null;
 
-    private T DecodeEscapedJson<T>(string content)
+    private T? DecodeEscapedJson<T>(string? content)
     {
-        var decoded = content.Replace("\\\"\"", "\"").Replace("\"\"", string.Empty);
+        var decoded = content?.Replace("\\\"\"", "\"").Replace("\"\"", string.Empty);
+        if (string.IsNullOrEmpty(decoded))
+        {
+            return default;
+        }
         var result = JsonConvert.DeserializeObject<T>(decoded);
         return result;
     }
 
-    public string GetGeoCaUrl(string lang = "en")
+    public string? GetGeoCaUrl(string? lang = "en")
     {
         return $"https://app.geo.ca/result?id={Id}&lang={lang}";
     }
@@ -93,9 +97,9 @@ public class GeoCoreItem
 "coordinates": "[[[-141.003, 41.6755], [-52.6174, 41.6755], [-52.6174, 83.1139], [-141.003, 83.1139], [-141.003, 41.6755]]]",
 "created": "2021-02"
 
-"contact": "[json string]",
-"options": "[json string]",
-"graphicOverview": "[json string]",
+"contact": "[json string?]",
+"options": "[json string?]",
+"graphicOverview": "[json string?]",
 
 "total": "1",
 "row_num": "1",

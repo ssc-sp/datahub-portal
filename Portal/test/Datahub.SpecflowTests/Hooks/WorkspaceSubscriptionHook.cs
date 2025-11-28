@@ -6,6 +6,7 @@ using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Subscriptions;
@@ -67,7 +68,7 @@ public class WorkspaceSubscriptionHook
 
         resourceMessagingSubstitute.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
             .Returns(callInfo =>
-                resourceMessagingService.GetWorkspaceDefinition(callInfo.Arg<string>(), callInfo.Arg<string>()));
+                resourceMessagingService.GetWorkspaceDefinition((string)callInfo[0], (string)callInfo[1])); 
 
         var currentUser = new PortalUser
         {

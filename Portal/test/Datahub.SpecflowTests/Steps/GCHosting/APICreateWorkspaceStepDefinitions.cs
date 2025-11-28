@@ -7,6 +7,7 @@ using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Infrastructure.Services;
 using Datahub.Metadata.DTO;
@@ -147,7 +148,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             
 
             azureSubService.NextSubscriptionAsync()
-                .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1 });
+                .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1, SubscriptionId = "test-subscription-id", TenantId = "test-tenant-id", SubscriptionName = "Test Subscription" });
 
             var mockedWorkspaceCreationService = Substitute.ForPartsOf<WorkspaceCreationService>(
                         datahubPortalConfiguration,

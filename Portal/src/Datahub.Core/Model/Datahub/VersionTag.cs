@@ -23,19 +23,19 @@ namespace Datahub.Core.Model.Datahub
         /// </summary>
         [Required]
         [StringLength(20)]
-        public string Tag { get; set; }
+        public required string Tag { get; set; }
 
         /// <summary>
         /// Gets or sets the description of the version tag.
         /// </summary>
         [Required]
-        public string VersionDescription { get; set; }
+        public required string VersionDescription { get; set; }
 
         /// <summary>
         /// Gets or sets the French description of the version tag.
         /// </summary>
         [Required]
-        public string VersionDescriptionFr { get; set; }
+        public required string VersionDescriptionFr { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the version tag is currently active.
@@ -50,7 +50,7 @@ namespace Datahub.Core.Model.Datahub
         /// <summary>
         /// Gets or sets the identifier of the user who created the version tag.
         /// </summary>
-        public string CreatedBy { get; set; }
+        public string? CreatedBy { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether an announcement was created for this version tag.

@@ -125,7 +125,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         _dateProvider.ProjectSoftDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
-        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
+        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false);
@@ -143,7 +143,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         _dateProvider.ProjectSoftDeletionDay().Returns(deletionDay);
         _dateProvider.Today.Returns(new DateTime(2000, 1, 1));
-        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
+        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(daysSinceLastLogin, null, false);
@@ -160,7 +160,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         _dateProvider.Today.Returns(today);
         _dateProvider.ProjectSoftDeletionDay().Returns(10);
-        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
+        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(10, operationalWindow, false);
@@ -174,7 +174,7 @@ public class ProjectInactivityNotifierTests
         // Arrange
         _dateProvider.Today.Returns(DateTime.Today);
         _dateProvider.ProjectSoftDeletionDay().Returns(10);
-        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(new WorkspaceDefinition());
+        _resourceMessagingService.GetWorkspaceDefinition("").ReturnsForAnyArgs(TestHelper.TestWorkspaceDefinition);
 
         // Act
         var result = _sut.CheckIfProjectToBeDeleted(10, null, true);

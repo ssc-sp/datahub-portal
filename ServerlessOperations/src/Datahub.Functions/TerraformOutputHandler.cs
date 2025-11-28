@@ -34,6 +34,12 @@ public class TerraformOutputHandler(
     {
         _logger.LogInformation($"C# Queue trigger function started");
 
+        // Log ServiceBusReceivedMessage details
+        _logger.LogInformation("ServiceBus message received - MessageId: {MessageId}, CorrelationId: {CorrelationId}, Subject: {Subject}, ContentType: {ContentType}", 
+            message.MessageId, message.CorrelationId, message.Subject, message.ContentType);
+        
+        _logger.LogInformation("ServiceBus message body: {MessageBody}", message.Body.ToString());
+                
         // test for ping
         // if (await pongService.Pong(message.Body.ToString()))
         // return;
@@ -50,7 +56,14 @@ public class TerraformOutputHandler(
 
         try
         {
-            await ProcessTerraformOutputVariables(output);
+            if (output.ContainsKey(TerraformVariables.PipelineRunId))
+            {
+                await ProcessTerraformInputVariables(output);
+            }
+            else
+            { 
+                await ProcessTerraformOutputVariables(output);            
+            }
         }
         catch (Exception e)
         {
@@ -60,8 +73,64 @@ public class TerraformOutputHandler(
 
         await ProcessPostTerraformTriggers(output);
 
-
         _logger.LogInformation("C# Queue trigger function finished");
+    }
+
+    internal async Task ProcessTerraformInputVariables(Dictionary<string, TerraformOutputVariable> output)
+    {
+        var projectAcronym = output[TerraformVariables.ProjectAcronym].Value;
+        var pipelineId = int.Parse(output[TerraformVariables.PipelineRunId].Value);
+        
+
+        var projects = await projectDbContext.Projects            
+            .ToListAsync();
+        var resourcesall = await projectDbContext.Project_Resources2
+            .ToListAsync();
+
+        var resources = await projectDbContext.Projects
+            .Where(p => p.Project_Acronym_CD == projectAcronym)
+            .SelectMany(p => p.Resources.Where(r => r.PipelineId == null && TerraformStatus.RequestedOrInProcessOf(r.Status)))
+            .ToListAsync();
+
+        if (resources is null || !resources.Any())
+        {
+            _logger.LogError("No current resources found for {projectAcronym} that need to be created or deleted", projectAcronym);
+            throw new Exception($"Project not found for acronym {projectAcronym}");
+        }
+
+        // Get unique RequestedAt dates and find the earliest one
+        var uniqueRequestedAtDates = resources
+            .Select(r => r.RequestedAt)
+            .Distinct()
+            .ToList();
+
+        if (uniqueRequestedAtDates.Any())
+        {
+            var earliestRequestedAt = uniqueRequestedAtDates.Min();
+            _logger.LogInformation("Earliest RequestedAt date found: {EarliestRequestedAt}", earliestRequestedAt);
+
+            // Update resources with the earliest RequestedAt date
+            var resourcesToUpdate = resources
+                .Where(r => r.RequestedAt == earliestRequestedAt)
+                .ToList();
+
+            foreach (var resource in resourcesToUpdate)
+            {
+                resource.PipelineId = pipelineId;
+            }
+
+            _logger.LogInformation("Updated {ResourceCount} resources with PipelineId {PipelineId}", 
+                resourcesToUpdate.Count, pipelineId);
+            
+            await projectDbContext.SaveChangesAsync();
+        }
+        else
+        {
+            _logger.LogInformation("No RequestedAt dates found in the resources");
+        }
+
+        _logger.LogInformation("Retrieved {ResourceCount} project resources for project {ProjectAcronym}", 
+            resources.Count, projectAcronym);
     }
 
     private async Task ProcessPostTerraformTriggers(IReadOnlyDictionary<string, TerraformOutputVariable> output)

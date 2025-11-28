@@ -18,17 +18,17 @@ namespace Datahub.Core.Model.Projects
         /// <summary>
         /// Gets or sets the workspace linked to this whitelist record.
         /// </summary>
-        public virtual Datahub_Project Project { get; set; }
+        public virtual Datahub_Project? Project { get; set; }
 
         /// <summary>
         /// Gets or sets the user ID of the admin who last updated this record.
         /// </summary>
-        public string AdminLastUpdated_ID { get; set; }
+        public string? AdminLastUpdated_ID { get; set; }
 
         /// <summary>
         /// Gets or sets the username of the admin who last updated this record.
         /// </summary>
-        public string AdminLastUpdated_UserName { get; set; }
+        public string? AdminLastUpdated_UserName { get; set; }
 
         /// <summary>
         /// Gets or sets the date and time when this record was last updated.
@@ -50,7 +50,7 @@ namespace Datahub.Core.Model.Projects
         /// </summary>
         /// <param name="other">The workspace whitelist to compare with this instance.</param>
         /// <returns>True if the specified whitelist is the same as this one; otherwise, false.</returns>
-        public bool IsEqual(Project_Whitelist other)
+        public bool IsEqual(Project_Whitelist? other)
         {
             return other != null &&
                    ProjectId == other.ProjectId &&

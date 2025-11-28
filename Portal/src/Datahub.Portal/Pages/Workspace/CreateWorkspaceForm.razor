@@ -1,5 +1,6 @@
 ﻿@using Datahub.Application.Services
 @using Datahub.Core.Model.Onboarding
+@using Datahub.Core.Model.Projects
 @using Datahub.Portal.Components
 @using static Datahub.Core.DevTools
 @inject IWorkspaceCreationService _projectCreationService
@@ -182,7 +183,7 @@
     private string? BudgetValidation(decimal b) => b > _availableBudget ? _overBudgetError : null;
     private string _cbrNotSelectedError => Localizer["CBR must be selected to create a workspace"];
     private string? CbrValidation(GCHostingWorkspaceDetails d) => d is null ? _cbrNotSelectedError : null;
-    private string CbrSettingsUrl => $"/w/{_currentGcHostingPlan!.Datahub_Project.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
+    private string CbrSettingsUrl => $"/w/{GetFirstCBRWorkspace()!.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
 
     private bool _success = false;
     private bool _isCreating;
@@ -290,6 +291,10 @@
         _createRepository = value;
     }
 
+    private Datahub_Project? GetFirstCBRWorkspace() => GetFirstCBRWorkspace(_currentGcHostingPlan);
+
+    private Datahub_Project? GetFirstCBRWorkspace(GCHostingWorkspaceDetails? workspaceDetails) => workspaceDetails?.WorkspacesInBudget.FirstOrDefault();
+
     protected override async Task OnInitializedAsync()
     {
         gcHostingPlans = ShowAllCBRs ?
@@ -301,7 +306,7 @@
         await base.OnInitializedAsync();
     }
 
-    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d) => d is null? Localizer["N/A"] : $"{d.CBRID} - {d.CBRName} ({d.Datahub_Project.Project_Acronym_CD})";
+    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d) => d is null || !d.WorkspacesInBudget.Any() ? Localizer["N/A"] : $"{d.CBRID} - {d.CBRName} ({GetFirstCBRWorkspace(d)!.Project_Acronym_CD})";
 
 #nullable disable
 }
