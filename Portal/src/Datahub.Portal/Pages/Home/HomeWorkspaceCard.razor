@@ -29,17 +29,19 @@
             </MudText>
             <FeaturedProjectToggle Project="@Workspace" />
             <MudSpacer />
-            <MudChip T="string" Color="@GetColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="Localizer["This workspace has security level Protected B"]">
-                <span class="sr-only">@Localizer["This workspace has security level Protected B"]</span>
-                <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
-                @if (!Workspace.Data_Sensitivity.Equals("Unclassified"))
-                {
-                    <MudText Typo="Typo.body1">
-                        <strong>
-                            @Localizer[(Workspace.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
-                        </strong>
-                    </MudText>
-                }
+            <MudChip T="string" Color="@GetSecurityColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]">
+                
+                    <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
+                    @if (!Workspace.Data_Sensitivity.Equals("Unclassified"))
+                    {
+                        <MudText Typo="Typo.body1">
+                            <strong>
+                                @Localizer[(Workspace.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
+                            </strong>
+                        </MudText>
+                    }
+                    <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
+                
             </MudChip>
         </MudStack>
         <MudStack Row>
@@ -280,7 +282,7 @@
         };
     }
 
-        public Color GetColor(string securityLevel)
+    private Color GetSecurityColor(string securityLevel)
     {
         if (securityLevel is not null)
         {
@@ -295,6 +297,23 @@
             }
         }
         return Color.Primary;
+    }
+
+    private string GetSecurityTitle(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return "This workspace has Protected B security level";
+                case "Protected A":
+                    return "This workspace has Protected A security level";
+                default:
+                    return "This workspace has Unclassified security level";
+            }
+        }
+        return "This workspace is Unclassified security level";
     }
 
    
