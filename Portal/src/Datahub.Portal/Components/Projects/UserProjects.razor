@@ -224,6 +224,7 @@ else
     private List<Datahub_Project> _protectedBWorkspaces;
     private string _latestVersion;
     private string _userEmail;
+    private bool roleFiltered = false;
 
     // Styles
     string SectionTitleStyle => new StyleBuilder()
@@ -305,13 +306,13 @@ else
     {
         List<Datahub_Project> _tempSecurityWorkspaces = new List<Datahub_Project>();
         List<Datahub_Project> _tempRoleWorkspaces = new List<Datahub_Project>();
-        bool securityShow = false;
-        bool roleShow = false;
+        bool securityFiltered = false;
+        roleFiltered = false;
         foreach (var group in SecurityDisplayGroups)
         {
             if (Show(group))
             {
-                securityShow = true;
+                securityFiltered = true;
                 foreach (var workspace in group.Workspaces)
                 {
                     _tempSecurityWorkspaces.Add(workspace);
@@ -322,7 +323,7 @@ else
         {
             if (Show(group2))
             {
-                roleShow = true;
+                roleFiltered = true;
                 foreach (var workspace in group2.Workspaces)
                 {
                     _tempRoleWorkspaces.Add(workspace);
@@ -331,7 +332,7 @@ else
         }
         if(!_tempSecurityWorkspaces.Any()) // if there are no security workspaces
         {
-            if(securityShow) // if there is a security workspace filter applied
+            if (securityFiltered) // if there is a security workspace filter applied
             {
                 _filteredWorkspaces.Clear();
                 return;
@@ -341,7 +342,7 @@ else
         }
         else if(!_tempRoleWorkspaces.Any())
         {
-            if(roleShow)
+            if(roleFiltered)
             {
                 _filteredWorkspaces.Clear();
                 return;
@@ -452,6 +453,13 @@ else
                 anyCondition = true;
             }
         }
+
+        if(!roleFiltered)// if there are no roles filtered for, cut off the label here
+        {
+            label += Localizer[" workspaces"];
+            return label;
+        }
+
         label += Localizer[" workspaces where you are a "];
 
         anyCondition = false;

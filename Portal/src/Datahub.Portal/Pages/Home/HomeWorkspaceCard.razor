@@ -29,7 +29,8 @@
             </MudText>
             <FeaturedProjectToggle Project="@Workspace" />
             <MudSpacer />
-            <MudChip T="string" Color="@GetColor(Workspace.Data_Sensitivity)" Size="Size.Small">
+            <MudChip T="string" Color="@GetColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="Localizer["This workspace has security level Protected B"]">
+                <span class="sr-only">@Localizer["This workspace has security level Protected B"]</span>
                 <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
                 @if (!Workspace.Data_Sensitivity.Equals("Unclassified"))
                 {
