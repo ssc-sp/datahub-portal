@@ -48,7 +48,7 @@
                                     @project.Project_Acronym_CD
                                 </MudText>
                                 <MudSpacer/>
-                                <MudChip T="string" Color="@GetColor(project.Data_Sensitivity)" Size="Size.Small">
+                                <MudChip T="string" Color="@GetSecurityColor(project.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(project.Data_Sensitivity)]">
                                     <DHIcon Icon=@(project.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
                                     @if (!project.Data_Sensitivity.Equals("Unclassified"))
                                     {
@@ -58,6 +58,7 @@
                                             </strong>
                                         </MudText>
                                     }
+                                    <span class="sr-only">@Localizer[GetSecurityTitle(project.Data_Sensitivity)]</span>
                                 </MudChip>
                             </MudStack>
                         </MudSelectItem>
@@ -441,7 +442,7 @@
         };
     }
 
-    public Color GetColor(string securityLevel)
+    private Color GetSecurityColor(string securityLevel)
     {
         if (securityLevel is not null)
         {
@@ -456,5 +457,21 @@
             }
         }
         return Color.Primary;
+    }
+    private string GetSecurityTitle(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return "This workspace has Protected B security level";
+                case "Protected A":
+                    return "This workspace has Protected A security level";
+                default:
+                    return "This workspace has Unclassified security level";
+            }
+        }
+        return "This workspace is Unclassified security level";
     }
 }
