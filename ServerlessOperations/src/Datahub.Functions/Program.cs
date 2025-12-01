@@ -82,6 +82,7 @@ builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudget
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+builder.Services.AddScoped<IWorkspaceAclService, WorkspaceAclService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
@@ -98,6 +99,7 @@ builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
 builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
+builder.Services.AddScoped<IBlobMetadataWriter, BlobMetadataWriter>();
 
 // in-memory cache for health result
 builder.Services.AddMemoryCache();

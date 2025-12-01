@@ -11,6 +11,7 @@
   </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="Azure.Messaging.EventGrid" Version="4.29.0" />
         <PackageReference Include="AutoFixture" Version="4.18.*" />
         <PackageReference Include="FluentAssertions" Version="7.1.*" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.*" />
