@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Datahub.Infrastructure.Services.Announcements;
 
@@ -16,7 +17,7 @@ public class AnnouncementService : IAnnouncementService
 {
     private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _datahubProjectDbFactory;
-    private readonly IDatahubAuditingService _auditingService;
+    private readonly IServiceScopeFactory scopeFactory;
     private readonly ILogger<AnnouncementService> _logger;
     private readonly IMemoryCache _cache;
 
@@ -24,12 +25,13 @@ public class AnnouncementService : IAnnouncementService
     private static readonly string ActivePreviewsCacheKeyFr = "AnnouncementService.ActivePreviews.Fr";
 
     public AnnouncementService(DatahubPortalConfiguration datahubPortalConfiguration, IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        IDatahubAuditingService auditingService, ILogger<AnnouncementService> logger, IMemoryCache cache)
+        IServiceScopeFactory scopeFactory,
+        ILogger<AnnouncementService> logger, IMemoryCache cache)
     {
         _datahubPortalConfiguration = datahubPortalConfiguration;
         _datahubProjectDbFactory = datahubProjectDbFactory;
+        this.scopeFactory = scopeFactory;
         _logger = logger;
-        _auditingService = auditingService;
         _cache = cache;
     }
     public async Task<List<Announcement>> GetAnnouncementsAsync()
@@ -70,7 +72,8 @@ public class AnnouncementService : IAnnouncementService
             {
                 context.Announcements.Update(announcement);
             }
-            await context.TrackSaveChangesAsync(_auditingService);
+            var auditingService = scopeFactory.CreateScope().ServiceProvider.GetRequiredService<IDatahubAuditingService>();
+            await context.TrackSaveChangesAsync(auditingService);
             ClearPreviewsCache();
             return true;
         }
@@ -93,7 +96,8 @@ public class AnnouncementService : IAnnouncementService
             announcement.IsDeleted = true;
             announcement.ForceHidden = true;
             context.Announcements.Update(announcement);
-            await context.TrackSaveChangesAsync(_auditingService);
+            var auditingService = scopeFactory.CreateScope().ServiceProvider.GetRequiredService<IDatahubAuditingService>();
+            await context.TrackSaveChangesAsync(auditingService);
             ClearPreviewsCache();
             return true;
         }

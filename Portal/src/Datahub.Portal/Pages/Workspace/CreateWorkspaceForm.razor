@@ -306,7 +306,7 @@
         await base.OnInitializedAsync();
     }
 
-    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d) => d is null ? Localizer["N/A"] : $"{d.CBRID} - {d.CBRName} ({GetFirstCBRWorkspace(d)!.Project_Acronym_CD})";
+    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d) => d is null || !d.WorkspacesInBudget.Any() ? Localizer["N/A"] : $"{d.CBRID} - {d.CBRName} ({GetFirstCBRWorkspace(d)!.Project_Acronym_CD})";
 
 #nullable disable
 }

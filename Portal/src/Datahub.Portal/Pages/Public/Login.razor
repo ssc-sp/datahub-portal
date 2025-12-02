@@ -115,7 +115,7 @@
             redirectUri = _navigationManager.BaseUri;
         }
 
-        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={redirectUri}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
+        var url = $"{_navigationManager.BaseUri}MicrosoftIdentity/Account/Challenge?redirectUri={Uri.EscapeDataString(redirectUri)}&scope=user.read%20openid%20offline_access%20profile&loginHint={loginHint}&domainHint=&claims=&policy=";
         _navigationManager.NavigateTo(url, true);
     }
 

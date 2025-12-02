@@ -1,4 +1,5 @@
 @DbContext
+@IWebHostEnvironment
 Feature: Workspace Shared Key Access Control
   Control to toggle shared key access to a workspaces storage account
 

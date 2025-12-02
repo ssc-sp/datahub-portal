@@ -1,4 +1,5 @@
 ﻿@IWebHostEnvironment
+@toolbox
 Feature: WorkspaceUsers
 The Workspace Users page should list users, support changing user roles, and allow adding data steward role.
     

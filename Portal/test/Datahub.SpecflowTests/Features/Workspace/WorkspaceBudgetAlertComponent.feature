@@ -1,4 +1,5 @@
 @IWebHostEnvironment
+@toolbox
 Feature: Workspace Budget Alert Component
 A component displayed on the workspace dashboard to alert all users of current budget status.
 

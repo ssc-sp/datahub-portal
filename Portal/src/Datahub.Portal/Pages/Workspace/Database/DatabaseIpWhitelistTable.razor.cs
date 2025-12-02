@@ -8,6 +8,7 @@ using Azure.ResourceManager.PostgreSql.FlexibleServers;
 using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
 using Datahub.Shared.Entities;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
@@ -22,6 +23,8 @@ namespace Datahub.Portal.Pages.Workspace.Database;
 /// </summary>
 public partial class DatabaseIpWhitelistTable
 {
+    [Inject] private IDialogService _dialogService { get; set; }
+
     /// <summary>
     /// Builds a PostgreSqlFlexibleServerResource object for the specified workspace acronym.
     /// </summary>
@@ -174,6 +177,32 @@ public partial class DatabaseIpWhitelistTable
         }
     }
 
+    private async Task AddNewIpOrRange()
+    {
+        var parameters = new DialogParameters();
+        var dialog = _dialogService.Show<IpAddressDialog>("Add IP Address or Range", parameters);
+
+        var result = await dialog.Result;
+
+        if (!result.Canceled && result.Data is IpAddressDialog.IpDialogResult ipResult)
+        {
+            if (IPAddress.TryParse(ipResult.StartIp, out var startIp) &&
+                IPAddress.TryParse(ipResult.EndIp, out var endIp))
+            {
+                var newWhitelistIpAddress = new WhitelistIPAddressData
+                {
+                    Name = Localizer["Client IP Address {0}", Guid.NewGuid().ToString()[..8]],
+                    StartIPAddress = startIp,
+                    EndIPAddress = endIp
+                };
+
+                await CreateOrUpdateIpAddress(newWhitelistIpAddress);
+                _snackbar.Add(Localizer["IP address(es) {0} - {1} have been added. Changes may take 15 minutes to apply.", startIp, endIp], Severity.Success);
+                _firewallRules.Add(newWhitelistIpAddress);
+            }
+        }
+    }
+
     /// <summary>
     /// Deletes an IP address from the whitelist of a database firewall rule.
     /// </summary>
@@ -188,6 +217,13 @@ public partial class DatabaseIpWhitelistTable
 
         _logger.LogInformation($"Deleting firewall rule: {whitelistIpAddressData?.Name}");
         rule.Value.Delete(WaitUntil.Started);
+
+        _firewallRules.Clear();
+        await foreach (var firewallRule in postgresResource.GetPostgreSqlFlexibleServerFirewallRules())
+        {
+            _firewallRules.Add(new WhitelistIPAddressData(firewallRule.Data));
+        }
+        StateHasChanged();
 
         if (showSnackbar)
         {
@@ -207,7 +243,7 @@ public partial class DatabaseIpWhitelistTable
         var rules = postgresResource.GetPostgreSqlFlexibleServerFirewallRules();
 
         // until we support IP ranges, we will only use the start IP address
-        rule.EndIPAddress = rule.StartIPAddress;
+        // rule.EndIPAddress = rule.StartIPAddress;
 
         _logger.LogInformation($"Creating or updating firewall rule: {rule.Name}");
         rules.CreateOrUpdate(WaitUntil.Started, rule.Name, rule.FlexibleFirewallRuleData);
