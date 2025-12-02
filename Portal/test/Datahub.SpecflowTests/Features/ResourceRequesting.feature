@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Resource Requesting
 Tests around the workspace resource requesting and its functionality for the user
 

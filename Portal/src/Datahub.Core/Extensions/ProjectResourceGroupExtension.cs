@@ -18,8 +18,8 @@ namespace Datahub.Core.Extensions
                 {
                     throw new Exception("Resource group name not found");
                 }
-                var jsonContent = JsonSerializer.Deserialize<JsonObject>(newProjectResource.JsonContent)!;
-                string rgName = jsonContent["resource_group_name"]!.ToString();
+                var jsonContent = JsonSerializer.Deserialize<JsonObject>(newProjectResource.JsonContent);
+                string rgName = jsonContent?["resource_group_name"]?.ToString() ?? throw new Exception("Resource group name not found");
                 if (rgName == "Missing") throw new Exception("Resource group name not found");
                 return rgName;
             }

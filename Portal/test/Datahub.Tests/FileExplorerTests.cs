@@ -300,6 +300,7 @@ namespace Datahub.Tests
             {
                 // default to no existing file to allow uploads
                 m.Setup(x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+                // let default UploadFileAsync behavior add to uploadedFiles (list)
             });
 
             var browserFiles = files.Select(f => CreateFakeBrowserFile(f.Name, new byte[(int)f.Size])).Cast<IBrowserFile>().ToArray();
@@ -310,7 +311,7 @@ namespace Datahub.Tests
             var expected = files.Where(f => f.ShouldUpload).Select(f => f.Name).OrderBy(n => n).ToArray();
 
             if (expected.Length > 0)
-            {
+        {
                 await WaitForUploadsAsync(uploadedFiles, expected.Length, 5000);
             }
             else

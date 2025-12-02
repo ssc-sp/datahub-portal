@@ -1,4 +1,5 @@
 @AzureDatahubSubscription
+@IWebHostEnvironment
 Feature: Azure Subscription Service
 This feature provides the ability to manage Azure subscriptions for the DataHub
 

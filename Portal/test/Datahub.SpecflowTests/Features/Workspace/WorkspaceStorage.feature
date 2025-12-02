@@ -1,4 +1,5 @@
 ﻿@WorkspaceStorage
+@IWebHostEnvironment
 Feature: WorkspaceStorage
 	Tests for the workspace storage service
 
