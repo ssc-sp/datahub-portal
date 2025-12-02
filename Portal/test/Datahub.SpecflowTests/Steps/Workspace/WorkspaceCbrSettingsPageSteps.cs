@@ -11,6 +11,7 @@ using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Azure.Management.Storage.Fluent.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
@@ -22,9 +23,9 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 
 [Binding]
 public class WorkspaceCbrSettingsPageSteps(
-    ScenarioContext scenarioContext, 
+    ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-) : TestContext
+) : BunitTestSteps
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -62,13 +63,7 @@ public class WorkspaceCbrSettingsPageSteps(
         var mockRequestManagementService = Substitute.For<IRequestManagementService>();
         Services.AddSingleton(mockRequestManagementService);
 
-        JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
-        JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
-        JSInterop.SetupVoid("mudPopover.initialize", _ => true);
-        JSInterop.Setup<int>("mudpopoverHelper.countProviders");
-        JSInterop.SetupVoid("mudPopover.connect", _ => true);
-        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
+        JSInterop.SetupMudBlazor();
         Services.AddStub<IDatahubAuditingService>();
     }
 
@@ -96,7 +91,7 @@ public class WorkspaceCbrSettingsPageSteps(
         var dbContextFactory = await CommonCbrTestUtils.GenerateCbrTestDatabase(cbrOwnerUser, otherWorkspaceLeadUser);
         Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
 
-        var authenticatedCbrBudgetPage = RenderComponent<CascadingAuthenticationState>(parameters =>
+        var authenticatedCbrBudgetPage = Render<CascadingAuthenticationState>(parameters =>
         {
             parameters.AddChildContent<MudPopoverProvider>();
             parameters.AddChildContent<CBRBudgetManagementPage>(childParams =>
@@ -128,7 +123,7 @@ public class WorkspaceCbrSettingsPageSteps(
     {
         var budgetTable = cbrPage.FindComponent<MudTable<WorkspaceBudgetManagementItem>>();
         var rows = budgetTable.FindComponents<MudTr>();
-        var budgetRow = rows.FirstOrDefault(r => r.Instance.Item is WorkspaceBudgetManagementItem budgetItem && budgetItem.Workspace.Project_Acronym_CD ==  workspaceAcronym);
+        var budgetRow = rows.FirstOrDefault(r => r.Instance.Item is WorkspaceBudgetManagementItem budgetItem && budgetItem.Workspace.Project_Acronym_CD == workspaceAcronym);
         return budgetRow;
     }
 
@@ -203,7 +198,7 @@ public class WorkspaceCbrSettingsPageSteps(
         var budgetInput = FindBudgetInputInBudgetRow(budgetRow!);
         budgetInput.Should().NotBeNull();
         await cbrPage.InvokeAsync(async () => await budgetInput!.Instance.ValueChanged.InvokeAsync(amount));
-        
+
         cbrPage.Render();
     }
 

@@ -5,6 +5,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
+using Datahub.SpecflowTests.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.SpecflowTests.Steps.Workspace
@@ -109,7 +110,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             return dbContextFactory;
         }
 
-        public static void AddLoggedInUserAuthorization(TestContextBase testContext, string workspaceName, bool isCbrOwner, bool isDhAdmin)
+        public static void AddLoggedInUserAuthorization(BunitTestSteps BunitTestSteps, string workspaceName, bool isCbrOwner, bool isDhAdmin)
         {
             var roleNames = new List<string>
             {
@@ -128,7 +129,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                 roleNames.Add(RoleConstants.DATAHUB_ROLE_ADMIN);
             }
 
-            var authContext = testContext.AddTestAuthorization();
+            var authContext = BunitTestSteps.AddAuthorization();
             authContext.SetAuthorized("TEST USER");
             authContext.SetRoles([.. roleNames]);
         }

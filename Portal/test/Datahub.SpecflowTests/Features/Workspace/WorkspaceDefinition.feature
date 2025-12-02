@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Workspace Definition
     
     The JSON representation that defines a workspace, including its name, resources, and users among other things.

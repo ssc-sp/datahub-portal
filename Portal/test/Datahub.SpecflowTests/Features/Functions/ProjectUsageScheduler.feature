@@ -1,4 +1,5 @@
 ﻿@ProjectUsage
+@IWebHostEnvironment
 Feature: ProjectUsageScheduler
     Tests for scheduling of project usage updates and project capacity updates
     
