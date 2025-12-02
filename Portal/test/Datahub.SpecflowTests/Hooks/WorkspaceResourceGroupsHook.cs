@@ -28,7 +28,7 @@ namespace Datahub.SpecflowTests.Hooks
     public class WorkspaceResourceGroupsHook
     {
         [BeforeScenario("WorkspaceResourceGroups")]
-        public void BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
+        public async Task BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
         {
             var configuration = new ConfigurationBuilder()
@@ -47,7 +47,7 @@ namespace Datahub.SpecflowTests.Hooks
             var armClient = Substitute.For<ArmClient>(); 
             var logger = Substitute.For<ILogger<WorkspaceResourceGroupsManagementService>>();
             var config = Substitute.For<IConfiguration>();
-            MockArmMethods(armClient);
+            await MockArmMethods(armClient);
 
             var workspaceRgManagementService =
                 new WorkspaceResourceGroupsManagementService(armClient, logger, dbContextFactory, config);
@@ -128,7 +128,7 @@ namespace Datahub.SpecflowTests.Hooks
             {
                 ProjectId = project2.Project_ID,
                 CreatedAt = DateTime.UtcNow.AddDays(-1),
-                JsonContent = "{}",
+                JsonContent = $"{{\"resource_group_name\": \"{Testing.ResourceGroupName2}\"}}",
                 ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate)
             });
             context.Project_Resources2.AddRange(projectResources);

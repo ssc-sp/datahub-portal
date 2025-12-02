@@ -3,6 +3,7 @@ using Bunit;
 using Datahub.Application.Configuration;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Pages.Workspace;
+using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,7 @@ namespace Datahub.SpecflowTests.Steps;
 public class WorkspaceBudgetAlertComponentSteps(
     ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-) : TestContext
+) : BunitTestSteps
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -35,7 +36,7 @@ public class WorkspaceBudgetAlertComponentSteps(
         Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
         Services.AddMudLocalization();
 
-        var workspaceBudgetAlert = RenderComponent<WorkspaceBudgetAlert>(opt =>
+        var workspaceBudgetAlert = Render<WorkspaceBudgetAlert>(opt =>
             opt.Add(p => p.PercentBudgetSpent, percent));
 
         scenarioContext["workspaceBudgetAlert"] = workspaceBudgetAlert;

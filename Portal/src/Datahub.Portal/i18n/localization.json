@@ -690,6 +690,7 @@
   "Enabled": "Enabled",
   "End Date": "End Date",
   "End_Date": "End Date",
+  "End IP Address": "End IP Address",
   "Engagement_Name": "Engagement Name",
   "Engagement_Start_Date": "Engagement Start Date",
   "Engagements": "Engagements",
@@ -998,6 +999,7 @@
   "Invalid Government of Canada email address": "Invalid Government of Canada email address",
   "Invalid IP address format (e.g. 192.168.2.1)": "Invalid IP address format (e.g. 192.168.2.1)",
   "Invalid IP address.": "Invalid IP address.",
+  "Invalid IP range.": "IP range must be within a single 255.255.255.0 subnet.",
   "Invalid email": "Invalid email",
   "Invalid link": "Invalid link",
   "Invalid parameters, redirecting": "Invalid parameters, redirecting",
@@ -1794,6 +1796,7 @@
   "StackTrace Snippet": "StackTrace Snippet",
   "Stage_Desc": "Stage",
   "Start": "Start",
+  "Start IP Address": "Start IP Address",
   "Start (ms)": "Start (ms)",
   "Start Date": "Start Date",
   "Start showing announcement on": "Start showing announcement on",
@@ -2262,6 +2265,7 @@
   "You can edit your selection in the select step.": "You can edit your selection in the select step.",
   "You can explore existing projects and users on the platform using the Explore page": "You can explore existing projects and users on the platform using the Explore page",
   "You can request workspace tools from the \u0027Toolbox\u0027 tab.": "You can request workspace tools from the \u0027Toolbox\u0027 tab.",
+  "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.": "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.",
   "You have no notifications.": "You have no notifications.",
   "You have unsaved changes. Please save them before leaving this page.": "You have unsaved changes. Please save them before leaving this page.",
   "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.",
@@ -2369,5 +2373,6 @@
   "NOTICE": "NOTICE",
   "IMPORTANT": "IMPORTANT",
   "Trusted Entra Login": "Trusted Entra Login",
-  "External Login": "External Login"
+  "External Login": "External Login",
+  "{0} has been blocked.": "{0} has been blocked."
 }

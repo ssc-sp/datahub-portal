@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: API Create Workspace
 Tests around the workspace resource requesting and its functionality for the user
 
