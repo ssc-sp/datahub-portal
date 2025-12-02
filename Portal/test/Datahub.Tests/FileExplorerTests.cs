@@ -36,7 +36,7 @@ namespace Datahub.Tests
 {
     public class FileExplorerTests : IDisposable
     {
-        private readonly Bunit.TestContext _ctx;
+        private readonly BunitContext _ctx;
         private const string TestUserId = "user-id";
         private const string TestProjectAcronym = "TEST";
         private const string TestContainerName = "test";
@@ -49,7 +49,7 @@ namespace Datahub.Tests
 
         public FileExplorerTests()
         {
-            _ctx = new Bunit.TestContext();
+            _ctx = new BunitContext();
 
             // Mock minimal services used by the component
             _mockUserInfo = new Mock<IUserInformationService>();
@@ -159,7 +159,7 @@ namespace Datahub.Tests
             _ctx.Services.AddSingleton<IMetadataBrokerService>(new Mock<IMetadataBrokerService>().Object);
 
             // register a fake NavigationManager for components
-            var fakeNav = new Bunit.TestDoubles.FakeNavigationManager(_ctx);
+            var fakeNav = new Bunit.TestDoubles.BunitNavigationManager(_ctx);
             _ctx.Services.AddSingleton<NavigationManager>(fakeNav);
         }
 
@@ -233,7 +233,7 @@ namespace Datahub.Tests
             var container = new CloudStorageContainer(mockStorageManager.Object, TestContainerName);
             var graphUser = new Microsoft.Graph.Models.User { Mail = "test@domain.com" };
 
-            var comp = _ctx.RenderComponent<FileExplorer>(parameters => parameters
+            var comp = _ctx.Render<FileExplorer>(parameters => parameters
                 .Add(p => p.ProjectId, 1)
                 .Add(p => p.Container, container)
                 .AddCascadingValue(nameof(FileExplorer.ProjectAcronym), TestProjectAcronym)
