@@ -17,6 +17,8 @@ namespace Datahub.Core.Model.Users
 
         public ICollection<ExternalUserInvite>? Requests { get; set; }
 
+        public int? PortalUserId { get; set; }
+
         public required PortalUser PortalUser { get; set; } = null!;
     }
 }

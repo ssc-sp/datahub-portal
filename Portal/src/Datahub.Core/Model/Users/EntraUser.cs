@@ -23,6 +23,8 @@ namespace Datahub.Core.Model.Users
         /// </summary>
         public string? Email { get; set; }
 
+        public int? PortalUserId { get; set; }
+
         public required PortalUser PortalUser { get; set; } = null!;
     }
 }

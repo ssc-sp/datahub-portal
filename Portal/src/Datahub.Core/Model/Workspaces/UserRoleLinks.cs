@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Datahub.Core.Model.Users;
 using MudBlazor.Forms;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Projects
 {
@@ -13,7 +13,6 @@ namespace Datahub.Core.Model.Projects
         /// Gets or sets the unique identifier for the workspace user record.
         /// </summary>
         [AeFormIgnore]
-        [Key]
         public int ProjectUser_ID { get; set; }
 
         /// <summary>
@@ -73,7 +72,6 @@ namespace Datahub.Core.Model.Projects
         /// <summary>
         /// Gets or sets the timestamp for concurrency control.
         /// </summary>
-        [Timestamp]
         public byte[]? Timestamp { get; set; }
     }
 }

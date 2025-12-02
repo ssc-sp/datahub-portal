@@ -1385,6 +1385,9 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTime?>("Approved_DT")
                         .HasColumnType("datetime2");
 
+                    b.Property<int?>("Datahub_ProjectProject_ID")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsDataSteward")
                         .HasColumnType("bit");
 
@@ -1405,6 +1408,8 @@ namespace Datahub.Core.Migrations
                     b.HasKey("ProjectUser_ID");
 
                     b.HasIndex("ApprovedPortalUserId");
+
+                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.HasIndex("PortalUserId");
 
@@ -1495,6 +1500,93 @@ namespace Datahub.Core.Migrations
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("GraphGuid")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<int?>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GraphGuid")
+                        .IsUnique();
+
+                    b.HasIndex("PortalUserId")
+                        .IsUnique()
+                        .HasFilter("[PortalUserId] IS NOT NULL");
+
+                    b.ToTable("EntraUsers");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
+                {
+                    b.Property<string>("ExternalUserID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("FirstLogin_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastLogin_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("LastPermissionsUpdated_DT")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("OID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("ExternalUserID");
+
+                    b.HasIndex("PortalUserId")
+                        .IsUnique()
+                        .HasFilter("[PortalUserId] IS NOT NULL");
+
+                    b.ToTable("ExternalUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserInvite", b =>
+                {
+                    b.Property<int>("RequestID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestID"));
+
+                    b.Property<string>("RequestContent")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset>("Request_DT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserOID")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("RequestID");
+
+                    b.HasIndex("UserOID");
+
+                    b.ToTable("ExternalUserRequests");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Property<int>("Id")
@@ -1507,19 +1599,16 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DisplayName")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
 
                     b.Property<DateTime?>("FirstLoginDateTime")
                         .HasColumnType("datetime2");
-
-                    b.Property<string>("GraphGuid")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime?>("LastLoginDateTime")
                         .HasColumnType("datetime2");
@@ -1528,9 +1617,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("GraphGuid")
-                        .IsUnique();
 
                     b.ToTable("PortalUsers", (string)null);
                 });
@@ -1986,21 +2072,28 @@ namespace Datahub.Core.Migrations
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "ApprovedPortalUser")
                         .WithMany()
-                        .HasForeignKey("ApprovedPortalUserId");
+                        .HasForeignKey("ApprovedPortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", null)
+                        .WithMany("UserRoles")
+                        .HasForeignKey("Datahub_ProjectProject_ID");
 
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
-                        .WithMany()
-                        .HasForeignKey("PortalUserId");
+                        .WithMany("UserRoles")
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
-                        .WithMany("UserRoles")
+                        .WithMany()
                         .HasForeignKey("Project_ID")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
                         .WithMany()
-                        .HasForeignKey("RoleId");
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ApprovedPortalUser");
 
@@ -2020,6 +2113,37 @@ namespace Datahub.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
+                        .WithOne("EntraUser")
+                        .HasForeignKey("Datahub.Core.Model.Users.EntraUser", "PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
+                        .WithOne("ExternalUser")
+                        .HasForeignKey("Datahub.Core.Model.Users.ExternalUser", "PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserInvite", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.ExternalUser", "User")
+                        .WithMany("Requests")
+                        .HasForeignKey("UserOID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
@@ -2117,9 +2241,18 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Workspaces");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
+                {
+                    b.Navigation("Requests");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Navigation("Achievements");
+
+                    b.Navigation("EntraUser");
+
+                    b.Navigation("ExternalUser");
 
                     b.Navigation("InactivityNotifications");
 
@@ -2128,6 +2261,8 @@ namespace Datahub.Core.Migrations
                     b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
+
+                    b.Navigation("UserRoles");
 
                     b.Navigation("UserSettings");
                 });
