@@ -24,7 +24,7 @@ public class PortalUser : IValidatableObject
     /// </summary>
     [Required]
     [StringLength(256)]
-    public string? Email { get; set; }
+    public string Email { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the user's display name.

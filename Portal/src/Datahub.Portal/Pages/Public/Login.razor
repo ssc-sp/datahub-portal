@@ -79,7 +79,7 @@
     {
         _loggingIn = true;
         var loginHint = loginModel.Email;
-        var existingUser = await _userInformationService.GetPortalUserByEmailAsync(loginHint);
+        var existingUser = await _userInformationService.GetUserByEmailAsync(loginHint);
 
         // If user is deleted, redirect to register page with deleted flag
         if (existingUser is { IsDeleted: true })
@@ -91,7 +91,7 @@
         // If user is locked, redirect to locked page
         if (existingUser is { IsLocked: true })
         {
-Entra      _navigationManager.NavigateTo(Localizer["/locked"]);
+            _navigationManager.NavigateTo(Localizer["/locked"]);
             return;
         }
 
@@ -136,7 +136,7 @@ Entra      _navigationManager.NavigateTo(Localizer["/locked"]);
 
     public class LoginModel
     {
-        public string Email { get; set; }
-        public bool Agreement { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public bool Agreement { get; set; } = false;
     }
 }

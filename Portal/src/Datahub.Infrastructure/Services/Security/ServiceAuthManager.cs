@@ -5,6 +5,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
@@ -100,6 +101,15 @@ public class ServiceAuthManager : IServiceAuthManager
         {
             return false;
         }
+    }
+
+    public async Task<bool> IsProjectAdmin(PortalUser portalUser, string projectAcronym)
+    {
+        if (portalUser.EntraUser == null)
+        {
+            return false;
+        }
+        return await IsProjectAdmin(portalUser.EntraUser.GraphGuid, projectAcronym);
     }
 
     public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)

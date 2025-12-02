@@ -222,7 +222,7 @@
                 }
             </MudTd>
             <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-                <UserViewProfileIconButton ViewedUserGraphId="@rowContext.PortalUser.GraphGuid" />
+                <UserViewProfileIconButton ViewedUser="@rowContext.PortalUser" />
             </MudTd>
         </RowTemplate>
 

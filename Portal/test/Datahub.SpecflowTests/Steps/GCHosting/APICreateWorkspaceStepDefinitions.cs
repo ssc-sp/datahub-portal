@@ -201,7 +201,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 .Returns(new PortalUser
                 {
                     Email = currentEmail,
-                    GraphGuid = cGuid
+                    EntraUser = new() { GraphGuid = cGuid, PortalUser = null! }
                 });
 
             _userInformationService.CreatePortalEntraUserAsync(Arg.Any<string>())
@@ -210,7 +210,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                     _dbContext.PortalUsers.Add(new PortalUser
                     {
                         Email = currentEmail,
-                        GraphGuid = cGuid
+                        EntraUser = new() { GraphGuid = cGuid, PortalUser = null! }
                     });
                     await _dbContext.SaveChangesAsync();                    
                 });

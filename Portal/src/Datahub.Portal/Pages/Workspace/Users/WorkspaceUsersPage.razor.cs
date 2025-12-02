@@ -62,7 +62,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private void ManageUserUpdateCommand(UserRoleLinks projectUser)
         {
-            var existingUpdateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+            var existingUpdateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser == projectUser.PortalUser);
             var originalUserInfo = _originalUserInfo.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
 
             if (existingUpdateCommand != null)
@@ -130,7 +130,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private bool IsModified(UserRoleLinks projectUser)
         {
-            return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+            return _usersToUpdate.Any(x => x.ProjectUser.PortalUser == projectUser.PortalUser);
         }
         private DatahubAuthView.AuthLevels GetAuthLevel(UserRoleLinks projectUser)
         {
@@ -160,7 +160,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             { "ProjectAcronym", WorkspaceAcronym },
             { "Inviter", currentUser }
         };
-            var dialog = await _dialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
+            var dialog = await _dialogService.ShowAsync<AddNewEntraUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
             var result = await dialog.Result;
             if (!result.Canceled)
             {

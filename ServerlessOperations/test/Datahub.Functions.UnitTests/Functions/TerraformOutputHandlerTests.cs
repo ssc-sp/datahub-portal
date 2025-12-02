@@ -68,7 +68,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         
         _context.PortalUsers.Add(currentPortalUser);
@@ -173,7 +173,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null!},
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -245,7 +245,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -314,7 +314,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -385,7 +385,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -468,7 +468,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
 
         _context.PortalUsers.Add(currentPortalUser);

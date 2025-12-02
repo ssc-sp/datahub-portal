@@ -94,10 +94,11 @@ namespace Datahub.Tests
 
             var workspace = new Datahub_Project() { Project_ID = 1, Project_Acronym_CD = TEST_WORKSPACE_CODE };
 
+
             yield return new UserRoleLinks()
             {
                 PortalUserId = 1,
-                PortalUser = new PortalUser() { Id = 1, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Walter Lead", Email = "wlead@example.com" },
+                PortalUser = new PortalUser() { Id = 1, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, DisplayName = "Walter Lead", Email = "wlead@example.com" },
                 Role = workspaceLeadRole,
                 RoleId = workspaceLeadRole.Id,
                 Project = workspace,
@@ -108,7 +109,7 @@ namespace Datahub.Tests
             yield return new UserRoleLinks()
             {
                 PortalUserId = 2,
-                PortalUser = new PortalUser() { Id = 2, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Nathan Admi", Email = "admin@example.com" },
+                PortalUser = new PortalUser() { Id = 2, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, DisplayName = "Nathan Admi", Email = "admin@example.com" },
                 Project = workspace,
                 Project_ID = workspace.Project_ID,
                 Role = adminRole,
@@ -118,7 +119,7 @@ namespace Datahub.Tests
             yield return new UserRoleLinks()
             {
                 PortalUserId = 3,
-                PortalUser = new PortalUser() { Id = 3, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Gary Guest", Email = "guest@example.com" },
+                PortalUser = new PortalUser() { Id = 3, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, DisplayName = "Gary Guest", Email = "guest@example.com" },
                 Project = workspace,
                 Project_ID = workspace.Project_ID,
                 Role = guestRole,

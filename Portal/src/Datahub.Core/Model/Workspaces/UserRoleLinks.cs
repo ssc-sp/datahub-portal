@@ -51,12 +51,12 @@ namespace Datahub.Core.Model.Projects
         /// <summary>
         /// Gets or sets the associated workspace.
         /// </summary>
-        public Datahub_Project? Project { get; set; }
+        public Datahub_Project Project { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the associated role.
         /// </summary>
-        public Project_Role? Role { get; set; }
+        public Project_Role Role { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the portal user. This includes email and graph GUID.

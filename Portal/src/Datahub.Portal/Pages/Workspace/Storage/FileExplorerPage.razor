@@ -1,6 +1,7 @@
 ﻿@using Datahub.Application.Services;
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
 @using Datahub.Core.Storage;
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
@@ -39,7 +40,7 @@
     {
         <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
             <CascadingValue Value="@_project" Name="Project">
-                <CascadingValue Value="_user" Name="GraphUser">
+                <CascadingValue Value="_user" Name="PortalUser">
                     @if (ShouldShowContainerDropdown && !_failedToLoadContainers)
                     {
                         <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
@@ -144,7 +145,7 @@
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    private Datahub_Project _project;
+    private Datahub_Project? _project;
     private int? _projectId;
     private string _title;
 
@@ -152,7 +153,7 @@
     private CloudStorageContainer _selectedContainer;
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
-    private User _user;
+    private PortalUser _user = null!;
 
     private bool _tokenTermsAcknowledged = false;
 
@@ -174,7 +175,8 @@
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        _user = await _userInformationService.GetCurrentGraphUserAsync();
+        var entraUser = await _userInformationService.GetCurrentGraphUserAsync();
+        _user = await _userInformationService.GetCurrentPortalUserAsync();
         _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(WorkspaceAcronym) ||
                               await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
 

@@ -128,12 +128,12 @@ namespace Datahub.Functions.UnitTests.Functions
             // Mock the project users for each project
             var projectUser1 = new UserRoleLinks
             {
-                PortalUser = new PortalUser { Id = portalUserId, GraphGuid = Guid.NewGuid().ToString() },
+                PortalUser = new PortalUser { Id = portalUserId, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! } },
                 Role = new Project_Role { Id = (int)Project_Role.RoleNames.WorkspaceLead, Name = "Joe", Description = "Workspace user" }
             };
             var projectUser2 = new UserRoleLinks
             {
-                PortalUser = new PortalUser { Id = portalUserId, GraphGuid=Guid.NewGuid().ToString() },
+                PortalUser = new PortalUser { Id = portalUserId, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! } },
                 Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator, Name = "Jane", Description = "Collaborator" }
             };
             _projectUserManagementService.GetProjectUsersAsync(projectId1).Returns(new List<UserRoleLinks> { projectUser1 });

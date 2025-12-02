@@ -130,7 +130,7 @@ public class AccountPageSteps : BunitTestSteps
 
         var testPortalUser = new PortalUser
         {
-            GraphGuid = TEST_USER_OID,
+            EntraUser = new() { GraphGuid = TEST_USER_OID, PortalUser = null! },
             DisplayName = TEST_USER_DISPLAY_NAME,
             Email = TEST_USER_EMAIL,
             Id = 1

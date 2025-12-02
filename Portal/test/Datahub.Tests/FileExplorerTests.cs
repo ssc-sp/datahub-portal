@@ -35,24 +35,24 @@ namespace Datahub.Tests
 {
     public class FileExplorerTests : IDisposable
     {
-        private readonly Bunit.TestContext _ctx;
+        private readonly Bunit.BunitContext _ctx;
         private const string TestUserId = "user-id";
         private const string TestProjectAcronym = "TEST";
         private const string TestContainerName = "test";
 
         public FileExplorerTests()
         {
-            _ctx = new Bunit.TestContext();
+            _ctx = new Bunit.BunitContext();
 
             // Mock minimal services used by the component
             var mockUserInfo = new Mock<IUserInformationService>();
-            mockUserInfo.Setup(x => x.GetCurrentUserGraphId()).ReturnsAsync(TestUserId);
+            mockUserInfo.Setup(x => x.GetCurrentUserEntraId()).ReturnsAsync(TestUserId);
 
             // ensure Heading can obtain the current portal user
             var portalUser = new PortalUser
             {
                 Id =1,
-                GraphGuid = TestUserId,
+                EntraUser = new EntraUser { GraphGuid = TestUserId, PortalUser = null! },
                 Email = "test@domain.com",
                 DisplayName = "Test User"
             };

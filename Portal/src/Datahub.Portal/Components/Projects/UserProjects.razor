@@ -1,5 +1,6 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
 @using Datahub.Portal.Pages.Explore
 @using Datahub.Portal.Pages.Home
 @using MudBlazor.Utilities
@@ -170,8 +171,7 @@ else
     // Parameters
     [Parameter] public bool ShowTitle { get; set; } = true;
     [Parameter] public int SmSize { get; set; } = 4;
-    [Parameter] public string? EntraGraphID { get; set; }
-    [Parameter] public string? ExternalOID { get; set; }
+    [Parameter] public required PortalUser PortalUser { get; set; } = null!;
     [Parameter] public bool NewStyle { get; set; }
 
     // Display state
@@ -203,12 +203,12 @@ else
 
 
     // User, Roles, and Projects
-    private List<UserRoleLinks> _entraUserRoles;
-    private List<Datahub_Project> _allWorkspaces;
-    private List<Datahub_Project> _leadWorkspaces;
-    private List<Datahub_Project> _adminWorkspaces;
-    private List<Datahub_Project> _collaboratorWorkspaces;
-    private List<Datahub_Project> _guestWorkspaces;
+    private List<UserRoleLinks> _entraUserRoles = new List<UserRoleLinks>();
+    private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _leadWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _adminWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _collaboratorWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _guestWorkspaces = new List<Datahub_Project>();
     private string _latestVersion;
     private string _userEmail;
 
@@ -253,9 +253,9 @@ else
         {
             return;
 		}
-        var entraUserID = await UserInformationService.GetCurrentUserEntraId();
-        var entraUserID = EntraGraphID ?? entraUserID;
         
+        //TODO: Handle External users
+
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
         //getting all the projects where this users is a member
@@ -274,7 +274,7 @@ else
             .ThenInclude(p => p.Resources)
 			.AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser.EntraUser!.GraphGuid == entraUserID)
+			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser == PortalUser)
             .ToListAsync();
 		_userEmail = _entraUserRoles.First().PortalUser.Email;
 

@@ -236,7 +236,7 @@ public class ProjectUsageNotifierSteps(
 
         var workspaceLead = new PortalUser()
         {
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
             Email = "lead@email.com"
         };
 
@@ -245,7 +245,7 @@ public class ProjectUsageNotifierSteps(
         {
             adminUsers.Add(new PortalUser()
             {
-                GraphGuid = Guid.NewGuid().ToString(),
+                EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
                 Email = $"admin{i}@email.com",
             });
         }

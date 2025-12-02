@@ -153,7 +153,7 @@
         var existingUsersList = await _msGraphService.GetUsersListAsync(search, cancellationToken);
         _searchResultUsers = existingUsersList
             .Select(u => u.Value)
-            .Where(u => CurrentProjectUsers.All(x => x.PortalUser.GraphGuid != u.Id) 
+            .Where(u => CurrentProjectUsers.All(x => x.PortalUser?.EntraUser?.GraphGuid != u.Id) 
                         || _usersToAdd.Any(user => user.GraphGuid == u.Id))
             .ToList();
 

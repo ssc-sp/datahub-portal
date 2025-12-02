@@ -69,7 +69,7 @@ namespace Datahub.SpecflowTests.Steps
             yield return new UserRoleLinks()
             {
                 PortalUserId = 1,
-                PortalUser = new PortalUser() { Id = 1, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Walter Lead", Email = "wlead@example.com" },
+                PortalUser = new PortalUser() { Id = 1, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, DisplayName = "Walter Lead", Email = "wlead@example.com" },
                 Role = workspaceLeadRole,
                 RoleId = workspaceLeadRole.Id,
                 IsDataSteward = true
@@ -78,7 +78,7 @@ namespace Datahub.SpecflowTests.Steps
             yield return new UserRoleLinks()
             {
                 PortalUserId = 2,
-                PortalUser = new PortalUser() { Id = 2, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Nathan Admi", Email = "admin@example.com" },
+                PortalUser = new PortalUser() { Id = 2, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, DisplayName = "Nathan Admin", Email = "admin@example.com" },
                 Role = adminRole,
                 RoleId = adminRole.Id
             };
@@ -86,7 +86,7 @@ namespace Datahub.SpecflowTests.Steps
             yield return new UserRoleLinks()
             {
                 PortalUserId = 3,
-                PortalUser = new PortalUser() { Id = 3, GraphGuid = Guid.NewGuid().ToString(), DisplayName = "Gary Guest", Email = "guest@example.com" },
+                PortalUser = new PortalUser() { Id = 3, EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, DisplayName = "Gary Guest", Email = "guest@example.com" },
                 Role = guestRole,
                 RoleId = guestRole.Id
             };
@@ -383,7 +383,7 @@ namespace Datahub.SpecflowTests.Steps
             new UserRoleLinks
             {
                 RoleId = (int)Project_Role.RoleNames.WorkspaceLead,
-                PortalUser = new PortalUser { GraphGuid = Guid.NewGuid().ToString() }
+                PortalUser = new PortalUser { EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! } }
             }
                 });            
         }
