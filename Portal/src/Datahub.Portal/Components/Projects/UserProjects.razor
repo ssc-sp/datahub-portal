@@ -41,14 +41,25 @@
                         SelectionMode="SelectionMode.MultiSelection"
                         Ripple="false"
                         CheckMark>
-                @foreach (var group in AllDisplayGroups)
+                @foreach (var group in WorkspaceDisplayGroups)
                 {
                     <MudChip Class="dh_themed_chip" T="string"
                              title=@group.FilterLabel
                              Text=@group.Label
                              @bind-Selected=@(group.FilterToggle)
+                             @onclick="() => CheckWorkspaceRoleFilter()">
+                        @group.Label
+                    </MudChip>
+                }
+                @foreach (var group in SecurityDisplayGroups)
+                {
+                    <MudChip T="string"
+                             title=@group.FilterLabel
+                             Text=@group.Label
+                             @bind-Selected=@(group.FilterToggle)
                              Color=@group.Color
                              @onclick="() => CheckWorkspaceRoleFilter()">
+                        <DHIcon Icon=@(group.Label.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) Size="Size.Small"/>
                         @group.Label
                     </MudChip>
                 }

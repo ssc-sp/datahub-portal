@@ -30,8 +30,8 @@
             <FeaturedProjectToggle Project="@Workspace" />
             <MudSpacer />
             <MudChip T="string" Color="@GetSecurityColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]">
-                
-                    <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
+
+                <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock)/>
                     @if (!Workspace.Data_Sensitivity.Equals("Unclassified"))
                     {
                         <MudText Typo="Typo.body1">
