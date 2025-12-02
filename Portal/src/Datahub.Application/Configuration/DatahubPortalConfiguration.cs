@@ -264,7 +264,6 @@ public class StorageConfiguration
     public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
         .AsReadOnly();
-    public long DefaultMaxUploadSize { get; set; } = 100 * 1024 * 1024;
 }
 
 public class ToolboxConfig
