@@ -28,10 +28,10 @@
         @foreach (var file in BlockedFiles)
         {
             <MudAlert Severity="Severity.Error" 
-                ShowCloseIcon CloseIconClicked="() => BlockedFileClosed(file)" 
+                ShowCloseIcon CloseIconClicked="() => BlockedFileClosed(file.Key)" 
                 Icon="@Icons.Material.Filled.Block" 
                 Variant="Variant.Filled" Elevation="6">
-                 @Localizer["{0} has been blocked.", file]
+                @Localizer["{0} has been blocked: {1}", file.Key, file.Value]
             </MudAlert>
         }
     </div>
@@ -46,7 +46,7 @@
     public required List<FileMetaData> UploadingFiles { get; set; }
 
     [Parameter, EditorRequired]
-    public required List<string> BlockedFiles { get; set; }
+    public required Dictionary<string, string> BlockedFiles { get; set; }
 
     private bool ShowSnackbar => (UploadingFiles?.Any() ?? false) || (BlockedFiles?.Any() ?? false);
 
