@@ -27,13 +27,7 @@ namespace Datahub.Core.Migrations
                 name: "FK_Project_Users_Projects_Project_ID",
                 table: "Project_Users");
 
-            migrationBuilder.DropIndex(
-                name: "IX_PortalUsers_GraphGuid",
-                table: "PortalUsers");
-
-            migrationBuilder.DropColumn(
-                name: "GraphGuid",
-                table: "PortalUsers");
+            // Keep GraphGuid during migration to allow data backfill into EntraUsers
 
             migrationBuilder.AddColumn<int>(
                 name: "Datahub_ProjectProject_ID",
@@ -154,6 +148,23 @@ namespace Datahub.Core.Migrations
                 column: "PortalUserId",
                 unique: true,
                 filter: "[PortalUserId] IS NOT NULL");
+
+            // Populate EntraUsers from existing PortalUsers prior to dropping GraphGuid
+            migrationBuilder.Sql(@"
+                INSERT INTO EntraUsers (GraphGuid, Email, PortalUserId)
+                SELECT p.GraphGuid, p.Email, p.Id
+                FROM PortalUsers p
+                WHERE p.GraphGuid IS NOT NULL AND p.GraphGuid <> ''
+            ");
+
+            // Now drop the legacy GraphGuid from PortalUsers
+            migrationBuilder.DropIndex(
+                name: "IX_PortalUsers_GraphGuid",
+                table: "PortalUsers");
+
+            migrationBuilder.DropColumn(
+                name: "GraphGuid",
+                table: "PortalUsers");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Project_Users_PortalUsers_ApprovedPortalUserId",
