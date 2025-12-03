@@ -84,6 +84,11 @@ public class PortalUser : IValidatableObject
     /// </summary>
     public ICollection<OpenDataSubmission>? OpenDataSubmissions { get; set; }
 
+    /// <summary>
+    /// Gets or sets the timestamp for concurrency control.
+    /// </summary>
+    public byte[]? Timestamp { get; set; }
+
     #region Utility functions
 
     /// <summary>

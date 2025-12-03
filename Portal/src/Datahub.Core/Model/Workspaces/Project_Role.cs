@@ -18,6 +18,16 @@ public class Project_Role
     public required string Description { get; set; }
 
     /// <summary>
+    /// Gets or sets the timestamp for concurrency control.
+    /// </summary>
+    public byte[]? Timestamp { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether this role is applicable for external users.
+    /// </summary>
+    public bool IsExternalRole { get; set; } = false;
+
+    /// <summary>
     /// Gets a value indicating whether this should be used to determine if the user is at least an admin or not.
     /// Note: If you are looking to show or hide UI elements off this, use the "DatahubAuthView" instead.
     /// Note: This will not work inside EF Core Queries
@@ -50,42 +60,72 @@ public class Project_Role
             {
                 Id = (int)RoleNames.Removed,
                 Name = "Remove User",
-                Description = "Revoke the user's access to the workspace"
+                Description = "Revoke the user's access to the workspace",
+                IsExternalRole = false
             },
             new()
             {
                 Id = (int)RoleNames.WorkspaceLead,
                 Name = "Workspace Lead",
                 Description =
-                    "Head of the workspace and bears business responsibility for success of the workspace"
+                    "Head of the workspace and bears business responsibility for success of the workspace",
+                IsExternalRole = false
             },
             new()
             {
                 Id = (int)RoleNames.Admin,
                 Name = "Admin",
                 Description =
-                    "Management authority within the workspace with direct supervision over the cloud resourcing and users"
+                    "Management authority within the workspace with direct supervision over the cloud resourcing and users",
+                IsExternalRole = false
             },
             new()
             {
                 Id = (int)RoleNames.Collaborator,
                 Name = "Collaborator",
                 Description =
-                    "Responsible for contributing to the overall workspace objectives and deliverables"
+                    "Responsible for contributing to the overall workspace objectives and deliverables",
+                IsExternalRole = false
             },
             new()
             {
                 Id = (int)RoleNames.Guest,
                 Name = "Guest",
                 Description =
-                    "Able to view the workspace and its contents but not able to contribute or modify anything"
+                    "Able to view the workspace and its contents but not able to contribute or modify anything",
+                IsExternalRole = false
             },
             new()
             {
                 Id = (int)RoleNames.DisabledUser,
                 Name = "Disabled User",
                 Description =
-                    "A user whose access has been disabled and cannot interact with the workspace"
+                    "A user whose access has been disabled and cannot interact with the workspace",
+                IsExternalRole = false
+            },
+            new()
+            {
+                Id = (int)RoleNames.WebApp,
+                Name = "Web Application Access",
+                Description =
+                    "Limited access to the web application interface only",
+                IsExternalRole = true
+            },
+            new()
+            {
+                Id = (int)RoleNames.Storage,
+                Name = "Storage",
+                Description =
+                    "Limited access to storage upload and download",
+                IsExternalRole = true
+            },
+            new()
+            {
+                Id = (int)RoleNames.WebAppAndStorage,
+                Name = "Web Application and Storage",
+                Description =
+                    "Access to both web application interface and storage resources",
+                IsExternalRole = true
             }
         };
     }
@@ -123,6 +163,21 @@ public class Project_Role
         /// <summary>
         /// A disabled user with no privileges within the workspace.
         /// </summary>
-        DisabledUser = 6
+        DisabledUser = 6,
+
+        /// <summary>
+        /// An external user with access limited to the web application interface only.
+        /// </summary>
+        WebApp = 7,
+
+        /// <summary>
+        /// An external user with access limited to storage resources only.
+        /// </summary>
+        Storage = 8,
+
+        /// <summary>
+        /// An external user with access to both web application interface and storage resources.
+        /// </summary>
+        WebAppAndStorage = 9
     }
 }

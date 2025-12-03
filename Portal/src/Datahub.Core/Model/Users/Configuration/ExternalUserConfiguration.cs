@@ -9,9 +9,22 @@ namespace Datahub.Core.Model.Users.Configuration
         {
             builder.ToTable("ExternalUsers");
 
-            builder.HasMany(e => e.Requests)
-                .WithOne(r => r.User)
-                .HasForeignKey(r => r.UserOID);
+            // Configure key
+            builder.HasKey(e => e.ExternalUserID);
+            builder.Property(e => e.ExternalUserID)
+                .ValueGeneratedOnAdd();
+
+            // Configure alternate key for OID
+            builder.HasIndex(e => e.OID)
+                .IsUnique();
+
+            builder.HasMany(e => e.Invitations)
+                .WithOne(r => r.User);
+
+            // Configure relationship with deactivated by user
+            builder.HasOne(e => e.DeactivatedByUser)
+                .WithMany()
+                .OnDelete(DeleteBehavior.NoAction);
         }
     }
 }

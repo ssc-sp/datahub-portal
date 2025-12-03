@@ -246,7 +246,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PortalUserRoleChange");
+                    b.ToTable("PortalUserRoleChange", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -478,7 +478,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("SubmissionId");
 
-                    b.ToTable("OpenDataPublishFiles");
+                    b.ToTable("OpenDataPublishFiles", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSubmission", b =>
@@ -523,7 +523,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("UniqueId")
                         .IsUnique();
 
-                    b.ToTable("OpenDataSubmissions");
+                    b.ToTable("OpenDataSubmissions", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -586,7 +586,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("File_ID")
                         .IsUnique();
 
-                    b.ToTable("SharedDataFiles");
+                    b.ToTable("SharedDataFiles", (string)null);
 
                     b.UseTptMappingStrategy();
                 });
@@ -628,7 +628,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("Notification_ID");
 
-                    b.ToTable("SystemNotifications");
+                    b.ToTable("SystemNotifications", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.VersionTag", b =>
@@ -666,7 +666,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("VersionTagId");
 
-                    b.ToTable("VersionTags");
+                    b.ToTable("VersionTags", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Documentation.DocumentationResource", b =>
@@ -708,7 +708,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasAlternateKey("TypeName", "Id");
 
-                    b.ToTable("MiscStoredObjects");
+                    b.ToTable("MiscStoredObjects", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
@@ -1048,7 +1048,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasKey("ProjectApiUser_ID");
 
-                    b.ToTable("Project_ApiUsers");
+                    b.ToTable("Project_ApiUsers", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Datahub_Project_Costs", b =>
@@ -1077,7 +1077,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID", "Date");
 
-                    b.ToTable("Project_Costs");
+                    b.ToTable("Project_Costs", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.ProjectInactivityNotifications", b =>
@@ -1187,7 +1187,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("Project_ID");
 
-                    b.ToTable("Project_Delete_Questionnaires");
+                    b.ToTable("Project_Delete_Questionnaires", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Resources2", b =>
@@ -1244,7 +1244,7 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("UpdatedById");
 
-                    b.ToTable("Project_Resources2");
+                    b.ToTable("Project_Resources2", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.Project_Role", b =>
@@ -1368,7 +1368,7 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("ProjectId")
                         .IsUnique();
 
-                    b.ToTable("Project_Whitelists");
+                    b.ToTable("Project_Whitelists", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Projects.UserRoleLinks", b =>
@@ -1384,9 +1384,6 @@ namespace Datahub.Core.Migrations
 
                     b.Property<DateTime?>("Approved_DT")
                         .HasColumnType("datetime2");
-
-                    b.Property<int?>("Datahub_ProjectProject_ID")
-                        .HasColumnType("int");
 
                     b.Property<bool>("IsDataSteward")
                         .HasColumnType("bit");
@@ -1408,8 +1405,6 @@ namespace Datahub.Core.Migrations
                     b.HasKey("ProjectUser_ID");
 
                     b.HasIndex("ApprovedPortalUserId");
-
-                    b.HasIndex("Datahub_ProjectProject_ID");
 
                     b.HasIndex("PortalUserId");
 
@@ -1500,93 +1495,6 @@ namespace Datahub.Core.Migrations
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<string>("GraphGuid")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<int?>("PortalUserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GraphGuid")
-                        .IsUnique();
-
-                    b.HasIndex("PortalUserId")
-                        .IsUnique()
-                        .HasFilter("[PortalUserId] IS NOT NULL");
-
-                    b.ToTable("EntraUsers");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
-                {
-                    b.Property<string>("ExternalUserID")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<DateTime?>("FirstLogin_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastLogin_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("LastPermissionsUpdated_DT")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("OID")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PortalUserId")
-                        .HasColumnType("int");
-
-                    b.HasKey("ExternalUserID");
-
-                    b.HasIndex("PortalUserId")
-                        .IsUnique()
-                        .HasFilter("[PortalUserId] IS NOT NULL");
-
-                    b.ToTable("ExternalUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserInvite", b =>
-                {
-                    b.Property<int>("RequestID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestID"));
-
-                    b.Property<string>("RequestContent")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("Request_DT")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UserOID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("RequestID");
-
-                    b.HasIndex("UserOID");
-
-                    b.ToTable("ExternalUserRequests");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Property<int>("Id")
@@ -1599,16 +1507,19 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DisplayName")
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime?>("FirstLoginDateTime")
                         .HasColumnType("datetime2");
+
+                    b.Property<string>("GraphGuid")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
 
                     b.Property<DateTime?>("LastLoginDateTime")
                         .HasColumnType("datetime2");
@@ -1617,6 +1528,9 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("GraphGuid")
+                        .IsUnique();
 
                     b.ToTable("PortalUsers", (string)null);
                 });
@@ -1826,7 +1740,7 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTime?>("OpenGovPublicationDate")
                         .HasColumnType("datetime2");
 
-                    b.ToTable("TbsOpenGovSubmissions");
+                    b.ToTable("TbsOpenGovSubmissions", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenDataSharedFile", b =>
@@ -1857,7 +1771,7 @@ namespace Datahub.Core.Migrations
                     b.Property<int>("UploadStatus_CD")
                         .HasColumnType("int");
 
-                    b.ToTable("OpenDataSharedFile");
+                    b.ToTable("OpenDataSharedFile", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -2072,28 +1986,21 @@ namespace Datahub.Core.Migrations
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "ApprovedPortalUser")
                         .WithMany()
-                        .HasForeignKey("ApprovedPortalUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", null)
-                        .WithMany("UserRoles")
-                        .HasForeignKey("Datahub_ProjectProject_ID");
+                        .HasForeignKey("ApprovedPortalUserId");
 
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
-                        .WithMany("UserRoles")
-                        .HasForeignKey("PortalUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .WithMany()
+                        .HasForeignKey("PortalUserId");
 
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
-                        .WithMany()
+                        .WithMany("UserRoles")
                         .HasForeignKey("Project_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
                         .WithMany()
-                        .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .HasForeignKey("RoleId");
 
                     b.Navigation("ApprovedPortalUser");
 
@@ -2113,37 +2020,6 @@ namespace Datahub.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("Project");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
-                        .WithOne("EntraUser")
-                        .HasForeignKey("Datahub.Core.Model.Users.EntraUser", "PortalUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("PortalUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
-                        .WithOne("ExternalUser")
-                        .HasForeignKey("Datahub.Core.Model.Users.ExternalUser", "PortalUserId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("PortalUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserInvite", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Users.ExternalUser", "User")
-                        .WithMany("Requests")
-                        .HasForeignKey("UserOID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
@@ -2241,18 +2117,9 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Workspaces");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
-                {
-                    b.Navigation("Requests");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Navigation("Achievements");
-
-                    b.Navigation("EntraUser");
-
-                    b.Navigation("ExternalUser");
 
                     b.Navigation("InactivityNotifications");
 
@@ -2261,8 +2128,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
-
-                    b.Navigation("UserRoles");
 
                     b.Navigation("UserSettings");
                 });

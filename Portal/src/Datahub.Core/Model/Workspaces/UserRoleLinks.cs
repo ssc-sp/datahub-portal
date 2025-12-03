@@ -45,7 +45,10 @@ namespace Datahub.Core.Model.Projects
         /// </summary>
         public bool IsDataSteward { get; set; }
 
-        #region Navigation Properties
+        /// <summary>
+        /// Gets or sets optional notes or comments about collaboration objectives with external user
+        /// </summary>
+        public string? ExternalUserNotes { get; set; }
 
         /// <summary>
         /// Gets or sets the associated workspace.
@@ -66,8 +69,6 @@ namespace Datahub.Core.Model.Projects
         /// Gets or sets the portal user who approved this record.
         /// </summary>
         public PortalUser? ApprovedPortalUser { get; set; }
-
-        #endregion
 
         /// <summary>
         /// Gets or sets the timestamp for concurrency control.

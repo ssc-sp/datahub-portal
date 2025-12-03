@@ -272,8 +272,8 @@ else
                 .FirstOrDefault(),
             LastLogin = u.LastLoginDateTime ?? default,
             FirstLogin = u.FirstLoginDateTime ?? default,
-            GraphGuid = u.EntraUser?.GraphGuid,
-			ExternalOID = u.ExternalUser?.OID,
+            GraphGuid = u.EntraUser?.GraphGuid ?? "-",
+			ExternalOID = u.ExternalUser?.OID?.ToString() ?? "-",
             Workspaces = new DHTableLinkList
             {
                 Links = allWorkspaceMembers

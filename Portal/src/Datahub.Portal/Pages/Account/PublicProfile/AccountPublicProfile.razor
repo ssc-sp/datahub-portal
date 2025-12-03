@@ -50,7 +50,7 @@
                             </DatahubAuthView>
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal"
-                                UserUID="@ViewedUser.ExternalUser?.OID"
+                                UserUID="@ViewedUser.ExternalUser?.OID?.ToString()"
                                 AllowedUsers="DatahubAuthView.UserType.ExternalOnly">
                                 <MudChip T="string" Text="@Localizer["External Login"]" Color="Color.Info" Class="ml-2" Tag=EXTERNAL_USER_TAG />
                             </DatahubAuthView>
