@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using MudBlazor;
 using System.Diagnostics;
+using System.Linq;
 
 using Datahub.Portal.Pages.Workspace.Storage;
 using Datahub.Application.Configuration;
@@ -297,6 +298,90 @@ namespace Datahub.Tests
             Assert.Contains(uploadedFiles, f => f.filename == allowed1.Name);
             Assert.Contains(uploadedFiles, f => f.filename == allowed2.Name);
             Assert.DoesNotContain(uploadedFiles, f => f.filename == blocked.Name);
+        }
+
+        [Fact]
+        public async Task UploadSingleFile_SetsUploadBatchId()
+        {
+            // Arrange and render component with mock storage allowing uploads
+            var comp = RenderFileExplorerWithMockStorage(out var mockStorageManager, out var uploadedFiles, (m, list) =>
+            {
+                m.Setup(x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+            });
+
+            var file = CreateFakeBrowserFile("single.txt", new byte[] {1,2 });
+
+            // Act
+            await InvokeDropZoneWithFilesAsync(comp, file);
+            await WaitForUploadsAsync(uploadedFiles,1,3000);
+
+            // Assert
+            Assert.Single(uploadedFiles);
+            var batchId = uploadedFiles[0].uploadBatchId;
+            Assert.False(string.IsNullOrEmpty(batchId));
+        }
+
+        [Fact]
+        public async Task UploadMultipleFiles_InSameOperation_ShareUploadBatchId()
+        {
+            // Arrange and render component with mock storage allowing uploads
+            var comp = RenderFileExplorerWithMockStorage(out var mockStorageManager, out var uploadedFiles, (m, list) =>
+            {
+                m.Setup(x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+            });
+
+            var f1 = CreateFakeBrowserFile("a.txt", new byte[] {1 });
+            var f2 = CreateFakeBrowserFile("b.txt", new byte[] {2 });
+
+            // Act
+            await InvokeDropZoneWithFilesAsync(comp, f1, f2);
+            await WaitForUploadsAsync(uploadedFiles,2,5000);
+
+            // Assert
+            Assert.Equal(2, uploadedFiles.Count);
+            var batch1 = uploadedFiles[0].uploadBatchId;
+            var batch2 = uploadedFiles[1].uploadBatchId;
+            Assert.False(string.IsNullOrEmpty(batch1));
+            Assert.Equal(batch1, batch2);
+        }
+
+        [Fact]
+        public async Task UploadMultipleFiles_InTwoSeparateBatches_HaveDifferentUploadBatchIds()
+        {
+            // Arrange and render component with mock storage allowing uploads
+            var comp = RenderFileExplorerWithMockStorage(out var mockStorageManager, out var uploadedFiles, (m, list) =>
+            {
+                m.Setup(x => x.FileExistsAsync(It.IsAny<string>(), It.IsAny<string>())).ReturnsAsync(false);
+            });
+
+            var a1 = CreateFakeBrowserFile("batch1_a.txt", new byte[] {1 });
+            var a2 = CreateFakeBrowserFile("batch1_b.txt", new byte[] {2 });
+
+            var b1 = CreateFakeBrowserFile("batch2_a.txt", new byte[] {3 });
+            var b2 = CreateFakeBrowserFile("batch2_b.txt", new byte[] {4 });
+
+            // Act - first batch
+            await InvokeDropZoneWithFilesAsync(comp, a1, a2);
+            await WaitForUploadsAsync(uploadedFiles,2,5000);
+
+            // capture first batch ids
+            var firstBatchIds = uploadedFiles.Take(2).Select(f => f.uploadBatchId).ToList();
+            Assert.Equal(2, firstBatchIds.Count);
+            Assert.False(string.IsNullOrEmpty(firstBatchIds[0]));
+            Assert.Equal(firstBatchIds[0], firstBatchIds[1]);
+
+            // Act - second batch
+            await InvokeDropZoneWithFilesAsync(comp, b1, b2);
+            await WaitForUploadsAsync(uploadedFiles,4,5000);
+
+            // capture second batch ids
+            var secondBatchIds = uploadedFiles.Skip(2).Take(2).Select(f => f.uploadBatchId).ToList();
+            Assert.Equal(2, secondBatchIds.Count);
+            Assert.False(string.IsNullOrEmpty(secondBatchIds[0]));
+            Assert.Equal(secondBatchIds[0], secondBatchIds[1]);
+
+            // Ensure the two batches have different ids
+            Assert.NotEqual(firstBatchIds[0], secondBatchIds[0]);
         }
     }
 }
