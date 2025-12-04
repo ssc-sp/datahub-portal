@@ -134,7 +134,8 @@ namespace Datahub.Functions.UnitTests
                 new PortalUser
                 {
                     Id=1,
-                    EntraUser = new() { GraphGuid=Guid.NewGuid().ToString(), PortalUser = null! }
+                    EntraUser = new() { GraphGuid=Guid.NewGuid().ToString(), PortalUser = null! },
+                    Email = "john.doe@ssc-spc.gc.ca"
                 }
             };
             var portalUsers = new List<UserRoleLinks>
@@ -145,7 +146,8 @@ namespace Datahub.Functions.UnitTests
                     PortalUser=new PortalUser
                     {
                         Id=1,
-                        EntraUser = new() { GraphGuid=Guid.NewGuid().ToString(), PortalUser = null! }
+                        EntraUser = new() { GraphGuid=Guid.NewGuid().ToString(), PortalUser = null! },
+                        Email = "marie.doe@ssc-spc.gc.ca"
                     }
                 }
             };

@@ -108,7 +108,6 @@ public class TerraformOutputHandlerTests
         _context.Project_Resources2.AddRange(storageResources);
         await _context.SaveChangesAsync();
 
-
         var testPipeLineId = 1234;
         var terraformOutput = TerraformOutputHelper.GetExpectedTerraformInput(project, testPipeLineId);
 
@@ -124,11 +123,7 @@ public class TerraformOutputHandlerTests
 
         await _terraformOutputHandler.ProcessTerraformInputVariables(outputVariables!);
 
-
-
         var processedResources = await _context.Project_Resources2.ToListAsync();
-
-
 
         Assert.That(processedResources, Is.Not.Null);
         Assert.That(processedResources.Count, Is.EqualTo(3));

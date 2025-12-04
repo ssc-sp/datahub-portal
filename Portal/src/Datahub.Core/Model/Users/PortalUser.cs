@@ -22,7 +22,7 @@ public class PortalUser : IValidatableObject
     /// <summary>
     /// Gets or sets the email address associated with the user.
     /// </summary>
-    public string Email { get; set; } = null!;
+    public required string Email { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the user's display name.

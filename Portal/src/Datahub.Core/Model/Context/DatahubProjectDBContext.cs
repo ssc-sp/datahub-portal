@@ -198,7 +198,8 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                         GraphGuid = adminGuid,
                         PortalUser = null!
                     },
-                    DisplayName = "Datahub Admin"
+                    DisplayName = "Datahub Admin",
+                    Email = "admin@admin.gc.ca"
                 },
                 Project = p1,
                 RoleId = (int)Project_Role.RoleNames.Admin

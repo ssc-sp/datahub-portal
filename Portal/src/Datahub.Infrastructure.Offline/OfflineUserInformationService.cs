@@ -235,7 +235,7 @@ public class OfflineUserInformationService : IUserInformationService
 
     public Task<PortalUser> GetAuthenticatedPortalUser()
     {
-        return Task.FromResult(new PortalUser() { EntraUser = new EntraUser() { GraphGuid = AnonymousUser.Id!, PortalUser = null! } });
+        return Task.FromResult(new PortalUser() { EntraUser = new EntraUser() { GraphGuid = AnonymousUser.Id!, PortalUser = null! }, Email = "anonymous@user.com" });
     }
 
     public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
@@ -255,7 +255,7 @@ public class OfflineUserInformationService : IUserInformationService
         throw new NotImplementedException();
     }
 
-    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid)
+    public Task<PortalUser?> CreatePortalExternalUserAsync(Guid userOid, string displayName, string email)
     {
         throw new NotImplementedException();
     }

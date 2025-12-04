@@ -383,7 +383,7 @@ namespace Datahub.SpecflowTests.Steps
             new UserRoleLinks
             {
                 RoleId = (int)Project_Role.RoleNames.WorkspaceLead,
-                PortalUser = new PortalUser { EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! } }
+                PortalUser = new PortalUser { EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! }, Email = "lead@test.com" }
             }
                 });            
         }

@@ -70,7 +70,7 @@ public class DatabricksApiServiceTests
     {
         await SeedDatabase();
         var accessToken = new AccessToken("", DateTime.Now.AddDays(1));
-        var portalUser = new PortalUser { EntraUser = new EntraUser { GraphGuid = TestUserGraphGuid, PortalUser = null! } };
+        var portalUser = new PortalUser { EntraUser = new EntraUser { GraphGuid = TestUserGraphGuid, PortalUser = null! }, Email = "john.doe@ssc-spc.gc.ca" };
         await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(accessToken, projectAcronym, portalUser);
 
         _mockHandler.Protected().Verify(
