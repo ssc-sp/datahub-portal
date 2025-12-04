@@ -29,6 +29,7 @@
 <PageTitle>
     @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]
 </PageTitle>
+<EnvironmentTopBar ChildContent="@_project.Data_Sensitivity"/>
 
 <DHSidebarDrawer>
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
@@ -76,7 +77,6 @@
 
 
 @code {
-
     [Parameter] public string WorkspaceAcronymParam { get; set; }
 
     [Parameter] public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
@@ -84,6 +84,7 @@
     [Parameter] public string SubSection { get; set; } = string.Empty;
 
     private bool _showToDatahubAdmins = false;
+    public Datahub_Project _project;
 
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
@@ -128,22 +129,25 @@
         };
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+
+        _project = dbContext.Projects
+            .AsNoTracking()
+            .Include(p => p.Resources)
+            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronymParam);
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
 
         await RecordRecentLink();
 
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-
         WorkspaceAcronymParam = WorkspaceAcronymParam.ToUpperInvariant();
-
-        var project = dbContext.Projects
-            .AsNoTracking()
-            .Include(p => p.Resources)
-            .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronymParam);
-
-        _showToDatahubAdmins = DisplayToSupport(project);
+        
+        _showToDatahubAdmins = DisplayToSupport(_project);
     }
 
     public static bool DisplayToSupport(Datahub_Project project)

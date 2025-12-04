@@ -1,14 +1,16 @@
 @using Datahub.Core
+@using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 
 <h2 class="sr-only">
-    @Localizer["Environment information"]
+    @Localizer["Workspace security level information"]
 </h2>
 <p style="@_styles">
-    @EnvironmentLabel()
+    @Localizer[ChildContent]
 </p>
 
 @code {
+    [Parameter] public string ChildContent { get; set; }
 
     private string _styles = null!;
 
@@ -19,7 +21,7 @@
         _styles = new StyleBuilder()
             .AddStyle("height", "20px")
             .AddStyle("width", "100%")
-            .AddStyle("background-color", EnvironmentColor())
+            .AddStyle("background-color", GetSecurityColor(ChildContent))
             .AddStyle("position", "fixed")
             .AddStyle("top", "0px")
             .AddStyle("left", "0px")
@@ -32,32 +34,21 @@
             .Build();
     }
 
-    private string EnvironmentLabel()
+    private string GetSecurityColor(string securityLevel)
     {
-        return DevTools.TopBarEnvironment() switch
+        if (securityLevel is not null)
         {
-            DevTools.TopBarEnvironments.Development => Localizer["Development | Unclassified"],
-            DevTools.TopBarEnvironments.Integration => Localizer["Integration | Unclassified"],
-            DevTools.TopBarEnvironments.ProofOfConcept => Localizer["Non-Production | Unclassified"],
-            DevTools.TopBarEnvironments.Production => Localizer["Production | Unclassified"],
-            DevTools.TopBarEnvironments.QualityControl => Localizer["Quality Control | Unclassified"],
-            DevTools.TopBarEnvironments.ProductionProtected => Localizer["Production | Protected B"],
-            _ => "Unknown Environment"
-        };
-    }
-
-    private string EnvironmentColor()
-    {
-        return DevTools.TopBarEnvironment() switch
-        {
-            DevTools.TopBarEnvironments.Development => "#0071EB",
-            DevTools.TopBarEnvironments.Integration => "#CC6A00",
-            DevTools.TopBarEnvironments.ProofOfConcept => "#594ae2",
-            DevTools.TopBarEnvironments.Production => "#00602F",
-            DevTools.TopBarEnvironments.QualityControl => "#6A008A",
-            DevTools.TopBarEnvironments.ProductionProtected => "#B8291C",
-            _ => "#000"
-        };
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return "rgb(244, 67, 54)";
+                case "Protected A":
+                    return "rgb(255,152,0)";
+                default:
+                    return "rgb(89, 74, 226)";
+            }
+        }
+        return "rgb(89, 74, 226)";
     }
 
 }
