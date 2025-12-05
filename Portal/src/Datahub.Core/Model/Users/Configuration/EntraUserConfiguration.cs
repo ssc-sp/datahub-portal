@@ -18,9 +18,6 @@ namespace Datahub.Core.Model.Users.Configuration
 
             builder.HasIndex(e => e.GraphGuid)
                 .IsUnique();
-
-            builder.Property(e => e.Email)
-                .HasMaxLength(64);
         }
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Users.Configuration
 {
@@ -20,7 +21,10 @@ namespace Datahub.Core.Model.Users.Configuration
                     v => v)
                 .HasColumnType("datetimeoffset");
 
-            // Relationships - configured in ExternalUserConfiguration
+            // Relationships
+            builder.HasOne(i => i.Project)
+                .WithMany() // avoid relying on a project-side navigation
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

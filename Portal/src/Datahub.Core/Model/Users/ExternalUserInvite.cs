@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Users
 {
@@ -18,6 +19,11 @@ namespace Datahub.Core.Model.Users
         /// Gets or sets the navigation to the related external user.
         /// </summary>
         public ExternalUser User { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets the workspace (project) this invite targets.
+        /// </summary>
+        public Datahub_Project Project { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the invitation token associated with the invite request.

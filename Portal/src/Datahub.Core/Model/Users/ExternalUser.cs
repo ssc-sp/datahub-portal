@@ -8,26 +8,23 @@ namespace Datahub.Core.Model.Users
     /// </summary>
     public class ExternalUser
     {
-        /// <summary>
-        /// Gets or sets the mandatory unique identifier for the external user.
-        /// </summary>
-        public Guid ExternalUserID { get; set; }
+        public int Id { get; set; }
 
         /// <summary>
         /// Gets or sets the GCCF object identifier (OID) associated with the external identity.
         /// A blank OID indicates that the user has not completed the invitation flow or has been deactivated.
         /// </summary>
-        public Guid? OID { get; set; }
+        public required string OID { get; set; }
 
         /// <summary>
         /// Gets or sets the timestamp of the first login event for the external user.
         /// </summary>
-        public DateTime? FirstLogin_DT { get; set; }
+        public DateTimeOffset? FirstLogin_DT { get; set; }
 
         /// <summary>
         /// Gets or sets the timestamp of the most recent login event for the external user.
         /// </summary>
-        public DateTime? LastLogin_DT { get; set; }
+        public DateTimeOffset? LastLogin_DT { get; set; }
 
         /// <summary>
         /// Gets or sets the timestamp when the external user was deactivated.

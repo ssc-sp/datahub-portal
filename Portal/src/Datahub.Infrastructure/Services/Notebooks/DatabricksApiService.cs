@@ -279,19 +279,19 @@ public class DatabricksApiService : IDatabricksApiService
     private StringContent BuilPostBody(PortalUser user)
     {
         _logger.LogInformation($"Building request patch body for adding user  to databricks admin group");
-        if (user.EntraUser == null || string.IsNullOrEmpty( user.EntraUser.Email))
+        if (user.EntraUser == null || string.IsNullOrEmpty( user.Email))
         {
             throw new ArgumentException("User EntraUser or Email is null");
         }
         var databricksUser = new DatabricksUser
         {
-            userName = user.EntraUser.Email,
+            userName = user.Email,
             name = new Name { familyName = user.DisplayName },
             id = "0",
             active = true,
             emails =
             [
-                new Email { primary = true, value = user.EntraUser.Email, type = "work", display=user.DisplayName }
+                new Email { primary = true, value = user.Email, type = "work", display=user.DisplayName }
             ],
             groups =
             [
