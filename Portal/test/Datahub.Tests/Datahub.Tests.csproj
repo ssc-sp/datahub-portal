@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net9.0</TargetFramework>
 		<IsPackable>false</IsPackable>
@@ -31,16 +31,16 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="bunit" Version="1.40.*" />
+		<PackageReference Include="bunit" Version="2.1.*" />
 		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.*" />
 		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
 		<PackageReference Include="Moq" Version="4.20.*" />
 		<PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.*" />
 		<PackageReference Include="NSubstitute" Version="5.3.*" />
-		<PackageReference Include="Xunit.DependencyInjection" Version="11.0.*" />
-		<PackageReference Include="xunit.v3.assert" Version="3.0.*" />
-		<PackageReference Include="xunit.v3.core" Version="3.0.*" />
+		<PackageReference Include="Xunit.DependencyInjection" Version="11.1.0" />
+		<PackageReference Include="xunit.v3.assert" Version="3.2.*" />
+		<PackageReference Include="xunit.v3.core" Version="3.2.*" />
 		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -49,6 +49,7 @@
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.*" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />

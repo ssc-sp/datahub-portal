@@ -1,3 +1,4 @@
+@IWebHostEnvironment
 Feature: Resource Requesting
 Tests around the workspace resource requesting and its functionality for the user
 
@@ -11,7 +12,6 @@ Tests around the workspace resource requesting and its functionality for the use
 
     Examples:
       | resource_name      | number_of_messages |
-      | NewProjectTemplate | 1                  |
       | AzureAppService    | 1                  |
       | AzureDatabricks    | 1                  |
       | AzureStorageBlob   | 1                  |
@@ -33,7 +33,7 @@ Tests around the workspace resource requesting and its functionality for the use
     Scenario: Request to run an unreleased workspace resource
         Given a workspace without a <resource_name> resource
         And a current user
-        When a current user requests to run a <resource_name> for a workspace
+        When a current user requests to run an unreleased <resource_name> for a workspace
         Then there should not be a workspace <resource_name> resource created
         And there should be 0 messages in resource messaging queue
 

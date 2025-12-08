@@ -5,9 +5,9 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure.Offline;
@@ -31,7 +31,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 public class WorkspaceSettingsSteps(
     ScenarioContext scenarioContext,
     IWebHostEnvironment hostingEnvironment
-) : TestContext
+) : BunitTestSteps
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -98,7 +98,7 @@ public class WorkspaceSettingsSteps(
         JSInterop.SetupModule("./_content/Datahub.Portal/Components/SkipLink.razor.js");
         JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
 
-        var workspaceSettingsPage = RenderComponent<WorkspaceSettingsPage>(parameterCollection =>
+        var workspaceSettingsPage = Render<WorkspaceSettingsPage>(parameterCollection =>
         {
             parameterCollection.Add(p => p.WorkspaceAcronym, Testing.WorkspaceAcronym);
             parameterCollection.Add(p => p.ElevatedWorkspaceAccessEnabled, true);
@@ -110,7 +110,7 @@ public class WorkspaceSettingsSteps(
     [Given("default authorization for settings")]
     public void GivenDefaultAuthorizationForSettings()
     {
-        var authContext = this.AddTestAuthorization();
+        var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST USER");
         authContext.SetRoles(RoleConstants.DATAHUB_ROLE_ADMIN);
     }

@@ -47,7 +47,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace;
 public class WorkspaceToolboxSteps(
     ScenarioContext scenarioContext,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
-    DatahubPortalConfiguration datahubPortalConfiguration) : TestContext
+    DatahubPortalConfiguration datahubPortalConfiguration) : BunitTestSteps
 {
     private const string RelativePathToSrc = "../../../../../src";
 
@@ -55,10 +55,9 @@ public class WorkspaceToolboxSteps(
     [Given(@"the user is on the workspace toolbox page")]
     public void GivenTheUserIsOnTheWorkspaceToolboxPage()
     {
-        AddRequiredServices();
-        SetupJS();
+        AddRequiredServices();        
 
-        var workspaceToolbox = RenderComponent<CascadingAuthenticationState>(parameters =>
+        var workspaceToolbox = Render<CascadingAuthenticationState>(parameters =>
         {
             parameters.AddChildContent<MudPopoverProvider>();
             parameters.AddChildContent<MudDialogProvider>();
@@ -70,18 +69,6 @@ public class WorkspaceToolboxSteps(
         });
 
         scenarioContext.Add("workspaceToolbox", workspaceToolbox);
-    }
-
-    private void SetupJS()
-    {
-        var module = JSInterop.SetupModule("./_content/Datahub.Core/Components/SkipLink.razor.js");
-        JSInterop.Setup<BunitJSInterop>("import", "./_content/Datahub.Core/Components/SkipLink.razor.js")
-            .SetResult(module);
-        module.SetupVoid("focusElement", Arg.Any<string>());
-        JSInterop.SetupVoid("mudElementRef.addOnBlurEvent", _ => true);
-        JSInterop.SetupVoid("mudElementRef.removeOnBlurEvent", _ => true);
-
-        JSInterop.Mode = JSRuntimeMode.Loose;
     }
 
     private void AddRequiredServices()
@@ -119,7 +106,7 @@ public class WorkspaceToolboxSteps(
         Services.AddSingleton<IResourceMessagingService>(resourceMessagingService);
         var logger = new Logger<WorkspaceToolboxPage>(new LoggerFactory());
         Services.AddSingleton(logger);
-        Services.AddSingleton<NavigationManager>(new FakeNavigationManager(this));
+        Services.AddSingleton<NavigationManager>(new BunitNavigationManager(this));
         Services.AddSingleton(dbContextFactory);
         Services.AddDatahubOfflineInfrastructureServices(portalConfiguration);
         var authContext = new TestAuthorizationContext
@@ -138,6 +125,7 @@ public class WorkspaceToolboxSteps(
         Services.AddMudLocalization();
         Services.AddMudServices();
         Services.AddLocalization();
+        JSInterop.SetupMudBlazor();
     }
 
     [Then(@"the user should see the toolbox")]
@@ -157,7 +145,8 @@ public class WorkspaceToolboxSteps(
             CreatedAt = DateTime.Now,
             ProjectId = project.Project_ID,
             Status = TerraformStatus.Completed,
-            ResourceType = TerraformTemplate.GetTerraformServiceType(tool)
+            ResourceType = TerraformTemplate.GetTerraformServiceType(tool),
+            JsonContent = GenerateWorkspaceHelper.JSON_RG
         };
         dbContext.Project_Resources2.Add(resource);
         dbContext.SaveChanges();
@@ -1116,7 +1105,7 @@ public class WorkspaceToolboxSteps(
         workspaceToolbox!.Render();
         Testing.GetPrivateField(workspaceToolbox!, "_transactions", out var transactions);
         Testing.GetPrivateField(workspaceToolbox!, "_workspaceDefinition", out var workspaceDefinition);
-        var toolboxService = Services.GetService<IToolboxService>();
+        var toolboxService = Services.GetRequiredService<IToolboxService>();
         var generatedDefinition = toolboxService.ApplyTransaction(workspaceDefinition as WorkspaceDefinition,
             transactions as List<ToolboxTransaction>);
         var dependencies = TerraformTemplate.GetDependenciesToCreate(tool) ?? [];

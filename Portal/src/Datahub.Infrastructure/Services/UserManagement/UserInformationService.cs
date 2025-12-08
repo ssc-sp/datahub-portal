@@ -6,9 +6,9 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -39,7 +39,7 @@ public class UserInformationService(
     private User currentUser = null!;
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
     private bool _isViewingAsVisitor;
-    private PortalUser _userWithAchievements;
+    private PortalUser? _userWithAchievements;
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
@@ -495,7 +495,10 @@ public class UserInformationService(
 
             ctx.PortalUsers.Attach(updatedUser);
             ctx.Entry(updatedUser).State = EntityState.Modified;
-            ctx.Entry(updatedUser.UserSettings).State = EntityState.Modified;
+            if (updatedUser.UserSettings is not null)
+            {
+                ctx.Entry(updatedUser.UserSettings).State = EntityState.Modified;
+            }
             await ctx.SaveChangesAsync();
             PortalUserUpdated?.Invoke(this, new PortalUserUpdatedEventArgs(updatedUser));
             return true;
@@ -503,8 +506,8 @@ public class UserInformationService(
         catch (Exception e)
         {
             logger.LogError(e, "Error updating portal user");
-            return false;
         }
+        return false;
     }
 
     public async Task<PortalUser?> GetCurrentPortalUserAsync()

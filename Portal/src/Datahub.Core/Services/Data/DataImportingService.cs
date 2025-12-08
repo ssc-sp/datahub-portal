@@ -23,7 +23,7 @@ public class DataImportingService
             //Check to make sure array length will fit into the object
             if (item.Count() == properties.Count())
             {
-                T obj = (T)Activator.CreateInstance(typeof(T));
+                T obj = Activator.CreateInstance<T>();
 
                 int index = 0;
                 foreach (var prop in properties)
@@ -33,9 +33,9 @@ public class DataImportingService
                     var propertyName = prop.Name;
                     var propertyType = prop.PropertyType;
                     var arrayValue = item[index];
-                    var objectproperty = obj.GetType().GetProperty(propertyName);
+                    var objectproperty = obj?.GetType().GetProperty(propertyName);
 
-                    if (objectproperty.CanWrite)
+                    if (objectproperty is not null && objectproperty.CanWrite)
                     {
                         if (propertyType == typeof(int?)
                             || propertyType == typeof(int)

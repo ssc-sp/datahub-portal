@@ -1,7 +1,7 @@
 using Azure.Core;
 using Datahub.Core.Data.Databricks;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Repositories;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Application.Services.Notebooks;
 

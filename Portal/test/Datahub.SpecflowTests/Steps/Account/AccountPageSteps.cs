@@ -8,6 +8,7 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Pages.Account;
 using Datahub.Portal.Pages.Account.PublicProfile;
@@ -33,7 +34,7 @@ using Toolbelt.Blazor.Globalization;
 namespace Datahub.SpecflowTests.Steps.Account;
 
 [Binding]
-public class AccountPageSteps : TestContext
+public class AccountPageSteps : BunitTestSteps
 {
     private readonly ScenarioContext _scenarioContext;
     private IRenderedComponent<CascadingAuthenticationState>? _accountPageRender;
@@ -85,6 +86,7 @@ public class AccountPageSteps : TestContext
         Services.AddScoped<AuthenticationStateProvider>(sp => new TestAuthStateProvider(authContext));
         Services.AddScoped<IAuthorizationService>(sp => new TestAuthorizationService(authContext));
         Services.AddSingleton<IAuthorizationPolicyProvider, TestAuthorizationPolicyProvider>();
+        JSInterop.SetupMudBlazor();
     }
 
     private IDbContextFactory<DatahubProjectDBContext> CreateDbContextWithMinimalNecessaryData(PortalUser portalUser)
@@ -124,7 +126,7 @@ public class AccountPageSteps : TestContext
     private void AddRequiredServices()
     {
         Services.AddMudServices();
-        Services.AddSingleton<NavigationManager>(new Bunit.TestDoubles.FakeNavigationManager(this));
+        Services.AddSingleton<NavigationManager>(new Bunit.TestDoubles.BunitNavigationManager(this));
 
         var testPortalUser = new PortalUser
         {
@@ -187,7 +189,7 @@ public class AccountPageSteps : TestContext
     [Given(@"the user is on the account page")]
     public void GivenTheUserIsOnTheAccountPage()
     {
-        _accountPageRender = RenderComponent<CascadingAuthenticationState>(parameters =>
+        _accountPageRender = Render<CascadingAuthenticationState>(parameters =>
         {
             parameters.AddChildContent<AccountPage>();
         });

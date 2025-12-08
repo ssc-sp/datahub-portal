@@ -92,7 +92,13 @@ public class DataRetrievalService : BaseService
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient(container);
 
-            var folder = new Folder();
+            var folder = new Folder
+            {
+                id = container,
+                name = container,
+                createdby = "system",
+                ownedby = "system"
+            };
             var resultSegment = containerClient
                 .GetBlobsAsync(BlobTraits.Metadata)
                 .AsPages(default, 30);
@@ -396,8 +402,9 @@ public class DataRetrievalService : BaseService
             {
                 name = itemName,
                 id = itemName,
-                createdby = item.Owner,
-                lastmodifiedby = item.Owner,
+                createdby = item.Owner ?? "system",
+                ownedby = item.Owner ?? "system",
+                lastmodifiedby = item.Owner ?? "system",
                 lastmodifiedts = item.LastModified.DateTime
             };
         }
@@ -406,10 +413,11 @@ public class DataRetrievalService : BaseService
         PathProperties properties = fileClient.GetProperties();
         var file = new FileMetaData()
         {
+            id = Guid.NewGuid().ToString(),
             filename = itemName,
-            ownedby = item.Owner,
-            createdby = item.Owner,
-            lastmodifiedby = item.Owner,
+            ownedby = item.Owner ?? "system",
+            createdby = item.Owner ?? "system",
+            lastmodifiedby = item.Owner ?? "system",
             lastmodifiedts = item.LastModified.DateTime
         };
 
@@ -418,7 +426,7 @@ public class DataRetrievalService : BaseService
         return file;
     }
 
-    public async Task<StorageMetadata> GetStorageMetadata(string project)
+    public async Task<AzureStorageMetadata> GetStorageMetadata(string project)
     {
         var connectionString = await GetProjectConnectionString(project?.ToLower());
         var blobServiceClient = new BlobServiceClient(connectionString);
@@ -426,8 +434,9 @@ public class DataRetrievalService : BaseService
 
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
-        StorageMetadata storageMetadata = new()
+        AzureStorageMetadata storageMetadata = new()
         {
+            AccountName = blobServiceClient.AccountName,
             Container = "datahub",
             Url = containerClient.Uri.ToString(),
             Versioning = "True",

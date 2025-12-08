@@ -1,6 +1,5 @@
 using Datahub.Application.Services;
 using Datahub.Infrastructure.Services.Notification;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Functions;
@@ -17,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using Reqnroll;
 using Datahub.Application.Services.Notification;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.SpecflowTests.Steps.Functions;
 

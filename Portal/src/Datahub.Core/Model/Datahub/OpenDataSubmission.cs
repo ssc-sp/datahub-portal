@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Datahub
 {
@@ -36,7 +36,7 @@ namespace Datahub.Core.Model.Datahub
         /// <summary>
         /// Gets or sets a unique string identifier for the submission.
         /// </summary>
-        public string UniqueId { get; set; }
+        public required string UniqueId { get; set; }
 
         /// <summary>
         /// Gets or sets the type of open data publishing process.
@@ -46,12 +46,12 @@ namespace Datahub.Core.Model.Datahub
         /// <summary>
         /// Gets or sets the title of the dataset being submitted.
         /// </summary>
-        public string DatasetTitle { get; set; }
+        public string? DatasetTitle { get; set; }
 
         /// <summary>
         /// Gets or sets the current status of the submission.
         /// </summary>
-        public string Status { get; set; }
+        public string? Status { get; set; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the submission is open for attaching files.
@@ -82,16 +82,16 @@ namespace Datahub.Core.Model.Datahub
         /// <summary>
         /// Gets or sets the list of files included in this submission.
         /// </summary>
-        public IList<OpenDataPublishFile> Files { get; set; }
+        public IList<OpenDataPublishFile> Files { get; set; } = new List<OpenDataPublishFile>();
 
         /// <summary>
         /// Gets or sets the navigation property to the associated workspace.
         /// </summary>
-        public Datahub_Project Project { get; set; }
+        public Datahub_Project Project { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the navigation property to the user who requested the submission.
         /// </summary>
-        public PortalUser RequestingUser { get; set; }
+        public PortalUser RequestingUser { get; set; } = null!;
     }
 }
