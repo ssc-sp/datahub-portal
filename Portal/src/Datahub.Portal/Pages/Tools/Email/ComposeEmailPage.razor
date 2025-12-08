@@ -44,6 +44,9 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestInfectedFileNotification">
         @Localizer["Send Infected File Notification"]
     </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestStorageScanSuccessEmail">
+        @Localizer["Send Storage Scan Success Email"]
+    </MudButton>
     <MudDivider />
 
     @*title*@
@@ -303,6 +306,25 @@
     private async Task TestInfectedFileNotification()
     {
         await _gcNotifyService.SendInfectedFileNotification(await _userInformationService.GetUserEmail(), "test_notice.txt", "TEST NOTICE", "1900-01-01");
+    }
+
+    private async Task TestStorageScanSuccessEmail()
+    {
+        var email = await _userInformationService.GetUserEmail();
+
+        var notification = new StorageScanSuccessNotification
+        {
+            WorkspaceAcronym = "TEST-WS",
+            ContainerName = "datahub",
+            BlobPath = "uploads/sample-file.csv",
+            FileName = "sample-file.csv",
+            ScanCompletedOn = DateTimeOffset.UtcNow,
+            ScanEngine = "ClamAV",
+            UploadedBy = "Datahub Tester",
+            UploadedByEmail = email
+        };
+
+        await _gcNotifyService.SendStorageScanSuccessEmailAsync(notification, email);
     }
 
     enum RecipientType
