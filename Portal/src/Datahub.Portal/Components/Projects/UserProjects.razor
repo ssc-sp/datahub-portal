@@ -216,10 +216,7 @@ else
 
     bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
     bool HasWorkspaces => _allWorkspaces.Count > 0;
-
-    int FilteredWorkspacesCount => AnyFilter
-        ? AllDisplayGroups.Where(g => g.FilterToggle).SelectMany(g => g.Workspaces).Distinct().Count()
-        : AllDisplayGroups.Sum(g => g.Workspaces.Count);
+    int FilteredWorkspacesCount;
 
 
     // User, Roles, and Projects
@@ -308,9 +305,11 @@ else
         _adminWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _collaboratorWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _guestWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Unclassified")).ToList();
+        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => (!p.Data_Sensitivity.Equals("Protected A") && !p.Data_Sensitivity.Equals("Protected B"))).ToList();
         _protectedAWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected A")).ToList();
         _protectedBWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected B")).ToList();
+
+        FilteredWorkspacesCount = _allWorkspaces.Count;
     }
 
     private void CheckWorkspaceRoleFilter()
@@ -319,49 +318,61 @@ else
         List<Datahub_Project> _tempRoleWorkspaces = new List<Datahub_Project>();
         bool securityFiltered = false;
         roleFiltered = false;
-        foreach (var group in SecurityDisplayGroups)
+        if(AnyFilter)
         {
-            if (Show(group))
+            foreach (var group in SecurityDisplayGroups)
             {
-                securityFiltered = true;
-                foreach (var workspace in group.Workspaces)
+                if (Show(group))
                 {
-                    _tempSecurityWorkspaces.Add(workspace);
-                } 
-            }
-        }
-        foreach (var group2 in WorkspaceDisplayGroups)
-        {
-            if (Show(group2))
-            {
-                roleFiltered = true;
-                foreach (var workspace in group2.Workspaces)
-                {
-                    _tempRoleWorkspaces.Add(workspace);
+                    securityFiltered = true;
+                    foreach (var workspace in group.Workspaces)
+                    {
+                        _tempSecurityWorkspaces.Add(workspace);
+                    } 
                 }
             }
-        }
-        if(!_tempSecurityWorkspaces.Any()) // if there are no security workspaces
-        {
-            if (securityFiltered) // if there is a security workspace filter applied
+            foreach (var group2 in WorkspaceDisplayGroups)
             {
-                _filteredWorkspaces.Clear();
+                if (Show(group2))
+                {
+                    roleFiltered = true;
+                    foreach (var workspace in group2.Workspaces)
+                    {
+                        _tempRoleWorkspaces.Add(workspace);
+                    }
+                }
+            }
+
+            if(!_tempSecurityWorkspaces.Any()) // if there are no security workspaces
+            {
+                if (securityFiltered) // if there is a security workspace filter applied
+                {
+                    _filteredWorkspaces.Clear();
+                    FilteredWorkspacesCount = 0;
+                    return;
+                }
+                _filteredWorkspaces = _tempRoleWorkspaces;
+                FilteredWorkspacesCount = _filteredWorkspaces.Count();
                 return;
             }
-            _filteredWorkspaces = _tempRoleWorkspaces;
-            return;
-        }
-        else if(!_tempRoleWorkspaces.Any())
-        {
-            if(roleFiltered)
+            else if(!_tempRoleWorkspaces.Any())
             {
-                _filteredWorkspaces.Clear();
+                if(roleFiltered)
+                {
+                    _filteredWorkspaces.Clear();
+                    FilteredWorkspacesCount = 0;
+                    return;
+                }
+                _filteredWorkspaces = _tempSecurityWorkspaces;
+                FilteredWorkspacesCount = _filteredWorkspaces.Count;
                 return;
             }
-            _filteredWorkspaces = _tempSecurityWorkspaces;
+            _filteredWorkspaces = _tempRoleWorkspaces.Intersect(_tempSecurityWorkspaces).ToList();
+            FilteredWorkspacesCount = _filteredWorkspaces.Count;
             return;
         }
-        _filteredWorkspaces = _tempRoleWorkspaces.Intersect(_tempSecurityWorkspaces).ToList();
+        _filteredWorkspaces = _allWorkspaces;  
+        FilteredWorkspacesCount = _filteredWorkspaces.Count;
     }
 
     private void InitiateDisplayState()
@@ -460,7 +471,6 @@ else
                     label += Localizer[", "];
                 }
                 label += group2.Label;
-                label += Localizer[" ({0})", group2.Workspaces.Count];
                 anyCondition = true;
             }
         }
@@ -468,6 +478,7 @@ else
         if(!roleFiltered)// if there are no roles filtered for, cut off the label here
         {
             label += Localizer[" workspaces"];
+            label += Localizer[" ({0})", FilteredWorkspacesCount];
             return label;
         }
 
@@ -483,10 +494,11 @@ else
                     label += Localizer[", "];
                 }
                 label += group.Label;
-                label += Localizer[" ({0})", group.Workspaces.Count];
+                // label += Localizer[" ({0})", group.Workspaces.Count];
                 anyCondition = true;
             }
         }
+        label += Localizer[" ({0})", FilteredWorkspacesCount];
         return label;
     }
 
