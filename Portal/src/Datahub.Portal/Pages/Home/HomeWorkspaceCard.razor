@@ -11,6 +11,7 @@
 
 @inject ICultureService CultureService
 @inject IDialogService Dialog
+@inject IProjectUserManagementService ProjectUserManagementService
 @inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService RequestManagementService
 @inject IWorkspaceVersionService WorkspaceVersionService
@@ -20,7 +21,7 @@
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
     <MudStack Style=@MainStackStyle>
-        <MudStack Row>            
+        <MudStack Row>
             <MudText Style="@WorkspaceNameStyle">
                 <strong>
                     @Workspace.Project_Name
@@ -44,11 +45,9 @@
             </MudChip>
         </MudStack>
         <MudStack Row>
-            <ProjectPreviewCardIconDetails
-            NumberOfUsers=@NumberOfUsers
-            NumberOfRepositories=@NumberOfRepositories
-            />
-            <MudSpacer/>
+            <ProjectPreviewCardIconDetails NumberOfUsers=@NumberOfUsers
+                                           NumberOfRepositories=@NumberOfRepositories />
+            <MudSpacer />
         </MudStack>
         @if (!string.IsNullOrWhiteSpace(Workspace.ProjectDescription))
         {
@@ -64,7 +63,7 @@
                 @Localizer["No description available."]
             </MudText>
         }
-        <MudSpacer/>
+        <MudSpacer />
         <nav>
             <ul style=@CardActionListStyle>
                 @foreach (var tool in ToolActions)
@@ -73,9 +72,9 @@
                     {
                         <li style=@CardActionStyle>
                             <DHButton Underline NoWrap FullWidth
-                            Color="Color.Primary"
-                            Href=@ToolLink(tool)
-                            EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
+                                      Color="Color.Primary"
+                                      Href=@ToolLink(tool)
+                                      EndIcon=@Icons.Material.Filled.KeyboardDoubleArrowRight>
                                 @ToolLabel(tool)
                             </DHButton>
                         </li>
@@ -85,19 +84,19 @@
                 {
                     <li style=@CardActionStyle>
                         <DHButton Underline NoWrap FullWidth
-                        Color="Color.Primary"
-                        Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
-                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                  Color="Color.Primary"
+                                  Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Reports}")"
+                                  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                             @Localizer["Reports"]
                         </DHButton>
                     </li>
                 }
                 <li style=@CardMainActionStyle>
                     <DHButton Underline NoWrap FullWidth
-                    Color="Color.Primary"
-                    Variant="Variant.Outlined"
-                    Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
-                    EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                              Color="Color.Primary"
+                              Variant="Variant.Outlined"
+                              Href="@($"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}")"
+                              EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                         @Localizer["View workspace"]
                     </DHButton>
                 </li>
@@ -106,16 +105,13 @@
     </MudStack>
     @if (ShowCost)
     {
-        <MudProgressLinear
-        Color=@CostBarColor()
-        Size="Size.Large"
-        Style=@CostBarStyle
-        Value=@((double)WorkspaceUsage.Item1)
-        Max=@((double)WorkspaceUsage.Item2)
-        title=@CostBarTitle()>
-            <ProjectPreviewCardIconDetails
-            WorkspaceUsage=@WorkspaceUsage
-            />
+        <MudProgressLinear Color=@CostBarColor()
+                           Size="Size.Large"
+                           Style=@CostBarStyle
+                           Value=@((double)WorkspaceUsage.Item1)
+                           Max=@((double)WorkspaceUsage.Item2)
+                           title=@CostBarTitle()>
+            <ProjectPreviewCardIconDetails WorkspaceUsage=@WorkspaceUsage />
         </MudProgressLinear>
     }
 </MudPaper>
@@ -126,7 +122,7 @@
     [Parameter] public Datahub_Project Workspace { get; set; }
     [Parameter] public bool ShowCost { get; set; }
     [Parameter] public string LatestVersion { get; set; }
-    [Parameter] public string UserEmail { get; set; } 
+    [Parameter] public string UserEmail { get; set; }
     [Parameter] public bool IsLead { get; set; }
 
     // Styles
@@ -194,14 +190,17 @@
         .Build();
 
     // Display state
-    private int NumberOfUsers => Workspace?.UserRoles?.Count(x => x.RoleId != (int)Project_Role.RoleNames.Removed) ?? 0;
+    private int NumberOfUsers;
     private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         UpdateResourceStatusesFromHealthChecks();
+        var users = await ProjectUserManagementService.GetProjectUsersAsync(Workspace?.Project_Acronym_CD);
+
+        NumberOfUsers = users?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed) ?? 0;
     }
 
     private void UpdateResourceStatusesFromHealthChecks()
@@ -217,8 +216,8 @@
                         h.Group == Workspace.Project_Acronym_CD &&
                         TerraformTemplate.MapHealthResourceTypeToTemplateConstant(h.ResourceType) == serviceType);
 
-                    if (health != null 
-                        && health.Status !=  InfrastructureHealthStatus.NotProvisioned
+                    if (health != null
+                        && health.Status != InfrastructureHealthStatus.NotProvisioned
                         && health.Status != InfrastructureHealthStatus.Undefined
                     )
                     {
@@ -314,7 +313,4 @@
         }
         return "This workspace is Unclassified security level";
     }
-
-   
 }
-          
