@@ -27,15 +27,6 @@ public partial class WorkspaceSettingsPage
     }
 
     /// <summary>
-    /// Handles the change in max upload size for external users.
-    /// </summary>
-    /// <param name="value">The new max upload size</param>
-    internal void HandleMaxUploadChanged(long value)
-    {
-        _maxUploadForExternal = value;
-    }
-
-    /// <summary>
     /// Saves the changes made to the workspace model, updates the database,
     /// and triggers a Terraform update if necessary.
     /// </summary>
@@ -91,6 +82,7 @@ public partial class WorkspaceSettingsPage
         _workspace.PreventAutoDelete = _preventAutoDelete;
         _workspace.Project_Budget = _budget;
         _workspace.MaxUploadMBForGccf = _maxUploadForExternal;
+        _workspace.MaxFileCountForGccf = _maxFileCountForExternal;
     }
 
     /// <summary>
@@ -101,5 +93,6 @@ public partial class WorkspaceSettingsPage
         _preventAutoDelete = _workspace.PreventAutoDelete;
         _budget = _workspace.Project_Budget ?? 0;
         _maxUploadForExternal = _workspace.MaxUploadMBForGccf;
+        _maxFileCountForExternal = _workspace.MaxFileCountForGccf;
     }
 }
