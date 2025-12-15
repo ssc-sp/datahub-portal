@@ -418,8 +418,7 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(JsonSerializer.Serialize(postData)).ConfigureAwait(false);
 
         _logger.LogInformation(
-            "Sent storage scan success email to {Email} for workspace {Workspace} via GC Notify template",
-            MaskEmail(targetEmail),
+            "Sent storage scan success email for workspace {Workspace} via GC Notify template",
             notification.WorkspaceAcronym);
     }
 
