@@ -1,13 +1,10 @@
-﻿using Azure;
-using Azure.Messaging.EventGrid;
-using Azure.Storage.Blobs;
+﻿using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -21,10 +18,7 @@ public class GCNotifyService : IGCNotifyService
     private readonly IKeyVaultService _keyVaultService;
     private readonly ILogger<GCNotifyService> _logger;
     private readonly DatahubPortalConfiguration _portalConfiguration;
-    private readonly StorageScanNotificationSettings _scanNotificationSettings;
-    private readonly SemaphoreSlim _scanClientLock = new(1, 1);
     private readonly string _mappingsJson;
-    private EventGridPublisherClient? _scanEventGridClient;
 
     public GCNotifyService(
         IKeyVaultService keyVaultService,
@@ -34,7 +28,6 @@ public class GCNotifyService : IGCNotifyService
         _keyVaultService = keyVaultService ?? throw new ArgumentNullException(nameof(keyVaultService));
         _logger = loggerFactory.CreateLogger<GCNotifyService>();
         _portalConfiguration = portalConfiguration ?? throw new ArgumentNullException(nameof(portalConfiguration));
-        _scanNotificationSettings = _portalConfiguration.StorageScanNotifications ?? new();
 
         if (_portalConfiguration.Media?.StorageConnectionString is null)
         {
@@ -285,88 +278,6 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
-    public async Task SendStorageScanSuccessNotificationAsync(
-        StorageScanSuccessNotification notification,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(notification);
-
-        if (!_scanNotificationSettings.Enabled)
-        {
-            _logger.LogDebug(
-                "Storage scan notifications disabled; skipping event for workspace {Workspace}",
-                notification.WorkspaceAcronym);
-            return;
-        }
-
-        var client = await EnsureScanEventGridClientAsync(cancellationToken).ConfigureAwait(false);
-        if (client is null)
-        {
-            _logger.LogWarning(
-                "Unable to publish storage scan notification for workspace {Workspace}: Event Grid client not configured",
-                notification.WorkspaceAcronym);
-            return;
-        }
-
-        var container = string.IsNullOrWhiteSpace(notification.ContainerName)
-            ? "datahub"
-            : notification.ContainerName.Trim('/');
-        var normalizedPath = NormalizeBlobPath(notification.BlobPath);
-        var fileName = string.IsNullOrWhiteSpace(notification.FileName)
-            ? Path.GetFileName(normalizedPath)
-            : notification.FileName;
-
-        var eventData = new StorageScanSuccessEventData
-        {
-            WorkspaceAcronym = notification.WorkspaceAcronym,
-            StorageAccountName = notification.StorageAccountName,
-            ContainerName = container,
-            BlobPath = normalizedPath,
-            FileName = string.IsNullOrWhiteSpace(fileName) ? normalizedPath : fileName!,
-            FileSizeBytes = notification.FileSizeBytes,
-            FileHashSha256 = notification.FileHashSha256,
-            ScanCompletedOn = notification.ScanCompletedOn == default
-                ? DateTimeOffset.UtcNow
-                : notification.ScanCompletedOn,
-            ScanEngine = string.IsNullOrWhiteSpace(notification.ScanEngine)
-                ? "ClamAV"
-                : notification.ScanEngine,
-            UploadedBy = notification.UploadedBy,
-            UploadedByEmail = notification.UploadedByEmail,
-            UploadedByObjectId = notification.UploadedByObjectId,
-            CorrelationId = notification.CorrelationId,
-            Metadata = notification.Metadata
-        };
-
-        var subject = BuildScanEventSubject(
-            notification.WorkspaceAcronym,
-            container,
-            eventData.BlobPath);
-
-        var eventType = string.IsNullOrWhiteSpace(_scanNotificationSettings.EventType)
-            ? "Datahub.Storage.ScanCompleted"
-            : _scanNotificationSettings.EventType;
-        var dataVersion = string.IsNullOrWhiteSpace(_scanNotificationSettings.DataVersion)
-            ? "1.0"
-            : _scanNotificationSettings.DataVersion;
-
-        var egEvent = new EventGridEvent(
-            subject,
-            eventType,
-            dataVersion,
-            BinaryData.FromObjectAsJson(eventData))
-        {
-            EventTime = eventData.ScanCompletedOn
-        };
-
-        await client.SendEventAsync(egEvent, cancellationToken).ConfigureAwait(false);
-
-        _logger.LogInformation(
-            "Published storage scan success notification for workspace {Workspace} blob {BlobPath}",
-            notification.WorkspaceAcronym,
-            eventData.BlobPath);
-    }
-
     public async Task SendStorageScanSuccessEmailAsync(
         StorageScanSuccessNotification notification,
         string? recipientEmail = null,
@@ -387,19 +298,10 @@ public class GCNotifyService : IGCNotifyService
             return;
         }
 
-        var normalizedPath = NormalizeBlobPath(notification.BlobPath);
-        var resolvedFileName = string.IsNullOrWhiteSpace(notification.FileName)
-            ? Path.GetFileName(normalizedPath)
-            : notification.FileName!;
-
-        if (string.IsNullOrWhiteSpace(resolvedFileName))
-        {
-            resolvedFileName = normalizedPath;
-        }
-
-        var scanCompletedOn = notification.ScanCompletedOn == default
-            ? DateTimeOffset.UtcNow
-            : notification.ScanCompletedOn;
+        var normalizedPath = StorageScanNotificationHelper.NormalizeBlobPath(notification.BlobPath);
+        var fileName = StorageScanNotificationHelper.ResolveFileName(notification.FileName, normalizedPath);
+        var workspace = StorageScanNotificationHelper.ResolveWorkspace(notification.WorkspaceAcronym);
+        var scanCompletedOn = StorageScanNotificationHelper.ResolveScanCompletedOn(notification.ScanCompletedOn);
 
         var templateId = GetTemplateId(SuccessfulScanTemplateName, _mappingsJson);
 
@@ -409,8 +311,8 @@ public class GCNotifyService : IGCNotifyService
             template_id = templateId,
             personalisation = new
             {
-                filename = string.IsNullOrWhiteSpace(resolvedFileName) ? normalizedPath : resolvedFileName,
-                ws = string.IsNullOrWhiteSpace(notification.WorkspaceAcronym) ? "DataHub" : notification.WorkspaceAcronym,
+                filename = string.IsNullOrWhiteSpace(fileName) ? normalizedPath : fileName,
+                ws = workspace,
                 date = scanCompletedOn.ToString("yyyy-MM-dd HH:mm 'UTC'")
             }
         };
@@ -488,117 +390,4 @@ public class GCNotifyService : IGCNotifyService
     private static string Truncate(string value, int max) =>
         string.IsNullOrEmpty(value) ? value : (value.Length <= max ? value : value.Substring(0, max) + "...(truncated)");
 
-    private async Task<EventGridPublisherClient?> EnsureScanEventGridClientAsync(CancellationToken cancellationToken)
-    {
-        if (!_scanNotificationSettings.Enabled)
-        {
-            return null;
-        }
-
-        if (_scanEventGridClient is not null)
-        {
-            return _scanEventGridClient;
-        }
-
-        await _scanClientLock.WaitAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            if (_scanEventGridClient is not null)
-            {
-                return _scanEventGridClient;
-            }
-
-            if (string.IsNullOrWhiteSpace(_scanNotificationSettings.TopicEndpoint))
-            {
-                _logger.LogWarning("Scan notification topic endpoint is not configured.");
-                return null;
-            }
-
-            if (!Uri.TryCreate(_scanNotificationSettings.TopicEndpoint, UriKind.Absolute, out var endpoint))
-            {
-                _logger.LogError("Invalid scan notification topic endpoint: {Endpoint}", _scanNotificationSettings.TopicEndpoint);
-                return null;
-            }
-
-            var key = await ResolveScanTopicKeyAsync().ConfigureAwait(false);
-            if (string.IsNullOrWhiteSpace(key))
-            {
-                _logger.LogWarning("Scan notification topic key is not configured.");
-                return null;
-            }
-
-            _scanEventGridClient = new EventGridPublisherClient(endpoint, new AzureKeyCredential(key));
-            return _scanEventGridClient;
-        }
-        finally
-        {
-            _scanClientLock.Release();
-        }
-    }
-
-    private async Task<string?> ResolveScanTopicKeyAsync()
-    {
-        if (!string.IsNullOrWhiteSpace(_scanNotificationSettings.TopicKey))
-        {
-            return _scanNotificationSettings.TopicKey;
-        }
-
-        if (string.IsNullOrWhiteSpace(_scanNotificationSettings.TopicKeySecretName))
-        {
-            return null;
-        }
-
-        try
-        {
-            return await _keyVaultService.GetSecret(_scanNotificationSettings.TopicKeySecretName).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to retrieve Event Grid topic key secret {Secret}",
-                _scanNotificationSettings.TopicKeySecretName);
-            return null;
-        }
-    }
-
-    private string BuildScanEventSubject(string workspace, string container, string blobPath)
-    {
-        var prefix = string.IsNullOrWhiteSpace(_scanNotificationSettings.SubjectPrefix)
-            ? "/datahub/storage/scan"
-            : _scanNotificationSettings.SubjectPrefix;
-        var workspaceSegment = string.IsNullOrWhiteSpace(workspace)
-            ? "UNKNOWN"
-            : workspace.Trim().ToUpperInvariant();
-        var containerSegment = string.IsNullOrWhiteSpace(container) ? "datahub" : container;
-        var blobSegment = string.IsNullOrWhiteSpace(blobPath) ? "-" : blobPath;
-
-        var baseSubject = prefix.TrimEnd('/');
-        return $"{baseSubject}/{workspaceSegment}/{containerSegment}/{blobSegment}";
-    }
-
-    private static string NormalizeBlobPath(string blobPath)
-    {
-        return string.IsNullOrWhiteSpace(blobPath)
-            ? string.Empty
-            : blobPath.Replace('\\', '/').Trim('/');
-    }
-
-    private sealed record StorageScanSuccessEventData
-    {
-        public required string WorkspaceAcronym { get; init; }
-        public string? StorageAccountName { get; init; }
-        public required string ContainerName { get; init; }
-        public required string BlobPath { get; init; }
-        public required string FileName { get; init; }
-        public long? FileSizeBytes { get; init; }
-        public string? FileHashSha256 { get; init; }
-        public DateTimeOffset ScanCompletedOn { get; init; }
-        public string? ScanEngine { get; init; }
-        public string? UploadedBy { get; init; }
-        public string? UploadedByEmail { get; init; }
-        public string? UploadedByObjectId { get; init; }
-        public string? CorrelationId { get; init; }
-        public IReadOnlyDictionary<string, string>? Metadata { get; init; }
-    }
 }

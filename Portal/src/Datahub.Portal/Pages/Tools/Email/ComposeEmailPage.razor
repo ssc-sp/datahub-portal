@@ -312,12 +312,15 @@
     {
         var email = await _userInformationService.GetUserEmail();
 
+        var blobPath = StorageScanNotificationHelper.NormalizeBlobPath("uploads/sample-file.csv");
+        var resolvedFileName = StorageScanNotificationHelper.ResolveFileName(null, blobPath);
+
         var notification = new StorageScanSuccessNotification
         {
             WorkspaceAcronym = "TEST-WS",
             ContainerName = "datahub",
-            BlobPath = "uploads/sample-file.csv",
-            FileName = "sample-file.csv",
+            BlobPath = blobPath,
+            FileName = resolvedFileName,
             ScanCompletedOn = DateTimeOffset.UtcNow,
             ScanEngine = "ClamAV",
             UploadedBy = "Datahub Tester",

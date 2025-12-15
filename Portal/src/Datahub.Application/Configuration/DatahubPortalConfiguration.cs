@@ -314,3 +314,4 @@ public class StorageScanNotificationSettings
     /// </summary>
     public string DataVersion { get; set; } = "1.0";
 }
+
