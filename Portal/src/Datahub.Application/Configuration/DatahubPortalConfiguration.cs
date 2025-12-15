@@ -50,6 +50,7 @@ public class DatahubPortalConfiguration
     public DatahubServiceBus DatahubServiceBus { get; set; } = new();
     public ToolboxConfig ToolboxConfig { get; set; } = new();
     public StorageConfiguration StorageConfiguration { get; set; } = new();
+    public StorageScanNotificationSettings StorageScanNotifications { get; set; } = new();
 }
 
 public class Achievements
@@ -272,4 +273,44 @@ public class ToolboxConfig
     public bool DisableOnActiveRequest { get; set; } = false;
     public bool DisableSubmissionDelays { get; set; } = false;
     public bool DisableSubmissions { get; set; } = false;
+}
+
+public class StorageScanNotificationSettings
+{
+    /// <summary>
+    /// Controls whether custom Event Grid notifications are emitted when virus scans succeed.
+    /// </summary>
+    public bool Enabled { get; set; } = false;
+
+    /// <summary>
+    /// Event Grid topic endpoint (https://&lt;topic&gt;.&lt;region&gt;-1.eventgrid.azure.net/api/events).
+    /// </summary>
+    public string? TopicEndpoint { get; set; }
+        = null;
+
+    /// <summary>
+    /// Name of the Key Vault secret that stores the Event Grid topic key.
+    /// </summary>
+    public string? TopicKeySecretName { get; set; } = "virus-scan-eventgrid-key";
+
+    /// <summary>
+    /// Optional plaintext key for local development (unused in production).
+    /// </summary>
+    public string? TopicKey { get; set; }
+        = null;
+
+    /// <summary>
+    /// Event type written into the Event Grid envelope.
+    /// </summary>
+    public string EventType { get; set; } = "Datahub.Storage.ScanCompleted";
+
+    /// <summary>
+    /// Subject prefix used to organize events.
+    /// </summary>
+    public string SubjectPrefix { get; set; } = "/datahub/storage/scan";
+
+    /// <summary>
+    /// Custom data version for the outgoing payload.
+    /// </summary>
+    public string DataVersion { get; set; } = "1.0";
 }
