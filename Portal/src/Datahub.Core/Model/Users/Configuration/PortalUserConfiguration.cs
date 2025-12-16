@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Users;
+﻿using Datahub.Core.Configuration;
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -15,7 +16,7 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
 
         builder.Property(e => e.Email)
             .IsRequired()
-            .HasMaxLength(256);
+            .HasMaxLength(ConfigurationConstants.EMAIL_MAX_LENGTH);
 
         builder.Property(e => e.DisplayName)
             .HasMaxLength(128);
@@ -42,9 +43,9 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
             .WithOne(e => e.User)
             .OnDelete(DeleteBehavior.NoAction);
 
-        builder.HasOne(u => u.ExternalUser)
+        builder.HasMany(u => u.ExternalUserHistory)
             .WithOne(r => r.PortalUser)
-            .HasForeignKey<ExternalUser>(e => e.PortalUserId)
+            .HasForeignKey(e => e.PortalUserId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
 

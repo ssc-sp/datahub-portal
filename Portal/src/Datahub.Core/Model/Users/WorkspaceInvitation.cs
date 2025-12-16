@@ -8,7 +8,7 @@ namespace Datahub.Core.Model.Users
     /// Represents an invite request for an external user, identified by their OID.
     /// Captures when the request was made and its content/payload.
     /// </summary>
-    public class ExternalUserInvite
+    public class WorkspaceInvitation
     {
         /// <summary>
         /// Gets or sets the unique identifier for the invite request.
@@ -28,7 +28,12 @@ namespace Datahub.Core.Model.Users
         /// <summary>
         /// Gets or sets the invitation token associated with the invite request.
         /// </summary>
-        public string InvitationToken { get; set; } = string.Empty;
+        public required Guid InvitationToken { get; set; } = Guid.NewGuid();
+
+        /// <summary>
+        /// Gets or sets the email address of the invited user.
+        /// </summary>
+        public required string InvitedEmail { get; set; } = string.Empty;
 
         /// <summary>
         /// Gets or sets a value indicating the expiration timestamp of the invitation token.

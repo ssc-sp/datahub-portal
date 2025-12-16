@@ -15,7 +15,20 @@ public class PortalUser : IValidatableObject
     /// </summary>
     public int Id { get; set; }
 
+    /// <summary>
+    /// Gets or sets the active ExternalUser
+    /// </summary>
     public ExternalUser? ExternalUser { get; set; }
+
+    /// <summary>
+    /// Gets or sets the foreign key for ExternalUser
+    /// </summary>
+    public int? ExternalUserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets all portal users associated with this user (including historical records).
+    /// </summary>
+    public ICollection<ExternalUser> ExternalUserHistory { get; set; } = new List<ExternalUser>();
 
     public EntraUser? EntraUser { get; set; }
 

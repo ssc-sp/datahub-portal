@@ -100,14 +100,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<ExternalUser> ExternalUsers { get; set; }
 
     /// <summary>
-    /// Gets or sets change history for ExternalUser entities
-    /// </summary>
-    public DbSet<ExternalUserChange> ExternalUserChanges { get; set; }
-
-    /// <summary>
     /// Gets or sets the external user requests/invites
     /// </summary>
-    public DbSet<ExternalUserInvite> ExternalUserRequests { get; set; }
+    public DbSet<WorkspaceInvitation> ExternalUserRequests { get; set; }
 
     /// <summary>
     /// Gets or sets the table for storing the GC hosting info

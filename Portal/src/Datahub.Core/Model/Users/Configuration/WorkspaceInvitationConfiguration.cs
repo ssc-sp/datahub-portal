@@ -1,19 +1,30 @@
+using Datahub.Core.Configuration;
+using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Users.Configuration
 {
-    internal class ExternalUserInviteConfiguration : IEntityTypeConfiguration<ExternalUserInvite>
+    internal class WorkspaceInvitationConfiguration : IEntityTypeConfiguration<WorkspaceInvitation>
     {
-        public void Configure(EntityTypeBuilder<ExternalUserInvite> builder)
+        public void Configure(EntityTypeBuilder<WorkspaceInvitation> builder)
         {
-            builder.ToTable("ExternalUserInvites");
+            builder.ToTable("WorkspaceInvitations");
 
             // Key
             builder.HasKey(i => i.RequestID);
             builder.Property(i => i.RequestID)
                 .ValueGeneratedOnAdd();
+
+            builder.Property(e => e.InvitedEmail)
+                .IsRequired()
+                .HasMaxLength(ConfigurationConstants.EMAIL_MAX_LENGTH);
+
+            builder.Property(i => i.InvitationToken)
+                .IsRequired();
+
+            builder.HasIndex(i => i.InvitationToken)
+                .IsUnique();
 
             builder.Property(i => i.Request_DT)
                 .HasConversion(

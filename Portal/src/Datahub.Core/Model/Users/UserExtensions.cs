@@ -15,9 +15,9 @@ namespace Datahub.Core.Model.Users
             {
                 return user.EntraUser.GraphGuid;
             }
-            else if (user.ExternalUser?.OID != null)
+            else if (user.ExternalUser?.ExternalSubject != null)
             {
-                return user.ExternalUser.OID?.ToString();
+                return user.ExternalUser.ExternalSubject?.ToString();
             }
             return null;
         }
@@ -33,7 +33,7 @@ namespace Datahub.Core.Model.Users
             }
             else if (user.ExternalUser != null)
             {
-                return $"{EXTERNAL}-{user.ExternalUser.OID}".Base64Encode();
+                return $"{EXTERNAL}-{user.ExternalUser.ExternalSubject}".Base64Encode();
             }
             return string.Empty;
         }

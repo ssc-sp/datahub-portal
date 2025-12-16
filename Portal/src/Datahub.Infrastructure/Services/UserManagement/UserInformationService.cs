@@ -582,7 +582,7 @@ public class UserInformationService(
                 .AsNoTracking()
                 .Include(u => u.UserSettings)
                 .Include(u => u.ExternalUser)
-                .FirstOrDefaultAsync(p => p.ExternalUser != null && p.ExternalUser.OID == userOID);
+                .FirstOrDefaultAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == userOID);
 
             if (portalUser is not null)
             {
@@ -636,7 +636,7 @@ public class UserInformationService(
         if (entraId is not null)
             portalUser = await query.FirstAsync(p => p.EntraUser != null && p.EntraUser.GraphGuid == entraId);
         if (userOID is not null)
-            portalUser = await query.FirstAsync(p => p.ExternalUser != null && p.ExternalUser.OID == userOID);
+            portalUser = await query.FirstAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == userOID);
         return portalUser;
     }
 
@@ -660,7 +660,7 @@ public class UserInformationService(
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var exists = await ctx.ExternalUsers
-            .FirstOrDefaultAsync(p => p.OID == userOid);
+            .FirstOrDefaultAsync(p => p.ExternalSubject == userOid);
 
         if (exists is not null)
         {
@@ -675,7 +675,7 @@ public class UserInformationService(
             {
                 ExternalUser = new ExternalUser
                 {
-                    OID = userOid,
+                    ExternalSubject = userOid,
                     PortalUser = null!,
                 },
                 Email = email,

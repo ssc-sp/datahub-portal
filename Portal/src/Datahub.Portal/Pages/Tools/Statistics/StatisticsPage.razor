@@ -273,7 +273,7 @@ else
             LastLogin = u.LastLoginDateTime ?? default,
             FirstLogin = u.FirstLoginDateTime ?? default,
             GraphGuid = u.EntraUser?.GraphGuid ?? "-",
-			ExternalOID = u.ExternalUser?.OID?.ToString() ?? "-",
+			ExternalOID = u.ExternalUser?.ExternalSubject?.ToString() ?? "-",
             Workspaces = new DHTableLinkList
             {
                 Links = allWorkspaceMembers
