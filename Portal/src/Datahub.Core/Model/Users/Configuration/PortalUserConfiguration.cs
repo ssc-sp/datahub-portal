@@ -44,8 +44,14 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
             .OnDelete(DeleteBehavior.NoAction);
 
         builder.HasMany(u => u.ExternalUserHistory)
-            .WithOne(r => r.PortalUser)
+            .WithOne(e => e.PortalUser)
             .HasForeignKey(e => e.PortalUserId)
+            .IsRequired()
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.HasOne(u => u.ExternalUser)
+            .WithOne()
+            .HasForeignKey<PortalUser>(e => e.ExternalUserId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
 

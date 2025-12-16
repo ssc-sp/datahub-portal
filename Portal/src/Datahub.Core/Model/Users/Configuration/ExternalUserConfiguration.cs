@@ -44,15 +44,12 @@ namespace Datahub.Core.Model.Users.Configuration
             builder.HasMany(e => e.Invitations)
                 .WithOne(r => r.User);
 
-            builder.HasOne(u => u.PortalUser)
-                .WithOne(r => r.ExternalUser)
-                .HasForeignKey<PortalUser>(u => u.ExternalUserId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
+            builder.HasIndex(e => e.PortalUserId);
 
             // Configure relationship with deactivated by user
             builder.HasOne(e => e.DeactivatedByUser)
                 .WithMany()
+                .HasForeignKey(e => e.DeactivatedByUserId)
                 .OnDelete(DeleteBehavior.NoAction);
         }
     }

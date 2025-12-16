@@ -67,6 +67,11 @@ namespace Datahub.Core.Model.Users
         public PortalUser? DeactivatedByUser { get; set; }
 
         /// <summary>
+        /// Gets the identifier of the user who deactivated the entity, if applicable.
+        /// </summary>
+        public int? DeactivatedByUserId { get; internal set; }
+
+        /// <summary>
         /// Gets or sets the navigation property to the portal user who deactivated this external user.
         /// </summary>
         public string? DeactivationReason { get; set; }
