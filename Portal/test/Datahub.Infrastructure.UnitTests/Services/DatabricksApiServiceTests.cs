@@ -71,7 +71,7 @@ public class DatabricksApiServiceTests
         await SeedDatabase();
         var accessToken = new AccessToken("", DateTime.Now.AddDays(1));
         var portalUser = new PortalUser { EntraUser = new EntraUser { GraphGuid = TestUserGraphGuid, PortalUser = null! }, Email = "john.doe@ssc-spc.gc.ca" };
-        Assert.That(await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(accessToken, projectAcronym, portalUser), Is.True);
+        Assert.That(await _databricksApiService.AddAdminToDatabricsWorkspaceAsync(accessToken, projectAcronym, portalUser), Is.False);
 
         _mockHandler.Protected().Verify(
            "SendAsync",

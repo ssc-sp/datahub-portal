@@ -119,6 +119,8 @@ namespace Datahub.Functions
             CancellationToken cancellationToken)
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
+
+            var allUserRoles = await ctx.UserRolesLinks.ToListAsync();
             var project = await ctx.Projects
                 .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)

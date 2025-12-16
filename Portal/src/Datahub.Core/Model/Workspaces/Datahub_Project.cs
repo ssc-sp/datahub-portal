@@ -188,7 +188,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// <summary>
     /// Gets or sets the list of roles and users associated with the workspace.
     /// </summary>
-    public List<UserRoleLinks> UserRoles { get; set; } = new List<UserRoleLinks>();
+    public ICollection<UserRoleLinks> UserRoles { get; set; } = new List<UserRoleLinks>();
 
     /// <summary>
     /// Gets or sets the credits for the workspace.

@@ -44,13 +44,13 @@
                         <MudStack Row>
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal" 
-                                UserUID="@ViewedUser.EntraUser?.GraphGuid" 
+                                UserUID="@ViewedUser.UserUID()" 
                                 AllowedUsers="DatahubAuthView.UserType.TrustedEntraOnly">
                                 <MudChip T="string" Text="@Localizer["Trusted Entra Login"]" Color="Color.Success" Class="ml-2" Tag=TRUSTED_LOGIN_TAG />
                             </DatahubAuthView>
                             <DatahubAuthView 
                                 AuthLevel="DatahubAuthView.AuthLevels.Personal"
-                                UserUID="@ViewedUser.ExternalUser?.ExternalSubject?.ToString()"
+                                UserUID="@ViewedUser.UserUID()"
                                 AllowedUsers="DatahubAuthView.UserType.ExternalOnly">
                                 <MudChip T="string" Text="@Localizer["External Login"]" Color="Color.Info" Class="ml-2" Tag=EXTERNAL_USER_TAG />
                             </DatahubAuthView>
@@ -74,7 +74,7 @@
             }
         </MudGrid>
     </div>
-    <UserProjects EntraGraphID="@ViewedUser.EntraUser?.GraphGuid" ExternalOID="@ViewedUser.ExternalUser?.ExternalSubject" SmSize="6" />
+    <UserProjects PortalUser="@ViewedUser" SmSize="6" />
 </MudStack>
 
 @code {
