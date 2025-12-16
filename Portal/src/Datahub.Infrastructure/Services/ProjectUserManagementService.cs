@@ -279,4 +279,39 @@ public class ProjectUserManagementService : IProjectUserManagementService
             return false;
         }
     }
+
+    public async Task<bool> AreExternalUserUploadLimitsSet(string workspaceAcronym)
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == workspaceAcronym)
+            ?? throw new ProjectNotFoundException($"Workspace with acronym {workspaceAcronym} not found.");
+
+        return workspace.ExternalSettingsConfigured;
+    }
+
+    public async Task<ExternalUserUploadLimit> GetExternalUserUploadLimits(string workspaceAcronym)
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == workspaceAcronym)
+            ?? throw new ProjectNotFoundException($"Workspace with acronym {workspaceAcronym} not found.");
+        
+        return new ExternalUserUploadLimit(workspace.MaxUploadMBForGccf, workspace.MaxFileCountForGccf);
+    }
+
+    public async Task UpdateExternalUserUploadLimits(string workspaceAcronym, ExternalUserUploadLimit limits)
+    {
+        using var ctx = await _contextFactory.CreateDbContextAsync();
+        var workspace = await ctx.Projects
+            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == workspaceAcronym)
+            ?? throw new ProjectNotFoundException($"Workspace with acronym {workspaceAcronym} not found.");
+
+        workspace.MaxUploadMBForGccf = limits.MaximumFileSizeMB;
+        workspace.MaxFileCountForGccf = limits.MaximumFileCount;
+
+        await ctx.SaveChangesAsync();
+    }
 }

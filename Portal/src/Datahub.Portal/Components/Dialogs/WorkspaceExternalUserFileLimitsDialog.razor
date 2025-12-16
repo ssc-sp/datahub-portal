@@ -1,0 +1,49 @@
+@using Datahub.Application.Services
+@using MudBlazor
+@using Datahub.Portal.Pages.Workspace.Settings
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Localizer[Title]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudText Typo="Typo.body2" Class="mb-2">@Localizer["Set maximum upload size (MB) and maximum file count for external users. These limits will apply when external users upload files."]</MudText>
+        <WorkspaceExternalUserFileLimitsControl @bind-MaxFileSize="_maxUploadSize"
+                                                @bind-MaxFileCount="_maxFileCount"
+                                                Disabled="false" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@Cancel">@CancelText</MudButton>
+        <MudButton OnClick="@Confirm" Color="Color.Primary">@ConfirmText</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public ExternalUserUploadLimit UploadLimit { get; set; }
+    [Parameter] public string Title { get; set; } = "External User Upload Limits";
+    [Parameter] public string ConfirmText { get; set; } = "Save";
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    private long? _maxUploadSize;
+    private int? _maxFileCount;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (UploadLimit is not null)
+        {
+            _maxUploadSize = UploadLimit.MaximumFileSizeMB;
+            _maxFileCount = UploadLimit.MaximumFileCount;
+        }
+    }
+
+    private void Confirm()
+    {
+        var result = new ExternalUserUploadLimit(_maxUploadSize, _maxFileCount);
+        MudDialog.Close(DialogResult.Ok(result));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

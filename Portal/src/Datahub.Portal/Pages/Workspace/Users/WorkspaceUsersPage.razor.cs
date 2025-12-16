@@ -3,6 +3,7 @@ using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
+using Datahub.Portal.Components.Dialogs;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
@@ -176,6 +177,39 @@ namespace Datahub.Portal.Pages.Workspace.Users
                         .ToList());
                     ValidateWorkspaceRules();
                     StateHasChanged();
+                }
+            }
+        }
+
+        private async Task OpenExternalUserFileRestrictionDialog()
+        {
+            var uploadLimits = await _projectUserManagementService.GetExternalUserUploadLimits(WorkspaceAcronym);
+
+            var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Medium };
+            var dialogParameters = new DialogParameters
+            {
+                { nameof(WorkspaceExternalUserFileLimitsDialog.UploadLimit), uploadLimits }
+            };
+            var dialog = await _dialogService.ShowAsync<WorkspaceExternalUserFileLimitsDialog>(Localizer["External User File Upload Restrictions"], dialogParameters, dialogOptions);
+            var result = await dialog.Result;
+            if (!result.Canceled)
+            {
+                if (result.Data is not ExternalUserUploadLimit updatedLimits)
+                {
+                    _snackbar.Add(Localizer["Error updating external user file upload restrictions"], Severity.Error);
+                }
+                else
+                {
+                    try
+                    {
+                        await _projectUserManagementService.UpdateExternalUserUploadLimits(WorkspaceAcronym, updatedLimits);
+
+                        _snackbar.Add(Localizer["External user file upload restrictions updated successfully"], Severity.Success);
+                    }
+                    catch (Exception)
+                    {
+                        _snackbar.Add(Localizer["Error updating external user file upload restrictions"], Severity.Error);
+                    }
                 }
             }
         }
