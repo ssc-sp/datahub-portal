@@ -178,10 +178,13 @@ public interface IUserInformationService
     /// Use this for users that are external to the tenant and tracked via an external OID.
     /// </summary>
     /// <param name="userOid">The external user's OID used to identify them.</param>
-    /// <param name="displayName">The display name of the external user.</param>
+    /// <param name="first">The first name of the external user.</param>
+    /// <param name="last">The last name of the external user.</param>
+    /// <param name="org">The organization of the external user.</param>
+    /// <param name="jobTitle">The job title of the external user.</param>
     /// <param name="email">The email address of the external user.</param>
     /// <returns>The newly created <see cref="PortalUser"/>, or <c>null</c> when a portal record already exists or creation fails.</returns>
-    public Task<PortalUser?> CreatePortalExternalUserAsync(Guid userOid, string displayName, string email);
+    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string jobTitle, string email);
 
     /// <summary>
     /// Persists changes to the provided <see cref="PortalUser"/> instance.

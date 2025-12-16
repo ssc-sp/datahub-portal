@@ -58,7 +58,7 @@ public class UserInformationService(
     /// Gets the current authenticated user's subject claim ("sub" or NameIdentifier) from the authentication claims.
     /// Returns null when the claim is not present or the user is not authenticated.
     /// </summary>
-    public async Task<Guid?> GetCurrentUserSubjectAsync()
+    public async Task<string?> GetCurrentUserSubjectAsync()
     {
         var user = await GetAuthenticatedUser();
         if (user == null) return null;
@@ -66,17 +66,8 @@ public class UserInformationService(
         // Common claim types that represent subject:
         // - JWT 'sub' for GCCF
         var subjectClaim = user.Claims?.FirstOrDefault(c => string.Equals(c.Type, "sub", StringComparison.OrdinalIgnoreCase));
-        // convert to Guid
-        if (subjectClaim == null) return null;
 
-
-        if (!Guid.TryParse(subjectClaim?.Value, out var subjectGuid))
-        {
-            logger.LogCritical("Cannot parse subject claim value '{SubjectClaimValue}' to Guid for user '{UserName}'", subjectClaim?.Value, user.Identity?.Name);
-            return null;
-         
-        }
-        return subjectGuid;
+        return subjectClaim?.Value;
     }
 
     public async Task<string> GetUserEmail()
@@ -573,27 +564,6 @@ public class UserInformationService(
         return await CreatePortalEntraUserAsync(userGraphId) ?? throw new InvalidOperationException("Failed to create portal user");
     }
 
-    public async Task<PortalUser> GetExternalUserAsync(Guid userOID, string displayName, string email)
-    {
-        PortalUser? portalUser;
-        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
-        {
-            portalUser = await ctx.PortalUsers
-                .AsNoTracking()
-                .Include(u => u.UserSettings)
-                .Include(u => u.ExternalUser)
-                .FirstOrDefaultAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == userOID);
-
-            if (portalUser is not null)
-            {
-                return portalUser;
-            }
-        }
-
-        logger.LogInformation("User with OID: {userOID} does not exist", userOID);
-        return await CreatePortalExternalUserAsync(userOID, displayName, email) ?? throw new InvalidOperationException("Failed to create portal user");
-    }
-
     public async Task<bool> IsDailyLogin()
     {
         var graphId = await GetCurrentUserEntraId();
@@ -618,7 +588,7 @@ public class UserInformationService(
         return _userWithAchievements;
     }
 
-    private async Task<PortalUser> LoadUserWithAchievementsAsync(string? entraId = null, Guid? userOID = null)
+    private async Task<PortalUser> LoadUserWithAchievementsAsync(string? entraId = null, string? userOID = null)
     {
         if (entraId is null && userOID is null)
             throw new ArgumentException("Either entraId or userOID must be provided");
@@ -656,7 +626,7 @@ public class UserInformationService(
         return false;
     }
 
-    public async Task<PortalUser?> CreatePortalExternalUserAsync(Guid userOid, string displayName, string email)
+    public async Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string jobTitle, string email)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var exists = await ctx.ExternalUsers
@@ -670,13 +640,18 @@ public class UserInformationService(
 
         try
         {
-            PrepareAuthenticatedClient();            
+            PrepareAuthenticatedClient();     
+            var displayName = $"{first} {last}";
             var portalUser = new PortalUser
             {
                 ExternalUser = new ExternalUser
                 {
                     ExternalSubject = userOid,
                     PortalUser = null!,
+                    FirstName = first,
+                    LastName = last,
+                    Organization = org,
+                    Affiliation = jobTitle
                 },
                 Email = email,
                 DisplayName = displayName,
