@@ -566,8 +566,7 @@ public class UserInformationService(
 
     public async Task<bool> IsDailyLogin()
     {
-        var graphId = await GetCurrentUserEntraId();
-        var portalUser = await GetEntraUserAsync(graphId);
+        var portalUser = await GetCurrentPortalUserAsync();
 
         if (portalUser is null)
             return false;
