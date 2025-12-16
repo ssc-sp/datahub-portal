@@ -120,12 +120,10 @@ namespace Datahub.Functions
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
 
-            var allUserRoles = await ctx.UserRolesLinks.ToListAsync();
             var project = await ctx.Projects
                 .Include(p => p.UserRoles)
                 .ThenInclude(u => u.PortalUser)
-                .Where(p => p.Project_Acronym_CD == projectAcronym)
-                .FirstAsync(cancellationToken);
+                .FirstAsync(p => p.Project_Acronym_CD == projectAcronym, cancellationToken);
 
             var adminContacts = project.UserRoles
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||

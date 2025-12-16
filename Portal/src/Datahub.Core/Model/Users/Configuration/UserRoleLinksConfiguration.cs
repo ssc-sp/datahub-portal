@@ -8,6 +8,16 @@ public class UserRoleLinksConfiguration : IEntityTypeConfiguration<UserRoleLinks
 {
     public void Configure(EntityTypeBuilder<UserRoleLinks> builder)
     {
+        builder.ToTable("Project_Users");
+
+        builder.HasKey(e => e.ProjectUser_ID);
+
+        builder.HasOne(e => e.Project)
+            .WithMany(e => e.UserRoles)
+            .HasForeignKey(e => e.Project_ID)
+            .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Property(e => e.Approved_DT);
         builder.HasKey(x => x.ProjectUser_ID);
 
         builder.Property(x => x.Timestamp)
@@ -22,11 +32,6 @@ public class UserRoleLinksConfiguration : IEntityTypeConfiguration<UserRoleLinks
             .WithMany()
             .HasForeignKey(x => x.ApprovedPortalUserId)
             .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(x => x.Project)
-            .WithMany()
-            .HasForeignKey(x => x.Project_ID)
-            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasOne(x => x.Role)
             .WithMany()

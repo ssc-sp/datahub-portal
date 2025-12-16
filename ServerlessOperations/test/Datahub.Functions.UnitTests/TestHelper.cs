@@ -231,6 +231,7 @@ namespace Datahub.Functions.UnitTests
                     {
                         Project_ID=5,
                         Project_Acronym_CD=OVERBUDGET_WEB_APP_PROJECT_ACRONYM,
+                        UserRoles = portalUsers
                     },
                     Status=TerraformStatus.Completed,
                     ResourceType = "terraform:azure-app-service"

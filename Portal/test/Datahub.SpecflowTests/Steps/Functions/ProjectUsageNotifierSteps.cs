@@ -276,6 +276,11 @@ public class ProjectUsageNotifierSteps(
         await ctx.UserRolesLinks.AddRangeAsync(projectUsers);
 
         await ctx.SaveChangesAsync();
+        var projectsWRoles = await ctx.Projects
+            .Include(p => p.UserRoles)
+            .ThenInclude(ur => ur.PortalUser).ToListAsync();
+        projectsWRoles.Should().NotBeEmpty();
+        projectsWRoles[0].UserRoles.Should().NotBeEmpty();
     }
 
     [Then(@"the (.*) admin users and workspace lead should be emailed")]
