@@ -14,11 +14,6 @@ public static class StorageScanNotificationHelper
             : blobPath.Replace('\\', '/').Trim('/');
     }
 
-    public static string ResolveWorkspace(string? workspaceAcronym) =>
-        string.IsNullOrWhiteSpace(workspaceAcronym)
-            ? "DataHub"
-            : workspaceAcronym.Trim();
-
     public static string ResolveFileName(string? fileName, string normalizedBlobPath)
     {
         if (!string.IsNullOrWhiteSpace(fileName))
@@ -44,7 +39,7 @@ public static class StorageScanNotificationHelper
 
         return new StorageScanSuccessEventPayload
         {
-            WorkspaceAcronym = notification.WorkspaceAcronym,
+            WorkspaceAcronym = notification.WorkspaceAcronym?.Trim() ?? string.Empty,
             StorageAccountName = notification.StorageAccountName,
             ContainerName = container,
             BlobPath = normalizedPath,

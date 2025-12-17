@@ -312,22 +312,20 @@
     {
         var email = await _userInformationService.GetUserEmail();
 
-        var blobPath = StorageScanNotificationHelper.NormalizeBlobPath("uploads/sample-file.csv");
-        var resolvedFileName = StorageScanNotificationHelper.ResolveFileName(null, blobPath);
-
         var notification = new StorageScanSuccessNotification
         {
             WorkspaceAcronym = "TEST-WS",
             ContainerName = "datahub",
-            BlobPath = blobPath,
-            FileName = resolvedFileName,
+            BlobPath = "uploads/sample-file.csv",
             ScanCompletedOn = DateTimeOffset.UtcNow,
             ScanEngine = "ClamAV",
             UploadedBy = "Datahub Tester",
             UploadedByEmail = email
         };
 
-        await _gcNotifyService.SendStorageScanSuccessEmailAsync(notification, email);
+        var payload = StorageScanNotificationHelper.BuildEventPayload(notification);
+
+        await _gcNotifyService.SendStorageScanSuccessEmailAsync(payload, email);
     }
 
     enum RecipientType

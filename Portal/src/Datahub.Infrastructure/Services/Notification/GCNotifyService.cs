@@ -279,29 +279,24 @@ public class GCNotifyService : IGCNotifyService
     }
 
     public async Task SendStorageScanSuccessEmailAsync(
-        StorageScanSuccessNotification notification,
+        StorageScanNotificationHelper.StorageScanSuccessEventPayload payload,
         string? recipientEmail = null,
         CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(notification);
+        ArgumentNullException.ThrowIfNull(payload);
         cancellationToken.ThrowIfCancellationRequested();
 
         var targetEmail = string.IsNullOrWhiteSpace(recipientEmail)
-            ? notification.UploadedByEmail
+            ? payload.UploadedByEmail
             : recipientEmail;
 
         if (string.IsNullOrWhiteSpace(targetEmail))
         {
             _logger.LogWarning(
                 "Skipping scan success email for workspace {Workspace}: recipient email missing",
-                notification.WorkspaceAcronym);
+                payload.WorkspaceAcronym);
             return;
         }
-
-        var normalizedPath = StorageScanNotificationHelper.NormalizeBlobPath(notification.BlobPath);
-        var fileName = StorageScanNotificationHelper.ResolveFileName(notification.FileName, normalizedPath);
-        var workspace = StorageScanNotificationHelper.ResolveWorkspace(notification.WorkspaceAcronym);
-        var scanCompletedOn = StorageScanNotificationHelper.ResolveScanCompletedOn(notification.ScanCompletedOn);
 
         var templateId = GetTemplateId(SuccessfulScanTemplateName, _mappingsJson);
 
@@ -311,9 +306,9 @@ public class GCNotifyService : IGCNotifyService
             template_id = templateId,
             personalisation = new
             {
-                filename = string.IsNullOrWhiteSpace(fileName) ? normalizedPath : fileName,
-                ws = workspace,
-                date = scanCompletedOn.ToString("yyyy-MM-dd HH:mm 'UTC'")
+                filename = payload.FileName,
+                ws = payload.WorkspaceAcronym,
+                date = payload.ScanCompletedOn.ToString("yyyy-MM-dd HH:mm 'UTC'")
             }
         };
 
@@ -321,7 +316,7 @@ public class GCNotifyService : IGCNotifyService
 
         _logger.LogInformation(
             "Sent storage scan success email for workspace {Workspace} via GC Notify template",
-            notification.WorkspaceAcronym);
+            payload.WorkspaceAcronym);
     }
 
     public string GetTemplateId(string templateName, string mappingsJson)
