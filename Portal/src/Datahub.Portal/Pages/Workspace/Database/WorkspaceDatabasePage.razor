@@ -97,20 +97,26 @@
         }
         // get SKU 
         var postgresResource = await BuildPostgresSqlFlexibleServerResource();
-
-        var serverData = await postgresResource.GetAsync();        
+     
         var instance = new AzurePgsqlDBServer();
-        if (serverData.Value.HasData)
-        {
-            var sku = serverData.Value.Data.Sku.Name; // Typically, tier + family + cores, e.g. Standard_D4s_v3.
-            var parts = sku.Split('_');
-            if (parts.Length > 0)
+        try {
+            var serverData = await postgresResource.GetAsync();
+            if (serverData.Value.HasData)
             {
-                var skuName = parts[1];
-                var postgresTiers = PostgresTier.GetPostgresTiers();
-                instance.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier() { Type = "-", SKUName = skuName, Cores = -1, MemorySize = "-", TerraformSku = skuName };
+                var sku = serverData.Value.Data.Sku.Name; // Typically, tier + family + cores, e.g. Standard_D4s_v3.
+                var parts = sku.Split('_');
+                if (parts.Length > 0)
+                {
+                    var skuName = parts[1];
+                    var postgresTiers = PostgresTier.GetPostgresTiers();
+                    instance.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier() { Type = "-", SKUName = skuName, Cores = -1, MemorySize = "-", TerraformSku = skuName };          
+                }
+                instance.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
             }
-            instance.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
+        }
+        catch (Exception ex) 
+        {
+            // do nothing
         }
         _dbServer = instance;
 

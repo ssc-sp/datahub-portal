@@ -22,6 +22,15 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 name: "CloudProvider",
                 table: "Project_Costs");
 
+            // Delete orphaned records before making Project_ID non-nullable
+            migrationBuilder.Sql(@"
+                DELETE FROM Project_Delete_Questionnaires 
+                WHERE Project_ID IS NULL 
+                   OR Project_ID NOT IN (SELECT Project_ID FROM Projects)
+                   OR DeletedById IS NULL
+                   OR DeletedById NOT IN (SELECT Id FROM PortalUsers)
+            ");
+
             migrationBuilder.AlterColumn<int>(
                 name: "UserId",
                 table: "UserInactivityNotifications",

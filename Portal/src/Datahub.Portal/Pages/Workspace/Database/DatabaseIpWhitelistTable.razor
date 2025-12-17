@@ -1,6 +1,5 @@
 @using System.Net
 
-
 @inject IHttpContextAccessor _httpContextAccessor
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _portalConfiguration
@@ -8,7 +7,7 @@
 @inject ILogger<DatabaseIpWhitelistTable> _logger
 @inject IUserInformationService _userInformationService
 @inject IJSRuntime _jsRuntime
-
+@inject IDialogService DialogService
 
 <MudStack>
     <MudText Typo="Typo.h2" Class="mt-6">
@@ -24,10 +23,10 @@
         <DHButton OnClick="@AddCurrentIpAddress">
             @Localizer["Add current IP address ({0})", _userIpAddress]
         </DHButton>
-        <DHButton OnClick="@AddNewIpAddress">
-                    @Localizer["Add a new IP address"]
-                </DHButton>
-        <MudSpacer/>
+        <DHButton OnClick="@AddNewIpOrRange">
+            @Localizer["Add a new IP address"]
+        </DHButton>
+        <MudSpacer />
     </MudStack>
 </MudStack>
 
@@ -55,21 +54,20 @@
         <MudText Typo="Typo.h3" Class="mt-6">
             @Localizer["Database IP Address Whitelist"]
         </MudText>
-        <MudSpacer/>
-        <MudTextField
-            @bind-Value="@_filterString"
-            Label="@Localizer["Filter"]"
-            Adornment="Adornment.End"
-            AdornmentIcon="@SidebarIcons.Search"
-            IconSize="Size.Small"
-            Class="mt-0"/>
+        <MudSpacer />
+        <MudTextField @bind-Value="@_filterString"
+                      Label="@Localizer["Filter"]"
+                      Adornment="Adornment.End"
+                      AdornmentIcon="@SidebarIcons.Search"
+                      IconSize="Size.Small"
+                      Class="mt-0" />
     </ToolBarContent>
 
     <ColGroup>
-        <col/>
-        <col/>
-        <col/>
-        <col style="width: 50px;"/> <!-- Delete button column -->
+        <col />
+        <col />
+        <col />
+        <col style="width: 50px;" />
     </ColGroup>
 
     <HeaderContent>
@@ -77,31 +75,40 @@
             <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.Name))">@Localizer["Name"]</MudTableSortLabel>
         </MudTh>
         <MudTh>
-            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["IP Address"]</MudTableSortLabel>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.StartIPAddress))">@Localizer["Start IP Address"]</MudTableSortLabel>
         </MudTh>
-        <MudTh/>
+        <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<WhitelistIPAddressData, object>(x => x.EndIPAddress))">@Localizer["End IP Address"]</MudTableSortLabel>
+        </MudTh>
+        <MudTh />
     </HeaderContent>
+
     <RowTemplate>
         <MudTd DataLabel="@Localizer["Name"]">@context.Name</MudTd>
-        <MudTd DataLabel="@Localizer["IP Address (192.168.2.1)"]">@context.StartIPAddress</MudTd>
+        <MudTd DataLabel="@Localizer["Start IP Address"]">@context.StartIPAddress</MudTd>
+        <MudTd DataLabel="@Localizer["End IP Address"]">@context.EndIPAddress</MudTd>
         <MudTd>
             <MudTooltip Text="@Localizer["Delete IP Address"]">
-                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])"
-                               OnClick="@(() => DeleteIpAddress(context, true))"/>
+                <MudIconButton Size="Size.Small" Icon="@SidebarIcons.Delete" aria-label="@(Localizer["Delete"])" OnClick="@(() => DeleteIpAddress(context, true))" />
             </MudTooltip>
         </MudTd>
     </RowTemplate>
+
     <RowEditingTemplate>
         <MudTd DataLabel="@Localizer["Name"]">
-            <MudTextField @bind-Value="@context.Name" Required/>
+            <MudTextField @bind-Value="@context.Name" Required />
         </MudTd>
-        <MudTd DataLabel="@Localizer["IP Address"]">
-            <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()"/>
+        <MudTd DataLabel="@Localizer["Start IP Address"]">
+            <MudTextField @bind-Value="@context.StartIPAddress" Required Converter="@BuildConverter()" />
         </MudTd>
-        <MudTd/>
+        <MudTd DataLabel="@Localizer["End IP Address"]">
+            <MudTextField @bind-Value="@context.EndIPAddress" Converter="@BuildConverter()" />
+        </MudTd>
+        <MudTd />
     </RowEditingTemplate>
+
     <EditButtonContent Context="button">
-        <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+        <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
     </EditButtonContent>
 </MudTable>
 
@@ -126,7 +133,6 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
         try
         {
             var postgresResource = await BuildPostgresSqlFlexibleServerResource();

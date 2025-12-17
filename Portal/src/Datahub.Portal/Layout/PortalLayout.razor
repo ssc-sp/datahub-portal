@@ -3,6 +3,7 @@
 @using Datahub.Application.Services.UserManagement;
 @using Datahub.Core
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
 @using Datahub.Infrastructure.Queues.Messages
 @using MediatR
@@ -57,6 +58,8 @@
 </MudLayout>
 </CommonMudProviders>
 @code {
+    [Parameter] public Datahub_Project Workspace { get; set; }
+    private string hello = "hello";
 
     private readonly string _topBorderStyle = new StyleBuilder()
         .AddStyle("border-color", "var(--mud-palette-divider)")

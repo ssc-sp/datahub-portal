@@ -1169,10 +1169,13 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<string>("JsonContent")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("PipelineId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("ProjectId")
                         .HasColumnType("INTEGER");
 
-                    b.Property<DateTime>("RequestedAt")
+                    b.Property<DateTime?>("RequestedAt")
                         .HasColumnType("TEXT");
 
                     b.Property<int>("RequestedById")

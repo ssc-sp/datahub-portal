@@ -208,12 +208,27 @@ public partial class FileExplorer
         return string.Join("/", splitPath);
     }
 
+    private bool CheckAcceptedFileExtension(IBrowserFile browserFile)
+    {
+        var blockedExtensions = _config.StorageConfiguration.BlockedFileExtensionCollection;
+        var filename = browserFile.Name;
+        var extension = Path.GetExtension(filename)?.ToLowerInvariant();
+
+        return !blockedExtensions.Contains(extension);
+    }
+
     private async Task UploadFile(IBrowserFile browserFile, string folder)
     {
         if (browserFile == null)
             return;
 
         folder = DefaultUploadFolderName;
+        var isAccepted = CheckAcceptedFileExtension(browserFile);
+        if (!isAccepted)
+        {
+            _blockedFiles.Add(browserFile.Name);
+            return;
+        }
 
         var newFilePath = JoinPath(folder, browserFile.Name);
 

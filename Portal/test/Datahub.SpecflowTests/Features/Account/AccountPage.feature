@@ -1,4 +1,5 @@
 @AccountPage
+@toolbox
 @IWebHostEnvironment
 Feature: AccountPage
   The account page should render the viewed user profile and sections correctly.

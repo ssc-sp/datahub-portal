@@ -1,4 +1,5 @@
 ﻿@WorkspaceCosts
+@IWebHostEnvironment
 Feature: WorkspaceCosts
 	Testing systems related to getting and updating workspace costs
 	
