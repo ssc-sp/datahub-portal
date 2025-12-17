@@ -179,7 +179,6 @@ public partial class FileExplorer
         StateHasChanged();
     }
 
-
     private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
     {
         if (!await StorageManager.FileExistsAsync(ContainerName, filePath))
@@ -207,7 +206,9 @@ public partial class FileExplorer
         return !blockedExtensions.Contains(extension);
     }
 
-    private async Task UploadFile(IBrowserFile browserFile, string folder)
+    private static string GenerateUploadBatchId() => Guid.NewGuid().ToString();
+
+    private async Task UploadFile(IBrowserFile browserFile, string folder, string uploadBatchId)
     {
         if (browserFile == null)
             return;
@@ -236,6 +237,7 @@ public partial class FileExplorer
             bytesToUpload = browserFile.Size,
             createdts = DateTime.UtcNow,
             lastmodifiedts = DateTime.UtcNow,
+            uploadBatchId = uploadBatchId,
             BrowserFile = browserFile
         };
 
@@ -366,9 +368,11 @@ public partial class FileExplorer
 
     private async Task UploadFiles(InputFileChangeEventArgs e, string folderName)
     {
+        var uploadBatchId = GenerateUploadBatchId();
+
         foreach (var browserFile in e.GetMultipleFiles())
         {
-            await UploadFile(browserFile, folderName);
+            await UploadFile(browserFile, folderName, uploadBatchId);
         }
 
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
