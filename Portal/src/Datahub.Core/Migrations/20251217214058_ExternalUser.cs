@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Datahub.Core.Migrations
 {
     /// <inheritdoc />
-    public partial class ExternalUser1 : Migration
+    public partial class ExternalUser : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -24,20 +24,6 @@ namespace Datahub.Core.Migrations
             migrationBuilder.DropForeignKey(
                 name: "FK_Project_Users_Project_Roles_RoleId",
                 table: "Project_Users");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users");
-
-            // Note: we will migrate existing PortalUsers.GraphGuid values into the new EntraUsers
-            // table after the table is created. The column and its index are dropped later
-            // to ensure we can read the values when populating EntraUsers.
-
-            migrationBuilder.AddColumn<int>(
-                name: "Datahub_ProjectProject_ID",
-                table: "Project_Users",
-                type: "int",
-                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "ExternalUserNotes",
@@ -80,11 +66,37 @@ namespace Datahub.Core.Migrations
                 oldType: "nvarchar(max)",
                 oldNullable: true);
 
+            migrationBuilder.AddColumn<int>(
+                name: "ExternalUserId",
+                table: "PortalUsers",
+                type: "int",
+                nullable: true);
+
             migrationBuilder.AddColumn<byte[]>(
                 name: "Timestamp",
                 table: "PortalUsers",
                 type: "varbinary(max)",
                 nullable: true);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "LeadEmail",
+                table: "GCHostingWorkspaceDetails",
+                type: "nvarchar(256)",
+                maxLength: 256,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(200)",
+                oldMaxLength: 200);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "FinancialAuthorityEmail",
+                table: "GCHostingWorkspaceDetails",
+                type: "nvarchar(256)",
+                maxLength: 256,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(200)",
+                oldMaxLength: 200);
 
             migrationBuilder.CreateTable(
                 name: "EntraUsers",
@@ -93,7 +105,6 @@ namespace Datahub.Core.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     GraphGuid = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: true),
                     PortalUserId = table.Column<int>(type: "int", nullable: true)
                 },
                 constraints: table =>
@@ -108,32 +119,48 @@ namespace Datahub.Core.Migrations
 
             // Populate EntraUsers from existing PortalUsers.GraphGuid values before we drop the column
             migrationBuilder.Sql(@"
-INSERT INTO EntraUsers (GraphGuid, Email, PortalUserId)
-SELECT t.GraphGuid, t.Email, t.Id
+INSERT INTO EntraUsers (GraphGuid, PortalUserId)
+SELECT t.GraphGuid,  t.Id
 FROM (
-    SELECT GraphGuid, Email, Id,
+    SELECT GraphGuid, Id,
            ROW_NUMBER() OVER (PARTITION BY GraphGuid ORDER BY Id) rn
     FROM PortalUsers
     WHERE GraphGuid IS NOT NULL AND GraphGuid <> ''
 ) t
 WHERE t.rn = 1
-" );
+");
+            // Now that EntraUsers has been populated, remove the old GraphGuid column and index
+            migrationBuilder.DropIndex(
+                name: "IX_PortalUsers_GraphGuid",
+                table: "PortalUsers");
+
+            migrationBuilder.DropColumn(
+                name: "GraphGuid",
+                table: "PortalUsers");
 
             migrationBuilder.CreateTable(
                 name: "ExternalUsers",
                 columns: table => new
                 {
-                    ExternalUserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    OID = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    FirstLogin_DT = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    LastLogin_DT = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    DeactivatedDate_DT = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ExternalSubject = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    FirstName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Organization = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    Affiliation = table.Column<string>(type: "nvarchar(255)", maxLength: 255, nullable: false),
+                    FirstLoginDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    LastLoginDateTime = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UserDeactivatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     DeactivatedByUserId = table.Column<int>(type: "int", nullable: true),
+                    DeactivationReason = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
                     PortalUserId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExternalUsers", x => x.ExternalUserID);
+                    table.PrimaryKey("PK_ExternalUsers", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ExternalUsers_PortalUsers_DeactivatedByUserId",
                         column: x => x.DeactivatedByUserId,
@@ -147,13 +174,15 @@ WHERE t.rn = 1
                 });
 
             migrationBuilder.CreateTable(
-                name: "ExternalUserInvites",
+                name: "WorkspaceInvitations",
                 columns: table => new
                 {
                     RequestID = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    UserExternalUserID = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    InvitationToken = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    UserId = table.Column<int>(type: "int", nullable: false),
+                    Project_ID = table.Column<int>(type: "int", nullable: false),
+                    InvitationToken = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    InvitedEmail = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: false),
                     InvitationExpiry = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
                     InvitationTokenAccepted = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     InvitationCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -162,12 +191,18 @@ WHERE t.rn = 1
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExternalUserInvites", x => x.RequestID);
+                    table.PrimaryKey("PK_WorkspaceInvitations", x => x.RequestID);
                     table.ForeignKey(
-                        name: "FK_ExternalUserInvites_ExternalUsers_UserExternalUserID",
-                        column: x => x.UserExternalUserID,
+                        name: "FK_WorkspaceInvitations_ExternalUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "ExternalUsers",
-                        principalColumn: "ExternalUserID",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WorkspaceInvitations_Projects_Project_ID",
+                        column: x => x.Project_ID,
+                        principalTable: "Projects",
+                        principalColumn: "Project_ID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -224,9 +259,11 @@ WHERE t.rn = 1
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Project_Users_Datahub_ProjectProject_ID",
-                table: "Project_Users",
-                column: "Datahub_ProjectProject_ID");
+                name: "IX_PortalUsers_ExternalUserId",
+                table: "PortalUsers",
+                column: "ExternalUserId",
+                unique: true,
+                filter: "[ExternalUserId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
                 name: "IX_EntraUsers_GraphGuid",
@@ -242,27 +279,43 @@ WHERE t.rn = 1
                 filter: "[PortalUserId] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExternalUserInvites_UserExternalUserID",
-                table: "ExternalUserInvites",
-                column: "UserExternalUserID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ExternalUsers_DeactivatedByUserId",
                 table: "ExternalUsers",
                 column: "DeactivatedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExternalUsers_OID",
+                name: "IX_ExternalUsers_ExternalSubject",
                 table: "ExternalUsers",
-                column: "OID",
-                unique: true,
-                filter: "[OID] IS NOT NULL");
+                column: "ExternalSubject",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ExternalUsers_PortalUserId",
                 table: "ExternalUsers",
-                column: "PortalUserId",
+                column: "PortalUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkspaceInvitations_InvitationToken",
+                table: "WorkspaceInvitations",
+                column: "InvitationToken",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkspaceInvitations_Project_ID",
+                table: "WorkspaceInvitations",
+                column: "Project_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkspaceInvitations_UserId",
+                table: "WorkspaceInvitations",
+                column: "UserId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_PortalUsers_ExternalUsers_ExternalUserId",
+                table: "PortalUsers",
+                column: "ExternalUserId",
+                principalTable: "ExternalUsers",
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Project_Users_PortalUsers_ApprovedPortalUserId",
@@ -287,35 +340,15 @@ WHERE t.rn = 1
                 principalTable: "Project_Roles",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Datahub_ProjectProject_ID",
-                table: "Project_Users",
-                column: "Datahub_ProjectProject_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users",
-                column: "Project_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID",
-                onDelete: ReferentialAction.Cascade);
-
-            // Now that EntraUsers has been populated, remove the old GraphGuid column and index
-            migrationBuilder.DropIndex(
-                name: "IX_PortalUsers_GraphGuid",
-                table: "PortalUsers");
-
-            migrationBuilder.DropColumn(
-                name: "GraphGuid",
-                table: "PortalUsers");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_PortalUsers_ExternalUsers_ExternalUserId",
+                table: "PortalUsers");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_Project_Users_PortalUsers_ApprovedPortalUserId",
                 table: "Project_Users");
@@ -328,26 +361,18 @@ WHERE t.rn = 1
                 name: "FK_Project_Users_Project_Roles_RoleId",
                 table: "Project_Users");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Datahub_ProjectProject_ID",
-                table: "Project_Users");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users");
-
             migrationBuilder.DropTable(
                 name: "EntraUsers");
 
             migrationBuilder.DropTable(
-                name: "ExternalUserInvites");
+                name: "WorkspaceInvitations");
 
             migrationBuilder.DropTable(
                 name: "ExternalUsers");
 
             migrationBuilder.DropIndex(
-                name: "IX_Project_Users_Datahub_ProjectProject_ID",
-                table: "Project_Users");
+                name: "IX_PortalUsers_ExternalUserId",
+                table: "PortalUsers");
 
             migrationBuilder.DeleteData(
                 table: "Project_Roles",
@@ -365,10 +390,6 @@ WHERE t.rn = 1
                 keyValue: 9);
 
             migrationBuilder.DropColumn(
-                name: "Datahub_ProjectProject_ID",
-                table: "Project_Users");
-
-            migrationBuilder.DropColumn(
                 name: "ExternalUserNotes",
                 table: "Project_Users");
 
@@ -379,6 +400,10 @@ WHERE t.rn = 1
             migrationBuilder.DropColumn(
                 name: "Timestamp",
                 table: "Project_Roles");
+
+            migrationBuilder.DropColumn(
+                name: "ExternalUserId",
+                table: "PortalUsers");
 
             migrationBuilder.DropColumn(
                 name: "Timestamp",
@@ -412,6 +437,26 @@ WHERE t.rn = 1
                 nullable: false,
                 defaultValue: "");
 
+            migrationBuilder.AlterColumn<string>(
+                name: "LeadEmail",
+                table: "GCHostingWorkspaceDetails",
+                type: "nvarchar(200)",
+                maxLength: 200,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(256)",
+                oldMaxLength: 256);
+
+            migrationBuilder.AlterColumn<string>(
+                name: "FinancialAuthorityEmail",
+                table: "GCHostingWorkspaceDetails",
+                type: "nvarchar(200)",
+                maxLength: 200,
+                nullable: false,
+                oldClrType: typeof(string),
+                oldType: "nvarchar(256)",
+                oldMaxLength: 256);
+
             migrationBuilder.CreateIndex(
                 name: "IX_PortalUsers_GraphGuid",
                 table: "PortalUsers",
@@ -438,13 +483,6 @@ WHERE t.rn = 1
                 column: "RoleId",
                 principalTable: "Project_Roles",
                 principalColumn: "Id");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users",
-                column: "Project_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID");
         }
     }
 }

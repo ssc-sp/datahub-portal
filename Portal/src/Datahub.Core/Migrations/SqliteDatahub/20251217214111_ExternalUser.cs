@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     /// <inheritdoc />
-    public partial class ExternalUser1 : Migration
+    public partial class ExternalUser : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -25,10 +25,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 name: "FK_Project_Users_Project_Roles_RoleId",
                 table: "Project_Users");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users");
-
             migrationBuilder.DropIndex(
                 name: "IX_PortalUsers_GraphGuid",
                 table: "PortalUsers");
@@ -36,12 +32,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             migrationBuilder.DropColumn(
                 name: "GraphGuid",
                 table: "PortalUsers");
-
-            migrationBuilder.AddColumn<int>(
-                name: "Datahub_ProjectProject_ID",
-                table: "Project_Users",
-                type: "INTEGER",
-                nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "ExternalUserNotes",
@@ -74,6 +64,12 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 oldMaxLength: 64,
                 oldNullable: true);
 
+            migrationBuilder.AddColumn<int>(
+                name: "ExternalUserId",
+                table: "PortalUsers",
+                type: "INTEGER",
+                nullable: true);
+
             migrationBuilder.AddColumn<byte[]>(
                 name: "Timestamp",
                 table: "PortalUsers",
@@ -87,7 +83,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
                     GraphGuid = table.Column<string>(type: "TEXT", maxLength: 64, nullable: false),
-                    Email = table.Column<string>(type: "TEXT", maxLength: 64, nullable: true),
                     PortalUserId = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
@@ -104,17 +99,25 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 name: "ExternalUsers",
                 columns: table => new
                 {
-                    ExternalUserID = table.Column<Guid>(type: "TEXT", nullable: false),
-                    OID = table.Column<Guid>(type: "TEXT", nullable: true),
-                    FirstLogin_DT = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    LastLogin_DT = table.Column<DateTime>(type: "TEXT", nullable: true),
-                    DeactivatedDate_DT = table.Column<long>(type: "INTEGER", nullable: true),
+                    Id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    ExternalSubject = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    FirstName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    LastName = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    Organization = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
+                    Affiliation = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
+                    FirstLoginDateTime = table.Column<long>(type: "INTEGER", nullable: true),
+                    CreatedAt = table.Column<long>(type: "INTEGER", nullable: true),
+                    UpdatedAt = table.Column<long>(type: "INTEGER", nullable: true),
+                    LastLoginDateTime = table.Column<long>(type: "INTEGER", nullable: true),
+                    UserDeactivatedAt = table.Column<long>(type: "INTEGER", nullable: true),
                     DeactivatedByUserId = table.Column<int>(type: "INTEGER", nullable: true),
+                    DeactivationReason = table.Column<string>(type: "TEXT", maxLength: 500, nullable: true),
                     PortalUserId = table.Column<int>(type: "INTEGER", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExternalUsers", x => x.ExternalUserID);
+                    table.PrimaryKey("PK_ExternalUsers", x => x.Id);
                     table.ForeignKey(
                         name: "FK_ExternalUsers_PortalUsers_DeactivatedByUserId",
                         column: x => x.DeactivatedByUserId,
@@ -128,13 +131,15 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 });
 
             migrationBuilder.CreateTable(
-                name: "ExternalUserInvites",
+                name: "WorkspaceInvitations",
                 columns: table => new
                 {
                     RequestID = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    UserExternalUserID = table.Column<Guid>(type: "TEXT", nullable: false),
-                    InvitationToken = table.Column<string>(type: "TEXT", nullable: false),
+                    UserId = table.Column<int>(type: "INTEGER", nullable: false),
+                    Project_ID = table.Column<int>(type: "INTEGER", nullable: false),
+                    InvitationToken = table.Column<Guid>(type: "TEXT", nullable: false),
+                    InvitedEmail = table.Column<string>(type: "TEXT", maxLength: 256, nullable: false),
                     InvitationExpiry = table.Column<long>(type: "INTEGER", nullable: false),
                     InvitationTokenAccepted = table.Column<long>(type: "INTEGER", nullable: true),
                     InvitationCode = table.Column<string>(type: "TEXT", nullable: false),
@@ -143,12 +148,18 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ExternalUserInvites", x => x.RequestID);
+                    table.PrimaryKey("PK_WorkspaceInvitations", x => x.RequestID);
                     table.ForeignKey(
-                        name: "FK_ExternalUserInvites_ExternalUsers_UserExternalUserID",
-                        column: x => x.UserExternalUserID,
+                        name: "FK_WorkspaceInvitations_ExternalUsers_UserId",
+                        column: x => x.UserId,
                         principalTable: "ExternalUsers",
-                        principalColumn: "ExternalUserID",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_WorkspaceInvitations_Projects_Project_ID",
+                        column: x => x.Project_ID,
+                        principalTable: "Projects",
+                        principalColumn: "Project_ID",
                         onDelete: ReferentialAction.Cascade);
                 });
 
@@ -205,9 +216,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Project_Users_Datahub_ProjectProject_ID",
-                table: "Project_Users",
-                column: "Datahub_ProjectProject_ID");
+                name: "IX_PortalUsers_ExternalUserId",
+                table: "PortalUsers",
+                column: "ExternalUserId",
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_EntraUsers_GraphGuid",
@@ -222,26 +234,43 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExternalUserInvites_UserExternalUserID",
-                table: "ExternalUserInvites",
-                column: "UserExternalUserID");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_ExternalUsers_DeactivatedByUserId",
                 table: "ExternalUsers",
                 column: "DeactivatedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_ExternalUsers_OID",
+                name: "IX_ExternalUsers_ExternalSubject",
                 table: "ExternalUsers",
-                column: "OID",
+                column: "ExternalSubject",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_ExternalUsers_PortalUserId",
                 table: "ExternalUsers",
-                column: "PortalUserId",
+                column: "PortalUserId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkspaceInvitations_InvitationToken",
+                table: "WorkspaceInvitations",
+                column: "InvitationToken",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkspaceInvitations_Project_ID",
+                table: "WorkspaceInvitations",
+                column: "Project_ID");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_WorkspaceInvitations_UserId",
+                table: "WorkspaceInvitations",
+                column: "UserId");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_PortalUsers_ExternalUsers_ExternalUserId",
+                table: "PortalUsers",
+                column: "ExternalUserId",
+                principalTable: "ExternalUsers",
+                principalColumn: "Id");
 
             migrationBuilder.AddForeignKey(
                 name: "FK_Project_Users_PortalUsers_ApprovedPortalUserId",
@@ -266,26 +295,15 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 principalTable: "Project_Roles",
                 principalColumn: "Id",
                 onDelete: ReferentialAction.Restrict);
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Datahub_ProjectProject_ID",
-                table: "Project_Users",
-                column: "Datahub_ProjectProject_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users",
-                column: "Project_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID",
-                onDelete: ReferentialAction.Cascade);
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_PortalUsers_ExternalUsers_ExternalUserId",
+                table: "PortalUsers");
+
             migrationBuilder.DropForeignKey(
                 name: "FK_Project_Users_PortalUsers_ApprovedPortalUserId",
                 table: "Project_Users");
@@ -298,26 +316,18 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 name: "FK_Project_Users_Project_Roles_RoleId",
                 table: "Project_Users");
 
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Datahub_ProjectProject_ID",
-                table: "Project_Users");
-
-            migrationBuilder.DropForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users");
-
             migrationBuilder.DropTable(
                 name: "EntraUsers");
 
             migrationBuilder.DropTable(
-                name: "ExternalUserInvites");
+                name: "WorkspaceInvitations");
 
             migrationBuilder.DropTable(
                 name: "ExternalUsers");
 
             migrationBuilder.DropIndex(
-                name: "IX_Project_Users_Datahub_ProjectProject_ID",
-                table: "Project_Users");
+                name: "IX_PortalUsers_ExternalUserId",
+                table: "PortalUsers");
 
             migrationBuilder.DeleteData(
                 table: "Project_Roles",
@@ -335,10 +345,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 keyValue: 9);
 
             migrationBuilder.DropColumn(
-                name: "Datahub_ProjectProject_ID",
-                table: "Project_Users");
-
-            migrationBuilder.DropColumn(
                 name: "ExternalUserNotes",
                 table: "Project_Users");
 
@@ -349,6 +355,10 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             migrationBuilder.DropColumn(
                 name: "Timestamp",
                 table: "Project_Roles");
+
+            migrationBuilder.DropColumn(
+                name: "ExternalUserId",
+                table: "PortalUsers");
 
             migrationBuilder.DropColumn(
                 name: "Timestamp",
@@ -398,13 +408,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 column: "RoleId",
                 principalTable: "Project_Roles",
                 principalColumn: "Id");
-
-            migrationBuilder.AddForeignKey(
-                name: "FK_Project_Users_Projects_Project_ID",
-                table: "Project_Users",
-                column: "Project_ID",
-                principalTable: "Projects",
-                principalColumn: "Project_ID");
         }
     }
 }
