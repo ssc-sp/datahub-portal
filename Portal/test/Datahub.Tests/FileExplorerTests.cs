@@ -192,13 +192,13 @@ namespace Datahub.Tests
 
             var container = new CloudStorageContainer(mockStorageManager.Object, TestContainerName);
 
-            var graphUser = new Microsoft.Graph.Models.User { Mail = "test@domain.com" };
+            var portalUser = new PortalUser { Email = "test@test.com", EntraUser = new EntraUser { PortalUser = null!, GraphGuid = Guid.NewGuid().ToString() } };
 
             var comp = _ctx.Render<FileExplorer>(parameters => parameters
                 .Add(p => p.ProjectId,1)
                 .Add(p => p.Container, container)
                 .AddCascadingValue(nameof(FileExplorer.ProjectAcronym), TestProjectAcronym)
-                .AddCascadingValue(nameof(FileExplorer.GraphUser), graphUser)
+                .AddCascadingValue(nameof(FileExplorer.PortalUser), portalUser)
             );
 
             uploadedFiles = localUploadedFiles;

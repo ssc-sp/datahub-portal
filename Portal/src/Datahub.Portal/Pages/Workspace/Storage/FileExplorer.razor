@@ -1,5 +1,6 @@
 @* FileExplorer.razor *@
 @using Datahub.Application.Services.Publishing
+@using Datahub.Core.Model.Users
 @using Datahub.Core.Storage;
 @using Datahub.Core.Components.FileUpload
 @using Datahub.Core.Services.Storage;
@@ -158,7 +159,7 @@ else
     public string ProjectAcronym { get; set; }
 
     [CascadingParameter(Name = "PortalUser")]
-    public Microsoft.Graph.Models.User GraphUser { get; set; }
+    public PortalUser PortalUser { get; set; }
 
     [Parameter] public int? ProjectId { get; set; }
 
@@ -174,7 +175,7 @@ else
 
     private ICloudStorageManager StorageManager => Container?.StorageManager;
 
-    private string _userId;
+    private string? _userId;
 
     private bool _loading = true;
     private bool _failed = false;
