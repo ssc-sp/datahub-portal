@@ -302,7 +302,7 @@
             .Include(u => u.Project)
             .ThenInclude(p => p.UserRoles)
             .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser.GraphGuid == _viewedUser.GraphGuid)
+            .Where(u => u.PortalUser == _viewedUser)
             .ToListAsync();
 
         foreach (var project in _userRoles.Select(userRole => userRole.Project))

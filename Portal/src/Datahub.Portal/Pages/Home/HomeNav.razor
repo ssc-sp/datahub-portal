@@ -103,7 +103,7 @@
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser.GraphGuid, 5);
+        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser, 5);
 
         _recentLinks = userRecent?
             .Select(l => (l, project: GetProject(dbContext, l)))

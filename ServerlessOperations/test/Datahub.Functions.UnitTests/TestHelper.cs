@@ -134,7 +134,8 @@ namespace Datahub.Functions.UnitTests
                 new PortalUser
                 {
                     Id=1,
-                    GraphGuid=Guid.NewGuid().ToString()
+                    EntraUser = new() { GraphGuid=Guid.NewGuid().ToString(), PortalUser = null! },
+                    Email = "john.doe@ssc-spc.gc.ca"
                 }
             };
             var portalUsers = new List<UserRoleLinks>
@@ -145,7 +146,8 @@ namespace Datahub.Functions.UnitTests
                     PortalUser=new PortalUser
                     {
                         Id=1,
-                        GraphGuid=Guid.NewGuid().ToString()
+                        EntraUser = new() { GraphGuid=Guid.NewGuid().ToString(), PortalUser = null! },
+                        Email = "marie.doe@ssc-spc.gc.ca"
                     }
                 }
             };
@@ -229,6 +231,7 @@ namespace Datahub.Functions.UnitTests
                     {
                         Project_ID=5,
                         Project_Acronym_CD=OVERBUDGET_WEB_APP_PROJECT_ACRONYM,
+                        UserRoles = portalUsers
                     },
                     Status=TerraformStatus.Completed,
                     ResourceType = "terraform:azure-app-service"

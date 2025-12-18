@@ -252,7 +252,7 @@ else
     private async Task LoadUsersAsync()
     {
         await using var ctx = await DbContextFactory.CreateDbContextAsync();
-        var allUsers = await ctx.PortalUsers.ToListAsync();
+        var allUsers = await ctx.PortalUsers.Include(u => u.EntraUser).Include(u => u.ExternalUser).ToListAsync();
         var allRegistrations = await ctx.SelfRegistrationDetails.ToListAsync();
         var allWorkspaceMembers = await ctx.UserRolesLinks.Include(m => m.Project).ToListAsync();
 
@@ -272,11 +272,12 @@ else
                 .FirstOrDefault(),
             LastLogin = u.LastLoginDateTime ?? default,
             FirstLogin = u.FirstLoginDateTime ?? default,
-            GraphGuid = u.GraphGuid,
+            GraphGuid = u.EntraUser?.GraphGuid ?? "-",
+			ExternalOID = u.ExternalUser?.ExternalSubject?.ToString() ?? "-",
             Workspaces = new DHTableLinkList
             {
                 Links = allWorkspaceMembers
-                    .Where(m => m.PortalUser.GraphGuid == u.GraphGuid)
+                    .Where(m => m.PortalUser == u)
                     .Select(m => ValueTuple.Create(
                         $"{m.Project.Project_Name} ({m.Project.Project_Acronym_CD})",
                         $"{PageRoutes.WorkspacePrefix}/{m.Project.Project_Acronym_CD}"
@@ -324,7 +325,7 @@ else
                 .Count(m => m.Project_ID == w.Project_ID && m.RoleId != (int)Project_Role.RoleNames.Removed),
             Members = new DHTableLinkList
             {
-                Links = w.UserRoles.Select(u => ValueTuple.Create(u.PortalUser.DisplayName, $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.GraphGuid.Base64Encode()}")).ToList()
+                Links = w.UserRoles.Select(u => ValueTuple.Create(u.PortalUser.DisplayName ?? "-", $"/{Localizer[PageRoutes.AccountPrefix]}/?u={u.PortalUser.UserProfileLink()}")).ToList()
             },
             CreatedAt = w.Created_DT,
             UpdatedAt = w.Last_Updated_DT,
@@ -332,7 +333,7 @@ else
             WorkspaceLeadEmail = w.Project_Admin,
             WorkspaceLead = _portalUsers
                 .Where(u => string.Equals(u.Email?.ToLower() ?? string.Empty, w.Project_Admin ?? string.Empty, StringComparison.InvariantCultureIgnoreCase))
-                .Select(u => u.DisplayName)
+                .Select(u => u.DisplayName ?? "-")
                 .FirstOrDefault(),
         }).ToList();
 
