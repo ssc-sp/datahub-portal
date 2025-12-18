@@ -15,9 +15,9 @@ namespace Datahub.Core.Model.Users
             {
                 return user.EntraUser.GraphGuid;
             }
-            else if (user.ExternalUser?.ExternalSubject != null)
+            else if (user.ExternalUser != null)
             {
-                return user.ExternalUser.ExternalSubject?.ToString();
+                return user.ExternalUser.ExternalSubject.ToString();
             }
             return null;
         }

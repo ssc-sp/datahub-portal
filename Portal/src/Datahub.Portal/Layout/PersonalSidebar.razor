@@ -124,9 +124,9 @@
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
-    private ushort _maxRecentLinks =5;
-    private ushort _maxWorkspacesToShow =3;
-    private ushort _numberOfRemainingWorkspaces =3;
+    private readonly ushort _maxRecentLinks =5;
+    private readonly ushort _maxWorkspacesToShow =3;
+    private ushort _numberOfRemainingWorkspaces = 3;
     private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <=0 && !_isViewAsAdmin;
 
     private bool _showAllRecentLinks = false;

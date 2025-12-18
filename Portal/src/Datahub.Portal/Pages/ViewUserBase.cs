@@ -87,7 +87,7 @@ public class ViewUserBase<T> : ComponentBase
             {
                 _logger.LogError(ex,
                     "Failed to get user information for user with id {UserIdBase64}, falling back to current user",
-                    UserIdBase64?.Replace("\r", "").Replace("\n", ""));
+                    UserIdBase64.Replace("\r", "").Replace("\n", ""));
             }
         }
 

@@ -175,7 +175,6 @@
     {
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
-        var entraUser = await _userInformationService.GetCurrentGraphUserAsync();
         _user = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("User is not authenticated");
         _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(WorkspaceAcronym) ||
                               await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
