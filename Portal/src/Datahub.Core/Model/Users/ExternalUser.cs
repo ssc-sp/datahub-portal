@@ -90,5 +90,10 @@ namespace Datahub.Core.Model.Users
         /// Gets or sets the required navigation to the owning <see cref="PortalUser"/>.
         /// </summary>
         public required PortalUser PortalUser { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets the timestamp for concurrency control.
+        /// </summary>
+        public byte[]? Timestamp { get; set; }
     }
 }

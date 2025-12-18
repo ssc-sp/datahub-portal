@@ -18,8 +18,19 @@ namespace Datahub.Core.Model.Users
         /// </summary>
         public required string GraphGuid { get; set; }
 
+        /// <summary>
+        /// Gets or sets the identifier of the associated portal user.
+        /// </summary>
         public int? PortalUserId { get; set; }
 
+        /// <summary>
+        /// Gets or sets the associated portal user entity.
+        /// </summary>
         public required PortalUser PortalUser { get; set; } = null!;
+
+        /// <summary>
+        /// Gets or sets the timestamp for concurrency control.
+        /// </summary>
+        public byte[]? Timestamp { get; set; }
     }
 }

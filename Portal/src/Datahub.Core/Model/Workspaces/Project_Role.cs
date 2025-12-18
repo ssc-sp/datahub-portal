@@ -18,11 +18,6 @@ public class Project_Role
     public required string Description { get; set; }
 
     /// <summary>
-    /// Gets or sets the timestamp for concurrency control.
-    /// </summary>
-    public byte[]? Timestamp { get; set; }
-
-    /// <summary>
     /// Gets or sets a value indicating whether this role is applicable for external users.
     /// </summary>
     public bool IsExternalRole { get; set; } = false;

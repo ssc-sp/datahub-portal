@@ -20,6 +20,10 @@ namespace Datahub.Core.Model.Users.Configuration
                 .IsRequired()
                 .HasMaxLength(ConfigurationConstants.EMAIL_MAX_LENGTH);
 
+            builder.Property(e => e.InvitationCode)
+                .IsRequired()
+                .HasMaxLength(100);
+
             builder.Property(i => i.InvitationToken)
                 .IsRequired();
 

@@ -51,6 +51,8 @@ namespace Datahub.Core.Model.Users.Configuration
                 .WithMany()
                 .HasForeignKey(e => e.DeactivatedByUserId)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            builder.Property(r => r.Timestamp).IsRowVersion();
         }
     }
 }

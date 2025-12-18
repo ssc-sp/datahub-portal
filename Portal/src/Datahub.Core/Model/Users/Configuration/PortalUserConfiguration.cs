@@ -60,5 +60,7 @@ public class PortalUserConfiguration : IEntityTypeConfiguration<PortalUser>
             .HasForeignKey<EntraUser>(e => e.PortalUserId)
             .IsRequired(false)
             .OnDelete(DeleteBehavior.NoAction);
+
+        builder.Property(r => r.Timestamp).IsRowVersion();
     }
 }

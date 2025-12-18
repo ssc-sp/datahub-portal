@@ -18,6 +18,8 @@ namespace Datahub.Core.Model.Users.Configuration
 
             builder.HasIndex(e => e.GraphGuid)
                 .IsUnique();
+
+            builder.Property(r => r.Timestamp).IsRowVersion();
         }
     }
 }
