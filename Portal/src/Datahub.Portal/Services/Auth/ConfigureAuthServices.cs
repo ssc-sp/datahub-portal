@@ -7,9 +7,10 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Azure.Amqp.Framing;
 using Microsoft.Identity.Web;
-using Microsoft.IdentityModel.Logging;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Identity.Web.UI;
+using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Protocols.OpenIdConnect;
+using Microsoft.IdentityModel.Tokens;
 
 namespace Datahub.Portal.Services.Auth;
 
@@ -23,7 +24,7 @@ public static class ConfigureAuthServices
     {
         // configure the primary Azure AD authentication
         services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(configuration, "AzureAd", OpenIdConnectDefaults.AuthenticationScheme, "cookies")
+            .AddMicrosoftIdentityWebApp(configuration, "AzureAd", OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
             .EnableTokenAcquisitionToCallDownstreamApi()
             .AddMicrosoftGraph(configuration.GetSection("Graph"))
             .AddInMemoryTokenCaches();
@@ -48,8 +49,9 @@ public static class ConfigureAuthServices
             .AddOpenIdConnect(GccfOidcScheme, options =>
             {
                 options.Authority = "https://te-gc.auth.canada.ca";
+              
                 options.ClientId = "fsdh-gccf-oidc";
-                options.ClientSecret = "";// configuration["GccfOidc:ClientSecret"]; // From configuration
+                options.ClientSecret = configuration["GccfOidc:ClientSecret"]; // From configuration
                 options.ResponseType = "code";
                 options.CallbackPath = GccfSigninURL;
                 options.SaveTokens = true;

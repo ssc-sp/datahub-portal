@@ -41,6 +41,7 @@ public class ResourceMessagingService(
             .AsNoTracking()
             .Include(p => p.UserRoles)
             .ThenInclude(u => u.PortalUser)
+            .ThenInclude(u => u.EntraUser)
             .Include(p => p.Resources)
             .Include(p => p.DatahubAzureSubscription)
             .Include(p => p.ParentGCHostingBudget)
@@ -52,17 +53,17 @@ public class ResourceMessagingService(
             throw new ProjectNotFoundException($"Project {projectAcronym} not found.");
         }
         
-        var users = project.UserRoles
-            .Where(u => u.PortalUser != null)
+        var entraUsers = project.UserRoles
+            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null)
             .Select(u => new TerraformUser
             {
-                ObjectId = u.PortalUser.GraphGuid, 
-                Email = u.PortalUser.Email, 
+                ObjectId = u.PortalUser!.EntraUser!.GraphGuid, 
+                Email = u.PortalUser!.Email ?? throw new InvalidOperationException($"User {u.PortalUser!.EntraUser!.GraphGuid} email is missing"), 
                 Role = RequestManagementService.GetTerraformUserRole(u)
             })
             .ToList();
 
-        var workspace = project.ToResourceWorkspace(users);
+        var workspace = project.ToResourceWorkspace(entraUsers);
         var templates = project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && r.Status != TerraformStatus.Deleted)
             .Select(r => r.ToTerraformTemplate())

@@ -201,16 +201,16 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                 .Returns(new PortalUser
                 {
                     Email = currentEmail,
-                    GraphGuid = cGuid
+                    EntraUser = new() { GraphGuid = cGuid, PortalUser = null! }
                 });
 
-            _userInformationService.CreatePortalUserAsync(Arg.Any<string>())
+            _userInformationService.CreatePortalEntraUserAsync(Arg.Any<string>())
                 .ReturnsForAnyArgs(async userName => {
                     Assert.Equal(cGuid, userName[0]);
                     _dbContext.PortalUsers.Add(new PortalUser
                     {
                         Email = currentEmail,
-                        GraphGuid = cGuid
+                        EntraUser = new() { GraphGuid = cGuid, PortalUser = null! }
                     });
                     await _dbContext.SaveChangesAsync();                    
                 });

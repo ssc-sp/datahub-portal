@@ -23,7 +23,7 @@
     [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; }
 
-    private Datahub_Project _project;
+    private Datahub_Project? _project;
     private FieldValueContainer _projectMetadata;
     private string _projectDescription;
 
@@ -32,14 +32,17 @@
         await base.OnInitializedAsync();
 
         await using var db = await _dbFactoryProject.CreateDbContextAsync();
-        _project = await db.Projects
-            .AsNoTracking()
-            .AsSingleQuery()
-            .Include(p => p.Credits)
-            .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+        if (_project is null)
+        {
+            _project = await db.Projects
+                .AsNoTracking()
+                .AsSingleQuery()
+                .Include(p => p.Credits)
+                .FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
-        _projectDescription = LoadProjectDescription();
+            _projectMetadata = await _metadataBrokerService.GetObjectMetadataValues(WorkspaceAcronym);
+            _projectDescription = LoadProjectDescription();
+        }
     }
 
     private string LoadProjectDescription()

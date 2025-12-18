@@ -6,9 +6,10 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
-<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserGraphId=@ViewedUser.GraphGuid>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserUID=@ViewedUser.UserUID()>
     
     <Authorized>
+        @* TODO: External users will not receive email notifications *@
         <MudStack Spacing="8" Class="mb-16">
             <MudStack>
                 <DHMainContentTitle Title="@Localizer["Email Notifications"]" />
@@ -35,7 +36,7 @@
     </Authorized>
 
     <NotAuthorized>
-        <UserViewProfileIconButton ViewedUserGraphId=@ViewedUser.GraphGuid />
+        <UserViewProfileIconButton ViewedUserGraphId=@ViewedUser.UserUID() />
     </NotAuthorized>
 
 </DatahubAuthView>
