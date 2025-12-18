@@ -5,6 +5,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
@@ -102,6 +103,15 @@ public class ServiceAuthManager : IServiceAuthManager
         }
     }
 
+    public async Task<bool> IsProjectAdmin(PortalUser portalUser, string projectAcronym)
+    {
+        if (portalUser.EntraUser == null)
+        {
+            return false;
+        }
+        return await IsProjectAdmin(portalUser.EntraUser.GraphGuid, projectAcronym);
+    }
+
     public async Task<bool> IsProjectAdmin(string userid, string projectAcronym)
     {
         var allProjectAdmins = await CheckCacheForAdmins();
@@ -158,22 +168,24 @@ public class ServiceAuthManager : IServiceAuthManager
                 .AsNoTracking()
                 .Include(a => a.Project)
                 .Include(a => a.PortalUser)
+                .ThenInclude(p => p.EntraUser)
                 .Where(u =>
-                    u.RoleId == (int)Project_Role.RoleNames.Admin
-                    || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+                    u.PortalUser != null && u.PortalUser.EntraUser != null &&
+                    (u.RoleId == (int)Project_Role.RoleNames.Admin
+                    || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead))
                 .ToListAsync();
 
             foreach (var admin in adminsFromProjectUsersTable)
             {
                 if (allProjectAdmins.TryGetValue(admin.Project.Project_Acronym_CD, out var projectAdmin))
                 {
-                    projectAdmin.Add(admin.PortalUser.GraphGuid);
+                    projectAdmin.Add(admin.PortalUser!.EntraUser!.GraphGuid);
                 }
                 else
                 {
                     allProjectAdmins.Add(
                         admin.Project.Project_Acronym_CD,
-                        new List<string> { admin.PortalUser.GraphGuid });
+                        new List<string> { admin.PortalUser!.EntraUser!.GraphGuid });
                 }
             }
 
@@ -187,7 +199,7 @@ public class ServiceAuthManager : IServiceAuthManager
     {
         if (serviceAuthCache.TryGetValue(
             AUTH_KEY,
-            out Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization))
+            out var usersAuthorizationObj) && usersAuthorizationObj is Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization)
         {
             if (usersAuthorization.TryGetValue(userGraphId, out var userAuths))
             {
@@ -198,29 +210,30 @@ public class ServiceAuthManager : IServiceAuthManager
 
         await using var ctx = await dbFactory.CreateDbContextAsync();
 
-        var usersRoles = await ctx.UserRolesLinks
+        var entraUsersRoles = await ctx.UserRolesLinks
             .AsNoTracking()
             .Include(a => a.Project)
             .Include(a => a.PortalUser)
+            .ThenInclude(p => p.EntraUser)
             .Include(a => a.Role)
+            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null)
             .ToListAsync();
 
-        usersAuthorization = usersRoles
-            .Where(u => u.PortalUser is not null)
-            .GroupBy(u => u.PortalUser.GraphGuid)
+        var newUsersAuthorization = entraUsersRoles
+            .GroupBy(u => u.PortalUser!.EntraUser!.GraphGuid)
             .ToDictionary(u => u.Key, u =>
-                u.Select(a => (a.Role, a.Project))
+                u.Select(a => (a.Role!, a.Project!))
                     .ToList());
 
-        serviceAuthCache.Set(AUTH_KEY, usersAuthorization, TimeSpan.FromMinutes(5));
+        serviceAuthCache.Set(AUTH_KEY, newUsersAuthorization, TimeSpan.FromMinutes(5));
 
         // if the user is not in the dictionary, return an empty list
-        if (!usersAuthorization.ContainsKey(userGraphId))
+        if (!newUsersAuthorization.ContainsKey(userGraphId))
         {
             return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
         }
 
-        return usersAuthorization[userGraphId]
+        return newUsersAuthorization[userGraphId]
             .ToImmutableList();
     }
 

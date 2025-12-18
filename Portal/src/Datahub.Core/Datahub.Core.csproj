@@ -17,6 +17,12 @@
 	<PropertyGroup Condition="'$(Configuration)' == 'MIGRATION'">
 		<DefineConstants>MIGRATION</DefineConstants>
 	</PropertyGroup>
+	<ItemGroup>
+	  <Compile Remove="Model\GCCF\**" />
+	  <Content Remove="Model\GCCF\**" />
+	  <EmbeddedResource Remove="Model\GCCF\**" />
+	  <None Remove="Model\GCCF\**" />
+	</ItemGroup>
 
 
 	<ItemGroup>
@@ -109,7 +115,6 @@
 	<ItemGroup>
 	  <Folder Include="Diagnostics\" />
 	  <Folder Include="Migrations\" />
-	  <Folder Include="Model\GCCF\" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
