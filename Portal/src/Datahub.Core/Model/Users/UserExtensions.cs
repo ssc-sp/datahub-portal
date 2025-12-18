@@ -17,7 +17,7 @@ namespace Datahub.Core.Model.Users
             }
             else if (user.ExternalUser?.ExternalSubject != null)
             {
-                return user.ExternalUser.ExternalSubject?.ToString();
+                return user.ExternalUser.ExternalSubject.ToString();
             }
             return null;
         }
