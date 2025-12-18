@@ -219,7 +219,6 @@ else
     bool HasWorkspaces => _allWorkspaces.Count > 0;
     int FilteredWorkspacesCount;
 
-
     // User, Roles, and Projects
     private List<UserRoleLinks>? _entraUserRoles = null;
     private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
@@ -227,18 +226,13 @@ else
     private List<Datahub_Project> _adminWorkspaces = new List<Datahub_Project>();
     private List<Datahub_Project> _collaboratorWorkspaces = new List<Datahub_Project>();
     private List<Datahub_Project> _guestWorkspaces = new List<Datahub_Project>();
-    private List<UserRoleLinks> _userRoles;
-    private List<Datahub_Project> _allWorkspaces;
-    private List<Datahub_Project> _filteredWorkspaces;
-    private List<Datahub_Project> _leadWorkspaces;
-    private List<Datahub_Project> _adminWorkspaces;
-    private List<Datahub_Project> _collaboratorWorkspaces;
-    private List<Datahub_Project> _guestWorkspaces;
-    private List<Datahub_Project> _unclassifiedWorkspaces;
-    private List<Datahub_Project> _protectedAWorkspaces;
-    private List<Datahub_Project> _protectedBWorkspaces;
-    private string _latestVersion;
-    private string _userEmail;
+    private List<UserRoleLinks> _userRoles = new();
+    private List<Datahub_Project> _filteredWorkspaces = new();
+    private List<Datahub_Project> _unclassifiedWorkspaces = new();
+    private List<Datahub_Project> _protectedAWorkspaces = new();
+    private List<Datahub_Project> _protectedBWorkspaces = new();
+    private string? _latestVersion;
+    private string? _userEmail;
     private bool roleFiltered = false;
 
     // Styles
@@ -267,7 +261,6 @@ else
         .AddStyle("flex-wrap", "wrap")
         .Build();
 
-
     // Hooks
     protected override async Task OnParametersSetAsync()
     {
@@ -283,11 +276,7 @@ else
             return;
 		}
         
-        //TODO: Handle External users
-
-        }
-        var portalUserGuid = await UserInformationService.GetCurrentUserGraphId();
-        var userId = UserId ?? portalUserGuid;
+        //TODO: Handle External users       
 
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
@@ -309,7 +298,7 @@ else
             .AsSingleQuery()
 			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser == PortalUser)
             .ToListAsync();
-        _userEmail = _userRoles.First().PortalUser.Email;
+        _userEmail = PortalUser.Email;
 
         _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _filteredWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
@@ -518,5 +507,4 @@ else
     {
         return group.FilterToggle || !AnyFilter;
     }
-
 }
