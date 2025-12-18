@@ -2,12 +2,12 @@
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 
-<h2 class="sr-only">
-    @Localizer["Workspace security level information"]
-</h2>
-<p style="@_styles">
-    @Localizer[ChildContent]
-</p>
+    <h2 class="sr-only">
+        @Localizer["Workspace security level information"]
+    </h2>
+    <p style="@_styles">
+        @Localizer[ChildContent]
+    </p>
 
 @code {
     [Parameter] public string ChildContent { get; set; }
@@ -22,7 +22,7 @@
             .AddStyle("height", "20px")
             .AddStyle("width", "100%")
             .AddStyle("background-color", GetSecurityColor(ChildContent))
-            .AddStyle("position", "fixed")
+            .AddStyle("position", "absolute")
             .AddStyle("top", "0px")
             .AddStyle("left", "0px")
             .AddStyle("z-index", "1400")
