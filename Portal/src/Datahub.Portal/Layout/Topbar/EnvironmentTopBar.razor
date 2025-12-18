@@ -6,11 +6,11 @@
         @Localizer["Workspace security level information"]
     </h2>
     <p style="@_styles">
-        @Localizer[ChildContent]
+        @Localizer[GetSecurityLabel(SecurityLevel)]
     </p>
 
 @code {
-    [Parameter] public string ChildContent { get; set; }
+    [Parameter] public int SecurityLevel { get; set; }
 
     private string _styles = null!;
 
@@ -21,7 +21,7 @@
         _styles = new StyleBuilder()
             .AddStyle("height", "20px")
             .AddStyle("width", "100%")
-            .AddStyle("background-color", GetSecurityColor(ChildContent))
+            .AddStyle("background-color", GetSecurityColor(SecurityLevel))
             .AddStyle("position", "absolute")
             .AddStyle("top", "0px")
             .AddStyle("left", "0px")
@@ -34,21 +34,30 @@
             .Build();
     }
 
-    private string GetSecurityColor(string securityLevel)
+    private string GetSecurityColor(int securityLevel)
     {
-        if (securityLevel is not null)
+        switch (securityLevel)
         {
-            switch (securityLevel)
-            {
-                case "Protected B":
-                    return "rgb(244, 67, 54)";
-                case "Protected A":
-                    return "rgb(255,152,0)";
-                default:
-                    return "rgb(89, 74, 226)";
-            }
+            case 2:
+                return "rgb(244, 67, 54)";
+            case 1:
+                return "rgb(255,152,0)";
+            default:
+                return "rgb(89, 74, 226)";
         }
-        return "rgb(89, 74, 226)";
+    }
+
+    private string GetSecurityLabel(int securityLevel)
+    {
+        switch (securityLevel)
+        {
+            case 2:
+                return Localizer["Protected B"];
+            case 1:
+                return Localizer["Protected A"];
+            default:
+                return Localizer["Unclassified"];
+        }
     }
 
 }
