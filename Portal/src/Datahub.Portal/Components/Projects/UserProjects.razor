@@ -14,7 +14,7 @@
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
 @inject IWorkspaceVersionService WorkspaceVersionService
 
-@if (_entraUserRoles is null)
+@if (_userRoles is null)
 {
     <DHLoadingInitializer Message="@Localizer["Getting your workspaces..."]"/>
     return;
@@ -220,13 +220,12 @@ else
     int FilteredWorkspacesCount;
 
     // User, Roles, and Projects
-    private List<UserRoleLinks>? _entraUserRoles = null;
     private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
     private List<Datahub_Project> _leadWorkspaces = new List<Datahub_Project>();
     private List<Datahub_Project> _adminWorkspaces = new List<Datahub_Project>();
     private List<Datahub_Project> _collaboratorWorkspaces = new List<Datahub_Project>();
     private List<Datahub_Project> _guestWorkspaces = new List<Datahub_Project>();
-    private List<UserRoleLinks> _userRoles = new();
+    private List<UserRoleLinks>? _userRoles = null;
     private List<Datahub_Project> _filteredWorkspaces = new();
     private List<Datahub_Project> _unclassifiedWorkspaces = new();
     private List<Datahub_Project> _protectedAWorkspaces = new();
@@ -234,6 +233,7 @@ else
     private string? _latestVersion;
     private string? _userEmail;
     private bool roleFiltered = false;
+    private PortalUser? _previousPortalUser;
 
     // Styles
     string SectionTitleStyle => new StyleBuilder()
@@ -262,31 +262,28 @@ else
         .Build();
 
     // Hooks
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await base.OnParametersSetAsync();
+        await base.OnInitializedAsync();
         await QueryWorkspaces();
         InitiateDisplayState();
     }
 
     private async Task QueryWorkspaces()
     {
-        if (_entraUserRoles != null)
+        if (_userRoles is not null)
         {
             return;
-		}
-        
-        //TODO: Handle External users       
+        }
 
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
         //getting all the projects where this users is a member
         await using var dbContext = await DbContextFactory.CreateDbContextAsync();
 
-        _entraUserRoles = await dbContext
+        _userRoles = await dbContext
             .UserRolesLinks
             .Include(u => u.PortalUser) 
-			.ThenInclude(u => u.EntraUser)
             .Include(u => u.Role)
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
@@ -296,8 +293,9 @@ else
             .ThenInclude(p => p.Resources)
             .AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser.EntraUser != null && u.PortalUser == PortalUser)
+			.Where(u => u.PortalUser == PortalUser)
             .ToListAsync();
+        
         _userEmail = PortalUser.Email;
 
         _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();

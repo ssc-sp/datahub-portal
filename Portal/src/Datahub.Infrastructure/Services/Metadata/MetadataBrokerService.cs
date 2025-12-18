@@ -7,6 +7,7 @@ using Datahub.Metadata.Model;
 using Datahub.Metadata.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 using Entities = Datahub.Metadata.Model;
 
 namespace Datahub.Infrastructure.Services.Metadata;
@@ -20,14 +21,17 @@ public class MetadataBrokerService : IMetadataBrokerService
     private readonly ILogger<MetadataBrokerService> logger;
     private readonly IDatahubAuditingService auditingService;
     private readonly ICatalogSearchEngine catalogSearchEngine;
+    private readonly IMemoryCache memoryCache;
+    private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(5);
 
     public MetadataBrokerService(IDbContextFactory<MetadataDbContext> contextFactory, ILogger<MetadataBrokerService> logger,
-        IDatahubAuditingService auditingService, ICatalogSearchEngine catalogSearchEngine)
+        IDatahubAuditingService auditingService, ICatalogSearchEngine catalogSearchEngine, IMemoryCache memoryCache)
     {
         this.contextFactory = contextFactory;
         this.logger = logger;
         this.auditingService = auditingService;
         this.catalogSearchEngine = catalogSearchEngine;
+        this.memoryCache = memoryCache;
     }
 
     public async Task<List<Entities.MetadataProfile>> GetProfiles()
@@ -36,7 +40,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return await GetProfiles(ctx);
     }
 
-    public async Task<MetadataProfile> GetProfile(string name)
+    public async Task<MetadataProfile?> GetProfile(string name)
     {
         using var ctx = contextFactory.CreateDbContext();
         return await ctx.Profiles
@@ -48,6 +52,12 @@ public class MetadataBrokerService : IMetadataBrokerService
 
     public async Task<FieldValueContainer> GetObjectMetadataValues(long objectMetadataId, string defaultMetadataId)
     {
+        var cacheKey = $"GetObjectMetadataValues:omid:{objectMetadataId}";
+        if (memoryCache.TryGetValue<FieldValueContainer>(cacheKey, out var cachedById) && cachedById is not null)
+        {
+            return cachedById;
+        }
+
         using var ctx = contextFactory.CreateDbContext();
 
         // retrieve the object metadata
@@ -59,11 +69,28 @@ public class MetadataBrokerService : IMetadataBrokerService
         // retrieve and clone the field values
         var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? await CloneMetadataValues(ctx, defaultMetadataId));
 
-        return new FieldValueContainer(objectMetadataId, objectMetadata?.ObjectId_TXT, metadataDefinitions, fieldValues);
+        var result = new FieldValueContainer(objectMetadataId, objectMetadata?.ObjectId_TXT, metadataDefinitions, fieldValues);
+
+        // cache only when object metadata exists
+        if (objectMetadata is not null)
+        {
+            memoryCache.Set(cacheKey, result, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration
+            });
+        }
+
+        return result;
     }
 
     public async Task<FieldValueContainer> GetObjectMetadataValues(string objectId, string defaultMetadataId)
     {
+        var cacheKey = $"GetObjectMetadataValues:obj:{objectId}";
+        if (memoryCache.TryGetValue<FieldValueContainer>(cacheKey, out var cachedByObject) && cachedByObject is not null)
+        {
+            return cachedByObject;
+        }
+
         using var ctx = contextFactory.CreateDbContext();
 
         // retrieve the object metadata
@@ -75,7 +102,18 @@ public class MetadataBrokerService : IMetadataBrokerService
         // retrieve and clone the field values
         var fieldValues = CloneFieldValues(objectMetadata?.FieldValues ?? await CloneMetadataValues(ctx, defaultMetadataId));
 
-        return new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectId, metadataDefinitions, fieldValues);
+        var result = new FieldValueContainer(objectMetadata?.ObjectMetadataId ?? 0, objectId, metadataDefinitions, fieldValues);
+
+        // cache only when object metadata exists
+        if (objectMetadata is not null)
+        {
+            memoryCache.Set(cacheKey, result, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = CacheDuration
+            });
+        }
+
+        return result;
     }
 
     public async Task<ObjectMetadata> SaveMetadata(FieldValueContainer fieldValues, bool anonymous = false)
@@ -147,6 +185,14 @@ public class MetadataBrokerService : IMetadataBrokerService
             await ctx.TrackSaveChangesAsync(auditingService, anonymous);
 
             transation.Commit();
+
+            // invalidate cache entries for this object
+            try
+            {
+                memoryCache.Remove($"GetObjectMetadataValues:obj:{objectId}");
+                memoryCache.Remove($"GetObjectMetadataValues:omid:{current.ObjectMetadataId}");
+            }
+            catch { /* ignore cache errors */ }
 
             return current;
         }
@@ -431,7 +477,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return values;
     }
 
-    private async Task<Subject> GetSubject(string subjectId)
+    private async Task<Subject?> GetSubject(string subjectId)
     {
         using var ctx = contextFactory.CreateDbContext();
 
@@ -448,12 +494,12 @@ public class MetadataBrokerService : IMetadataBrokerService
         form.Approval_Other_FLAG = !string.IsNullOrEmpty(form.Approval_Other_TXT);
     }
 
-    private async Task<ApprovalForm> GetApprovalFormEntity(MetadataDbContext ctx, int approvalFormId)
+    private async Task<ApprovalForm?> GetApprovalFormEntity(MetadataDbContext ctx, int approvalFormId)
     {
         return await ctx.ApprovalForms.FirstOrDefaultAsync(e => e.ApprovalFormId == approvalFormId);
     }
 
-    private async Task<ObjectMetadata> FetchObjectMetadata(MetadataDbContext ctx, string objectId)
+    private async Task<ObjectMetadata?> FetchObjectMetadata(MetadataDbContext ctx, string objectId)
     {
         return await ctx.ObjectMetadataSet
                         .Include(e => e.FieldValues)
@@ -518,19 +564,19 @@ public class MetadataBrokerService : IMetadataBrokerService
         await ctx.TrackSaveChangesAsync(auditingService);
     }
 
-    public async Task<ObjectMetadata> GetMetadata(long objectMetadataId)
+    public async Task<ObjectMetadata?> GetMetadata(long objectMetadataId)
     {
         using var ctx = await contextFactory.CreateDbContextAsync();
         return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectMetadataId == objectMetadataId);
     }
 
-    public async Task<ObjectMetadata> GetMetadata(string objectId)
+    public async Task<ObjectMetadata?> GetMetadata(string objectId)
     {
         using var ctx = await contextFactory.CreateDbContextAsync();
         return await ctx.ObjectMetadataSet.FirstOrDefaultAsync(m => m.ObjectId_TXT == objectId);
     }
 
-    private static CatalogObjectResult TransformCatalogObject(CatalogObject catObj, FieldDefinitions definitions)
+    private static CatalogObjectResult? TransformCatalogObject(CatalogObject? catObj, FieldDefinitions definitions)
     {
         if (catObj == null)
             return null;
@@ -556,7 +602,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         };
     }
 
-    public async Task<CatalogObjectResult> GetCatalogObjectByMetadataId(long metadataId)
+    public async Task<CatalogObjectResult?> GetCatalogObjectByMetadataId(long metadataId)
     {
         using var ctx = await contextFactory.CreateDbContextAsync();
 
@@ -570,7 +616,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return await Task.FromResult(TransformCatalogObject(result, definitions));
     }
 
-    public async Task<CatalogObjectResult> GetCatalogObjectByObjectId(string objectId)
+    public async Task<CatalogObjectResult?> GetCatalogObjectByObjectId(string objectId)
     {
         using var ctx = await contextFactory.CreateDbContextAsync();
 
@@ -727,7 +773,7 @@ public class MetadataBrokerService : IMetadataBrokerService
     /// </summary>
     /// <param name="projectId">ID of the workspace</param>
     /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-    public async Task<List<CatalogObjectResult>> GetProjectCatalogItems(int projectId)
+    public async Task<List<CatalogObjectResult?>> GetProjectCatalogItems(int projectId)
     {
         using var ctx = await contextFactory.CreateDbContextAsync();
 
@@ -791,7 +837,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return fieldDefinition.Choices.ToList();
     }
 
-    public async Task<List<NameValuePair>> ListObjectFieldValues(string fieldName)
+    public async Task<List<NameValuePair>?> ListObjectFieldValues(string fieldName)
     {
         try
         {
@@ -818,7 +864,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         }
     }
 
-    private static async Task<FieldDefinition> FindDefinition(MetadataDbContext ctx, string fieldName)
+    private static async Task<FieldDefinition?> FindDefinition(MetadataDbContext ctx, string fieldName)
     {
         return await ctx.FieldDefinitions
             .Where(f => f.Field_Name_TXT == fieldName)
@@ -900,7 +946,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         return securityClassificationId.Value;
     }
 
-    private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, string objectId)
+    private async Task<ObjectMetadata?> GetObjectMetadata(MetadataDbContext ctx, string objectId)
     {
         return await ctx.ObjectMetadataSet
                         .Include(e => e.FieldValues)
@@ -908,7 +954,7 @@ public class MetadataBrokerService : IMetadataBrokerService
                         .FirstOrDefaultAsync(e => e.ObjectId_TXT == objectId);
     }
 
-    private async Task<ObjectMetadata> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
+    private async Task<ObjectMetadata?> GetObjectMetadata(MetadataDbContext ctx, long objectMetadataId)
     {
         return await ctx.ObjectMetadataSet
                         .Include(e => e.FieldValues)
@@ -923,7 +969,7 @@ public class MetadataBrokerService : IMetadataBrokerService
         catalogSearch.FlushIndexes();
     }
 
-    private async Task<CatalogObject> GetCatalogObjectCopy(MetadataDbContext ctx, string objectId)
+    private async Task<CatalogObject?> GetCatalogObjectCopy(MetadataDbContext ctx, string objectId)
     {
         return await ctx.CatalogObjects.FirstOrDefaultAsync(c => c.ObjectMetadata.ObjectId_TXT == objectId);
     }
