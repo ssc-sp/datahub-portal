@@ -77,6 +77,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Http.Polly" Version="9.0.*" />
+		<PackageReference Include="Microsoft.FeatureManagement" Version="4.4.*" />
 		<PackageReference Include="Microsoft.Graph" Version="5.93.*" />
 		<PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.5" />
 		<PackageReference Include="Microsoft.Identity.Client" Version="4.77.*" />
