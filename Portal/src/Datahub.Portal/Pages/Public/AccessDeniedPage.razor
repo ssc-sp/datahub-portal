@@ -1,0 +1,29 @@
+﻿<PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
+
+<MudContainer MaxWidth=@MaxWidth.Medium>
+    <MudPaper Class="pt-12 px-12 mt-12">
+        <MudStack>
+            <MudGrid>
+                <MudItem xs="11">
+                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                </MudItem>
+                <MudItem xs="1">
+                    <LanguageToggle />
+                </MudItem>
+            </MudGrid>
+            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+        </MudStack>
+        <MudStack AlignItems="AlignItems.Center" Class="mt-4" Style="width: 100%">
+            <DHIcon Icon="@Icons.Material.Filled.Error" />
+            <MudText Typo="Typo.h4" Class="text-center">
+                <strong>
+                    @Localizer["Access Denied"]
+                </strong>
+            </MudText>
+            <MudText Typo="Typo.h6" Class="text-center">
+                @Localizer["This site is monitored. Further attempts to log in may be reported to the authorities."]
+            </MudText>
+        </MudStack>
+        <DHFooter />
+    </MudPaper>
+</MudContainer>
