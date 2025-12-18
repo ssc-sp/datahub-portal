@@ -228,9 +228,9 @@ public class ServiceAuthManager : IServiceAuthManager
         serviceAuthCache.Set(AUTH_KEY, newUsersAuthorization, TimeSpan.FromMinutes(5));
 
         // if the user is not in the dictionary, return an empty list
-        if (newUsersAuthorization.TryGetValue(userGraphId, out var userAuths))
+        if (newUsersAuthorization.TryGetValue(userGraphId, out var newUserAuths))
         {
-            return userAuths.ToImmutableList();
+            return newUserAuths.ToImmutableList();
         }
 
         return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
@@ -251,4 +251,4 @@ public class ServiceAuthManager : IServiceAuthManager
             .Select(w => w.Project_Acronym_CD)
             .ToListAsync();
     }
-}}
+}
