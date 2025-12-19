@@ -136,13 +136,15 @@
             .Take(FeaturedProjectsCount)
             .ToList();
 
-        _portalUsers = await context.PortalUsers.ToListAsync();
+        _portalUsers = await context.PortalUsers
+            .Include(u => u.EntraUser)
+            .Include(u => u.ExternalUser).ToListAsync();
 
         _userWorkspaces = _portalUsers.Select(u => new UserWorkspaces
         {
             User = u,
             Workspaces = context.UserRolesLinks.Include(pu => pu.Project)
-                .Where(pu => pu.PortalUser.GraphGuid == u.GraphGuid)
+                .Where(pu => pu.PortalUser == u)
                 .Select(pu => pu.Project).ToList(),
         }).ToList();
 

@@ -2,7 +2,7 @@ using Datahub.Core.Model.Users;
 
 namespace Datahub.Application.Commands;
 
-public class ProjectUserAddUserCommand
+public class ProjectUserAddEntraUserCommand
 {
     // guid with all 0's
     public static string NEW_USER_GUID = default(Guid).ToString();

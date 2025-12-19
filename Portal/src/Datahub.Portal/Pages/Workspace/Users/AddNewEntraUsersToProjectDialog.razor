@@ -111,7 +111,7 @@
     [Parameter]
     public List<UserRoleLinks> CurrentProjectUsers { get; set; } = new();
 
-    private readonly List<ProjectUserAddUserCommand> _usersToAdd = new();
+    private readonly List<ProjectUserAddEntraUserCommand> _usersToAdd = new();
     private readonly EmailAddressAttribute _emailValidator = new() { ErrorMessage = "The email address is invalid" };
     private string _userSearch = string.Empty;
     private MudAutocomplete<string> _autocomplete = null!;
@@ -153,7 +153,7 @@
         var existingUsersList = await _msGraphService.GetUsersListAsync(search, cancellationToken);
         _searchResultUsers = existingUsersList
             .Select(u => u.Value)
-            .Where(u => CurrentProjectUsers.All(x => x.PortalUser.GraphGuid != u.Id) 
+            .Where(u => CurrentProjectUsers.All(x => x.PortalUser?.EntraUser?.GraphGuid != u.Id) 
                         || _usersToAdd.Any(user => user.GraphGuid == u.Id))
             .ToList();
 
@@ -175,7 +175,7 @@
             case -1 when _emailValidator.IsValid(search):
                 _searchResultUsers.Insert(0, new GraphUser()
                 {
-                    MailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddUserCommand.NEW_USER_GUID
+                    MailAddress = new MailAddress(search), DisplayName = Localizer["Add New User"], Id = ProjectUserAddEntraUserCommand.NEW_USER_GUID
                 });
                 break;
         }
@@ -228,14 +228,14 @@
             UserExistsInProjectError();
             return;
         }
-        if (user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID) && !_userEnrollmentService.IsValidGcEmail(user.Mail))
+        if (user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID) && !_userEnrollmentService.IsValidGcEmail(user.Mail))
         {
             EmailNotValidError();
             return;
         }
         ClearError();
 
-        var addUserCommand = new ProjectUserAddUserCommand()
+        var addUserCommand = new ProjectUserAddEntraUserCommand()
         {
             ProjectAcronym = ProjectAcronym,
             GraphGuid = user.Id,
@@ -244,9 +244,9 @@
             RoleId = _selectedRoleId,
         };
 
-        if (!user.Id.Equals(ProjectUserAddUserCommand.NEW_USER_GUID))
+        if (!user.Id.Equals(ProjectUserAddEntraUserCommand.NEW_USER_GUID))
         {
-            var existingPortalUser = await _userInformationService.GetPortalUserAsync(user.Id);
+            var existingPortalUser = await _userInformationService.GetEntraUserAsync(user.Id);
             addUserCommand.PortalUser = existingPortalUser;
         }
 
@@ -255,14 +255,14 @@
         StateHasChanged();
     }
 
-    private void RemoveUser(ProjectUserAddUserCommand user)
+    private void RemoveUser(ProjectUserAddEntraUserCommand user)
     {
         _usersToAdd.RemoveAll(u => u.Email == user.Email);
     }
 
-    private static string GetListText(ProjectUserAddUserCommand projectUserAddUserCommand)
+    private static string GetListText(ProjectUserAddEntraUserCommand projectUserAddUserCommand)
     {
-        return projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID 
+        return projectUserAddUserCommand.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID 
             ? projectUserAddUserCommand.Email 
             : $"{projectUserAddUserCommand.DisplayName}";
     }

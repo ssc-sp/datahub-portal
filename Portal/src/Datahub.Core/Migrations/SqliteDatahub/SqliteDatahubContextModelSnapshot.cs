@@ -715,7 +715,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("FinancialAuthorityEmail")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("FinancialAuthorityFirstName")
@@ -741,7 +741,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("LeadEmail")
                         .IsRequired()
-                        .HasMaxLength(200)
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("LeadFirstName")
@@ -1217,6 +1217,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
+                    b.Property<bool>("IsExternalRole")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(32)
@@ -1231,37 +1234,64 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         {
                             Id = 1,
                             Description = "Revoke the user's access to the workspace",
+                            IsExternalRole = false,
                             Name = "Remove User"
                         },
                         new
                         {
                             Id = 2,
                             Description = "Head of the workspace and bears business responsibility for success of the workspace",
+                            IsExternalRole = false,
                             Name = "Workspace Lead"
                         },
                         new
                         {
                             Id = 3,
                             Description = "Management authority within the workspace with direct supervision over the cloud resourcing and users",
+                            IsExternalRole = false,
                             Name = "Admin"
                         },
                         new
                         {
                             Id = 4,
                             Description = "Responsible for contributing to the overall workspace objectives and deliverables",
+                            IsExternalRole = false,
                             Name = "Collaborator"
                         },
                         new
                         {
                             Id = 5,
                             Description = "Able to view the workspace and its contents but not able to contribute or modify anything",
+                            IsExternalRole = false,
                             Name = "Guest"
                         },
                         new
                         {
                             Id = 6,
                             Description = "A user whose access has been disabled and cannot interact with the workspace",
+                            IsExternalRole = false,
                             Name = "Disabled User"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            Description = "Limited access to the web application interface only",
+                            IsExternalRole = true,
+                            Name = "Web Application Access"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            Description = "Limited access to storage upload and download",
+                            IsExternalRole = true,
+                            Name = "Storage"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            Description = "Access to both web application interface and storage resources",
+                            IsExternalRole = true,
+                            Name = "Web Application and Storage"
                         });
                 });
 
@@ -1334,6 +1364,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("Approved_DT")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ExternalUserNotes")
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsDataSteward")
@@ -1441,6 +1474,109 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("GraphGuid")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PortalUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("GraphGuid")
+                        .IsUnique();
+
+                    b.HasIndex("PortalUserId")
+                        .IsUnique();
+
+                    b.ToTable("EntraUsers");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Affiliation")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("CreatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("DeactivatedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("DeactivationReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ExternalSubject")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("FirstLoginDateTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("FirstName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("LastLoginDateTime")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("LastName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Organization")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
+
+                    b.Property<long?>("UpdatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("UserDeactivatedAt")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DeactivatedByUserId");
+
+                    b.HasIndex("ExternalSubject")
+                        .IsUnique();
+
+                    b.HasIndex("PortalUserId");
+
+                    b.ToTable("ExternalUsers", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Property<int>("Id")
@@ -1451,18 +1587,18 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.Property<string>("DisplayName")
+                        .HasMaxLength(128)
                         .HasColumnType("TEXT");
 
                     b.Property<string>("Email")
-                        .HasMaxLength(64)
+                        .IsRequired()
+                        .HasMaxLength(256)
                         .HasColumnType("TEXT");
+
+                    b.Property<int?>("ExternalUserId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("FirstLoginDateTime")
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("GraphGuid")
-                        .IsRequired()
-                        .HasMaxLength(64)
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("LastLoginDateTime")
@@ -1471,9 +1607,14 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("TEXT");
 
+                    b.Property<byte[]>("Timestamp")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BLOB");
+
                     b.HasKey("Id");
 
-                    b.HasIndex("GraphGuid")
+                    b.HasIndex("ExternalUserId")
                         .IsUnique();
 
                     b.ToTable("PortalUsers", (string)null);
@@ -1603,6 +1744,55 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasKey("PortalUserId");
 
                     b.ToTable("UserSettings", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
+                {
+                    b.Property<int>("RequestID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("InvitationCode")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("InvitationCodeAccepted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("InvitationExpiry")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<Guid>("InvitationToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<long?>("InvitationTokenAccepted")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("InvitedEmail")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("Project_ID")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long>("Request_DT")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("RequestID");
+
+                    b.HasIndex("InvitationToken")
+                        .IsUnique();
+
+                    b.HasIndex("Project_ID");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("WorkspaceInvitations", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Shared.Entities.InfrastructureHealthCheck", b =>
@@ -1924,11 +2114,13 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "ApprovedPortalUser")
                         .WithMany()
-                        .HasForeignKey("ApprovedPortalUserId");
+                        .HasForeignKey("ApprovedPortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
-                        .WithMany()
-                        .HasForeignKey("PortalUserId");
+                        .WithMany("UserRoles")
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany("UserRoles")
@@ -1938,7 +2130,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Role")
                         .WithMany()
-                        .HasForeignKey("RoleId");
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ApprovedPortalUser");
 
@@ -1958,6 +2151,44 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired();
 
                     b.Navigation("Project");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
+                        .WithOne("EntraUser")
+                        .HasForeignKey("Datahub.Core.Model.Users.EntraUser", "PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "DeactivatedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeactivatedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
+                        .WithMany("ExternalUserHistory")
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("DeactivatedByUser");
+
+                    b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.ExternalUser", "ExternalUser")
+                        .WithOne()
+                        .HasForeignKey("Datahub.Core.Model.Users.PortalUser", "ExternalUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ExternalUser");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
@@ -1989,6 +2220,25 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasForeignKey("Datahub.Core.Model.Users.UserSettings", "PortalUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Users.ExternalUser", "User")
+                        .WithMany("Invitations")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
 
                     b.Navigation("User");
                 });
@@ -2055,9 +2305,18 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Workspaces");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>
+                {
+                    b.Navigation("Invitations");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Navigation("Achievements");
+
+                    b.Navigation("EntraUser");
+
+                    b.Navigation("ExternalUserHistory");
 
                     b.Navigation("InactivityNotifications");
 
@@ -2066,6 +2325,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("RecentLinks");
 
                     b.Navigation("TelemetryEvents");
+
+                    b.Navigation("UserRoles");
 
                     b.Navigation("UserSettings");
                 });
