@@ -48,8 +48,9 @@ public static class ConfigureAuthServices
         services.AddAuthentication()
             .AddOpenIdConnect(GccfOidcScheme, options =>
             {
+                // these URLs are temporary here, they are for testing purposes in dev only
                 options.Authority = "https://te-gc.auth.canada.ca";
-              
+                options.MetadataAddress = "https://te-gc.auth.canada.ca/auth/gceab/oidc/private/.well-known/openid-configuration";
                 options.ClientId = "fsdh-gccf-oidc";
                 options.ClientSecret = configuration["GccfOidc:ClientSecret"]; // From configuration
                 options.ResponseType = "code";
