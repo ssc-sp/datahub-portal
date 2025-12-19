@@ -92,7 +92,7 @@ public class WorkspaceSubscriptionHook
             Substitute.For<ILogger<WorkspaceCreationService>>(),
             Substitute.For<IServiceAuthManager>(),
             userInformationService,
-            resourceMessagingSubstitute,
+            workspaceVersionService,
             Substitute.For<IDatahubAuditingService>(),
             datahubAzureSubscriptionService,
             Substitute.For<IDatahubCatalogSearch>(),

@@ -120,6 +120,9 @@ namespace Datahub.Tests
             _ctx.Services.AddSingleton<IServiceAuthManager>(new Mock<IServiceAuthManager>().Object);
             _ctx.Services.AddSingleton<IMetadataBrokerService>(new Mock<IMetadataBrokerService>().Object);
 
+            // register a fake NavigationManager for components
+            var fakeNav = new Bunit.TestDoubles.FakeNavigationManager(_ctx);
+            _ctx.Services.AddSingleton<NavigationManager>(fakeNav);
         }
 
         public void Dispose()
@@ -194,7 +197,7 @@ namespace Datahub.Tests
 
             var graphUser = new Microsoft.Graph.Models.User { Mail = "test@domain.com" };
 
-            var comp = _ctx.Render<FileExplorer>(parameters => parameters
+            var comp = _ctx.RenderComponent<FileExplorer>(parameters => parameters
                 .Add(p => p.ProjectId,1)
                 .Add(p => p.Container, container)
                 .AddCascadingValue(nameof(FileExplorer.ProjectAcronym), TestProjectAcronym)
