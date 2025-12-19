@@ -47,14 +47,22 @@
                     {
                         <MudSelectItem Value="@project.Project_Acronym_CD">
                             <MudStack Row AlignItems="AlignItems.Center">
-                                <MudAvatar Size="Size.Small">
-                                    <MudImage
-                                        Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
-                                        Alt="@Localizer["Workspace avatar"]"></MudImage>
-                                </MudAvatar>
                                 <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                                     @project.Project_Acronym_CD
                                 </MudText>
+                                <MudSpacer/>
+                                <MudChip T="string" Color="@GetSecurityColor(project.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(project.Data_Sensitivity)]">
+                                    <DHIcon Icon=@(project.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
+                                    @if (!project.Data_Sensitivity.Equals("Unclassified"))
+                                    {
+                                        <MudText Typo="Typo.body1">
+                                            <strong>
+                                                @Localizer[(project.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
+                                            </strong>
+                                        </MudText>
+                                    }
+                                    <span class="sr-only">@Localizer[GetSecurityTitle(project.Data_Sensitivity)]</span>
+                                </MudChip>
                             </MudStack>
                         </MudSelectItem>
                     }
@@ -64,11 +72,6 @@
             else
             {
                 <MudStack Row AlignItems="AlignItems.Center">
-                    <MudAvatar Size="Size.Small">
-                        <MudImage
-                            Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
-                            Alt="@Localizer["Workspace avatar"]"></MudImage>
-                    </MudAvatar>
                     <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                         @WorkspaceAcronym
                     </MudText>
@@ -467,5 +470,38 @@
             SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue) ?? true,
             _ => true
         };
+    }
+
+    private Color GetSecurityColor(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return Color.Error;
+                case "Protected A":
+                    return Color.Warning;
+                default:
+                    return Color.Primary;
+            }
+        }
+        return Color.Primary;
+    }
+    private string GetSecurityTitle(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return "This workspace has Protected B security level";
+                case "Protected A":
+                    return "This workspace has Protected A security level";
+                default:
+                    return "This workspace has Unclassified security level";
+            }
+        }
+        return "This workspace is Unclassified security level";
     }
 }

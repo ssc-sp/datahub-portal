@@ -5,10 +5,13 @@
     @Localizer["Environment information"]
 </h2>
 <p style="@_styles">
+    @* @ChildContent *@
     @EnvironmentLabel()
 </p>
 
 @code {
+
+    [Parameter] public string? ChildContent { get; set; }
 
     private string _styles = null!;
 
