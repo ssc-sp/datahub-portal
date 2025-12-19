@@ -228,13 +228,12 @@ public class ServiceAuthManager : IServiceAuthManager
         serviceAuthCache.Set(AUTH_KEY, newUsersAuthorization, TimeSpan.FromMinutes(5));
 
         // if the user is not in the dictionary, return an empty list
-        if (!newUsersAuthorization.ContainsKey(userGraphId))
+        if (newUsersAuthorization.TryGetValue(userGraphId, out var newUserAuths))
         {
-            return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
+            return newUserAuths.ToImmutableList();
         }
 
-        return newUsersAuthorization[userGraphId]
-            .ToImmutableList();
+        return ImmutableList<(Project_Role, Datahub_Project)>.Empty;
     }
 
     public async Task<bool> IsUserCbrOwner(string userEmail)

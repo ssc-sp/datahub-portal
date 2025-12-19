@@ -3374,5 +3374,10 @@
   "Info": "Info",
   "Trusted Entra Login": "Connexion Entra sécurisée",
   "External Login": "Connexion externe",
-  "{0} has been blocked.": "{0} a été bloqué."
+  "{0} has been blocked.": "{0} a été bloqué.",
+  "A user whose access has been disabled and cannot interact with the workspace": "Un utilisateur dont l'accès a été désactivé et qui ne peut pas interagir avec l'espace de travail",
+  "Limited access to the web application interface only": "Accès limité uniquement à l'interface de l'application web",
+  "Limited access to storage upload and download": "Accès limité au téléversement et téléchargement du stockage",
+  "Access to both web application interface and storage resources": "Accès à la fois à l'interface de l'application web et aux ressources de stockage"
+
 }

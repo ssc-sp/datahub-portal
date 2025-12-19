@@ -592,7 +592,6 @@ public class UserInformationService(
         if (_userWithAchievements != null)
             return _userWithAchievements;
         _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetCurrentUserSubjectAsync());
-        var externalUser = await GetCurrentPortalUserAsync();
 
         return _userWithAchievements;
     }
