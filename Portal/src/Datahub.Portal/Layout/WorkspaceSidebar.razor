@@ -1,3 +1,4 @@
+@using Datahub.Application.Services
 @using Datahub.Application.Services.Publishing
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
@@ -12,12 +13,14 @@
 
 @inherits ViewUserBase<WorkspaceSidebar>
 
-@inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject ICultureService CultureService
 @inject NavigationManager _navigationManager
+@inject IProjectUserManagementService _projectUserManagementService
+@inject IOpenDataPublishingService _publishingService
+@inject IDialogService _dialogService
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-4 px-4" AlignItems="AlignItems.Center">
@@ -95,10 +98,10 @@
                                              ProjectAcronym="@WorkspaceAcronym"
                                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
-                                    <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
-                                                Target="@GetTarget(toolSection)"
-                                                Disabled="@IsDisabled(toolSection)">
-                                        <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                                    @if (toolSection == SectionViews.Publishing && _isPublishingBlockedForWorkspace)
+                                    {
+                                        <MudNavLink @onclick="@ShowPublishingBlockedDialog"
+                                                    Disabled="@IsDisabled(toolSection)">
                                             <MudStack Row AlignItems="@AlignItems.Center">
                                                 <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small"
                                                         Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
@@ -106,8 +109,24 @@
                                                     @GetLabel(toolSection)
                                                 </MudText>
                                             </MudStack>
-                                        </span>
-                                    </MudNavLink>
+                                        </MudNavLink>
+                                    }
+                                    else
+                                    {
+                                        <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
+                                                    Target="@GetTarget(toolSection)"
+                                                    Disabled="@IsDisabled(toolSection)">
+                                            <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
+                                                <MudStack Row AlignItems="@AlignItems.Center">
+                                                    <DHIcon Icon="@GetIcon(toolSection)" Size="@Size.Small"
+                                                            Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                    <MudText Style="@_workspaceTitleStyle">
+                                                        @GetLabel(toolSection)
+                                                    </MudText>
+                                                </MudStack>
+                                            </span>
+                                        </MudNavLink>
+                                    }
                                 </li>
                             </DatahubAuthView>
                         }
@@ -164,6 +183,7 @@
     private Datahub_Project _project;
     private List<Datahub_Project> _allProjects;
     private string _userProjectGuid;
+    private bool _isPublishingBlockedForWorkspace = false;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -241,8 +261,18 @@
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
+        // Check if publishing is blocked for this workspace
+        _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
 
         // check the resources against what to display in the sidebar
+    }
+
+    private async Task ShowPublishingBlockedDialog()
+    {
+        await _dialogService.ShowMessageBox(
+            Localizer["Publishing Disabled"],
+            Localizer["Publishing has been disabled for this workspace by the administrator."],
+            yesText: Localizer["OK"]);
     }
 
     protected override async Task OnParametersSetAsync()
