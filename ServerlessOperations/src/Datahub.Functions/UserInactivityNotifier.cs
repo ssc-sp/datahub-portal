@@ -106,7 +106,7 @@ namespace Datahub.Functions
         internal async Task DisablePortalUser(int portalUserId)
         {
             List<ProjectUserUpdateCommand> usersToUpdate = new();
-            List<ProjectUserAddUserCommand> usersToAdd = new();
+            List<ProjectUserAddEntraUserCommand> usersToAdd = new();
             var projects = await projectUserManagementService.GetProjectListForPortalUser(portalUserId);
             foreach(var project in projects)
             {

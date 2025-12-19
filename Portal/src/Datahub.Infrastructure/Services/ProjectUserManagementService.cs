@@ -45,7 +45,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
     public async Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        List<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
+        List<ProjectUserAddEntraUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
         // if there are no commands, return true
         if (!projectUserUpdateCommands.Any() && !projectUserAddUserCommands.Any())
@@ -83,7 +83,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
     private async Task PropagateUserUpdatesToExternalPermissions(IEnumerable<ProjectUserUpdateCommand> projectUserUpdateCommands,
-        IEnumerable<ProjectUserAddUserCommand> projectUserAddUserCommands, string requesterUserId)
+        IEnumerable<ProjectUserAddEntraUserCommand> projectUserAddUserCommands, string requesterUserId)
     {
         // get all the distinct projects that have been modified
         var projectAcronyms = projectUserUpdateCommands
@@ -159,7 +159,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     }
 
 
-    private async Task AddNewUsersToProjectAsync(List<ProjectUserAddUserCommand> projectUserAddUserCommands)
+    private async Task AddNewUsersToProjectAsync(List<ProjectUserAddEntraUserCommand> projectUserAddUserCommands)
     {
         foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
         {
@@ -170,15 +170,15 @@ public class ProjectUserManagementService : IProjectUserManagementService
 
             var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
 
-            if (projectUserAddUserCommand.GraphGuid == ProjectUserAddUserCommand.NEW_USER_GUID)
+            if (projectUserAddUserCommand.GraphGuid == ProjectUserAddEntraUserCommand.NEW_USER_GUID)
             {
                 projectUserAddUserCommand.GraphGuid =
                     await _userEnrollmentService.SendUserDatahubPortalInvite(projectUserAddUserCommand.Email,
                         currentUser.DisplayName);
-                await _userInformationService.CreatePortalUserAsync(projectUserAddUserCommand.GraphGuid);
+                await _userInformationService.CreatePortalEntraUserAsync(projectUserAddUserCommand.GraphGuid);
             }
 
-            var portalUser = await _userInformationService.GetPortalUserAsync(projectUserAddUserCommand.GraphGuid);
+            var portalUser = await _userInformationService.GetEntraUserAsync(projectUserAddUserCommand.GraphGuid);
 
             await using var context = await _contextFactory.CreateDbContextAsync();
             var project = await context.Projects
@@ -191,9 +191,11 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
             }
 
+
             var projectUser = await context.UserRolesLinks
                 .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
-                                          && u.PortalUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
+                                          && u.PortalUser.EntraUser != null
+                                          && u.PortalUser.EntraUser.GraphGuid == projectUserAddUserCommand.GraphGuid);
 
             // Double check that the user is not already a member of the project
             if (projectUser is not null)
