@@ -185,32 +185,21 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             return budgetInput!;
         }
 
-        [Given("authorization as a CBR Owner for the workspace creation page")]
-        public void GivenAuthorizationAsACbrOwnerForTheWorkspaceCreationPage()
+        [Given("authorization as a {string} for the workspace creation page")]
+        public void GivenAuthorizationAsAUserTypeForTheWorkspaceCreationPage(string userType)
         {
             // Create per-scenario users
             cbrOwnerUser = CommonCbrTestUtils.CreateCbrOwnerUser();
             otherWorkspaceLeadUser = CommonCbrTestUtils.CreateOtherWorkspaceLead();
 
-            userInfoService = Substitute.For<IUserInformationService>();
-            userInfoService.GetCurrentPortalUserAsync().Returns(cbrOwnerUser);
-            Services.AddSingleton(userInfoService);
-
-            CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, true, false);
-        }
-
-        [Given("authorization as a non-CBR owner for the workspace creation page")]
-        public void GivenAuthorizationAsANonCbrOwnerForTheWorkspaceCreationPage()
-        {
-            // Create per-scenario users
-            cbrOwnerUser = CommonCbrTestUtils.CreateCbrOwnerUser();
-            otherWorkspaceLeadUser = CommonCbrTestUtils.CreateOtherWorkspaceLead();
+            var isCbrOwner = userType.Equals("CBR Owner", StringComparison.OrdinalIgnoreCase);
+            var currentUser = isCbrOwner ? cbrOwnerUser : otherWorkspaceLeadUser;
 
             userInfoService = Substitute.For<IUserInformationService>();
-            userInfoService.GetCurrentPortalUserAsync().Returns(otherWorkspaceLeadUser);
+            userInfoService.GetCurrentPortalUserAsync().Returns(currentUser);
             Services.AddSingleton(userInfoService);
 
-            CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, false, false);
+            CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, isCbrOwner, false);
         }
 
         [Given("a workspace creation page")]
