@@ -2881,6 +2881,7 @@
   "This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools.": "Ce paramètre permet à l'équipe de soutien de la PFDS d'ajouter et de supprimer des utilisateurs, de modifier les paramètres et d'accéder à vos outils.",
   "This setting will allow shared key access to the workspace storage account": "Ce paramètre permettra l'accès par clé partagée au compte de stockage de l'espace de travail",
   "This setting will prevent the workspace from being automatically deleted after a period of inactivity or from going over budget": "Ce paramètre empêchera l'espace de travail d'être automatiquement supprimé après une période d'inactivité ou lors du dépassement du budget",
+  "This site is monitored. Further attempts to log in may be reported to the authorities.": "Ce site est surveillé. Toute nouvelle tentative de connexion pourra être signalée aux autorités.",
   "This tool cannot be configured currently.": "Cet outil ne peut pas être configuré actuellement.",
   "This tool cannot be removed currently.": "Cet outil ne peut pas être supprimé actuellement.",
   "This web application has not been configured yet.": "Cette application web n'a pas encore été configurée.",
