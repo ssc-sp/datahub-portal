@@ -12,6 +12,8 @@
 @code {
     [Parameter] public int SecurityLevel { get; set; }
 
+    [Parameter] public string? ChildContent { get; set; }
+
     private string _styles = null!;
 
     protected override void OnInitialized()
