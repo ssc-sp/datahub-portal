@@ -13,15 +13,15 @@
 
 
 <MudStack>
-    @if (_viewedPortalUser is null || _viewedPortalUser.GraphGuid == _currentGuid)
+    @if (ViewedPortalUser is null)
     {
         <div role="group">
             <MudStack Row AlignItems="AlignItems.End">
                 <DHMainContentTitle Title="@Localizer["Home"]" />
                 <MudSpacer />
-                @if (_viewedPortalUser is not null)
+                @if (_currentUser is not null)
                 {
-                    <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid" RightAvatar ShowLoginTime />
+                    <UserCard ViewedUser="@_currentUser" RightAvatar ShowLoginTime />
                 }
             </MudStack>
             <AnnouncementCarousel />
@@ -29,35 +29,32 @@
     }
     else
     {
-        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_viewedPortalUser?.BannerPictureUrl)"
+        <MudImage Src="@_datahubPortalConfiguration.Media.GetAchievementImageUrl(_currentUser?.BannerPictureUrl)"
                   Alt="@Localizer["User's background image"]"
                   Class="rounded-lg mud-elevation-4"
                   Style="width: 100%"
                   ObjectFit="ObjectFit.Cover"
                   Height="320"
                   ObjectPosition="ObjectPosition.Center" />
-    }    
-    <UserProjects UserId="@_userProjectGuid" SmSize="6" NewStyle />
+    }
+    <UserProjects PortalUser="@_currentUser" SmSize="6" NewStyle />
 </MudStack>
 
 @code {
 
-    private string _currentGuid;
-    private PortalUser _viewedPortalUser;
-    private string _userProjectGuid;
+    [Parameter] public PortalUser? ViewedPortalUser {get;set;}
+    private PortalUser? _currentUser;
 
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _currentGuid = await _userInformationService.GetCurrentUserGraphId();
-        _viewedPortalUser = await GetViewedPortalUserAsync();
-        if (_viewedPortalUser.GraphGuid != _currentGuid)
+        _currentUser = ViewedPortalUser ?? await GetViewedPortalUserAsync();
+        if (ViewedPortalUser != null)
         {
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserViewOtherProfile);
         }
 
-        _userProjectGuid = _viewedPortalUser.GraphGuid;
     }
 
 

@@ -6,14 +6,19 @@ namespace Datahub.Core.Model.Users;
 
 public class ExtendedPortalUser
 {
-    public int Id { get; set; }
-    public required string GraphGuid { get; set; }
-    public string? Email { get; set; }
-    public string? DisplayName { get; set; }
-    public DateTime? FirstLoginDateTime { get; set; }
-    public DateTime? LastLoginDateTime { get; set; }
-    public string? BannerPictureUrl { get; set; }
-    public string? ProfilePictureUrl { get; set; }
+    // Reference to the underlying PortalUser
+    public required PortalUser PortalUser { get; init; }
+
+    // Delegated properties (read-only, reflect current PortalUser values)
+    public int Id => PortalUser.Id;
+    public string? Email => PortalUser.Email;
+    public string? DisplayName => PortalUser.DisplayName;
+    public DateTime? FirstLoginDateTime => PortalUser.FirstLoginDateTime;
+    public DateTime? LastLoginDateTime => PortalUser.LastLoginDateTime;
+    public string? BannerPictureUrl => PortalUser.BannerPictureUrl;
+    public string? ProfilePictureUrl => PortalUser.ProfilePictureUrl;
+
+    // Extended flags maintained separately
     public bool IsDeleted { get; set; }
     public bool IsLocked { get; set; }
 
@@ -24,13 +29,6 @@ public class ExtendedPortalUser
     [SetsRequiredMembers]
     public ExtendedPortalUser(PortalUser portalUser)
     {
-        GraphGuid = portalUser.GraphGuid;
-        Id = portalUser.Id;
-        Email = portalUser.Email;
-        DisplayName = portalUser.DisplayName;
-        FirstLoginDateTime = portalUser.FirstLoginDateTime;
-        LastLoginDateTime = portalUser.LastLoginDateTime;
-        BannerPictureUrl = portalUser.BannerPictureUrl;
-        ProfilePictureUrl = portalUser.ProfilePictureUrl;
+        PortalUser = portalUser;
     }
 }

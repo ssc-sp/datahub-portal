@@ -19,19 +19,15 @@
                 </DHButton>
             </DatahubAuthView>
         </MudStack>
-        
+
         @if (_projectLeads.Any())
         {
             <ul style="display: grid; gap: 12px">
                 @foreach (var lead in _projectLeads)
                 {
-                    var graphId = lead.PortalUser?.GraphGuid;
-                    if (!string.IsNullOrEmpty(graphId))
-                    {
-                        <li>
-                            <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink/>
-                        </li>
-                    }
+                    <li>
+                        <UserCard ViewedUser=@lead.PortalUser Size="Size.Medium" ShowProfileLink />
+                    </li>
                 }
             </ul>
         }
@@ -40,7 +36,7 @@
         {
             @if (_headRole == Project_Role.RoleNames.WorkspaceLead)
             {
-                <MudDivider Class="my-4"/>
+                <MudDivider Class="my-4" />
                 <MudStack Class="mb-2">
                     <MudText Typo="Typo.h3">@Localizer["Workspace admins"]</MudText>
                 </MudStack>
@@ -49,22 +45,18 @@
             <ul style="display: grid; gap: 12px">
                 @foreach (var admin in _projectAdmins)
                 {
-                    var graphId = admin.PortalUser?.GraphGuid;
-                    if (!string.IsNullOrEmpty(graphId))
-                    {
-                        <li>
-                            <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink/>
-                        </li>
-                    }
+                    <li>
+                        <UserCard ViewedUser=@admin.PortalUser Size="Size.Medium" ShowProfileLink />
+                    </li>
                 }
             </ul>
         }
 
         @if (_projectMembers.Any())
         {
-            @if(_headRole != Project_Role.RoleNames.Collaborator)
+            @if (_headRole != Project_Role.RoleNames.Collaborator)
             {
-                <MudDivider Class="my-4"/>
+                <MudDivider Class="my-4" />
                 <MudStack Class="mb-2">
                     <MudText Typo="Typo.h3">@Localizer["Collaborators"]</MudText>
                 </MudStack>
@@ -73,13 +65,9 @@
             <ul style="display: grid; gap: 12px">
                 @foreach (var member in _projectMembers)
                 {
-                    var graphId = member.PortalUser?.GraphGuid;
-                    if (!string.IsNullOrEmpty(graphId))
-                    {
-                        <li>
-                            <UserCard ViewedUserGraphId=@graphId Size="Size.Medium" ShowProfileLink/>
-                        </li>
-                    }
+                    <li>
+                        <UserCard ViewedUser=@member.PortalUser Size="Size.Medium" ShowProfileLink />
+                    </li>
                 }
             </ul>
         }
