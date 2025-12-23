@@ -16,5 +16,8 @@
             "maxAutoLockRenewalDuration": "00:30:00",
             "transportType": "amqpWebSockets"
         }
-    }
+    },
+    "functions": [
+        "TerraformOutputHandler"
+    ]
 }
