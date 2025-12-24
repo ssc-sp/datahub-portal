@@ -120,6 +120,7 @@ namespace Datahub.Tests
             _ctx.Services.AddSingleton<IServiceAuthManager>(new Mock<IServiceAuthManager>().Object);
             _ctx.Services.AddSingleton<IMetadataBrokerService>(new Mock<IMetadataBrokerService>().Object);
 
+            
         }
 
         public void Dispose()
