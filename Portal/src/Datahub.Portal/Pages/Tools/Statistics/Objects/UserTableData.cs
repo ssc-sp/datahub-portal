@@ -6,7 +6,8 @@ namespace Datahub.Portal.Pages.Tools.Statistics.Objects
     public class UserTableData : IDHTableData
     {
         public int Id { get; set; }
-        public string GraphGuid { get; set; }
+        public string? GraphGuid { get; set; }
+        public string? ExternalOID { get; set; }
         public string Name { get; set; }
         public string Email { get; set; }
         public string RegistrationComment { get; set; }

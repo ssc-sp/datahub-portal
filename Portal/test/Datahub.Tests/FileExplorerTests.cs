@@ -35,24 +35,24 @@ namespace Datahub.Tests
 {
     public class FileExplorerTests : IDisposable
     {
-        private readonly Bunit.TestContext _ctx;
+        private readonly Bunit.BunitContext _ctx;
         private const string TestUserId = "user-id";
         private const string TestProjectAcronym = "TEST";
         private const string TestContainerName = "test";
 
         public FileExplorerTests()
         {
-            _ctx = new Bunit.TestContext();
+            _ctx = new Bunit.BunitContext();
 
             // Mock minimal services used by the component
             var mockUserInfo = new Mock<IUserInformationService>();
-            mockUserInfo.Setup(x => x.GetCurrentUserGraphId()).ReturnsAsync(TestUserId);
+            mockUserInfo.Setup(x => x.GetCurrentUserEntraId()).ReturnsAsync(TestUserId);
 
             // ensure Heading can obtain the current portal user
             var portalUser = new PortalUser
             {
                 Id =1,
-                GraphGuid = TestUserId,
+                EntraUser = new EntraUser { GraphGuid = TestUserId, PortalUser = null! },
                 Email = "test@domain.com",
                 DisplayName = "Test User"
             };
@@ -193,13 +193,13 @@ namespace Datahub.Tests
 
             var container = new CloudStorageContainer(mockStorageManager.Object, TestContainerName);
 
-            var graphUser = new Microsoft.Graph.Models.User { Mail = "test@domain.com" };
+            var portalUser = new PortalUser { Email = "test@test.com", EntraUser = new EntraUser { PortalUser = null!, GraphGuid = Guid.NewGuid().ToString() } };
 
             var comp = _ctx.Render<FileExplorer>(parameters => parameters
                 .Add(p => p.ProjectId,1)
                 .Add(p => p.Container, container)
                 .AddCascadingValue(nameof(FileExplorer.ProjectAcronym), TestProjectAcronym)
-                .AddCascadingValue(nameof(FileExplorer.GraphUser), graphUser)
+                .AddCascadingValue(nameof(FileExplorer.PortalUser), portalUser)
             );
 
             uploadedFiles = localUploadedFiles;

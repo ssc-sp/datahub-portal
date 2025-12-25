@@ -14,7 +14,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
     {
         public static PortalUser CreateCbrOwnerUser() => new()
         {
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
             Id = 1,
             DisplayName = "CBR Owner",
             Email = "cbrowner@example.com",
@@ -22,7 +22,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
 
         public static PortalUser CreateOtherWorkspaceLead() => new()
         {
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
             Id = 2,
             DisplayName = "Other Lead",
             Email = "wlead@example.com"
