@@ -44,7 +44,8 @@ public class TerraformOutputHandler(
         // if (await pongService.Pong(message.Body.ToString()))
         // return;
 
-        var output = await message.DeserializeAndUnwrapMessageAsync<Dictionary<string, TerraformOutputVariable>>();
+        // Try to deserialize with wrapper first, then without
+        var output = await TryDeserializeMessage(message);
 
         _logger.LogInformation("C# Queue trigger function processing: {OutputCount} items", output?.Count);
 
@@ -74,6 +75,46 @@ public class TerraformOutputHandler(
         await ProcessPostTerraformTriggers(output);
 
         _logger.LogInformation("C# Queue trigger function finished");
+    }
+
+    private async Task<Dictionary<string, TerraformOutputVariable>?> TryDeserializeMessage(ServiceBusReceivedMessage message)
+    {
+        try
+        {
+            var messageBody = message.Body.ToString();
+            var deserializeOptions = new System.Text.Json.JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true,
+            };
+
+            // Check if the message has the wrapper
+            var messageDoc = System.Text.Json.JsonDocument.Parse(messageBody);
+            var hasMessageWrapper = messageDoc.RootElement.TryGetProperty("message", out _);
+
+            string messageToDeserialize;
+            if (hasMessageWrapper)
+            {
+                // Already has wrapper, use as-is
+                messageToDeserialize = messageBody;
+            }
+            else
+            {
+                // Add the wrapper
+                messageToDeserialize = $"{{\"message\":{messageBody}}}";
+                _logger.LogInformation("Message did not have wrapper, added wrapper before deserialization");
+            }
+
+            // Parse and deserialize
+            var messageEnvelope = System.Text.Json.JsonDocument.Parse(messageToDeserialize);
+            messageEnvelope.RootElement.TryGetProperty("message", out var messageContent);
+
+            return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(messageContent.GetRawText(), deserializeOptions);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to deserialize message body");
+            return null;
+        }
     }
 
     internal async Task ProcessTerraformInputVariables(Dictionary<string, TerraformOutputVariable> output)

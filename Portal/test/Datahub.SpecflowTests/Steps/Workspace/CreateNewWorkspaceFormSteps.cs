@@ -87,7 +87,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         {
             var logger = Substitute.For<ILogger<WorkspaceCreationService>>();
             var serviceAuthManager = Substitute.For<IServiceAuthManager>();
-            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
             var auditingService = Substitute.For<IDatahubAuditingService>();
             var azureSubService = Substitute.For<IDatahubAzureSubscriptionService>();
             var catalogSearch = Substitute.For<IDatahubCatalogSearch>();
@@ -102,7 +102,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                         logger,
                         serviceAuthManager,
                         userInformationService,
-                        resourceMessagingService,
+                        workspaceVersionService,
                         auditingService,
                         azureSubService,
                         catalogSearch,
@@ -184,6 +184,23 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             budgetInput.Should().NotBeNull();
             return budgetInput!;
         }
+
+        //[Given("authorization as a {string} for the workspace creation page")]
+        //public void GivenAuthorizationAsAUserTypeForTheWorkspaceCreationPage(string userType)
+        //{
+        //    // Create per-scenario users
+        //    cbrOwnerUser = CommonCbrTestUtils.CreateCbrOwnerUser();
+        //    otherWorkspaceLeadUser = CommonCbrTestUtils.CreateOtherWorkspaceLead();
+
+        //    var isCbrOwner = userType.Equals("CBR Owner", StringComparison.OrdinalIgnoreCase);
+        //    var currentUser = isCbrOwner ? cbrOwnerUser : otherWorkspaceLeadUser;
+
+        //    userInfoService = Substitute.For<IUserInformationService>();
+        //    userInfoService.GetCurrentPortalUserAsync().Returns(currentUser);
+        //    Services.AddSingleton(userInfoService);
+
+        //    CommonCbrTestUtils.AddLoggedInUserAuthorization(this, Testing.WorkspaceAcronym, isCbrOwner, false);
+        //}
 
         [Given("authorization as a CBR Owner for the workspace creation page")]
         public void GivenAuthorizationAsACbrOwnerForTheWorkspaceCreationPage()
