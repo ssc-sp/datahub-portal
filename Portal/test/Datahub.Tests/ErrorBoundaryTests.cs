@@ -1,37 +1,38 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Moq;
-using System.Threading.Tasks;
-using Datahub.Core.Model.Datahub;
-using Xunit;
-using Microsoft.AspNetCore.Http;
-using Microsoft.JSInterop;
-using Blazored.LocalStorage;
-using Microsoft.AspNetCore.Components;
-using System;
-using Datahub.Portal.Layout;
+﻿using Blazored.LocalStorage;
+using Blazored.SessionStorage;
 using Bunit;
-using Microsoft.Extensions.DependencyInjection;
-using MediatR;
-using Microsoft.AspNetCore.Hosting;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
+using Datahub.Application.Services.Achievements;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Data.Databricks;
+using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
+using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
+using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Portal.Layout;
+using Datahub.Tests.Portal;
+using MediatR;
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Localization;
+using Microsoft.JSInterop;
+using Moq;
 using MudBlazor;
 using MudBlazor.Services;
-using Microsoft.AspNetCore.Components.Routing;
-using System.Collections.Generic;
-using Microsoft.Extensions.Localization;
-using Datahub.Tests.Portal;
 using NSubstitute;
-using Datahub.Core.Services.CatalogSearch;
-using Datahub.Core.Model.Achievements;
-using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Application.Services;
-using Datahub.Application.Services.UserManagement;
-using Datahub.Application.Services.Achievements;
-using Microsoft.Extensions.Configuration;
-using Datahub.Core.Model.Context;
-using Blazored.SessionStorage;
-using Datahub.Core.Model.Users;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace Datahub.Tests;
 
@@ -84,11 +85,16 @@ public class ErrorBoundaryTests
         // Arrange
         var ex = new Exception("test");
         var corrlationId = Guid.NewGuid().ToString();
-        var fakePortalUser = new PortalUser 
-        { 
-            GraphGuid=Guid.NewGuid().ToString(),
+        var fakePortalUser = new PortalUser
+        {
+            Id = 1,
+            Email = "john.doe@ssc-spc.gc.ca",
             DisplayName = "Test User",
-            Email="fake_user@gc.ca",
+            EntraUser = new EntraUser
+            {
+                GraphGuid = Guid.NewGuid().ToString(),
+                PortalUser = null!
+            }
         };
         _snackBarMock.Setup(x => x.Configuration).Returns(new SnackbarConfiguration());
         _stringLocalizerMock.Setup(x => x[It.IsAny<string>()]).Returns(new LocalizedString("test","test"));

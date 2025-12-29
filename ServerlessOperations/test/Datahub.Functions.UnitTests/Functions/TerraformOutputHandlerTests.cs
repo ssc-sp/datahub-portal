@@ -68,7 +68,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         
         _context.PortalUsers.Add(currentPortalUser);
@@ -108,7 +108,6 @@ public class TerraformOutputHandlerTests
         _context.Project_Resources2.AddRange(storageResources);
         await _context.SaveChangesAsync();
 
-
         var testPipeLineId = 1234;
         var terraformOutput = TerraformOutputHelper.GetExpectedTerraformInput(project, testPipeLineId);
 
@@ -124,40 +123,13 @@ public class TerraformOutputHandlerTests
 
         await _terraformOutputHandler.ProcessTerraformInputVariables(outputVariables!);
 
-
-
-        var processedResources = await _context.Project_Resources2.ToListAsync();
-
-
+        var processedResources = await _context.Project_Resources2.OrderBy(r => r.RequestedAt).ToListAsync();
 
         Assert.That(processedResources, Is.Not.Null);
         Assert.That(processedResources.Count, Is.EqualTo(3));
-        Assert.That(processedResources[0].PipelineId, Is.Null);
+        Assert.That(processedResources[0].PipelineId, Is.EqualTo(testPipeLineId));
         Assert.That(processedResources[1].PipelineId, Is.EqualTo(testPipeLineId));
-        Assert.That(processedResources[2].PipelineId, Is.EqualTo(testPipeLineId));
-        //Assert.That(processedResource!.CreatedAt, Is.Not.Null);
-        //Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
-
-
-        //var processedResourceJsonContent =
-        //    JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
-        //var accountName = outputVariables![TerraformVariables.OutputAzureStorageAccountName];
-        //var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
-        //var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
-
-        //Assert.That(processedResourceJsonContent, Is.Not.Null);
-        //Assert.That(processedResourceJsonContent!["storage_account"], Is.EqualTo(accountName.Value));
-        //Assert.That(processedResourceJsonContent!["container"], Is.EqualTo(containerName.Value));
-        //Assert.That(processedResourceJsonContent!["resource_group_name"], Is.EqualTo(resourceGroupName.Value));
-        //Assert.That(processedResourceJsonContent!["storage_type"], Is.EqualTo(TerraformVariables.AzureStorageType));
-
-        //var processedResourceInputJsonContent =
-        //    JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent,
-        //        deserializeOptions);
-
-        //Assert.That(processedResourceInputJsonContent, Is.Not.Null);
-        //Assert.That(processedResourceInputJsonContent!["storage_type"],
-        //    Is.EqualTo(TerraformVariables.AzureStorageType));
+        Assert.That(processedResources[2].PipelineId, Is.Null);
     }
 
     [Test]
@@ -173,7 +145,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null!},
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -245,7 +217,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -314,7 +286,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -385,7 +357,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -468,7 +440,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
 
         _context.PortalUsers.Add(currentPortalUser);

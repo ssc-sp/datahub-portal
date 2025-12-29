@@ -1,3 +1,4 @@
+using AspNetCore.Localizer.Json.Commons;
 using AspNetCore.Localizer.Json.Extensions;
 using AspNetCore.Localizer.Json.JsonOptions;
 using BlazorDownloadFile;
@@ -6,6 +7,7 @@ using Blazored.SessionStorage;
 using Datahub.Application;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Publishing;
@@ -43,6 +45,8 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.WebApp;
 using Datahub.Metadata.Model;
+using Datahub.Portal.Controllers;
+using Datahub.Portal.Pages;
 using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
@@ -54,6 +58,8 @@ using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
+using Microsoft.FeatureManagement.FeatureFilters;
 using Microsoft.Graph;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -64,14 +70,10 @@ using Polly.Extensions.Http;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Text;
-using Datahub.Application.Services.Cost;
 using Tewr.Blazor.FileReader;
+using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
-using Datahub.Portal.Controllers;
-using Toolbelt.Blazor.Extensions.DependencyInjection;
-using Datahub.Portal.Pages;
-using AspNetCore.Localizer.Json.Commons;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -87,10 +89,10 @@ public class Startup
     private readonly IConfiguration Configuration;
     private readonly IWebHostEnvironment _currentEnvironment;
 
-    private bool ResetDB => (bool)Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false);
+    private bool ResetDB => (Configuration.GetSection("InitialSetup")?.GetValue("ResetDB", false))??false;
 
     private bool EnsureDeleteinOffline =>
-        (bool)Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false);
+        (Configuration.GetSection("InitialSetup")?.GetValue("EnsureDeleteinOffline", false))??false;
 
     private bool Offline => Configuration.GetValue("Offline", false);
 
@@ -100,6 +102,9 @@ public class Startup
     // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
     public void ConfigureServices(IServiceCollection services)
     {
+        // To consume scoped services, AddScopedFeatureManagement should be used instead of AddFeatureManagement.
+        // This will ensure that feature management services, including feature filters, targeting context accessor, are added as scoped services.
+        services.AddScopedFeatureManagement();
         services.AddApplicationInsightsTelemetry(x =>
         {
             x.ConnectionString = Configuration["ApplicationInsights:ConnectionString"];
@@ -185,7 +190,7 @@ public class Startup
 
         services.Configure<DataProjectsConfiguration>(Configuration.GetSection(nameof(DataProjectsConfiguration)));
         services.Configure<APITargets>(Configuration.GetSection(nameof(APITargets)));
-        services.Configure<TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
+        services.Configure<Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
 
         // Diagnostic dump (redacted) using shared Core utility

@@ -4,7 +4,7 @@ using Microsoft.JSInterop;
 
 namespace Datahub.Portal.Pages.Workspace.Storage;
 
-public partial class Heading
+public partial class StorageHeading
 {
     private enum ButtonAction
     {

@@ -1,5 +1,6 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
 @using Datahub.Portal.Pages.Explore
 @using Datahub.Portal.Pages.Home
 @using MudBlazor.Utilities
@@ -177,7 +178,7 @@ else
     // Parameters
     [Parameter] public bool ShowTitle { get; set; } = true;
     [Parameter] public int SmSize { get; set; } = 4;
-    [Parameter] public string UserId { get; set; }
+    [Parameter] public required PortalUser PortalUser { get; set; } = null!;
     [Parameter] public bool NewStyle { get; set; }
 
     // Display state
@@ -218,21 +219,21 @@ else
     bool HasWorkspaces => _allWorkspaces.Count > 0;
     int FilteredWorkspacesCount;
 
-
     // User, Roles, and Projects
-    private List<UserRoleLinks> _userRoles;
-    private List<Datahub_Project> _allWorkspaces;
-    private List<Datahub_Project> _filteredWorkspaces;
-    private List<Datahub_Project> _leadWorkspaces;
-    private List<Datahub_Project> _adminWorkspaces;
-    private List<Datahub_Project> _collaboratorWorkspaces;
-    private List<Datahub_Project> _guestWorkspaces;
-    private List<Datahub_Project> _unclassifiedWorkspaces;
-    private List<Datahub_Project> _protectedAWorkspaces;
-    private List<Datahub_Project> _protectedBWorkspaces;
-    private string _latestVersion;
-    private string _userEmail;
+    private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _leadWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _adminWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _collaboratorWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _guestWorkspaces = new List<Datahub_Project>();
+    private List<UserRoleLinks>? _userRoles = null;
+    private List<Datahub_Project> _filteredWorkspaces = new();
+    private List<Datahub_Project> _unclassifiedWorkspaces = new();
+    private List<Datahub_Project> _protectedAWorkspaces = new();
+    private List<Datahub_Project> _protectedBWorkspaces = new();
+    private string? _latestVersion;
+    private string? _userEmail;
     private bool roleFiltered = false;
+    private PortalUser? _previousPortalUser;
 
     // Styles
     string SectionTitleStyle => new StyleBuilder()
@@ -260,23 +261,20 @@ else
         .AddStyle("flex-wrap", "wrap")
         .Build();
 
-
     // Hooks
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
-        await base.OnParametersSetAsync();
+        await base.OnInitializedAsync();
         await QueryWorkspaces();
         InitiateDisplayState();
     }
 
     private async Task QueryWorkspaces()
     {
-        if (_userRoles != null)
+        if (_userRoles is not null)
         {
             return;
         }
-        var portalUserGuid = await UserInformationService.GetCurrentUserGraphId();
-        var userId = UserId ?? portalUserGuid;
 
         _latestVersion = await WorkspaceVersionService.GetLatestVersionAsync();
 
@@ -285,7 +283,7 @@ else
 
         _userRoles = await dbContext
             .UserRolesLinks
-            .Include(u => u.PortalUser)            
+            .Include(u => u.PortalUser) 
             .Include(u => u.Role)
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
@@ -295,9 +293,10 @@ else
             .ThenInclude(p => p.Resources)
             .AsNoTracking()
             .AsSingleQuery()
-            .Where(u => u.PortalUser.GraphGuid == userId)
+			.Where(u => u.PortalUser == PortalUser)
             .ToListAsync();
-        _userEmail = _userRoles.First().PortalUser.Email;
+        
+        _userEmail = PortalUser.Email;
 
         _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _filteredWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
@@ -506,5 +505,4 @@ else
     {
         return group.FilterToggle || !AnyFilter;
     }
-
 }
