@@ -140,7 +140,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
         {
             var logger = Substitute.For<ILogger<WorkspaceCreationService>>();
             var serviceAuthManager = Substitute.For<IServiceAuthManager>();
-            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
             var auditingService = Substitute.For<IDatahubAuditingService>();
             var azureSubService = Substitute.For<IDatahubAzureSubscriptionService>();
             var catalogSearch = Substitute.For<IDatahubCatalogSearch>();
@@ -156,7 +156,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                         logger,
                         serviceAuthManager,
                         userInformationService,
-                        resourceMessagingService,
+                        workspaceVersionService,
                         auditingService,
                         azureSubService,
                         catalogSearch,

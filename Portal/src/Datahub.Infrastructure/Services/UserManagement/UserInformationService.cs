@@ -1,10 +1,8 @@
-﻿using System.ComponentModel;
-using System.Net.Mail;
-using System.Security.Claims;
-using Azure.Identity;
+﻿using Azure.Identity;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
@@ -15,11 +13,15 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
+using System.ComponentModel;
+using System.Net.Mail;
+using System.Security.Claims;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
 
@@ -29,6 +31,7 @@ public class UserInformationService(
     IConfiguration configureOptions,
     IServiceAuthManager serviceAuthManager,
     IDatahubCatalogSearch datahubCatalogSearch,
+    IFeatureManagerSnapshot featureManager,
     IUserEnrollmentService userEnrollmentService,
     IDbContextFactory<DatahubProjectDBContext> datahubContextFactory)
     : IUserInformationService
@@ -45,7 +48,14 @@ public class UserInformationService(
     {
         if (authenticationStateProvider == null || forceReload)
             authenticatedUser = (await authenticationStateProvider!.GetAuthenticationStateAsync()).User;
+        if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) && !await IsGCCFEnabled())
+            throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
         return authenticatedUser;
+    }    
+
+    private async Task<bool> IsGCCFEnabled()
+    {
+        return await featureManager.IsEnabledAsync(Features.GCCF_Feature);
     }
 
     public async Task<string?> GetCurrentUserEntraId()

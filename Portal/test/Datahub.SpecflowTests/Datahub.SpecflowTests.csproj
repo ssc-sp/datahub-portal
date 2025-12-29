@@ -7,6 +7,8 @@
         <RootNamespace>Datahub.SpecflowTests</RootNamespace>
 		<IsTestProject>true</IsTestProject>
       <UserSecretsId>0e5da883-04b1-4ef6-87a0-33f222cc5391</UserSecretsId>
+      <!-- Workaround for Reqnroll with .NET 9 SDK -->
+      <ReqnrollGeneratorRuntime>NetCore</ReqnrollGeneratorRuntime>
   </PropertyGroup>
 
     <ItemGroup>
