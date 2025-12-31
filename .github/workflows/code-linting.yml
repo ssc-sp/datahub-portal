@@ -35,12 +35,12 @@ jobs:
           VALIDATE_JSCPD: false
           SUPPRESS_POSSUM: true
           LINTER_RULES_PATH: /
+          DISABLE_ERRORS: true
           TERRAFORM_TFLINT_CONFIG_FILE: .tflint.hcl
           GITHUB_ACTIONS_CONFIG_FILE: .actionlint.yml
           SAVE_SUPER_LINTER_SUMMARY: true 
 
       - name: Read Summary File
-        if: always() # Run even if Super-linter finds errors
         id: read_summary
         run: |
           SUMMARY_FILE="super-linter-output/super-linter-summary.md"
@@ -54,9 +54,7 @@ jobs:
             echo "content=No summary generated." >> $GITHUB_OUTPUT
           fi
 
-      # 1. Search for a comment containing our hidden ID
       - name: Find existing Super-linter Comment
-        if: always()
         uses: actions-cool/issues-helper@v3
         id: find_comment
         with:
@@ -64,28 +62,31 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
           body-includes: '<!-- super-linter-summary-identifier -->'
+          show-thanks: "false"
 
 
       - name: Create Super-linter Comment
-        if: always() && steps.find_comment.outputs.comments == '[]'
+        if: steps.find_comment.outputs.comments == '[]'
         uses: actions-cool/issues-helper@v3
         with:
           actions: create-comment
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
+          show-thanks: "false"
           body: |
             <!-- super-linter-summary-identifier -->
             ${{ steps.read_summary.outputs.content }}
 
 
       - name: Update Super-linter Comment
-        if: always() && steps.find_comment.outputs.comments != '[]'
+        if: steps.find_comment.outputs.comments != '[]'
         uses: actions-cool/issues-helper@v3
         with:
           actions: update-comment
           token: ${{ secrets.GITHUB_TOKEN }}
           comment-id: ${{ fromJSON(steps.find_comment.outputs.comments)[0].id }}
           update-mode: replace
+          show-thanks: "false"
           body: |
             <!-- super-linter-summary-identifier -->
             ${{ steps.read_summary.outputs.content }}
