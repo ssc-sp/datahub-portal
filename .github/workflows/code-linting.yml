@@ -65,7 +65,7 @@ jobs:
 
 
       - name: Create Super-linter Comment
-        if: steps.find_comment.outputs.comments == '[]'
+        if: steps.find_comment.outputs.comments == ''
         uses: actions-cool/issues-helper@v3
         with:
           actions: create-comment
@@ -78,7 +78,7 @@ jobs:
 
 
       - name: Update Super-linter Comment
-        if: steps.find_comment.outputs.comments != '[]'
+        if: steps.find_comment.outputs.comments != ''
         uses: actions-cool/issues-helper@v3
         with:
           actions: update-comment
