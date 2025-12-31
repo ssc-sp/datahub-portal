@@ -74,18 +74,19 @@ jobs:
 
           if [ -f "$SUMMARY_FILE" ]; then
             # Set a flag indicating the file exists
-            echo "exists=true" >> $GITHUB_OUTPUT
+            echo "exists=true" >> "$GITHUB_OUTPUT"
             
-            echo "content<<EOF" >> $GITHUB_OUTPUT
-            cat "$SUMMARY_FILE" >> $GITHUB_OUTPUT
-            
-            echo "" >> $GITHUB_OUTPUT
-            echo "---" >> $GITHUB_OUTPUT
-            echo "### [View Full Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_OUTPUT
-            
-            echo "EOF" >> $GITHUB_OUTPUT
+            # Use a block to redirect everything to GITHUB_OUTPUT at once
+            {
+              echo "content<<EOF"
+              cat "$SUMMARY_FILE"
+              echo ""
+              echo "---"
+              echo "### [View Full Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})"
+              echo "EOF"
+            } >> "$GITHUB_OUTPUT"
           else
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "exists=false" >> "$GITHUB_OUTPUT"
             echo "No summary file found."
           fi
 
