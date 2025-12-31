@@ -6,7 +6,6 @@ on:
   pull_request:
     branches:
       - develop
-  workflow_dispatch:
 
 permissions: read-all
 
@@ -18,20 +17,75 @@ jobs:
     permissions:
       contents: read
       packages: read
-      statuses: write # To report GitHub Actions status checks
+      statuses: write
+      pull-requests: write 
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Super-linter
-        uses: super-linter/super-linter@b92721f792f381cedc002ecdbb9847a15ece5bb8 # v7.1.0
+        uses: super-linter/super-linter/slim@v8.0.3
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # To report GitHub Actions status checks
-          VALIDATE_ALL_CODEBASE: false # Lint only changed files
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ALL_CODEBASE: false
           VALIDATE_CHECKOV: false
           VALIDATE_JSCPD: false
           SUPPRESS_POSSUM: true
-          DISABLE_ERRORS: true
+          LINTER_RULES_PATH: /
+          TERRAFORM_TFLINT_CONFIG_FILE: .tflint.hcl
+          GITHUB_ACTIONS_CONFIG_FILE: .actionlint.yml
+          SAVE_SUPER_LINTER_SUMMARY: true 
+
+      - name: Read Summary File
+        if: always() # Run even if Super-linter finds errors
+        id: read_summary
+        run: |
+          SUMMARY_FILE="super-linter-output/super-linter-summary.md"
+          
+          if [ -f "$SUMMARY_FILE" ]; then
+            # Read file content into a multiline output variable
+            echo "content<<EOF" >> $GITHUB_OUTPUT
+            cat "$SUMMARY_FILE" >> $GITHUB_OUTPUT
+            echo "EOF" >> $GITHUB_OUTPUT
+          else
+            echo "content=No summary generated." >> $GITHUB_OUTPUT
+          fi
+
+      # 1. Search for a comment containing our hidden ID
+      - name: Find existing Super-linter Comment
+        if: always()
+        uses: actions-cool/issues-helper@v3
+        id: find_comment
+        with:
+          actions: find-comments
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body-includes: '<!-- super-linter-summary-identifier -->'
+
+
+      - name: Create Super-linter Comment
+        if: always() && steps.find_comment.outputs.comments == '[]'
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: create-comment
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            <!-- super-linter-summary-identifier -->
+            ${{ steps.read_summary.outputs.content }}
+
+
+      - name: Update Super-linter Comment
+        if: always() && steps.find_comment.outputs.comments != '[]'
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: update-comment
+          token: ${{ secrets.GITHUB_TOKEN }}
+          comment-id: ${{ fromJSON(steps.find_comment.outputs.comments)[0].id }}
+          update-mode: replace
+          body: |
+            <!-- super-linter-summary-identifier -->
+            ${{ steps.read_summary.outputs.content }}
