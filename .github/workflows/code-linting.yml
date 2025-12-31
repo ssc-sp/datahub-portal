@@ -2,7 +2,6 @@
 name: Lint
 
 on:
-  push: {}
   pull_request:
     branches:
       - develop
@@ -36,8 +35,6 @@ jobs:
           SUPPRESS_POSSUM: true
           LINTER_RULES_PATH: /
           DISABLE_ERRORS: true
-          TERRAFORM_TFLINT_CONFIG_FILE: .tflint.hcl
-          GITHUB_ACTIONS_CONFIG_FILE: .actionlint.yml
           SAVE_SUPER_LINTER_SUMMARY: true 
 
       - name: Read Summary File
