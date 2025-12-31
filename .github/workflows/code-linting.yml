@@ -45,9 +45,14 @@ jobs:
           SUMMARY_FILE="super-linter-output/super-linter-summary.md"
           
           if [ -f "$SUMMARY_FILE" ]; then
-            # Read file content into a multiline output variable
             echo "content<<EOF" >> $GITHUB_OUTPUT
             cat "$SUMMARY_FILE" >> $GITHUB_OUTPUT
+            
+            echo "" >> $GITHUB_OUTPUT
+            echo "---" >> $GITHUB_OUTPUT
+            
+            echo "### [View Full Logs](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }})" >> $GITHUB_OUTPUT
+            
             echo "EOF" >> $GITHUB_OUTPUT
           else
             echo "content=No summary generated." >> $GITHUB_OUTPUT
@@ -63,7 +68,6 @@ jobs:
           body-includes: '<!-- super-linter-summary-identifier -->'
           show-thanks: "false"
 
-
       - name: Create Super-linter Comment
         if: steps.find_comment.outputs.comments == ''
         uses: actions-cool/issues-helper@v3
@@ -75,7 +79,6 @@ jobs:
           body: |
             <!-- super-linter-summary-identifier -->
             ${{ steps.read_summary.outputs.content }}
-
 
       - name: Update Super-linter Comment
         if: steps.find_comment.outputs.comments != ''
