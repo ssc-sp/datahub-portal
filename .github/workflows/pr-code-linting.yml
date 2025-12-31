@@ -75,7 +75,7 @@ jobs:
           if [ -f "$SUMMARY_FILE" ]; then
             # Set a flag indicating the file exists
             echo "exists=true" >> "$GITHUB_OUTPUT"
-            
+
             # Use a block to redirect everything to GITHUB_OUTPUT at once
             {
               echo "content<<EOF"
@@ -95,6 +95,7 @@ jobs:
         uses: actions-cool/issues-helper@e2ff99831a4f13625d35064e2b3dfe65c07a0396 #v3.7.5
         with:
           actions: delete-comment
+          show-thanks: "false"
           token: ${{ secrets.GITHUB_TOKEN }}
           comment-id: ${{ fromJSON(steps.find_comment.outputs.comments)[0].id }}
 
