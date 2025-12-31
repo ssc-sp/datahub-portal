@@ -1,10 +1,8 @@
 # Top-most EditorConfig file
 root = true
 
-# ==============================================================================
+
 # Global Settings
-# ==============================================================================
-# these settings apply to all files unless overridden below
 [*]
 charset = utf-8
 indent_style = space
@@ -13,18 +11,9 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
-# ==============================================================================
-# YAML Fix for Super-linter
-# ==============================================================================
-# Setting charset to 'unset' prevents the "Ascii vs UTF-8" error in editorconfig-checker
-[*.{yml,yaml}]
-charset = unset
 
-# ==============================================================================
 # C# Settings (Your existing config)
-# ==============================================================================
 [*.cs]
-# CS8981: The type name only contains lower-cased ascii characters. Such names may become reserved for the language.
 dotnet_diagnostic.CS8981.severity = warning
 csharp_indent_labels = one_less_than_current
 csharp_using_directive_placement = outside_namespace:silent
@@ -53,9 +42,6 @@ dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggesti
 dotnet_style_prefer_auto_properties = true:silent
 dotnet_style_object_initializer = true:suggestion
 dotnet_style_collection_initializer = true:suggestion
-
-[*.{cs,vb}]
-#### Naming styles ####
 
 # Naming rules
 
