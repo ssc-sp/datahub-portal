@@ -1,5 +1,5 @@
 ---
-name: Lint
+name: Code Linting
 
 on:
   pull_request:
@@ -39,6 +39,7 @@ jobs:
           LINTER_RULES_PATH: /
           DISABLE_ERRORS: true
           SAVE_SUPER_LINTER_SUMMARY: true 
+          FAIL_ON_INVALID_GITHUB_ACTIONS_EVENT_CONFIGURATION: true
 
       - name: Read Summary File
         id: read_summary
@@ -60,7 +61,7 @@ jobs:
           fi
 
       - name: Find existing Super-linter Comment
-        uses: actions-cool/issues-helper@v3
+        uses: actions-cool/issues-helper@v3.7.5
         id: find_comment
         with:
           actions: find-comments
@@ -72,7 +73,7 @@ jobs:
 
       - name: Create Super-linter Comment
         if: steps.find_comment.outputs.comments == ''
-        uses: actions-cool/issues-helper@v3
+        uses: actions-cool/issues-helper@v3.7.5
         with:
           actions: create-comment
           show-thanks: "false"
@@ -84,7 +85,7 @@ jobs:
 
       - name: Update Super-linter Comment
         if: steps.find_comment.outputs.comments != ''
-        uses: actions-cool/issues-helper@v3
+        uses: actions-cool/issues-helper@v3.7.5
         with:
           actions: update-comment
           show-thanks: "false"
