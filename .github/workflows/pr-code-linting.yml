@@ -17,16 +17,17 @@ jobs:
       contents: read
       packages: read
       statuses: write
-      pull-requests: write 
+      pull-requests: write
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@08eba0b27e820071cde6df949e0beb9ba4906955 # v4.3.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Super-linter
-        uses: super-linter/super-linter/slim@v8.3.2
+        uses: super-linter/super-linter/slim@502f4fe48a81a392756e173e39a861f8c8efe056 # v8.3.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
@@ -38,14 +39,14 @@ jobs:
           SUPPRESS_POSSUM: true
           LINTER_RULES_PATH: /
           DISABLE_ERRORS: true
-          SAVE_SUPER_LINTER_SUMMARY: true 
+          SAVE_SUPER_LINTER_SUMMARY: true
           FAIL_ON_INVALID_GITHUB_ACTIONS_EVENT_CONFIGURATION: true
 
       - name: Read Summary File
         id: read_summary
         run: |
           SUMMARY_FILE="super-linter-output/super-linter-summary.md"
-          
+
           if [ -f "$SUMMARY_FILE" ]; then
             echo "content<<EOF" >> $GITHUB_OUTPUT
             cat "$SUMMARY_FILE" >> $GITHUB_OUTPUT
@@ -61,19 +62,19 @@ jobs:
           fi
 
       - name: Find existing Super-linter Comment
-        uses: actions-cool/issues-helper@v3.7.5
+        uses: actions-cool/issues-helper@e2ff99831a4f13625d35064e2b3dfe65c07a0396 #v3.7.5
         id: find_comment
         with:
           actions: find-comments
           show-thanks: "false"
           token: ${{ secrets.GITHUB_TOKEN }}
           issue-number: ${{ github.event.pull_request.number }}
-          comment-auth: 'github-actions[bot]'
-          body-includes: '<!-- super-linter-summary-identifier -->'
+          comment-auth: "github-actions[bot]"
+          body-includes: "<!-- super-linter-summary-identifier -->"
 
       - name: Create Super-linter Comment
         if: steps.find_comment.outputs.comments == ''
-        uses: actions-cool/issues-helper@v3.7.5
+        uses: actions-cool/issues-helper@e2ff99831a4f13625d35064e2b3dfe65c07a0396 #v3.7.5
         with:
           actions: create-comment
           show-thanks: "false"
@@ -85,7 +86,7 @@ jobs:
 
       - name: Update Super-linter Comment
         if: steps.find_comment.outputs.comments != ''
-        uses: actions-cool/issues-helper@v3.7.5
+        uses: actions-cool/issues-helper@e2ff99831a4f13625d35064e2b3dfe65c07a0396 #v3.7.5
         with:
           actions: update-comment
           show-thanks: "false"
