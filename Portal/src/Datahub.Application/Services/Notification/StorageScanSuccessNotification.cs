@@ -3,7 +3,6 @@ using System.Collections.Generic;
 
 namespace Datahub.Application.Services.Notification;
 
-/// <summary>
 /// Represents the payload that will be emitted when ClamAV (or any AV engine)
 /// reports that a workspace blob has been scanned successfully.
 /// </summary>
