@@ -324,8 +324,8 @@ public class BlobVirusScanAclUpdater
             var workspace = await _workspaceAclService.GetWorkspaceAsync(workspaceAcronym);
             var portalUser = workspace?.UserRoles?
                 .Select(ur => ur.PortalUser)
-                .FirstOrDefault(u => u != null &&
-                    string.Equals(u.GraphGuid, uploaderObjectId, StringComparison.OrdinalIgnoreCase));
+                .FirstOrDefault(u => u?.EntraUser?.GraphGuid != null &&
+                    string.Equals(u.EntraUser.GraphGuid, uploaderObjectId, StringComparison.OrdinalIgnoreCase));
 
             if (portalUser is null)
             {
