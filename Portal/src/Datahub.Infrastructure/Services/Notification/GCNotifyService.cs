@@ -5,6 +5,7 @@ using Datahub.Application.Services.Security;
 using Microsoft.Extensions.Logging;
 using System.Text;
 using System.Text.Json;
+using System.Threading;
 
 namespace Datahub.Infrastructure.Services.Notification;
 
@@ -269,6 +270,47 @@ public class GCNotifyService : IGCNotifyService
         _logger.LogDebug("Dispatching infected file notification with template {TemplateId}", templateId);
         string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
+    }
+
+    public async Task SendStorageScanSuccessEmailAsync(
+        StorageScanNotificationHelper.StorageScanSuccessEventPayload payload,
+        string? recipientEmail = null,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(payload);
+        cancellationToken.ThrowIfCancellationRequested();
+
+        var targetEmail = string.IsNullOrWhiteSpace(recipientEmail)
+            ? payload.UploadedByEmail
+            : recipientEmail;
+
+        if (string.IsNullOrWhiteSpace(targetEmail))
+        {
+            _logger.LogWarning(
+                "Skipping scan success email for workspace {Workspace}: recipient email missing",
+                payload.WorkspaceAcronym);
+            return;
+        }
+
+        var templateId = GetTemplateId("successful-scan", _mappingsJson);
+
+        var postData = new
+        {
+            email_address = targetEmail,
+            template_id = templateId,
+            personalisation = new
+            {
+                filename = payload.FileName,
+                ws = payload.WorkspaceAcronym,
+                date = payload.ScanCompletedOn.ToString("yyyy-MM-dd HH:mm 'UTC'")
+            }
+        };
+
+        await SendNotification(JsonSerializer.Serialize(postData)).ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "Sent storage scan success email for workspace {Workspace} via GC Notify template",
+            payload.WorkspaceAcronym);
     }
 
     public string GetTemplateId(string templateName, string mappingsJson)

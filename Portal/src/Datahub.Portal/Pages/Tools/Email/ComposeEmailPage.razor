@@ -305,6 +305,26 @@
         await _gcNotifyService.SendInfectedFileNotification(await _userInformationService.GetUserEmail(), "test_notice.txt", "TEST NOTICE", "1900-01-01");
     }
 
+    private async Task TestStorageScanSuccessEmail()
+    {
+        var email = await _userInformationService.GetUserEmail();
+
+        var notification = new StorageScanSuccessNotification
+        {
+            WorkspaceAcronym = "TEST-WS",
+            ContainerName = "datahub",
+            BlobPath = "upload/TEST-WS/sample-file.csv",
+            ScanCompletedOn = DateTimeOffset.UtcNow,
+            ScanEngine = "ClamAV",
+            UploadedBy = "Datahub Tester",
+            UploadedByEmail = email
+        };
+
+        var payload = StorageScanNotificationHelper.BuildEventPayload(notification);
+
+        await _gcNotifyService.SendStorageScanSuccessEmailAsync(payload, email);
+    }
+
     enum RecipientType
     {
         All,

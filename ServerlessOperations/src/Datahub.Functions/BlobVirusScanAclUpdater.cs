@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventGrid;
+using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Storage;
-using Datahub.Functions.Services;
 using Datahub.Functions.Models;
+using Datahub.Functions.Services;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
@@ -23,6 +25,7 @@ public class BlobVirusScanAclUpdater
     private readonly ILogger<BlobVirusScanAclUpdater> _logger;
     private readonly IWorkspaceAclService _workspaceAclService;
     private readonly IBlobMetadataWriter _blobMetadataWriter;
+    private readonly IGCNotifyService _gcNotifyService;
 
     private const string ContainerName = "datahub";
     private const string UploadPrefix = "upload/";
@@ -30,11 +33,13 @@ public class BlobVirusScanAclUpdater
     public BlobVirusScanAclUpdater(
         ILogger<BlobVirusScanAclUpdater> logger,
         IWorkspaceAclService workspaceAclService,
-        IBlobMetadataWriter blobMetadataWriter)
+        IBlobMetadataWriter blobMetadataWriter,
+        IGCNotifyService gcNotifyService)
     {
         _logger = logger;
         _workspaceAclService = workspaceAclService;
         _blobMetadataWriter = blobMetadataWriter;
+        _gcNotifyService = gcNotifyService;
     }
 
     [Function("BlobVirusScanAclUpdater")]
@@ -98,6 +103,14 @@ public class BlobVirusScanAclUpdater
                 workspaceAcronym,
                 blobPath,
                 metadata,
+                cancellationToken);
+
+            await TrySendScanSuccessEmailAsync(
+                workspaceAcronym,
+                blobPath,
+                metadata,
+                eventData.Url,
+                eventGridEvent,
                 cancellationToken);
 
             _logger.LogInformation(
@@ -204,5 +217,183 @@ public class BlobVirusScanAclUpdater
         }
 
         return string.Join('/', parts[0], parts[2]);
+    }
+
+    private async Task TrySendScanSuccessEmailAsync(
+        string workspaceAcronym,
+        string blobPath,
+        IReadOnlyDictionary<string, string>? metadata,
+        string? blobUrl,
+        EventGridEvent eventGridEvent,
+        CancellationToken cancellationToken)
+    {
+        if (metadata is null)
+        {
+            _logger.LogDebug(
+                "Skipping scan success email for workspace {Workspace} blob {BlobPath}: metadata snapshot missing",
+                workspaceAcronym,
+                blobPath);
+            return;
+        }
+
+        try
+        {
+            var notification = await BuildNotificationAsync(
+                workspaceAcronym,
+                blobPath,
+                metadata,
+                blobUrl,
+                eventGridEvent.Id);
+
+            if (notification is null)
+            {
+                return;
+            }
+
+            var payload = StorageScanNotificationHelper.BuildEventPayload(notification);
+            await _gcNotifyService.SendStorageScanSuccessEmailAsync(payload, cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to dispatch scan success email for workspace {Workspace} blob {BlobPath}",
+                workspaceAcronym,
+                blobPath);
+        }
+    }
+
+    private async Task<StorageScanSuccessNotification?> BuildNotificationAsync(
+        string workspaceAcronym,
+        string blobPath,
+        IReadOnlyDictionary<string, string> metadata,
+        string? blobUrl,
+        string correlationId)
+    {
+        var uploaderObjectId = TryGetMetadataValue(metadata, "ownedby") ??
+            TryGetMetadataValue(metadata, "createdby");
+
+        var (uploaderEmail, uploaderName) = await ResolveUploaderDetailsAsync(
+            workspaceAcronym,
+            uploaderObjectId);
+
+        if (string.IsNullOrWhiteSpace(uploaderEmail))
+        {
+            _logger.LogInformation(
+                "Skipping scan success email for workspace {Workspace} blob {BlobPath}: uploader email unavailable",
+                workspaceAcronym,
+                blobPath);
+            return null;
+        }
+
+        var notification = new StorageScanSuccessNotification
+        {
+            WorkspaceAcronym = workspaceAcronym,
+            StorageAccountName = ResolveStorageAccountName(blobUrl),
+            ContainerName = ContainerName,
+            BlobPath = blobPath,
+            FileName = TryGetMetadataValue(metadata, "filename"),
+            FileSizeBytes = TryParseLongMetadata(metadata, "filesize"),
+            FileHashSha256 = TryGetMetadataValue(metadata, "filehash")
+                ?? TryGetMetadataValue(metadata, "filehashsha256")
+                ?? TryGetMetadataValue(metadata, "dh:filehash")
+                ?? TryGetMetadataValue(metadata, "dh:filehashsha256"),
+            ScanCompletedOn = ResolveScanCompletedOn(metadata),
+            ScanEngine = TryGetMetadataValue(metadata, "dh:scanner"),
+            UploadedBy = uploaderName,
+            UploadedByEmail = uploaderEmail,
+            UploadedByObjectId = uploaderObjectId,
+            CorrelationId = correlationId,
+            Metadata = metadata
+        };
+
+        return notification;
+    }
+
+    private async Task<(string? Email, string? DisplayName)> ResolveUploaderDetailsAsync(
+        string workspaceAcronym,
+        string? uploaderObjectId)
+    {
+        if (string.IsNullOrWhiteSpace(uploaderObjectId))
+        {
+            return default;
+        }
+
+        try
+        {
+            var workspace = await _workspaceAclService.GetWorkspaceAsync(workspaceAcronym);
+            var portalUser = workspace?.UserRoles?
+                .Select(ur => ur.PortalUser)
+                .FirstOrDefault(u => u != null &&
+                    string.Equals(u.GraphGuid, uploaderObjectId, StringComparison.OrdinalIgnoreCase));
+
+            if (portalUser is null)
+            {
+                _logger.LogInformation(
+                    "Uploader with object id {UploaderId} not found in workspace {Workspace}",
+                    uploaderObjectId,
+                    workspaceAcronym);
+                return default;
+            }
+
+            return (portalUser.Email, portalUser.DisplayName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to resolve uploader information for workspace {Workspace}",
+                workspaceAcronym);
+            return default;
+        }
+    }
+
+    private static DateTimeOffset ResolveScanCompletedOn(IReadOnlyDictionary<string, string> metadata)
+    {
+        var raw = TryGetMetadataValue(metadata, "dh:scanDate");
+        return !string.IsNullOrWhiteSpace(raw) && DateTimeOffset.TryParse(raw, out var timestamp)
+            ? timestamp
+            : DateTimeOffset.UtcNow;
+    }
+
+    private static long? TryParseLongMetadata(IReadOnlyDictionary<string, string> metadata, string key)
+    {
+        var value = TryGetMetadataValue(metadata, key);
+        if (!string.IsNullOrWhiteSpace(value) && long.TryParse(value, out var result))
+        {
+            return result;
+        }
+
+        return null;
+    }
+
+    private static string? TryGetMetadataValue(IReadOnlyDictionary<string, string> metadata, string key)
+    {
+        foreach (var pair in metadata)
+        {
+            if (string.Equals(pair.Key, key, StringComparison.OrdinalIgnoreCase))
+            {
+                return pair.Value;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? ResolveStorageAccountName(string? blobUrl)
+    {
+        if (string.IsNullOrWhiteSpace(blobUrl))
+        {
+            return null;
+        }
+
+        if (!Uri.TryCreate(blobUrl, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        var host = uri.Host;
+        var segments = host.Split('.', StringSplitOptions.RemoveEmptyEntries);
+        return segments.Length > 0 ? segments[0] : null;
     }
 }
