@@ -51,7 +51,7 @@ else
     var sectionKey = containsKey ? Section : PersonalSidebar.SectionViews.Profile;
     <MudGrid Justify="Justify.Center">
         <MudItem xs="8" sm="12">
-            <UserCard ViewedUserGraphId="@_viewedPortalUser.GraphGuid"/>
+            <UserCard ViewedUser="@_viewedPortalUser"/>
         </MudItem>
         <MudItem xs="8" sm="12" >
             <DynamicComponent Type="@_sectionComponents[sectionKey]" Parameters="@parameters"/>

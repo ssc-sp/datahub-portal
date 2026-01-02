@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using Datahub.Application.Configuration;
 
 namespace Datahub.Application.Services.Notification;
 
@@ -55,6 +56,26 @@ public static class StorageScanNotificationHelper
         };
     }
 
+    public static string BuildEventSubject(StorageScanNotificationSettings settings, string workspace, string container, string blobPath)
+    {
+        ArgumentNullException.ThrowIfNull(settings);
+
+        var prefix = string.IsNullOrWhiteSpace(settings.SubjectPrefix)
+            ? "/datahub/storage/scan"
+            : settings.SubjectPrefix.TrimEnd('/');
+
+        var workspaceSegment = string.IsNullOrWhiteSpace(workspace)
+            ? "UNKNOWN"
+            : workspace.Trim().ToUpperInvariant();
+
+        var containerSegment = string.IsNullOrWhiteSpace(container)
+            ? "datahub"
+            : container.Trim('/');
+
+        var blobSegment = string.IsNullOrWhiteSpace(blobPath) ? "-" : blobPath;
+
+        return $"{prefix}/{workspaceSegment}/{containerSegment}/{blobSegment}";
+    }
     public sealed record StorageScanSuccessEventPayload
     {
         public required string WorkspaceAcronym { get; init; }

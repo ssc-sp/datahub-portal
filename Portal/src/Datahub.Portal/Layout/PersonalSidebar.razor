@@ -20,7 +20,7 @@
 }
 
 <MudStack Class="px-4 mt-6" id="nav">
-    <MudDrawerHeader Dense Style="padding: 0">
+    <MudDrawerHeader Dense Style="padding:0">
         <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart">
             <SkipLink Type="SkipLinkType.Navigation" Anchor>
                 <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
@@ -29,9 +29,9 @@
             </SkipLink>
             @if (Drawer.Open)
             {
-                <div style="text-wrap: nowrap; font-size: 1rem">
-                    <UserCard ViewedUserGraphId="@_viewedUser.GraphGuid" Size="@Size.Small" ShowEmail="false"
-                              Typo="Typo.h2" Style="font-size: 1rem"/>
+                <div style="text-wrap: nowrap; font-size:1rem">
+                    <UserCard ViewedUser="@_viewedUser" Size="@Size.Small" ShowEmail="false"
+                              Typo="Typo.h2" Style="font-size:1rem"/>
                 </div>
             }
         </MudStack>
@@ -40,7 +40,7 @@
         @if (Drawer.Open)
         {
             <MudStack Spacing="2">
-                <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                <MudText Typo="Typo.h2" Class="ml-2" Style="font-size:1rem; text-wrap: nowrap">
                     <strong>
                         @Localizer["My account"]
                     </strong>
@@ -55,7 +55,7 @@
                                     Match="NavLinkMatch.All">
                                     <MudStack Row AlignItems="AlignItems.Center">
                                         <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark"
-                                                Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                Class="mr-2 ml-n2" Style="font-size:1rem;"/>
                                         <MudText Style="@_workspaceLinkStyle">
                                             @GetLabel(sectionView)
                                         </MudText>
@@ -68,7 +68,7 @@
             </MudStack>
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">
                 <MudStack Spacing="2">
-                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size: 1rem; text-wrap: nowrap">
+                    <MudText Typo="Typo.h2" Class="ml-2" Style="font-size:1rem; text-wrap: nowrap">
                         <strong>
                             @Localizer["Datahub Admin"]
                         </strong>
@@ -83,7 +83,7 @@
                                         Match="NavLinkMatch.All">
                                         <MudStack Row AlignItems="AlignItems.Center">
                                             <DHIcon Icon="@GetIcon(sectionView)" Size="Size.Small" Color="Color.Dark"
-                                                    Class="mr-2 ml-n2" Style="font-size: 1rem;"/>
+                                                    Class="mr-2 ml-n2" Style="font-size:1rem;"/>
                                             <MudText Style="@_workspaceLinkStyle">
                                                 @GetLabel(sectionView)
                                             </MudText>
@@ -94,7 +94,7 @@
                             <li>
                                 <MudNavLink Href="@PageRoutes.CreateWorkspace" Match="NavLinkMatch.All">
                                     <MudStack Row AlignItems="AlignItems.Center">
-                                        <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size: 1rem;" />
+                                        <DHIcon Icon="@SidebarIcons.CreateNew" Size="Size.Small" Color="Color.Dark" Class="mr-2 ml-n2" Style="font-size:1rem;" />
                                         <MudText Style="@_workspaceLinkStyle">
                                             @Localizer["Create Workspace"]
                                         </MudText>
@@ -124,17 +124,17 @@
     private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
 
-    private ushort _maxRecentLinks = 5;
-    private ushort _maxWorkspacesToShow = 3;
+    private readonly ushort _maxRecentLinks =5;
+    private readonly ushort _maxWorkspacesToShow =3;
     private ushort _numberOfRemainingWorkspaces = 3;
-    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <= 0 && !_isViewAsAdmin;
+    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <=0 && !_isViewAsAdmin;
 
     private bool _showAllRecentLinks = false;
     private bool _showAllWorkspaces = false;
 
     private bool _isLoaded = false;
 
-    private const ushort MaxWorkspaceCount = 3;
+    private const ushort MaxWorkspaceCount =3;
 
 
     public struct SectionViews
@@ -197,9 +197,9 @@
 
 
     private readonly string _workspaceLinkStyle = new StyleBuilder()
-        .AddStyle("white-space", "nowrap")
-        .AddStyle("overflow", "hidden")
-        .AddStyle("text-overflow", "ellipsis")
+        .AddStyle("white-space","nowrap")
+        .AddStyle("overflow","hidden")
+        .AddStyle("text-overflow","ellipsis")
         .Build();
 
     protected override async Task OnInitializedAsync()
@@ -217,7 +217,8 @@
             .Where(u => u.PortalUser.Id == _viewedUser.Id)
             .ToListAsync();
 
-        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser.GraphGuid, _maxRecentLinks);
+        // Updated call to pass PortalUser instead of GraphGuid string
+        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser,_maxRecentLinks);
 
         _recentLinks = userRecent?
             .Select(l => (l, project: GetProject(dbContext, l)))

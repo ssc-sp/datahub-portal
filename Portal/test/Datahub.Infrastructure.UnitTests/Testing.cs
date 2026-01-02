@@ -85,7 +85,7 @@ public partial class Testing
         _httpClientFactory = httpClientFactory.Object;
 
         _userEnrollmentService = new UserEnrollmentService(Mock.Of<ILogger<UserEnrollmentService>>(), 
-            httpClientFactory.Object, _datahubPortalConfiguration, null);
+            httpClientFactory.Object, _datahubPortalConfiguration, _dbContextFactory);
 
         _databricksApiService = new DatabricksApiService(Mock.Of<ILogger<DatabricksApiService>>(), 
             httpClientFactory.Object, _dbContextFactory, Mock.Of<IDatahubCatalogSearch>());

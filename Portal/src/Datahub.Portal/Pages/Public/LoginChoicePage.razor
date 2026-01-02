@@ -4,6 +4,7 @@
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 
 <PageTitle>@Localizer["Login - Federal Science DataHub"]</PageTitle>
 
@@ -32,16 +33,38 @@
                     <span class="sr-only"></span>
                 </span>
             </DHButton>
-            <DHButton Class="px-16 my-2" Variant="Variant.Filled" Style="width:50%;" Disabled="true">
-                <span>
-                    @Localizer["External user (coming soon)"]
-                    <span class="sr-only"></span>
-                </span>
-            </DHButton>
+            @if (_gccfEnabled)
+            {
+                <DHButton Class="px-16 my-2" Variant="Variant.Filled" Style="width:50%;" Href="/gccf/login">
+                    <span>
+                        @Localizer["External user"]
+                        <span class="sr-only"></span>
+                    </span>
+                </DHButton>
+            }
+            else
+            {
+                <DHButton Class="px-16 my-2" Variant="Variant.Filled" Style="width:50%;" Disabled="true">
+                    <span>
+                        @Localizer["External user (coming soon)"]
+                        <span class="sr-only"></span>
+                    </span>
+                </DHButton>
+            }
         </MudStack>
         <DHFooter />
     </MudPaper>
 </MudContainer>
 
 @code {
+
+    private bool _gccfEnabled = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await _featureManager.IsEnabledAsync(Features.GCCF_Feature))
+        {
+            _gccfEnabled = true;
+        }
+    }
 }

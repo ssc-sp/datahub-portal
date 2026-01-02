@@ -239,7 +239,7 @@ public partial class FileExplorer
         var fileMetadata = new FileMetaData
         {
             id = Guid.NewGuid().ToString(),
-            createdby = GraphUser.Mail,
+            createdby = PortalUser.Email,
             folderpath = folder,
             filename = browserFile.Name,
             filesize = browserFile.Size.ToString(),

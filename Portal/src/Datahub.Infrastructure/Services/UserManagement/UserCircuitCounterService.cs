@@ -21,7 +21,7 @@ public class UserCircuitCounterService : IDisposable, IUserCircuitCounterService
     {
         if (enabled is null)
         {
-            sessionId = await userInformationService.GetCurrentUserGraphId();
+            sessionId = await userInformationService.GetCurrentUserEntraId();
             enabled = sessionManager.TryAddSession(sessionId);
         }
         return enabled.Value;

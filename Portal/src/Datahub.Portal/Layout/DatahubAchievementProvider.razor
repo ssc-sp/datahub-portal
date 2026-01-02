@@ -43,10 +43,10 @@
                 await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLogin);
 
                 await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-                var userId = await _userInformationService.GetCurrentUserGraphId();
+                var userId = await _userInformationService.GetCurrentUserEntraId();
 
-                var numberOfProjects = projectContext.UserRolesLinks
-                    .Count(p => p.PortalUser.GraphGuid == userId);
+				var numberOfProjects = projectContext.UserRolesLinks.Include(ur => ur.PortalUser).ThenInclude(u => u.EntraUser)
+                    .Count(p => p.PortalUser != null && p.PortalUser.EntraUser != null && p.PortalUser.EntraUser.GraphGuid == userId);
 
                 if (numberOfProjects > 0)
                     await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserJoinedProject);

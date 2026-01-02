@@ -3,16 +3,21 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
 
 namespace Datahub.Infrastructure.Services.Notification;
 
+
 public class GCNotifyService : IGCNotifyService
 {
+    private const string SuccessfulScanTemplateName = "successful-scan";
     private readonly IKeyVaultService _keyVaultService;
     private readonly ILogger<GCNotifyService> _logger;
+    private readonly DatahubPortalConfiguration _portalConfiguration;
     private readonly string _mappingsJson;
 
     public GCNotifyService(
@@ -22,15 +27,16 @@ public class GCNotifyService : IGCNotifyService
     {
         _keyVaultService = keyVaultService ?? throw new ArgumentNullException(nameof(keyVaultService));
         _logger = loggerFactory.CreateLogger<GCNotifyService>();
+        _portalConfiguration = portalConfiguration ?? throw new ArgumentNullException(nameof(portalConfiguration));
 
-        if (portalConfiguration?.Media?.StorageConnectionString is null)
+        if (_portalConfiguration.Media?.StorageConnectionString is null)
         {
             _logger.LogError("Initialization failed: Media.StorageConnectionString is null (no token available).");
             throw new UnauthorizedAccessException("No token available");
         }
 
         _logger.LogInformation("Initializing GCNotifyService and loading template mappings from blob storage.");
-        _mappingsJson = GetTemplateMappings(portalConfiguration);
+        _mappingsJson = GetTemplateMappings(_portalConfiguration);
         _logger.LogInformation("GCNotifyService initialized successfully. Templates loaded: {TemplateCount}", SafeCountMappings(_mappingsJson));
     }
 
@@ -292,7 +298,7 @@ public class GCNotifyService : IGCNotifyService
             return;
         }
 
-        var templateId = GetTemplateId("successful-scan", _mappingsJson);
+        var templateId = GetTemplateId(SuccessfulScanTemplateName, _mappingsJson);
 
         var postData = new
         {
@@ -377,4 +383,5 @@ public class GCNotifyService : IGCNotifyService
 
     private static string Truncate(string value, int max) =>
         string.IsNullOrEmpty(value) ? value : (value.Length <= max ? value : value.Substring(0, max) + "...(truncated)");
+
 }
