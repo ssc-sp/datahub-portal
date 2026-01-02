@@ -42,6 +42,7 @@ public class WorkspaceAclService : IWorkspaceAclService
         return await ctx.Projects
             .Include(p => p.UserRoles)
             .ThenInclude(ur => ur.PortalUser)
+            .ThenInclude(pu => pu.EntraUser)
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
     }
 
@@ -55,8 +56,10 @@ public class WorkspaceAclService : IWorkspaceAclService
         }
 
         var memberIds = workspace.UserRoles
-            .Where(ur => ur.PortalUser?.GraphGuid != null)
-            .Select(ur => ur.PortalUser!.GraphGuid!)
+            .Select(ur => ur.PortalUser?.EntraUser?.GraphGuid)
+            .Where(graphGuid => !string.IsNullOrWhiteSpace(graphGuid))
+            .Select(graphGuid => graphGuid!)
+            .Distinct()
             .ToList();
 
         _logger.LogInformation("Found {Count} members for workspace {Workspace}", memberIds.Count, workspaceAcronym);
