@@ -1,5 +1,13 @@
 {
   "version": "2.0.0",
+  "inputs": [
+    {
+      "id": "migrationName",
+      "description": "Enter the migration name (e.g., AddUserTable)",
+      "default": "NewMigration",
+      "type": "promptString"
+    }
+  ],
   "tasks": [
     {
       "label": "Watch Portal (Hot Reload)",
@@ -16,7 +24,79 @@
         "reveal": "always",
         "panel": "dedicated"
       },
-      "group": "build"
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      }
+    },
+    
+    {
+      "label": "EF Core: Add Migration",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "migrations",
+        "add",
+        "${input:migrationName}",
+        "--project",
+        "${workspaceFolder}/Portal/src/Datahub.Infrastructure/Datahub.Infrastructure.csproj",
+        "--startup-project",
+        "${workspaceFolder}/Portal/src/Datahub.Portal/Datahub.Portal.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "EF Core: Update Database",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "ef",
+        "database",
+        "update",
+        "--project",
+        "${workspaceFolder}/Portal/src/Datahub.Infrastructure/Datahub.Infrastructure.csproj",
+        "--startup-project",
+        "${workspaceFolder}/Portal/src/Datahub.Portal/Datahub.Portal.csproj"
+      ],
+      "problemMatcher": "$msCompile",
+      "presentation": { "reveal": "always" }
+    },
+
+    {
+      "label": "Test: Run All Unit Tests",
+      "command": "dotnet",
+      "type": "process",
+      "args": [
+        "test",
+        "${workspaceFolder}/Datahub.sln"
+      ],
+      "problemMatcher": "$msCompile",
+      "group": "test"
+    },
+    {
+      "label": "Fix: Format Code (dotnet format)",
+      "command": "dotnet",
+      "type": "process",
+      "args": ["format", "${workspaceFolder}/Datahub.sln"],
+      "problemMatcher": "$msCompile"
+    },
+    {
+      "label": "Fix: Deep Clean (Nuke bin/obj)",
+      "type": "shell",
+      "command": "find . -iname 'bin' -o -iname 'obj' | xargs rm -rf",
+      "windows": {
+        "command": "Get-ChildItem -Inc -Include bin,obj -Recurse | Remove-Item -Force -Recurse"
+      },
+      "problemMatcher": [],
+      "presentation": { "reveal": "always" }
+    },
+    {
+      "label": "Fix: Regenerate Dev Certs",
+      "type": "shell",
+      "command": "bash .devcontainer/portal-dev/post-create.sh",
+      "presentation": { "reveal": "always" }
     }
   ]
 }
