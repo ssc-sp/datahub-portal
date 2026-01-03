@@ -1,0 +1,38 @@
+{
+  "name": "C# Dev (Interactive)",
+  "image": "mcr.microsoft.com/devcontainers/dotnet:dev-9.0-noble",
+  
+  "features": {
+    "ghcr.io/devcontainers/features/azure-cli:1": {},
+    "ghcr.io/devcontainers/features/powershell:1": {}
+  },
+
+  "containerEnv": {
+    "ASPNETCORE_ENVIRONMENT": "Development",
+    "ASPNETCORE_URLS": "https://+:5001",
+    "ASPNETCORE_Kestrel__Certificates__Default__Path": "/home/vscode/.aspnet/https/datahub-portal.pfx",
+    "ASPNETCORE_Kestrel__Certificates__Default__Password": "devpassword"
+  },
+
+  "forwardPorts": [5001],
+  
+  "portsAttributes": {
+    "5001": { "protocol": "https", "label": "Portal HTTPS" }
+  },
+  
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-dotnettools.csdevkit",
+        "ms-dotnettools.csharp",
+        "tamasfe.even-better-toml"
+      ],
+      "settings": {
+        "dotnet.defaultSolution": "Datahub.Portal.sln" 
+      }
+    }
+  },
+
+  "runArgs": ["--env-file", ".devcontainer/portal-dev/devcontainer.env"],
+  "postCreateCommand": "bash .devcontainer/portal-dev/post-create.sh"
+}

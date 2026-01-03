@@ -1,5 +1,5 @@
 {
-  "name": ".NET Docker File Builder",
+  "name": "Pipeline Builder (Docker-in-Docker)",
   "image": "mcr.microsoft.com/devcontainers/base:noble",
   "features": {
     "ghcr.io/devcontainers/features/docker-in-docker:2": {},
