@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Configuration;
+using Datahub.Core.Configuration;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;

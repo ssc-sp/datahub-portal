@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Model.Projects;
+namespace Datahub.Core.Model.Projects;
 
 /// <summary>
 /// Represents the storage details for a Datahub project.
