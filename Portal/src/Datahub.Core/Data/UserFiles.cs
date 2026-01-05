@@ -272,6 +272,7 @@ public class FileMetaData : BaseMetadata
     public const string LastModifiedBy = "lastmodifiedby";
     public const string LastModified = "lastmodifiedts";
     public const string FileSize = "filesize";
+    public const string UploadBatchId = "uploadBatchId";
 
     public FileMetaData()
     {
@@ -371,6 +372,8 @@ public class FileMetaData : BaseMetadata
 
     [SearchableField(IsFilterable = true, IsSortable = true)]
     public string isdeleted { get; set; } = "false";
+
+    public string? uploadBatchId { get; set; }
 
     [JsonIgnore]
     public string uploadStatus { get; set; } = FileUploadStatus.None;
