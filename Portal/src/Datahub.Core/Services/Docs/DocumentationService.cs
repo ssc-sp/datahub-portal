@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Text;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;

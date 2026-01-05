@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Model.Projects
+namespace Datahub.Core.Model.Projects
 {
     /// <summary>
     /// Represents a record of a notification sent due to workspace inactivity.
