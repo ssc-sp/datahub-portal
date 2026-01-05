@@ -1,10 +1,10 @@
-﻿@inject IUserSettingsService UserSettingsService
+@inject IUserSettingsService UserSettingsService
 
 @if (_isThemeLoaded)
 {
     <div class="@(_isDarkMode ? "mud-theme-dark" : "mud-theme-light")">
-        <CascadingValue Value="_isDarkMode">
-            <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+        <CascadingValue Value="@_isDarkMode">
+            <CascadingValue Value="@_isDarkModeChangedCallback" Name="IsDarkModeChanged" IsFixed="true">
                 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" @bind-IsDarkMode="_isDarkMode" />
                 <MudDialogProvider />
                 <MudSnackbarProvider />
@@ -22,7 +22,7 @@ else
     @* Show loading state with light theme to prevent flicker *@
     <div class="mud-theme-light">
         <CascadingValue Value="false">
-            <CascadingValue Value="EventCallback.Factory.Create<bool>(this, v => _isDarkMode = v)" Name="IsDarkModeChanged">
+            <CascadingValue Value="@_isDarkModeChangedCallback" Name="IsDarkModeChanged" IsFixed="true">
                 <MudThemeProvider Theme="@DatahubTheme.DefaultTheme" IsDarkMode="false" />
                 <MudDialogProvider />
                 <MudSnackbarProvider />
@@ -38,16 +38,65 @@ else
 
 @code {
     [Parameter]
-    public RenderFragment ChildContent { get; set; }
+    public RenderFragment? ChildContent { get; set; }
 
     private bool _isDarkMode = false; // Default to light theme
     private bool _isThemeLoaded = false;
+
+    // Cache callback to keep reference stable across renders
+    private EventCallback<bool> _isDarkModeChangedCallback;
+
+    // Render gating state
+    private bool _hasRenderedOnce;
+    private bool _lastIsDarkMode;
+    private bool _lastIsThemeLoaded;
+    private RenderFragment? _lastChildContent;
+
+    protected override void OnInitialized()
+    {
+        // Stable callback so descendants don't re-render due to delegate identity changes
+        _isDarkModeChangedCallback = EventCallback.Factory.Create<bool>(this, OnIsDarkModeChanged);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var theme = await UserSettingsService.GetTheme() ?? "";
         _isDarkMode = theme.ToLowerInvariant().Contains("dark") || theme.ToLowerInvariant().Contains("sombre");
         _isThemeLoaded = true;
+    }
+
+    private void OnIsDarkModeChanged(bool value)
+    {
+        if (_isDarkMode == value)
+            return;
+
+        _isDarkMode = value;
         StateHasChanged();
+    }
+
+    protected override bool ShouldRender()
+    {
+        if (!_hasRenderedOnce)
+        {
+            _hasRenderedOnce = true;
+            _lastIsDarkMode = _isDarkMode;
+            _lastIsThemeLoaded = _isThemeLoaded;
+            _lastChildContent = ChildContent;
+            return true;
+        }
+
+        bool darkModeChanged = _isDarkMode != _lastIsDarkMode;
+        bool themeLoadedChanged = _isThemeLoaded != _lastIsThemeLoaded;
+        bool childChanged = !ReferenceEquals(_lastChildContent, ChildContent);
+
+        if (darkModeChanged || themeLoadedChanged || childChanged)
+        {
+            _lastIsDarkMode = _isDarkMode;
+            _lastIsThemeLoaded = _isThemeLoaded;
+            _lastChildContent = ChildContent;
+            return true;
+        }
+
+        return false;
     }
 }

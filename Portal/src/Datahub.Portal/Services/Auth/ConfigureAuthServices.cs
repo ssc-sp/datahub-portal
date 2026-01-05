@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.Security.Claims;
+using System.Text.Json;
 using Datahub.Application;
 using Datahub.Application.RoleManagement;
 using Datahub.Core.Services.UserManagement;
@@ -17,6 +20,7 @@ namespace Datahub.Portal.Services.Auth;
 public static class ConfigureAuthServices
 {
     public const string GccfOidcScheme = "gccf-oidc";
+    public const string GccfCookieScheme = "gccf-cookie"; // Define a separate cookie scheme for GCCF
 
     public const string GccfSigninURL = "/gccf/signin-oidc";
 
@@ -44,25 +48,39 @@ public static class ConfigureAuthServices
                 };
             });
 
+        // Add a cookie scheme specifically for GCCF to avoid conflicts with the main "Cookies" scheme
+        services.AddAuthentication()
+            .AddCookie(GccfCookieScheme, options =>
+            {
+                options.Cookie.Name = "GccfAuth";
+                options.SlidingExpiration = true;
+                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+            });
+
         // add the second OIDC provider
         services.AddAuthentication()
             .AddOpenIdConnect(GccfOidcScheme, options =>
             {
+                // Use the dedicated cookie scheme for persistence
+                options.SignInScheme = GccfCookieScheme;
+
                 // these URLs are temporary here, they are for testing purposes in dev only
                 options.Authority = "https://te-gc.auth.canada.ca";
                 options.MetadataAddress = "https://te-gc.auth.canada.ca/auth/gceab/oidc/private/.well-known/openid-configuration";
                 options.ClientId = "fsdh-gccf-oidc";
                 options.ClientSecret = configuration["GccfOidc:ClientSecret"]; // From configuration
-                options.ResponseType = "code";
+                options.ResponseType = OpenIdConnectResponseType.Code;
+
                 options.CallbackPath = GccfSigninURL;
                 options.SaveTokens = true;
                 options.Scope.Add("openid");
                 options.Scope.Add("profile");
                 options.Scope.Add("email");
+                options.UseClientSecretPostAuthentication();
             });
 
         services.AddMicrosoftIdentityConsentHandler();
-        
+
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
         services.Configure<SessionsConfig>(configuration.GetSection("Sessions"));
     }
