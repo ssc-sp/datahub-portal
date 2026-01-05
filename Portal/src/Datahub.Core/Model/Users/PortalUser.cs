@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;

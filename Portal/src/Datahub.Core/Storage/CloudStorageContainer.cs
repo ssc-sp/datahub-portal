@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Storage;
+namespace Datahub.Core.Storage;
 
 public class CloudStorageContainer
 {

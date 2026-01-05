@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Services.UserManagement;
+namespace Datahub.Core.Services.UserManagement;
 
 public interface IGlobalSessionManager
 {

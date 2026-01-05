@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Data;
+namespace Datahub.Core.Data;
 
 public class StorageMetadata
 {

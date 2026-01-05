@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Utils;
+namespace Datahub.Core.Utils;
 
 /// <summary>
 /// Query throttler utility class

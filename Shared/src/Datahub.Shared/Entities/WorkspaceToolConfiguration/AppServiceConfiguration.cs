@@ -1,4 +1,4 @@
-﻿using static System.String;
+using static System.String;
 
 namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {

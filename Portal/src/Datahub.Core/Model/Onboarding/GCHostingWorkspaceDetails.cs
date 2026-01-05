@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Projects;
 using Datahub.Metadata.Model;
 
 namespace Datahub.Core.Model.Onboarding;

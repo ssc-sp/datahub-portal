@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
