@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Data.CostEstimators;
+namespace Datahub.Core.Data.CostEstimators;
 
 /// <summary>
 /// Represents a single line in a cost estimator result with an integer number of operations.

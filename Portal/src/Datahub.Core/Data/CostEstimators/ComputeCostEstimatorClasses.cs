@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Data.CostEstimators;
+namespace Datahub.Core.Data.CostEstimators;
 
 public enum ComputeCostEstimateWorkloadType
 {
