@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Model.Users;
+using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

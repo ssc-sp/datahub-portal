@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Components;
+namespace Datahub.Core.Components;
 
 public enum DatahubLinkType
 {

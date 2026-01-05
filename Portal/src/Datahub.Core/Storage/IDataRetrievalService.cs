@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Datahub.Core.Data;
 using Microsoft.Graph.Models;

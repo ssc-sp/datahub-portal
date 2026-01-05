@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Model.Users;
+namespace Datahub.Core.Model.Users;
 
 /// <summary>
 /// Represents a collection of user-specific settings and preferences.
