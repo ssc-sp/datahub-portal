@@ -56,5 +56,6 @@
   "/register": "/register",
   "/locked": "/locked",
   "/account/-lt": "/compte",
-  "/account-lt": "/compte"
+  "/account-lt": "/compte",
+  "https://documentation.sds.canada.ca/": "https://documentation.sds.canada.ca/en/"
 }

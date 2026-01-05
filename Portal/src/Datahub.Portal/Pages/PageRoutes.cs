@@ -37,7 +37,9 @@ public static class PageRoutes
     public const string ResourceDefault_FR = $"/{ResourcePrefix_FR}/";
     public const string Resource = $"/{ResourcePrefix}/{{PageName}}";
     public const string Resource_FR = $"/{ResourcePrefix_FR}/{{PageName}}";
-    
+    public const string ResourceSite = "https://documentation.sds.canada.ca/";
+
+
     public const string ToolPrefix = "tool";
     public const string ToolPrefix_FR = "outil";
     public const string ToolDefault = $"/{ToolPrefix}/";
