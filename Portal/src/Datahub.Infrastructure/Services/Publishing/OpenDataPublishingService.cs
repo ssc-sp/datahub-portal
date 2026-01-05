@@ -1,4 +1,5 @@
 ﻿using Datahub.Application.Exceptions;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
@@ -7,13 +8,20 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Datahub.Infrastructure.Services.Publishing
 {
-    public class OpenDataPublishingService(IUserInformationService userService,
-            IDbContextFactory<DatahubProjectDBContext> dbContextFactory) : IOpenDataPublishingService
+    public class OpenDataPublishingService(
+            IUserInformationService userService,
+            IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+            IMemoryCache memoryCache,
+            IProjectUserManagementService projectUserManagementService) : IOpenDataPublishingService
     {
         public event Func<OpenDataPublishFile, Task>? FileUploadStatusUpdated;
+        
+        private const string WorkspaceBlocklistCacheKeyPrefix = "workspace_blocklist_";
+        private static readonly TimeSpan CacheDuration = TimeSpan.FromMinutes(15);
 
         public async Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId)
         {
@@ -209,6 +217,158 @@ namespace Datahub.Infrastructure.Services.Publishing
             FileUploadStatusUpdated?.Invoke(existingFile);
 
             return existingFile;
+        }
+
+        // Publishing Blocklist methods
+        public async Task<List<OpenGovPublishingBlocklist>> GetActiveBlocklistEntriesAsync()
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            
+            return await ctx.OpenGovPublishingBlocklist
+                .Include(b => b.AddedByUser)
+                .Where(b => b.Status == BlocklistStatus.Active)
+                .OrderByDescending(b => b.DateAdded)
+                .ToListAsync();
+        }
+
+        public async Task<OpenGovPublishingBlocklist> GetBlocklistEntryAsync(int id)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            
+            var entry = await ctx.OpenGovPublishingBlocklist
+                .Include(b => b.AddedByUser)
+                .Include(b => b.RemovedByUser)
+                .FirstOrDefaultAsync(b => b.Id == id);
+
+            if (entry == null)
+                throw new InvalidOperationException($"Blocklist entry with ID {id} not found");
+
+            return entry;
+        }
+
+        public async Task<bool> IsUserBlockedAsync(string emailDomain, string? departmentName = null)
+        {
+            if (string.IsNullOrWhiteSpace(emailDomain))
+                return false;
+
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+
+            // Check if the email domain is blocked (department is informational only, not used for matching)
+            return await ctx.OpenGovPublishingBlocklist
+                .Where(b => b.Status == BlocklistStatus.Active && b.EmailHostname == emailDomain)
+                .AnyAsync();
+        }
+
+        public async Task<bool> IsPublishingBlockedForWorkspaceAsync(string workspaceAcronym)
+        {
+            if (string.IsNullOrWhiteSpace(workspaceAcronym))
+                return false;
+
+            // Check cache first
+            var cacheKey = $"{WorkspaceBlocklistCacheKeyPrefix}{workspaceAcronym.ToLowerInvariant()}";
+            
+            if (memoryCache.TryGetValue<bool>(cacheKey, out var cachedResult))
+            {
+                return cachedResult;
+            }
+
+            // Not in cache, check the database
+            try
+            {
+                // Get the workspace lead
+                var workspaceLead = await projectUserManagementService.GetProjectLeadAsync(workspaceAcronym);
+                
+                if (workspaceLead?.PortalUser?.Email != null)
+                {
+                    // Extract the email domain (everything after @)
+                    var email = workspaceLead.PortalUser.Email;
+                    var atIndex = email.IndexOf('@');
+                    
+                    if (atIndex > 0 && atIndex < email.Length - 1)
+                    {
+                        var emailDomain = email.Substring(atIndex);
+                        
+                        // Check if this domain is blocked
+                        var isBlocked = await IsUserBlockedAsync(emailDomain);
+                        
+                        // Cache the result
+                        memoryCache.Set(cacheKey, isBlocked, CacheDuration);
+                        
+                        return isBlocked;
+                    }
+                }
+
+                // No valid email found, cache false
+                memoryCache.Set(cacheKey, false, CacheDuration);
+                return false;
+            }
+            catch
+            {
+                // In case of error, default to not blocking (don't cache errors)
+                return false;
+            }
+        }
+
+        public async Task<OpenGovPublishingBlocklist> AddBlocklistEntryAsync(string departmentName, string emailHostname, string notes)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            
+            var currentUser = await userService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+                throw new InvalidOperationException("Current user not found");
+
+            var now = DateTime.UtcNow;
+
+            var entry = new OpenGovPublishingBlocklist
+            {
+                DepartmentName = string.IsNullOrWhiteSpace(departmentName) ? string.Empty : departmentName.Trim(),
+                EmailHostname = string.IsNullOrWhiteSpace(emailHostname) ? string.Empty : emailHostname.Trim().ToLowerInvariant(),
+                Status = BlocklistStatus.Active,
+                DateAdded = now,
+                AddedByUserId = currentUser.Id,
+                Notes = notes ?? string.Empty
+            };
+
+            ctx.OpenGovPublishingBlocklist.Add(entry);
+            await ctx.SaveChangesAsync();
+
+            return entry;
+        }
+
+        public async Task<OpenGovPublishingBlocklist> UpdateBlocklistEntryAsync(int id, string departmentName, string emailHostname, string notes)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            
+            var entry = await ctx.OpenGovPublishingBlocklist.FindAsync(id);
+            if (entry == null)
+                throw new InvalidOperationException($"Blocklist entry with ID {id} not found");
+
+            entry.DepartmentName = string.IsNullOrWhiteSpace(departmentName) ? null : departmentName.Trim();
+            entry.EmailHostname = string.IsNullOrWhiteSpace(emailHostname) ? null : emailHostname.Trim().ToLowerInvariant();
+            entry.Notes = notes;
+
+            await ctx.SaveChangesAsync();
+
+            return entry;
+        }
+
+        public async Task DeleteBlocklistEntryAsync(int id)
+        {
+            await using var ctx = await dbContextFactory.CreateDbContextAsync();
+            
+            var entry = await ctx.OpenGovPublishingBlocklist.FindAsync(id);
+            if (entry == null)
+                throw new InvalidOperationException($"Blocklist entry with ID {id} not found");
+
+            var currentUser = await userService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+                throw new InvalidOperationException("Current user not found");
+
+            entry.Status = BlocklistStatus.Deleted;
+            entry.DateRemoved = DateTime.UtcNow;
+            entry.RemovedByUserId = currentUser.Id;
+
+            await ctx.SaveChangesAsync();
         }
     }
 }

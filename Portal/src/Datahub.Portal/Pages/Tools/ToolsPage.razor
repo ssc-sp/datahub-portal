@@ -8,6 +8,7 @@
 @using Datahub.Portal.Pages.Tools.Users
 @using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Pages.Tools.VersionControl
+@using Datahub.Portal.Pages.Tools.PublishingBlocklist
 
 @inject ILogger<ToolsPage> _logger
 
@@ -64,7 +65,9 @@
         { PersonalSidebar.SectionViews.SupportRequests_FR, typeof(SupportRequestPage) },
         { PersonalSidebar.SectionViews.HostingServices_FR, typeof(HostingServicesToolPage) },
         { PersonalSidebar.SectionViews.VersionControl, typeof(VersionControlPage) },
-        { PersonalSidebar.SectionViews.VersionControl_FR, typeof(VersionControlPage) }
+        { PersonalSidebar.SectionViews.VersionControl_FR, typeof(VersionControlPage) },
+        { PersonalSidebar.SectionViews.PublishingBlocklist, typeof(ManagePublishingBlocklist) },
+        { PersonalSidebar.SectionViews.PublishingBlocklist_FR, typeof(ManagePublishingBlocklist) }
 };
 
 }
