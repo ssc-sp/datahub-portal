@@ -77,7 +77,7 @@ public static class GenerateWorkspaceHelper
         var user = new PortalUser
         {
             Email = Testing.CurrentUserEmail,
-            GraphGuid = "00000000-0000-0000-0000-000000000000",
+            EntraUser = new() { GraphGuid = "00000000-0000-0000-0000-000000000000", PortalUser = null! },
             DisplayName = "Test User"
         };
         ctx.PortalUsers.Add(user);

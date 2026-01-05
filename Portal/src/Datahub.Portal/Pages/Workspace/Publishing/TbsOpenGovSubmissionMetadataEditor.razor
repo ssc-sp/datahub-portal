@@ -104,7 +104,7 @@
     protected override async Task OnInitializedAsync()
     {
         // get requesting user including UserSettings (for language)
-        _reqUser = await _userService.GetPortalUserAsync(Submission.RequestingUser.GraphGuid);
+        _reqUser = Submission.RequestingUser;
         _initialized = true;
 
         await base.OnInitializedAsync();

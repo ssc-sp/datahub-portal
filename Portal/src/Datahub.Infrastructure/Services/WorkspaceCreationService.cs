@@ -27,7 +27,7 @@ public class WorkspaceCreationService(
     ILogger<WorkspaceCreationService> logger,
     IServiceAuthManager serviceAuthManager,
     IUserInformationService userInformationService,
-    IResourceMessagingService resourceMessagingService,
+    IWorkspaceVersionService workspaceVersionService,
     IDatahubAuditingService auditingService,
     IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
     IDatahubCatalogSearch datahubCatalogSearch,
@@ -239,7 +239,8 @@ public class WorkspaceCreationService(
             Project_Budget = budget ?? portalConfiguration.DefaultProjectBudget,
             ParentGCHostingBudgetId = gcHostingId,
             DatahubAzureSubscriptionId = subscription.Id,
-            Created_DT = DateTime.UtcNow
+            Created_DT = DateTime.UtcNow,
+            Version = await workspaceVersionService.GetLatestVersionAsync()
         };
         await db.Projects.AddAsync(project);
 

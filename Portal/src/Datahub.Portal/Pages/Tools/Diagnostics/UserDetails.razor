@@ -85,7 +85,7 @@ else
         var user = await _userInformationService.GetAuthenticatedUser(true);
         _userName = user.Identity?.Name;
         _userId = user.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
-        _oid = await _userInformationService.GetCurrentUserGraphId();
+        _oid = await _userInformationService.GetCurrentUserEntraId();
         var userIdentity = (ClaimsIdentity)user.Identity;
         var claims = userIdentity?.Claims;
         var roleClaimType = userIdentity?.RoleClaimType;

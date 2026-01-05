@@ -224,7 +224,7 @@ public class HostingServicesController : ControllerBase
             await _userEnrollmentService.SaveRegistrationDetails(email, "HostingServices");
             var userId = await _userEnrollmentService.SendUserDatahubPortalInvite(email, "FSDH");
             _logger.LogInformation("User invite sent, user ID is {0}", userId);
-            await _userInformationService.CreatePortalUserAsync(userId);
+            await _userInformationService.CreatePortalEntraUserAsync(userId);
             return await _context.PortalUsers.FirstOrDefaultAsync(e => e.Email == email); ;
         }
         catch (Exception ex)
