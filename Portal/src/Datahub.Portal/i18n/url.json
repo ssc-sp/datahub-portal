@@ -57,5 +57,13 @@
   "/locked": "/locked",
   "/account/-lt": "/compte",
   "/account-lt": "/compte",
-  "https://documentation.sds.canada.ca/": "https://documentation.sds.canada.ca/en/"
+  "https://documentation.sds.canada.ca/": "https://documentation.sds.canada.ca/en/",
+  "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html": "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html",
+  "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html": "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html",
+  "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html": "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html",
+  "https://documentation.sds.canada.ca/en/storage/Desktop-Uploader.html": "https://documentation.sds.canada.ca/en/storage/Desktop-Uploader.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-Storage.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-AWS-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-AWS-Storage.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html": "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html"
 }
