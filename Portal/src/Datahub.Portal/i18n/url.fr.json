@@ -64,5 +64,6 @@
   "https://documentation.sds.canada.ca/en/storage/Import-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage.html",
   "https://documentation.sds.canada.ca/en/storage/Import-AWS-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-AWS.html",
   "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-Azure.html",
-  "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-GCP.html"
+  "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-GCP.html",
+  "https://documentation.sds.canada.ca/en/Terms-And-Conditions.html": "https://documentation.sds.canada.ca/fr/Conditions-generales.html"
 }

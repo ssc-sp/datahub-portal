@@ -60,8 +60,8 @@ public static class PageRoutes
     public const string Login_FR = "/connexion";
     public const string LoginEntra = "/login-entra";
     public const string LoginEntra_FR = "/connexion-entra";
-    public const string TermsAndConditions = "/terms-and-conditions";
-    public const string TermsAndConditions_FR = "/conditions-generales";
+    public const string TermsAndConditions = "https://documentation.sds.canada.ca/en/Terms-And-Conditions.html";
+    public const string TermsAndConditions_FR = "https://documentation.sds.canada.ca/fr/Conditions-generales.html";
     
     public const string LanguageSelection_Bilingual = "/language-langue";
 
