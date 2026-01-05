@@ -24,8 +24,10 @@ public static class TerraformStatus
         }.Contains(status);
     }
 
-    public static bool RequestedOrInProcessOf(string status)
+    public static bool RequestedOrInProcessOf(string? status)
     {
+        if (status is null)
+            return false;
         return new List<string>
         {
             CreateRequested, InProgress, DeleteRequested, DeleteInProgress

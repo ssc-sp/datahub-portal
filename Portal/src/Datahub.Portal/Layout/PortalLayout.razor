@@ -35,7 +35,6 @@
     </MudAppBar>
     <SectionOutlet SectionName="@DatahubTheme.SideBarContentName"/>
     <MudMainContent>
-        <EnvironmentTopBar/>
         <ErrorBoundary @ref="_errorBoundary">
             <ChildContent>
                 @Body
@@ -150,8 +149,7 @@
             if (_portalUser is null)
             {
                 _portalUser = new PortalUser
-                {
-                    GraphGuid = Guid.NewGuid().ToString(),
+                {                    
                     DisplayName = "Unknown User",
                     Email = "unknown_email",
                 };

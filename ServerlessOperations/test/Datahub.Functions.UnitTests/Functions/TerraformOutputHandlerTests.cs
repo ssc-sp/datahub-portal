@@ -68,7 +68,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         
         _context.PortalUsers.Add(currentPortalUser);
@@ -108,7 +108,6 @@ public class TerraformOutputHandlerTests
         _context.Project_Resources2.AddRange(storageResources);
         await _context.SaveChangesAsync();
 
-
         var testPipeLineId = 1234;
         var terraformOutput = TerraformOutputHelper.GetExpectedTerraformInput(project, testPipeLineId);
 
@@ -124,40 +123,13 @@ public class TerraformOutputHandlerTests
 
         await _terraformOutputHandler.ProcessTerraformInputVariables(outputVariables!);
 
-
-
-        var processedResources = await _context.Project_Resources2.ToListAsync();
-
-
+        var processedResources = await _context.Project_Resources2.OrderBy(r => r.RequestedAt).ToListAsync();
 
         Assert.That(processedResources, Is.Not.Null);
         Assert.That(processedResources.Count, Is.EqualTo(3));
-        Assert.That(processedResources[0].PipelineId, Is.Null);
+        Assert.That(processedResources[0].PipelineId, Is.EqualTo(testPipeLineId));
         Assert.That(processedResources[1].PipelineId, Is.EqualTo(testPipeLineId));
-        Assert.That(processedResources[2].PipelineId, Is.EqualTo(testPipeLineId));
-        //Assert.That(processedResource!.CreatedAt, Is.Not.Null);
-        //Assert.That(processedResource.CreatedAt, Is.GreaterThanOrEqualTo(DateTime.UtcNow.AddMinutes(-10)));
-
-
-        //var processedResourceJsonContent =
-        //    JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.JsonContent, deserializeOptions);
-        //var accountName = outputVariables![TerraformVariables.OutputAzureStorageAccountName];
-        //var containerName = outputVariables[TerraformVariables.OutputAzureStorageContainerName];
-        //var resourceGroupName = outputVariables[TerraformVariables.OutputAzureResourceGroupName];
-
-        //Assert.That(processedResourceJsonContent, Is.Not.Null);
-        //Assert.That(processedResourceJsonContent!["storage_account"], Is.EqualTo(accountName.Value));
-        //Assert.That(processedResourceJsonContent!["container"], Is.EqualTo(containerName.Value));
-        //Assert.That(processedResourceJsonContent!["resource_group_name"], Is.EqualTo(resourceGroupName.Value));
-        //Assert.That(processedResourceJsonContent!["storage_type"], Is.EqualTo(TerraformVariables.AzureStorageType));
-
-        //var processedResourceInputJsonContent =
-        //    JsonSerializer.Deserialize<Dictionary<string, string>>(processedResource!.InputJsonContent,
-        //        deserializeOptions);
-
-        //Assert.That(processedResourceInputJsonContent, Is.Not.Null);
-        //Assert.That(processedResourceInputJsonContent!["storage_type"],
-        //    Is.EqualTo(TerraformVariables.AzureStorageType));
+        Assert.That(processedResources[2].PipelineId, Is.Null);
     }
 
     [Test]
@@ -173,7 +145,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null!},
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -245,7 +217,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -314,7 +286,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -385,7 +357,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
         _context.PortalUsers.Add(currentPortalUser);
         await _context.SaveChangesAsync();
@@ -468,7 +440,7 @@ public class TerraformOutputHandlerTests
         var currentPortalUser = new PortalUser
         {
             Email = "tst",
-            GraphGuid = Guid.NewGuid().ToString(),
+            EntraUser = new() { GraphGuid = Guid.NewGuid().ToString(), PortalUser = null! },
         };
 
         _context.PortalUsers.Add(currentPortalUser);
@@ -516,5 +488,92 @@ public class TerraformOutputHandlerTests
 
         // Assert
         await act.Should().ThrowAsync<Exception>().WithMessage("The given key 'project_cd' was not present in the dictionary.");
+    }
+
+    [Test]
+    public async Task TryDeserializeMessage_ShouldDeserializeMessageWithWrapper()
+    {
+        // Arrange - Terraform output message with wrapper (first JSON example)
+        var terraformOutputMessage = new Dictionary<string, TerraformOutputVariable>
+        {
+            { "azure_databricks_module_status", new TerraformOutputVariable { Value = "completed" } },
+            { "azure_databricks_workspace_id", new TerraformOutputVariable { Value = "test-workspace-id" } },
+            { "azure_databricks_workspace_name", new TerraformOutputVariable { Value = "test-workspace-name" } },
+            { "azure_databricks_workspace_url", new TerraformOutputVariable { Value = "test-workspace-url.azuredatabricks.net" } },
+            { "azure_resource_group_name", new TerraformOutputVariable { Value = "test-resource-group" } },
+            { "azure_storage_account_name", new TerraformOutputVariable { Value = "teststorageaccount" } },
+            { "azure_storage_blob_status", new TerraformOutputVariable { Value = "completed" } },
+            { "azure_storage_container_name", new TerraformOutputVariable { Value = "test-container" } },
+            { "new_project_template", new TerraformOutputVariable { Value = "completed" } },
+            { "project_cd", new TerraformOutputVariable { Value = "TD1" } },
+            { "workspace_version", new TerraformOutputVariable { Value = "v5.2.1" } }
+        };
+
+        var messageEnvelope = new { message = terraformOutputMessage };
+        var messageBody = JsonSerializer.Serialize(messageEnvelope);
+        var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: new BinaryData(messageBody));
+
+        // Act - Use reflection to call the private method
+        var method = typeof(TerraformOutputHandler).GetMethod("TryDeserializeMessage", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+
+        var result = await (Task<Dictionary<string, TerraformOutputVariable>?>)method!.Invoke(
+            _terraformOutputHandler, new object[] { serviceBusReceivedMessage })!;
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Count, Is.EqualTo(11));
+        Assert.That(result["project_cd"].Value, Is.EqualTo("TD1"));
+        Assert.That(result["azure_databricks_module_status"].Value, Is.EqualTo("completed"));
+        Assert.That(result["workspace_version"].Value, Is.EqualTo("v5.2.1"));
+    }
+
+    [Test]
+    public async Task TryDeserializeMessage_ShouldDeserializeMessageWithoutWrapper()
+    {
+        // Arrange - Terraform input message without wrapper (second JSON example)
+        var pipelineMessage = new Dictionary<string, TerraformOutputVariable>
+        {
+            { "pipeline_run_id", new TerraformOutputVariable { Value = "12345" } },
+            { "pipeline_run_url", new TerraformOutputVariable { Value = "https://test.example.com/build/12345" } },
+            { "project_cd", new TerraformOutputVariable { Value = "TD1" } }
+        };
+
+        // Serialize WITHOUT the message wrapper
+        var messageBody = JsonSerializer.Serialize(pipelineMessage);
+        var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: new BinaryData(messageBody));
+
+        // Act - Use reflection to call the private method
+        var method = typeof(TerraformOutputHandler).GetMethod("TryDeserializeMessage", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var result = await (Task<Dictionary<string, TerraformOutputVariable>?>)method!.Invoke(
+            _terraformOutputHandler, new object[] { serviceBusReceivedMessage })!;
+
+        // Assert
+        Assert.That(result, Is.Not.Null);
+        Assert.That(result!.Count, Is.EqualTo(3));
+        Assert.That(result["pipeline_run_id"].Value, Is.EqualTo("12345"));
+        Assert.That(result["pipeline_run_url"].Value, Is.EqualTo("https://test.example.com/build/12345"));
+        Assert.That(result["project_cd"].Value, Is.EqualTo("TD1"));
+    }
+
+    [Test]
+    public async Task TryDeserializeMessage_ShouldReturnNullForInvalidJson()
+    {
+        // Arrange - Invalid JSON
+        var invalidJson = "{ this is not valid json }";
+        var serviceBusReceivedMessage = ServiceBusModelFactory.ServiceBusReceivedMessage(
+            body: new BinaryData(invalidJson));
+
+        // Act - Use reflection to call the private method
+        var method = typeof(TerraformOutputHandler).GetMethod("TryDeserializeMessage", 
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var result = await (Task<Dictionary<string, TerraformOutputVariable>?>)method!.Invoke(
+            _terraformOutputHandler, new object[] { serviceBusReceivedMessage })!;
+
+        // Assert - Should return null for invalid JSON
+        Assert.That(result, Is.Null);
     }
 }

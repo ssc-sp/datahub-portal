@@ -1,5 +1,6 @@
 @using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
 @using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model;
 @using Datahub.Application.Services
@@ -63,13 +64,13 @@
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    public string ProjectAcronym { get; set; } = null!;
 
-    [CascadingParameter(Name = "GraphUser")]
-    public Microsoft.Graph.Models.User GraphUser { get; set; }
+    [CascadingParameter(Name = "PortalUser")]
+    public PortalUser PortalUser { get; set; } = null!;
 
     [CascadingParameter(Name = "Project")]
-    public Datahub_Project Project { get; set; }
+    public Datahub_Project Project { get; set; } = null!;
 
     [Parameter]
     public string CurrentFolder { get; set; }
@@ -122,7 +123,7 @@
     // private bool _isProjectMember;
 
     private Project_Role _currentUserRole;
-    private DotNetObjectReference<Heading> _dotNetHelper;
+    private DotNetObjectReference<StorageHeading> _dotNetHelper;
 
     protected override async Task OnInitializedAsync()
     {
@@ -160,7 +161,7 @@
         else
         {
             _ownsSelectedFiles = _selectedFiles?
-                .TrueForAll(file => file?.ownedby?.Equals(GraphUser.Id, StringComparison.InvariantCulture) ?? false)
+                .TrueForAll(file => file?.ownedby?.Equals(PortalUser.UserUID(), StringComparison.InvariantCulture) ?? false)
                 .Equals(true) ?? false;
 
             if (_ownsSelectedFiles && _selectedFiles?.Count == 1)
@@ -178,15 +179,11 @@
 
     private async Task<bool> IsCurrentUserMemberOfProject()
     {
-        if (GraphUser is null || Project is null)
-            return false;
-
-        var userIds = Project.UserRoles.Select(u => u.PortalUser.GraphGuid?.ToLowerInvariant()).ToList();
-        var userId = (GraphUser.Id ?? "").ToLowerInvariant();
-        if (userIds.Contains(userId))
+        var hasRole = Project.UserRoles.Any(u => u.PortalUser == PortalUser);
+        if (hasRole)
             return true;
 
-        return await ServiceAuthManager.IsProjectAdmin(userId, ProjectAcronym);
+        return await ServiceAuthManager.IsProjectAdmin(PortalUser, ProjectAcronym);
     }
 
     private async Task ShowPublishingBlockedDialog()

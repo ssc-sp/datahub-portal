@@ -73,7 +73,7 @@ public class WorkspaceSubscriptionHook
 
         var currentUser = new PortalUser
         {
-            GraphGuid = Testing.CurrentUserGuid.ToString(),
+            EntraUser = new() { GraphGuid = Testing.CurrentUserGuid.ToString(), PortalUser = null! },
             Email = Testing.CurrentUserEmail
         };
         await using var dbContext = await dbContextFactory.CreateDbContextAsync();
@@ -92,7 +92,7 @@ public class WorkspaceSubscriptionHook
             Substitute.For<ILogger<WorkspaceCreationService>>(),
             Substitute.For<IServiceAuthManager>(),
             userInformationService,
-            resourceMessagingSubstitute,
+            workspaceVersionService,
             Substitute.For<IDatahubAuditingService>(),
             datahubAzureSubscriptionService,
             Substitute.For<IDatahubCatalogSearch>(),

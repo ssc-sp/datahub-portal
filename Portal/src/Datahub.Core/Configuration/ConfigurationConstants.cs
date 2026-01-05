@@ -4,4 +4,5 @@ public static class ConfigurationConstants
 {
     public const string DEFAULT_EMAIL = "datahub@nrcan-rncan.gc.ca";
     public const string CONTACT_EMAIL = "Contact:Email";
+    public const int EMAIL_MAX_LENGTH = 256;
 }

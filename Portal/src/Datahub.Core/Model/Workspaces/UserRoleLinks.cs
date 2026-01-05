@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
-using Datahub.Core.Model.Users;
 using MudBlazor.Forms;
+using Datahub.Core.Model.Users;
 
 namespace Datahub.Core.Model.Projects
 {
@@ -13,7 +13,6 @@ namespace Datahub.Core.Model.Projects
         /// Gets or sets the unique identifier for the workspace user record.
         /// </summary>
         [AeFormIgnore]
-        [Key]
         public int ProjectUser_ID { get; set; }
 
         /// <summary>
@@ -46,34 +45,34 @@ namespace Datahub.Core.Model.Projects
         /// </summary>
         public bool IsDataSteward { get; set; }
 
-        #region Navigation Properties
+        /// <summary>
+        /// Gets or sets optional notes or comments about collaboration objectives with external user
+        /// </summary>
+        public string? ExternalUserNotes { get; set; }
 
         /// <summary>
         /// Gets or sets the associated workspace.
         /// </summary>
-        public Datahub_Project? Project { get; set; }
+        public Datahub_Project Project { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the associated role.
         /// </summary>
-        public Project_Role? Role { get; set; }
+        public Project_Role Role { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the portal user. This includes email and graph GUID.
         /// </summary>
-        public PortalUser? PortalUser { get; set; }
+        public PortalUser PortalUser { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the portal user who approved this record.
         /// </summary>
         public PortalUser? ApprovedPortalUser { get; set; }
 
-        #endregion
-
         /// <summary>
         /// Gets or sets the timestamp for concurrency control.
         /// </summary>
-        [Timestamp]
         public byte[]? Timestamp { get; set; }
     }
 }

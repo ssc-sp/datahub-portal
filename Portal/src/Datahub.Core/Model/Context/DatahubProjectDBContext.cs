@@ -100,6 +100,16 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<OpenGovPublishingBlocklist> OpenGovPublishingBlocklist { get; set; }
 
     /// <summary>
+    /// Gets or sets the profile for external users
+    /// </summary>
+    public DbSet<ExternalUser> ExternalUsers { get; set; }
+
+    /// <summary>
+    /// Gets or sets the external user requests/invites
+    /// </summary>
+    public DbSet<WorkspaceInvitation> ExternalUserRequests { get; set; }
+
+    /// <summary>
     /// Gets or sets the table for storing the GC hosting info
     /// </summary>
     public DbSet<GCHostingWorkspaceDetails> GCHostingWorkspaceDetails { get; set; }
@@ -128,6 +138,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Gets or sets datahub versions
     /// </summary>
     public DbSet<VersionTag> VersionTags { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing Entra user information
+    /// </summary>
+    public DbSet<EntraUser> EntraUsers { get; set; }
 
     // below are used for migrations
 #if MIGRATION
@@ -176,13 +191,20 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             Project_Summary_Desc = "Test Project 2 for CFS"
         });
         var initialSetup = configuration.GetSection("InitialSetup");
-        if (initialSetup?.GetValue<string>("AdminGUID") != null)
+        var adminGuid = initialSetup?.GetValue<string>("AdminGUID");
+        if (adminGuid != null)
         {
             var user = context.UserRolesLinks.Add(new UserRoleLinks()
             {
                 PortalUser = new PortalUser()
                 {
-                    GraphGuid = initialSetup.GetValue<string>("AdminGUID") ?? throw new InvalidOperationException("AdminGUID not defined in configuration"),
+                    EntraUser = new EntraUser()
+                    {
+                        GraphGuid = adminGuid,
+                        PortalUser = null!
+                    },
+                    DisplayName = "Datahub Admin",
+                    Email = "admin@admin.gc.ca"
                 },
                 Project = p1,
                 RoleId = (int)Project_Role.RoleNames.Admin

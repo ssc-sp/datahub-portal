@@ -174,6 +174,10 @@ public class DatabricksApiService : IDatabricksApiService
     {
         try
         {
+            if (user.ExternalUserId != null) 
+            {
+                throw new InvalidOperationException($"Cannot add external user {user.Email} to databricks workspace {projectAcronym}");
+            }
             var workspaceDatabricksUrl = await GetWorkspaceDatabricksUrl(projectAcronym, null);
 
             // Use the access token to call a protected web API.
@@ -181,17 +185,16 @@ public class DatabricksApiService : IDatabricksApiService
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
 
             // first check if user exists
-            var searchResults = await GetUserByName(accessToken, workspaceDatabricksUrl, user.DisplayName);
+            var searchResults = await GetUserByEmail(accessToken, workspaceDatabricksUrl, user.Email);
             if (searchResults?.totalResults > 0)
             {
-                var databricksUserId = searchResults.Resources[0].id;
+                var databricksUserId = searchResults.Resources[0].id ?? throw new InvalidOperationException($"User {user.Email} not found in databricks workspace {projectAcronym}");
                 // need to delete
                 await DeleteUser(accessToken, workspaceDatabricksUrl,databricksUserId);
             }
             var postUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users";
-            var postContent = BuilPostBody(user);             
 
-            using (var userData = await httpClient.PostAsync(postUrl, postContent))
+            using (var userData = await httpClient.PostAsync(postUrl, BuilPostBody(user)))
             {
                 if (userData.StatusCode != System.Net.HttpStatusCode.Created)
                 {
@@ -204,15 +207,16 @@ public class DatabricksApiService : IDatabricksApiService
                 return databricksUserId != null;
             }
         }
-        catch(Exception)
+        catch(Exception ex)
         {
+            _logger.LogError(ex, $"Error adding user {user.Email} to databricks workspace {projectAcronym}");
             return false;
         }        
     }
 
-    private async Task<DatabricksUserList?> GetUserByName(AccessToken accessToken, string workspaceDatabricksUrl, string displayName)
+    private async Task<DatabricksUserList?> GetUserByEmail(AccessToken accessToken, string workspaceDatabricksUrl, string email)
     {
-        var filter = $"?filter=displayName eq {displayName}";
+        var filter = $"?filter=userName eq {email}";
         var queryUrl = $"{workspaceDatabricksUrl}/api/2.0/preview/scim/v2/Users/{filter}";
         var httpClient = _httpClientFactory.CreateClient();
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
@@ -279,7 +283,10 @@ public class DatabricksApiService : IDatabricksApiService
     private StringContent BuilPostBody(PortalUser user)
     {
         _logger.LogInformation($"Building request patch body for adding user  to databricks admin group");
-
+        if (user.EntraUser == null || string.IsNullOrEmpty( user.Email))
+        {
+            throw new ArgumentException("User EntraUser or Email is null");
+        }
         var databricksUser = new DatabricksUser
         {
             userName = user.Email,

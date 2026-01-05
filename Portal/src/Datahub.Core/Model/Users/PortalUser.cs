@@ -1,13 +1,14 @@
-﻿using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
+﻿using System.ComponentModel.DataAnnotations;
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Users;
 
 /// <summary>
 /// Represents a user within the portal, managing achievements, activity data, and related user information.
 /// </summary>
-public class PortalUser
+public class PortalUser : IValidatableObject
 {
     /// <summary>
     /// Gets or sets the unique identifier of this user.
@@ -15,14 +16,26 @@ public class PortalUser
     public int Id { get; set; }
 
     /// <summary>
-    /// Gets or sets the user's unique Graph identifier.
+    /// Gets or sets the active ExternalUser
     /// </summary>
-    public required string GraphGuid { get; set; }
+    public ExternalUser? ExternalUser { get; set; }
 
     /// <summary>
-    /// Gets or sets the user's email address.
+    /// Gets or sets the foreign key for ExternalUser
     /// </summary>
-    public string? Email { get; set; }
+    public int? ExternalUserId { get; set; }
+
+    /// <summary>
+    /// Gets or sets all portal users associated with this user (including historical records).
+    /// </summary>
+    public ICollection<ExternalUser> ExternalUserHistory { get; set; } = new List<ExternalUser>();
+
+    public EntraUser? EntraUser { get; set; }
+
+    /// <summary>
+    /// Gets or sets the email address associated with the user.
+    /// </summary>
+    public required string Email { get; set; } = null!;
 
     /// <summary>
     /// Gets or sets the user's display name.
@@ -54,22 +67,25 @@ public class PortalUser
     /// </summary>
     public List<UserInactivityNotifications>? InactivityNotifications { get; set; }
 
-    #region Navigation props
-
     /// <summary>
     /// Gets or sets the collection of achievements associated with this user.
     /// </summary>
-    public ICollection<UserAchievement>? Achievements { get; set; }
+    public ICollection<UserAchievement> Achievements { get; set; } = new List<UserAchievement>();
 
     /// <summary>
     /// Gets or sets the collection of telemetry events performed by this user.
     /// </summary>
-    public ICollection<TelemetryEvent>? TelemetryEvents { get; set; }
+    public ICollection<TelemetryEvent> TelemetryEvents { get; set; } = new List<TelemetryEvent>();
 
     /// <summary>
     /// Gets or sets the collection of recent links accessed by this user.
     /// </summary>
-    public ICollection<UserRecentLink>? RecentLinks { get; set; }
+    public ICollection<UserRecentLink> RecentLinks { get; set; } = new List<UserRecentLink>();
+
+    /// <summary>
+    /// Gets or sets the collection of recent links accessed by this user.
+    /// </summary>
+    public ICollection<UserRoleLinks> UserRoles { get; set; } = new List<UserRoleLinks>();
 
     /// <summary>
     /// Gets or sets the user-defined settings for this user.
@@ -81,7 +97,10 @@ public class PortalUser
     /// </summary>
     public ICollection<OpenDataSubmission>? OpenDataSubmissions { get; set; }
 
-    #endregion
+    /// <summary>
+    /// Gets or sets the timestamp for concurrency control.
+    /// </summary>
+    public byte[]? Timestamp { get; set; }
 
     #region Utility functions
 
@@ -110,5 +129,15 @@ public class PortalUser
             .ToList();
     }
 
-    #endregion
+    #endregion Utility functions
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+       if (ExternalUser is null && EntraUser is null)
+       {
+           yield return new ValidationResult(
+               "A PortalUser must be associated with either an ExternalUser or an EntraUser.",
+               new[] { nameof(ExternalUser), nameof(EntraUser) });
+        }
+    }
 }

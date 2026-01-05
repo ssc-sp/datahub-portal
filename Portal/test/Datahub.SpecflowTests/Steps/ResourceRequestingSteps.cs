@@ -51,7 +51,7 @@ namespace Datahub.SpecflowTests.Steps
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
             var currentUser = new PortalUser()
             {
-                GraphGuid = Testing.CurrentUserGuid.ToString(),
+                EntraUser = new() { GraphGuid = Testing.CurrentUserGuid.ToString(), PortalUser = null! },
                 Email = Testing.CurrentUserEmail
             };
             
@@ -70,7 +70,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
+                .FirstAsync(u => u.EntraUser!.GraphGuid == Testing.CurrentUserGuid.ToString());
             
             var terraformTemplate = new TerraformTemplate(TerraformTemplate.AzurePostgres, TerraformStatus.CreateRequested, DateTime.UtcNow);
             
@@ -102,7 +102,7 @@ namespace Datahub.SpecflowTests.Steps
                 .FirstAsync(p => p.Project_Acronym_CD == projectAcronym);
             
             var currentUser = await ctx.PortalUsers
-                .FirstAsync(u => u.GraphGuid == Testing.CurrentUserGuid.ToString());
+                .FirstAsync(u => u.EntraUser!.GraphGuid == Testing.CurrentUserGuid.ToString());
 
             var isSuccessful = await requestManagementService.HandleTerraformRequestServiceAsync(project, terraformTemplate, currentUser);
             if (doCheck)
