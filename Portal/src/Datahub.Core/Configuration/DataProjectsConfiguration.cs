@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Configuration;
+namespace Datahub.Core.Configuration;
 
 public record DataProjectsConfiguration
 {

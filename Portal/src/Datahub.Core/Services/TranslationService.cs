@@ -1,4 +1,4 @@
-﻿using DeepL;
+using DeepL;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Core.Services;

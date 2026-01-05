@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Model.Onboarding;
+namespace Datahub.Core.Model.Onboarding;
 
 public class Onboarding_Constants
 {
