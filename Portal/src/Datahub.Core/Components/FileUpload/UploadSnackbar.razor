@@ -34,6 +34,16 @@
                 @Localizer["{0} has been blocked: {1}", file.Key, file.Value]
             </MudAlert>
         }
+
+        @if (IsTooManyFilesTriggered)
+        {
+            <MudAlert Severity="Severity.Error" 
+                ShowCloseIcon CloseIconClicked="async () => await IsTooManyFilesTriggeredChanged.InvokeAsync(false)" 
+                Icon="@Icons.Material.Filled.ErrorOutline" 
+                Variant="Variant.Filled" Elevation="6">
+                @Localizer["External users cannot upload more than {0} files at once.", MaxFilesAllowed ?? 0]
+            </MudAlert>
+        }
     </div>
 }
 
@@ -48,7 +58,16 @@
     [Parameter, EditorRequired]
     public required Dictionary<string, string> BlockedFiles { get; set; }
 
-    private bool ShowSnackbar => (UploadingFiles?.Any() ?? false) || (BlockedFiles?.Any() ?? false);
+    [Parameter, EditorRequired]
+    public bool IsTooManyFilesTriggered { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<bool> IsTooManyFilesTriggeredChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public int? MaxFilesAllowed { get; set; }
+
+    private bool ShowSnackbar => (UploadingFiles?.Any() ?? false) || (BlockedFiles?.Any() ?? false) || IsTooManyFilesTriggered;
 
     private string UploadedByteSize(long size)
     {

@@ -8,6 +8,7 @@
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 
 @inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
@@ -63,7 +64,7 @@
                 }
                 else
                 {
-                    <UploadSnackbar UploadingFiles="_uploadingFiles" BlockedFiles="_blockedFiles">
+                    <UploadSnackbar UploadingFiles="_uploadingFiles" BlockedFiles="_blockedFiles" @bind-IsTooManyFilesTriggered="@_tooManyFilesTriggered" MaxFilesAllowed="@_externalUserLimits.MaximumFileCount">
                         <DropZone MaxHeight OnFilesDrop="UploadFiles">
                             @if (_currentFolder != _root)
                             {
@@ -180,7 +181,11 @@ else
     private bool _failed = false;
     private List<FileMetaData> _uploadingFiles = [];
     private Dictionary<string, string> _blockedFiles = [];
+    private bool _tooManyFilesTriggered = false;
     private string _continuationToken;
+
+    private bool _isTrustedUser;
+    private ExternalUserUploadLimit _externalUserLimits;
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
@@ -218,6 +223,9 @@ else
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _userId = await _userInformationService.GetCurrentUserGraphId();
+
+        _isTrustedUser = await _userInformationService.IsLoggedInThroughEntra();
+        _externalUserLimits = await _projectUserManagementService.GetExternalUserUploadLimits(ProjectAcronym);
 
         _uploadingFiles = new List<FileMetaData>();
     }

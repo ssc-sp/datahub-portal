@@ -216,13 +216,10 @@ public partial class FileExplorer
             return FileCheckResult.ExtensionBlocked;
         }
 
-        var isTrustedUser = await _userInformationService.IsLoggedInThroughEntra();
 
-        if (!isTrustedUser)
+        if (!_isTrustedUser)
         {
-            using var ctx = await _dbFactoryProject.CreateDbContextAsync();
-            var workspace = await ctx.Projects.FirstOrDefaultAsync(w => w.Project_Acronym_CD == ProjectAcronym);
-            var maxSizeInBytes = workspace?.MaxUploadMBForGccf * 1024 * 1024 ?? 0;
+            var maxSizeInBytes = _externalUserLimits?.MaximumFileSizeMB * 1024 * 1024 ?? 0;
             if (browserFile.Size > maxSizeInBytes)
             {
                 return FileCheckResult.SizeExceeded;
@@ -398,6 +395,14 @@ public partial class FileExplorer
 
     private async Task UploadFiles(InputFileChangeEventArgs e, string folderName)
     {
+        var filesToUpload = e.GetMultipleFiles();
+        
+        if (!_isTrustedUser && filesToUpload.Count > _externalUserLimits.MaximumFileCount)
+        {
+            _tooManyFilesTriggered = true;
+            return;
+        }
+
         foreach (var browserFile in e.GetMultipleFiles())
         {
             await UploadFile(browserFile, folderName);
