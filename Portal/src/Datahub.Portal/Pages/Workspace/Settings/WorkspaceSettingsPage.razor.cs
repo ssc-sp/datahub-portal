@@ -81,6 +81,8 @@ public partial class WorkspaceSettingsPage
     {
         _workspace.PreventAutoDelete = _preventAutoDelete;
         _workspace.Project_Budget = _budget;
+        _workspace.MaxUploadMBForGccf = _maxUploadForExternal;
+        _workspace.MaxFileCountForGccf = _maxFileCountForExternal;
     }
 
     /// <summary>
@@ -90,5 +92,7 @@ public partial class WorkspaceSettingsPage
     {
         _preventAutoDelete = _workspace.PreventAutoDelete;
         _budget = _workspace.Project_Budget ?? 0;
+        _maxUploadForExternal = _workspace.MaxUploadMBForGccf;
+        _maxFileCountForExternal = _workspace.MaxFileCountForGccf;
     }
 }

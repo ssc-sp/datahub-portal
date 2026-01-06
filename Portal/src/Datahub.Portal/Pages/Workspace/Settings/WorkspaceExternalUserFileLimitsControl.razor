@@ -1,0 +1,38 @@
+@using Datahub.Portal.Pages.Account
+
+<SettingsField 
+    Label="@Localizer["Maximum File Upload Size for External Users"]" 
+    Description="@Localizer["The maximum file size, in MB, that can be uploaded by external users. Note: Setting this to 0 will prevent external users from uploading any files."]">
+    <MudElement Style="max-width:300px; display: block">
+        <MudTextField T="long?" Disabled="@Disabled" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@MaxFileSize" ValueChanged="@OnMaxFileSizeChanged" Immediate/>
+    </MudElement>
+</SettingsField>
+
+<SettingsField Label="@Localizer["Maximum Batch Upload File Count for External Users"]"
+               Description="@Localizer["The maximum number of files that an external user can upload at once. Note: Setting this to 0 will prevent external users from uploading any files."]">
+    <MudElement Style="max-width:300px; display: block">
+        <MudTextField T="int?" Disabled="@Disabled" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@MaxFileCount" ValueChanged="@OnMaxFileCountChanged" Immediate/>
+    </MudElement>
+</SettingsField>
+
+@code {
+
+    [Parameter, EditorRequired] public long? MaxFileSize { get; set; }
+    [Parameter] public EventCallback<long?> MaxFileSizeChanged { get; set; }
+    [Parameter, EditorRequired] public int? MaxFileCount { get; set; }
+    [Parameter] public EventCallback<int?> MaxFileCountChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+
+    private Task OnMaxFileSizeChanged(long? value)
+    {
+        MaxFileSize = value;
+        return MaxFileSizeChanged.InvokeAsync(value);
+    }
+
+    private Task OnMaxFileCountChanged(int? value)
+    {
+        MaxFileCount = value;
+        return MaxFileCountChanged.InvokeAsync(value);
+    }
+
+}

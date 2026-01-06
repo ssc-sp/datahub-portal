@@ -36,4 +36,32 @@ public interface IProjectUserManagementService
     /// <param name="projectAcronym"></param>
     /// <returns></returns>
     Task<bool> RunWorkspaceSync(string projectAcronym);
+
+    /// <summary>
+    /// Determines whether upload limits for external users are configured for the specified workspace.
+    /// </summary>
+    /// <param name="workspaceAcronym">The unique acronym identifying the workspace to check for external user upload limits. Cannot be null or empty.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains <see langword="true"/> if upload
+    /// limits for external users are set for the workspace; otherwise, <see langword="false"/>.</returns>
+    Task<bool> AreExternalUserUploadLimitsSet(string workspaceAcronym);
+
+    /// <summary>
+    /// Retrieves the upload limits for external users in the specified workspace.
+    /// </summary>
+    /// <param name="workspaceAcronym">The unique acronym identifying the workspace for which to retrieve external user upload limits. Cannot be null
+    /// or empty.</param>
+    /// <returns>A task that represents the asynchronous operation. The task result contains an <see
+    /// cref="ExternalUserUploadLimit"/> object with the upload limits for external users in the specified workspace.</returns>
+    Task<ExternalUserUploadLimit> GetExternalUserUploadLimits(string workspaceAcronym);
+
+    /// <summary>
+    /// Updates the upload limits for external users in the specified workspace.
+    /// </summary>
+    /// <param name="workspaceAcronym">The unique acronym identifying the workspace whose external user upload limits will be updated. Cannot be null
+    /// or empty.</param>
+    /// <param name="limits">An object containing the new upload limit settings to apply to external users. Cannot be null.</param>
+    /// <returns>A task that represents the asynchronous operation.</returns>
+    Task UpdateExternalUserUploadLimits(string workspaceAcronym, ExternalUserUploadLimit limits);
 }
+
+public record ExternalUserUploadLimit(long? MaximumFileSizeMB, int? MaximumFileCount);
