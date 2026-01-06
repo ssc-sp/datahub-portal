@@ -22,7 +22,7 @@
         </MudStack>
         <MudText Typo="Typo.body1" Class="mt-4">
             @Localizer["If it is your first time signing in, please follow the "]
-            <MudLink Href="@Localizer["/account-setup"]" Typo="Typo.body1">@Localizer["Account Setup"]</MudLink>
+            <MudLink Href="@Localizer[PageRoutes.ResourceSite_Preregistration]" Typo="Typo.body1">@Localizer["Account Setup"]</MudLink>
             @Localizer[" instructions."]
         </MudText>
         <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
