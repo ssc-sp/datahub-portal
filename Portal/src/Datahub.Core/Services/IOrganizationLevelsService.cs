@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Services;
+namespace Datahub.Core.Services;
 
 public interface IOrganizationLevelsService
 {

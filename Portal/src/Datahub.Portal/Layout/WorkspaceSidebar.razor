@@ -12,7 +12,6 @@
 
 @inherits ViewUserBase<WorkspaceSidebar>
 
-@inject IUserInformationService _userInformationService
 @inject UserLocationManagerService _userLocationManagerService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
@@ -44,14 +43,22 @@
                     {
                         <MudSelectItem Value="@project.Project_Acronym_CD">
                             <MudStack Row AlignItems="AlignItems.Center">
-                                <MudAvatar Size="Size.Small">
-                                    <MudImage
-                                        Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
-                                        Alt="@Localizer["Workspace avatar"]"></MudImage>
-                                </MudAvatar>
                                 <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                                     @project.Project_Acronym_CD
                                 </MudText>
+                                <MudSpacer/>
+                                <MudChip T="string" Color="@GetSecurityColor(project.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(project.Data_Sensitivity)]">
+                                    <DHIcon Icon=@(project.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
+                                    @if (!project.Data_Sensitivity.Equals("Unclassified"))
+                                    {
+                                        <MudText Typo="Typo.body1">
+                                            <strong>
+                                                @Localizer[(project.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
+                                            </strong>
+                                        </MudText>
+                                    }
+                                    <span class="sr-only">@Localizer[GetSecurityTitle(project.Data_Sensitivity)]</span>
+                                </MudChip>
                             </MudStack>
                         </MudSelectItem>
                     }
@@ -61,11 +68,6 @@
             else
             {
                 <MudStack Row AlignItems="AlignItems.Center">
-                    <MudAvatar Size="Size.Small">
-                        <MudImage
-                            Src="https://cdn.autonomous.ai/static/upload/images/common/upload/20210610/workspace-at-home410853fc3fb.jpg"
-                            Alt="@Localizer["Workspace avatar"]"></MudImage>
-                    </MudAvatar>
                     <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                         @WorkspaceAcronym
                     </MudText>
@@ -154,13 +156,13 @@
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public required string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
-    [CascadingParameter] private DHSidebarDrawer Drawer { get; set; }
+    [CascadingParameter] private DHSidebarDrawer Drawer { get; set; } = null!;
 
     private Datahub_Project _project;
     private List<Datahub_Project> _allProjects;
-    private string _userProjectGuid;
+    private string? _entraUserGuid;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -240,13 +242,19 @@
 
 
         // check the resources against what to display in the sidebar
+
+        // If project not found, throw a404 HttpRequestException so callers can handle it as a404.
+        if (_project == null)
+        {
+            throw new System.Net.Http.HttpRequestException($"Workspace '{WorkspaceAcronym}' not found.", null, System.Net.HttpStatusCode.NotFound);
+        }
     }
 
     protected override async Task OnParametersSetAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _userProjectGuid = await _userInformationService.GetCurrentUserGraphId();
+        _entraUserGuid = await _userInformationService.GetCurrentUserEntraId();
         var userRoles = await dbContext.UserRolesLinks
             .Include(u => u.Role)
             .Include(u => u.Project)
@@ -254,7 +262,7 @@
             .Include(u => u.Project)
             .ThenInclude(p => p.Credits) // Include the Credits table
             .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser.GraphGuid == _userProjectGuid)
+            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null && u.PortalUser.EntraUser.GraphGuid == _entraUserGuid)
             .ToListAsync();
 
         _allProjects = userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
@@ -437,5 +445,38 @@
             SectionViews.ArcGis => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.CreatedAt.HasValue) ?? true,
             _ => true
         };
+    }
+
+    private Color GetSecurityColor(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return Color.Error;
+                case "Protected A":
+                    return Color.Warning;
+                default:
+                    return Color.Primary;
+            }
+        }
+        return Color.Primary;
+    }
+    private string GetSecurityTitle(string securityLevel)
+    {
+        if (securityLevel is not null)
+        {
+            switch (securityLevel)
+            {
+                case "Protected B":
+                    return "This workspace has Protected B security level";
+                case "Protected A":
+                    return "This workspace has Protected A security level";
+                default:
+                    return "This workspace has Unclassified security level";
+            }
+        }
+        return "This workspace is Unclassified security level";
     }
 }

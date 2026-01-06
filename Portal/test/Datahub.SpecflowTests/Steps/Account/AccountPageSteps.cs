@@ -130,7 +130,7 @@ public class AccountPageSteps : BunitTestSteps
 
         var testPortalUser = new PortalUser
         {
-            GraphGuid = TEST_USER_OID,
+            EntraUser = new() { GraphGuid = TEST_USER_OID, PortalUser = null! },
             DisplayName = TEST_USER_DISPLAY_NAME,
             Email = TEST_USER_EMAIL,
             Id = 1
@@ -142,8 +142,8 @@ public class AccountPageSteps : BunitTestSteps
 
         mockUserInfo.GetCurrentPortalUserWithAchievementsAsync().Returns(Task.FromResult(testPortalUser));
         mockUserInfo.GetCurrentPortalUserAsync().Returns(Task.FromResult<PortalUser?>(testPortalUser));
-        mockUserInfo.GetPortalUserAsync(Arg.Any<string>()).Returns(Task.FromResult(testPortalUser));
-        mockUserInfo.GetCurrentUserGraphId().Returns(TEST_USER_OID);
+        mockUserInfo.GetEntraUserAsync(Arg.Any<string>()).Returns(Task.FromResult(testPortalUser));
+        mockUserInfo.GetCurrentUserEntraId().Returns(TEST_USER_OID);
 
         Services.AddSingleton<IUserInformationService>(mockUserInfo);
         Services.AddSingleton<ILogger<AccountPage>>(new LoggerFactory().CreateLogger<AccountPage>());

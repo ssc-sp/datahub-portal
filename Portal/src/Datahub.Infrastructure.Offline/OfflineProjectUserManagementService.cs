@@ -17,12 +17,12 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
         _contextFactory = contextFactory;
     }
 
-    public Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddUserCommand> projectUserAddUserCommands)
+    public Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddEntraUserCommand> projectUserAddUserCommands)
     {
         throw new NotImplementedException();
     }
 
-    public Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddUserCommand> projectUserAddUserCommands,
+    public Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddEntraUserCommand> projectUserAddUserCommands,
         string requesterUserId)
     {
         throw new NotImplementedException();

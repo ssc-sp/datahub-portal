@@ -1,14 +1,18 @@
 @using Datahub.Core
+@using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 
-<h2 class="sr-only">
-    @Localizer["Environment information"]
-</h2>
-<p style="@_styles">
-    @EnvironmentLabel()
-</p>
+    <h2 class="sr-only">
+        @Localizer["Workspace security level information"]
+    </h2>
+    <p style="@_styles">
+        @Localizer[GetSecurityLabel(SecurityLevel)]
+    </p>
 
 @code {
+    [Parameter] public int SecurityLevel { get; set; }
+
+    [Parameter] public string? ChildContent { get; set; }
 
     private string _styles = null!;
 
@@ -19,8 +23,8 @@
         _styles = new StyleBuilder()
             .AddStyle("height", "20px")
             .AddStyle("width", "100%")
-            .AddStyle("background-color", EnvironmentColor())
-            .AddStyle("position", "fixed")
+            .AddStyle("background-color", GetSecurityColor(SecurityLevel))
+            .AddStyle("position", "absolute")
             .AddStyle("top", "0px")
             .AddStyle("left", "0px")
             .AddStyle("z-index", "1400")
@@ -32,32 +36,30 @@
             .Build();
     }
 
-    private string EnvironmentLabel()
+    private string GetSecurityColor(int securityLevel)
     {
-        return DevTools.TopBarEnvironment() switch
+        switch (securityLevel)
         {
-            DevTools.TopBarEnvironments.Development => Localizer["Development | Unclassified"],
-            DevTools.TopBarEnvironments.Integration => Localizer["Integration | Unclassified"],
-            DevTools.TopBarEnvironments.ProofOfConcept => Localizer["Non-Production | Unclassified"],
-            DevTools.TopBarEnvironments.Production => Localizer["Production | Unclassified"],
-            DevTools.TopBarEnvironments.QualityControl => Localizer["Quality Control | Unclassified"],
-            DevTools.TopBarEnvironments.ProductionProtected => Localizer["Production | Protected B"],
-            _ => "Unknown Environment"
-        };
+            case 2:
+                return "rgb(244, 67, 54)";
+            case 1:
+                return "rgb(255,152,0)";
+            default:
+                return "rgb(89, 74, 226)";
+        }
     }
 
-    private string EnvironmentColor()
+    private string GetSecurityLabel(int securityLevel)
     {
-        return DevTools.TopBarEnvironment() switch
+        switch (securityLevel)
         {
-            DevTools.TopBarEnvironments.Development => "#0071EB",
-            DevTools.TopBarEnvironments.Integration => "#CC6A00",
-            DevTools.TopBarEnvironments.ProofOfConcept => "#594ae2",
-            DevTools.TopBarEnvironments.Production => "#00602F",
-            DevTools.TopBarEnvironments.QualityControl => "#6A008A",
-            DevTools.TopBarEnvironments.ProductionProtected => "#B8291C",
-            _ => "#000"
-        };
+            case 2:
+                return Localizer["Protected B"];
+            case 1:
+                return Localizer["Protected A"];
+            default:
+                return Localizer["Unclassified"];
+        }
     }
 
 }

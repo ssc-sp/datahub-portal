@@ -63,7 +63,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private void ManageUserUpdateCommand(UserRoleLinks projectUser)
         {
-            var existingUpdateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+            var existingUpdateCommand = _usersToUpdate.FirstOrDefault(x => x.ProjectUser.PortalUser == projectUser.PortalUser);
             var originalUserInfo = _originalUserInfo.FirstOrDefault(x => x.PortalUserId == projectUser.PortalUserId);
 
             if (existingUpdateCommand != null)
@@ -117,7 +117,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
             InvokeAsync(StateHasChanged);
         }
 
-        private void UpdateProjectMemberRoleCommand(ProjectUserAddUserCommand projectUser, int newRoleId)
+        private void UpdateProjectMemberRoleCommand(ProjectUserAddEntraUserCommand projectUser, int newRoleId)
         {
             projectUser.RoleId = newRoleId;
             if (projectUser.RoleId == (int)Project_Role.RoleNames.Removed)
@@ -131,7 +131,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private bool IsModified(UserRoleLinks projectUser)
         {
-            return _usersToUpdate.Any(x => x.ProjectUser.PortalUser.GraphGuid == projectUser.PortalUser.GraphGuid);
+            return _usersToUpdate.Any(x => x.ProjectUser.PortalUser == projectUser.PortalUser);
         }
         private DatahubAuthView.AuthLevels GetAuthLevel(UserRoleLinks projectUser)
         {
@@ -161,11 +161,11 @@ namespace Datahub.Portal.Pages.Workspace.Users
             { "ProjectAcronym", WorkspaceAcronym },
             { "Inviter", currentUser }
         };
-            var dialog = await _dialogService.ShowAsync<AddNewUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
+            var dialog = await _dialogService.ShowAsync<AddNewEntraUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
             var result = await dialog.Result;
             if (!result.Canceled)
             {
-                if (result.Data is not List<ProjectUserAddUserCommand> userAddUserCommands)
+                if (result.Data is not List<ProjectUserAddEntraUserCommand> userAddUserCommands)
                 {
                     _snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
                 }

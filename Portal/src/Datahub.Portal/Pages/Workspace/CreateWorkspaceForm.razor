@@ -99,7 +99,7 @@
                 </MudAlert>
                 @if (_isOverBudget)
                 {
-                    <MudButton Href="@CbrSettingsUrl" Variant="@Variant.Outlined" Color="@Color.Primary">@Localizer["Open CBR Budget"]</MudButton>
+                    <MudButton Href="@GetCbrSettingsUrl()" Variant="@Variant.Outlined" Color="@Color.Primary" Disabled="@(GetCbrSettingsUrl() is null)">@Localizer["Open CBR Budget"]</MudButton>
                 }
             </MudStack>
         }
@@ -183,7 +183,6 @@
     private string? BudgetValidation(decimal b) => b > _availableBudget ? _overBudgetError : null;
     private string _cbrNotSelectedError => Localizer["CBR must be selected to create a workspace"];
     private string? CbrValidation(GCHostingWorkspaceDetails d) => d is null ? _cbrNotSelectedError : null;
-    private string CbrSettingsUrl => $"/w/{GetFirstCBRWorkspace()!.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
 
     private bool _success = false;
     private bool _isCreating;
@@ -295,6 +294,17 @@
 
     private Datahub_Project? GetFirstCBRWorkspace(GCHostingWorkspaceDetails? workspaceDetails) => workspaceDetails?.WorkspacesInBudget.FirstOrDefault();
 
+    private string? GetCbrSettingsUrl()
+    {
+        var firstWorkspace = GetFirstCBRWorkspace();
+        if (firstWorkspace is null)
+        {
+            return null;
+        }
+
+        return $"/w/{firstWorkspace.Project_Acronym_CD}/{WorkspaceSidebar.SectionViews.Settings}/cbr";
+    }
+
     protected override async Task OnInitializedAsync()
     {
         gcHostingPlans = ShowAllCBRs ?
@@ -306,7 +316,15 @@
         await base.OnInitializedAsync();
     }
 
-    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d) => d is null || !d.WorkspacesInBudget.Any() ? Localizer["N/A"] : $"{d.CBRID} - {d.CBRName} ({GetFirstCBRWorkspace(d)!.Project_Acronym_CD})";
+    private string GenerateGcHostingPlanLabel(GCHostingWorkspaceDetails d)
+    {
+        if (d is null)
+            return Localizer["N/A"];
+        var firstWorkspace = GetFirstCBRWorkspace(d);
+        var projectAcronym = firstWorkspace?.Project_Acronym_CD ?? Localizer["N/A"];
+
+        return  $"{d.CBRID} - {d.CBRName} ({projectAcronym})";            
+    }
 
 #nullable disable
 }

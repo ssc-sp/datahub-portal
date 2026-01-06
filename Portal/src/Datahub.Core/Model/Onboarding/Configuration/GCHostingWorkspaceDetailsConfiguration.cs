@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Onboarding;
+using Datahub.Core.Configuration;
+using Datahub.Core.Model.Onboarding;
 using Datahub.Metadata.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -29,7 +30,7 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
             .IsRequired();
 
         builder.Property(e => e.LeadEmail)
-            .HasMaxLength(200)
+            .HasMaxLength(ConfigurationConstants.EMAIL_MAX_LENGTH)
             .IsRequired();
 
         builder.Property(e => e.FinancialAuthorityFirstName)
@@ -49,7 +50,7 @@ public class GCHostingWorkspaceDetailsConfiguration : IEntityTypeConfiguration<G
             .IsRequired();
 
         builder.Property(e => e.FinancialAuthorityEmail)
-            .HasMaxLength(200)
+            .HasMaxLength(ConfigurationConstants.EMAIL_MAX_LENGTH)
             .IsRequired();
 
         builder.Property(e => e.WorkspaceBudget)

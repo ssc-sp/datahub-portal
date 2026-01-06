@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core;
+namespace Datahub.Core;
 
 public class DataLabels
 {

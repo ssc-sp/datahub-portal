@@ -36,7 +36,7 @@ namespace Datahub.Tests
 {
     public class FileExplorerTests : IDisposable
     {
-        private readonly BunitContext _ctx;
+        private readonly Bunit.BunitContext _ctx;
         private const string TestUserId = "user-id";
         private const string TestProjectAcronym = "TEST";
         private const string TestContainerName = "test";
@@ -49,17 +49,17 @@ namespace Datahub.Tests
 
         public FileExplorerTests()
         {
-            _ctx = new BunitContext();
+            _ctx = new Bunit.TestContext();
 
             // Mock minimal services used by the component
-            _mockUserInfo = new Mock<IUserInformationService>();
-            _mockUserInfo.Setup(x => x.GetCurrentUserGraphId()).ReturnsAsync(TestUserId);
+            var mockUserInfo = new Mock<IUserInformationService>();
+            mockUserInfo.Setup(x => x.GetCurrentUserEntraId()).ReturnsAsync(TestUserId);
 
             // ensure Heading can obtain the current portal user
             var portalUser = new PortalUser
             {
-                Id = 1,
-                GraphGuid = TestUserId,
+                Id =1,
+                EntraUser = new EntraUser { GraphGuid = TestUserId, PortalUser = null! },
                 Email = "test@domain.com",
                 DisplayName = "Test User"
             };
@@ -158,9 +158,7 @@ namespace Datahub.Tests
             _ctx.Services.AddSingleton<IServiceAuthManager>(new Mock<IServiceAuthManager>().Object);
             _ctx.Services.AddSingleton<IMetadataBrokerService>(new Mock<IMetadataBrokerService>().Object);
 
-            // register a fake NavigationManager for components
-            var fakeNav = new Bunit.TestDoubles.BunitNavigationManager(_ctx);
-            _ctx.Services.AddSingleton<NavigationManager>(fakeNav);
+            
         }
 
         public void Dispose()
@@ -231,13 +229,14 @@ namespace Datahub.Tests
             configure?.Invoke(mockStorageManager, localUploadedFiles);
 
             var container = new CloudStorageContainer(mockStorageManager.Object, TestContainerName);
-            var graphUser = new Microsoft.Graph.Models.User { Mail = "test@domain.com" };
+
+            var portalUser = new PortalUser { Email = "test@test.com", EntraUser = new EntraUser { PortalUser = null!, GraphGuid = Guid.NewGuid().ToString() } };
 
             var comp = _ctx.Render<FileExplorer>(parameters => parameters
                 .Add(p => p.ProjectId, 1)
                 .Add(p => p.Container, container)
                 .AddCascadingValue(nameof(FileExplorer.ProjectAcronym), TestProjectAcronym)
-                .AddCascadingValue(nameof(FileExplorer.GraphUser), graphUser)
+                .AddCascadingValue(nameof(FileExplorer.PortalUser), portalUser)
             );
 
             uploadedFiles = localUploadedFiles;

@@ -3,6 +3,7 @@
 @using Datahub.Application.Services.UserManagement;
 @using Datahub.Core
 @using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
 @using Datahub.Infrastructure.Queues.Messages
 @using MediatR
@@ -34,7 +35,6 @@
     </MudAppBar>
     <SectionOutlet SectionName="@DatahubTheme.SideBarContentName"/>
     <MudMainContent>
-        <EnvironmentTopBar/>
         <ErrorBoundary @ref="_errorBoundary">
             <ChildContent>
                 @Body
@@ -57,6 +57,8 @@
 </MudLayout>
 </CommonMudProviders>
 @code {
+    [Parameter] public Datahub_Project Workspace { get; set; }
+    private string hello = "hello";
 
     private readonly string _topBorderStyle = new StyleBuilder()
         .AddStyle("border-color", "var(--mud-palette-divider)")
@@ -147,8 +149,7 @@
             if (_portalUser is null)
             {
                 _portalUser = new PortalUser
-                {
-                    GraphGuid = Guid.NewGuid().ToString(),
+                {                    
                     DisplayName = "Unknown User",
                     Email = "unknown_email",
                 };

@@ -2,7 +2,7 @@ using Datahub.Core.Model.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-namespace Datahub.Core.Model.UserTracking.Configuration
+namespace Datahub.Core.Model.Users.Configuration
 {
     public class UserSettingsConfiguration : IEntityTypeConfiguration<UserSettings>
     {
