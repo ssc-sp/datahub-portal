@@ -45,15 +45,15 @@ namespace Datahub.Tests
         private readonly Mock<IUserInformationService> _mockUserInfo;
 
         // Seed value used when creating the in-memory workspace; tests can modify this before rendering
-        private long _seedMaxUploadMBForGccf = 10;
+        private ExternalUserUploadLimit _externalUserUploadLimit = new(10L, 10);
 
         public FileExplorerTests()
         {
-            _ctx = new Bunit.TestContext();
+            _ctx = new BunitContext();
 
             // Mock minimal services used by the component
-            var mockUserInfo = new Mock<IUserInformationService>();
-            mockUserInfo.Setup(x => x.GetCurrentUserEntraId()).ReturnsAsync(TestUserId);
+            _mockUserInfo = new Mock<IUserInformationService>();
+            _mockUserInfo.Setup(x => x.GetCurrentUserEntraId()).ReturnsAsync(TestUserId);
 
             // ensure Heading can obtain the current portal user
             var portalUser = new PortalUser
@@ -118,14 +118,16 @@ namespace Datahub.Tests
                     ctx.Projects.Add(new Datahub_Project
                     {
                         Project_Acronym_CD = TestProjectAcronym,
-                        MaxUploadMBForGccf = _seedMaxUploadMBForGccf
+                        MaxUploadMBForGccf = _externalUserUploadLimit.MaximumFileSizeMB,
+                        MaxFileCountForGccf = _externalUserUploadLimit.MaximumFileCount
                     });
                     ctx.SaveChanges();
                 }
                 else
                 {
                     // ensure max upload is set to the requested seed value for this context
-                    existing.MaxUploadMBForGccf = _seedMaxUploadMBForGccf;
+                    existing.MaxUploadMBForGccf = _externalUserUploadLimit.MaximumFileSizeMB;
+                    existing.MaxFileCountForGccf = _externalUserUploadLimit.MaximumFileCount;
                     ctx.SaveChanges();
                 }
 
@@ -151,6 +153,8 @@ namespace Datahub.Tests
                         Role = new Project_Role { Id = (int)Project_Role.RoleNames.Collaborator, Name = "Collaborator", Description = "Collaborator" }
                     }
                 ]);
+            mockProjectUserMgmt.Setup(m => m.GetExternalUserUploadLimits(It.IsAny<string>()))
+                .ReturnsAsync((string acronym) => _externalUserUploadLimit);
 
             _ctx.Services.AddSingleton<IProjectUserManagementService>(mockProjectUserMgmt.Object);
 
@@ -275,25 +279,25 @@ namespace Datahub.Tests
             var oneMb = 1024 * 1024;
 
             // Trusted user cases
-            yield return new object[] { "Trusted - allowed", true, 10L, new TestFile[] { new("allowed.txt", 100, true) } };
-            yield return new object[] { "Trusted - blocked ext", true, 10L, new TestFile[] { new("dangerous.exe", 3, false) } };
-            yield return new object[] { "Trusted - mixed", true, 10L, new TestFile[] { new("good1.txt", 1, true), new("bad.exe", 2, false), new("good2.md", 3, true) } };
-            yield return new object[] { "Trusted - oversize allowed", true, 1L, new TestFile[] { new("large.txt", oneMb + 1, true) } };
+            yield return new object[] { "Trusted - allowed", true, new ExternalUserUploadLimit(10L, 10), new TestFile[] { new("allowed.txt", 100, true) } };
+            yield return new object[] { "Trusted - blocked ext", true, new ExternalUserUploadLimit(10L, 10), new TestFile[] { new("dangerous.exe", 3, false) } };
+            yield return new object[] { "Trusted - mixed", true, new ExternalUserUploadLimit(10L, 10), new TestFile[] { new("good1.txt", 1, true), new("bad.exe", 2, false), new("good2.md", 3, true) } };
+            yield return new object[] { "Trusted - oversize allowed", true, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("large.txt", oneMb + 1, true) } };
 
             // External user cases (respect size and extension)
-            yield return new object[] { "External - small allowed", false, 1L, new TestFile[] { new("small.txt", oneMb - 1, true) } };
-            yield return new object[] { "External - large blocked", false, 1L, new TestFile[] { new("large.txt", oneMb + 1, false) } };
-            yield return new object[] { "External - blocked ext", false, 1L, new TestFile[] { new("evil.exe", 10, false) } };
-            yield return new object[] { "External - mixed", false, 1L, new TestFile[] { new("ok.txt", oneMb - 10, true), new("toolarge.txt", oneMb + 10, false), new("bad.exe", 5, false) } };
+            yield return new object[] { "External - small allowed", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("small.txt", oneMb - 1, true) } };
+            yield return new object[] { "External - large blocked", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("large.txt", oneMb + 1, false) } };
+            yield return new object[] { "External - blocked ext", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("evil.exe", 10, false) } };
+            yield return new object[] { "External - mixed", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("ok.txt", oneMb - 10, true), new("toolarge.txt", oneMb + 10, false), new("bad.exe", 5, false) } };
         }
 
         [Theory]
         [MemberData(nameof(UploadCases))]
-        public async Task UploadFiles_Parameterized(string caseName, bool isTrusted, long maxUploadMb, TestFile[] files)
+        public async Task UploadFiles_Parameterized(string caseName, bool isTrusted, ExternalUserUploadLimit externalUserUploadLimit, TestFile[] files)
         {
             // arrange per-case
             _mockUserInfo.Setup(x => x.IsLoggedInThroughEntra()).ReturnsAsync(isTrusted);
-            _seedMaxUploadMBForGccf = maxUploadMb;
+            _externalUserUploadLimit = externalUserUploadLimit;
 
             var comp = RenderFileExplorerWithMockStorage(out var mockStorageManager, out var uploadedFiles, (m, list) =>
             {
