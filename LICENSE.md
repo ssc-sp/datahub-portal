@@ -1,6 +1,6 @@
 # MIT License
 
-Copyright (c) His Majesty the King in Right of Canada, as represented by Shared Services Canada, 2025.
+Copyright (c) His Majesty the King in Right of Canada, as represented by Shared Services Canada, 2026.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
@@ -12,7 +12,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 # Licence MIT
 
-Droit d’auteur (c) Sa Majesté le Roi du chef du Canada, représentée par Services partagés Canada, 2025.
+Droit d’auteur (c) Sa Majesté le Roi du chef du Canada, représentée par Services partagés Canada, 2026.
 
 L'autorisation est par les présentes accordée, à titre gratuit, à toute personne obtenant une copie de ce logiciel et des fichiers de documentation associés (le "Logiciel"), d'utiliser le Logiciel sans restriction, y compris, sans limitation, les droits d'utilisation, de copie, de modification, de fusion, de publication, de distribution, de sous-licence et/ou de vente de copies du Logiciel, et d'autoriser les personnes à qui le Logiciel est fourni à le faire, sous réserve des conditions suivantes:
 
