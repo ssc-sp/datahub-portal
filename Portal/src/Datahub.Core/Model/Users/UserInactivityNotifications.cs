@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Model.Users
+namespace Datahub.Core.Model.Users
 {
     /// <summary>
     /// Represents a record of user inactivity notifications, including

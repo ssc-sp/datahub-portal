@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Utils;
+namespace Datahub.Core.Utils;
 
 public static class GcDocs
 {

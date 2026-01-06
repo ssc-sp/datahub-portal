@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Model.Catalog;
+namespace Datahub.Core.Model.Catalog;
 
 /// <summary>
 /// Represents a generic object in the data catalog.

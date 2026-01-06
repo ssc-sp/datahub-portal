@@ -1,4 +1,4 @@
-﻿namespace Datahub.Core.Services.Api
+namespace Datahub.Core.Services.Api
 {
     public class FunctionHealthResult
     {

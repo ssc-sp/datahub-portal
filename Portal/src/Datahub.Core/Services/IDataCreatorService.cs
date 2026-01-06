@@ -1,4 +1,4 @@
-﻿using Microsoft.Graph.Models;
+using Microsoft.Graph.Models;
 
 namespace Datahub.Core.Services;
 
