@@ -67,4 +67,19 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
     {
         return false; // cannot run sync while offline
     }
+
+    public Task<bool> AreExternalUserUploadLimitsSet(string workspaceAcronym)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<ExternalUserUploadLimit> GetExternalUserUploadLimits(string workspaceAcronym)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateExternalUserUploadLimits(string workspaceAcronym, ExternalUserUploadLimit limits)
+    {
+        throw new NotImplementedException();
+    }
 }
