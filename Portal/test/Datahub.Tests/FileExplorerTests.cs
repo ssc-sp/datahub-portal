@@ -283,12 +283,20 @@ namespace Datahub.Tests
             yield return new object[] { "Trusted - blocked ext", true, new ExternalUserUploadLimit(10L, 10), new TestFile[] { new("dangerous.exe", 3, false) } };
             yield return new object[] { "Trusted - mixed", true, new ExternalUserUploadLimit(10L, 10), new TestFile[] { new("good1.txt", 1, true), new("bad.exe", 2, false), new("good2.md", 3, true) } };
             yield return new object[] { "Trusted - oversize allowed", true, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("large.txt", oneMb + 1, true) } };
+            // Trusted user multiple-files case (trusted users ignore max file count)
+            yield return new object[] { "Trusted - multiple allowed", true, new ExternalUserUploadLimit(10L, 1), new TestFile[] { new("file1.txt", 100, true), new("file2.md", 200, true) } };
 
             // External user cases (respect size and extension)
             yield return new object[] { "External - small allowed", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("small.txt", oneMb - 1, true) } };
             yield return new object[] { "External - large blocked", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("large.txt", oneMb + 1, false) } };
             yield return new object[] { "External - blocked ext", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("evil.exe", 10, false) } };
             yield return new object[] { "External - mixed", false, new ExternalUserUploadLimit(1L, 10), new TestFile[] { new("ok.txt", oneMb - 10, true), new("toolarge.txt", oneMb + 10, false), new("bad.exe", 5, false) } };
+
+            // External user: batch size equal to limit -> allowed (subject to size/extension checks)
+            yield return new object[] { "External - at max count", false, new ExternalUserUploadLimit(10L, 3), new TestFile[] { new("a.txt", 100, true), new("b.txt", 200, true), new("c.md", 300, true) } };
+
+            // External user: batch size greater than allowed -> entire batch blocked (no files should upload)
+            yield return new object[] { "External - too many files", false, new ExternalUserUploadLimit(10L, 2), new TestFile[] { new("one.txt", 100, false), new("two.txt", 200, false), new("three.md", 300, false) } };
         }
 
         [Theory]
@@ -314,7 +322,7 @@ namespace Datahub.Tests
             var expected = files.Where(f => f.ShouldUpload).Select(f => f.Name).OrderBy(n => n).ToArray();
 
             if (expected.Length > 0)
-        {
+            {
                 await WaitForUploadsAsync(uploadedFiles, expected.Length, 5000);
             }
             else
@@ -325,5 +333,6 @@ namespace Datahub.Tests
             var actual = uploadedFiles.Select(f => f.filename).OrderBy(n => n).ToArray();
             Assert.Equal(expected, actual);
         }
+
     }
 }
