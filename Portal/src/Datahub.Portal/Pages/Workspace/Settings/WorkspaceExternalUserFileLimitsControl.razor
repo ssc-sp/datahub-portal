@@ -8,8 +8,8 @@
     </MudElement>
 </SettingsField>
 
-<SettingsField Label="@Localizer["Maximum File Count for External Users"]"
-               Description="@Localizer["The maximum number of files that can be uploaded to an external user's folder. Note: Setting this to 0 will prevent external users from uploading any files."]">
+<SettingsField Label="@Localizer["Maximum Batch Upload File Count for External Users"]"
+               Description="@Localizer["The maximum number of files that an external user can upload at once. Note: Setting this to 0 will prevent external users from uploading any files."]">
     <MudElement Style="max-width:300px; display: block">
         <MudTextField T="int?" Disabled="@Disabled" Variant="Variant.Outlined" Margin="Margin.Dense" Value="@MaxFileCount" ValueChanged="@OnMaxFileCountChanged" Immediate/>
     </MudElement>

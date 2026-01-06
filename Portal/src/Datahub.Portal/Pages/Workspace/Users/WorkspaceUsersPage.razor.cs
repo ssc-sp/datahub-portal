@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Commands;
+using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
@@ -185,12 +185,14 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             var uploadLimits = await _projectUserManagementService.GetExternalUserUploadLimits(WorkspaceAcronym);
 
+            var dialogTitle = "External User File Upload Restrictions";
             var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.Medium };
             var dialogParameters = new DialogParameters
             {
-                { nameof(WorkspaceExternalUserFileLimitsDialog.UploadLimit), uploadLimits }
+                { nameof(WorkspaceExternalUserFileLimitsDialog.UploadLimit), uploadLimits },
+                { nameof(WorkspaceExternalUserFileLimitsDialog.Title), dialogTitle },
             };
-            var dialog = await _dialogService.ShowAsync<WorkspaceExternalUserFileLimitsDialog>(Localizer["External User File Upload Restrictions"], dialogParameters, dialogOptions);
+            var dialog = await _dialogService.ShowAsync<WorkspaceExternalUserFileLimitsDialog>(Localizer[dialogTitle], dialogParameters, dialogOptions);
             var result = await dialog.Result;
             if (!result.Canceled)
             {

@@ -244,7 +244,7 @@ public partial class FileExplorer
                 _ => "The file cannot be uploaded"
             };
 
-            _blockedFiles.Add(browserFile.Name, localizedReasonKey);
+            _blockedFiles.Add(browserFile.Name, Localizer[localizedReasonKey]);
             return;
         }
 

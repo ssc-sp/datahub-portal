@@ -3384,5 +3384,12 @@
   "The file is too large": "Le fichier est trop volumineux",
   "The file cannot be uploaded": "Le fichier ne peut pas être téléchargé",
   "Maximum File Upload Size for External Users": "Taille maximale des fichiers téléchargés pour les utilisateurs externes",
-  "The maximum file size, in MB, that can be uploaded by external users. Note: Setting this to 0 will prevent external users from uploading any files.": "Taille maximale en Mo des fichiers pouvant être téléchargés par les utilisateurs externes. Remarque : si vous définissez cette valeur sur 0, les utilisateurs externes ne pourront télécharger aucun fichier."
+  "The maximum file size, in MB, that can be uploaded by external users. Note: Setting this to 0 will prevent external users from uploading any files.": "Taille maximale en Mo des fichiers pouvant être téléchargés par les utilisateurs externes. Remarque : si vous définissez cette valeur sur 0, les utilisateurs externes ne pourront télécharger aucun fichier.",
+  "Set maximum upload size (MB) and maximum file count for external users. These limits will apply when external users upload files.": "Définissez la taille maximale de téléchargement (en Mo) et le nombre maximal de fichiers pour les utilisateurs externes. Ces limites s'appliqueront lorsque les utilisateurs externes téléchargeront des fichiers.",
+  "Maximum Batch Upload File Count for External Users": "Nombre maximal de fichiers pouvant être téléchargés par lots pour les utilisateurs externes",
+  "The maximum number of files that an external user can upload at once. Note: Setting this to 0 will prevent external users from uploading any files.": "Nombre maximal de fichiers qu'un utilisateur externe peut télécharger à la fois. Remarque : si vous définissez cette valeur sur 0, les utilisateurs externes ne pourront télécharger aucun fichier.",
+  "Error updating external user file upload restrictions": "Erreur lors de la mise à jour des restrictions de téléchargement de fichiers utilisateur externes",
+  "External user file upload restrictions updated successfully": "Les restrictions relatives au téléchargement de fichiers par les utilisateurs externes ont été mises à jour avec succès.",
+  "External users cannot upload more than {0} files at once.": "Les utilisateurs externes ne peuvent pas télécharger plus de {0} fichiers à la fois.",
+  "External User File Upload Restrictions": "Restrictions relatives au téléchargement de fichiers par les utilisateurs externes"
 }
