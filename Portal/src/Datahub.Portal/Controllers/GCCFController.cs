@@ -16,11 +16,19 @@ public class GCCFController(IFeatureManagerSnapshot featureManager) : Controller
 {
 
     [HttpGet("login")]
-    public IActionResult Login(string returnUrl = "/")
+    public async Task<IActionResult> Login(string returnUrl = "/", string locale = "en-CA")
     {
+        if (!await featureManager.IsEnabledAsync(Features.GCCF_Feature))
+        {
+            return NotFound();
+        }
+        
+        var props = new AuthenticationProperties { RedirectUri = returnUrl };
+        // Pass the current UI culture as 'ui_locales' parameter
+        props.Items["ui_locales"] = locale;
+
         // This triggers the OIDC middleware to construct the URL and redirect
-        return Challenge(new AuthenticationProperties { RedirectUri = returnUrl },
-            ConfigureAuthServices.GccfOidcScheme);
+        return Challenge(props, ConfigureAuthServices.GccfOidcScheme);
     }
 
     [HttpGet("sector-identifier.json")]

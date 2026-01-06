@@ -14,6 +14,10 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
             .Property(p => p.Created_DT)
             .ValueGeneratedOnAdd()
             .HasDefaultValueSql("GETUTCDATE()");
+
+        builder.Property(p => p.Data_Sensitivity)
+            .IsRequired()
+            .HasMaxLength(50);
         // builder.HasOne(e => e.DatahubAzureSubscription)
         //     .WithMany(s => s.Workspaces)
         //     .HasForeignKey(e => e.DatahubAzureSubscriptionId)

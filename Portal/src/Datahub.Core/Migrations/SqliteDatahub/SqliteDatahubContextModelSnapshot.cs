@@ -869,6 +869,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("Data_Sensitivity")
                         .IsRequired()
+                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DatahubAzureSubscriptionId")
