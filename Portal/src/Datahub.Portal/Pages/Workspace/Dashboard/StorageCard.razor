@@ -1,6 +1,10 @@
+@using Datahub.Application.Services
+@using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
 @inject DatahubPortalConfiguration _config
+@inject IOpenDataPublishingService _publishingService
+@inject IDialogService _dialogService
 
 
 <MudPaper Outlined Class="pa-4">
@@ -25,15 +29,28 @@
                     @Localizer["View storage"]
                 </DHButton>
                 
-                @if (ShowPublishingDashboardButton)
+                @if (_config.CkanConfiguration.IsFeatureEnabled)
                 {
-                    <DHButton 
-                        Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
-                        Color="Color.Primary"
-                        Variant="@Variant.Text"
-                        EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
-                        @Localizer["Open Publishing Dashboard"]
-                    </DHButton>
+                    @if (_isPublishingBlockedForWorkspace)
+                    {
+                        <DHButton 
+                            OnClick="@ShowPublishingBlockedDialog"
+                            Color="Color.Primary"
+                            Variant="@Variant.Text"
+                            EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                            @Localizer["Open Publishing Dashboard"]
+                        </DHButton>
+                    }
+                    else
+                    {
+                        <DHButton 
+                            Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
+                            Color="Color.Primary"
+                            Variant="@Variant.Text"
+                            EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                            @Localizer["Open Publishing Dashboard"]
+                        </DHButton>
+                    }
                 }
             </MudStack>
             }
@@ -47,7 +64,7 @@
 
 @code {
 
-    private bool ShowPublishingDashboardButton => _config.CkanConfiguration.IsFeatureEnabled;
+    private bool _isPublishingBlockedForWorkspace = false;
 
     [Parameter]
     [EditorRequired]
@@ -60,5 +77,19 @@
     [Parameter]
     [EditorRequired]
     public Datahub_Project Project { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
+    }
+
+    private async Task ShowPublishingBlockedDialog()
+    {
+        await _dialogService.ShowMessageBox(
+            Localizer["Publishing Disabled"],
+            Localizer["Publishing has been disabled for this workspace by the administrator."],
+            yesText: Localizer["OK"]);
+    }
 
 }
