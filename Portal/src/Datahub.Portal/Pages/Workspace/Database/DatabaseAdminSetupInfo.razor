@@ -3,12 +3,9 @@
     @Localizer["The default postgres user should only be used for administrative tasks. You should create a new user for users in your workspace."]
 </MudText>
 <MudStack>
-    <DHButton OnClick="OnExpandCollapseClick" Variant="Variant.Filled" Color="Color.Primary" style="width: fit-content;">@(_expanded ? Localizer["Hide Instructions"] : Localizer["Show Instructions"])</DHButton>
-    <MudCollapse Expanded="_expanded">
-        <EmbeddedWiki PageNameEn="/UserGuide/Database/Postgres-Add-User.md"
-                  PageNameFr="/fr/UserGuide/Database/Postgres-Ajouter-Utilisateur.md"
-                  Substitutions="new List<(string, string)>()" />
-    </MudCollapse>
+    <DHButton Variant="Variant.Filled" Href=@Localizer[PageRoutes.ResourceSite_AddUserPostgres] Color="Color.Primary" style="width: fit-content;" Target="_blank">
+        <MudText>@Localizer["Learn how to create a user in PostgreSQL"]</MudText>
+    </DHButton>
 </MudStack>
 
 @code {
