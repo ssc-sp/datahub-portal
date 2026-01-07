@@ -330,6 +330,22 @@ public class Datahub_Project : IComparable<Datahub_Project>
     public DateTime AllowDatahubSupport { get; set; }
 
     /// <summary>
+    /// Gets or sets the maximum upload size for external GCCF users in MB.
+    /// </summary>
+    public long? MaxUploadMBForGccf { get; set; }
+
+    /// <summary>
+    /// Gets or sets the maximum number of files allowed for GCCF users.
+    /// </summary>
+    public int? MaxFileCountForGccf { get; set; }
+
+    /// <summary>
+    /// Gets a value indicating whether the settings for external users are configured.
+    /// </summary>
+    [NotMapped]
+    public bool ExternalSettingsConfigured => MaxUploadMBForGccf.HasValue && MaxFileCountForGccf.HasValue;
+
+    /// <summary>
     /// Gets the localized project name based on the current thread's culture.
     /// Appends " (*)" to the English name if the French name is not available and the culture is French.
     /// </summary>

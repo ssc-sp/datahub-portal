@@ -255,6 +255,11 @@ public class OfflineUserInformationService : IUserInformationService
         throw new NotImplementedException();
     }
 
+    public Task<bool> IsLoggedInThroughEntra()
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string jobTitle, string email)
     {
         throw new NotImplementedException();

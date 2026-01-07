@@ -691,4 +691,10 @@ public class UserInformationService(
             return null;
         }
     }
+
+    public async Task<bool> IsLoggedInThroughEntra()
+    {
+        var currentUser = await GetAuthenticatedUser();
+        return currentUser.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN);
+    }
 }

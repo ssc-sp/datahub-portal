@@ -6,6 +6,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Publishing;
 using Microsoft.AspNetCore.Components.Forms;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using MudBlazor;
 
@@ -13,6 +14,13 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class FileExplorer
 {
+    internal enum FileCheckResult
+    {
+        Allowed,
+        ExtensionBlocked,
+        SizeExceeded
+    }
+
     private async Task RefreshStoragePageAsync()
     {
         _lastContainer = Container;
@@ -197,13 +205,27 @@ public partial class FileExplorer
         return string.Join("/", splitPath);
     }
 
-    private bool CheckAcceptedFileExtension(IBrowserFile browserFile)
+    private async Task<FileCheckResult> CheckAllowedFile(IBrowserFile browserFile)
     {
         var blockedExtensions = _config.StorageConfiguration.BlockedFileExtensionCollection;
         var filename = browserFile.Name;
         var extension = Path.GetExtension(filename)?.ToLowerInvariant();
+        if (blockedExtensions.Contains(extension)) 
+        {
+            return FileCheckResult.ExtensionBlocked;
+        }
 
-        return !blockedExtensions.Contains(extension);
+
+        if (!_isTrustedUser)
+        {
+            var maxSizeInBytes = _externalUserLimits?.MaximumFileSizeMB * 1024 * 1024 ?? 0;
+            if (browserFile.Size > maxSizeInBytes)
+            {
+                return FileCheckResult.SizeExceeded;
+            }
+        }
+
+        return FileCheckResult.Allowed;
     }
 
     private static string GenerateUploadBatchId() => Guid.NewGuid().ToString();
@@ -213,10 +235,17 @@ public partial class FileExplorer
         if (browserFile == null)
             return;
 
-        var isAccepted = CheckAcceptedFileExtension(browserFile);
-        if (!isAccepted)
+        var allowedFileCheck = await CheckAllowedFile(browserFile);
+        if (allowedFileCheck != FileCheckResult.Allowed)
         {
-            _blockedFiles.Add(browserFile.Name);
+            var localizedReasonKey = allowedFileCheck switch
+            {
+                FileCheckResult.ExtensionBlocked => "The file type is not allowed",
+                FileCheckResult.SizeExceeded => "The file is too large",
+                _ => "The file cannot be uploaded"
+            };
+
+            _blockedFiles.Add(browserFile.Name, Localizer[localizedReasonKey]);
             return;
         }
 
@@ -368,6 +397,14 @@ public partial class FileExplorer
 
     private async Task UploadFiles(InputFileChangeEventArgs e, string folderName)
     {
+        var filesToUpload = e.GetMultipleFiles();
+        
+        if (!_isTrustedUser && filesToUpload.Count > _externalUserLimits.MaximumFileCount)
+        {
+            _tooManyFilesTriggered = true;
+            return;
+        }
+
         var uploadBatchId = GenerateUploadBatchId();
 
         foreach (var browserFile in e.GetMultipleFiles())

@@ -120,6 +120,7 @@ public interface IUserInformationService
     /// Returns true when the current user is being viewed as a visitor (limited capability).
     /// </summary>
     Task<bool> IsViewingAsVisitor();
+    Task<bool> IsLoggedInThroughEntra();
 
     /// <summary>
     /// Sets whether the current context should present the user as a guest.
