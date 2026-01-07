@@ -46,6 +46,12 @@ public partial class StorageHeading
     {
         if (IsActionDisabled(ButtonAction.Publish)) return;
 
+        if (_isPublishingBlockedForWorkspace)
+        {
+            await ShowPublishingBlockedDialog();
+            return;
+        }
+
         var publishFiles = SelectedItems
             .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
             .Where(f => f is not null);
