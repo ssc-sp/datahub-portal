@@ -27,9 +27,9 @@
                     <MudAlert Severity="@Severity.Info">@Localizer["SAS Token generation is restricted. Please contact your workspace lead or administrators to get a token."]</MudAlert>
                 </NotAuthorized>
             </DatahubAuthView>
-            <EmbeddedWiki PageNameEn="/UserGuide/Storage/Use-AzCopy.md"
-                          PageNameFr="/fr/UserGuide/Storage/Utilisez-AzCopy.md"
-                          Substitutions="_substitutions"/>
+            <DHButton Variant="Variant.Filled" Href=@Localizer[PageRoutes.ResourceSite_UseAzCopy] Color="Color.Primary" style="width: fit-content;" Target="_blank">
+                <MudText>@Localizer["Learn how to use AzCopy"]</MudText>
+            </DHButton>
         </MudStack>
     }
     else
