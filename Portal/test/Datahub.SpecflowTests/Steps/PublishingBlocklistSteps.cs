@@ -46,7 +46,8 @@ public sealed class PublishingBlocklistSteps
         // Create test user
         var testEntraUser = new EntraUser
         {
-            GraphGuid = "test-user-guid"
+            GraphGuid = "test-user-guid",
+            PortalUser = null!
         };
         
         _testCurrentUser = new PortalUser
