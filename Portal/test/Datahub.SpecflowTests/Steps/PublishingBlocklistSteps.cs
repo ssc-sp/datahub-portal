@@ -4,6 +4,7 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Users;
 using Datahub.Infrastructure.Services.Publishing;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -46,7 +47,11 @@ public sealed class PublishingBlocklistSteps
         _testCurrentUser = new PortalUser
         {
             Id = 1,
-            GraphGuid = "test-user-guid",
+            EntraUser = new EntraUser
+            {
+                GraphGuid = "test-user-guid",
+                PortalUser = null!
+            },
             Email = "admin@test.gc.ca",
             DisplayName = "Test Admin User"
         };
