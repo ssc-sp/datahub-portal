@@ -81,16 +81,6 @@ public class ClientSecretPostAuthentication : OpenIdConnectEvents
             var requestJwt = handler.WriteToken(token);
 
             context.ProtocolMessage.SetParameter("request", requestJwt);
-
-            // Remove duplicate parameters that are already in the signed request object
-            // to avoid sending them twice (once in query/body, once in request object)
-            context.ProtocolMessage.Scope = null;
-            context.ProtocolMessage.ResponseType = null;
-            // We keep client_id (and redirect_uri) typically to identify the request at the entry point,
-            // but technically they are redundant. If the user wants them gone:
-            context.ProtocolMessage.RedirectUri = null;
-            // context.ProtocolMessage.ClientId = null; // Some IdPs require ClientId in query to identify the client first
-            context.ProtocolMessage.Nonce = null;
         }
 
         return Task.CompletedTask;
