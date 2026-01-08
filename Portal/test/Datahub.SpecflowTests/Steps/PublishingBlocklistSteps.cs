@@ -44,22 +44,13 @@ public sealed class PublishingBlocklistSteps
         _dbContext.Database.EnsureCreated();
 
         // Create test user
-        var testEntraUser = new EntraUser
-        {
-            GraphGuid = "test-user-guid",
-            PortalUser = null!
-        };
-        
         _testCurrentUser = new PortalUser
         {
             Id = 1,
-            EntraUser = testEntraUser,
+            EntraUser = new EntraUser { GraphGuid = "test-user-guid", PortalUser = null! },
             Email = "admin@test.gc.ca",
             DisplayName = "Test Admin User"
         };
-        
-        testEntraUser.PortalUser = _testCurrentUser;
-        
         _dbContext.PortalUsers.Add(_testCurrentUser);
         _dbContext.SaveChanges();
 
