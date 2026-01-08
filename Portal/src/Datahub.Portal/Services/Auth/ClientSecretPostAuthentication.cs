@@ -48,8 +48,8 @@ public class ClientSecretPostAuthentication : OpenIdConnectEvents
         }
         else
         {
-            // Fallback to a default locale rather than throwing, as throwing breaks auth flow
-            uiLocales = DefaultUiLocales;
+            // Fallback or throw if you prefer strictness, keeping inline logic logic where it threw
+            throw new InvalidOperationException("ui_locales not specified in authentication properties.");
         }
 
         if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret))
