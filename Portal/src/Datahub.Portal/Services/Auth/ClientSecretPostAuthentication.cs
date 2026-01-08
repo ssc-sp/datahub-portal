@@ -37,7 +37,14 @@ public class ClientSecretPostAuthentication : OpenIdConnectEvents
         var responseType = context.ProtocolMessage.ResponseType;
         var scope = context.ProtocolMessage.Scope;
         var nonce = context.ProtocolMessage.Nonce;
-        var state = context.ProtocolMessage.State; // include state in request object
+        
+        var state = context.ProtocolMessage.State;
+        if (string.IsNullOrEmpty(state))
+        {
+            state = context.Options.StateDataFormat.Protect(context.Properties);
+            context.ProtocolMessage.State = state;
+        }
+
         var clientSecret = context.Options.ClientSecret;
 
         // Get ui_locales from properties passed by the controller (or fallback)
@@ -66,7 +73,7 @@ public class ClientSecretPostAuthentication : OpenIdConnectEvents
                 new("redirect_uri", redirectUri),
                 new("scope", scope),
                 new("nonce", nonce),
-                new("state", state ?? string.Empty),
+                new("state", state),
                 new("ui_locales", uiLocales),
                 new("acr_values", AcrValuesClaimValue),
                 //new("iat", ((DateTimeOffset)now).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)),
