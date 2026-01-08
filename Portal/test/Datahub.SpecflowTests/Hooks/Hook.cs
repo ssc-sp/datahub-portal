@@ -85,6 +85,13 @@ public class Hooks
         };
 
         objectContainer.RegisterInstanceAs<IWebHostEnvironment>(testEnvironment);
+        
+        // Register IDbContextFactory for scenarios that might need it during teardown
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        var dbContextFactory = new SpecFlowDbContextFactory(options);
+        objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
     }
 
     // Simple concrete IWebHostEnvironment implementation for tests
