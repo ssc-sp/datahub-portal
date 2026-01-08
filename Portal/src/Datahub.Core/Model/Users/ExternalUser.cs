@@ -62,6 +62,11 @@ namespace Datahub.Core.Model.Users
         public DateTimeOffset? UserDeactivatedAt { get; set; }
 
         /// <summary>
+        /// Gets or sets the date of the expiry of the external user's access.
+        /// </summary>
+        public required DateTimeOffset UserExpiryDate { get; set; }
+
+        /// <summary>
         /// Gets or sets the navigation property to the portal user who deactivated this external user.
         /// </summary>
         public PortalUser? DeactivatedByUser { get; set; }
