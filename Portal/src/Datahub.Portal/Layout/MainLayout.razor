@@ -112,27 +112,6 @@ else
         }
     }
 
-    private async Task PromptForTermsAndConditions()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            BackdropClick = false,
-        };
-
-        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
-        var tocDialogResult = await tocDialog.Result;
-        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
-        {
-            await _userSettingsService.RegisterUserTAC();
-            _isUserValid = true;
-        }
-        else
-        {
-            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
-        }
-    }
-
     private async Task UpdateUserLanguageSetting()
     {
         try {
