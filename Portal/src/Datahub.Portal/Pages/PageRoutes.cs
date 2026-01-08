@@ -37,7 +37,17 @@ public static class PageRoutes
     public const string ResourceDefault_FR = $"/{ResourcePrefix_FR}/";
     public const string Resource = $"/{ResourcePrefix}/{{PageName}}";
     public const string Resource_FR = $"/{ResourcePrefix_FR}/{{PageName}}";
-    
+    public const string ResourceSite = "https://documentation.sds.canada.ca/";
+    public const string ResourceSite_Preregistration = "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html";
+    public const string ResourceSite_AddUserPostgres = "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html";
+    public const string ResourceSite_UseAzCopy = "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html";
+    public const string ResourceSite_DesktopUploader = "https://documentation.sds.canada.ca/en/storage/Desktop-Uploader.html";
+    public const string ResourceSite_ImportAWS = "https://documentation.sds.canada.ca/en/storage/Import-AWS-Storage.html";
+    public const string ResourceSite_ImportAzure = "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html";
+    public const string ResourceSite_ImportGCP = "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html";
+    public const string ResourceSite_Import = "https://documentation.sds.canada.ca/en/storage/Import-Storage.html";
+
+
     public const string ToolPrefix = "tool";
     public const string ToolPrefix_FR = "outil";
     public const string ToolDefault = $"/{ToolPrefix}/";
@@ -50,8 +60,8 @@ public static class PageRoutes
     public const string Login_FR = "/connexion";
     public const string LoginEntra = "/login-entra";
     public const string LoginEntra_FR = "/connexion-entra";
-    public const string TermsAndConditions = "/terms-and-conditions";
-    public const string TermsAndConditions_FR = "/conditions-generales";
+    public const string TermsAndConditions = "https://documentation.sds.canada.ca/en/Terms-And-Conditions.html";
+    public const string TermsAndConditions_FR = "https://documentation.sds.canada.ca/fr/Conditions-generales.html";
     
     public const string LanguageSelection_Bilingual = "/language-langue";
 
