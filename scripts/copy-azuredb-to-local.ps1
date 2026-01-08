@@ -9,8 +9,21 @@ param(
     [string]$LocalPath = "C:\Temp",
 
     [Parameter(Mandatory=$false)]
-    [switch]$SkipExport
+    [switch]$SkipExport,
+
+    # Either supply a PSCredential, or set this switch to prompt for one at runtime.
+    [Parameter(Mandatory=$false)]
+    [System.Management.Automation.PSCredential]$Credential,
+
+    [Parameter(Mandatory=$false)]
+    [switch]$PromptForCredential
 )
+
+# Validate credential inputs: mutually exclusive
+if ($Credential -and $PromptForCredential) {
+    Write-Error "Specify either -Credential or -PromptForCredential, not both."
+    exit 1
+}
 
 # Variables
 $targetInstance = "(localdb)\MSSQLLocalDB"
@@ -35,7 +48,8 @@ $possiblePaths = @(
     "C:\Program Files\Microsoft SQL Server\160\DAC\bin\sqlpackage.exe",
     "C:\Program Files\Microsoft SQL Server\150\DAC\bin\sqlpackage.exe",
     "C:\Program Files (x86)\Microsoft SQL Server\160\DAC\bin\sqlpackage.exe",
-    "C:\Program Files (x86)\Microsoft SQL Server\150\DAC\bin\sqlpackage.exe"
+    "C:\Program Files (x86)\Microsoft SQL Server\150\DAC\bin\sqlpackage.exe",
+    "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\Microsoft.SqlPackage_Microsoft.Winget.Source_8wekyb3d8bbwe\sqlpackage.exe"
 )
 
 foreach ($path in $possiblePaths) {
@@ -48,6 +62,7 @@ foreach ($path in $possiblePaths) {
 if (-not $sqlpackagePath) {
     Write-Error "SqlPackage.exe not found. Please install SQL Server Data Tools or SqlPackage:"
     Write-Host "  - Via Visual Studio Installer: Add 'Data storage and processing' workload" -ForegroundColor Yellow
+    Write-Host "  - Via Winget: winget install Microsoft.SqlPackage" -ForegroundColor Yellow
     Write-Host "  - Or download standalone: https://aka.ms/sqlpackage-windows" -ForegroundColor Yellow
     exit 1
 }
@@ -65,11 +80,31 @@ if (-not $SkipExport) {
     Write-Host "`nExtracting database from Azure..." -ForegroundColor Cyan
     
     $serverFqdn = "$ServerName.database.windows.net"
-    $sourceConn = "Server=$serverFqdn;Database=$DatabaseName;Authentication=Active Directory Interactive;"
-    
-    Write-Host "Server: $serverFqdn" -ForegroundColor Gray
-    Write-Host "Database: $DatabaseName" -ForegroundColor Gray
-    Write-Host "Authentication: Active Directory Interactive" -ForegroundColor Gray
+
+    # If user asked to be prompted, request credential now
+    if ($PromptForCredential -and -not $Credential) {
+        try {
+            $Credential = Get-Credential -Message "Enter SQL username and password for $serverFqdn"
+        } catch {
+            Write-Error "Credential prompt cancelled or failed: $($_.Exception.Message)"
+            exit 1
+        }
+    }
+
+    # Build source connection. If a PSCredential is available, use SQL auth; otherwise use AD interactive
+    if ($Credential) {
+        $user = $Credential.UserName
+        $pass = $Credential.GetNetworkCredential().Password
+        $sourceConn = "Server=$serverFqdn;Database=$DatabaseName;User ID=$user;Password=$pass;"
+        Write-Host "Server: $serverFqdn" -ForegroundColor Gray
+        Write-Host "Database: $DatabaseName" -ForegroundColor Gray
+        Write-Host "Authentication: SQL Username/Password (from PSCredential)" -ForegroundColor Gray
+    } else {
+        $sourceConn = "Server=$serverFqdn;Database=$DatabaseName;Authentication=Active Directory Interactive;"
+        Write-Host "Server: $serverFqdn" -ForegroundColor Gray
+        Write-Host "Database: $DatabaseName" -ForegroundColor Gray
+        Write-Host "Authentication: Active Directory Interactive" -ForegroundColor Gray
+    }
     
     & $sqlpackagePath /Action:Extract `
         /SourceConnectionString:$sourceConn `
