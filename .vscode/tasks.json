@@ -6,6 +6,16 @@
       "description": "Enter the migration name (e.g., AddUserTable)",
       "default": "NewMigration",
       "type": "promptString"
+    },
+    {
+      "id": "tenantId",
+      "description": "Pick Azure Tenant ID",
+      "type": "pickString",
+      "options": [
+        "(163ent) 7198d08c-c362-4703-9854-53b6f0d8fc44",
+        "(163Oxygen) 8c1a4d93-d828-4d0e-9303-fd3bd611c822"
+      ],
+      "default": "(163Oxygen) 8c1a4d93-d828-4d0e-9303-fd3bd611c822"
     }
   ],
   "tasks": [
@@ -29,7 +39,19 @@
         "isDefault": true
       }
     },
-    
+    {
+      "label": "Azure: Login (PowerShell - Device Code)",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-Command",
+        "$tenant = ('${input:tenantId}' -split '\\)\\s+', 2)[1]; Import-Module Az.Accounts -ErrorAction Stop; Connect-AzAccount -UseDeviceAuthentication -Tenant $tenant; Get-AzContext | Format-List"
+      ],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
     {
       "label": "EF Core: Add Migration",
       "command": "dotnet",
@@ -63,15 +85,11 @@
       "problemMatcher": "$msCompile",
       "presentation": { "reveal": "always" }
     },
-
     {
       "label": "Test: Run All Unit Tests",
       "command": "dotnet",
       "type": "process",
-      "args": [
-        "test",
-        "${workspaceFolder}/Datahub.sln"
-      ],
+      "args": ["test", "${workspaceFolder}/Datahub.sln"],
       "problemMatcher": "$msCompile",
       "group": "test"
     },
