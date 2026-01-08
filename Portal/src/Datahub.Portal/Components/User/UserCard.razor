@@ -52,110 +52,110 @@
 
 @code {
 
-    // [Parameter] public string ViewedUserGraphId { get; set; }
+  // [Parameter] public string ViewedUserGraphId { get; set; }
 
-    [Parameter] public PortalUser ViewedUser { get; set; }
+  [Parameter] public PortalUser ViewedUser { get; set; }
 
-    [Parameter] public Size Size { get; set; } = Size.Large;
+  [Parameter] public Size Size { get; set; } = Size.Large;
 
-    [Parameter] public bool ShowProfileLink { get; set; } = false;
+  [Parameter] public bool ShowProfileLink { get; set; } = false;
 
-    [Parameter] public bool ShowEmail { get; set; } = true;
+  [Parameter] public bool ShowEmail { get; set; } = true;
 
-    [Parameter] public bool ShowLoginTime { get; set; } = false;
+  [Parameter] public bool ShowLoginTime { get; set; } = false;
 
-    [Parameter] public bool RightAvatar { get; set; } = false;
+  [Parameter] public bool RightAvatar { get; set; } = false;
 
-    [Parameter] public Typo Typo { get; set; } = Typo.h6;
+  [Parameter] public Typo Typo { get; set; } = Typo.h6;
 
-    [Parameter] public string Style { get; set; } = string.Empty;
+  [Parameter] public string Style { get; set; } = string.Empty;
 
-    private PortalUser _viewedUser;
-    private DateTime? _lastLogin;
-    private IJSObjectReference _module;
-    private string _timezone;
+  private PortalUser _viewedUser;
+  private DateTime? _lastLogin;
+  private IJSObjectReference _module;
+  private string _timezone;
 
-    // protected override async Task OnParametersSetAsync()
-    // {
-    //     _viewedUser = await _userInformationService.GetEntraUserAsync(ViewedUserGraphId);
-    // }
+  protected override void OnParametersSet()
+  {
+    _viewedUser = ViewedUser;
+  }
 
-    protected override async Task OnInitializedAsync()
-    {        
-        _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
-        DateTime? lastLoginDt = null;
-        if ((lastLoginDt ??= await _telemetryService.GetUserLastLoginAsync()) is not null)
-        {
-            var localTz = await _localTz.GetLocalTimeZoneAsync(null);
-            _timezone = LocalizeTimeZone(GetTimeZoneShortCode(localTz));
-            _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
-        }
-    }
-
-    private string GetTimeZoneShortCode(TimeZoneInfo timeZoneInfo)
+  protected override async Task OnInitializedAsync()
+  {
+    _userInformationService.PortalUserUpdated += OnViewedUserUpdated;
+    DateTime? lastLoginDt = null;
+    if ((lastLoginDt ??= await _telemetryService.GetUserLastLoginAsync()) is not null)
     {
-        // Use StandardName or DaylightName to derive the short code
-        var name = timeZoneInfo.IsDaylightSavingTime(DateTime.UtcNow)
-            ? timeZoneInfo.DaylightName
-            : timeZoneInfo.StandardName;
-
-        // Extract the first letter of each word
-        return string.Concat(name.Split(' ').Select(word => word[0])).ToUpperInvariant();
+      var localTz = await _localTz.GetLocalTimeZoneAsync(null);
+      _timezone = LocalizeTimeZone(GetTimeZoneShortCode(localTz));
+      _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
     }
+  }
 
-    private string LocalizeTimeZone(string engTimeZone)
+  private string GetTimeZoneShortCode(TimeZoneInfo timeZoneInfo)
+  {
+    // Use StandardName or DaylightName to derive the short code
+    var name = timeZoneInfo.IsDaylightSavingTime(DateTime.UtcNow)
+        ? timeZoneInfo.DaylightName
+        : timeZoneInfo.StandardName;
+
+    // Extract the first letter of each word
+    return string.Concat(name.Split(' ').Select(word => word[0])).ToUpperInvariant();
+  }
+
+  private string LocalizeTimeZone(string engTimeZone)
+  {
+    if (CultureService.IsFrench)
     {
-        if (CultureService.IsFrench)
-        {
-            switch (engTimeZone)
-            {
-                case("UTC"): // Universal time zone
-                    return "UTC";
-                case ("PST"):
-                    return "HNP";
-                case ("MST"):
-                    return "HNR";
-                case ("CST"):
-                    return "HNC";
-                case ("EST"):
-                    return "HNE";
-                case ("AST"):
-                    return "HNA";
-                case ("NST"):
-                    return "HNT";
-                case ("PDT"): // Daylight timezones
-                    return "HAP";
-                case ("MDT"):
-                    return "HAR";
-                case ("CDT"):
-                    return "HAC";
-                case ("EDT"):
-                    return "HAE";
-                case ("ADT"):
-                    return "HAA";
-                case ("NDT"):
-                    return "HAT";
-                default:
-                    return String.Empty;
-            }
-        }
-        return engTimeZone;
+      switch (engTimeZone)
+      {
+        case("UTC"): // Universal time zone
+          return "UTC";
+        case ("PST"):
+          return "HNP";
+        case ("MST"):
+          return "HNR";
+        case ("CST"):
+          return "HNC";
+        case ("EST"):
+          return "HNE";
+        case ("AST"):
+          return "HNA";
+        case ("NST"):
+          return "HNT";
+        case ("PDT"): // Daylight timezones
+          return "HAP";
+        case ("MDT"):
+          return "HAR";
+        case ("CDT"):
+          return "HAC";
+        case ("EDT"):
+          return "HAE";
+        case ("ADT"):
+          return "HAA";
+        case ("NDT"):
+          return "HAT";
+        default:
+          return String.Empty;
+      }
     }
+    return engTimeZone;
+  }
 
-    private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
+  private void OnViewedUserUpdated(object sender, PortalUserUpdatedEventArgs e)
+  {
+    if (_viewedUser.Id != e.UpdatedUser.Id)
     {
-        if (_viewedUser.Id != e.UpdatedUser.Id)
-        {
-            return;
-        }
-
-        _viewedUser = e.UpdatedUser;
-        InvokeAsync(StateHasChanged);
+      return;
     }
 
-    public void Dispose()
-    {
-        _userInformationService.PortalUserUpdated -= OnViewedUserUpdated;
-    }
+    _viewedUser = e.UpdatedUser;
+    InvokeAsync(StateHasChanged);
+  }
+
+  public void Dispose()
+  {
+    _userInformationService.PortalUserUpdated -= OnViewedUserUpdated;
+  }
 
 }
