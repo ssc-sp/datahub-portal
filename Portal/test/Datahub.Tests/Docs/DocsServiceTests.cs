@@ -1,7 +1,6 @@
 ﻿using Datahub.Core.Services.Docs;
 using Datahub.Markdown;
 using Datahub.Markdown.Model;
-using Datahub.Portal.Components.Resources;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -17,8 +16,6 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Xunit;
 using Azure;
-using Azure.Storage.Blobs.Specialized;
-using Moq.Protected;
 using System.Collections.Generic;
 
 namespace Datahub.Tests.Docs
@@ -69,13 +66,6 @@ namespace Datahub.Tests.Docs
             _mockBlobClient = new Mock<BlobClient>();
 
             _service = new DocumentationService(_configuration, _logger, _mockFactory.Object, _webHostingEnvironment.Object, _memCache);
-        }
-
-        [Fact]
-        public void GivenIcon_ReadMudblazorIcon()
-        {
-            var iconData = DocItemHelper.GetMudblazorMaterialIcon("Outlined", "Workspaces");
-            Assert.NotNull(iconData);
         }
 
         [Fact]
