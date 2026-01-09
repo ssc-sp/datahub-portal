@@ -22,7 +22,7 @@ public static class StorageScanNotificationHelper
         }
 
         var candidate = Path.GetFileName(normalizedBlobPath);
-        return string.IsNullOrWhiteSpace(candidate) ? normalizedBlobPath : candidate!;
+        return string.IsNullOrWhiteSpace(candidate) ? normalizedBlobPath : candidate;
     }
 
     public static DateTimeOffset ResolveScanCompletedOn(DateTimeOffset scanCompletedOn) =>
@@ -76,7 +76,6 @@ public static class StorageScanNotificationHelper
 
         return $"{prefix}/{workspaceSegment}/{containerSegment}/{blobSegment}";
     }
-
     public sealed record StorageScanSuccessEventPayload
     {
         public required string WorkspaceAcronym { get; init; }

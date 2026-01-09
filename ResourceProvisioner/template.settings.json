@@ -50,6 +50,7 @@
             "automation_account_uai_rg": "overwritten-by-terraform",
             "automation_account_uai_sub": "overwritten-by-terraform",
             "log_analytics_workspace_id": "overwritten-by-terraform",
+            "virus_scan_acl_function_id": "/subscriptions/$subscriptionId/resourceGroups/$resourcePrefix-serverless-$Environment-rg/providers/Microsoft.Web/sites/$resourcePrefix-functions-$Environment/functions/BlobVirusScanAclUpdater",
             "ssc_cbrid": "1234",
             "common_tags": {
                 "Sector": "Science Program",
