@@ -9,6 +9,7 @@ trigger:
     include:
       - develop
       - proof-of-concept
+      - vb/11983_Admin_ACL_Function
   paths:
     include:
       - 'Portal/**'
