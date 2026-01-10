@@ -1,5 +1,9 @@
+using System.Globalization;
+using System.Security.Claims;
+using System.Text.Json;
 using Datahub.Application;
 using Datahub.Application.RoleManagement;
+using Datahub.Core.Configuration;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -11,12 +15,14 @@ using Microsoft.Identity.Web.UI;
 using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.FeatureManagement;
 
 namespace Datahub.Portal.Services.Auth;
 
 public static class ConfigureAuthServices
 {
     public const string GccfOidcScheme = "gccf-oidc";
+    public const string GccfCookieScheme = "gccf-cookie"; // Define a separate cookie scheme for GCCF
 
     public const string GccfSigninURL = "/gccf/signin-oidc";
 
@@ -44,25 +50,62 @@ public static class ConfigureAuthServices
                 };
             });
 
-        // add the second OIDC provider
-        services.AddAuthentication()
-            .AddOpenIdConnect(GccfOidcScheme, options =>
-            {
-                // these URLs are temporary here, they are for testing purposes in dev only
-                options.Authority = "https://te-gc.auth.canada.ca";
-                options.MetadataAddress = "https://te-gc.auth.canada.ca/auth/gceab/oidc/private/.well-known/openid-configuration";
-                options.ClientId = "fsdh-gccf-oidc";
-                options.ClientSecret = configuration["GccfOidc:ClientSecret"]; // From configuration
-                options.ResponseType = "code";
-                options.CallbackPath = GccfSigninURL;
-                options.SaveTokens = true;
-                options.Scope.Add("openid");
-                options.Scope.Add("profile");
-                options.Scope.Add("email");
-            });
+        // Conditionally add GCCF OIDC provider and cookie scheme based on feature flag
+        var gccfEnabled = false;
+
+        using var provider = services.BuildServiceProvider();
+        using var scope = provider.CreateScope();
+        var featureManager = scope.ServiceProvider.GetService<IFeatureManagerSnapshot>();
+        if (featureManager is not null)
+        {
+            gccfEnabled = featureManager.IsEnabledAsync(Features.GCCF_Feature).GetAwaiter().GetResult();
+        }
+
+
+        if (gccfEnabled)
+        {
+            ConfigurationHelper.DumpRedactedToConsole("GCCF Enabled. Client ID", configuration["GccfOidc:ClientId"]);
+            // add the second OIDC provider
+            services.AddAuthentication()
+                // Add a cookie scheme specifically for GCCF to avoid conflicts with the main "Cookies" scheme
+                .AddCookie(GccfCookieScheme, options =>
+                {
+                    options.Cookie.Name = "GccfAuth";
+                    options.SlidingExpiration = true;
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                })
+                .AddOpenIdConnect(GccfOidcScheme, options =>
+                {
+                    // Use the dedicated cookie scheme for persistence
+                    options.SignInScheme = GccfCookieScheme;
+                    var authority = configuration["GccfOidc:Authority"]?.TrimEnd('/') ?? throw new ArgumentNullException("GCCF OIDC Authority");
+                    // these URLs are temporary here, they are for testing purposes in dev only
+                    options.Authority = authority;
+
+                    // Safely combine authority and the metadata path
+                    var metadataPath = "auth/gceab/oidc/private/.well-known/openid-configuration";
+                    if (!string.IsNullOrEmpty(authority))
+                    {
+                        options.MetadataAddress = $"{authority}/{metadataPath}";
+                    }
+                    else
+                    {
+                        options.MetadataAddress = metadataPath; // fallback, will likely fail but keeps behavior explicit
+                    }
+                    options.ClientId = configuration["GccfOidc:ClientId"] ?? throw new ArgumentNullException("GCCF ClientID"); // From configuration
+                    options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret"); // From configuration
+                    options.ResponseType = OpenIdConnectResponseType.Code;
+
+                    options.CallbackPath = GccfSigninURL;
+                    options.SaveTokens = true;
+                    options.Scope.Add("openid");
+                    options.Scope.Add("profile");
+                    options.UseClientSecretPostAuthentication();
+                });
+        }
 
         services.AddMicrosoftIdentityConsentHandler();
-        
+
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
         services.Configure<SessionsConfig>(configuration.GetSection("Sessions"));
     }

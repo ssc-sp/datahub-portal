@@ -37,7 +37,10 @@
                   Height="320"
                   ObjectPosition="ObjectPosition.Center" />
     }
-    <UserProjects PortalUser="@_currentUser" SmSize="6" NewStyle />
+	@if (_currentUser is not null)
+	{
+		<UserProjects PortalUser="@_currentUser" SmSize="6" NewStyle />
+	}
 </MudStack>
 
 @code {

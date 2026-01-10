@@ -179,7 +179,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
             Metadata = new Dictionary<string, string>()
             {
                 { FileMetaData.FileId, file.id },
-                { FileMetaData.CreatedBy, file.createdby }
+                { FileMetaData.CreatedBy, file.createdby },
+                { FileMetaData.UploadBatchId, file.uploadBatchId },
             },
             ProgressHandler = new UploadProgressHandler(progess)
         };
@@ -391,6 +392,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
             createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
             lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
             lastmodifiedts = props.LastModified.DateTime,
+            uploadBatchId = GetMetadata(metadata, FileMetaData.UploadBatchId),
             filesize = props.ContentLength.ToString(),
             folderpath = client.Path
         };
