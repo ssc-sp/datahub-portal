@@ -301,7 +301,7 @@ jobs:
   displayName: Agent job - Resource Provisioner Testing
   dependsOn: Job_2
   pool:
-      vmImage: ubuntu-latest
+    vmImage: ubuntu-latest
   steps:
     - template: fsdh-resource-provisioner-tests.yml
 
