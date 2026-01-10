@@ -1,0 +1,256 @@
+@using System.Net.Http.Json
+@using MudBlazor
+@using Datahub.Application.Services.Storage
+@using Datahub.Core.Model.Context
+@using Microsoft.EntityFrameworkCore
+@inject IWorkspaceAclService AclService
+@inject IDbContextFactory<DatahubProjectDBContext> DbContextFactory
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.ExtraLarge" Class="mt-4">
+    <MudText Typo="Typo.h4" Class="mb-4">Storage ACL Administration</MudText>
+    <MudText Typo="Typo.body1" Class="mb-4">
+        This tool updates Access Control Lists (ACLs) on Azure Data Lake Storage Gen2.
+    </MudText>
+    
+    <MudAlert Severity="Severity.Info" Class="mb-6" Elevation="1">
+        <MudText Typo="Typo.body2" Class="mb-2"><strong>Test Functions Available:</strong></MudText>
+        <MudText Typo="Typo.caption" Class="d-block"><strong>Lock Files:</strong> Removes read permissions from all files in the workspace <code>upload</code> folder to simulate files awaiting virus scan.</MudText>
+        <MudText Typo="Typo.caption" Class="d-block"><strong>Simulate Scan Success:</strong> Updates metadata on files in the <code>upload</code> folder to simulate successful AV scan, which should trigger the Azure Function to automatically grant read access.</MudText>
+    </MudAlert>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7"/>
+    }
+    else if (_workspaces != null)
+    {
+        <MudTable Items="@_workspaces" Striped Dense Hover Filter="new Func<WorkspaceInfo, bool>(FilterWorkspace)">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Workspaces</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="_searchString" Placeholder="Search workspaces" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0">
+                </MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>Acronym</MudTh>
+                <MudTh>Name</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Members</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Acronym">
+                    <MudText Typo="Typo.body2" Style="font-family: monospace">@context.Project_Acronym_CD</MudText>
+                </MudTd>
+                <MudTd DataLabel="Name">@context.ProjectName</MudTd>
+                <MudTd DataLabel="Status">
+                    <MudChip T="string" Size="Size.Small" Color="GetStatusColor(context.Project_Status_Desc)">
+                        @context.Project_Status_Desc
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Members">@context.UserCount</MudTd>
+                <MudTd DataLabel="Actions">
+                    <MudStack Row="true" Spacing="1">
+                        <MudButton OnClick="@(() => LockUploadFiles(context.Project_Acronym_CD))"
+                                   Disabled="@(_processingWorkspace == context.Project_Acronym_CD)"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Warning"
+                                   Size="Size.Small"
+                                   title="Lock all files in workspace upload folder (test button)">
+                            @if (_processingWorkspace == context.Project_Acronym_CD)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.Lock" Size="Size.Small"/>
+                            }
+                        </MudButton>
+                        
+                        <MudButton OnClick="@(() => SimulateScanSuccess(context.Project_Acronym_CD))"
+                                   Disabled="@(_processingWorkspace == context.Project_Acronym_CD)"
+                                   Variant="Variant.Outlined"
+                                   Color="Color.Success"
+                                   Size="Size.Small"
+                                   title="Simulate successful AV scan (test button)">
+                            @if (_processingWorkspace == context.Project_Acronym_CD)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true"/>
+                            }
+                            else
+                            {
+                                <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Size="Size.Small"/>
+                            }
+                        </MudButton>
+                    </MudStack>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+
+    @if (!string.IsNullOrEmpty(_lastResult))
+    {
+        <MudAlert Severity="_lastResultSeverity" Class="mt-4" Elevation="2">
+            @_lastResult
+        </MudAlert>
+    }
+</MudContainer>
+
+@code {
+    private List<WorkspaceInfo>? _workspaces;
+    private bool _loading = true;
+    private string _searchString = "";
+    private string? _processingWorkspace;
+    private string? _lastResult;
+    private Severity _lastResultSeverity = Severity.Info;
+    private const string UploadFolderPath = "/upload";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadWorkspaces();
+    }
+
+    private async Task LoadWorkspaces()
+    {
+        _loading = true;
+        try
+        {
+            await using var ctx = await DbContextFactory.CreateDbContextAsync();
+            _workspaces = await ctx.Projects
+                .Select(p => new WorkspaceInfo
+                {
+                    Project_Acronym_CD = p.Project_Acronym_CD,
+                    ProjectName = p.ProjectName,
+                    Project_Status_Desc = p.Project_Status_Desc,
+                    UserCount = p.UserRoles.Count
+                })
+                .OrderBy(p => p.Project_Acronym_CD)
+                .ToListAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add($"Error loading workspaces: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task ApplyAcls(string workspaceAcronym)
+    {
+        _processingWorkspace = workspaceAcronym;
+        _lastResult = null;
+        
+        try
+        {
+            var updatedCount = await AclService.ApplyWorkspaceMemberAclsAsync(
+                workspaceAcronym,
+                UploadFolderPath,
+                recursive: true);
+
+            _lastResult = $"✓ Successfully applied ACLs to {updatedCount} items in workspace {workspaceAcronym}";
+            _lastResultSeverity = Severity.Success;
+            Snackbar.Add(_lastResult, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _lastResult = $"✗ Exception: {ex.Message}";
+            _lastResultSeverity = Severity.Error;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processingWorkspace = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task LockUploadFiles(string workspaceAcronym)
+    {
+        _processingWorkspace = workspaceAcronym;
+        _lastResult = null;
+        
+        try
+        {
+            var updatedCount = await AclService.RemoveAllUserAclsFromPathAsync(
+                workspaceAcronym,
+                UploadFolderPath,
+                recursive: true);
+
+            _lastResult = $"Successfully locked {updatedCount} files in upload folder for workspace {workspaceAcronym}";
+            _lastResultSeverity = Severity.Warning;
+            Snackbar.Add(_lastResult, Severity.Warning);
+        }
+        catch (Exception ex)
+        {
+            _lastResult = $"✗ Error locking files: {ex.Message}";
+            _lastResultSeverity = Severity.Error;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processingWorkspace = null;
+            StateHasChanged();
+        }
+    }
+
+    private async Task SimulateScanSuccess(string workspaceAcronym)
+    {
+        _processingWorkspace = workspaceAcronym;
+        _lastResult = null;
+        
+        try
+        {
+            var updatedCount = await AclService.SimulateScanSuccessAsync(
+                workspaceAcronym,
+                UploadFolderPath);
+
+            _lastResult = $"Successfully simulated scan success for {updatedCount} files in upload folder for workspace {workspaceAcronym}. The ACL function should now automatically grant read access.";
+            _lastResultSeverity = Severity.Success;
+            Snackbar.Add(_lastResult, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            _lastResult = $"✗ Error simulating scan success: {ex.Message}";
+            _lastResultSeverity = Severity.Error;
+            Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+        }
+        finally
+        {
+            _processingWorkspace = null;
+            StateHasChanged();
+        }
+    }
+
+    private bool FilterWorkspace(WorkspaceInfo workspace)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        var search = _searchString.ToLowerInvariant();
+        return workspace.Project_Acronym_CD.ToLowerInvariant().Contains(search) ||
+               (workspace.ProjectName?.ToLowerInvariant().Contains(search) ?? false);
+    }
+
+    private Color GetStatusColor(string? status)
+    {
+        return status?.ToLowerInvariant() switch
+        {
+            "ongoing" => Color.Success,
+            "completed" => Color.Info,
+            "deleted" => Color.Error,
+            _ => Color.Default
+        };
+    }
+
+    public class WorkspaceInfo
+    {
+        public string Project_Acronym_CD { get; set; } = string.Empty;
+        public string? ProjectName { get; set; }
+        public string? Project_Status_Desc { get; set; }
+        public int UserCount { get; set; }
+    }
+}
