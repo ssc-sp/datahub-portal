@@ -329,7 +329,7 @@ jobs:
   - task: AzureFunctionApp@2
     displayName: Deploy to Function App
     inputs:
-      azureSubscription: 'datahub-dev-service-connection'
+      azureSubscription: datahub-dev-service-connection
       appType: functionAppLinux
       appName: fsdh-func-dotnet-dev
       package: $(Build.ArtifactStagingDirectory)/Datahub.Functions.zip
