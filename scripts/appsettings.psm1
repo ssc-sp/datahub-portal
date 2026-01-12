@@ -15,19 +15,7 @@ function Find-InfraRepo()
     return $null;
 }
 
-function Export-Settings(
-    [Parameter(Mandatory = $true)]
-    [string]$SourceFile,
-    [Parameter(Mandatory=$true)]
-    [ValidateSet("AppSettings", "Environment", "Terraform", "Function")]
-    [string]$Target,
-    [Parameter(Mandatory=$true)]
-    [ValidateSet("test", "dev","int","poc")]
-    [string]$Environment,
-    [string]$ProjectFolder,
-    [string]$TfFile = $null,
-    [string]$TargetFile = $null
-)
+function Connect-FSDHAzure
 {
     # Check if required modules are available and offer to install them
     $requiredModules = @("Az.KeyVault")
@@ -49,7 +37,7 @@ function Export-Settings(
             Install-RequiredModules
         } else {
             Write-Error "Cannot continue without required modules. Please install them and try again."
-            return
+            return $false
         }
     }
     
@@ -57,6 +45,36 @@ function Export-Settings(
     Import-Module Az.KeyVault -Force -NoClobber
     #check if user is signed in on azure
     $context = Get-AzContext
+    $domain = "163oxygen.onmicrosoft.com"
+
+    if ($null -eq $context) {
+        Write-Output "Opening Azure session"
+        Connect-AzAccount -Domain $domain
+    } else {
+        Write-Output "User $($context.Account.Id) is signed in."
+    }
+    
+    return $true
+}
+
+function Export-Settings(
+    [Parameter(Mandatory = $true)]
+    [string]$SourceFile,
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("AppSettings", "Environment", "Terraform", "Function")]
+    [string]$Target,
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("test", "dev","int","poc")]
+    [string]$Environment,
+    [string]$ProjectFolder,
+    [string]$TfFile = $null,
+    [string]$TargetFile = $null
+)
+{
+    if (-not (Connect-FSDHAzure)) {
+        return
+    }
+
     # get the path for the current script
     $srcPath = Split-Path -Parent $SourceFile
     # set . to srcPath if it is empty
@@ -80,14 +98,6 @@ function Export-Settings(
 		}
 	} 
 
-    $domain = "163oxygen.onmicrosoft.com"
-
-    if ($null -eq $context) {
-        Write-OutPut "Opening Azure session"
-        connect-azaccount -Domain $domain
-    } else {
-        Write-Output "User $($context.Account.Id) is signed in."
-    }
     # login user to azure
     Write-Output "Fetching secrets from keyvault"
 
@@ -591,4 +601,4 @@ function Install-RequiredModules
     }
 }
 
-Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret, Install-RequiredModules
+Export-ModuleMember -Function Export-Settings, ConvertFrom-HashTable, Find-InfraRepo, Read-SecureString, Read-VaultSecret, Install-RequiredModules, Connect-FSDHAzure
