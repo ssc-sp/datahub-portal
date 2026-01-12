@@ -55,5 +55,15 @@
   "/register": "/inscription",
   "/locked": "/verrouille",
   "/compte-lt": "/account",
-  "/compte/-lt": "/account"
+  "/compte/-lt": "/account",
+  "https://documentation.sds.canada.ca/": "https://documentation.sds.canada.ca/fr/",
+  "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html": "https://documentation.sds.canada.ca/fr/gerer-espaces-et-utilisateurs/Preregistration.html",
+  "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html": "https://documentation.sds.canada.ca/fr/postgresql/Postgres-Ajouter-Utilisateur.html",
+  "https://documentation.sds.canada.ca/en/storage/Use-AzCopy.html": "https://documentation.sds.canada.ca/fr/stockage/Utiliser-AzCopy.html",
+  "https://documentation.sds.canada.ca/en/storage/Desktop-Uploader.html": "https://documentation.sds.canada.ca/fr/stockage/Chargeur-de-bureau.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-AWS-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-AWS.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-Azure-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-Azure.html",
+  "https://documentation.sds.canada.ca/en/storage/Import-GCP-Storage.html": "https://documentation.sds.canada.ca/fr/stockage/Importer-le-stockage-GCP.html",
+  "https://documentation.sds.canada.ca/en/Terms-And-Conditions.html": "https://documentation.sds.canada.ca/fr/Conditions-generales.html"
 }

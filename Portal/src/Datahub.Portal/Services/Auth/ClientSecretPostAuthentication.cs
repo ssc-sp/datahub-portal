@@ -37,6 +37,14 @@ public class ClientSecretPostAuthentication : OpenIdConnectEvents
         var responseType = context.ProtocolMessage.ResponseType;
         var scope = context.ProtocolMessage.Scope;
         var nonce = context.ProtocolMessage.Nonce;
+        
+        var state = context.ProtocolMessage.State;
+        if (string.IsNullOrEmpty(state))
+        {
+            state = context.Options.StateDataFormat.Protect(context.Properties);
+            context.ProtocolMessage.State = state;
+        }
+
         var clientSecret = context.Options.ClientSecret;
 
         // Get ui_locales from properties passed by the controller (or fallback)
@@ -48,49 +56,51 @@ public class ClientSecretPostAuthentication : OpenIdConnectEvents
         else
         {
             // Fallback or throw if you prefer strictness, keeping inline logic logic where it threw
-             throw new InvalidOperationException("ui_locales not specified in authentication properties.");
+            throw new InvalidOperationException("ui_locales not specified in authentication properties.");
         }
 
         if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(clientSecret))
         {
+            var now = DateTime.UtcNow;
+
+            // Build request object claims per OIDC Request Object spec
             var claims = new List<Claim>
             {
-                new("iss", clientId),
-                new("aud", authority),
+                new("iss", clientId), // issuer must be the client_id
+                new("aud", authority), // audience should be the OP issuer/authority
                 new("client_id", clientId),
                 new("response_type", responseType),
                 new("redirect_uri", redirectUri),
                 new("scope", scope),
                 new("nonce", nonce),
+                new("state", state),
                 new("ui_locales", uiLocales),
-                new("acr_values", AcrValuesClaimValue)
+                new("acr_values", AcrValuesClaimValue),
+                //new("iat", ((DateTimeOffset)now).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)),
+                //new("nbf", ((DateTimeOffset)now).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)),
+                new("exp", ((DateTimeOffset)now.AddMinutes(5)).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)),
+                //new("jti", Guid.NewGuid().ToString())
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(clientSecret));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            var token = new JwtSecurityToken(
-                clientId,
-                authority,
-                claims,
-                expires: DateTime.UtcNow.AddMinutes(5),
-                signingCredentials: creds
-            );
+            // Create JWT with custom claims and explicit lifetime
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
+                Issuer = clientId,
+                Audience = authority,
+                Claims = claims.ToDictionary(c => c.Type, c => (object)c.Value),
+                NotBefore = now,
+                Expires = now.AddMinutes(5),
+                SigningCredentials = creds
+            };
 
             var handler = new JwtSecurityTokenHandler();
-            var requestJwt = handler.WriteToken(token);
+            var securityToken = handler.CreateJwtSecurityToken(tokenDescriptor);
+            var requestJwt = handler.WriteToken(securityToken);
 
             context.ProtocolMessage.SetParameter("request", requestJwt);
-
-            // Remove duplicate parameters that are already in the signed request object
-            // to avoid sending them twice (once in query/body, once in request object)
-            context.ProtocolMessage.Scope = null;
-            context.ProtocolMessage.ResponseType = null;
-            // We keep client_id (and redirect_uri) typically to identify the request at the entry point,
-            // but technically they are redundant. If the user wants them gone:
-            context.ProtocolMessage.RedirectUri = null;
-            // context.ProtocolMessage.ClientId = null; // Some IdPs require ClientId in query to identify the client first
-            context.ProtocolMessage.Nonce = null;
         }
 
         return Task.CompletedTask;
