@@ -17,6 +17,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
     {
         protected override void OnInitialized()
         {
+            _loading = true;
             base.OnInitialized();
 
             // red border on top, left, and bottom
@@ -29,6 +30,7 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             await base.OnParametersSetAsync();
             await InitializedProjectMembers();
+            _loading = false;
         }
 
         private async Task InitializedProjectMembers()
