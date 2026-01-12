@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services;
@@ -47,7 +47,7 @@ namespace Datahub.Infrastructure.Services
                     resource.Project.Deleted_DT = resource.Project.Deleted_DT ?? DateTime.Now;
                     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
                     {
-                        rgName = resource.Project.GetResourceGroupName() ?? throw new InvalidOperationException("no resource group name");
+                        rgName = resource.Project.GetResourceGroupName();
                     }
                     ctx.Project_Resources2.Update(resource);
                 }
@@ -63,6 +63,11 @@ namespace Datahub.Infrastructure.Services
 
                 await ctx.SaveChangesAsync(CancellationToken.None);
 
+                if (string.IsNullOrEmpty(rgName))
+                {
+                    logger.LogError($"Invalid workspace - {acronym} - no resource group name found. Marked as deleted.");
+                    return true;
+                }
                 var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(acronym);
                 workspaceDefinition.ResourceGroupName = rgName;
                 workspaceDefinition.RequestingUserEmail = currentUser.Email;
