@@ -8,6 +8,10 @@ using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Storage;
 using Datahub.Functions.Models;
 using Datahub.Functions.Services;
+using Datahub.Infrastructure.Extensions;
+using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Configuration;
+using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 
@@ -26,6 +30,7 @@ public class BlobVirusScanAclUpdater
     private readonly IWorkspaceAclService _workspaceAclService;
     private readonly IBlobMetadataWriter _blobMetadataWriter;
     private readonly IGCNotifyService _gcNotifyService;
+    private readonly ISendEndpointProvider _sendEndpointProvider;
 
     private const string ContainerName = "datahub";
     private const string UploadPrefix = "upload/";
@@ -34,12 +39,14 @@ public class BlobVirusScanAclUpdater
         ILogger<BlobVirusScanAclUpdater> logger,
         IWorkspaceAclService workspaceAclService,
         IBlobMetadataWriter blobMetadataWriter,
-        IGCNotifyService gcNotifyService)
+        IGCNotifyService gcNotifyService,
+        ISendEndpointProvider sendEndpointProvider)
     {
         _logger = logger;
         _workspaceAclService = workspaceAclService;
         _blobMetadataWriter = blobMetadataWriter;
         _gcNotifyService = gcNotifyService;
+        _sendEndpointProvider = sendEndpointProvider;
     }
 
     [Function("BlobVirusScanAclUpdater")]
@@ -111,6 +118,13 @@ public class BlobVirusScanAclUpdater
                 metadata,
                 eventData.Url,
                 eventGridEvent,
+                cancellationToken);
+
+            await TrySendServiceBusNotificationsAsync(
+                workspaceAcronym,
+                blobPath,
+                metadata,
+                eventData.Url,
                 cancellationToken);
 
             _logger.LogInformation(
@@ -378,6 +392,106 @@ public class BlobVirusScanAclUpdater
         }
 
         return null;
+    }
+
+    private async Task TrySendServiceBusNotificationsAsync(
+        string workspaceAcronym,
+        string blobPath,
+        IReadOnlyDictionary<string, string>? metadata,
+        string? blobUrl,
+        CancellationToken cancellationToken)
+    {
+        if (metadata is null)
+        {
+            _logger.LogDebug(
+                "Skipping Service Bus notifications for workspace {Workspace} blob {BlobPath}: metadata missing",
+                workspaceAcronym,
+                blobPath);
+            return;
+        }
+
+        try
+        {
+            var uploaderObjectId = TryGetMetadataValue(metadata, "ownedby") ??
+                TryGetMetadataValue(metadata, "createdby");
+
+            var (uploaderEmail, uploaderName) = await ResolveUploaderDetailsAsync(
+                workspaceAcronym,
+                uploaderObjectId);
+
+            var fileName = TryGetMetadataValue(metadata, "filename") ?? 
+                blobPath.Split('/').LastOrDefault() ?? "unknown";
+            var scanCompletedOn = ResolveScanCompletedOn(metadata);
+            var correlationId = Guid.NewGuid().ToString();
+
+            // 1. Send UI notification message (for system notifications via database)
+            var uiNotification = new VirusScanNotificationMessage
+            {
+                WorkspaceAcronym = workspaceAcronym,
+                UserObjectId = uploaderObjectId,
+                FileName = fileName,
+                BlobPath = blobPath,
+                ScanStatus = "Clean",
+                ScanCompletedOn = scanCompletedOn,
+                FileSizeBytes = TryParseLongMetadata(metadata, "filesize"),
+                StorageAccountName = ResolveStorageAccountName(blobUrl),
+                ContainerName = ContainerName,
+                CorrelationId = correlationId
+            };
+
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.VirusScanNotificationQueueName,
+                uiNotification,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Sent UI notification for workspace {Workspace} blob {BlobPath}",
+                workspaceAcronym,
+                blobPath);
+
+            // 2. Send user status message (for service functions to handle user status updates)
+            var userStatusMessage = new VirusScanUserStatusMessage
+            {
+                WorkspaceAcronym = workspaceAcronym,
+                UploaderObjectId = uploaderObjectId,
+                UploaderEmail = uploaderEmail,
+                UploaderName = uploaderName,
+                FileName = fileName,
+                BlobPath = blobPath,
+                ScanStatus = "Clean",
+                ScanCompletedOn = scanCompletedOn,
+                FileSizeBytes = TryParseLongMetadata(metadata, "filesize"),
+                FileHashSha256 = TryGetMetadataValue(metadata, "filehash") ??
+                    TryGetMetadataValue(metadata, "filehashsha256") ??
+                    TryGetMetadataValue(metadata, "dh:filehash") ??
+                    TryGetMetadataValue(metadata, "dh:filehashsha256"),
+                StorageAccountName = ResolveStorageAccountName(blobUrl),
+                ContainerName = ContainerName,
+                ScanEngine = TryGetMetadataValue(metadata, "dh:scanner"),
+                CorrelationId = correlationId,
+                AclsApplied = true,
+                Metadata = metadata
+            };
+
+            await _sendEndpointProvider.SendDatahubServiceBusMessage(
+                QueueConstants.VirusScanUserStatusQueueName,
+                userStatusMessage,
+                cancellationToken);
+
+            _logger.LogInformation(
+                "Sent user status message for workspace {Workspace} blob {BlobPath}",
+                workspaceAcronym,
+                blobPath);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(
+                ex,
+                "Failed to send Service Bus notifications for workspace {Workspace} blob {BlobPath}",
+                workspaceAcronym,
+                blobPath);
+            // Don't throw - Service Bus notifications are non-critical
+        }
     }
 
     private static string? ResolveStorageAccountName(string? blobUrl)
