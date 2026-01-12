@@ -13,6 +13,7 @@ using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.WebApp;
 using Datahub.CatalogSearch;
@@ -409,6 +410,7 @@ public class Startup
             services.AddScoped<IOrganizationLevelsService, OrganizationLevelsService>();
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
+            services.AddScoped<IWorkspaceAclService, WorkspaceAclService>();
             
             services.AddDatahubApplicationServices(Configuration);
             services.AddDatahubInfrastructureServices(Configuration);

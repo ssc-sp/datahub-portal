@@ -1,0 +1,10 @@
+{
+  "user-invited": "<replace-with-user-invited-template-guid>",
+  "user-delete-notice": "<replace-with-user-delete-template-guid>",
+  "user-lock-notice": "<replace-with-user-lock-template-guid>",
+  "cost-alert": "<replace-with-cost-alert-template-guid>",
+  "bug-report": "<replace-with-bug-report-template-guid>",
+  "workspace-inactive": "<replace-with-workspace-inactive-template-guid>",
+  "virus-upload-detected": "<replace-with-virus-upload-template-guid>",
+  "successful-scan": "<replace-with-successful-scan-template-guid>"
+}
