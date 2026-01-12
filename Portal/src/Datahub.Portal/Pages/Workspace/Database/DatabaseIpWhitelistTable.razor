@@ -142,9 +142,10 @@
                 _firewallRules.Add(new WhitelistIPAddressData(firewallRule.Data));
             }
         }
-        catch(Exception x)
+        catch (Exception ex)
         {
-            // do nothing
+            _logger.LogWarning(ex, "Failed to load firewall rules. Resource group or database may not exist in this environment.");
+            _snackbar?.Add(Localizer["Unable to load firewall rules. Database resources may not be available in this environment."], Severity.Warning);
         }
     }
 
