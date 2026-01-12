@@ -1,4 +1,5 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
 using Datahub.Application.Configuration;
 
 namespace Datahub.Application.Services.Notification;
@@ -16,7 +17,10 @@ public interface IGCNotifyService
     Task SendWorkspaceInactiveNotification(string email, string daysSince);
     Task SendBugReportNotification(string id, string title, string body, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca");
     Task SendInfectedFileNotification(string email, string fileName, string workspace, string date);
-    Task SendStorageScanSuccessEmailAsync(StorageScanNotificationHelper.StorageScanSuccessEventPayload payload, string? recipientEmail = null, CancellationToken cancellationToken = default);
+    Task SendStorageScanSuccessEmailAsync(
+        StorageScanNotificationHelper.StorageScanSuccessEventPayload payload,
+        string? recipientEmail = null,
+        CancellationToken cancellationToken = default);
     string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration);
     string GetTemplateId(string templateName, string mappingsJson);
     Task<bool> CheckHealthAsync();
