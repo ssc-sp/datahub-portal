@@ -938,6 +938,12 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("Last_Updated_UserId")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("MaxFileCountForGccf")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("MaxUploadMBForGccf")
+                        .HasColumnType("bigint");
+
                     b.Property<bool?>("MetadataAdded")
                         .HasColumnType("bit");
 

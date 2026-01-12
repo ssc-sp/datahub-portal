@@ -2382,5 +2382,17 @@
   "IMPORTANT": "IMPORTANT",
   "Trusted Entra Login": "Trusted Entra Login",
   "External Login": "External Login",
-  "{0} has been blocked.": "{0} has been blocked."
+  "{0} has been blocked: {1}": "{0} has been blocked: {1}",
+  "The file type is not allowed": "The file type is not allowed",
+  "The file is too large": "The file is too large",
+  "The file cannot be uploaded": "The file cannot be uploaded",
+  "Maximum File Upload Size for External Users": "Maximum File Upload Size for External Users",
+  "The maximum file size, in MB, that can be uploaded by external users. Note: Setting this to 0 will prevent external users from uploading any files.": "The maximum file size, in MB, that can be uploaded by external users. Note: Setting this to 0 will prevent external users from uploading any files.",
+  "Set maximum upload size (MB) and maximum file count for external users. These limits will apply when external users upload files.": "Set maximum upload size (MB) and maximum file count for external users. These limits will apply when external users upload files.",
+  "Maximum Batch Upload File Count for External Users": "Maximum Batch Upload File Count for External Users",
+  "The maximum number of files that an external user can upload at once. Note: Setting this to 0 will prevent external users from uploading any files.": "The maximum number of files that an external user can upload at once. Note: Setting this to 0 will prevent external users from uploading any files.",
+  "Error updating external user file upload restrictions": "Error updating external user file upload restrictions",
+  "External user file upload restrictions updated successfully": "External user file upload restrictions updated successfully",
+  "External users cannot upload more than {0} files at once.": "External users cannot upload more than {0} files at once.",
+  "External User File Upload Restrictions": "External User File Upload Restrictions"
 }
