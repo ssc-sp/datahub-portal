@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
@@ -15,6 +15,7 @@
 @inject IUserSettingsService _userSettingsService
 @inject IDialogService _dialogService
 @inject ICultureService CultureService
+@inject ILogger<MainLayout> _logger
 
 
 <PageTitle>@Localizer["Federal Science DataHub"]</PageTitle>
@@ -69,7 +70,7 @@ else
         try
         {
             var user = await _userInformationService.GetAuthenticatedUser(true);
-
+			
             if (!user.Identity?.IsAuthenticated ?? true)
             {
                 var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);

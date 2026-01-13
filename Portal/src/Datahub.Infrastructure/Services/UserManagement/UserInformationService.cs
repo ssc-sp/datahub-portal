@@ -1,4 +1,4 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
@@ -46,12 +46,27 @@ public class UserInformationService(
 
     public async Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false)
     {
-        if (authenticationStateProvider == null || forceReload)
+        if (authenticatedUser == null || forceReload)
+        {
             authenticatedUser = (await authenticationStateProvider!.GetAuthenticationStateAsync()).User;
+            var traceClaims = await featureManager.IsEnabledAsync(Features.Trace_Claims);
+            if (traceClaims)
+            {
+                logger.LogDebug("User:{User} Authentication Status: {IsAuthenticated}", authenticatedUser?.Identity?.Name ?? "Unknown", authenticatedUser?.Identity?.IsAuthenticated);
+
+                foreach (var claim in authenticatedUser.Claims)
+                {
+                    logger.LogDebug("Claim: {Type} - {Value}", claim.Type, claim.Value);
+                }
+                logger.LogDebug("Is External? {IsExternal}", authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) ? "Yes" : "No");
+            }
+        }
         if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) && !await IsGCCFEnabled())
             throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
+
+
         return authenticatedUser;
-    }    
+    }
 
     private async Task<bool> IsGCCFEnabled()
     {
@@ -549,8 +564,8 @@ public class UserInformationService(
         {
             return null;
         }
-            var graphId = await GetCurrentUserEntraId();
-            return await GetEntraUserAsync(graphId);
+        var graphId = await GetCurrentUserEntraId();
+        return await GetEntraUserAsync(graphId);
     }
 
     public async Task<PortalUser> GetEntraUserAsync(string userGraphId)
@@ -648,7 +663,7 @@ public class UserInformationService(
 
         try
         {
-            PrepareAuthenticatedClient();     
+            PrepareAuthenticatedClient();
             var displayName = $"{first} {last}";
             var portalUser = new PortalUser
             {
