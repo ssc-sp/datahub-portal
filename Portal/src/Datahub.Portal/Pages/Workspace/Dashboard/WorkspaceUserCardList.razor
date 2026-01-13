@@ -5,108 +5,120 @@
 
 @inject IProjectUserManagementService _projectUserManagementService
 
-
+@if (_loading)
+{
+  <MudProgressCircular Indeterminate Color="Color.Primary" />
+  <MudText Typo="Typo.body2" Class="mt-2">@Localizer["Loading workspace members..."]</MudText>
+}
+else
+{
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated" ProjectAcronym="@ProjectAcronym">
-    <MudText Class="sr-only" Typo="Typo.h2">
-        @Localizer["List of workspace members"]
-    </MudText>
-    <MudStack>
-        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
-            <MudText Typo="Typo.h3">@_head</MudText>
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
-                <DHButton Variant="Variant.Text" Color="Color.Primary" Href="@_viewMembersHref" Underline>
-                    @Localizer["View Members"]
-                </DHButton>
-            </DatahubAuthView>
-        </MudStack>
-
-        @if (_projectLeads.Any())
-        {
-            <ul style="display: grid; gap: 12px">
-                @foreach (var lead in _projectLeads)
-                {
-                    <li>
-                        <UserCard ViewedUser=@lead.PortalUser Size="Size.Medium" ShowProfileLink />
-                    </li>
-                }
-            </ul>
-        }
-
-        @if (_projectAdmins.Any())
-        {
-            @if (_headRole == Project_Role.RoleNames.WorkspaceLead)
-            {
-                <MudDivider Class="my-4" />
-                <MudStack Class="mb-2">
-                    <MudText Typo="Typo.h3">@Localizer["Workspace admins"]</MudText>
-                </MudStack>
-            }
-
-            <ul style="display: grid; gap: 12px">
-                @foreach (var admin in _projectAdmins)
-                {
-                    <li>
-                        <UserCard ViewedUser=@admin.PortalUser Size="Size.Medium" ShowProfileLink />
-                    </li>
-                }
-            </ul>
-        }
-
-        @if (_projectMembers.Any())
-        {
-            @if (_headRole != Project_Role.RoleNames.Collaborator)
-            {
-                <MudDivider Class="my-4" />
-                <MudStack Class="mb-2">
-                    <MudText Typo="Typo.h3">@Localizer["Collaborators"]</MudText>
-                </MudStack>
-            }
-
-            <ul style="display: grid; gap: 12px">
-                @foreach (var member in _projectMembers)
-                {
-                    <li>
-                        <UserCard ViewedUser=@member.PortalUser Size="Size.Medium" ShowProfileLink />
-                    </li>
-                }
-            </ul>
-        }
+  <MudText Class="sr-only" Typo="Typo.h2">
+    @Localizer["List of workspace members"]
+  </MudText>
+  <MudStack>
+    <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mb-2">
+      <MudText Typo="Typo.h3">@_head</MudText>
+      <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@ProjectAcronym">
+        <DHButton Variant="Variant.Text" Color="Color.Primary" Href="@_viewMembersHref" Underline>
+          @Localizer["View Members"]
+        </DHButton>
+      </DatahubAuthView>
     </MudStack>
+
+    @if (_projectLeads.Any())
+    {
+      <ul style="display: grid; gap: 12px">
+        @foreach (var lead in _projectLeads)
+        {
+          <li>
+            <UserCard ViewedUser=@lead.PortalUser Size="Size.Medium" ShowProfileLink />
+          </li>
+        }
+      </ul>
+    }
+
+    @if (_projectAdmins.Any())
+    {
+      @if (_headRole == Project_Role.RoleNames.WorkspaceLead)
+      {
+        <MudDivider Class="my-4" />
+        <MudStack Class="mb-2">
+          <MudText Typo="Typo.h3">@Localizer["Workspace admins"]</MudText>
+        </MudStack>
+      }
+
+      <ul style="display: grid; gap: 12px">
+        @foreach (var admin in _projectAdmins)
+        {
+          <li>
+            <UserCard ViewedUser=@admin.PortalUser Size="Size.Medium" ShowProfileLink />
+          </li>
+        }
+      </ul>
+    }
+
+    @if (_projectMembers.Any())
+    {
+      @if (_headRole != Project_Role.RoleNames.Collaborator)
+      {
+        <MudDivider Class="my-4" />
+        <MudStack Class="mb-2">
+          <MudText Typo="Typo.h3">@Localizer["Collaborators"]</MudText>
+        </MudStack>
+      }
+
+      <ul style="display: grid; gap: 12px">
+        @foreach (var member in _projectMembers)
+        {
+          <li>
+            <UserCard ViewedUser=@member.PortalUser Size="Size.Medium" ShowProfileLink />
+          </li>
+        }
+      </ul>
+    }
+  </MudStack>
 </DatahubAuthView>
+}
 
 @code {
 
-    [Parameter] public string ProjectAcronym { get; set; }
+  [Parameter] public string ProjectAcronym { get; set; }
 
-    private List<UserRoleLinks> _projectLeads = new();
-    private List<UserRoleLinks> _projectAdmins = new();
-    private List<UserRoleLinks> _projectMembers = new();
-    private string _head => _projectLeads.Any() ? @Localizer["Workspace lead"] : _projectAdmins.Any() ? Localizer["Admins"] : Localizer["Collaborators"];
-    private Project_Role.RoleNames _headRole => _projectLeads.Any() ? Project_Role.RoleNames.WorkspaceLead : _projectAdmins.Any() ? Project_Role.RoleNames.Admin : Project_Role.RoleNames.Collaborator;
+  private bool _loading = true;
+  private List<UserRoleLinks> _projectLeads = new();
+  private List<UserRoleLinks> _projectAdmins = new();
+  private List<UserRoleLinks> _projectMembers = new();
+  private string _head => _projectLeads.Any() ? @Localizer["Workspace lead"] : _projectAdmins.Any() ? Localizer["Admins"] : Localizer["Collaborators"];
+  private Project_Role.RoleNames _headRole => _projectLeads.Any() ? Project_Role.RoleNames.WorkspaceLead : _projectAdmins.Any() ? Project_Role.RoleNames.Admin : Project_Role.RoleNames.Collaborator;
 
-    private string _viewMembersHref => $"{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Users}";
+  private string _viewMembersHref => $"{PageRoutes.WorkspacePrefix}/{ProjectAcronym}/{WorkspaceSidebar.SectionViews.Users}";
 
 
-    protected override async Task OnParametersSetAsync()
-    {
-        await base.OnParametersSetAsync();
+  protected override async Task OnParametersSetAsync()
+  {
+    _loading = true;
 
-        var workspaceMembers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
+    await base.OnParametersSetAsync();
 
-        _projectLeads = workspaceMembers
-            .Where(m => m.RoleId
-                is (int)Project_Role.RoleNames.WorkspaceLead)
-            .ToList();
+    var workspaceMembers = await _projectUserManagementService.GetProjectUsersAsync(ProjectAcronym);
 
-        _projectAdmins = workspaceMembers
-            .Where(m => m.RoleId
-                is (int)Project_Role.RoleNames.Admin)
-            .ToList();
+    _projectLeads = workspaceMembers
+        .Where(m => m.RoleId
+            is (int)Project_Role.RoleNames.WorkspaceLead)
+        .ToList();
 
-        _projectMembers = workspaceMembers
-            .Where(m => m.RoleId
-                is (int)Project_Role.RoleNames.Collaborator)
-            .ToList();
-    }
+    _projectAdmins = workspaceMembers
+        .Where(m => m.RoleId
+            is (int)Project_Role.RoleNames.Admin)
+        .ToList();
+
+    _projectMembers = workspaceMembers
+        .Where(m => m.RoleId
+            is (int)Project_Role.RoleNames.Collaborator)
+        .ToList();
+
+    _loading = false;
+  }
 
 }
