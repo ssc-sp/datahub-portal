@@ -2,10 +2,12 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure.Messaging.EventGrid;
+using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Storage;
 using Datahub.Functions;
 using Datahub.Functions.Models;
 using Datahub.Functions.Services;
+using MassTransit;
 using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NUnit.Framework;
@@ -17,6 +19,8 @@ public class BlobVirusScanAclUpdaterTests
 {
     private IWorkspaceAclService _workspaceAclService = null!;
     private IBlobMetadataWriter _blobMetadataWriter = null!;
+    private IGCNotifyService _gcNotifyService = null!;
+    private ISendEndpointProvider _sendEndpointProvider = null!;
     private BlobVirusScanAclUpdater _function = null!;
 
     [SetUp]
@@ -24,10 +28,14 @@ public class BlobVirusScanAclUpdaterTests
     {
         _workspaceAclService = Substitute.For<IWorkspaceAclService>();
         _blobMetadataWriter = Substitute.For<IBlobMetadataWriter>();
+        _gcNotifyService = Substitute.For<IGCNotifyService>();
+        _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _function = new BlobVirusScanAclUpdater(
             NullLogger<BlobVirusScanAclUpdater>.Instance,
             _workspaceAclService,
-            _blobMetadataWriter);
+            _blobMetadataWriter,
+            _gcNotifyService,
+            _sendEndpointProvider);
     }
 
     [Test]

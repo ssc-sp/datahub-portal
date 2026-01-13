@@ -86,6 +86,7 @@ namespace Datahub.Tests
 
             _ctx.Services.AddSingleton<IPortalUserTelemetryService>(new Mock<IPortalUserTelemetryService>().Object);
             _ctx.Services.AddSingleton<IDialogService>(new Mock<IDialogService>().Object);
+            _ctx.Services.AddSingleton<ISnackbar>(new Mock<ISnackbar>().Object);
             _ctx.Services.AddSingleton<IOpenDataPublishingService>(new Mock<IOpenDataPublishingService>().Object);
             _ctx.Services.AddSingleton<ILogger<FileExplorer>>(new Mock<ILogger<FileExplorer>>().Object);
 

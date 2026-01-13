@@ -8,6 +8,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Infrastructure.Services.Storage;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -145,7 +146,7 @@ public class WorkspaceAclServiceTests
 
         var users = TestUserIds.Select((id, index) => new PortalUser
         {
-            GraphGuid = id,
+            EntraUser = new EntraUser { GraphGuid = id, PortalUser = null! },
             Email = $"user{index + 1}@test.gc.ca",
             DisplayName = $"Test User {index + 1}"
         }).ToList();
@@ -286,7 +287,7 @@ public class WorkspaceAclServiceTests
 
         var users = TestUserIds.Select((id, index) => new PortalUser
         {
-            GraphGuid = id,
+            EntraUser = new EntraUser { GraphGuid = id, PortalUser = null! },
             Email = $"user{index + 1}@test.gc.ca",
             DisplayName = $"Test User {index + 1}"
         }).ToList();
@@ -354,7 +355,7 @@ public class WorkspaceAclServiceTests
 
         var users = TestUserIds.Select((id, index) => new PortalUser
         {
-            GraphGuid = id,
+            EntraUser = new EntraUser { GraphGuid = id, PortalUser = null! },
             Email = $"user{index + 1}@test.gc.ca",
             DisplayName = $"Test User {index + 1}"
         }).ToList();
@@ -479,7 +480,7 @@ public class WorkspaceAclServiceTests
 
         var users = TestUserIds.Select((id, index) => new PortalUser
         {
-            GraphGuid = id,
+            EntraUser = new EntraUser { GraphGuid = id, PortalUser = null! },
             Email = $"user{index + 1}@test.gc.ca",
             DisplayName = $"Test User {index + 1}"
         }).ToList();
@@ -511,6 +512,6 @@ public class WorkspaceAclServiceTests
         result!.UserRoles.Should().NotBeEmpty();
         result.UserRoles.Should().HaveCount(TestUserIds.Length);
         result.UserRoles.Should().OnlyContain(ur => ur.PortalUser != null);
-        result.UserRoles.Select(ur => ur.PortalUser!.GraphGuid).Should().Contain(TestUserIds);
+        result.UserRoles.Select(ur => ur.PortalUser!.EntraUser!.GraphGuid).Should().Contain(TestUserIds);
     }
 }
