@@ -64,7 +64,6 @@ public class UserInformationService(
         if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) && !await IsGCCFEnabled())
             throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
 
-
         return authenticatedUser;
     }
 
