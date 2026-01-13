@@ -37,12 +37,15 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
+		<PackageReference Include="Azure.Messaging.EventGrid" Version="4.30.*" />
+		<PackageReference Include="Azure.Storage.Files.DataLake" Version="12.23.*" />
 		<PackageReference Include="Azure.Data.Tables" Version="12.11.*" />
 		<PackageReference Include="Azure.Storage.Queues" Version="12.23.*" />
 		<PackageReference Include="CommunityToolkit.Diagnostics" Version="8.4.*" />
 		<PackageReference Include="MassTransit" Version="8.5.*" />
 		<PackageReference Include="MassTransit.WebJobs.ServiceBus" Version="8.5.*" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.1.*" />
+		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.EventGrid" Version="3.*" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.3.0" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.ServiceBus" Version="5.23.*" />
 		<PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Storage" Version="6.8.*" />
@@ -80,6 +83,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\Portal\src\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\..\..\Portal\src\Datahub.Core\Datahub.Core.csproj" />
 		<ProjectReference Include="..\..\..\Portal\src\Datahub.Infrastructure\Datahub.Infrastructure.csproj" />
 		<ProjectReference Include="..\Datahub.Functions.Domain\Datahub.Functions.Domain.csproj" />
