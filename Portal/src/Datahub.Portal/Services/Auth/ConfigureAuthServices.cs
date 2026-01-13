@@ -100,7 +100,6 @@ public static class ConfigureAuthServices
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
-                    options.UseClientSecretPostAuthentication();
                 });
         }
 
