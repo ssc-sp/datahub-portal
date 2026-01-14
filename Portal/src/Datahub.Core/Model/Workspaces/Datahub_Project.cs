@@ -6,6 +6,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
 using Datahub.Core.Model.Repositories;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Metadata.Model;
 using Datahub.Shared.Entities;
 using MudBlazor.Forms;
 using AeFormCategoryAttribute = MudBlazor.Forms.AeFormCategoryAttribute;
@@ -117,8 +118,7 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// </summary>
     [AeFormCategory("Workspace Information")]
     [Required]
-    [MudForm(ValidValues= new[] { "Unclassified", "Protected A", "Protected B" })]
-    public string Data_Sensitivity { get; set; } = "Unclassified";
+    public ClassificationType Data_Sensitivity { get; set; } = 0;
 
     /// <summary>
     /// Gets or sets the description of the workspace's status.
