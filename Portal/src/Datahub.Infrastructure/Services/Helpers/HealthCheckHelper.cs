@@ -27,6 +27,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using MudBlazor;
 using Microsoft.TeamFoundation.Common;
+using Datahub.Core.Configuration;
 
 namespace Datahub.Infrastructure.Services.Helpers
 {
@@ -185,8 +186,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         /// <param name="request"></param>
         /// <returns>The URL for the group given.</returns>
         private Uri GetAzureKeyVaultUrl(InfrastructureHealthCheckMessage request) => request.Group == InfrastructureHealthCheckConstants.CoreRequestGroup ?
-            new Uri($"https://fsdh-key-{CurrentEnvironment}.vault.azure.net/") :
-            new Uri($"https://fsdh-proj-{request.Name}-{CurrentEnvironment}-kv.vault.azure.net/");
+            new Uri($"https://fsdh-key-{configuration.GetCurrentEnvironment()}.vault.azure.net/") :
+            new Uri($"https://fsdh-proj-{request.Name}-{configuration.GetCurrentEnvironment()}-kv.vault.azure.net/");
 
         /// <summary>
         /// Function that checks the health of an Azure Key Vault.
@@ -504,14 +505,6 @@ namespace Datahub.Infrastructure.Services.Helpers
             return new(status, errors);
         }
 
-        private string CurrentEnvironment => configuration["DataHub_ENVNAME"] ?? GetEnvironmentNameFailsafe();
-
-        private string GetEnvironmentNameFailsafe()
-        {
-            logger.LogError("DataHub_ENVNAME not configured. Defaulting to dev");
-            return "dev";
-        }
-
         private async Task<string> GetAzureFunctionDefaultKey()
         {
             try
@@ -524,8 +517,8 @@ namespace Datahub.Infrastructure.Services.Helpers
                 var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(SubscriptionId);
                 var subscription = armClient.GetSubscriptionResource(subscriptionResourceId); 
                 
-                var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{CurrentEnvironment}-rg");
-                var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}");
+                var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{configuration.GetCurrentEnvironment()}-rg");
+                var functionApp = await resourceGroup.Value.GetWebSiteAsync($"{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{configuration.GetCurrentEnvironment()}");
                 var hostKeys = await functionApp.Value.GetHostKeysAsync();
                 var defaultKey = hostKeys.Value.FunctionKeys["default"];
 
@@ -545,7 +538,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             var status = InfrastructureHealthStatus.Healthy;
 
             // TODO this should come from request.Name
-            var functionAppAddress = $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}.azurewebsites.net";
+            var functionAppAddress = $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{configuration.GetCurrentEnvironment()}.azurewebsites.net";
 
             try
             {
@@ -835,9 +828,9 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
         }
 
-        private bool IsLocalEnvironment => string.IsNullOrEmpty(CurrentEnvironment) || CurrentEnvironment == "local";
+        private bool IsLocalEnvironment => string.IsNullOrEmpty(configuration.GetCurrentEnvironment()) || configuration.GetCurrentEnvironment() == "local";
 
-        private string DefaultFunctionUrl => $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{CurrentEnvironment}.azurewebsites.net";
+        private string DefaultFunctionUrl => $"https://{InfrastructureHealthCheckConstants.FSDHFunctionPrefix}-{configuration.GetCurrentEnvironment()}.azurewebsites.net";
 
         /// <summary>
         /// Function that runs all infrastructure health checks.
