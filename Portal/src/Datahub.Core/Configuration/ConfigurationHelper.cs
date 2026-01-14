@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.Configuration;
 
@@ -18,6 +19,8 @@ public static class ConfigurationHelper
     {
         WriteIndented = true
     };
+
+    public static string GetCurrentEnvironment(this IConfiguration configuration) => configuration["DataHub_ENVNAME"] ?? "dev";
 
     // Property name tokens considered sensitive (case-insensitive).
     private static readonly string[] SensitivePropertyTokens =
@@ -137,16 +140,16 @@ public static class ConfigurationHelper
         const int maxDepth = 16;
         if (depth > maxDepth) return "[max-depth]";
 
-        // Children first – if no children, treat as leaf
+        // Children first â€“ if no children, treat as leaf
         var children = section.GetChildren();
         using var enumerator = children.GetEnumerator();
         if (!enumerator.MoveNext())
         {
-            // Leaf value – redact based on key name
+            // Leaf value â€“ redact based on key name
             return IsSensitive(section.Key) ? Mask(section.Value) : section.Value;
         }
 
-        // Has children – build object
+        // Has children â€“ build object
         var dict = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
         foreach (var child in children)
         {
