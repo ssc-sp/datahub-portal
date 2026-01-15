@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services
+@using Datahub.Application.Services
 @using Datahub.Application.Services.Notification
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
@@ -32,17 +32,11 @@
             <FeaturedProjectToggle Project="@Workspace" />
             <MudSpacer />
             <MudChip T="string" Color="@GetSecurityColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]">
-
                 <DHIcon Icon=@(Workspace.Data_Sensitivity == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock)/>
-                @if (!(Workspace.Data_Sensitivity == ClassificationType.Unclassified))
-                    {
-                        <MudText Typo="Typo.body1">
-                            <strong>
-                            @Localizer[(Workspace.Data_Sensitivity == ClassificationType.ProtectedA ? "A" : "B")]
-                            </strong>
-                        </MudText>
-                    }
-                    <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
+                <MudText Typo="Typo.body1">
+                    @Localizer[(Workspace.Data_Sensitivity.ToString())]
+                </MudText>
+                <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
             </MudChip>
         </MudStack>
         <MudStack Row>

@@ -50,14 +50,18 @@
                                 <MudSpacer/>
                                 <MudChip T="string" Color="@GetSecurityColor(project.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(project.Data_Sensitivity)]">
                                     <DHIcon Icon=@(project.Data_Sensitivity == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
-                                    @if (!(project.Data_Sensitivity == ClassificationType.Unclassified))
-                                    {
                                         <MudText Typo="Typo.body1">
                                             <strong>
-                                                @Localizer[(project.Data_Sensitivity == ClassificationType.ProtectedA ? "A" : "B")]
-                                            </strong>
+                                              @if (!(project.Data_Sensitivity == ClassificationType.Unclassified))
+                                              {
+                                                  @Localizer[(project.Data_Sensitivity == ClassificationType.ProtectedA ? "A" : "B")]
+                                              }
+                                              else
+                                              {
+                                                  @Localizer["Uc"]
+                                              }
+                                          </strong>
                                         </MudText>
-                                    }
                                     <span class="sr-only">@Localizer[GetSecurityTitle(project.Data_Sensitivity)]</span>
                                 </MudChip>
                             </MudStack>
