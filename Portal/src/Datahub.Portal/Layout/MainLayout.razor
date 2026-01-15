@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
@@ -15,6 +15,7 @@
 @inject IUserSettingsService _userSettingsService
 @inject IDialogService _dialogService
 @inject ICultureService CultureService
+@inject ILogger<MainLayout> _logger
 
 
 <PageTitle>@Localizer["Federal Science DataHub"]</PageTitle>
@@ -69,7 +70,7 @@ else
         try
         {
             var user = await _userInformationService.GetAuthenticatedUser(true);
-
+			
             if (!user.Identity?.IsAuthenticated ?? true)
             {
                 var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
@@ -109,27 +110,6 @@ else
             }
 
             StateHasChanged();
-        }
-    }
-
-    private async Task PromptForTermsAndConditions()
-    {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = false,
-            BackdropClick = false,
-        };
-
-        var tocDialog = await _dialogService.ShowAsync<UserTermsAndConditionsDialog>(Localizer["TermsAndConditions"], options);
-        var tocDialogResult = await tocDialog.Result;
-        if (!tocDialogResult.Canceled && tocDialogResult.Data is true)
-        {
-            await _userSettingsService.RegisterUserTAC();
-            _isUserValid = true;
-        }
-        else
-        {
-            _navigationManager.NavigateTo(LogoutUrl, forceLoad: true);
         }
     }
 

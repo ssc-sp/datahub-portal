@@ -85,9 +85,6 @@
                 UriComponents.PathAndQuery,
                 UriFormat.Unescaped);
 
-    Console.WriteLine("CURRENT URL");
-    Console.WriteLine(currentUrl.ToString());
-
     if (currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}"))
     {
       padding = "15px";
