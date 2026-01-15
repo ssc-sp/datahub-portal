@@ -1,3 +1,35 @@
+function Ensure-SqlServerModule {
+    param(
+        [Parameter(Mandatory=$false)]
+        [switch]$VerboseOutput
+    )
+    try {
+        if (Get-Module -ListAvailable -Name SqlServer) {
+            if ($VerboseOutput) { Write-Host "SqlServer module found." -ForegroundColor Gray }
+        } else {
+            Write-Host "SqlServer PowerShell module not found. Installing..." -ForegroundColor Yellow
+            # Ensure NuGet provider
+            $nugetProvider = Get-PackageProvider -Name NuGet -ErrorAction SilentlyContinue
+            if (-not $nugetProvider) {
+                Write-Host "Installing NuGet package provider..." -ForegroundColor Gray
+                Install-PackageProvider -Name NuGet -Force -Scope CurrentUser -ErrorAction Stop | Out-Null
+            }
+            # Trust PSGallery for current session if needed
+            $gallery = Get-PSRepository -Name 'PSGallery' -ErrorAction SilentlyContinue
+            if ($gallery -and $gallery.InstallationPolicy -ne 'Trusted') {
+                Set-PSRepository -Name 'PSGallery' -InstallationPolicy Trusted -ErrorAction SilentlyContinue
+            }
+            # Install SqlServer module
+            Install-Module -Name SqlServer -Scope CurrentUser -Force -ErrorAction Stop
+            Write-Host "SqlServer module installed." -ForegroundColor Green
+        }
+        Import-Module SqlServer -ErrorAction Stop
+        return $true
+    } catch {
+        Write-Warning "Failed to install/import SqlServer module: $($_.Exception.Message)"
+        return $false
+    }
+}
 
 function Copy-AzureDbToLocal {
     param(
@@ -158,38 +190,35 @@ function Copy-AzureDbToLocal {
     $dropQuery = "IF EXISTS (SELECT name FROM sys.databases WHERE name = N'$DatabaseName') BEGIN ALTER DATABASE [$DatabaseName] SET SINGLE_USER WITH ROLLBACK IMMEDIATE; DROP DATABASE [$DatabaseName]; END"
     
     try {
-        if (Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue) {
-            Invoke-Sqlcmd -ServerInstance $targetInstance -Database "master" -Query $dropQuery -ErrorAction Stop
-            Write-Host "Database dropped successfully." -ForegroundColor Green
-        } elseif (Get-Command sqlcmd -ErrorAction SilentlyContinue) {
-            & sqlcmd -S $targetInstance -d master -Q $dropQuery
-            if ($LASTEXITCODE -eq 0) {
-                Write-Host "Database dropped successfully." -ForegroundColor Green
-            } else {
-                Write-Warning "sqlcmd failed to drop database (exit code $LASTEXITCODE)"
+        if (-not (Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue)) {
+            # Ensure SqlServer module and Invoke-Sqlcmd are available
+            if (-not (Ensure-SqlServerModule)) {
+                throw "SqlServer module could not be installed/imported."
             }
-        } else {
-            Write-Warning "Neither Invoke-Sqlcmd nor sqlcmd found. Cannot drop existing database."
         }
+        Invoke-Sqlcmd -ServerInstance $targetInstance -Database "master" -Query $dropQuery -ErrorAction Stop
+        Write-Host "Database dropped successfully." -ForegroundColor Green
     } catch {
-         Write-Warning "Error dropping database: $($_.Exception.Message)"
+        Write-Warning "Error dropping database: $($_.Exception.Message)"
     }
     
     # Ensure contained database authentication is enabled on LocalDB instance (idempotent)
     # This aligns closer with Azure SQL which often uses contained database users.
     # LocalDB supports partial containment; enabling this lets contained users function after publish.
     try {
-        if (Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue) {
-            $containedStatus = Invoke-Sqlcmd -ServerInstance $targetInstance -Database master -Query "SELECT value_in_use FROM sys.configurations WHERE name='contained database authentication';" | Select-Object -ExpandProperty value_in_use -ErrorAction Stop
-            if ($containedStatus -ne 1) {
-                Write-Host "Enabling contained database authentication on instance $targetInstance..." -ForegroundColor Cyan
-                Invoke-Sqlcmd -ServerInstance $targetInstance -Database master -Query "EXEC sp_configure 'contained database authentication', 1; RECONFIGURE;" -ErrorAction Stop
-                Write-Host "Contained database authentication enabled." -ForegroundColor Green
-            } else {
-                Write-Host "Contained database authentication already enabled." -ForegroundColor Gray
+        if (-not (Get-Command Invoke-Sqlcmd -ErrorAction SilentlyContinue)) {
+            # Ensure SqlServer module and Invoke-Sqlcmd are available
+            if (-not (Ensure-SqlServerModule)) {
+                throw "SqlServer module could not be installed/imported."
             }
+        }
+        $containedStatus = Invoke-Sqlcmd -ServerInstance $targetInstance -Database master -Query "SELECT value_in_use FROM sys.configurations WHERE name='contained database authentication';" | Select-Object -ExpandProperty value_in_use -ErrorAction Stop
+        if ($containedStatus -ne 1) {
+            Write-Host "Enabling contained database authentication on instance $targetInstance..." -ForegroundColor Cyan
+            Invoke-Sqlcmd -ServerInstance $targetInstance -Database master -Query "EXEC sp_configure 'contained database authentication', 1; RECONFIGURE;" -ErrorAction Stop
+            Write-Host "Contained database authentication enabled." -ForegroundColor Green
         } else {
-            Write-Host "Invoke-Sqlcmd not available (SqlServer module missing). Skipping containment enable step." -ForegroundColor Yellow
+            Write-Host "Contained database authentication already enabled." -ForegroundColor Gray
         }
     } catch {
         Write-Host "Failed to verify/enable contained database authentication: $($_.Exception.Message)" -ForegroundColor Yellow
