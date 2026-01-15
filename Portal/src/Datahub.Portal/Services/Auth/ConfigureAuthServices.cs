@@ -64,7 +64,7 @@ public static class ConfigureAuthServices
 
         if (gccfEnabled)
         {
-            ConfigurationHelper.DumpRedactedToConsole("GCCF Enabled. Client ID", configuration["GccfOidc:ClientId"]);
+            ConfigurationHelper.DumpRedactedToConsole("GCCF Enabled. Client ID", configuration["GccfOidc:ClientId"], configuration["GccfOidc:ClientSecret"]);
             // add the second OIDC provider
             services.AddAuthentication()
                 // Add a cookie scheme specifically for GCCF to avoid conflicts with the main "Cookies" scheme
