@@ -18,7 +18,10 @@ function Copy-AzureDbToLocal {
         [System.Management.Automation.PSCredential]$Credential,
     
         [Parameter(Mandatory=$false)]
-        [switch]$UseKeyVaultCredentials
+        [switch]$UseKeyVaultCredentials,
+
+        [Parameter(Mandatory=$true)]
+        [string]$EnvironmentName
     )
     
     # Validate credential inputs: mutually exclusive
@@ -111,8 +114,8 @@ function Copy-AzureDbToLocal {
             }
     
             try {
-                $user = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-admin"
-                $pass = Read-VaultSecret "fsdh-key-dev" "datahub-mssql-password"
+                $user = Read-VaultSecret "fsdh-key-$EnvironmentName" "datahub-mssql-admin"
+                $pass = Read-VaultSecret "fsdh-key-$EnvironmentName" "datahub-mssql-password"
                 
                 $sourceConn = "Server=$serverFqdn;Database=$DatabaseName;User ID=$user;Password=$pass;"
                 Write-Host "Server: $serverFqdn" -ForegroundColor Gray
