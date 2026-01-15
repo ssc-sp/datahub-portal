@@ -34,7 +34,7 @@
             <MudChip T="string" Color="@GetSecurityColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]">
                 <DHIcon Icon=@(Workspace.Data_Sensitivity == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock)/>
                 <MudText Typo="Typo.body1">
-                    @Localizer[(Workspace.Data_Sensitivity.ToString())]
+                    @Localizer[(Workspace.Data_Sensitivity.ToSpacedString())]
                 </MudText>
                 <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
             </MudChip>
