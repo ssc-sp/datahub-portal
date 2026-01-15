@@ -56,8 +56,23 @@ namespace Datahub.Core.Model.Users
         public DateTimeOffset? InvitationCodeAccepted { get; set; }
 
         /// <summary>
+        /// Gets or sets the OIDC subject identifier of the invited user for auditing purposes
+        /// </summary>
+        public string? ExternalSubjectInvited { get; set; }
+
+        /// <summary>
+        /// Gets or sets the reason for inviting the external user. Used for auditing purposes. Can be "Initial Invitation", "Email change", "Status change", etc.
+        /// </summary>
+        public required string InvitationRationale_EN { get; set; }
+
+        /// <summary>
         /// Gets or sets the timestamp for when the invite request was created.
         /// </summary>
         public DateTimeOffset Request_DT { get; set; }
+
+        /// <summary>
+        /// Gets or sets the timestamp for concurrency control.
+        /// </summary>
+        public byte[]? Timestamp { get; set; }
     }
 }
