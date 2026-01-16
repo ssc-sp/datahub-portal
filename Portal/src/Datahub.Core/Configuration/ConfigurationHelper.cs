@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.Configuration;
 
@@ -18,6 +19,8 @@ public static class ConfigurationHelper
     {
         WriteIndented = true
     };
+
+    public static string GetCurrentEnvironment(this IConfiguration configuration) => configuration["DataHub_ENVNAME"] ?? "dev";
 
     // Property name tokens considered sensitive (case-insensitive).
     private static readonly string[] SensitivePropertyTokens =
