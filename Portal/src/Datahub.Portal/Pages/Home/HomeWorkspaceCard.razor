@@ -1,7 +1,8 @@
-﻿@using Datahub.Application.Services
+@using Datahub.Application.Services
 @using Datahub.Application.Services.Notification
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Projects
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Shared.Entities
 @using Datahub.Shared
@@ -31,17 +32,11 @@
             <FeaturedProjectToggle Project="@Workspace" />
             <MudSpacer />
             <MudChip T="string" Color="@GetSecurityColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]">
-
-                <DHIcon Icon=@(Workspace.Data_Sensitivity.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock)/>
-                    @if (!Workspace.Data_Sensitivity.Equals("Unclassified"))
-                    {
-                        <MudText Typo="Typo.body1">
-                            <strong>
-                                @Localizer[(Workspace.Data_Sensitivity.Equals("Protected A") ? "A" : "B")]
-                            </strong>
-                        </MudText>
-                    }
-                    <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
+                <DHIcon Icon=@(Workspace.Data_Sensitivity == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock)/>
+                <MudText Typo="Typo.body1">
+                    @Localizer[(Workspace.Data_Sensitivity.ToSpacedString())]
+                </MudText>
+                <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
             </MudChip>
         </MudStack>
         <MudStack Row>
@@ -280,37 +275,29 @@
         };
     }
 
-    private Color GetSecurityColor(string securityLevel)
+    private Color GetSecurityColor(ClassificationType securityLevel)
     {
-        if (securityLevel is not null)
-        {
             switch (securityLevel)
             {
-                case "Protected B":
+                case ClassificationType.ProtectedB:
                     return Color.Error;
-                case "Protected A":
+                case ClassificationType.ProtectedA:
                     return Color.Warning;
                 default:
                     return Color.Primary;
             }
-        }
-        return Color.Primary;
     }
 
-    private string GetSecurityTitle(string securityLevel)
+    private string GetSecurityTitle(ClassificationType securityLevel)
     {
-        if (securityLevel is not null)
-        {
             switch (securityLevel)
             {
-                case "Protected B":
-                    return "This workspace has Protected B security level";
-                case "Protected A":
+                case ClassificationType.ProtectedB:
+                        return "This workspace has Protected B security level";
+                case ClassificationType.ProtectedA:
                     return "This workspace has Protected A security level";
                 default:
                     return "This workspace has Unclassified security level";
             }
-        }
-        return "This workspace is Unclassified security level";
     }
 }

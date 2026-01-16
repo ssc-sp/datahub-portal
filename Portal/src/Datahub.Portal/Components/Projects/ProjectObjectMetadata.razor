@@ -189,12 +189,11 @@
 
     private string GetProjectSensitivity()
     {
-        var sensitivity = (_project?.Data_Sensitivity ?? "").ToUpper();
+        var sensitivity = _project.Data_Sensitivity;
         return sensitivity switch
         {
-            "CLASSIFIED" or
-            "PROTECTED B" => SecurityClassification.ProtectedB,
-            "PROTECTED A" => SecurityClassification.ProtectedA,
+            ClassificationType.ProtectedB => SecurityClassification.ProtectedB,
+            ClassificationType.ProtectedA => SecurityClassification.ProtectedA,
             _ => SecurityClassification.Unclassified
         };
     }

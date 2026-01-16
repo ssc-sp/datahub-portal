@@ -3,6 +3,7 @@ using System;
 using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,12 +11,14 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    partial class SqliteDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20260112190050_DataSensitivityAsClassificationType")]
+    partial class DataSensitivityAsClassificationType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.11");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -220,6 +223,26 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                             Name = "Profile Prowler",
                             Points = 1
                         });
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUserRoleChange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("ChangeDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PortalUserRoleChange");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -849,7 +872,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<string>("Data_Sensitivity")
                         .IsRequired()
-                        .HasMaxLength(50)
                         .HasColumnType("TEXT");
 
                     b.Property<int>("DatahubAzureSubscriptionId")
@@ -1491,6 +1513,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
+                    b.Property<string>("Affiliation")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
                     b.Property<long?>("CreatedAt")
                         .HasColumnType("INTEGER");
 
@@ -1539,9 +1566,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("INTEGER");
 
                     b.Property<long?>("UserDeactivatedAt")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<long>("UserExpiryDate")
                         .HasColumnType("INTEGER");
 
                     b.HasKey("Id");
@@ -1597,26 +1621,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsUnique();
 
                     b.ToTable("PortalUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.PortalUserRoleChange", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("ChangeDate")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("PortalUserId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PortalUserRoleChange");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
@@ -1751,10 +1755,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<string>("ExternalSubjectInvited")
-                        .HasMaxLength(100)
-                        .HasColumnType("TEXT");
-
                     b.Property<string>("InvitationCode")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1765,11 +1765,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<long>("InvitationExpiry")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("InvitationRationale_EN")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("TEXT");
 
                     b.Property<Guid>("InvitationToken")
                         .HasColumnType("TEXT");
@@ -1787,11 +1782,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<long>("Request_DT")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BLOB");
 
                     b.Property<int>("UserId")
                         .HasColumnType("INTEGER");
