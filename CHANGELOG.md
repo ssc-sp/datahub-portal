@@ -1,5 +1,20 @@
 # Changelog
 
+## [8.1.0](https://github.com/ssc-sp/datahub-portal/compare/v8.0.0...v8.1.0) (2026-01-16)
+
+
+### Features
+
+* Added log for gccf in startup ([#1822](https://github.com/ssc-sp/datahub-portal/issues/1822)) ([05318d0](https://github.com/ssc-sp/datahub-portal/commit/05318d06f19a5c5f92d03cc6d5dc185ee8be7024))
+
+
+### Bug Fixes
+
+* Changing data sensitivity type ([#1816](https://github.com/ssc-sp/datahub-portal/issues/1816)) ([bb23fb1](https://github.com/ssc-sp/datahub-portal/commit/bb23fb1c983ce3a02e7325960940c7a3365a3ad0))
+* Migration fix and data model update ([#1825](https://github.com/ssc-sp/datahub-portal/issues/1825)) ([1896ce8](https://github.com/ssc-sp/datahub-portal/commit/1896ce87027c8a781746a4592b54118229ed3fba))
+* Removing the extra bracket that appears in storage explorer ([#1820](https://github.com/ssc-sp/datahub-portal/issues/1820)) ([6a6f09c](https://github.com/ssc-sp/datahub-portal/commit/6a6f09c213d539e045ab382bba1f2e7173dea7c3))
+* Sensitivity level name change and topbar fix ([#1823](https://github.com/ssc-sp/datahub-portal/issues/1823)) ([e0bde90](https://github.com/ssc-sp/datahub-portal/commit/e0bde90b4d911253fab9b09daaa64d3cf9944143))
+
 ## [8.0.0](https://github.com/ssc-sp/datahub-portal/compare/v7.0.3...v8.0.0) (2026-01-13)
 
 

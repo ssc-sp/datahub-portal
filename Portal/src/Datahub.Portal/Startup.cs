@@ -146,7 +146,7 @@ public class Startup
             .AddInteractiveServerComponents()
                         .AddCircuitOptions(o =>
                         {
-                            o.DetailedErrors = true; // todo: to make it 'true' only in development
+                            o.DetailedErrors = false;
                         }).AddHubOptions(o =>
                         {
                             o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB

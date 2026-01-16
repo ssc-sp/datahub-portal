@@ -48,13 +48,23 @@ public static class ConfigurationHelper
     /// Writes a redacted JSON dump to the console, wrapped with a header.
     /// </summary>
     /// <param name="title">A short title describing the dump.</param>
-    /// <param name="value">The object to serialize and redact.</param>
-    public static void DumpRedactedToConsole(string title, object? value)
+    /// <param name="values">The objects to serialize and redact.</param>
+    public static void DumpRedactedToConsole(string title, params object?[] values)
     {
         try
         {
             Console.WriteLine($"===== {title} (redacted) =====");
-            Console.WriteLine(ToRedactedJson(value));
+            foreach (var value in values)
+            {
+                if (value is null)
+                {
+                    Console.WriteLine("(null)");
+                }
+                else
+                {
+                    Console.WriteLine(ToRedactedJson(value));
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -91,9 +101,13 @@ public static class ConfigurationHelper
 
         var type = value.GetType();
 
-        // Primitives and commonly serializable leaf types
-        if (type.IsPrimitive || value is string || value is decimal || value is DateTime || value is DateTimeOffset || value is Guid || value is TimeSpan || value is Enum)
+        // Primitives and commonly serializable leaf types (strings are handled separately below)
+        if (type.IsPrimitive || value is decimal || value is DateTime || value is DateTimeOffset || value is Guid || value is TimeSpan || value is Enum)
             return value;
+
+        // If the value is a string, always mask it when serializing via this generic object path
+        if (value is string s)
+            return Mask(s);
 
         visited ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
         if (!visited.Add(value)) return "[circular]";

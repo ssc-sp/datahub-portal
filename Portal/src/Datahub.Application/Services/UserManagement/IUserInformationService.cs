@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Graph.Models;
@@ -181,10 +181,10 @@ public interface IUserInformationService
     /// <param name="first">The first name of the external user.</param>
     /// <param name="last">The last name of the external user.</param>
     /// <param name="org">The organization of the external user.</param>
-    /// <param name="jobTitle">The job title of the external user.</param>
     /// <param name="email">The email address of the external user.</param>
+    /// <param name="expiry">The expiration date of the external user.</param>
     /// <returns>The newly created <see cref="PortalUser"/>, or <c>null</c> when a portal record already exists or creation fails.</returns>
-    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string jobTitle, string email);
+    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry);
 
     /// <summary>
     /// Persists changes to the provided <see cref="PortalUser"/> instance.
