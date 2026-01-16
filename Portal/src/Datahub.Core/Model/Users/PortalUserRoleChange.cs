@@ -1,8 +1,7 @@
 using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Users;
 using static Datahub.Core.Model.Projects.Project_Role;
 
-namespace Datahub.Core.Model.Achievements;
+namespace Datahub.Core.Model.Users;
 
 /// <summary>
 /// Represents a record of status changes for a portal user.

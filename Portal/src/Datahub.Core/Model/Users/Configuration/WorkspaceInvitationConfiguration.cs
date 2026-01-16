@@ -30,6 +30,13 @@ namespace Datahub.Core.Model.Users.Configuration
             builder.HasIndex(i => i.InvitationToken)
                 .IsUnique();
 
+            builder.Property(i => i.ExternalSubjectInvited)
+                .HasMaxLength(100);
+
+            builder.Property(i => i.InvitationRationale_EN)
+                .IsRequired()
+                .HasMaxLength(200);
+
             builder.Property(i => i.Request_DT)
                 .HasConversion(
                     v => v,
@@ -40,6 +47,8 @@ namespace Datahub.Core.Model.Users.Configuration
             builder.HasOne(i => i.Project)
                 .WithMany() // avoid relying on a project-side navigation
                 .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Property(r => r.Timestamp).IsRowVersion();
         }
     }
 }

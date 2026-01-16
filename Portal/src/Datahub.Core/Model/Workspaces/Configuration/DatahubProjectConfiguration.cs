@@ -16,6 +16,7 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
             .ValueGeneratedOnAdd()
             .HasDefaultValueSql("GETUTCDATE()");
         builder.Property(p => p.Data_Sensitivity)
+            .HasMaxLength(50)
             .IsRequired()
             .HasConversion(
                 v => v == ClassificationType.ProtectedA ? "Protected A"
@@ -24,6 +25,7 @@ public class DatahubProjectConfiguration : IEntityTypeConfiguration<Datahub_Proj
                 v => v == "Protected A" ? ClassificationType.ProtectedA
                    : v == "Protected B" ? ClassificationType.ProtectedB
                    : ClassificationType.Unclassified);
+
         // builder.HasOne(e => e.DatahubAzureSubscription)
         //     .WithMany(s => s.Workspaces)
         //     .HasForeignKey(e => e.DatahubAzureSubscriptionId)
