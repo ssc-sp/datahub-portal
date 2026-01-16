@@ -648,7 +648,7 @@ public class UserInformationService(
         return false;
     }
 
-    public async Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string jobTitle, string email)
+    public async Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var exists = await ctx.ExternalUsers
@@ -673,7 +673,7 @@ public class UserInformationService(
                     FirstName = first,
                     LastName = last,
                     Organization = org,
-                    Affiliation = jobTitle
+                    UserExpiryDate = expiry,
                 },
                 Email = email,
                 DisplayName = displayName,

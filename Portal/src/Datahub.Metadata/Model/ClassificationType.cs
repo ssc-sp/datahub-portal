@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 namespace Datahub.Metadata.Model;
@@ -9,6 +10,22 @@ public enum ClassificationType : byte
     Unclassified,
     ProtectedA,
     ProtectedB
+}
+
+public static class ClassificationTypeExtension
+{
+    public static string ToSpacedString(this ClassificationType me)
+    {
+        switch (me)
+        {
+            case ClassificationType.ProtectedB:
+                return "Protected B";
+            case ClassificationType.ProtectedA:
+                return "Protected A";
+            default:
+                return "Unclassified";
+        }
+    }
 }
 
 public partial class SecurityClassificationStringConverter : ValueConverter<ClassificationType, string>

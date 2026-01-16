@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
@@ -255,7 +255,7 @@ public class OfflineUserInformationService : IUserInformationService
         throw new NotImplementedException();
     }
 
-    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string jobTitle, string email)
+    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry)
     {
         throw new NotImplementedException();
     }
