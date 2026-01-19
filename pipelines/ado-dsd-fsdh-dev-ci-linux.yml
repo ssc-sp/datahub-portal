@@ -260,6 +260,7 @@ jobs:
     inputs:
       PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       ArtifactName: user-provisioner
+      
 - job: Job_8
   displayName: Agent job - build db migrations
   dependsOn: Job_1
@@ -283,16 +284,18 @@ jobs:
       command: restore
       projects: Portal/src/Datahub.Portal/*.csproj
 
-  - task: DotNetCoreCLI@2
-    displayName: dotnet tool restore
+  - task: Bash@3
+    displayName: Install dotnet-ef (global) and set PATH
     inputs:
-      command: custom
-      custom: tool
-      arguments: restore
-      workingDirectory: $(Build.SourcesDirectory)
+      targetType: inline
+      script: |
+        set -euo pipefail
+        dotnet tool install --global dotnet-ef
+        echo "##vso[task.prependpath]$HOME/.dotnet/tools"
+        dotnet ef --version
 
   - task: DotNetCoreCLI@2
-    displayName: Create migrations bundle
+    displayName: Create migrations bundle (linux-x64)
     inputs:
       command: custom
       custom: ef
@@ -302,8 +305,8 @@ jobs:
         --startup-project Portal/src/Datahub.Portal/Datahub.Portal.csproj
         --configuration $(BuildConfiguration)
         --self-contained
-        -r $(target_os)
-        -o $(Build.ArtifactStagingDirectory)/output/migrations/efbundle
+        --runtime linux-x64
+        --output $(Build.ArtifactStagingDirectory)/output/migrations/efbundle
         --force
 
   - task: PublishBuildArtifacts@1
@@ -311,6 +314,7 @@ jobs:
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/migrations
       ArtifactName: db-migrations
+
 
 
 - job: Job_4
