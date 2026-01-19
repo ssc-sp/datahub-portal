@@ -260,6 +260,39 @@ jobs:
     inputs:
       PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       ArtifactName: user-provisioner
+- job: Job_8
+  displayName: Agent job - build db migrations
+  dependsOn: Job_1
+  pool:
+    vmImage: ubuntu-latest
+  steps:
+  - checkout: self
+    clean: true
+    lfs: true
+    fetchTags: false
+  - task: UseDotNet@2
+    displayName: Use .NET Core sdk 9.0.x
+    inputs:
+      version: 9.0.x
+      includePreviewVersions: true
+      performMultiLevelLookup: true
+  - task: DotNetCoreCLI@2
+    displayName: dotnet restore
+    inputs:
+      command: restore
+      projects: Portal/src/Datahub.Portal/*.csproj
+  - task: PowerShell@2
+    displayName: Create Migrations Bundle
+    inputs:
+      targetType: inline
+      script: |
+        dotnet tool install --global dotnet-ef
+        dotnet ef migrations bundle --project Portal/src/Datahub.Portal/Datahub.Portal.csproj -o $(Build.ArtifactStagingDirectory)/output/migrations/efbundle --self-contained -r $(target_os) --configuration $(BuildConfiguration) --force
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: db-migrations'
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/migrations
+      ArtifactName: db-migrations
 - job: Job_4
   displayName: Agent job - post-build
   dependsOn:
