@@ -12,10 +12,10 @@ jobs:
     steps:
       - name: Convert App token
         id: create_token 
-        uses: getsentry/action-github-app-token@v3.0.0
+        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2
         with:
-          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
-          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+          app-id:: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
 
       - name: Checkout proof-of-concept branch
         uses: actions/checkout@v4
