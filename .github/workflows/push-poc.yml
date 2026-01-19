@@ -22,24 +22,29 @@ jobs:
         with:
           ref: proof-of-concept
           token: ${{ steps.create_token.outputs.token }}
+          fetch-depth: 1
 
-      - name: Fetch develop for SHA compare
-        run: git fetch origin develop --depth=1
-
-      - name: Skip if not from develop branch
+      - name: Ensure Release is from Develop
         run: |
-          DEV_SHA=$(git rev-parse origin/develop)
-          if [ "$DEV_SHA" != "${{ github.event.release.target_commitish }}" ]; then
-            echo "Release not cut from develop (got ${{ github.event.release.target_commitish }}, expected $DEV_SHA). Skipping."
-            exit 0
+          TARGET="${{ github.event.release.target_commitish }}"
+          echo "Release target: $TARGET"
+          
+          if [ "$TARGET" != "develop" ]; then
+            echo "Skipping: Release was targeted at '$TARGET', not 'develop'."
+            exit 0 
           fi
 
-      - name: Fetch latest develop commit
-        run: git fetch origin develop --depth=1
+      - name: Fetch the Release Tag
+        run: git fetch origin ${{ github.ref }} --depth=1
 
-      - name: Hard‑reset proof-of-concept to develop
+      - name: Output Release Info
         run: |
-          git reset --hard FETCH_HEAD
+          echo "Deploying Release Version: ${{ github.event.release.tag_name }}"
+          echo "Commit SHA: ${{ github.sha }}"
+
+      - name: Hard-reset proof-of-concept to Release
+        run: |
+          git reset --hard ${{ github.sha }}
           git push origin proof-of-concept --force-with-lease
         env:
           GITHUB_TOKEN: ${{ steps.create_token.outputs.token }}
