@@ -64,6 +64,7 @@ jobs:
         Write-Host "Setting the name of the build to '$buildName'."
 
         Write-Host "##vso[build.updatebuildnumber]$buildName"
+
 - job: Job_2
   displayName: Agent job - build portal app
   dependsOn: Job_1
@@ -74,40 +75,74 @@ jobs:
     clean: true
     lfs: true
     fetchTags: false
+
   - task: UseDotNet@2
     displayName: Use .NET Core sdk 9.0.x
     inputs:
       version: 9.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
+
   - task: PowerShell@2
     displayName: PowerShell Script - copy appsettings
     inputs:
       targetType: inline
       script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
-  - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    enabled: False
-    inputs:
-      command: restore
-      projects: Portal/src/Datahub.Portal/*.csproj
+
   - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
       projects: Portal/src/Datahub.Portal/*.csproj
       arguments: --configuration $(BuildConfiguration)
+
+  - task: Bash@3
+    displayName: Install dotnet-ef (global) and set PATH
+    inputs:
+      targetType: inline
+      script: |
+        set -euo pipefail
+        dotnet tool install --global dotnet-ef
+        echo "##vso[task.prependpath]$HOME/.dotnet/tools"
+        dotnet ef --version
+
+  - task: DotNetCoreCLI@2
+    displayName: Create migrations bundle (linux-x64)
+    inputs:
+      command: custom
+      custom: ef
+      arguments: >
+        migrations bundle
+        --project Portal/src/Datahub.Portal/Datahub.Portal.csproj
+        --startup-project Portal/src/Datahub.Portal/Datahub.Portal.csproj
+        --configuration $(BuildConfiguration)
+        --self-contained
+        --runtime linux-x64
+        --output $(Build.ArtifactStagingDirectory)/output/migrations/efbundle
+        --force
+
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish Artifact: db-migrations'
+    inputs:
+      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/migrations
+      ArtifactName: db-migrations
+
   - task: DotNetCoreCLI@2
     displayName: dotnet publish
     inputs:
       command: publish
       publishWebProjects: false
       projects: Portal/src/Datahub.Portal/*.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
+      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r linux-x64 --self-contained true
+
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: datahub-portal'
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
       ArtifactName: datahub-portal
+
+
+
+
 - job: Job_3
   displayName: Agent job - build function app
   dependsOn: Job_1
@@ -260,64 +295,6 @@ jobs:
     inputs:
       PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       ArtifactName: user-provisioner
-
-- job: Job_8
-  displayName: Agent job - build db migrations
-  dependsOn: Job_1
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-
-  - task: UseDotNet@2
-    displayName: Use .NET Core sdk 9.0.x
-    inputs:
-      version: 9.0.x
-      includePreviewVersions: true
-
-  - task: DotNetCoreCLI@2
-    displayName: dotnet restore (portal)
-    inputs:
-      command: restore
-      projects: Portal/src/Datahub.Portal/*.csproj
-      arguments: '--runtime linux-x64'
-
-  - task: Bash@3
-    displayName: Install dotnet-ef (global) and set PATH
-    inputs:
-      targetType: inline
-      script: |
-        set -euo pipefail
-        dotnet tool install --global dotnet-ef
-        echo "##vso[task.prependpath]$HOME/.dotnet/tools"
-        dotnet ef --version
-
-  - task: DotNetCoreCLI@2
-    displayName: Create migrations bundle (linux-x64)
-    inputs:
-      command: custom
-      custom: ef
-      arguments: >
-        migrations bundle
-        --project Portal/src/Datahub.Portal/Datahub.Portal.csproj
-        --startup-project Portal/src/Datahub.Portal/Datahub.Portal.csproj
-        --configuration $(BuildConfiguration)
-        --self-contained
-        --runtime linux-x64
-        --output $(Build.ArtifactStagingDirectory)/output/migrations/efbundle
-        --force
-
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: db-migrations'
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/migrations
-      ArtifactName: db-migrations
-
-
-
 - job: Job_4
   displayName: Agent job - post-build
   dependsOn:
