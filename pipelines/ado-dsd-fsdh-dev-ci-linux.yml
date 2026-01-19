@@ -118,6 +118,7 @@ jobs:
         --self-contained
         --runtime linux-x64
         --output $(Build.ArtifactStagingDirectory)/output/migrations/efbundle
+        --no-build
         --force
 
   - task: PublishBuildArtifacts@1
