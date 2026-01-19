@@ -270,29 +270,49 @@ jobs:
     clean: true
     lfs: true
     fetchTags: false
+
   - task: UseDotNet@2
     displayName: Use .NET Core sdk 9.0.x
     inputs:
       version: 9.0.x
       includePreviewVersions: true
-      performMultiLevelLookup: true
+
   - task: DotNetCoreCLI@2
-    displayName: dotnet restore
+    displayName: dotnet restore (portal)
     inputs:
       command: restore
       projects: Portal/src/Datahub.Portal/*.csproj
-  - task: PowerShell@2
-    displayName: Create Migrations Bundle
+
+  - task: DotNetCoreCLI@2
+    displayName: dotnet tool restore
     inputs:
-      targetType: inline
-      script: |
-        dotnet tool install --global dotnet-ef
-        dotnet ef migrations bundle --project Portal/src/Datahub.Portal/Datahub.Portal.csproj -o $(Build.ArtifactStagingDirectory)/output/migrations/efbundle --self-contained -r $(target_os) --force --configuration $env:BuildConfiguration 
+      command: custom
+      custom: tool
+      arguments: restore
+      workingDirectory: $(Build.SourcesDirectory)
+
+  - task: DotNetCoreCLI@2
+    displayName: Create migrations bundle
+    inputs:
+      command: custom
+      custom: ef
+      arguments: >
+        migrations bundle
+        --project Portal/src/Datahub.Portal/Datahub.Portal.csproj
+        --startup-project Portal/src/Datahub.Portal/Datahub.Portal.csproj
+        --configuration $(BuildConfiguration)
+        --self-contained
+        -r $(target_os)
+        -o $(Build.ArtifactStagingDirectory)/output/migrations/efbundle
+        --force
+
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: db-migrations'
     inputs:
       PathtoPublish: $(Build.ArtifactStagingDirectory)/output/migrations
       ArtifactName: db-migrations
+
+
 - job: Job_4
   displayName: Agent job - post-build
   dependsOn:
