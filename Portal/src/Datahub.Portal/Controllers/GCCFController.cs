@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement;
+using Microsoft.FeatureManagement.Mvc;
 
 namespace Datahub.Portal.Controllers;
 
@@ -12,17 +13,13 @@ namespace Datahub.Portal.Controllers;
 /// The login method is only for testing
 /// </summary>
 [Route("/gccf")]
-public class GCCFController(IFeatureManagerSnapshot featureManager) : Controller
+[FeatureGate(Features.GCCF_Feature)]
+public class GCCFController() : Controller
 {
 
     [HttpGet("login")]
     public async Task<IActionResult> Login(string returnUrl = "/", string locale = "en-CA")
-    {
-        if (!await featureManager.IsEnabledAsync(Features.GCCF_Feature))
-        {
-            return NotFound();
-        }
-        
+    {       
         var props = new AuthenticationProperties { RedirectUri = returnUrl };
         // Pass the current UI culture as 'ui_locales' parameter
         props.Items["ui_locales"] = locale;
@@ -34,10 +31,6 @@ public class GCCFController(IFeatureManagerSnapshot featureManager) : Controller
     [HttpGet("sector-identifier.json")]
     public async Task<IActionResult> SectorIdentifier()
     {
-        if (!await featureManager.IsEnabledAsync(Features.GCCF_Feature))
-        {
-            return NotFound();
-        }
         var host = Request.Host.ToUriComponent();
         var scheme = Request.Scheme;
         
