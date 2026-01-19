@@ -260,7 +260,7 @@ jobs:
     inputs:
       PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
       ArtifactName: user-provisioner
-      
+
 - job: Job_8
   displayName: Agent job - build db migrations
   dependsOn: Job_1
@@ -283,6 +283,7 @@ jobs:
     inputs:
       command: restore
       projects: Portal/src/Datahub.Portal/*.csproj
+      arguments: '--runtime linux-x64'
 
   - task: Bash@3
     displayName: Install dotnet-ef (global) and set PATH
