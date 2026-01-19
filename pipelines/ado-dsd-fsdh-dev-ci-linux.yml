@@ -287,7 +287,7 @@ jobs:
       targetType: inline
       script: |
         dotnet tool install --global dotnet-ef
-        dotnet ef migrations bundle --project Portal/src/Datahub.Portal/Datahub.Portal.csproj -o $(Build.ArtifactStagingDirectory)/output/migrations/efbundle --self-contained -r $(target_os) --configuration $(BuildConfiguration) --force
+        dotnet ef migrations bundle --project Portal/src/Datahub.Portal/Datahub.Portal.csproj -o $(Build.ArtifactStagingDirectory)/output/migrations/efbundle --self-contained -r $(target_os) --force --configuration $env:BuildConfiguration 
   - task: PublishBuildArtifacts@1
     displayName: 'Publish Artifact: db-migrations'
     inputs:
