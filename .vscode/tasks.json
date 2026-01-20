@@ -23,6 +23,12 @@
       "label": "Watch Portal (Hot Reload)",
       "command": "dotnet",
       "type": "process",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "ASPNETCORE_ENVIRONMENT": "Development"
+        }
+      },
       "args": [
         "watch",
         "run",
@@ -48,6 +54,21 @@
         "-NoProfile",
         "-Command",
         "$tenant = (\"${input:tenantId}\" -split \"\\)\\s+\", 2)[1]; Import-Module Az.Accounts -ErrorAction Stop; Connect-AzAccount -UseDeviceAuthentication -Tenant $tenant; Get-AzContext | Format-List"
+      ],
+      "problemMatcher": [],
+      "presentation": { "reveal": "always", "panel": "dedicated" }
+    },
+    {
+      "label": "Config: Generate appsettings (gen-all-settings.ps1)",
+      "type": "shell",
+      "command": "pwsh",
+      "args": [
+        "-NoLogo",
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        "${workspaceFolder}/gen-all-settings.ps1"
       ],
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated" }
