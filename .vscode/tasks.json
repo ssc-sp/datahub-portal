@@ -47,7 +47,7 @@
         "-NoLogo",
         "-NoProfile",
         "-Command",
-        "$tenant = ('${input:tenantId}' -split '\\)\\s+', 2)[1]; Import-Module Az.Accounts -ErrorAction Stop; Connect-AzAccount -UseDeviceAuthentication -Tenant $tenant; Get-AzContext | Format-List"
+        "$tenant = (\"${input:tenantId}\" -split \"\\)\\s+\", 2)[1]; Import-Module Az.Accounts -ErrorAction Stop; Connect-AzAccount -UseDeviceAuthentication -Tenant $tenant; Get-AzContext | Format-List"
       ],
       "problemMatcher": [],
       "presentation": { "reveal": "always", "panel": "dedicated" }
