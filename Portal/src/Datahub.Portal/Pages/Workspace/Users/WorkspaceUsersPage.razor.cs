@@ -3,10 +3,12 @@ using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Utilities;
+using Datahub.Portal.Pages.Tools.LockedUsers;
 
 namespace Datahub.Portal.Pages.Workspace.Users
 {
@@ -201,6 +203,26 @@ namespace Datahub.Portal.Pages.Workspace.Users
             _updateInProgress = false;
             await InitializedProjectMembers();
             StateHasChanged();
+        }
+
+        private async Task OpenUploadEvidenceDialog(PortalUser user)
+        {
+            var parameters = new DialogParameters
+            {
+                { "User", user }
+            };
+
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+            var dialog = await _dialogService.ShowAsync<UploadVirusScanEvidenceDialog>(
+                Localizer["Upload Virus Scan Evidence"], 
+                parameters, 
+                options);
+
+            var result = await dialog.Result;
+            if (result != null && !result.Canceled)
+            {
+                await InitializedProjectMembers();
+            }
         }
     }
 }

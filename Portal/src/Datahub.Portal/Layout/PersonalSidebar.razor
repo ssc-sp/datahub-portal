@@ -160,6 +160,8 @@
         public const string MetadataDefinitions = "metadata/definitions";
         public const string VersionControl = "version-control";
         public const string VersionControl_FR = "controle-de-version";
+        public const string LockedUsers = "locked-users";
+        public const string LockedUsers_FR = "utilisateurs-verrouilles";
     }
 
 
@@ -176,6 +178,7 @@
     {
         SectionViews.Diagnostics,
         SectionViews.SupportRequests,
+        SectionViews.LockedUsers,
         SectionViews.Statistics,
         SectionViews.HealthCheck,
         SectionViews.Email,
@@ -234,6 +237,7 @@
             SectionViews.HostingServices => SidebarIcons.HostingServices,
             SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
             SectionViews.VersionControl => SidebarIcons.VersionControl,
+            SectionViews.LockedUsers => Icons.Material.Filled.Lock,
             _ => SidebarIcons.Profile
         };
     }
@@ -257,6 +261,7 @@
             SectionViews.HostingServices => Localizer["Hosting Services"],
             SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
             SectionViews.VersionControl => Localizer["Version Control"],
+            SectionViews.LockedUsers => Localizer["Locked Users"],
 
             _ => Localizer["Public Profile"]
         };

@@ -1,0 +1,107 @@
+@using Datahub.Core.Model.Users
+@using Datahub.Application.Services.UserManagement
+@using MudBlazor
+@using Microsoft.AspNetCore.Authorization
+
+@inject IUserInformationService _userInformationService
+@inject NavigationManager _navigationManager
+
+@page "/account/locked"
+@page "/compte/verrouille"
+@attribute [AllowAnonymous]
+
+<PageTitle>
+    @Localizer["Account Locked - Federal Science DataHub"]
+</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
+    <MudPaper Elevation="3" Class="pa-8">
+        <MudStack Spacing="4" AlignItems="AlignItems.Center">
+            <MudIcon Icon="@Icons.Material.Filled.Lock" 
+                     Color="Color.Error" 
+                     Style="font-size: 4rem;"/>
+            
+            <MudText Typo="Typo.h3" Align="Align.Center" Color="Color.Error">
+                @Localizer["Account Locked"]
+            </MudText>
+
+            <MudDivider/>
+
+            <MudText Typo="Typo.h5" Align="Align.Center">
+                @Localizer["Your account has been temporarily locked"]
+            </MudText>
+
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Filled">
+                <MudText Typo="Typo.body1">
+                    @Localizer["Your account was locked because you uploaded a file that was flagged as infected by our virus scanning system."]
+                </MudText>
+            </MudAlert>
+
+            <MudStack Spacing="2" Class="mt-4">
+                <MudText Typo="Typo.h6">
+                    @Localizer["To regain access to the portal:"]
+                </MudText>
+                
+                <MudList T="string" Dense>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Security">
+                        <MudText Typo="Typo.body1">
+                            @Localizer["Run a complete virus scan on your computer using up-to-date antivirus software"]
+                        </MudText>
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.Screenshot">
+                        <MudText Typo="Typo.body1">
+                            @Localizer["Take a screenshot of the clean virus scan report"]
+                        </MudText>
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.ContactMail">
+                        <MudText Typo="Typo.body1">
+                            @Localizer["Contact your workspace administrator and provide them with the screenshot"]
+                        </MudText>
+                    </MudListItem>
+                    <MudListItem T="string" Icon="@Icons.Material.Filled.AdminPanelSettings">
+                        <MudText Typo="Typo.body1">
+                            @Localizer["Your workspace administrator will review the evidence and unlock your account"]
+                        </MudText>
+                    </MudListItem>
+                </MudList>
+            </MudStack>
+
+            <MudDivider Class="mt-4"/>
+
+            <MudAlert Severity="Severity.Info">
+                <MudText Typo="Typo.body2">
+                    @Localizer["This security measure helps protect the Federal Science DataHub infrastructure and all users' data. We appreciate your cooperation in maintaining a secure environment."]
+                </MudText>
+            </MudAlert>
+
+            <MudStack Row Spacing="2" Class="mt-4">
+                <DHButton Variant="Variant.Filled" 
+                         Color="Color.Primary" 
+                         StartIcon="@Icons.Material.Filled.Logout"
+                         Href="@PageRoutes.Logout">
+                    @Localizer["Sign Out"]
+                </DHButton>
+            </MudStack>
+
+            @if (_lockedDate.HasValue)
+            {
+                <MudText Typo="Typo.caption" Class="mt-4">
+                    @Localizer["Locked on: {0}", _lockedDate.Value.ToString("yyyy-MM-dd HH:mm")]
+                </MudText>
+            }
+        </MudStack>
+    </MudPaper>
+</MudContainer>
+
+@code {
+    private DateTime? _lockedDate;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var user = await _userInformationService.GetCurrentPortalUserAsync();
+        if (user?.UserSettings != null)
+        {
+            _lockedDate = user.UserSettings.LockedOutDate;
+        }
+    }
+}

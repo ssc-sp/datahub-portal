@@ -1,0 +1,147 @@
+@using Datahub.Core.Model.Users
+@using Datahub.Core.Model.Projects
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@using Microsoft.EntityFrameworkCore
+
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISnackbar _snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="4">
+            <MudText Typo="Typo.body1">
+                @Localizer["Upload a screenshot of the virus scan report showing that {0}'s computer is clean.", User?.DisplayName ?? User?.Email]
+            </MudText>
+
+            <MudFileUpload T="IBrowserFile" 
+                          Accept=".png,.jpg,.jpeg,.pdf" 
+                          FilesChanged="OnFileSelected"
+                          MaximumFileCount="1">
+                <ActivatorContent>
+                    <DHButton Variant="Variant.Filled"
+                             Color="Color.Primary"
+                             StartIcon="@Icons.Material.Filled.CloudUpload">
+                        @Localizer["Select File"]
+                    </DHButton>
+                </ActivatorContent>
+            </MudFileUpload>
+
+            @if (_selectedFile != null)
+            {
+                <MudChip T="string" Color="Color.Success" Icon="@Icons.Material.Filled.AttachFile">
+                    @_selectedFile.Name (@FormatFileSize(_selectedFile.Size))
+                </MudChip>
+            }
+
+            @if (_uploadProgress > 0)
+            {
+                <MudProgressLinear Value="_uploadProgress" Color="Color.Primary" Size="Size.Medium"/>
+                <MudText Typo="Typo.caption">@Localizer["Uploading... {0}%", _uploadProgress.ToString("F0")]</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <DHButton OnClick="Cancel" Variant="Variant.Text">@Localizer["Cancel"]</DHButton>
+        <DHButton OnClick="Upload" 
+                 Variant="Variant.Filled" 
+                 Color="Color.Primary" 
+                 Disabled="@(_selectedFile == null || _uploading)">
+            @Localizer["Upload"]
+        </DHButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public PortalUser? User { get; set; }
+
+    private IBrowserFile? _selectedFile;
+    private bool _uploading;
+    private double _uploadProgress;
+
+    private void OnFileSelected(IBrowserFile file)
+    {
+        _selectedFile = file;
+        StateHasChanged();
+    }
+
+    private async Task Upload()
+    {
+        if (_selectedFile == null || User == null)
+            return;
+
+        _uploading = true;
+        _uploadProgress = 0;
+        StateHasChanged();
+
+        try
+        {
+            // TODO: Implement actual file upload to Azure Blob Storage
+            // For now, we'll simulate the upload and store a mock URL
+            
+            // Simulate upload progress
+            for (int i = 0; i <= 100; i += 10)
+            {
+                _uploadProgress = i;
+                StateHasChanged();
+                await Task.Delay(100);
+            }
+
+            // Store the evidence URL in the database
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+            var userToUpdate = await dbContext.PortalUsers
+                .Include(u => u.UserSettings)
+                .FirstOrDefaultAsync(u => u.Id == User.Id);
+
+            if (userToUpdate != null)
+            {
+                if (userToUpdate.UserSettings == null)
+                {
+                    userToUpdate.UserSettings = new UserSettings
+                    {
+                        PortalUserId = userToUpdate.Id
+                    };
+                    dbContext.UserSettings.Add(userToUpdate.UserSettings);
+                }
+
+                // TODO: Replace with actual uploaded file URL
+                userToUpdate.UserSettings.VirusScanEvidenceUrl = $"mock://evidence/{User.Id}/{_selectedFile.Name}";
+                userToUpdate.UserSettings.VirusScanEvidenceUploadDate = DateTime.UtcNow;
+
+                await dbContext.SaveChangesAsync();
+            }
+
+            _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(Localizer["Failed to upload evidence: {0}", ex.Message], Severity.Error);
+        }
+        finally
+        {
+            _uploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}

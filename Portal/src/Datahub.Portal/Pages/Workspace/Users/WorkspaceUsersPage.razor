@@ -172,6 +172,7 @@
             @Localizer["Email"]
           </MudTableSortLabel>
         </MudTh>
+        <MudTh>@Localizer["Status"]</MudTh>
         <MudTh>@Localizer["Role"]</MudTh>
         <MudTh>@Localizer["Data Steward"]</MudTh>
         <MudTh>
@@ -193,6 +194,37 @@
         </MudTd>
         <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
           @rowContext.PortalUser.Email
+        </MudTd>
+        <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
+          @if (rowContext.PortalUser?.UserSettings?.IsLockedOut == true)
+          {
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+              <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Lock">
+                @Localizer["Locked"]
+              </MudChip>
+              @if (!string.IsNullOrEmpty(rowContext.PortalUser.UserSettings.VirusScanEvidenceUrl))
+              {
+                <MudTooltip Text="@Localizer["Virus scan evidence uploaded"]">
+                  <MudIcon Icon="@Icons.Material.Filled.CheckCircle" Color="Color.Success" Size="Size.Small"/>
+                </MudTooltip>
+              }
+              else
+              {
+                <DHButton Size="Size.Small"
+                         Variant="Variant.Text"
+                         Color="Color.Primary"
+                         OnClick="@(() => OpenUploadEvidenceDialog(rowContext.PortalUser))">
+                  @Localizer["Upload Evidence"]
+                </DHButton>
+              }
+            </MudStack>
+          }
+          else
+          {
+            <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">
+              @Localizer["Active"]
+            </MudChip>
+          }
         </MudTd>
         <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
           @if (rowContext.Role.Id == (int)Project_Role.RoleNames.DisabledUser)

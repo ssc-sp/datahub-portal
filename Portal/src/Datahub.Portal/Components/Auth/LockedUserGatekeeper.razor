@@ -1,0 +1,49 @@
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Users
+
+@inject IUserInformationService _userInformationService
+@inject NavigationManager _navigationManager
+
+@if (_isChecked)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private bool _isChecked = false;
+    private const string LockedAccountPath = "/account/locked";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Don't check if we're already on the locked page or logout page
+        var currentPath = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+        if (currentPath.StartsWith("account/locked", StringComparison.OrdinalIgnoreCase) || 
+            currentPath.StartsWith("signout", StringComparison.OrdinalIgnoreCase))
+        {
+            _isChecked = true;
+            return;
+        }
+
+        try
+        {
+            var user = await _userInformationService.GetCurrentPortalUserAsync();
+            
+            if (user?.UserSettings?.IsLockedOut == true)
+            {
+                // User is locked out, redirect to locked account page
+                _navigationManager.NavigateTo(LockedAccountPath, forceLoad: true);
+                return;
+            }
+        }
+        catch
+        {
+            // If we can't check the user status, allow them through
+            // The authentication system will handle unauthorized access
+        }
+
+        _isChecked = true;
+    }
+}

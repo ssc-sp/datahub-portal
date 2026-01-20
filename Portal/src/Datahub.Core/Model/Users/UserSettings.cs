@@ -54,4 +54,24 @@ public class UserSettings
     /// Gets or sets the preferred theme for this user ("Light mode" or "Dark mode").
     /// </summary>
     public string? Theme { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the user is locked out due to uploading infected files.
+    /// </summary>
+    public bool IsLockedOut { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time when the user was locked out.
+    /// </summary>
+    public DateTime? LockedOutDate { get; set; }
+
+    /// <summary>
+    /// Gets or sets the URL of the uploaded virus scan evidence screenshot.
+    /// </summary>
+    public string? VirusScanEvidenceUrl { get; set; }
+
+    /// <summary>
+    /// Gets or sets the date and time when the virus scan evidence was uploaded.
+    /// </summary>
+    public DateTime? VirusScanEvidenceUploadDate { get; set; }
 }

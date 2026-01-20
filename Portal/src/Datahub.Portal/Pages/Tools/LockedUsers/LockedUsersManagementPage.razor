@@ -1,0 +1,203 @@
+@using Datahub.Core.Model.Users
+@using Datahub.Core.Model.Projects
+@using Datahub.Application.Services.UserManagement
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+@using Microsoft.EntityFrameworkCore
+
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISnackbar _snackbar
+@inject IDialogService _dialogService
+@inject NavigationManager _navigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">@Localizer["Locked Users Management"]</MudText>
+    <MudText Typo="Typo.body1" Class="mb-6">
+        @Localizer["Manage users who have been locked out due to uploading infected files. Upload virus scan evidence and unlock users."]
+    </MudText>
+
+    @if (_loading)
+    {
+        <DHLoadingInitializer Message="@Localizer["Loading locked users..."]"/>
+    }
+    else
+    {
+        <MudTable Items="@_lockedUsers" Striped Hover Dense>
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer["Locked Users"]</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="_searchString" 
+                             Placeholder=@Localizer["Search by name or email"]
+                             Adornment="Adornment.Start" 
+                             AdornmentIcon="@Icons.Material.Filled.Search" 
+                             IconSize="Size.Medium"
+                             Class="mt-0"/>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>@Localizer["User"]</MudTh>
+                <MudTh>@Localizer["Email"]</MudTh>
+                <MudTh>@Localizer["Locked Since"]</MudTh>
+                <MudTh>@Localizer["Virus Scan Evidence"]</MudTh>
+                <MudTh>@Localizer["Actions"]</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @if (FilterUser(context))
+                {
+                    <MudTd DataLabel="User">
+                        <MudText Typo="Typo.body1">@context.DisplayName</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Email">
+                        <MudText Typo="Typo.body2">@context.Email</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Locked Since">
+                        <MudText Typo="Typo.body2">
+                            @(context.UserSettings?.IsLockedOut == true 
+                                ? context.UserSettings.LockedOutDate?.ToString("yyyy-MM-dd HH:mm") ?? "N/A" 
+                                : "N/A")
+                        </MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Virus Scan Evidence">
+                        @if (!string.IsNullOrEmpty(context.UserSettings?.VirusScanEvidenceUrl))
+                        {
+                            <MudChip T="string" Color="Color.Success" Size="Size.Small">
+                                @Localizer["Uploaded"]
+                            </MudChip>
+                            <DHButton Size="Size.Small" 
+                                     Variant="Variant.Text" 
+                                     OnClick="@(() => ViewEvidence(context.UserSettings.VirusScanEvidenceUrl))">
+                                @Localizer["View"]
+                            </DHButton>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                                @Localizer["Pending"]
+                            </MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudStack Row Spacing="2">
+                            <DHButton Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="Color.Primary"
+                                     StartIcon="@Icons.Material.Filled.Upload"
+                                     OnClick="@(() => OpenUploadDialog(context))">
+                                @Localizer["Upload Evidence"]
+                            </DHButton>
+                            <DHButton Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="Color.Success"
+                                     StartIcon="@Icons.Material.Filled.LockOpen"
+                                     OnClick="@(() => UnlockUser(context))"
+                                     Disabled="@(string.IsNullOrEmpty(context.UserSettings?.VirusScanEvidenceUrl))">
+                                @Localizer["Unlock"]
+                            </DHButton>
+                        </MudStack>
+                    </MudTd>
+                }
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText Typo="Typo.body1">@Localizer["No locked users found."]</MudText>
+            </NoRecordsContent>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    private List<PortalUser> _lockedUsers = new();
+    private string _searchString = "";
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadLockedUsers();
+    }
+
+    private async Task LoadLockedUsers()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        
+        // TODO: Replace with actual locked status field when backend is implemented
+        // For now, we'll create mock data for UI visualization
+        _lockedUsers = await dbContext.PortalUsers
+            .Include(u => u.UserSettings)
+            .Where(u => u.UserSettings != null && u.UserSettings.IsLockedOut == true)
+            .ToListAsync();
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private bool FilterUser(PortalUser user)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        return user.DisplayName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
+               user.Email?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private async Task OpenUploadDialog(PortalUser user)
+    {
+        var parameters = new DialogParameters
+        {
+            { "User", user }
+        };
+
+        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+        var dialog = await _dialogService.ShowAsync<UploadVirusScanEvidenceDialog>(
+            Localizer["Upload Virus Scan Evidence"], 
+            parameters, 
+            options);
+
+        var result = await dialog.Result;
+        if (result != null && !result.Canceled)
+        {
+            await LoadLockedUsers();
+        }
+    }
+
+    private async Task UnlockUser(PortalUser user)
+    {
+        var confirmed = await _dialogService.ShowMessageBox(
+            Localizer["Confirm Unlock"],
+            Localizer["Are you sure you want to unlock {0}? They will regain access to the portal.", user.DisplayName ?? user.Email],
+            yesText: Localizer["Unlock"],
+            cancelText: Localizer["Cancel"]);
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+                var userToUpdate = await dbContext.PortalUsers
+                    .Include(u => u.UserSettings)
+                    .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+                if (userToUpdate?.UserSettings != null)
+                {
+                    userToUpdate.UserSettings.IsLockedOut = false;
+                    userToUpdate.UserSettings.LockedOutDate = null;
+                    await dbContext.SaveChangesAsync();
+
+                    _snackbar.Add(Localizer["User {0} has been unlocked successfully.", user.DisplayName ?? user.Email], Severity.Success);
+                    await LoadLockedUsers();
+                }
+            }
+            catch (Exception ex)
+            {
+                _snackbar.Add(Localizer["Failed to unlock user: {0}", ex.Message], Severity.Error);
+            }
+        }
+    }
+
+    private void ViewEvidence(string evidenceUrl)
+    {
+        // TODO: Implement evidence viewer - could open in new tab or show in dialog
+        _navigationManager.NavigateTo(evidenceUrl, true);
+    }
+}
