@@ -94,7 +94,6 @@ public static class ConfigureAuthServices
                     }
                     options.ClientId = configuration["GccfOidc:ClientId"] ?? throw new ArgumentNullException("GCCF ClientID"); // From configuration
                     options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret"); // From configuration
-                    options.ResponseType = OpenIdConnectResponseType.Code;
 
                     options.CallbackPath = GccfSigninURL;
                     options.SaveTokens = true;
