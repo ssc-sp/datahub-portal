@@ -173,6 +173,11 @@ public static class TerraformOutputHelper
   }";
     }
 
+    public static string GetWorkspaceResourceGroupName(Datahub_Project project, string envAcronym)
+    {
+        return $"fsdh_proj_{project.Project_Acronym_CD.ToLower()}_{envAcronym}_rg";
+    }
+
     private static string GetExpectedTerraformOutputResourceGroupString()
     {
         return @"  ""new_project_template"": {
