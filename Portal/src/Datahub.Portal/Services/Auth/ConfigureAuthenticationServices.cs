@@ -99,6 +99,7 @@ public static class ConfigureAuthenticationServices
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
+                    options.UsePkce = true;
                 });
         }
 
