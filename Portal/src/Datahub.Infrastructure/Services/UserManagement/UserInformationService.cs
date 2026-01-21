@@ -53,7 +53,11 @@ public class UserInformationService(
             if (traceClaims)
             {
                 logger.LogDebug("User:{User} Authentication Status: {IsAuthenticated}", authenticatedUser?.Identity?.Name ?? "Unknown", authenticatedUser?.Identity?.IsAuthenticated);
-
+                if (authenticatedUser == null)
+                {
+                    logger.LogDebug("No authenticated user found.");
+                    throw new InvalidOperationException("No authenticated user found.");
+                }
                 foreach (var claim in authenticatedUser.Claims)
                 {
                     logger.LogDebug("Claim: {Type} - {Value}", claim.Type, claim.Value);
