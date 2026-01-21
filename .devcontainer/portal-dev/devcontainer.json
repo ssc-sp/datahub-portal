@@ -1,7 +1,12 @@
 {
   "name": "C# Dev (Interactive)",
-  "image": "mcr.microsoft.com/devcontainers/dotnet:dev-9.0-noble",
-  
+
+  "build": {
+  "dockerfile": "Dockerfile",
+  "context": ".",
+  "options": ["--platform=linux/amd64"]
+},
+
   "features": {
     "ghcr.io/devcontainers/features/azure-cli:1": {},
     "ghcr.io/devcontainers/features/powershell:1": {}
@@ -15,12 +20,12 @@
   },
 
   "forwardPorts": [5000, 5001],
-  
+
   "portsAttributes": {
     "5001": { "protocol": "https", "label": "Portal HTTPS" },
     "5000": { "protocol": "http", "label": "Portal HTTP" }
   },
-  
+
   "customizations": {
     "vscode": {
       "extensions": [
@@ -29,11 +34,15 @@
         "tamasfe.even-better-toml"
       ],
       "settings": {
-        "dotnet.defaultSolution": "Datahub.Portal.sln" 
+        "dotnet.defaultSolution": "Datahub.Portal.sln"
       }
     }
   },
 
-  "runArgs": ["--env-file", ".devcontainer/portal-dev/devcontainer.env"],
+  "runArgs": [
+  "--platform=linux/amd64",
+  "--env-file",
+  ".devcontainer/portal-dev/devcontainer.env"
+],
   "postCreateCommand": "bash .devcontainer/portal-dev/post-create.sh"
 }

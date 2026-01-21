@@ -30,7 +30,7 @@ pwsh -c "
 "
 
 
-echo "restore 📦 Restoring NuGet Packages..."
-dotnet restore "$PROJECT_PATH"
+#echo "restore 📦 Restoring NuGet Packages..."
+#dotnet restore "$PROJECT_PATH"
 
-echo "✨ Setup Complete!"
+#echo "✨ Setup Complete!"
