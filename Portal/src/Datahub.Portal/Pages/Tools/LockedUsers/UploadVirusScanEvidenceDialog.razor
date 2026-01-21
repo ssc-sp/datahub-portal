@@ -11,8 +11,11 @@
     <DialogContent>
         <MudStack Spacing="4">
             <MudText Typo="Typo.body1">
-                @Localizer["Upload a screenshot of the virus scan report showing that {0}'s computer is clean.", User?.DisplayName ?? User?.Email]
+                @Localizer["Upload a screenshot of the virus scan report for workspace: {0}", WorkspaceName]
             </MudText>
+            <MudAlert Severity="Severity.Info" Dense="true">
+                @Localizer["The evidence will be reviewed by DataHub administrators. Once approved, the user will regain access to all workspaces."]
+            </MudAlert>
 
             <MudFileUpload T="IBrowserFile" 
                           Accept=".png,.jpg,.jpeg,.pdf" 
@@ -55,7 +58,9 @@
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
-    [Parameter] public PortalUser? User { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = "";
+    
+    [Parameter] public string WorkspaceName { get; set; } = "";
 
     private IBrowserFile? _selectedFile;
     private bool _uploading;
@@ -69,7 +74,7 @@
 
     private async Task Upload()
     {
-        if (_selectedFile == null || User == null)
+        if (_selectedFile == null || string.IsNullOrEmpty(WorkspaceAcronym))
             return;
 
         _uploading = true;
@@ -78,10 +83,7 @@
 
         try
         {
-            // TODO: Implement actual file upload to Azure Blob Storage
-            // For now, we'll simulate the upload and store a mock URL
-            
-            // Simulate upload progress
+            // MOCK: Simulate upload progress (in production, would upload to Azure Blob Storage)
             for (int i = 0; i <= 100; i += 10)
             {
                 _uploadProgress = i;
@@ -89,31 +91,11 @@
                 await Task.Delay(100);
             }
 
-            // Store the evidence URL in the database
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-            var userToUpdate = await dbContext.PortalUsers
-                .Include(u => u.UserSettings)
-                .FirstOrDefaultAsync(u => u.Id == User.Id);
+            // MOCK: In production, would save URL to database
+            // For demo, just show success message
+            var mockUrl = $"mock://evidence/{WorkspaceAcronym}/{_selectedFile.Name}";
 
-            if (userToUpdate != null)
-            {
-                if (userToUpdate.UserSettings == null)
-                {
-                    userToUpdate.UserSettings = new UserSettings
-                    {
-                        PortalUserId = userToUpdate.Id
-                    };
-                    dbContext.UserSettings.Add(userToUpdate.UserSettings);
-                }
-
-                // TODO: Replace with actual uploaded file URL
-                userToUpdate.UserSettings.VirusScanEvidenceUrl = $"mock://evidence/{User.Id}/{_selectedFile.Name}";
-                userToUpdate.UserSettings.VirusScanEvidenceUploadDate = DateTime.UtcNow;
-
-                await dbContext.SaveChangesAsync();
-            }
-
-            _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
+            _snackbar.Add(Localizer["Virus scan evidence uploaded successfully for {0} (DEMO).", WorkspaceAcronym], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)

@@ -224,5 +224,14 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 await InitializedProjectMembers();
             }
         }
+        
+        // MOCK: Simulate locked user based on email pattern for UI demo
+        private bool IsMockLockedUser(PortalUser? user)
+        {
+            if (user?.Email == null) return false;
+            // For demo purposes, treat users with 'external' or 'test' in email as locked
+            return user.Email.Contains("external", StringComparison.OrdinalIgnoreCase) ||
+                   user.Email.Contains("test", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

@@ -31,7 +31,12 @@
         {
             var user = await _userInformationService.GetCurrentPortalUserAsync();
             
-            if (user?.UserSettings?.IsLockedOut == true)
+            // MOCK: Check if user is locked (based on email pattern for demo)
+            var isLockedOut = user?.Email != null && 
+                             (user.Email.Contains("external", StringComparison.OrdinalIgnoreCase) ||
+                              user.Email.Contains("test", StringComparison.OrdinalIgnoreCase));
+            
+            if (isLockedOut)
             {
                 // User is locked out, redirect to locked account page
                 _navigationManager.NavigateTo(LockedAccountPath, forceLoad: true);

@@ -98,10 +98,14 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var user = await _userInformationService.GetCurrentPortalUserAsync();
-        if (user?.UserSettings != null)
-        {
-            _lockedDate = user.UserSettings.LockedOutDate;
-        }
+        // MOCK: For demo purposes, show locked 2 days ago
+        _lockedDate = DateTime.UtcNow.AddDays(-2);
+        
+        // In production, would query from database:
+        // var user = await _userInformationService.GetCurrentPortalUserAsync();
+        // if (user?.UserSettings != null)
+        // {
+        //     _lockedDate = user.UserSettings.LockedOutDate;
+        // }
     }
 }
