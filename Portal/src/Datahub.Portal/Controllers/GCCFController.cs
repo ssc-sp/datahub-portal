@@ -25,7 +25,7 @@ public class GCCFController() : Controller
         props.Items["ui_locales"] = locale;
 
         // This triggers the OIDC middleware to construct the URL and redirect
-        return Challenge(props, ConfigureAuthServices.GccfOidcScheme);
+        return Challenge(props, ConfigureAuthenticationServices.GccfOidcScheme);
     }
 
     [HttpGet("sector-identifier.json")]
@@ -36,7 +36,7 @@ public class GCCFController() : Controller
         
         var redirectUris = new[]
         {
-            $"{scheme}://{host}{ConfigureAuthServices.GccfSigninURL}"
+            $"{scheme}://{host}{ConfigureAuthenticationServices.GccfSigninURL}"
         };
 
         return Json(redirectUris);

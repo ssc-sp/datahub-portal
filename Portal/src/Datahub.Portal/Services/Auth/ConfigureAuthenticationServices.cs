@@ -19,7 +19,7 @@ using Microsoft.FeatureManagement;
 
 namespace Datahub.Portal.Services.Auth;
 
-public static class ConfigureAuthServices
+public static class ConfigureAuthenticationServices
 {
     public const string GccfOidcScheme = "gccf-oidc";
     public const string GccfCookieScheme = "gccf-cookie"; // Define a separate cookie scheme for GCCF
@@ -94,7 +94,7 @@ public static class ConfigureAuthServices
                     }
                     options.ClientId = configuration["GccfOidc:ClientId"] ?? throw new ArgumentNullException("GCCF ClientID"); // From configuration
                     options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret"); // From configuration
-
+                    options.ResponseType = OpenIdConnectResponseType.Code;
                     options.CallbackPath = GccfSigninURL;
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
