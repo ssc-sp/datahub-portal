@@ -100,6 +100,11 @@ public static class ConfigureAuthenticationServices
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
                     options.UsePkce = true;
+                    options.Events.OnAuthorizationCodeReceived = context =>
+                    {
+                        context.Backchannel.SetBasicAuthenticationOAuth(context.TokenEndpointRequest.ClientId, context.TokenEndpointRequest.ClientSecret);                        
+                        return Task.CompletedTask;
+                    };
                 });
         }
 
