@@ -66,10 +66,18 @@ public class UserInformationService(
                 logger.LogDebug("User ID: {UserId}", authenticatedUser.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Unknown");
             }
         }
-        if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) && !await IsGCCFEnabled())
-            throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
+        // throw an exception if external logins are not allowed and external is detected
+        _ = await IsExternalAsync(authenticatedUser);
 
         return authenticatedUser;
+    }
+
+    private async Task<bool> IsExternalAsync(ClaimsPrincipal user)
+    {
+        var isExternal = user.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN);
+        if (isExternal && !await IsGCCFEnabled())
+            throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
+        return isExternal;
     }
 
     private async Task<bool> IsGCCFEnabled()
@@ -87,10 +95,11 @@ public class UserInformationService(
     /// Gets the current authenticated user's subject claim ("sub" or NameIdentifier) from the authentication claims.
     /// Returns null when the claim is not present or the user is not authenticated.
     /// </summary>
-    public async Task<string?> GetCurrentUserNameIdentifier()
+    public async Task<string?> GetExternalUserNameIdentifier()
     {
         var user = await GetAuthenticatedUser();
         if (user == null) return null;
+        if (!await IsExternalAsync(user)) return null;
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
         return userId;
     }
@@ -612,7 +621,7 @@ public class UserInformationService(
     {
         if (_userWithAchievements != null)
             return _userWithAchievements;
-        _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetCurrentUserNameIdentifier());
+        _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetExternalUserNameIdentifier());
 
         return _userWithAchievements;
     }
