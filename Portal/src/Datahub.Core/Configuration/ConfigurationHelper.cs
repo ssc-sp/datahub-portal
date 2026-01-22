@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Core.Configuration;
 
@@ -18,6 +19,8 @@ public static class ConfigurationHelper
     {
         WriteIndented = true
     };
+
+    public static string GetCurrentEnvironment(this IConfiguration configuration) => configuration["DataHub_ENVNAME"] ?? "dev";
 
     // Property name tokens considered sensitive (case-insensitive).
     private static readonly string[] SensitivePropertyTokens =
@@ -45,13 +48,23 @@ public static class ConfigurationHelper
     /// Writes a redacted JSON dump to the console, wrapped with a header.
     /// </summary>
     /// <param name="title">A short title describing the dump.</param>
-    /// <param name="value">The object to serialize and redact.</param>
-    public static void DumpRedactedToConsole(string title, object? value)
+    /// <param name="values">The objects to serialize and redact.</param>
+    public static void DumpRedactedToConsole(string title, params object?[] values)
     {
         try
         {
             Console.WriteLine($"===== {title} (redacted) =====");
-            Console.WriteLine(ToRedactedJson(value));
+            foreach (var value in values)
+            {
+                if (value is null)
+                {
+                    Console.WriteLine("(null)");
+                }
+                else
+                {
+                    Console.WriteLine(ToRedactedJson(value));
+                }
+            }
         }
         catch (Exception ex)
         {
@@ -88,9 +101,13 @@ public static class ConfigurationHelper
 
         var type = value.GetType();
 
-        // Primitives and commonly serializable leaf types
-        if (type.IsPrimitive || value is string || value is decimal || value is DateTime || value is DateTimeOffset || value is Guid || value is TimeSpan || value is Enum)
+        // Primitives and commonly serializable leaf types (strings are handled separately below)
+        if (type.IsPrimitive || value is decimal || value is DateTime || value is DateTimeOffset || value is Guid || value is TimeSpan || value is Enum)
             return value;
+
+        // If the value is a string, always mask it when serializing via this generic object path
+        if (value is string s)
+            return Mask(s);
 
         visited ??= new HashSet<object>(ReferenceEqualityComparer.Instance);
         if (!visited.Add(value)) return "[circular]";
@@ -137,16 +154,16 @@ public static class ConfigurationHelper
         const int maxDepth = 16;
         if (depth > maxDepth) return "[max-depth]";
 
-        // Children first – if no children, treat as leaf
+        // Children first â€“ if no children, treat as leaf
         var children = section.GetChildren();
         using var enumerator = children.GetEnumerator();
         if (!enumerator.MoveNext())
         {
-            // Leaf value – redact based on key name
+            // Leaf value â€“ redact based on key name
             return IsSensitive(section.Key) ? Mask(section.Value) : section.Value;
         }
 
-        // Has children – build object
+        // Has children â€“ build object
         var dict = new Dictionary<string, object?>(StringComparer.OrdinalIgnoreCase);
         foreach (var child in children)
         {

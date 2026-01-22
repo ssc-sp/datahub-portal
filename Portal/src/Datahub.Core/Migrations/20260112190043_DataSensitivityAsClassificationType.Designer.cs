@@ -4,6 +4,7 @@ using Datahub.Core.Model.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,13 +12,15 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    partial class SqlServerDatahubContextModelSnapshot : ModelSnapshot
+    [Migration("20260112190043_DataSensitivityAsClassificationType")]
+    partial class DataSensitivityAsClassificationType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.12")
+                .HasAnnotation("ProductVersion", "9.0.11")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -225,6 +228,28 @@ namespace Datahub.Core.Migrations
                             Name = "Profile Prowler",
                             Points = 1
                         });
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Achievements.PortalUserRoleChange", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("ChangeDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoleId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PortalUserRoleChange");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.TelemetryEvent", b =>
@@ -504,56 +529,6 @@ namespace Datahub.Core.Migrations
                     b.ToTable("OpenDataSubmissions");
 
                     b.UseTptMappingStrategy();
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenGovPublishingBlocklist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AddedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DateAdded")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateRemoved")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DepartmentName")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("EmailHostname")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<int?>("RemovedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddedByUserId");
-
-                    b.HasIndex("DepartmentName");
-
-                    b.HasIndex("EmailHostname");
-
-                    b.HasIndex("RemovedByUserId");
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("OpenGovPublishingBlocklist");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Datahub.SharedDataFile", b =>
@@ -932,8 +907,7 @@ namespace Datahub.Core.Migrations
 
                     b.Property<string>("Data_Sensitivity")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("DatahubAzureSubscriptionId")
                         .HasColumnType("int");
@@ -1598,6 +1572,11 @@ namespace Datahub.Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("Affiliation")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
                     b.Property<DateTimeOffset?>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -1646,9 +1625,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("datetimeoffset");
 
                     b.Property<DateTimeOffset?>("UserDeactivatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<DateTimeOffset>("UserExpiryDate")
                         .HasColumnType("datetimeoffset");
 
                     b.HasKey("Id");
@@ -1707,28 +1683,6 @@ namespace Datahub.Core.Migrations
                         .HasFilter("[ExternalUserId] IS NOT NULL");
 
                     b.ToTable("PortalUsers", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.PortalUserRoleChange", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("ChangeDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("PortalUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RoleId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("PortalUserRoleChange");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.UserInactivityNotifications", b =>
@@ -1869,10 +1823,6 @@ namespace Datahub.Core.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("RequestID"));
 
-                    b.Property<string>("ExternalSubjectInvited")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
                     b.Property<string>("InvitationCode")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -1883,11 +1833,6 @@ namespace Datahub.Core.Migrations
 
                     b.Property<DateTimeOffset>("InvitationExpiry")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("InvitationRationale_EN")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
 
                     b.Property<Guid>("InvitationToken")
                         .HasColumnType("uniqueidentifier");
@@ -1905,11 +1850,6 @@ namespace Datahub.Core.Migrations
 
                     b.Property<DateTimeOffset>("Request_DT")
                         .HasColumnType("datetimeoffset");
-
-                    b.Property<byte[]>("Timestamp")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -2129,34 +2069,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("RequestingUser");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenGovPublishingBlocklist", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "AddedByUser")
-                        .WithMany()
-                        .HasForeignKey("AddedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "RemovedByUser")
-                        .WithMany()
-                        .HasForeignKey("RemovedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AddedByUser");
-
-                    b.Navigation("RemovedByUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithMany()
-                        .HasForeignKey("Datahub_ProjectProject_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Datahub_Project");
-                });
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "CreatedBy")

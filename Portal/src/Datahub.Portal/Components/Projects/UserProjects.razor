@@ -1,6 +1,7 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Pages.Explore
 @using Datahub.Portal.Pages.Home
 @using MudBlazor.Utilities
@@ -94,9 +95,6 @@
         <ul style=@NoContentGroupStyle>
             <li>
                 <NewWorkspaceCard/>
-            </li>
-            <li>
-                <ResourcesReferenceCard/>
             </li>
         </ul>
     }
@@ -304,9 +302,9 @@ else
         _adminWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _collaboratorWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Collaborator).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         _guestWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => (!p.Data_Sensitivity.Equals("Protected A") && !p.Data_Sensitivity.Equals("Protected B"))).ToList();
-        _protectedAWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected A")).ToList();
-        _protectedBWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity.Equals("Protected B")).ToList();
+        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => (!(p.Data_Sensitivity == ClassificationType.ProtectedA) && !(p.Data_Sensitivity == ClassificationType.ProtectedB))).ToList();
+        _protectedAWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity == ClassificationType.ProtectedA).ToList();
+        _protectedBWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity == ClassificationType.ProtectedB).ToList();
 
         FilteredWorkspacesCount = _allWorkspaces.Count;
     }

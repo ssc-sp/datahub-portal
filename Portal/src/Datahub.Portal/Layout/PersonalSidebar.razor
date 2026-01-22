@@ -121,13 +121,7 @@
     private PortalUser _viewedUser;
     private bool _isViewAsAdmin;
     private List<UserRoleLinks> _userRoles;
-    private List<(UserRecentLink, Datahub_Project)> _recentLinks = new();
     [CascadingParameter] public DHSidebarDrawer Drawer { get; set; }
-
-    private readonly ushort _maxRecentLinks =5;
-    private readonly ushort _maxWorkspacesToShow =3;
-    private ushort _numberOfRemainingWorkspaces = 3;
-    private bool _canNotCreateWorkspace => _numberOfRemainingWorkspaces <=0 && !_isViewAsAdmin;
 
     private bool _showAllRecentLinks = false;
     private bool _showAllWorkspaces = false;
@@ -135,7 +129,6 @@
     private bool _isLoaded = false;
 
     private const ushort MaxWorkspaceCount =3;
-
 
     public struct SectionViews
     {
@@ -217,35 +210,7 @@
             .Where(u => u.PortalUser.Id == _viewedUser.Id)
             .ToListAsync();
 
-        // Updated call to pass PortalUser instead of GraphGuid string
-        var userRecent = await _userLocationManagerService.GetRecentLinks(_viewedUser,_maxRecentLinks);
-
-        _recentLinks = userRecent?
-            .Select(l => (l, project: GetProject(dbContext, l)))
-            .ToList() ?? new List<(UserRecentLink l, Datahub_Project project)>();
-
-        _numberOfRemainingWorkspaces = (ushort)(MaxWorkspaceCount - _userRoles.Count(u => u.RoleId is (int)Project_Role.RoleNames.WorkspaceLead or (int)Project_Role.RoleNames.Admin));
-
         _isLoaded = true;
-    }
-
-    private List<UserRoleLinks> GetWorkspaces()
-    {
-        return _showAllWorkspaces
-            ? _userRoles
-            : _userRoles
-                .Take(_maxWorkspacesToShow)
-                .ToList();
-    }
-
-
-    private Datahub_Project GetProject(DatahubProjectDBContext dbContext, UserRecentLink link)
-    {
-        if (link.DataProject is null) return null;
-        return dbContext.Projects
-            .AsNoTracking()
-            .Include(p => p.Resources)
-            .FirstOrDefault(p => p.Project_Acronym_CD == link.DataProject.Trim());
     }
 
     private string GetSectionViewUrl(string prefix, string sectionView)
@@ -302,51 +267,10 @@
         };
     }
 
-    private string GetSectionViewUrl((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
-    {
-        return recentActivity.userRecentLink.LinkType switch
-        {
-            DatahubLinkType.DataProject => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}",
-            DatahubLinkType.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(recentActivity.datahubProject, CultureService.IsFrench),
-            DatahubLinkType.Repository => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Repositories}",
-            DatahubLinkType.Storage => $"{PageRoutes.WorkspacePrefix}/{recentActivity.userRecentLink.DataProject}/{WorkspaceSidebar.SectionViews.Storage}",
-            DatahubLinkType.ResourceArticle => $"{PageRoutes.ResourcePrefix}/{recentActivity.userRecentLink.ResourceArticleId}",
-            _ => "/"
-        };
-    }
-
-
-    private string GetIcon((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
-    {
-        return recentActivity.userRecentLink.LinkType switch
-        {
-            DatahubLinkType.DataProject => SidebarIcons.Workspace,
-            DatahubLinkType.Databricks => SidebarIcons.Databricks,
-            DatahubLinkType.Repository => SidebarIcons.Repositories,
-            DatahubLinkType.Storage => SidebarIcons.Storage,
-            DatahubLinkType.ResourceArticle => SidebarIcons.Resources,
-            _ => SidebarIcons.Workspace
-        };
-    }
-
-    private string GetLabel((UserRecentLink userRecentLink, Datahub_Project datahubProject) recentActivity)
-    {
-        return recentActivity.userRecentLink.LinkType switch
-        {
-            DatahubLinkType.DataProject => recentActivity.datahubProject?.ProjectName ?? recentActivity.userRecentLink.DataProject ?? "Workspace",
-            DatahubLinkType.Databricks => $"{Localizer["Databricks"]} - {recentActivity.datahubProject.ProjectName}",
-            DatahubLinkType.Repository => $"{Localizer["Repositories"]} - {recentActivity.datahubProject.ProjectName}",
-            DatahubLinkType.Storage => $"{Localizer["Storage"]} - {recentActivity.datahubProject.ProjectName}",
-            DatahubLinkType.ResourceArticle => recentActivity.userRecentLink.ResourceArticleTitle,
-            _ => recentActivity.datahubProject.ProjectName
-        };
-    }
-
     private async Task ToggleAdminMode()
     {
         _isViewAsAdmin = !_isViewAsAdmin;
         await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
-
 }

@@ -146,7 +146,7 @@ public class Startup
             .AddInteractiveServerComponents()
                         .AddCircuitOptions(o =>
                         {
-                            o.DetailedErrors = true; // todo: to make it 'true' only in development
+                            o.DetailedErrors = false;
                         }).AddHubOptions(o =>
                         {
                             o.MaximumReceiveMessageSize = 10 * 1024 * 1024; // 10MB
@@ -188,13 +188,11 @@ public class Startup
         // configure db contexts in this method
         ConfigureDbContexts(services);
 
-        services.Configure<DataProjectsConfiguration>(Configuration.GetSection(nameof(DataProjectsConfiguration)));
         services.Configure<APITargets>(Configuration.GetSection(nameof(APITargets)));
         services.Configure<Microsoft.ApplicationInsights.Extensibility.TelemetryConfiguration>(Configuration.GetSection("ApplicationInsights"));
         services.Configure<PortalVersion>(Configuration.GetSection("PortalVersion"));
 
         // Diagnostic dump (redacted) using shared Core utility
-        ConfigurationHelper.DumpRedactedToConsole("Data Projects Configuration", Configuration.GetSection(nameof(DataProjectsConfiguration)));
         ConfigurationHelper.DumpRedactedToConsole("API targets", Configuration.GetSection(nameof(APITargets)));
         ConfigurationHelper.DumpRedactedToConsole("Application Insights", Configuration.GetSection("ApplicationInsights"));
 

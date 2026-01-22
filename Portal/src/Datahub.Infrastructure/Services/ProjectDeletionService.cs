@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services;
@@ -13,6 +13,9 @@ using Google.Api.Gax.ResourceNames;
 using Microsoft.Graph.Models.Search;
 using Datahub.Core.Components;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Utils;
+using Microsoft.Extensions.Configuration;
+using Datahub.Core.Configuration;
 
 namespace Datahub.Infrastructure.Services
 {
@@ -20,9 +23,12 @@ namespace Datahub.Infrastructure.Services
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
         ILogger<WorkspaceCreationService> logger,
         IUserInformationService userInformationService,
-        IResourceMessagingService resourceMessagingService
+        IResourceMessagingService resourceMessagingService,
+        IConfiguration configuration
         ) : IProjectDeletionService
     {
+        private readonly IConfiguration configuration = configuration;
+
         public async Task<bool> DeleteWorkspace(string acronym, Project_Delete_Questionnaire questionnaire)
         {
             try
@@ -35,7 +41,7 @@ namespace Datahub.Infrastructure.Services
                        .ToListAsync(CancellationToken.None);
 
                 var rgName = string.Empty;
-
+                var env = configuration.GetCurrentEnvironment();
                 foreach (var resource in resources)
                 {
                     if (questionnaire.Project is null)
@@ -47,12 +53,15 @@ namespace Datahub.Infrastructure.Services
                     resource.Project.Deleted_DT = resource.Project.Deleted_DT ?? DateTime.Now;
                     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
                     {
-                        rgName = resource.Project.GetResourceGroupName() ?? throw new InvalidOperationException("no resource group name");
+                        rgName = resource.Project.GetResourceGroupName();
+                        if (string.IsNullOrEmpty(rgName))
+                        {
+                            logger.LogWarning($"Resource group name not found in project data for workspace - {acronym}. Attempting to generate from acronym and environment.");
+                            rgName = TerraformOutputHelper.GetWorkspaceResourceGroupName(resource.Project, env);
+                        }
                     }
                     ctx.Project_Resources2.Update(resource);
-                }
-
-                
+                }                
                 
                 var currentUser = await userInformationService.GetCurrentPortalUserAsync();
                 questionnaire.DeletedDate = DateTime.Now;
@@ -63,6 +72,11 @@ namespace Datahub.Infrastructure.Services
 
                 await ctx.SaveChangesAsync(CancellationToken.None);
 
+                if (string.IsNullOrEmpty(rgName))
+                {
+                    logger.LogError($"Invalid workspace - {acronym} - no resource group name found. Marked as deleted.");
+                    return true;
+                }
                 var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(acronym);
                 workspaceDefinition.ResourceGroupName = rgName;
                 workspaceDefinition.RequestingUserEmail = currentUser.Email;

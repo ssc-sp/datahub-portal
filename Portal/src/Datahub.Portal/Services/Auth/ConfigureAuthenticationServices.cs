@@ -19,21 +19,30 @@ using Microsoft.FeatureManagement;
 
 namespace Datahub.Portal.Services.Auth;
 
-public static class ConfigureAuthServices
+public static class ConfigureAuthenticationServices
 {
     public const string GccfOidcScheme = "gccf-oidc";
     public const string GccfCookieScheme = "gccf-cookie"; // Define a separate cookie scheme for GCCF
+    public const string GccfCookieName = "GccfAuth"; // Centralized cookie name constant
+    public const string DefaultCookieName = ".AspNetCore.Cookies"; // Default cookie name used by Microsoft Identity
 
     public const string GccfSigninURL = "/gccf/signin-oidc";
+    private const string CompositeCookieScheme = "composite-cookie";
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        // configure the primary Azure AD authentication
-        services.AddAuthentication(OpenIdConnectDefaults.AuthenticationScheme)
-            .AddMicrosoftIdentityWebApp(configuration, "AzureAd", OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
-            .EnableTokenAcquisitionToCallDownstreamApi()
-            .AddMicrosoftGraph(configuration.GetSection("Graph"))
-            .AddInMemoryTokenCaches();
+        // Base authentication: default cookie is provided by AddMicrosoftIdentityWebApp + Azure AD OIDC
+        services.AddAuthentication(options =>
+        {
+            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+        })
+        .AddMicrosoftIdentityWebApp(configuration, "AzureAd", OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
+        .EnableTokenAcquisitionToCallDownstreamApi()
+        .AddMicrosoftGraph(configuration.GetSection("Graph"))
+        .AddInMemoryTokenCaches();
 
         // add the JWT bearer authentication for APIs
         services.AddAuthentication()
@@ -50,7 +59,7 @@ public static class ConfigureAuthServices
                 };
             });
 
-        // Conditionally add GCCF OIDC provider and cookie scheme based on feature flag
+        // Conditionally add GCCF OIDC provider and composite cookie selector based on feature flag
         var gccfEnabled = false;
 
         using var provider = services.BuildServiceProvider();
@@ -61,16 +70,38 @@ public static class ConfigureAuthServices
             gccfEnabled = featureManager.IsEnabledAsync(Features.GCCF_Feature).GetAwaiter().GetResult();
         }
 
-
         if (gccfEnabled)
         {
-            ConfigurationHelper.DumpRedactedToConsole("GCCF Enabled. Client ID", configuration["GccfOidc:ClientId"]);
-            // add the second OIDC provider
+            // Reconfigure defaults to use composite selector
+            services.AddAuthentication(options =>
+            {
+                options.DefaultScheme = CompositeCookieScheme;
+                options.DefaultAuthenticateScheme = CompositeCookieScheme;
+                options.DefaultSignInScheme = CompositeCookieScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            })
+            .AddPolicyScheme(CompositeCookieScheme, CompositeCookieScheme, policyOptions =>
+            {
+                policyOptions.ForwardDefaultSelector = context =>
+                {
+                    // Favor Microsoft Identity default cookie first, then GCCF cookie
+                    var hasDefaultCookie = context.Request.Cookies.ContainsKey(DefaultCookieName);
+                    if (hasDefaultCookie)
+                        return CookieAuthenticationDefaults.AuthenticationScheme;
+                    var hasGccfCookie = context.Request.Cookies.ContainsKey(GccfCookieName);
+                    if (hasGccfCookie)
+                        return GccfCookieScheme;
+                    // Fallback to default cookie scheme
+                    return CookieAuthenticationDefaults.AuthenticationScheme;
+                };
+            });
+
+            ConfigurationHelper.DumpRedactedToConsole("GCCF Enabled. Client ID", configuration["GccfOidc:ClientId"], configuration["GccfOidc:ClientSecret"]);
+            // Add a cookie scheme specifically for GCCF to avoid conflicts with the main "Cookies" scheme
             services.AddAuthentication()
-                // Add a cookie scheme specifically for GCCF to avoid conflicts with the main "Cookies" scheme
                 .AddCookie(GccfCookieScheme, options =>
                 {
-                    options.Cookie.Name = "GccfAuth";
+                    options.Cookie.Name = GccfCookieName;
                     options.SlidingExpiration = true;
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                 })
@@ -79,7 +110,6 @@ public static class ConfigureAuthServices
                     // Use the dedicated cookie scheme for persistence
                     options.SignInScheme = GccfCookieScheme;
                     var authority = configuration["GccfOidc:Authority"]?.TrimEnd('/') ?? throw new ArgumentNullException("GCCF OIDC Authority");
-                    // these URLs are temporary here, they are for testing purposes in dev only
                     options.Authority = authority;
 
                     // Safely combine authority and the metadata path
@@ -92,16 +122,19 @@ public static class ConfigureAuthServices
                     {
                         options.MetadataAddress = metadataPath; // fallback, will likely fail but keeps behavior explicit
                     }
-                    options.ClientId = configuration["GccfOidc:ClientId"] ?? throw new ArgumentNullException("GCCF ClientID"); // From configuration
-                    options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret"); // From configuration
+                    options.ClientId = configuration["GccfOidc:ClientId"] ?? throw new ArgumentNullException("GCCF ClientID");
+                    options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret");
                     options.ResponseType = OpenIdConnectResponseType.Code;
-
                     options.CallbackPath = GccfSigninURL;
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
-                    options.Scope.Add("email");
-                    options.UseClientSecretPostAuthentication();
+                    options.UsePkce = true;
+                    options.Events.OnAuthorizationCodeReceived = context =>
+                    {
+                        context.Backchannel.SetBasicAuthenticationOAuth(context.TokenEndpointRequest.ClientId, context.TokenEndpointRequest.ClientSecret);
+                        return Task.CompletedTask;
+                    };
                 });
         }
 

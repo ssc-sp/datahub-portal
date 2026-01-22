@@ -1,5 +1,6 @@
 @using Datahub.Core
 @using Datahub.Core.Model.Projects
+@using Datahub.Metadata.Model
 @using MudBlazor.Utilities
 
     <h2 class="sr-only">
@@ -10,9 +11,7 @@
     </p>
 
 @code {
-    [Parameter] public int SecurityLevel { get; set; }
-
-    [Parameter] public string? ChildContent { get; set; }
+    [Parameter] public ClassificationType SecurityLevel { get; set; }
 
     private string _styles = null!;
 
@@ -36,26 +35,26 @@
             .Build();
     }
 
-    private string GetSecurityColor(int securityLevel)
+    private string GetSecurityColor(ClassificationType securityLevel)
     {
         switch (securityLevel)
         {
-            case 2:
+            case ClassificationType.ProtectedB:
                 return "rgb(244, 67, 54)";
-            case 1:
+            case ClassificationType.ProtectedA:
                 return "rgb(255,152,0)";
             default:
                 return "rgb(89, 74, 226)";
         }
     }
 
-    private string GetSecurityLabel(int securityLevel)
+    private string GetSecurityLabel(ClassificationType securityLevel)
     {
         switch (securityLevel)
         {
-            case 2:
+            case ClassificationType.ProtectedB:
                 return Localizer["Protected B"];
-            case 1:
+            case ClassificationType.ProtectedA:
                 return Localizer["Protected A"];
             default:
                 return Localizer["Unclassified"];

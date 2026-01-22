@@ -1,5 +1,87 @@
 # Changelog
 
+## [8.1.0](https://github.com/ssc-sp/datahub-portal/compare/v8.0.0...v8.1.0) (2026-01-16)
+
+
+### Features
+
+* Added log for gccf in startup ([#1822](https://github.com/ssc-sp/datahub-portal/issues/1822)) ([05318d0](https://github.com/ssc-sp/datahub-portal/commit/05318d06f19a5c5f92d03cc6d5dc185ee8be7024))
+
+
+### Bug Fixes
+
+* Changing data sensitivity type ([#1816](https://github.com/ssc-sp/datahub-portal/issues/1816)) ([bb23fb1](https://github.com/ssc-sp/datahub-portal/commit/bb23fb1c983ce3a02e7325960940c7a3365a3ad0))
+* Migration fix and data model update ([#1825](https://github.com/ssc-sp/datahub-portal/issues/1825)) ([1896ce8](https://github.com/ssc-sp/datahub-portal/commit/1896ce87027c8a781746a4592b54118229ed3fba))
+* Removing the extra bracket that appears in storage explorer ([#1820](https://github.com/ssc-sp/datahub-portal/issues/1820)) ([6a6f09c](https://github.com/ssc-sp/datahub-portal/commit/6a6f09c213d539e045ab382bba1f2e7173dea7c3))
+* Sensitivity level name change and topbar fix ([#1823](https://github.com/ssc-sp/datahub-portal/issues/1823)) ([e0bde90](https://github.com/ssc-sp/datahub-portal/commit/e0bde90b4d911253fab9b09daaa64d3cf9944143))
+
+## [8.0.0](https://github.com/ssc-sp/datahub-portal/compare/v7.0.3...v8.0.0) (2026-01-13)
+
+
+### ⚠ BREAKING CHANGES
+
+* Replacing the in-portal documentation with our new user documentation site ([#1805](https://github.com/ssc-sp/datahub-portal/issues/1805))
+* New data model to support external users ([#1796](https://github.com/ssc-sp/datahub-portal/issues/1796))
+
+### Features
+
+* Added feature flag library ([#1797](https://github.com/ssc-sp/datahub-portal/issues/1797)) ([a137cf6](https://github.com/ssc-sp/datahub-portal/commit/a137cf64bf19bf7413b1f8c4fbdf8e6434284d29))
+* added feature flag to trace claims ([#1819](https://github.com/ssc-sp/datahub-portal/issues/1819)) ([f8e21f9](https://github.com/ssc-sp/datahub-portal/commit/f8e21f947c1fc80fd29baaedb77b339adb6c642c))
+* Added new scripts to work with localdb instead of dev database ([#1786](https://github.com/ssc-sp/datahub-portal/issues/1786)) ([6a94433](https://github.com/ssc-sp/datahub-portal/commit/6a94433ccde7a1fe43cb6998337563f66ec2bdb5))
+* Adding severity levels to announcements ([#1736](https://github.com/ssc-sp/datahub-portal/issues/1736)) ([2c88615](https://github.com/ssc-sp/datahub-portal/commit/2c88615bab16929f252017259f531a64c2f91ed4))
+* Changing environment top bar for security levels ([#1792](https://github.com/ssc-sp/datahub-portal/issues/1792)) ([b5c4c8c](https://github.com/ssc-sp/datahub-portal/commit/b5c4c8ce54a9e339e3d2174fc79b9e030d39c777))
+* configure CBRID in TF variables ([#1762](https://github.com/ssc-sp/datahub-portal/issues/1762)) ([2386a62](https://github.com/ssc-sp/datahub-portal/commit/2386a62dc28480a1c580ed9e3f85fd2e4e6b12f4))
+* Creation of Access Denied page ([#1795](https://github.com/ssc-sp/datahub-portal/issues/1795)) ([0efd776](https://github.com/ssc-sp/datahub-portal/commit/0efd776969e91c033d52d1b46e9bc41a0bd8f171))
+* DB Whitelist IP range dialog  ([#1720](https://github.com/ssc-sp/datahub-portal/issues/1720)) ([8ab2afc](https://github.com/ssc-sp/datahub-portal/commit/8ab2afc027a6e3b0d5f8cad178fc8a4eaab3c4df))
+* Detect trusted GC login to restrict Protected B content ([#1769](https://github.com/ssc-sp/datahub-portal/issues/1769)) ([1b58940](https://github.com/ssc-sp/datahub-portal/commit/1b58940711af472f74188cc102a74ed7c7d359fa))
+* GCCF skeleton for dev testing ([#1760](https://github.com/ssc-sp/datahub-portal/issues/1760)) ([8bb7018](https://github.com/ssc-sp/datahub-portal/commit/8bb70188a2a1576fb2be3cda00aef98a636a0c59))
+* limit file extensions ([#1788](https://github.com/ssc-sp/datahub-portal/issues/1788)) ([9819fc3](https://github.com/ssc-sp/datahub-portal/commit/9819fc3ebd9bfa801c81c6aff3c1276a4e5e519a))
+* Login choice page ([#1779](https://github.com/ssc-sp/datahub-portal/issues/1779)) ([e99a7f9](https://github.com/ssc-sp/datahub-portal/commit/e99a7f9a3448942513fb9834c5359b07de615769))
+* Mark batch upload ID when adding multiple files ([#1791](https://github.com/ssc-sp/datahub-portal/issues/1791)) ([947af30](https://github.com/ssc-sp/datahub-portal/commit/947af3096a37a1a30cf097b8dd36b32ff8aa9398))
+* New data model to support external users ([#1796](https://github.com/ssc-sp/datahub-portal/issues/1796)) ([aea33ac](https://github.com/ssc-sp/datahub-portal/commit/aea33ac38579f157b65c57fa5866ab6975391acd))
+* Replacing the in-portal documentation with our new user documentation site ([#1805](https://github.com/ssc-sp/datahub-portal/issues/1805)) ([0d282b6](https://github.com/ssc-sp/datahub-portal/commit/0d282b69d9653d00541940f332b3895343c0f3f5))
+* Sending a welcome package when a new workspace is created with the Hosting Services endpoint ([#1765](https://github.com/ssc-sp/datahub-portal/issues/1765)) ([bcaca15](https://github.com/ssc-sp/datahub-portal/commit/bcaca1575a05922271dcd52aaa18a97499a2ef2b))
+* simplified GCHostingWorkspaceDetails to Project relation ([#1778](https://github.com/ssc-sp/datahub-portal/issues/1778)) ([04697bd](https://github.com/ssc-sp/datahub-portal/commit/04697bd4b31180b2a5459fafa0099a5a1fbbadf9))
+* single script to copy all databases ([#1814](https://github.com/ssc-sp/datahub-portal/issues/1814)) ([9c3915b](https://github.com/ssc-sp/datahub-portal/commit/9c3915b4f622f220a9e88979aa2313b0a6de4b22))
+* Terms and Conditions date of last update ([#1761](https://github.com/ssc-sp/datahub-portal/issues/1761)) ([1db7b3a](https://github.com/ssc-sp/datahub-portal/commit/1db7b3afe44d71422a9b1c720969a546074e37f0))
+* test successful scan email ([#1794](https://github.com/ssc-sp/datahub-portal/issues/1794)) ([8809af8](https://github.com/ssc-sp/datahub-portal/commit/8809af8626e375b822aa62f32ffdae637d0b8fbb))
+* Update function to handle new output params ([#1783](https://github.com/ssc-sp/datahub-portal/issues/1783)) ([9c3507a](https://github.com/ssc-sp/datahub-portal/commit/9c3507a5ba042e0584c4325320892ff84dab6d4d))
+* Updates to local db copy script ([#1808](https://github.com/ssc-sp/datahub-portal/issues/1808)) ([70a7184](https://github.com/ssc-sp/datahub-portal/commit/70a7184ba849134339b4eb99cbcf098d8d040c29))
+* Version-aware workspace resource definitions ([#1756](https://github.com/ssc-sp/datahub-portal/issues/1756)) ([a22aed1](https://github.com/ssc-sp/datahub-portal/commit/a22aed1e2aa8636b1c87d1218617b6ccff8053b9))
+* Workspace security level labels ([#1790](https://github.com/ssc-sp/datahub-portal/issues/1790)) ([d462e41](https://github.com/ssc-sp/datahub-portal/commit/d462e41c3752b4e8cf21f6da5e497b7ae1df7af1))
+* Workspace Versioning ([#1757](https://github.com/ssc-sp/datahub-portal/issues/1757)) ([0f065cb](https://github.com/ssc-sp/datahub-portal/commit/0f065cbeb0b3daffe96ddd97b69785803ad57484))
+
+
+### Bug Fixes
+
+* Adding button label for locked page to i18n ([#1764](https://github.com/ssc-sp/datahub-portal/issues/1764)) ([d68e12a](https://github.com/ssc-sp/datahub-portal/commit/d68e12a05639ff7f3e5aef63326a69fc004e7567))
+* build breaking from conflicting nuget packages ([#1751](https://github.com/ssc-sp/datahub-portal/issues/1751)) ([e0f7af4](https://github.com/ssc-sp/datahub-portal/commit/e0f7af4a025250676bd1db0ae7a7c5c9b143ddd9))
+* Changed the Locked page to match Login ([#1763](https://github.com/ssc-sp/datahub-portal/issues/1763)) ([a9f21e5](https://github.com/ssc-sp/datahub-portal/commit/a9f21e567aa9abddea4e751df41962e92f578dff))
+* enable deletion of old broken workspaces ([#1815](https://github.com/ssc-sp/datahub-portal/issues/1815)) ([7285b61](https://github.com/ssc-sp/datahub-portal/commit/7285b61c89ef40e1547e5d4840ea27e2f1e61926))
+* fixed state object ([#1812](https://github.com/ssc-sp/datahub-portal/issues/1812)) ([3852f00](https://github.com/ssc-sp/datahub-portal/commit/3852f001469c4d93e839805ea7740470acaa9566))
+* Home page performance improvements ([#1745](https://github.com/ssc-sp/datahub-portal/issues/1745)) ([dfac1f5](https://github.com/ssc-sp/datahub-portal/commit/dfac1f507c89464574d04d8850e84b35eac7f92f))
+* Localization and T&C blob storage link ([#1771](https://github.com/ssc-sp/datahub-portal/issues/1771)) ([b19b5ca](https://github.com/ssc-sp/datahub-portal/commit/b19b5ca11b44ce66fa7c5f045332b050279a4dc1))
+* Localization for announcement severity editing ([#1748](https://github.com/ssc-sp/datahub-portal/issues/1748)) ([8b72497](https://github.com/ssc-sp/datahub-portal/commit/8b724975b209bb5a4531e11131eebdcf2839733f))
+* Localizing the time zones for "Last login" ([#1774](https://github.com/ssc-sp/datahub-portal/issues/1774)) ([92aa852](https://github.com/ssc-sp/datahub-portal/commit/92aa852728b617a70f747c584a892d6f127f42c5))
+* Making the workspace acronym case-insensitive ([#1741](https://github.com/ssc-sp/datahub-portal/issues/1741)) ([7c52345](https://github.com/ssc-sp/datahub-portal/commit/7c52345e0644d18bac82a44f22ee6c2d9104bc18))
+* minor adjustments to GCCF ([#1810](https://github.com/ssc-sp/datahub-portal/issues/1810)) ([42d6a74](https://github.com/ssc-sp/datahub-portal/commit/42d6a74eb99e82822b042ffed8ef2000968ac115))
+* minor nuget updates and new portal.sln file ([#1753](https://github.com/ssc-sp/datahub-portal/issues/1753)) ([640c551](https://github.com/ssc-sp/datahub-portal/commit/640c551c06529db22d22d1b0d47b14d34cc00f55))
+* removed code for client secret post to enabled basic auth ([#1818](https://github.com/ssc-sp/datahub-portal/issues/1818)) ([4dba73f](https://github.com/ssc-sp/datahub-portal/commit/4dba73f04998ba52e0412209664a0c3209e95839))
+* Retrieves T&Cs change date from blob storage instead of GitHub ([#1767](https://github.com/ssc-sp/datahub-portal/issues/1767)) ([901ec43](https://github.com/ssc-sp/datahub-portal/commit/901ec436ccbb74658b3b023a4b4fb6e3fa41e6f1))
+* Setting ViewedUser in UserCard to ensure they appear properly ([#1807](https://github.com/ssc-sp/datahub-portal/issues/1807)) ([1d3303b](https://github.com/ssc-sp/datahub-portal/commit/1d3303be3d6793ae7cb56f4d15b022f6ddd2b59b))
+* Small text edits ([#1775](https://github.com/ssc-sp/datahub-portal/issues/1775)) ([28a257e](https://github.com/ssc-sp/datahub-portal/commit/28a257e9cf3d4b3c6bcf4d1863a78db0309ea41e))
+* specflow tests fail in pipelines ([#1789](https://github.com/ssc-sp/datahub-portal/issues/1789)) ([4f39421](https://github.com/ssc-sp/datahub-portal/commit/4f394213ec44fdc322a4c2c2c98f909a079ef7ed))
+* Specflow tests updated to avoid concurrency issues ([#1770](https://github.com/ssc-sp/datahub-portal/issues/1770)) ([2e7eb2f](https://github.com/ssc-sp/datahub-portal/commit/2e7eb2f3878f39fc17418db8be9ce2ef76d54c9b))
+* tentative fix for invalid jwt with GCCF ([#1811](https://github.com/ssc-sp/datahub-portal/issues/1811)) ([ffef69d](https://github.com/ssc-sp/datahub-portal/commit/ffef69dabad800577355066992b41ac727f1c5f8))
+* Terrafom output handler fails on pre-resource run ([#1800](https://github.com/ssc-sp/datahub-portal/issues/1800)) ([981059a](https://github.com/ssc-sp/datahub-portal/commit/981059a5902a298b3fdb83f7eac86f158739ef7a))
+* Updating security topbar so it sticks to the top ([#1804](https://github.com/ssc-sp/datahub-portal/issues/1804)) ([ad7f6d2](https://github.com/ssc-sp/datahub-portal/commit/ad7f6d2fbf8d126ce4f527cfd3d463315c915c33))
+* Updating title on the web app share page for a11y ([#1758](https://github.com/ssc-sp/datahub-portal/issues/1758)) ([7bcfc65](https://github.com/ssc-sp/datahub-portal/commit/7bcfc65c76305fea0587d1beed994cf31a4a2137))
+
+
+### Performance Improvements
+
+* Added improved logging to function runs ([#1776](https://github.com/ssc-sp/datahub-portal/issues/1776)) ([b5f6370](https://github.com/ssc-sp/datahub-portal/commit/b5f63704db5cfd0b50a576881058fa6486c01dbc))
+
 ## [7.0.3](https://github.com/ssc-sp/datahub-portal/compare/v7.0.2...v7.0.3) (2025-09-18)
 
 

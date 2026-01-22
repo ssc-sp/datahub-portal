@@ -29,7 +29,7 @@
 <PageTitle>
     @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]
 </PageTitle>
-<EnvironmentTopBar ChildContent="@_project.Data_Sensitivity"/>
+<EnvironmentTopBar SecurityLevel="@_project.Data_Sensitivity"/>
 
 <DHSidebarDrawer>
     <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
