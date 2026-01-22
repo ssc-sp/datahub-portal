@@ -633,9 +633,12 @@ public class UserInformationService(
 
         PortalUser portalUser = null!;
         if (entraId is not null)
+        {
             portalUser = await query.FirstAsync(p => p.EntraUser != null && p.EntraUser.GraphGuid == entraId);
-        if (userOID is not null)
+        } else if (userOID is not null)
+        {
             portalUser = await query.FirstAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == userOID);
+        }
         return portalUser;
     }
 
