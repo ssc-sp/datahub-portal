@@ -18,7 +18,7 @@ public abstract class DatahubTheme
     {
         LayoutProperties =
         {
-            AppbarHeight = "80px"
+            AppbarHeight = "70px"
         },
         Typography =
         {
@@ -78,12 +78,63 @@ public abstract class DatahubTheme
         },
         PaletteLight =
         {
+            //The primary accent colour (becomes close to white in dark mode)
+            Primary = "#2460FF",
+            PrimaryDarken = "#26374A",
+
+            //Used for Unclassified data labels (same colour as Primary but does not change in dark mode)
+            Info = "#2460FF",
+
+            //Used for Protected A data labels
+            Secondary = "#0535d2",
+            SecondaryDarken = "#042CAE",
+            SecondaryLighten = "#7897FC",
+
+            //Used for Protected B data labels
+            Tertiary = "#2b4380",
+            TertiaryDarken = "#284162",
+            TertiaryLighten = "#6584A6",
+
+            //Darkened yellow to meet WCAG standards
+            Warning = "#B3800F",
+            WarningLighten = "#FAEDD1",
+
+
+            //Darkened red (colours are GC standard --gcds-color-red 500, 900, 100)
+            Error = "#d3080c",
+            ErrorDarken = "#822117",
+            ErrorLighten = "#FBDDDA",
+
             AppbarBackground = Colors.Shades.White,
             Background = Colors.Gray.Lighten5
         },
         PaletteDark =
         {
             Primary = "#C8C4F3",
+
+            //Used for Unclassified data labels (same colour as Primary but does not change in dark mode)
+            Info = "#2460FF",
+
+            //Used for Protected A data labels
+            Secondary = "#0535d2",
+            SecondaryDarken = "#042CAE",
+            SecondaryLighten = "#7897FC",
+
+            //Used for Protected B data labels
+            Tertiary = "#2b4380",
+            TertiaryDarken = "#284162",
+            TertiaryLighten = "#6584A6",
+
+            //Darkened yellow to meet WCAG standards
+            Warning = "#B3800F",
+            WarningLighten = "#FAEDD1",
+
+
+            //Darkened red (colours are GC standard --gcds-color-red 500, 900, 100)
+            Error = "#d3080c",
+            ErrorDarken = "#822117",
+            ErrorLighten = "#FBDDDA",
+
             AppbarBackground = "#27272F",
             Background = "#27272F"
         },

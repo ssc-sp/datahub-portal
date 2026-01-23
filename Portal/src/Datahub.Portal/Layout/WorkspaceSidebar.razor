@@ -457,11 +457,11 @@
             switch (securityLevel)
             {
                 case ClassificationType.ProtectedB:
-                    return Color.Error;
+                    return Color.Tertiary;
                 case ClassificationType.ProtectedA:
-                    return Color.Warning;
+                    return Color.Secondary;
                 default:
-                    return Color.Primary;
+                    return Color.Info;
             }
     }
     private string GetSecurityTitle(ClassificationType securityLevel)
