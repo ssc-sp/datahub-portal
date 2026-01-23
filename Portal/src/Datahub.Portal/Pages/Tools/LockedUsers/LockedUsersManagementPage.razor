@@ -129,16 +129,12 @@
                                             <MudTd>
                                                 @if (!string.IsNullOrEmpty(workspaceLock.EvidenceUrl))
                                                 {
-                                                    <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
-                                                        <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.CheckCircle">
-                                                            @Localizer["Uploaded"]
-                                                        </MudChip>
-                                                        <DHButton Size="Size.Small" 
-                                                                 Variant="Variant.Text" 
-                                                                 OnClick="@(() => ViewEvidence(workspaceLock.EvidenceUrl))">
-                                                            @Localizer["View"]
-                                                        </DHButton>
-                                                    </MudStack>
+                                                    <MudLink Typo="Typo.body2" 
+                                                             Color="Color.Primary" 
+                                                             OnClick="@(() => DownloadEvidence(workspaceLock))"
+                                                             Style="cursor: pointer;">
+                                                        @Localizer["Provided"]
+                                                    </MudLink>
                                                 }
                                                 else
                                                 {
@@ -154,25 +150,21 @@
                                                         @Localizer["Unlocked"]
                                                     </MudChip>
                                                 }
+                                                else if (string.IsNullOrEmpty(workspaceLock.EvidenceUrl))
+                                                {
+                                                    <MudText Typo="Typo.body2" Color="Color.Default">
+                                                        @Localizer["Awaiting Evidence"]
+                                                    </MudText>
+                                                }
                                                 else
                                                 {
-                                                    <MudStack Row Spacing="1">
-                                                        <DHButton Size="Size.Small"
-                                                                 Variant="Variant.Filled"
-                                                                 Color="Color.Primary"
-                                                                 StartIcon="@Icons.Material.Filled.Upload"
-                                                                 OnClick="@(() => OpenUploadDialog(workspaceLock))">
-                                                            @Localizer["Upload Evidence"]
-                                                        </DHButton>
-                                                        <DHButton Size="Size.Small"
-                                                                 Variant="Variant.Filled"
-                                                                 Color="Color.Success"
-                                                                 StartIcon="@Icons.Material.Filled.LockOpen"
-                                                                 OnClick="@(() => UnlockUserForWorkspace(workspaceLock))"
-                                                                 Disabled="@(string.IsNullOrEmpty(workspaceLock.EvidenceUrl))">
-                                                            @Localizer["Unlock"]
-                                                        </DHButton>
-                                                    </MudStack>
+                                                    <DHButton Size="Size.Small"
+                                                             Variant="Variant.Filled"
+                                                             Color="Color.Success"
+                                                             StartIcon="@Icons.Material.Filled.LockOpen"
+                                                             OnClick="@(() => UnlockUserForWorkspace(workspaceLock))">
+                                                        @Localizer["Unlock"]
+                                                    </DHButton>
                                                 }
                                             </MudTd>
                                         </RowTemplate>
@@ -287,6 +279,9 @@
                 // Randomly simulate if workspace admin has requested unlock
                 var hasRequest = random.Next(0, 3) == 0; // 33% chance
                 
+                // If there's a request, 80% chance they also uploaded evidence
+                var hasEvidence = hasRequest && random.Next(0, 5) < 4;
+                
                 workspaceLocks.Add(new WorkspaceLockInfo
                 {
                     WorkspaceAcronym = workspace.Project_Acronym_CD,
@@ -294,7 +289,7 @@
                     RequestedByAdminUserId = hasRequest ? $"admin_{workspace.Project_Acronym_CD}@example.com" : null,
                     RequestedByAdminName = hasRequest ? $"Workspace Admin ({workspace.Project_Acronym_CD})" : null,
                     RequestDate = hasRequest ? DateTime.UtcNow.AddHours(-random.Next(1, 48)) : null,
-                    EvidenceUrl = null,
+                    EvidenceUrl = hasEvidence ? $"https://storage.example.com/evidence/{workspace.Project_Acronym_CD}_{user.Id}_virusscan.pdf" : null,
                     IsUnlocked = false
                 });
             }
@@ -320,27 +315,11 @@
                user.User.Email?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
     }
 
-    private async Task OpenUploadDialog(WorkspaceLockInfo workspaceLock)
+    private void DownloadEvidence(WorkspaceLockInfo workspaceLock)
     {
-        var parameters = new DialogParameters
-        {
-            { "WorkspaceAcronym", workspaceLock.WorkspaceAcronym },
-            { "WorkspaceName", workspaceLock.WorkspaceName }
-        };
-
-        var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
-        var dialog = await _dialogService.ShowAsync<UploadVirusScanEvidenceDialog>(
-            Localizer["Upload Virus Scan Evidence for {0}", workspaceLock.WorkspaceAcronym], 
-            parameters, 
-            options);
-
-        var result = await dialog.Result;
-        if (result != null && !result.Canceled)
-        {
-            // MOCK: Set evidence URL to indicate upload completed
-            workspaceLock.EvidenceUrl = $"mock://evidence/{workspaceLock.WorkspaceAcronym}/scan.png";
-            StateHasChanged();
-        }
+        // MOCK: Simulate downloading evidence for review
+        _snackbar.Add($"(DEMO) Downloading evidence from: {workspaceLock.EvidenceUrl}", Severity.Info);
+        _snackbar.Add($"(DEMO) Evidence submitted by workspace admin: {workspaceLock.RequestedByAdminName}", Severity.Info);
     }
 
     private async Task UnlockUserForWorkspace(WorkspaceLockInfo workspaceLock)

@@ -37,8 +37,62 @@ namespace Datahub.Portal.Pages.Workspace.Users
         private async Task InitializedProjectMembers()
         {
             _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+            
+            // MOCK: Add fake locked users for demo purposes
+            await AddMockLockedUsers();
+            
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
+        }
+        
+        // MOCK: Add fake locked users to demonstrate the locked user workflow
+        private async Task AddMockLockedUsers()
+        {
+            // Create fake locked users if they don't already exist
+            var fakeLockedUsers = new[]
+            {
+                new { Email = "external.contractor@example.com", Name = "External Contractor" },
+                new { Email = "test.user@example.com", Name = "Test User" }
+            };
+            
+            var index = 0;
+            foreach (var fakeUser in fakeLockedUsers)
+            {
+                // Check if user already exists
+                if (!_projectUsers.Any(u => u.PortalUser?.Email == fakeUser.Email))
+                {
+                    // Create a fake UserRole with PortalUser
+                    // Use negative IDs to avoid conflicts with real database records
+                    var mockPortalUserId = -1000 - index; // Negative IDs for mock data
+                    
+                    var mockPortalUser = new PortalUser
+                    {
+                        Email = fakeUser.Email,
+                        DisplayName = fakeUser.Name,
+                        Id = mockPortalUserId
+                    };
+                    
+                    var mockRole = new Project_Role
+                    {
+                        Id = (int)Project_Role.RoleNames.Collaborator,
+                        Name = "Collaborator",
+                        Description = "Collaborator role for demo"
+                    };
+                    
+                    var mockUser = new UserRoleLinks
+                    {
+                        PortalUser = mockPortalUser,
+                        Role = mockRole,
+                        RoleId = mockRole.Id,
+                        IsDataSteward = false,
+                        Approved_DT = DateTime.Now.AddDays(-30),
+                        PortalUserId = mockPortalUser.Id
+                    };
+                    
+                    _projectUsers.Add(mockUser);
+                }
+                index++;
+            }
         }
 
         private bool CombinedFilter(UserRoleLinks projectUser)
