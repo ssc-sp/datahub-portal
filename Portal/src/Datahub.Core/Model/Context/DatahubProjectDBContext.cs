@@ -94,6 +94,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<TbsOpenGovSubmission> TbsOpenGovSubmissions { get; set; }
 
     /// <summary>
+    /// Gets or sets the table for storing blocklist entries for Open Government Publishing feature
+    /// </summary>
+    public DbSet<OpenGovPublishingBlocklist> OpenGovPublishingBlocklist { get; set; }
+
+    /// <summary>
     /// Gets or sets the profile for external users
     /// </summary>
     public DbSet<ExternalUser> ExternalUsers { get; set; }
@@ -298,6 +303,27 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasOne<ProjectCloudStorage>(f => f.Storage)
             .WithMany(s => s.PublishingSubmissionFiles)
             .HasForeignKey(f => f.ProjectStorageId);
+
+        modelBuilder.Entity<OpenGovPublishingBlocklist>()
+            .HasOne<PortalUser>(b => b.AddedByUser)
+            .WithMany()
+            .HasForeignKey(b => b.AddedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<OpenGovPublishingBlocklist>()
+            .HasOne<PortalUser>(b => b.RemovedByUser)
+            .WithMany()
+            .HasForeignKey(b => b.RemovedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        modelBuilder.Entity<OpenGovPublishingBlocklist>()
+            .HasIndex(b => b.EmailHostname);
+
+        modelBuilder.Entity<OpenGovPublishingBlocklist>()
+            .HasIndex(b => b.DepartmentName);
+
+        modelBuilder.Entity<OpenGovPublishingBlocklist>()
+            .HasIndex(b => b.Status);
 
         modelBuilder.Entity<Datahub_Project>()
             .HasOne(p => p.ParentGCHostingBudget)
