@@ -35,7 +35,7 @@ jobs:
 
           if [ "$TARGET" != "develop" ]; then
             echo "Skipping: Release was targeted at '$TARGET', not 'develop'."
-            exit 0 
+            exit 0
           fi
         env:
           GITHUB_EVENT_RELEASE_TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
