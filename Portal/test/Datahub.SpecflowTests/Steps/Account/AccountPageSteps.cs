@@ -73,7 +73,7 @@ public class AccountPageSteps : BunitTestSteps
         var userPrincipal = new ClaimsPrincipal(userClaimsIdentity);
 
         var serviceAuthManager = Substitute.For<IServiceAuthManager>();
-        serviceAuthManager.GetUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
+        serviceAuthManager.GetEntraUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
 
         var transformer = new RoleClaimTransformer(serviceAuthManager, _portalConfig, Substitute.For<ILogger<RoleClaimTransformer>>());
         userPrincipal = await transformer.TransformAsync(userPrincipal);

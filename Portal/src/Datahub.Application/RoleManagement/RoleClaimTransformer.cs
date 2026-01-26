@@ -4,6 +4,7 @@ using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 
@@ -23,24 +24,21 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
         try
         {
             // ReSharper disable once StringLiteralTypo
-            var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
             if (principal?.Identity is not ClaimsIdentity claims)
                 return principal!;
-            if (userEntraId is null)
+            bool isEntra = VerifyTrustedEntraLogin(claims);
+
+            if (!isEntra)
             {
-                var idp = principal.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE)?.Value;
-                if (idp?.EndsWith(IDP_GCCF) ?? false)
-                {                    
-                    claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
-                    return principal!;
-                }
-                else
-                    throw new SecurityException("Invalid IDP login");
+                var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                var authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
+
             }
             else
             {
 
-                var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userEntraId);
+                var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == ClaimConstants.ObjectId)?.Value ?? throw new InvalidOperationException("User Entra ID not found");
+                var authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
                 claims.AddClaim(new Claim(ClaimTypes.Role, "default"));
                 claims.AddClaim(new Claim(ClaimTypes.Role, userEntraId));
 
@@ -55,8 +53,6 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                     var cbrWorkspaces = await serviceAuthManager.GetUserCbrWorkspaceAcronyms(userEmail);
                     claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
                 }
-
-                VerifyTrustedEntraLogin(claims);
 
                 // Ensure that the user can't be both approver and admin
                 bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
@@ -89,13 +85,13 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
         return principal!;
     }
 
-    private void VerifyTrustedEntraLogin(ClaimsIdentity claims)
+    private bool VerifyTrustedEntraLogin(ClaimsIdentity claims)
     {
-        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN) || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
+        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN))
         {
             // User is already marked as trusted or external
-            return;
-        }
+            return true;
+        }        
 
         var utid = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.UniqueTenantIdentifier)?.Value;
 
@@ -105,15 +101,27 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
         var tenantIssuer = $"https://login.microsoftonline.com/{tenantId}/v2.0";
         var idProvider = $"https://sts.windows.net/{utid}/";
-
-        //TODO verify that external logins don't match this criteria
+        
         bool trusted = identityProviderClaim != null &&
             identityProviderClaim.Value == idProvider &&
             identityProviderClaim.Issuer == tenantIssuer;
 
-        var trustedRole = trusted ? RoleConstants.TRUSTED_ENTRA_LOGIN : RoleConstants.EXTERNAL_LOGIN;
-        var trustedClaim = new Claim(ClaimTypes.Role, trustedRole);
-
-        claims.AddClaim(trustedClaim);
+        if (!trusted)
+        {
+            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE)?.Value;
+            if (idp?.EndsWith(IDP_GCCF) ?? false)
+            {
+                claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
+            }
+            else
+                throw new SecurityException("Invalid IDP login");
+            return false;
+        }
+        else
+        {
+            var trustedClaim = new Claim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN);
+            claims.AddClaim(trustedClaim);
+            return true;
+        }
     }
 }

@@ -92,7 +92,18 @@ public interface IServiceAuthManager
     /// A task that resolves to an immutable list of tuples containing the role and project
     /// the user is authorized for.
     /// </returns>
-    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetUserAuthorizations(string userGraphId);
+    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetEntraUserAuthorizations(string userGraphId);
+
+    /// <summary>
+    /// Gets the authorizations (project role and project) for the specified user external id.
+    /// </summary>
+    /// <param name="externalId">The user's name identifier.</param>
+    /// <returns>
+    /// A task that resolves to an immutable list of tuples containing the role and project
+    /// the user is authorized for.
+    /// </returns>
+    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetExternalUserAuthorizations(string externalId);
+
 
     /// <summary>
     /// Determines whether the specified user (by email) is an owner of any CBR resources.
