@@ -5,6 +5,8 @@ on:
   release:
     types: [released]
 
+permissions: read-all
+
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -12,18 +14,19 @@ jobs:
     steps:
       - name: Convert App token
         id: create_token
-        uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
           app-id:: ${{ vars.DH_RELEASE_MANAGER_ID }}
           private-key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
 
       - name: Checkout proof-of-concept branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
         with:
           ref: proof-of-concept
-          token: ${{ steps.create_token.outputs.token }}
           fetch-depth: 1
           persist-credentials: false
+        env:
+          GITHUB_TOKEN: ${{ steps.create_token.outputs.token }}
 
       - name: Ensure Release is from Develop
         run: |
