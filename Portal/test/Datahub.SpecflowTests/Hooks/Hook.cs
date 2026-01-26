@@ -70,7 +70,7 @@ public class Hooks
     }
 
 
-    [BeforeScenario("IWebHostEnvironment")]
+    [BeforeScenario("IWebHostEnvironment", Order = 1)]
     public async Task BeforeScenarioRequiringOffline(IObjectContainer objectContainer, ScenarioContext scenarioContext)
     {
         // Use a concrete test implementation of IWebHostEnvironment instead of a substitute
@@ -85,6 +85,17 @@ public class Hooks
         };
 
         objectContainer.RegisterInstanceAs<IWebHostEnvironment>(testEnvironment);
+        
+        // Register IDbContextFactory for scenarios that might need it during teardown
+        // Use scenario-specific database name to ensure isolation between scenarios
+        var databaseName = $"TestDb_{scenarioContext.ScenarioInfo.Title.Replace(" ", "_")}_{Guid.NewGuid()}";
+        scenarioContext["DatabaseName"] = databaseName;
+        
+        var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
+            .UseInMemoryDatabase(databaseName: databaseName)
+            .Options;
+        var dbContextFactory = new SpecFlowDbContextFactory(options);
+        objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
     }
 
     // Simple concrete IWebHostEnvironment implementation for tests
