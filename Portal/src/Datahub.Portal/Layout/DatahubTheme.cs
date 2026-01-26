@@ -129,7 +129,6 @@ public abstract class DatahubTheme
             Warning = "#B3800F",
             WarningLighten = "#FAEDD1",
 
-
             //Darkened red (colours are GC standard --gcds-color-red 500, 900, 100)
             Error = "#d3080c",
             ErrorDarken = "#822117",

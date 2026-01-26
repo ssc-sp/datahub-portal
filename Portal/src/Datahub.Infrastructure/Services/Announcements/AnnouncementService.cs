@@ -164,7 +164,7 @@ public class AnnouncementService : IAnnouncementService
                 case 1:
                     return Color.Warning;
                 case 2:
-                    return Color.Dark;
+                    return Color.Primary;
             }
         }
         return Color.Transparent;

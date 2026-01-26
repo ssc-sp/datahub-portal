@@ -62,7 +62,9 @@
                              Color=@group.Color
                              @onclick="() => CheckWorkspaceRoleFilter()">
                         <DHIcon Icon=@(group.Label.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) Size="Size.Small"/>
-                        @group.Label
+                        <strong>
+                            @group.Label
+                        </strong>
                     </MudChip>
                 }
             </MudChipSet>
@@ -209,9 +211,9 @@ else
 	];
 
 	private List<WorkspaceDisplayGroup> SecurityDisplayGroups =>
-   [
-				_unclassifiedGroup, _protectedAGroup, _protectedBGroup
-			];
+    [
+		_unclassifiedGroup, _protectedAGroup, _protectedBGroup
+	];
 
 	bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
 	bool HasWorkspaces => _allWorkspaces.Count > 0;
@@ -413,7 +415,7 @@ else
         _unclassifiedGroup = new()
         {
             Label = Localizer["Unclassified"],
-            Color = Color.Primary,
+            Color = Color.Info,
             Workspaces = _unclassifiedWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces with Unclassified security level"],
@@ -422,7 +424,7 @@ else
         _protectedAGroup = new()
         {
             Label = Localizer["Protected A"],
-            Color = Color.Warning,
+            Color = Color.Secondary,
             Workspaces = _protectedAWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces with Protected A security level"],
@@ -431,7 +433,7 @@ else
         _protectedBGroup = new()
         {
             Label = Localizer["Protected B"],
-            Color = Color.Error,
+            Color = Color.Tertiary,
             Workspaces = _protectedBWorkspaces,
             FilterToggle = false,
             FilterLabel = Localizer["Show only workspaces with Protected B security level"],
