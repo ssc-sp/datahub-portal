@@ -321,7 +321,7 @@ else
         {
             foreach (var group in SecurityDisplayGroups)
             {
-                if (Show(group))
+                if (Show(group) && group.Workspaces.Any())
                 {
                     securityFiltered = true;
                     foreach (var workspace in group.Workspaces)
@@ -332,7 +332,7 @@ else
             }
             foreach (var group2 in WorkspaceDisplayGroups)
             {
-                if (Show(group2))
+                if (Show(group2) && group2.Workspaces.Any())
                 {
                     roleFiltered = true;
                     foreach (var workspace in group2.Workspaces)
