@@ -16,7 +16,7 @@ namespace Datahub.SpecflowTests.Hooks;
 [Binding]
 public class DatahubAzureSubscriptionHook
 {
-    [BeforeScenario("AzureDatahubSubscription")]
+    [BeforeScenario("AzureDatahubSubscription", Order = 2)]
     public void BeforeScenarioAzureDatahubSubscription(IObjectContainer objectContainer,
         ScenarioContext scenarioContext)
     {
@@ -29,8 +29,13 @@ public class DatahubAzureSubscriptionHook
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
         
+        // Reuse the database name from IWebHostEnvironment hook if it exists
+        var databaseName = scenarioContext.ContainsKey("DatabaseName") 
+            ? scenarioContext["DatabaseName"].ToString()!
+            : $"TestDb_{scenarioContext.ScenarioInfo.Title.Replace(" ", "_")}_{Guid.NewGuid()}";
+        
         var options = new DbContextOptionsBuilder<DatahubProjectDBContext>()
-            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .UseInMemoryDatabase(databaseName: databaseName)
             .Options;
         
         var dbContextFactory = new SpecFlowDbContextFactory(options);
