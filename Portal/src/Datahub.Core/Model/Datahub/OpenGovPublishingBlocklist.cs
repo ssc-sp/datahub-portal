@@ -6,6 +6,7 @@ namespace Datahub.Core.Model.Datahub;
 
 /// <summary>
 /// Represents the status of a blocklist entry
+/// could be extended in future to include more statuses like 'Under Review', etc.
 /// </summary>
 public enum BlocklistStatus
 {

@@ -48,7 +48,7 @@ public static class ConfigureServices
         services.AddScoped<CloudStorageManagerFactory>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
-        services.AddSingleton<IAnnouncementService, AnnouncementService>(); 
+        services.AddSingleton<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
         services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService, UsersStatusService>();
@@ -57,6 +57,7 @@ public static class ConfigureServices
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
+
 
         services.AddAzureResourceManager(configuration);
         services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
