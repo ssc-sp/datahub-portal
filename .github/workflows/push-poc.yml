@@ -11,7 +11,7 @@ jobs:
 
     steps:
       - name: Convert App token
-        id: create_token 
+        id: create_token
         uses: actions/create-github-app-token@7e473efe3cb98aa54f8d4bac15400b15fad77d94 # v2
         with:
           app-id:: ${{ vars.DH_RELEASE_MANAGER_ID }}
@@ -28,7 +28,7 @@ jobs:
         run: |
           TARGET="${{ github.event.release.target_commitish }}"
           echo "Release target: $TARGET"
-          
+
           if [ "$TARGET" != "develop" ]; then
             echo "Skipping: Release was targeted at '$TARGET', not 'develop'."
             exit 0 
