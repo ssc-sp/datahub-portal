@@ -41,7 +41,7 @@ jobs:
           GITHUB_EVENT_RELEASE_TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
 
       - name: Fetch the Release Tag
-        run: git fetch origin ${GITHUB_REF} --depth=1
+        run: git fetch origin "${GITHUB_REF}" --depth=1
 
       - name: Output Release Info
         run: |
