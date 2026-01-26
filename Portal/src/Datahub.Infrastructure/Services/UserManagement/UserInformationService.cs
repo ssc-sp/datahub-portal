@@ -87,7 +87,7 @@ public class UserInformationService(
 
     public async Task<string?> GetCurrentUserEntraId()
     {
-        await CheckUser();
+        _ = await GetGraphUserAsyncInternal();
         return GetEntraOid();
     }
 
@@ -106,14 +106,14 @@ public class UserInformationService(
 
     public async Task<string> GetUserEmail()
     {
-        await CheckUser();
-        return currentEntraUser.Mail ?? throw new InvalidOperationException("Email is not available for current user");
+        var user = await GetGraphUserAsyncInternal();
+        return user.Mail ?? throw new InvalidOperationException("Email is not available for current user");
     }
 
     public async Task<string> GetDisplayName()
     {
-        await CheckUser();
-        return currentEntraUser.DisplayName ?? string.Empty;
+        var user = await GetGraphUserAsyncInternal();
+        return user.DisplayName ?? string.Empty;
     }
 
     public async Task<string> GetUserEmailDomain()
@@ -160,9 +160,9 @@ public class UserInformationService(
         return !claims.Any() || (claims.Count == 1 && claims[0].Value == "default");
     }
 
-    private async Task LoadUserAsyncInternal()
+    private async Task<User> GetGraphUserAsyncInternal()
     {
-        if (currentEntraUser != null) return;
+        if (currentEntraUser != null) return currentEntraUser;
         var authenticatedUser = await GetAuthenticatedUser();
         if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
         {
@@ -194,26 +194,32 @@ public class UserInformationService(
             //_logger.LogError(e, "Error Loading User"); redundant
             throw new InvalidOperationException("Cannot retrieve user list", e);
         }
+        return currentEntraUser;
     }
 
     private bool HasEntraOid()
     {
-        return authenticatedUser?.Claims?
-                   .Any(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? false;
+        // Prefer standard OIDC oid claim; fall back to NameIdentifier if needed
+        return authenticatedUser?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false;
     }
 
     private string GetEntraOid()
     {
-        // ReSharper disable once ConstantConditionalAccessQualifier
-        return (authenticatedUser?.Claims?
-                    .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ??
-                throw new InvalidOperationException("Cannot access user claims")).Value;
+        if (!HasEntraOid())
+            throw new InvalidOperationException("User does not have a valid Entra OID");
+        // Try standard OIDC oid first
+        var claim = authenticatedUser?.Claims?
+            .FirstOrDefault(c => c.Type == ClaimConstants.ObjectId);
+
+        if (claim is null)
+            throw new InvalidOperationException("Cannot access user claims");
+
+        return claim.Value;
     }
 
     public async Task<User> GetCurrentGraphUserAsync()
     {
-        await CheckUser();
-        return currentEntraUser;
+        return await GetGraphUserAsyncInternal();
     }
 
     private void PrepareAuthenticatedClient()
@@ -238,14 +244,6 @@ public class UserInformationService(
             logger.LogError($"Error preparing authentication client: {e.Message}");
             Console.WriteLine($"Error preparing authentication client: {e.Message}");
             throw;
-        }
-    }
-
-    private async Task CheckUser()
-    {
-        if (currentEntraUser == null)
-        {
-            await LoadUserAsyncInternal();
         }
     }
 
