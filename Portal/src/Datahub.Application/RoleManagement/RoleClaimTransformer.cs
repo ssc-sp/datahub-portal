@@ -1,4 +1,5 @@
-﻿using System.Security.Claims;
+using System.Security;
+using System.Security.Claims;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
@@ -14,30 +15,39 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 {
     // Not included in ClaimTypes or ClaimConstants
     public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
+    public const string IDP_PROVIDER_CLAIM = "idp_provider";
+    public const string IDP_GCCF = "clegc-gckey.gc.ca";
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
         try
         {
             // ReSharper disable once StringLiteralTypo
-            var userId = principal.Claims.First(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier").Value;
-            if (userId is null)
+            var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
+            if (principal?.Identity is not ClaimsIdentity claims)
+                return principal!;
+            if (userEntraId is null)
             {
-                logger.LogCritical("user uid not available in claims");
+                var idp = principal.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE)?.Value;
+                if (idp?.EndsWith(IDP_GCCF) ?? false)
+                {                    
+                    claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
+                    return principal!;
+                }
+                else
+                    throw new SecurityException("Invalid IDP login");
             }
             else
             {
-                if (principal?.Identity is not ClaimsIdentity claims)
-                    return principal!;
 
-                var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userId);
+                var authorizedProjects = await serviceAuthManager.GetUserAuthorizations(userEntraId);
                 claims.AddClaim(new Claim(ClaimTypes.Role, "default"));
-                claims.AddClaim(new Claim(ClaimTypes.Role, userId));
+                claims.AddClaim(new Claim(ClaimTypes.Role, userEntraId));
 
                 var userEmail = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
                 if (userEmail is null)
                 {
-                    logger.LogError($"email not available for user with uid {userId}");
+                    logger.LogError($"email not available for user with uid {userEntraId}");
                 }
                 else if (await serviceAuthManager.IsUserCbrOwner(userEmail))
                 {
@@ -53,7 +63,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
                 foreach (var (role, project) in authorizedProjects)
                 {
-                    if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userId))
+                    if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userEntraId))
                     {
                         claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
                     }

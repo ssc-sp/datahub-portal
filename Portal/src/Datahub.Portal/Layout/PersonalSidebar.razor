@@ -162,6 +162,8 @@
         public const string VersionControl_FR = "controle-de-version";
         public const string LockedUsers = "locked-users";
         public const string LockedUsers_FR = "utilisateurs-verrouilles";
+        public const string PublishingBlocklist = "publishing-blocklist";
+        public const string PublishingBlocklist_FR = "liste-blocage-publication";
     }
 
 
@@ -185,7 +187,8 @@
         SectionViews.AzureSubscriptions,
         SectionViews.HostingServices,
         SectionViews.MetadataDefinitions,
-        SectionViews.VersionControl
+        SectionViews.VersionControl,
+        SectionViews.PublishingBlocklist
     };
 
 
@@ -238,6 +241,7 @@
             SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
             SectionViews.VersionControl => SidebarIcons.VersionControl,
             SectionViews.LockedUsers => Icons.Material.Filled.Lock,
+            SectionViews.PublishingBlocklist => SidebarIcons.Publishing,
             _ => SidebarIcons.Profile
         };
     }
@@ -262,6 +266,7 @@
             SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
             SectionViews.VersionControl => Localizer["Version Control"],
             SectionViews.LockedUsers => Localizer["Locked Users"],
+            SectionViews.PublishingBlocklist => Localizer["Publishing Blocklist"],
 
             _ => Localizer["Public Profile"]
         };

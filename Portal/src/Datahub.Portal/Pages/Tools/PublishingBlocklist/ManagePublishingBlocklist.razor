@@ -1,0 +1,145 @@
+@using Datahub.Application.Services.Publishing
+@using Datahub.Core.Model.Datahub
+@using MudBlazor
+@inject IOpenDataPublishingService _publishingService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+@inject IStringLocalizer Localizer
+
+<MudText Typo=@Typo.h2>@Localizer["Open Government Publishing Blocklist"]</MudText>
+
+<MudStack Spacing="4" Class="mt-4">
+    <MudText Typo="Typo.body1" Color="Color.Default">
+        @Localizer["This page allows you to block publishing for specific departments or organizations based on workspace owner email address."]
+    </MudText>
+
+    <MudTooltip Text=@Localizer["Add a new blocklist entry to restrict publishing access."]>
+        <DHButton Variant="Variant.Filled" 
+                  Color="Color.Primary" 
+                  StartIcon="@Icons.Material.Filled.Add" 
+                  OnClick="@OpenAddDialog"
+                  Class="mr-4">
+            @Localizer["Add New Blocklist Entry"]
+        </DHButton>
+    </MudTooltip>
+
+    <MudTable Items="@_entries" Dense="true" Hover="true" Loading="@_loading" LoadingProgressColor="Color.Primary">
+        <HeaderContent>
+            <MudTh>@Localizer["Department Name"]</MudTh>
+            <MudTh>@Localizer["Email Domain"]</MudTh>
+            <MudTh>@Localizer["Date Added"]</MudTh>
+            <MudTh>@Localizer["Added By"]</MudTh>
+            <MudTh>@Localizer["Notes"]</MudTh>
+            <MudTh>@Localizer["Actions"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel=@Localizer["Department Name"]>@context.DepartmentName</MudTd>
+            <MudTd DataLabel=@Localizer["Email Domain"]>@context.EmailHostname</MudTd>
+            <MudTd DataLabel=@Localizer["Date Added"]>@context.DateAdded.ToString("yyyy-MM-dd HH:mm")</MudTd>
+            <MudTd DataLabel=@Localizer["Added By"]>@context.AddedByUser?.DisplayName</MudTd>
+            <MudTd DataLabel=@Localizer["Notes"]>
+                @if (!string.IsNullOrEmpty(context.Notes))
+                {
+                    <MudTooltip Text="@context.Notes">
+                        <MudIcon Icon="@Icons.Material.Filled.Info" Size="Size.Small" />
+                    </MudTooltip>
+                }
+            </MudTd>
+            <MudTd DataLabel=@Localizer["Actions"]>
+                <MudStack Row="true" Spacing="1">
+                    <MudIconButton Icon="@Icons.Material.Filled.Edit" 
+                                   Size="Size.Small" 
+                                   Color="Color.Primary" 
+                                   OnClick="@(() => OpenEditDialog(context))" />
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" 
+                                   Size="Size.Small" 
+                                   Color="Color.Error" 
+                                   OnClick="@(() => DeleteEntry(context.Id))" />
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+</MudStack>
+
+@code {
+    private List<OpenGovPublishingBlocklist> _entries = new();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadEntries();
+    }
+
+    private async Task LoadEntries()
+    {
+        _loading = true;
+        try
+        {
+            _entries = await _publishingService.GetActiveBlocklistEntriesAsync();
+        }
+        finally
+        {
+            _loading = false;
+        }
+    }
+
+    private async Task OpenAddDialog()
+    {
+        var parameters = new DialogParameters
+        {
+            ["IsEditMode"] = false
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await _dialogService.ShowAsync<BlocklistEntryDialog>(Localizer["Add Blocklist Entry"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadEntries();
+            _snackbar.Add(Localizer["Blocklist entry added successfully"], Severity.Success);
+        }
+    }
+
+    private async Task OpenEditDialog(OpenGovPublishingBlocklist entry)
+    {
+        var parameters = new DialogParameters
+        {
+            ["IsEditMode"] = true,
+            ["Entry"] = entry
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true };
+        var dialog = await _dialogService.ShowAsync<BlocklistEntryDialog>(Localizer["Edit Blocklist Entry"], parameters, options);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await LoadEntries();
+            _snackbar.Add(Localizer["Blocklist entry updated successfully"], Severity.Success);
+        }
+    }
+
+    private async Task DeleteEntry(int id)
+    {
+        bool? confirmed = await _dialogService.ShowMessageBox(
+            Localizer["Confirm Delete"],
+            Localizer["Are you sure you want to delete this blocklist entry? This action cannot be undone."],
+            yesText: Localizer["Delete"],
+            cancelText: Localizer["Cancel"]);
+
+        if (confirmed == true)
+        {
+            try
+            {
+                await _publishingService.DeleteBlocklistEntryAsync(id);
+                await LoadEntries();
+                _snackbar.Add(Localizer["Blocklist entry deleted successfully"], Severity.Success);
+            }
+            catch (Exception ex)
+            {
+                _snackbar.Add($"{Localizer["Error deleting entry"]}: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+}

@@ -17,6 +17,7 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject ISnackbar _snackbar
+@inject IConfiguration _configuration
 
 @* @page "/w/{ProjectAcronymParam}/sudo" *@
 
@@ -104,44 +105,45 @@
 
 
 @code {
-    const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
-    private string _workspaceDefinitionMarkdown;
-    private string _expectedTerraformOutput;
-    private DatahubAuthView.AuthLevels _authLevel = DatahubAuthView.AuthLevels.Unauthorized;
+	const string DATABRICKS_SCOPE = "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/.default";
+	private string _workspaceDefinitionMarkdown;
+	private string _expectedTerraformOutput;
+	private DatahubAuthView.AuthLevels _authLevel = DatahubAuthView.AuthLevels.Unauthorized;
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
-    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+	[Parameter] public string WorkspaceAcronym { get; set; }
+	[Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    private static readonly string[] DatabricksScopes =
-    {
+	private static readonly string[] DatabricksScopes =
+	{
         "2ff814a6-3304-4ab8-85cb-cd0e6f879c1d/user_impersonation"
     };
 
-    private Datahub_Project _project;
+	private Datahub_Project _project = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
+	protected override async Task OnInitializedAsync()
+	{
+		await base.OnInitializedAsync();
 
-        await _projectCreationService.CreateNewTemplateWorkspaceResourceAsync(WorkspaceAcronym);
+		await _projectCreationService.CreateNewTemplateWorkspaceResourceAsync(WorkspaceAcronym);
 
-        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+		var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+		var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
 
-        var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition,
-            new JsonSerializerOptions
+		var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition,
+			new JsonSerializerOptions
             {
                 WriteIndented = true,
             });
 
-        _workspaceDefinitionMarkdown = $"```json\n{workspaceDefinitionJsonString}\n```";
+		_workspaceDefinitionMarkdown = $"```json\n{workspaceDefinitionJsonString}\n```";
 
-        var context = await _dbContextFactory.CreateDbContextAsync();
-        _project = await context.Projects
-            .Include(p => p.Resources)
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
+		var context = await _dbContextFactory.CreateDbContextAsync();
+		_project = await context.Projects
+			.Include(p => p.Resources)
+			.FirstAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
 
-        _expectedTerraformOutput = $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project)}\n```";
+		var env = _configuration.GetCurrentEnvironment();
+		_expectedTerraformOutput = $"```json\n{TerraformOutputHelper.GetExpectedTerraformOutput(_project, envAcronym: env)}\n```";
 
         if (ElevatedWorkspaceAccessEnabled)
         {

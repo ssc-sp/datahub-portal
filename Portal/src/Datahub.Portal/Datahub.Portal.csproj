@@ -40,6 +40,7 @@
 		<PackageReference Include="Microsoft.Graph" Version="5.93.*" />
 		<PackageReference Include="Microsoft.Identity.Web" Version="3.14.*" />
 		<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.14.*" />
+		<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.15.*" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" Version="2.23.1" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.2.*" />
 		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" Version="4.5.*" />
@@ -47,7 +48,6 @@
 		<PackageReference Include="Octokit" Version="14.0.*" />
 		<PackageReference Include="PSC.Blazor.Components.MarkdownEditor" Version="8.0.*" />
 		<PackageReference Include="MudBlazor" Version="8.12.*" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.14.*" />
 		<PackageReference Include="Toolbelt.Blazor.LocalTimeText.Server" Version="1.0.1" />
 		<PackageReference Include="CsvHelper" Version="33.1.*" />
 
@@ -81,9 +81,7 @@
 	</ItemGroup>
 
 	<!-- Use the minified CSS during publish (Release) but keep your code referencing site.css -->
-	<Target Name="UseMinifiedCssOnPublish"
-	        AfterTargets="ComputeFilesToPublish"
-	        Condition="'$(Configuration)'=='Release'">
+	<Target Name="UseMinifiedCssOnPublish" AfterTargets="ComputeFilesToPublish" Condition="'$(Configuration)'=='Release'">
 		<ItemGroup>
 			<!-- Serve the combined min as site.css -->
 			<ResolvedFileToPublish Include="wwwroot\css\site.min.css">
