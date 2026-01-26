@@ -23,24 +23,29 @@ jobs:
           ref: proof-of-concept
           token: ${{ steps.create_token.outputs.token }}
           fetch-depth: 1
+          persist-credentials: false
 
       - name: Ensure Release is from Develop
         run: |
-          TARGET="${{ github.event.release.target_commitish }}"
+          TARGET="${GITHUB_EVENT_RELEASE_TARGET_COMMITISH}"
           echo "Release target: $TARGET"
 
           if [ "$TARGET" != "develop" ]; then
             echo "Skipping: Release was targeted at '$TARGET', not 'develop'."
             exit 0 
           fi
+        env:
+          GITHUB_EVENT_RELEASE_TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
 
       - name: Fetch the Release Tag
-        run: git fetch origin ${{ github.ref }} --depth=1
+        run: git fetch origin ${GITHUB_REF} --depth=1
 
       - name: Output Release Info
         run: |
-          echo "Deploying Release Version: ${{ github.event.release.tag_name }}"
+          echo "Deploying Release Version: ${GITHUB_EVENT_RELEASE_TAG_NAME}"
           echo "Commit SHA: ${{ github.sha }}"
+        env:
+          GITHUB_EVENT_RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
 
       - name: Hard-reset proof-of-concept to Release
         run: |
