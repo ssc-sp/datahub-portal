@@ -1,4 +1,5 @@
 <!-- textlint-disable -->
+<!-- prettier-ignore -->
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
