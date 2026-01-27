@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Configuration;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Services;
@@ -37,7 +37,7 @@ namespace Datahub.Infrastructure.Services.Security
         {
             var user = await _userInfoService.GetAuthenticatedUser();
             var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
-            _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, user: user);
+            _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: "OpenIdConnect", user: user);
             _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
         }
 
