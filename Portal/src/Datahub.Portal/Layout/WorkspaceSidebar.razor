@@ -24,7 +24,7 @@
 @inject IDialogService _dialogService
 
 <MudDrawerContainer Style="overflow: hidden auto">
-    <MudStack Row Class="py-4 px-4" AlignItems="AlignItems.Center">
+    <MudStack Row Class="py-7 px-4" AlignItems="AlignItems.Center">
         <SkipLink Type="SkipLinkType.Navigation" Anchor>
             <p class="sr-only">@Localizer["Toggle sidebar open or closed."]</p>
             <MudIconButton title="@Localizer["Toggle sidebar open or closed."]" Icon="@Icons.Material.Filled.Menu"
@@ -488,11 +488,11 @@
             switch (securityLevel)
             {
                 case ClassificationType.ProtectedB:
-                    return Color.Error;
+                    return Color.Tertiary;
                 case ClassificationType.ProtectedA:
-                    return Color.Warning;
+                    return Color.Secondary;
                 default:
-                    return Color.Primary;
+                    return Color.Info;
             }
     }
     private string GetSecurityTitle(ClassificationType securityLevel)
