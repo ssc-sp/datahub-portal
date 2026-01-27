@@ -1,11 +1,11 @@
-﻿using Datahub.Shared.Entities;
+using Datahub.Shared.Entities;
 using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 
 namespace Datahub.Portal.Model
 {
     public class AzurePgsqlDBServer
     {
-        public PostgresTier PostgresTier { get; set; } = null!;
+        public PostgresTier PostgresTier { get; set; } = PostgresTier.DefaultTier;
         public int StorageSize { get; set; } = 0;
         public string DatabaseHost { get; set; } = "<database_host>";
         public string DatabaseName { get; set; } = "<database_name>";
