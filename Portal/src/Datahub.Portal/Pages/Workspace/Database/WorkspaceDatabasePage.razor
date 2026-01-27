@@ -95,11 +95,11 @@
         {
             _logger.LogError(e, "Failed to get consent from user");
         }
+        
         // get SKU 
-        var postgresResource = await BuildPostgresSqlFlexibleServerResource();
-     
-        var instance = new AzurePgsqlDBServer();
-        try {
+        try 
+        {
+            var postgresResource = await BuildPostgresSqlFlexibleServerResource();
             var serverData = await postgresResource.GetAsync();
             if (serverData.Value.HasData)
             {
@@ -109,16 +109,15 @@
                 {
                     var skuName = parts[1];
                     var postgresTiers = PostgresTier.GetPostgresTiers();
-                    instance.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier() { Type = "-", SKUName = skuName, Cores = -1, MemorySize = "-", TerraformSku = skuName };          
+                    _dbServer.PostgresTier = postgresTiers.Where(p => p.SKUName == skuName).FirstOrDefault() ?? new PostgresTier() { Type = "-", SKUName = skuName, Cores = -1, MemorySize = "-", TerraformSku = skuName };          
                 }
-                instance.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
+                _dbServer.StorageSize = serverData.Value.Data.StorageSizeInGB ?? 0;
             }
         }
         catch (Exception ex) 
         {
-            // do nothing
+            _logger.LogError(ex, "Failed to get database server information");
         }
-        _dbServer = instance;
 
         StateHasChanged();
     }
@@ -322,4 +321,4 @@ display(remote_table)
 ```";
     }
 
-}
+}}
