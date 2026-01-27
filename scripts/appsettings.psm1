@@ -559,15 +559,15 @@ function Install-RequiredModules
             $installedModule = Get-Module -ListAvailable -Name $moduleName
             
             if ($installedModule -and -not $Force) {
-                Write-Host "✓ Module $moduleName is already installed (Version: $($installedModule[0].Version))" -ForegroundColor Green
+                Write-Host "[OK] Module $moduleName is already installed (Version: $($installedModule[0].Version))" -ForegroundColor Green
                 continue
             }
             
             if ($Force -and $installedModule) {
-                Write-Host "⚠ Forcing reinstallation of $moduleName..." -ForegroundColor Yellow
+                Write-Host "[WARNING] Forcing reinstallation of $moduleName..." -ForegroundColor Yellow
             }
             
-            Write-Host "📦 Installing $moduleName..." -ForegroundColor Blue
+            Write-Host "[INSTALLING] Installing $moduleName..." -ForegroundColor Blue
             
             # Install the module
             Install-Module -Name $moduleName -Force:$Force -Scope $Scope -AllowClobber
@@ -575,28 +575,28 @@ function Install-RequiredModules
             # Verify installation
             $verifyModule = Get-Module -ListAvailable -Name $moduleName
             if ($verifyModule) {
-                Write-Host "✓ Successfully installed $moduleName (Version: $($verifyModule[0].Version))" -ForegroundColor Green
+                Write-Host "[OK] Successfully installed $moduleName (Version: $($verifyModule[0].Version))" -ForegroundColor Green
             } else {
-                Write-Warning "⚠ Installation of $moduleName may have failed - module not found after installation"
+                Write-Warning "[WARNING] Installation of $moduleName may have failed - module not found after installation"
             }
         }
         catch {
-            Write-Error "❌ Failed to install module $moduleName`: $($_.Exception.Message)"
+            Write-Error "[ERROR] Failed to install module $moduleName`: $($_.Exception.Message)"
             Write-Host "You may need to run PowerShell as Administrator or check your execution policy." -ForegroundColor Red
         }
     }
     
-    Write-Host "`n🎉 Module installation process completed!" -ForegroundColor Green
+    Write-Host "`n[COMPLETED] Module installation process completed!" -ForegroundColor Green
     Write-Host "You can now use the DataHub Portal PowerShell scripts." -ForegroundColor Yellow
     
     # Display summary
-    Write-Host "`n📋 Installation Summary:" -ForegroundColor Cyan
+    Write-Host "`n[SUMMARY] Installation Summary:" -ForegroundColor Cyan
     foreach ($module in $requiredModules) {
         $installedModule = Get-Module -ListAvailable -Name $module.Name
         if ($installedModule) {
-            Write-Host "✓ $($module.Name) - Version $($installedModule[0].Version)" -ForegroundColor Green
+            Write-Host "[OK] $($module.Name) - Version $($installedModule[0].Version)" -ForegroundColor Green
         } else {
-            Write-Host "❌ $($module.Name) - Not installed" -ForegroundColor Red
+            Write-Host "[MISSING] $($module.Name) - Not installed" -ForegroundColor Red
         }
     }
 }
