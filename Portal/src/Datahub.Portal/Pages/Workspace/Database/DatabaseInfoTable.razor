@@ -2,112 +2,115 @@
 <MudText Typo="Typo.h2" Class="mt-6">
     @Localizer["Database Information"]
 </MudText>
-<MudSimpleTable Dense Hover Striped Outlined>
-    <thead>
-    <tr>
-        <th><strong>@Localizer["Property"]</strong></th>
-        <th><strong>@Localizer["Value"]</strong></th>
-    </tr>
-    </thead>
-    <tbody>
+@if (dbServer is not null)
+{
+    <MudSimpleTable Dense Hover Striped Outlined>
+        <thead>
+        <tr>
+            <th><strong>@Localizer["Property"]</strong></th>
+            <th><strong>@Localizer["Value"]</strong></th>
+        </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>
+                    @Localizer["SKU"]
+                </td>
+                <td>
+                    <code>@dbServer.PostgresTier.SKUName</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Localizer["Instance Type"]
+                </td>
+                <td>
+                    <code>@dbServer.PostgresTier.Type</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Localizer["vCores"]
+                </td>
+                <td>
+                    <code>@dbServer.PostgresTier.Cores</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Localizer["Memory Size"]
+                </td>
+                <td>
+                    <code>@dbServer.PostgresTier.MemorySize</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Localizer["MaxIOPS"]
+                </td>
+                <td>
+                    <code>@dbServer.PostgresTier.MaxIOPS</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Localizer["MaxBandwidth"]
+                </td>
+                <td>
+                    <code>@dbServer.PostgresTier.MaxBandwidth</code>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    @Localizer["Storage Size"]
+                </td>
+                <td>
+                    <code>@dbServer.StorageSize</code>
+                </td>
+            </tr>
         <tr>
             <td>
-                @Localizer["SKU"]
+                @Localizer["Host"]
             </td>
             <td>
-                <code>@dbServer?.PostgresTier.SKUName</code>
+                    <code>@dbServer.DatabaseHost</code>
             </td>
         </tr>
         <tr>
             <td>
-                @Localizer["Instance Type"]
+                @Localizer["Database Name"]
             </td>
             <td>
-                <code>@dbServer?.PostgresTier.Type</code>
+                    <code>@dbServer.DatabaseName</code>
             </td>
         </tr>
         <tr>
             <td>
-                @Localizer["vCores"]
+                @Localizer["Username"]
             </td>
             <td>
-                <code>@dbServer?.PostgresTier.Cores</code>
+                    <code>@dbServer.Username</code>
             </td>
         </tr>
         <tr>
             <td>
-                @Localizer["Memory Size"]
+                @Localizer["Password"]
             </td>
             <td>
-                <code>@dbServer?.PostgresTier.MemorySize</code>
+                    <code>@dbServer.Password</code>
             </td>
         </tr>
         <tr>
             <td>
-                @Localizer["MaxIOPS"]
+                @Localizer["Port"]
             </td>
             <td>
-                <code>@dbServer?.PostgresTier.MaxIOPS</code>
+                    <code>@dbServer.Port</code>
             </td>
         </tr>
-        <tr>
-            <td>
-                @Localizer["MaxBandwidth"]
-            </td>
-            <td>
-                <code>@dbServer?.PostgresTier.MaxBandwidth</code>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                @Localizer["Storage Size"]
-            </td>
-            <td>
-                <code>@dbServer?.StorageSize</code>
-            </td>
-        </tr>
-    <tr>
-        <td>
-            @Localizer["Host"]
-        </td>
-        <td>
-                <code>@dbServer?.DatabaseHost</code>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Database Name"]
-        </td>
-        <td>
-                <code>@dbServer?.DatabaseName</code>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Username"]
-        </td>
-        <td>
-                <code>@dbServer?.Username</code>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Password"]
-        </td>
-        <td>
-                <code>@dbServer?.Password</code>
-        </td>
-    </tr>
-    <tr>
-        <td>
-            @Localizer["Port"]
-        </td>
-        <td>
-                <code>@dbServer?.Port</code>
-        </td>
-    </tr>
-    </tbody>
-</MudSimpleTable>
+        </tbody>
+    </MudSimpleTable>
+}
 
 @code {
     [Parameter] public AzurePgsqlDBServer dbServer { get; set; }
