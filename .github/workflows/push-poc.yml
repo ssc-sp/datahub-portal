@@ -25,8 +25,8 @@ jobs:
           ref: proof-of-concept
           fetch-depth: 1
           persist-credentials: false
-          token: ${{ steps.create_token.outputs.token }} 
-          
+          token: ${{ steps.create_token.outputs.token }}
+
       - name: Ensure Release is from Develop
         run: |
           TARGET="${GITHUB_EVENT_RELEASE_TARGET_COMMITISH}"
