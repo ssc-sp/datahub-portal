@@ -16,7 +16,7 @@ jobs:
         id: create_token
         uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
-          app-id:: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          app-id: ${{ vars.DH_RELEASE_MANAGER_ID }}
           private-key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
 
       - name: Checkout proof-of-concept branch
@@ -25,9 +25,8 @@ jobs:
           ref: proof-of-concept
           fetch-depth: 1
           persist-credentials: false
-        env:
-          GITHUB_TOKEN: ${{ steps.create_token.outputs.token }}
-
+          token: ${{ steps.create_token.outputs.token }} 
+          
       - name: Ensure Release is from Develop
         run: |
           TARGET="${GITHUB_EVENT_RELEASE_TARGET_COMMITISH}"
