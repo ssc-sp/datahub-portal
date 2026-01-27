@@ -39,7 +39,7 @@ public class UserInformationService(
     private GraphServiceClient graphServiceClient = null!;
     private ClaimsPrincipal authenticatedUser = null!;
     public event EventHandler<PortalUserUpdatedEventArgs> PortalUserUpdated = null!;
-    private User currentUser = null!;
+    private User? currentEntraUser = null;
     private static User AnonymousUser => UserInformationServiceConstants.GetAnonymousUser();
     private bool _isViewingAsVisitor;
     private PortalUser? _userWithAchievements;
@@ -53,18 +53,31 @@ public class UserInformationService(
             if (traceClaims)
             {
                 logger.LogDebug("User:{User} Authentication Status: {IsAuthenticated}", authenticatedUser?.Identity?.Name ?? "Unknown", authenticatedUser?.Identity?.IsAuthenticated);
-
+                if (authenticatedUser == null)
+                {
+                    logger.LogDebug("No authenticated user found.");
+                    throw new InvalidOperationException("No authenticated user found.");
+                }
                 foreach (var claim in authenticatedUser.Claims)
                 {
                     logger.LogDebug("Claim: {Type} - {Value}", claim.Type, claim.Value);
                 }
                 logger.LogDebug("Is External? {IsExternal}", authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) ? "Yes" : "No");
+                logger.LogDebug("User ID: {UserId}", authenticatedUser.FindFirstValue(ClaimTypes.NameIdentifier) ?? "Unknown");
             }
         }
-        if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN) && !await IsGCCFEnabled())
-            throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
+        // throw an exception if external logins are not allowed and external is detected
+        _ = await IsExternalAsync(authenticatedUser);
 
         return authenticatedUser;
+    }
+
+    private async Task<bool> IsExternalAsync(ClaimsPrincipal user)
+    {
+        var isExternal = user.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN);
+        if (isExternal && !await IsGCCFEnabled())
+            throw new InvalidOperationException("External users are not allowed when GCCF is disabled");
+        return isExternal;
     }
 
     private async Task<bool> IsGCCFEnabled()
@@ -82,28 +95,25 @@ public class UserInformationService(
     /// Gets the current authenticated user's subject claim ("sub" or NameIdentifier) from the authentication claims.
     /// Returns null when the claim is not present or the user is not authenticated.
     /// </summary>
-    public async Task<string?> GetCurrentUserSubjectAsync()
+    public async Task<string?> GetExternalUserNameIdentifier()
     {
         var user = await GetAuthenticatedUser();
         if (user == null) return null;
-
-        // Common claim types that represent subject:
-        // - JWT 'sub' for GCCF
-        var subjectClaim = user.Claims?.FirstOrDefault(c => string.Equals(c.Type, "sub", StringComparison.OrdinalIgnoreCase));
-
-        return subjectClaim?.Value;
+        if (!await IsExternalAsync(user)) return null;
+        var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
+        return userId;
     }
 
     public async Task<string> GetUserEmail()
     {
         await CheckUser();
-        return currentUser.Mail ?? throw new InvalidOperationException("Email is not available for current user");
+        return currentEntraUser.Mail ?? throw new InvalidOperationException("Email is not available for current user");
     }
 
     public async Task<string> GetDisplayName()
     {
         await CheckUser();
-        return currentUser.DisplayName ?? string.Empty;
+        return currentEntraUser.DisplayName ?? string.Empty;
     }
 
     public async Task<string> GetUserEmailDomain()
@@ -115,7 +125,7 @@ public class UserInformationService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", currentUser?.Mail);
+            logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", currentEntraUser?.Mail);
             return "?";
         }
     }
@@ -129,7 +139,7 @@ public class UserInformationService(
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", currentUser?.Mail);
+            logger.LogError(ex, "Cannot parse email from {CurrentUserMail}", currentEntraUser?.Mail);
             return "?";
         }
     }
@@ -150,12 +160,18 @@ public class UserInformationService(
         return !claims.Any() || (claims.Count == 1 && claims[0].Value == "default");
     }
 
-    private async Task GetUserAsyncInternal()
+    private async Task LoadUserAsyncInternal()
     {
-        if (currentUser != null) return;
+        if (currentEntraUser != null) return;
+        var authenticatedUser = await GetAuthenticatedUser();
+        if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
+        {
+            // Throw501 (Not Implemented) if external login
+            throw new HttpRequestException("External login is not allowed", null, System.Net.HttpStatusCode.NotImplemented);
+        }
         try
         {
-            var email = (await GetAuthenticatedUser())?.Identity?.Name;
+            var email = authenticatedUser?.Identity?.Name;
             var userId = GetEntraOid();
             if (email is null)
             {
@@ -163,7 +179,7 @@ public class UserInformationService(
             }
 
             PrepareAuthenticatedClient();
-            currentUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
+            currentEntraUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
         }
         catch (ServiceException e)
         {
@@ -197,7 +213,7 @@ public class UserInformationService(
     public async Task<User> GetCurrentGraphUserAsync()
     {
         await CheckUser();
-        return currentUser;
+        return currentEntraUser;
     }
 
     private void PrepareAuthenticatedClient()
@@ -227,9 +243,9 @@ public class UserInformationService(
 
     private async Task CheckUser()
     {
-        if (currentUser == null)
+        if (currentEntraUser == null)
         {
-            await GetUserAsyncInternal();
+            await LoadUserAsyncInternal();
         }
     }
 
@@ -243,9 +259,9 @@ public class UserInformationService(
         try
         {
             PrepareAuthenticatedClient();
-            currentUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
+            currentEntraUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
 
-            return currentUser;
+            return currentEntraUser;
         }
         catch (ServiceException e)
         {
@@ -605,7 +621,7 @@ public class UserInformationService(
     {
         if (_userWithAchievements != null)
             return _userWithAchievements;
-        _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetCurrentUserSubjectAsync());
+        _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetExternalUserNameIdentifier());
 
         return _userWithAchievements;
     }
@@ -626,9 +642,12 @@ public class UserInformationService(
 
         PortalUser portalUser = null!;
         if (entraId is not null)
+        {
             portalUser = await query.FirstAsync(p => p.EntraUser != null && p.EntraUser.GraphGuid == entraId);
-        if (userOID is not null)
+        } else if (userOID is not null)
+        {
             portalUser = await query.FirstAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == userOID);
+        }
         return portalUser;
     }
 

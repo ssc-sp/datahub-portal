@@ -1,0 +1,128 @@
+@using Datahub.Application.Services.Publishing
+@using Datahub.Core.Model.Datahub
+@using MudBlazor
+@inject IOpenDataPublishingService _publishingService
+@inject IStringLocalizer Localizer
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudTextField @bind-Value="_departmentName" 
+                          Label=@Localizer["Department Name"] 
+                          Required="true" 
+                          RequiredError=@Localizer["Department name is required"]
+                          HelperText=@Localizer["Enter the department name to block"] />
+            
+            <MudTextField @bind-Value="_emailHostname" 
+                          Label=@Localizer["Email Domain"] 
+                          Required="true" 
+                          RequiredError=@Localizer["Email Domain is required"]
+                          Validation="@(new Func<string, string>(ValidateEmailHostname))"
+                          HelperText=@Localizer["Enter the Email Domain in format @[...].gc.ca (e.g., @dfo-mpo.gc.ca)"] />
+            
+            <MudTextField @bind-Value="_notes" 
+                          Label=@Localizer["Notes"] 
+                          Lines="3" 
+                          HelperText=@Localizer["Optional notes about this blocklist entry"] />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit" Variant="Variant.Filled">
+            @(IsEditMode ? Localizer["Update"] : Localizer["Add"])
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    public IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] 
+    public bool IsEditMode { get; set; }
+    
+    [Parameter] 
+    public OpenGovPublishingBlocklist Entry { get; set; }
+
+    private string _departmentName = string.Empty;
+    private string _emailHostname = string.Empty;
+    private string _notes = string.Empty;
+    private int _entryId;
+
+    private string ValidateEmailHostname(string hostname)
+    {
+        if (string.IsNullOrWhiteSpace(hostname))
+        {
+            return Localizer["Email Domain is required"];
+        }
+
+        if (!hostname.StartsWith("@"))
+        {
+            return Localizer["Email Domain must start with @"];
+        }
+
+        if (!hostname.EndsWith(".gc.ca", StringComparison.OrdinalIgnoreCase))
+        {
+            return Localizer["Email Domain must end with .gc.ca"];
+        }
+
+        return null;
+    }
+
+    protected override void OnInitialized()
+    {
+        if (IsEditMode && Entry != null)
+        {
+            _entryId = Entry.Id;
+            _departmentName = Entry.DepartmentName ?? string.Empty;
+            _emailHostname = Entry.EmailHostname ?? string.Empty;
+            _notes = Entry.Notes ?? string.Empty;
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private async Task Submit()
+    {
+        if (string.IsNullOrWhiteSpace(_departmentName) || string.IsNullOrWhiteSpace(_emailHostname))
+        {
+            return;
+        }
+
+        // Validate Email Domain format
+        var hostnameValidation = ValidateEmailHostname(_emailHostname);
+        if (hostnameValidation != null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (IsEditMode)
+            {
+                await _publishingService.UpdateBlocklistEntryAsync(
+                    _entryId,
+                    _departmentName.Trim(),
+                    _emailHostname.Trim(),
+                    _notes?.Trim());
+            }
+            else
+            {
+                await _publishingService.AddBlocklistEntryAsync(
+                    _departmentName.Trim(),
+                    _emailHostname.Trim(),
+                    _notes?.Trim());
+            }
+
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception)
+        {
+            // Error handling is done in the parent component
+            throw;
+        }
+    }
+}

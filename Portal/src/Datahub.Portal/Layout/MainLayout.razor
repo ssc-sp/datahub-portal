@@ -5,6 +5,7 @@
 @using Microsoft.Identity.Web
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Portal.Components.PageAlerts
+@using System.Runtime.ExceptionServices
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -53,39 +54,48 @@ else
 @code
 
 {
-    private bool? _isSessionEnabled;
-    private bool _isLoaded = false;
-    private const string LogoutUrl = PageRoutes.Logout;
-    private bool _isUserValid = false;
+	private bool? _isSessionEnabled;
+	private bool _isLoaded = false;
+	private const string LogoutUrl = PageRoutes.Logout;
+	private bool _isUserValid = false;
 
-    private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
+	private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
 
-    private static string GetLoadMessage()
-    {
-        return LOAD_MESSAGES[new Random().Next(LOAD_MESSAGES.Length)];
-    }
+	private static string GetLoadMessage()
+	{
+		return LOAD_MESSAGES[new Random().Next(LOAD_MESSAGES.Length)];
+	}
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            var user = await _userInformationService.GetAuthenticatedUser(true);
-			
-            if (!user.Identity?.IsAuthenticated ?? true)
-            {
-                var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
-                _navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
-                return;
-            }
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			var user = await _userInformationService.GetAuthenticatedUser(true);
 
-            _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
-            _isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
-            await _auditingService.TrackEvent("Login");
-        }
-        catch (Exception ex)
-        {
-            _consentHandler.HandleException(ex);
-        }
+			if (!user.Identity?.IsAuthenticated ?? true)
+			{
+				var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);
+				_navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
+				return;
+			}
+
+			_isUserValid = await _userSettingsService.HasUserAcceptedTAC();
+			_isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
+			await _auditingService.TrackEvent("Login");
+		}
+		catch (Exception ex)
+		{
+			var exceptionSrc = ExceptionDispatchInfo.Capture(ex);
+			try
+			{
+				_consentHandler.HandleException(ex);
+			}
+			catch (Exception)
+			{
+				// rethrow the original exception if consent handling fails
+				exceptionSrc.Throw();
+			}
+	}
 
         // register and or update authenticated portal user
         await _userInformationService.RegisterAuthenticatedPortalUser();
