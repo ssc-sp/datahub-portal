@@ -2,7 +2,6 @@
 name: 2. Release to Proof-of-concept branch
 
 on:
-  workflow_dispatch:
   release:
     types: [released]
 
