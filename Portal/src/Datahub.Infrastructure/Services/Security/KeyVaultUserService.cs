@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 using System.Text.RegularExpressions;
 using Datahub.Application.Services.UserManagement;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace Datahub.Infrastructure.Services.Security
 {
@@ -37,7 +38,7 @@ namespace Datahub.Infrastructure.Services.Security
         {
             var user = await _userInfoService.GetAuthenticatedUser();
             var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
-            _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: "OpenIdConnect", user: user);
+            _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme, user: user);
             _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
         }
 
