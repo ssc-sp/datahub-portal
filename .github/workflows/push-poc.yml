@@ -24,7 +24,7 @@ jobs:
         with:
           ref: proof-of-concept
           fetch-depth: 1
-          persist-credentials: false
+          persist-credentials: true
           token: ${{ steps.create_token.outputs.token }}
 
       - name: Ensure Release is from Develop
