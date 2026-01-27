@@ -1,3 +1,5 @@
+<!-- textlint-disable -->
+<!-- markdownlint-disable MD024 -->
 # Changelog
 
 ## [8.2.0](https://github.com/ssc-sp/datahub-portal/compare/v8.1.0...v8.2.0) (2026-01-27)
