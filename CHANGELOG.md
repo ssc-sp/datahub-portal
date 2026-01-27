@@ -3,6 +3,14 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.2.1](https://github.com/ssc-sp/datahub-portal/compare/v8.2.0...v8.2.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* changing theme colours to meet WCAG standards ([#1837](https://github.com/ssc-sp/datahub-portal/issues/1837)) ([90ebede](https://github.com/ssc-sp/datahub-portal/commit/90ebede9933108b663e93ec3dd88673d395e5a5f))
+* db page crashes because of missing sku ([#1840](https://github.com/ssc-sp/datahub-portal/issues/1840)) ([ec21766](https://github.com/ssc-sp/datahub-portal/commit/ec217668570b3a82f88b32c41728abd28041b94d))
+
 ## [8.2.0](https://github.com/ssc-sp/datahub-portal/compare/v8.1.0...v8.2.0) (2026-01-27)
 
 
