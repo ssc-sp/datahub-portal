@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services.Announcements
+@using Datahub.Application.Services.Announcements
 @using MudBlazor.Utilities
 
 @inject IAnnouncementService _announcementService
@@ -19,8 +19,8 @@
                 <li class="flex-1">
                     <MudAlert Severity="_announcementService.GetSeverity(preview.Severity)" Style="color: #000;" NoIcon="true">
                         <div style="display: flex;">
-                            <MudChip T="string" Color="_announcementService.GetColor(preview.Severity, true)">
-                                <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" />
+                            <MudChip T="string" Variant="Variant.Text" Color="_announcementService.GetColor(preview.Severity, true)">
+                                <DHIcon Icon="@_announcementService.GetIcon(preview.Severity)" Class="mr-1" Color="_announcementService.GetColor(preview.Severity, true)" />
                                 <MudText Typo="Typo.button">@Localizer[_announcementService.GetText(preview.Severity)]</MudText>
                             </MudChip>
                         </div>
