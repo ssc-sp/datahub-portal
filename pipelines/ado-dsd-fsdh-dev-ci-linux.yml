@@ -76,7 +76,7 @@ jobs:
         $parts = $version.Split('.')
         $majorMinor = "$($parts[0]).$($parts[1])"
         $revision = $parts[2]
-        $dateCode = Get-Date -Format 'yyyyMMdd'
+        $dateCode = Get-Date -Format 'yyyyMMdd_HHmmssfff'
         Write-Host "##vso[task.setvariable variable=version.MajorMinor]$majorMinor"
         Write-Host "##vso[task.setvariable variable=version.Revision]$revision"
         Write-Host "##vso[task.setvariable variable=version.Build]$dateCode"
