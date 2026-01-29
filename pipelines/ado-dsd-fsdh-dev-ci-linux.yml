@@ -304,13 +304,13 @@ jobs:
     inputs:
       targetType: inline
       script: |
-        git config user.name "AzureDevOps Agent"
-        git config user.email "ado-agent@example"
-        $versionNumber = "v$(version.MajorMinor).$(version.Revision)-$(version.Build)"
+        #git config user.name "AzureDevOps Agent"
+        #git config user.email "ado-agent@example"
+        #$versionNumber = "v$(version.MajorMinor).$(version.Revision)-$(version.Build)"
 
-        Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
-        git tag "$versionNumber" --force
-        git push origin "$versionNumber" --force
+        #Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
+        #git tag "$versionNumber" --force
+        #git push origin "$versionNumber" --force
 
 - job: Portal_Testing_job
   displayName: Agent job - Portal Testing
