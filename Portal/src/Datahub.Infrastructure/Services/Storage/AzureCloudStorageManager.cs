@@ -19,6 +19,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private readonly bool _inboxAccount;
     private readonly string _connectionString;
     private readonly string _displayName;
+    private readonly string? _sasToken;
 
     public bool IsInboxAccount => _inboxAccount;
 
@@ -29,6 +30,25 @@ public class AzureCloudStorageManager : ICloudStorageManager
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
         _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+    }
+
+    /// <summary>
+    /// Constructor for SAS token authentication
+    /// </summary>
+    public AzureCloudStorageManager(string accountName, string sasToken, bool useSasToken, string? displayName = default)
+    {
+        if (!useSasToken)
+            throw new ArgumentException("Use the other constructor for account key authentication");
+            
+        _accountName = accountName;
+        _accountKey = string.Empty;
+        _sasToken = sasToken;
+        _inboxAccount = displayName == default;
+        _displayName = displayName ?? _accountName;
+        
+        // SAS token connection string format
+        var sasTokenParam = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
+        _connectionString = @$"BlobEndpoint=https://{accountName}.blob.core.windows.net/;SharedAccessSignature={sasTokenParam}";
     }
 
     public async Task<List<string>> GetContainersAsync()

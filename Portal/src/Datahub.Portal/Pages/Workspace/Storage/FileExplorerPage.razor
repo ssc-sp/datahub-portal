@@ -2,7 +2,9 @@
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Core.Model
 @using Datahub.Core.Storage;
+@using Datahub.Core.Data
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Portal.Components.Dialogs
@@ -11,6 +13,7 @@
 @using Microsoft.Extensions.Options
 @using Microsoft.Graph.Models;
 @using Microsoft.Identity.Web;
+@using System.Security.Claims
 
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -21,6 +24,8 @@
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @inject IKeyVaultUserService keyVaultUserService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject IFileScanService _fileScanService
+@inject NavigationManager NavigationManager
 
 
 <!--suppress CssUnresolvedCustomProperty -->
@@ -88,7 +93,16 @@
                                     }
                                     else
                                     {
-                                        <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                        @if (_authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false)
+                                        {
+                                            <ExternalUserFileExplorer ProjectId=@_projectId 
+                                                                      Container="@_selectedContainer" 
+                                                                      FileScanService="@_fileScanService" />
+                                        }
+                                        else
+                                        {
+                                            <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                        }
                                     }
 
                                 }
@@ -145,6 +159,9 @@
     [Parameter] public string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
+
     private Datahub_Project? _project;
     private int? _projectId;
     private string _title;
@@ -154,6 +171,7 @@
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private PortalUser _user = null!;
+    private ClaimsPrincipal? _authenticatedUser;
 
     private bool _tokenTermsAcknowledged = false;
 
@@ -173,6 +191,17 @@
 
     protected override async Task OnInitializedAsync()
     {
+        // Get authenticated user from authentication state
+        var authState = await AuthenticationStateTask;
+        _authenticatedUser = authState.User;
+        
+        // Check if user has external login role
+        if (_authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false)
+        {
+            NavigationManager.NavigateTo($"/w/{WorkspaceAcronym}/storage-external", forceLoad: true);
+            return;
+        }
+        
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _user = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("User is not authenticated");

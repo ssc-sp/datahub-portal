@@ -55,6 +55,36 @@ namespace Datahub.Infrastructure.Services.Security
 
         public string GetKeyVaultURL(string vaultName) => $"https://{vaultName}.vault.azure.net/";
 
+        public async Task<string?> GetSecretFromCentralKeyVaultAsync(string keyVaultName, string secretName)
+        {
+            if (_keyVaultClient is null)
+            {
+                try
+                {
+                    await Authenticate();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error authenticating KeyVaultUserService");
+                    throw new InvalidOperationException("KeyVaultUserService not authenticated");
+                }
+            }
+
+            var cleanedSecretName = CleanName(secretName);
+            var vaultUrl = GetKeyVaultURL(keyVaultName);
+            
+            try
+            {
+                var secret = await _keyVaultClient.GetSecretAsync(vaultUrl, cleanedSecretName);
+                return secret?.Value;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving secret {cleanedSecretName} from central Key Vault {keyVaultName}");
+                return null;
+            }
+        }
+
         public async Task<string?> GetSecretAsync(string acronym, string name)
         {
             if (_keyVaultClient is null)

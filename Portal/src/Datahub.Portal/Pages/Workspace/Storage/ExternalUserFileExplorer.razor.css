@@ -1,0 +1,31 @@
+/* External User File Explorer Styles */
+
+/* Add scan result column to grid for external users */
+.external-user-file-explorer .file-list .file-list-header,
+.external-user-file-explorer .file-list .file-item {
+    display: grid;
+    grid-template-columns: 36px 1fr 150px 250px 180px;
+    gap: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
+    align-items: center;
+    padding: calc((0 + 1 * (var(--design-unit) * var(--density))) * 1px);
+}
+
+.external-user-file-explorer .file-item-scan-status {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Scan status styling */
+.file-item-scan-status .mud-chip {
+    height: 24px;
+    font-size: 0.75rem;
+}
+
+.file-item-scan-status .mud-chip-error {
+    cursor: pointer;
+}
+
+.file-item-scan-status .mud-chip-error:hover {
+    opacity: 0.8;
+}
