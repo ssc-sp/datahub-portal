@@ -76,14 +76,17 @@ jobs:
         $parts = $version.Split('.')
         $majorMinor = "$($parts[0]).$($parts[1])"
         $revision = $parts[2]
+        $dateCode = Get-Date -Format 'yyyyMMdd'
         Write-Host "##vso[task.setvariable variable=version.MajorMinor]$majorMinor"
         Write-Host "##vso[task.setvariable variable=version.Revision]$revision"
+        Write-Host "##vso[task.setvariable variable=version.Build]$dateCode"
 
         # Set build number with v prefix and date code
-        $dateCode = Get-Date -Format 'yyyyMMdd'
-        $buildName = "v${version}_${dateCode}"
+        $buildName = "v${version}-${dateCode}"
+
         Write-Host "Setting the name of the build to '$buildName'."
         Write-Host "##vso[build.updatebuildnumber]$buildName"
+
 
 
 - job: Job_2
@@ -303,8 +306,7 @@ jobs:
       script: |
         git config user.name "AzureDevOps Agent"
         git config user.email "ado-agent@example"
-        $version = (Get-Content "$(Build.SourcesDirectory)\version.txt" -Raw).Trim()
-        $versionNumber = "v$version"
+        $versionNumber = "v$(version.MajorMinor).$(version.Revision)-$(version.Build)"
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
         git tag "$versionNumber" --force
