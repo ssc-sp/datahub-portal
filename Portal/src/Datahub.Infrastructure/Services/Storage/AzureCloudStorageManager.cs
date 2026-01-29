@@ -1,4 +1,4 @@
-﻿using Azure.Storage;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
@@ -28,7 +28,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         _accountKey = accountKey;
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
-        _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+        _connectionString = AzureStorageUtils.BuildAzureStorageConnectionString(accountName, accountKey);
     }
 
     public async Task<List<string>> GetContainersAsync()
@@ -471,6 +471,51 @@ public class AzureCloudStorageManager : ICloudStorageManager
         }
 
         return false;
+    }
+
+    public async Task<bool> CopyFileBetweenContainersAsync(string sourceContainer, string sourceFilePath,
+        string targetContainer, string targetFilePath, bool explicitlyCopyMetadata = false)
+    {
+        ValidateContainerName(sourceContainer);
+        ValidateContainerName(targetContainer);
+
+        var sourceBlobClient = GetBlobContainerClient(sourceContainer).GetBlobClient(sourceFilePath);
+        var targetBlobClient = GetBlobContainerClient(targetContainer).GetBlobClient(targetFilePath);
+
+        // Start the server-side copy operation
+        var copyOperation = await targetBlobClient.StartCopyFromUriAsync(sourceBlobClient.Uri);
+        await copyOperation.WaitForCompletionAsync();
+
+        if (!copyOperation.HasCompleted || copyOperation.GetRawResponse().IsError)
+            return false;
+
+        // Explicitly copy metadata if requested (note: StartCopyFromUriAsync copies metadata by default)
+        if (explicitlyCopyMetadata)
+        {
+            var sourceFs = GetFileSystemClient(sourceContainer);
+            var sourceFileClient = sourceFs.GetFileClient(sourceFilePath);
+            var sourceProps = await sourceFileClient.GetPropertiesAsync();
+
+            if (sourceProps.Value.Metadata.Count > 0)
+            {
+                await targetBlobClient.SetMetadataAsync(sourceProps.Value.Metadata);
+            }
+        }
+
+        return true;
+    }
+
+    public async Task<bool> MoveFileAsync(string sourceContainer, string sourceFilePath,
+        string targetContainer, string targetFilePath)
+    {
+        // Copy the file
+        var copied = await CopyFileBetweenContainersAsync(sourceContainer, sourceFilePath, targetContainer, targetFilePath);
+
+        if (!copied)
+            return false;
+
+        // Delete the source file
+        return await DeleteFileAsync(sourceContainer, sourceFilePath);
     }
 
 }
