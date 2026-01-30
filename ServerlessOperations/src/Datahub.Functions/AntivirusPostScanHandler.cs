@@ -113,23 +113,13 @@ public class AntivirusPostScanHandler(ILoggerFactory loggerFactory, IProjectStor
             return new NotFoundObjectResult("No upload records found for the specified batch");
         }
 
-        foreach (var record in records)
-        {
-            await MoveFileFromTriageToTargetAsync(storageManager, record);
-        }
-
+        await MoveFilesFromTriageToTargetAsync(storageManager, records);
         await UpdateRecordStatusAsync(tableClient, records, AntivirusScanStatus.Success);
 
         _logger.LogInformation("Successfully processed {Count} files for workspace {WorkspaceAcronym}, batch {UploadBatchId}",
             records.Count, request.WorkspaceAcronym, request.UploadBatchId);
 
-        return new OkObjectResult(new
-        {
-            Message = "Files successfully scanned and moved to target location",
-            WorkspaceAcronym = request.WorkspaceAcronym,
-            UploadBatchId = request.UploadBatchId,
-            FilesProcessed = records.Count
-        });
+        return CreateSuccessResult("Files successfully scanned and moved to target location", request, records);
     }
 
     private async Task<IActionResult> HandleVirusDetectedAsync(AntivirusPostScanMessage request)
@@ -157,13 +147,7 @@ public class AntivirusPostScanHandler(ILoggerFactory loggerFactory, IProjectStor
         _logger.LogInformation("Completed virus handling for workspace {WorkspaceAcronym}, batch {UploadBatchId}",
             request.WorkspaceAcronym, request.UploadBatchId);
 
-        return new OkObjectResult(new
-        {
-            Message = "Virus detected. Files deleted and user notified.",
-            WorkspaceAcronym = request.WorkspaceAcronym,
-            UploadBatchId = request.UploadBatchId,
-            FilesDeleted = records.Count
-        });
+        return CreateSuccessResult("Virus detected. Files deleted and user notified.", request, records);
     }
 
     private async Task<IActionResult> HandleScanErrorAsync(AntivirusPostScanMessage request)
@@ -189,13 +173,7 @@ public class AntivirusPostScanHandler(ILoggerFactory loggerFactory, IProjectStor
         _logger.LogInformation("Completed scan error handling for workspace {WorkspaceAcronym}, batch {UploadBatchId}",
             request.WorkspaceAcronym, request.UploadBatchId);
 
-        return new OkObjectResult(new
-        {
-            Message = "Scan error occurred. Files deleted from triage.",
-            WorkspaceAcronym = request.WorkspaceAcronym,
-            UploadBatchId = request.UploadBatchId,
-            FilesDeleted = records.Count
-        });
+        return CreateSuccessResult("Scan error occurred. Files deleted from triage.", request, records);
     }
 
     private BadRequestObjectResult HandleUnexpectedStatus(AntivirusPostScanMessage request)
@@ -241,23 +219,28 @@ public class AntivirusPostScanHandler(ILoggerFactory loggerFactory, IProjectStor
             records.Count, status);
     }
 
-    private async Task MoveFileFromTriageToTargetAsync(AzureCloudStorageManager storageManager, AzureUploadedFileRecord record)
+    private async Task MoveFilesFromTriageToTargetAsync(AzureCloudStorageManager storageManager, List<AzureUploadedFileRecord> records)
     {
-        _logger.LogInformation("Moving file from {TriageContainer}/{TriagePath} to {TargetContainer}/{TargetPath}",
-            record.TriageContainer, record.TriageFilePath, record.TargetContainer, record.TargetFilePath);
-
-        var success = await storageManager.MoveFileAsync(
-            record.TriageContainer,
-            record.TriageFilePath,
-            record.TargetContainer,
-            record.TargetFilePath);
-
-        if (!success)
+        foreach (var record in records)
         {
-            _logger.LogError("Failed to move file from {TriageContainer}/{TriagePath} to {TargetContainer}/{TargetPath}",
+            _logger.LogInformation("Moving file from {TriageContainer}/{TriagePath} to {TargetContainer}/{TargetPath}",
                 record.TriageContainer, record.TriageFilePath, record.TargetContainer, record.TargetFilePath);
-            throw new InvalidOperationException($"Failed to move file: {record.TriageFilePath}");
+
+            var success = await storageManager.MoveFileBetweenContainersAsync(
+                record.TriageContainer,
+                record.TriageFilePath,
+                record.TargetContainer,
+                record.TargetFilePath);
+
+            if (!success)
+            {
+                _logger.LogError("Failed to move file from {TriageContainer}/{TriagePath} to {TargetContainer}/{TargetPath}",
+                    record.TriageContainer, record.TriageFilePath, record.TargetContainer, record.TargetFilePath);
+                throw new InvalidOperationException($"Failed to move file: {record.TriageFilePath}");
+            }
         }
+
+        _logger.LogInformation("Moved {Count} files from triage to target location", records.Count);
     }
 
     private async Task DeleteFilesFromTriageAsync(AzureCloudStorageManager storageManager, List<AzureUploadedFileRecord> records)
@@ -301,6 +284,15 @@ public class AntivirusPostScanHandler(ILoggerFactory loggerFactory, IProjectStor
         return Task.CompletedTask;
     }
 
+    private static OkObjectResult CreateSuccessResult(string message, AntivirusPostScanMessage request, List<AzureUploadedFileRecord> records) =>
+    new(new
+    {
+        Message = message,
+        WorkspaceAcronym = request.WorkspaceAcronym,
+        UploadBatchId = request.UploadBatchId,
+        FilesProcessed = records.Count
+    });
+
     private async Task<(string accountName, string accountKey)> GetWorkspaceStorageCredentialsAsync(string workspaceAcronym)
     {
         string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(workspaceAcronym);
@@ -310,8 +302,6 @@ public class AntivirusPostScanHandler(ILoggerFactory loggerFactory, IProjectStor
 
     private async Task<AzureCloudStorageManager> GetAzureCloudStorageManagerAsync(string workspaceAcronym)
     {
-        //string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(workspaceAcronym);
-        //string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(workspaceAcronym);
         var (accountName, accountKey) = await GetWorkspaceStorageCredentialsAsync(workspaceAcronym);
         return new AzureCloudStorageManager(accountName, accountKey);
     }

@@ -505,7 +505,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return true;
     }
 
-    public async Task<bool> MoveFileAsync(string sourceContainer, string sourceFilePath,
+    public async Task<bool> MoveFileBetweenContainersAsync(string sourceContainer, string sourceFilePath,
         string targetContainer, string targetFilePath)
     {
         // Copy the file
