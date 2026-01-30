@@ -2,8 +2,6 @@
 #       env:
 #           MY_ACCESS_TOKEN: $(System.AccessToken)
 # Variable 'target_os' was defined in the Variables tab
-# Variable 'version.MajorMinor' was defined in the Variables tab
-# Variable 'version.Revision' was defined in the Variables tab
 trigger:
   branches:
     include:
@@ -51,19 +49,46 @@ jobs:
     displayName: Use Node 16.x
     inputs:
       version: 16.x
+
   - task: PowerShell@2
-    displayName: 'PowerShell Script: Set build number'
+    displayName: 'Init version vars + set build number from version.txt (v prefix)'
     inputs:
       targetType: inline
-      script: >-
-        [string] $dateCode = (Get-Date -Format 'yyyyMMdd')
+      script: |
+        $versionFile = Join-Path "$(Build.SourcesDirectory)" "version.txt"
+        if (-not (Test-Path $versionFile)) {
+          Write-Error "version.txt not found at $versionFile"
+          exit 1
+        }
 
-        [string] $buildName = "$(version.MajorMinor).$(version.Revision)_$dateCode"
+        $version = (Get-Content -Path $versionFile -Raw).Trim()
+        if ([string]::IsNullOrWhiteSpace($version)) {
+          Write-Error "version.txt is empty."
+          exit 1
+        }
 
+        if ($version -notmatch '^\d+\.\d+\.\d+$') {
+          Write-Error "version.txt does not contain a valid semantic version (major.minor.patch). Found: '$version'"
+          exit 1
+        }
+
+        # Initialize variables used elsewhere
+        $parts = $version.Split('.')
+        $majorMinor = "$($parts[0]).$($parts[1])"
+        $revision = $parts[2]
+        $dateCode = Get-Date -Format 'yyyyMMdd'
+        Write-Host "##vso[task.setvariable variable=version.MajorMinor]$majorMinor"
+        Write-Host "##vso[task.setvariable variable=version.Revision]$revision"
+        Write-Host "##vso[task.setvariable variable=version.Build]$dateCode"
+
+        # Set build number with v prefix and date code
+        $buildName = "v${version}-${dateCode}"
 
         Write-Host "Setting the name of the build to '$buildName'."
-
         Write-Host "##vso[build.updatebuildnumber]$buildName"
+
+
+
 - job: Job_2
   displayName: Agent job - build portal app
   dependsOn: Job_1
@@ -275,20 +300,17 @@ jobs:
     fetchTags: false
     persistCredentials: True
   - task: PowerShell@2
-    displayName: PowerShell Script
+    displayName: 'Tag repository with v<semver>'
     inputs:
       targetType: inline
-      script: >-
-        git config --global user.name "AzureDevOps Agent"
-
-        $versionNumber="$(build.buildNumber)"
-
-
-        git tag "$versionNumber" --force
-
-        git push origin "$versionNumber" --force
+      script: |
+        git config user.name "AzureDevOps Agent"
+        git config user.email "ado-agent@example"
+        $versionNumber = "v$(version.MajorMinor).$(version.Revision)-$(version.Build)"
 
         Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
+        git tag "$versionNumber" --force
+        git push origin "$versionNumber" --force
 
 - job: Portal_Testing_job
   displayName: Agent job - Portal Testing
