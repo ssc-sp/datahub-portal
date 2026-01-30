@@ -78,6 +78,11 @@ else
 				_navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
 				return;
 			}
+			if (!await _userInformationService.IsAuthorized())
+			{
+				_navigationManager.NavigateTo(Localizer[PageRoutes.AccessDenied], true);
+				return;
+			}
 
 			_isUserValid = await _userSettingsService.HasUserAcceptedTAC();
 			_isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();

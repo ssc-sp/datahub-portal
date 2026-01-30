@@ -24,7 +24,8 @@ public class ServiceAuthManager : IServiceAuthManager
     private readonly IDbContextFactory<DatahubProjectDBContext> dbFactory;
     private readonly ILogger<ServiceAuthManager> _logger;
 
-    private ConcurrentDictionary<string, bool> viewingAsGuest = new();
+    // Store Admin Mode state per user. True = Admin Mode (not guest). False/absent = normal/guest
+    private ConcurrentDictionary<string, bool> adminMode = new();
 
     public ServiceAuthManager(IMemoryCache serviceAuthCache, IDbContextFactory<DatahubProjectDBContext> dbFactory, ILogger<ServiceAuthManager> logger)
     {
@@ -39,19 +40,22 @@ public class ServiceAuthManager : IServiceAuthManager
         return ctx.Projects.Where(p => p.Project_Acronym_CD != null).Select(p => p.Project_Acronym_CD).ToList();
     }
 
-    public void SetViewingAsGuest(string userId, bool isGuest)
+    public void SetAdminModeView(string userId, bool isAdminMode)
     {
-        viewingAsGuest.AddOrUpdate(userId, isGuest, (k, v) => isGuest);
+        // Store admin mode directly
+        adminMode.AddOrUpdate(userId, isAdminMode, (k, v) => isAdminMode);
     }
 
-    public bool GetViewingAsGuest(string userId)
+    public bool IsAdminModeEnabled(string userId)
     {
-        return viewingAsGuest.ContainsKey(userId) && viewingAsGuest[userId];
+        // Admin mode is disabled by default when not set
+        return adminMode.TryGetValue(userId, out var isAdmin) && isAdmin;
     }
 
     public List<string> GetAdminProjectRoles(string userId)
     {
-        if (userId != null && viewingAsGuest.ContainsKey(userId) && viewingAsGuest[userId])
+        // Only provide admin project roles when Admin Mode is enabled
+        if (userId != null && adminMode.TryGetValue(userId, out var isAdminMode) && !isAdminMode)
         {
             return new List<string>();
         }
@@ -67,8 +71,8 @@ public class ServiceAuthManager : IServiceAuthManager
 
     public static readonly Regex Email_Regex =
         new Regex(
-            @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z",
-            RegexOptions.IgnoreCase | RegexOptions.Compiled);
+        @"\A(?:[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?)\Z",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     public static string? ExtractEmail(string input)
     {
@@ -123,7 +127,7 @@ public class ServiceAuthManager : IServiceAuthManager
         var allProjectAdmins = await CheckCacheForAdmins();
         bool isProjectAdmin = allProjectAdmins.ContainsKey(projectAcronym)
             ? allProjectAdmins[projectAcronym].Contains(userid)
-            : false;
+       : false;
 
         var options = new MemoryCacheEntryOptions().SetPriority(CacheItemPriority.Normal)
             .SetAbsoluteExpiration(TimeSpan.FromHours(1));
@@ -137,20 +141,20 @@ public class ServiceAuthManager : IServiceAuthManager
         using var ctx = dbFactory.CreateDbContext();
 
         return ctx.UserRolesLinks
-            .Where(a =>
-                a.Project.Project_Acronym_CD == projectAcronym
-                && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
-                    a.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
-                && !string.IsNullOrEmpty(a.PortalUser.Email))
-            .Select(f => f.PortalUser.Email)
-            .ToList();
+     .Where(a =>
+           a.Project.Project_Acronym_CD == projectAcronym
+         && (a.RoleId == (int)Project_Role.RoleNames.Admin ||
+         a.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
+           && !string.IsNullOrEmpty(a.PortalUser.Email))
+           .Select(f => f.PortalUser.Email)
+           .ToList();
     }
 
     public List<string> GetProjectMailboxEmails(string projectAcronym)
     {
         using var ctx = dbFactory.CreateDbContext();
         var mailboxEmails = ctx.Projects.Where(u => u.Project_Acronym_CD == projectAcronym).Select(s => s.Project_Admin)
-            .FirstOrDefault();
+           .FirstOrDefault();
 
         if (!string.IsNullOrEmpty(mailboxEmails))
         {
@@ -172,14 +176,14 @@ public class ServiceAuthManager : IServiceAuthManager
 
             var adminsFromProjectUsersTable = await ctx.UserRolesLinks
                 .AsNoTracking()
-                .Include(a => a.Project)
+          .Include(a => a.Project)
                 .Include(a => a.PortalUser)
                 .ThenInclude(p => p.EntraUser)
-                .Where(u =>
-                    u.PortalUser != null && u.PortalUser.EntraUser != null &&
-                    (u.RoleId == (int)Project_Role.RoleNames.Admin
-                    || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead))
-                .ToListAsync();
+          .Where(u =>
+              u.PortalUser != null && u.PortalUser.EntraUser != null &&
+              (u.RoleId == (int)Project_Role.RoleNames.Admin
+              || u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead))
+          .ToListAsync();
 
             foreach (var admin in adminsFromProjectUsersTable)
             {
@@ -209,8 +213,8 @@ public class ServiceAuthManager : IServiceAuthManager
     public async Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetEntraUserAuthorizations(string userGraphId)
     {
         if (serviceAuthCache.TryGetValue(
-            ENTRA_AUTH_KEY,
-            out var usersAuthorizationObj) && usersAuthorizationObj is Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization)
+      ENTRA_AUTH_KEY,
+      out var usersAuthorizationObj) && usersAuthorizationObj is Dictionary<string, List<(Project_Role, Datahub_Project)>> usersAuthorization)
         {
             if (usersAuthorization.TryGetValue(userGraphId, out var userAuths))
             {
@@ -231,19 +235,19 @@ public class ServiceAuthManager : IServiceAuthManager
         await using var ctx = await dbFactory.CreateDbContextAsync();
 
         var entraUsersRoles = await ctx.UserRolesLinks
-            .AsNoTracking()
-            .Include(a => a.Project)
-            .Include(a => a.PortalUser)
-            .ThenInclude(p => p.EntraUser)
-            .Include(a => a.Role)
-            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null)
-            .ToListAsync();
+        .AsNoTracking()
+             .Include(a => a.Project)
+      .Include(a => a.PortalUser)
+        .ThenInclude(p => p.EntraUser)
+        .Include(a => a.Role)
+      .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null)
+             .ToListAsync();
 
         var newUsersAuthorization = entraUsersRoles
-            .GroupBy(u => u.PortalUser!.EntraUser!.GraphGuid)
-            .ToDictionary(u => u.Key, u =>
-                u.Select(a => (a.Role!, a.Project!))
-                    .ToList());
+     .GroupBy(u => u.PortalUser!.EntraUser!.GraphGuid)
+      .ToDictionary(u => u.Key, u =>
+          u.Select(a => (a.Role!, a.Project!))
+     .ToList());
 
         serviceAuthCache.Set(ENTRA_AUTH_KEY, newUsersAuthorization, TimeSpan.FromMinutes(5));
         _logger.LogDebug("Loaded Entra user authorizations from DB for {UserCount} users; cache set to5 minutes.", newUsersAuthorization.Count);
@@ -269,18 +273,16 @@ public class ServiceAuthManager : IServiceAuthManager
     {
         await using var ctx = await dbFactory.CreateDbContextAsync();
         return await ctx.GCHostingWorkspaceDetails
-            .Where(d => d.LeadEmail == userEmail)
-            .SelectMany(g => g.WorkspacesInBudget)
-            .Select(w => w.Project_Acronym_CD)
-            .ToListAsync();
+      .Where(d => d.LeadEmail == userEmail)
+       .SelectMany(g => g.WorkspacesInBudget)
+          .Select(w => w.Project_Acronym_CD)
+      .ToListAsync();
     }
 
     public async Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetExternalUserAuthorizations(string externalId)
     {
         // Try cache first
-        if (serviceAuthCache.TryGetValue(
-            EXTERNAL_AUTH_KEY,
-            out var externalAuthorizationObj) && externalAuthorizationObj is Dictionary<string, List<(Project_Role, Datahub_Project)>> externalAuthorization)
+        if (serviceAuthCache.TryGetValue(EXTERNAL_AUTH_KEY, out var externalAuthorizationObj) && externalAuthorizationObj is Dictionary<string, List<(Project_Role, Datahub_Project)>> externalAuthorization)
         {
             if (externalAuthorization.TryGetValue(externalId, out var cachedAuths))
             {
@@ -312,8 +314,8 @@ public class ServiceAuthManager : IServiceAuthManager
             .GroupBy(u => u.PortalUser!.ExternalUser!.ExternalSubject)
             .ToDictionary(g => g.Key, g =>
                 g.Select(a => (Role: a.Role!, Project: a.Project!))
-                    .Where(rp => rp.Role != null && rp.Role.IsExternalRole)
-                    .ToList());
+                .Where(rp => rp.Role != null && rp.Role.IsExternalRole)
+                .ToList());
 
         serviceAuthCache.Set(EXTERNAL_AUTH_KEY, newExternalAuthorization, TimeSpan.FromMinutes(5));
         _logger.LogDebug("Loaded external user authorizations from DB for {UserCount} users; cache set to 5 minutes.", newExternalAuthorization.Count);

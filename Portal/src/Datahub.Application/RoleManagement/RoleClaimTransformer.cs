@@ -1,8 +1,10 @@
+using System.Collections.Immutable;
 using System.Security;
 using System.Security.Claims;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
+using Datahub.Core.Model.Projects;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
@@ -27,18 +29,21 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             if (principal?.Identity is not ClaimsIdentity claims)
                 return principal!;
             bool isEntra = VerifyTrustedEntraLogin(claims);
-
+            ImmutableList<(Project_Role Role, Datahub_Project Project)> authorizedProjects;
             if (!isEntra)
             {
-                var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier);
-                var authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
-
+                var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("No GCCF ID available");
+                authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
+                foreach (var (role, project) in authorizedProjects)
+                {                   
+                    claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleSuffixes(role)}"));
+                }
             }
             else
             {
 
                 var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == ClaimConstants.ObjectId)?.Value ?? throw new InvalidOperationException("User Entra ID not found");
-                var authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
+                authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
                 claims.AddClaim(new Claim(ClaimTypes.Role, "default"));
                 claims.AddClaim(new Claim(ClaimTypes.Role, userEntraId));
 
@@ -55,11 +60,11 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 }
 
                 // Ensure that the user can't be both approver and admin
-                bool alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
-
+                var alreadyAdded = claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST) || claims.HasClaim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE);
+                var isAdminMode = serviceAuthManager.IsAdminModeEnabled(userEntraId);
                 foreach (var (role, project) in authorizedProjects)
                 {
-                    if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && serviceAuthManager.GetViewingAsGuest(userEntraId))
+                    if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && !isAdminMode)
                     {
                         claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
                     }
@@ -69,7 +74,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                     }
                     else
                     {
-                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleConstants(role)}"));
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleSuffixes(role)}"));
                     }
                     if (project.WebAppEnabled == true)
                     {
@@ -77,6 +82,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                     }
                 }
             }
+
+
         }
         catch (Exception ex)
         {
@@ -108,7 +115,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
         if (!trusted)
         {
-            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDENTITY_PROVIDER_CLAIM_TYPE)?.Value;
+            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_PROVIDER_CLAIM)?.Value;
             if (idp?.EndsWith(IDP_GCCF) ?? false)
             {
                 claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));

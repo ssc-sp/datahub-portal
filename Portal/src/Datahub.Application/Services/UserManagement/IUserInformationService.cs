@@ -112,19 +112,19 @@ public interface IUserInformationService
     Task<bool> IsUserWithoutWorkspaces();
 
     /// <summary>
-    /// Returns true when the current user is being viewed in a 'guest' or restricted presentation mode.
+    /// Returns true when admin mode is enabled for the current user.
     /// </summary>
-    Task<bool> IsViewingAsGuest();
+    Task<bool> IsAdminModeEnabled();
+
+    /// <summary>
+    /// Sets Admin Mode for the current context. When true, user is not treated as guest; when false, user is viewed as guest.
+    /// </summary>
+    Task SetAdminModeView(bool isAdminMode);
 
     /// <summary>
     /// Returns true when the current user is being viewed as a visitor (limited capability).
     /// </summary>
     Task<bool> IsViewingAsVisitor();
-
-    /// <summary>
-    /// Sets whether the current context should present the user as a guest.
-    /// </summary>
-    Task SetViewingAsGuest(bool isGuest);
 
     /// <summary>
     /// Sets whether the current context should present the user as a visitor.
@@ -136,6 +136,26 @@ public interface IUserInformationService
     /// </summary>
     /// <param name="forceReload">When true, forces re-evaluation of the authentication state provider.</param>
     Task<ClaimsPrincipal> GetAuthenticatedUser(bool forceReload = false);
+
+    /// <summary>
+    /// Returns true if the current authenticated user is an Entra (Azure AD) user.
+    /// </summary>
+    /// <returns>true if Entra user, false otherwise</returns>
+    Task<bool> IsEntraUser();
+
+    /// <summary>
+    /// Returns true if the current authenticated user is a GCCF user.
+    /// </summary>
+    /// <returns>true if GCCF user, false otherwise</returns>
+    Task<bool> IsExternalUser();
+
+    /// <summary>
+    /// Returns true if the user is authorized to access the portal.
+    /// This checks for either Entra or GCCF authentication.
+    /// If GCCF, also checks that the user has at least one portal role assigned
+    /// </summary>
+    /// <returns></returns>
+    Task<bool> IsAuthorized();
 
     /// <summary>
     /// Returns true if the current authenticated user has the project admin role for the given project acronym.

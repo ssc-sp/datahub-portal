@@ -55,7 +55,7 @@ else
                         <td>@userRole.Key</td>
                         @foreach (var role in _projectRoles)
                         {
-                            <td>@(userRole.Value.FirstOrDefault(r => r.Value.Contains(RoleConstants.GetRoleConstants(role)))?.Value ?? "-")</td>
+                            <td>@(userRole.Value.FirstOrDefault(r => RoleConstants.GetRoleSuffixes(role).Any(suffix => r.Value.EndsWith(suffix)))?.Value ?? "-")</td>
                         }
                         <td>@(userRole.Value.FirstOrDefault(r => r.Value.Contains(RoleConstants.CBR_OWNER_SUFFIX))?.Value ?? "-")</td>
                     </tr>

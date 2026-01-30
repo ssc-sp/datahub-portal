@@ -2,6 +2,7 @@
 @using MudBlazor.Utilities
 
 @inject IJSRuntime _jsRuntime;
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 
 <!--suppress CssUnresolvedCustomProperty -->
 <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
@@ -51,24 +52,31 @@
 </MudMenu>
 
 @code {
-    [Parameter] public int InitialValue { get; set; }
-    [Parameter] public EventCallback<int> OnRoleChanged { get; set; }
+	[Parameter] public int InitialValue { get; set; }
+	[Parameter] public EventCallback<int> OnRoleChanged { get; set; }
 
-    public IEnumerable<Project_Role> ProjectRoles => _projectRoles;
+	public IEnumerable<Project_Role> ProjectRoles => _projectRoles;
 
-    private Project_Role _currentRole;
-    private IEnumerable<Project_Role> _projectRoles;
-    private Project_Role _removeRole;
+	private Project_Role? _currentRole;
+	private IEnumerable<Project_Role> _projectRoles = null!;
+	private Project_Role _removeRole;
 
-    private string _outlineStyle = new StyleBuilder()
-        .AddStyle("border", "1px solid var(--mud-palette-table-lines)")
-        .AddStyle("border-radius", "var(--mud-default-borderradius)")
-        .Build();
+	private string _outlineStyle = new StyleBuilder()
+		.AddStyle("border", "1px solid var(--mud-palette-table-lines)")
+		.AddStyle("border-radius", "var(--mud-default-borderradius)")
+		.Build();
 
-    protected override void OnParametersSet()
-    {
-        _projectRoles = Project_Role.GetAll().ToList();
-        _removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Removed);
+	protected override async Task OnParametersSetAsync()
+	{
+		var gccfEnabled = await _featureManager.IsEnabledAsync(Features.GCCF_Feature);
+		_projectRoles = Project_Role.GetAll().ToList();
+		// do not show external roles if gccf feature is disabled
+		//TODO: Check if PB workspace
+		if (!gccfEnabled)
+		{
+			_projectRoles = _projectRoles.Where(r => !r.IsExternalRole).ToList();
+		}
+		_removeRole = _projectRoles.First(r => r.Id == (int)Project_Role.RoleNames.Removed);
         _currentRole = _projectRoles.FirstOrDefault(r => r.Id == InitialValue);
     }
 

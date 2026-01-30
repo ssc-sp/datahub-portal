@@ -194,8 +194,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _isViewAsAdmin = !(await _userInformationService.IsViewingAsGuest());
+        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("No user identified");
+        _isViewAsAdmin = await _userInformationService.IsAdminModeEnabled();
 
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
@@ -265,7 +265,7 @@
     private async Task ToggleAdminMode()
     {
         _isViewAsAdmin = !_isViewAsAdmin;
-        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
+        await _userInformationService.SetAdminModeView(_isViewAsAdmin);
         _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 }
