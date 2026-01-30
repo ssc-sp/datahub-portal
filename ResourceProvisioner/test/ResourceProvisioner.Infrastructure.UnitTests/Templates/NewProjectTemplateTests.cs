@@ -238,7 +238,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
         expectedConfig["storage_account_name"] = $"{expectedVar.resource_prefix_alphanumeric}{expectedVar.environment_name}{expectedVar.storage_suffix}";
         expectedConfig["container_name"] = $"{expectedVar.resource_prefix}-project-states";
         expectedConfig["key"] = $"{expectedVar.resource_prefix}-ShouldExtractBackendConfiguration.tfstate";
-        expectedConfig["subscription_id"] = $"{expectedVar.az_subscription_id}";
+        expectedConfig["subscription_id"] = $"{_resourceProvisionerConfiguration.Terraform.Backend.SubscriptionId}";
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         await _terraformService.CopyTemplateAsync(TerraformTemplate.NewProjectTemplate, command);

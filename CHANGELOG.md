@@ -1,4 +1,37 @@
+<!-- textlint-disable -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable MD024 -->
 # Changelog
+
+## [8.2.1](https://github.com/ssc-sp/datahub-portal/compare/v8.2.0...v8.2.1) (2026-01-27)
+
+
+### Bug Fixes
+
+* changing theme colours to meet WCAG standards ([#1837](https://github.com/ssc-sp/datahub-portal/issues/1837)) ([90ebede](https://github.com/ssc-sp/datahub-portal/commit/90ebede9933108b663e93ec3dd88673d395e5a5f))
+* db page crashes because of missing sku ([#1840](https://github.com/ssc-sp/datahub-portal/issues/1840)) ([ec21766](https://github.com/ssc-sp/datahub-portal/commit/ec217668570b3a82f88b32c41728abd28041b94d))
+
+## [8.2.0](https://github.com/ssc-sp/datahub-portal/compare/v8.1.0...v8.2.0) (2026-01-27)
+
+
+### Features
+
+* added environment name to db copy script ([#1824](https://github.com/ssc-sp/datahub-portal/issues/1824)) ([5a07023](https://github.com/ssc-sp/datahub-portal/commit/5a0702330721b64fb19c376968dc972445c6bfe3))
+* Admin: publishing blocklist ([#1768](https://github.com/ssc-sp/datahub-portal/issues/1768)) ([d0482b3](https://github.com/ssc-sp/datahub-portal/commit/d0482b347e0e58e4467b63d006dfd01b24a3fc5f))
+* disable full controller using FeatureGate ([#1828](https://github.com/ssc-sp/datahub-portal/issues/1828)) ([f755013](https://github.com/ssc-sp/datahub-portal/commit/f755013fae83ed6ea0f18f101cc3794bdc843571))
+* improved tracing of GCCF attributes and better exception handling ([#1835](https://github.com/ssc-sp/datahub-portal/issues/1835)) ([fe25293](https://github.com/ssc-sp/datahub-portal/commit/fe252938b8574aeea7431a1e87c23d5fdcb69e3f))
+* Remove disabled button for external users ([#1827](https://github.com/ssc-sp/datahub-portal/issues/1827)) ([ddd7cf2](https://github.com/ssc-sp/datahub-portal/commit/ddd7cf2014e8ed13132cd38a7ea2f671f20f946c))
+
+
+### Bug Fixes
+
+* fixed loaduser clause that prevents Entra users from logging ([#1836](https://github.com/ssc-sp/datahub-portal/issues/1836)) ([3d68430](https://github.com/ssc-sp/datahub-portal/commit/3d68430425ba2c8bfa34dfe2b1792234459de6f4))
+* Python function throwing exceptions ([#1838](https://github.com/ssc-sp/datahub-portal/issues/1838)) ([bc0e31b](https://github.com/ssc-sp/datahub-portal/commit/bc0e31becff5ac220d6228cf5030ed50c2c19764))
+* removed ResponseType to fall back to default ([#1830](https://github.com/ssc-sp/datahub-portal/issues/1830)) ([0d230d2](https://github.com/ssc-sp/datahub-portal/commit/0d230d2146adf6962f6e8a061fca0ba6f00ceedc))
+* replace emojis in psm1 script ([#1839](https://github.com/ssc-sp/datahub-portal/issues/1839)) ([b5e27ae](https://github.com/ssc-sp/datahub-portal/commit/b5e27aeb430132a4e904b9c41b53fd0f7b53c6a4))
+* tentative fix for auth forced to basic auth  ([#1833](https://github.com/ssc-sp/datahub-portal/issues/1833)) ([e1ac374](https://github.com/ssc-sp/datahub-portal/commit/e1ac37489ee0c6a5ba73173fca60d77296e2b40b))
+* tentative fix for cookie scheme and gccf ([#1834](https://github.com/ssc-sp/datahub-portal/issues/1834)) ([fd5253a](https://github.com/ssc-sp/datahub-portal/commit/fd5253a83bccee617902a278ec2ab38b7e7471b8))
+* tentative fix for gccf auth method ([#1832](https://github.com/ssc-sp/datahub-portal/issues/1832)) ([3dfc144](https://github.com/ssc-sp/datahub-portal/commit/3dfc1449dc2854f7982c928bc72120f86afc009a))
 
 ## [8.1.0](https://github.com/ssc-sp/datahub-portal/compare/v8.0.0...v8.1.0) (2026-01-16)
 
@@ -266,3 +299,7 @@
 ### Code Refactoring
 
 * Changed GC Hosting Controller output to dictionary to simplify oci integration ([#1648](https://github.com/ssc-sp/datahub-portal/issues/1648)) ([baa6334](https://github.com/ssc-sp/datahub-portal/commit/baa63347a6122520669848f03b65d74f167bce0e))
+
+
+
+<!-- prettier-ignore-end -->
