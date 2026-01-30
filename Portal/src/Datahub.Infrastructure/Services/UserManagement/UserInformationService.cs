@@ -741,12 +741,7 @@ public class UserInformationService(
     {
         var user = await GetAuthenticatedUser();
         if (user == null) return false;
-        if (user.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
-        {
-            // User is already marked as trusted or external
-            return true;
-        }
-        return false;
+        return await IsExternalAsync(user);
     }
 
     public async Task<bool> IsAuthorized()
