@@ -1,3 +1,4 @@
+using Datahub.Core.Data;
 using MediatR;
 
 namespace Datahub.Infrastructure.Queues.Messages;
