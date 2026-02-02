@@ -93,7 +93,7 @@
                                     }
                                     else
                                     {
-                                        @if (_authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false)
+                                        @if (_isExternalUser)
                                         {
                                             <ExternalUserFileExplorer ProjectId=@_projectId 
                                                                       Container="@_selectedContainer" 
@@ -182,6 +182,7 @@
     private bool _failedToLoadContainers = false;
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
+    private bool _isExternalUser = false;
     private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
 
     private string _searchQuery = string.Empty;
@@ -196,7 +197,9 @@
         _authenticatedUser = authState.User;
         
         // Check if user has external login role
-        if (_authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false)
+        _isExternalUser = _authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false;
+
+        if (_isExternalUser)
         {
             NavigationManager.NavigateTo($"/w/{WorkspaceAcronym}/storage-external", forceLoad: true);
             return;

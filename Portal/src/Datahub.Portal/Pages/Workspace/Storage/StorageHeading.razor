@@ -23,6 +23,14 @@
     
 <div class="heading">
     <div class="actions">
+        @if (ShowBackToContainers)
+        {
+            <DHButton class="button-tool" @onclick="HandleBackToContainers" StartIcon="fas fa-arrow-left">
+                @Localizer["Back to Containers"]
+            </DHButton>
+            <span class="tool-divider"></span>
+        }
+
         <DHButton class="button-tool" @onclick="HandleUpload" StartIcon="fas fa-upload" Disabled="IsActionDisabled(ButtonAction.Upload)">
             @Localizer["Upload"]
         </DHButton>
@@ -131,6 +139,12 @@
 
     [Parameter]
     public bool ShowPublish { get; set; } = true;
+
+    [Parameter]
+    public bool ShowBackToContainers { get; set; } = false;
+
+    [Parameter]
+    public EventCallback OnBackToContainers { get; set; }
 
     private IJSObjectReference _module;
 

@@ -11,13 +11,70 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class ExternalUserFileExplorer
 {
+    private async Task LoadContainersAsync()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _availableContainers = await StorageManager.GetContainersAsync();
+            _showingContainers = true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to load containers");
+            _availableContainers = new List<string>();
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private async Task SelectContainer(string containerName)
+    {
+        _selectedContainerName = containerName;
+        _showingContainers = false;
+        _currentFolder = _root;
+        
+        // Load metadata for the selected container
+        StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(containerName);
+        _folderList = await GetFileCountAsync(_currentFolder);
+        
+        await RefreshStoragePageAsync();
+    }
+
+    private void ToggleContainerSelection(string containerName)
+    {
+        if (_selectedItems.Contains(containerName))
+        {
+            _selectedItems.Remove(containerName);
+        }
+        else
+        {
+            _selectedItems = new HashSet<string> { containerName };
+        }
+    }
+
+    private async Task BackToContainers()
+    {
+        _showingContainers = true;
+        _selectedContainerName = null;
+        _currentFolder = _root;
+        _selectedItems = new HashSet<string>();
+        _files = new List<FileMetaData>();
+        _folders = new List<string>();
+        StateHasChanged();
+    }
+
     private async Task RefreshStoragePageAsync()
     {
         _lastContainer = Container;
         _loading = true;
         StateHasChanged();
 
-        var dfsPage = await StorageManager.GetDfsPagesAsync(Container.Name, _currentFolder, _continuationToken);
+        var containerName = _selectedContainerName ?? Container.Name;
+        var dfsPage = await StorageManager.GetDfsPagesAsync(containerName, _currentFolder, _continuationToken);
 
         _continuationToken = dfsPage.ContinuationToken;
         _files = dfsPage.Files;
@@ -38,7 +95,7 @@ public partial class ExternalUserFileExplorer
         {
             try
             {
-                await SetCurrentFolder(_root);
+                await LoadContainersAsync();
             }
             catch (Exception e)
             {
@@ -70,10 +127,10 @@ public partial class ExternalUserFileExplorer
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        
+        var containerName = _selectedContainerName ?? ContainerName;
         foreach (var selectedFile in toBeDeleted)
         {
-            if (!await StorageManager.DeleteFileAsync(ContainerName, JoinPath(_currentFolder, selectedFile)))
+            if (!await StorageManager.DeleteFileAsync(containerName, JoinPath(_currentFolder, selectedFile)))
                 continue;
 
             _files?.RemoveAll(f => f.name.Equals(selectedFile, StringComparison.OrdinalIgnoreCase));
@@ -97,7 +154,8 @@ public partial class ExternalUserFileExplorer
         if (!allowOverride)
             return;
 
-        if (!await StorageManager.RenameFileAsync(ContainerName, oldFileName, newFileName))
+        var containerName = _selectedContainerName ?? ContainerName;
+        if (!await StorageManager.RenameFileAsync(containerName, oldFileName, newFileName))
             return;
 
         _files.RemoveAll(f => f.name == fileName);
@@ -117,7 +175,8 @@ public partial class ExternalUserFileExplorer
         if (!allowOverride)
             return;
 
-        if (!await StorageManager.RenameFileAsync(ContainerName, oldFileName, newFileName))
+        var containerName = _selectedContainerName ?? ContainerName;
+        if (!await StorageManager.RenameFileAsync(containerName, oldFileName, newFileName))
             return;
 
         if (fileExists)
@@ -150,7 +209,8 @@ public partial class ExternalUserFileExplorer
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        if (!await StorageManager.DeleteFolderAsync(ContainerName, folderName))
+        var containerName = _selectedContainerName ?? ContainerName;
+        if (!await StorageManager.DeleteFolderAsync(containerName, folderName))
             return;
 
         if (folderName == _currentFolder)
@@ -172,7 +232,8 @@ public partial class ExternalUserFileExplorer
 
     private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
     {
-        if (!await StorageManager.FileExistsAsync(ContainerName, filePath))
+        var containerName = _selectedContainerName ?? ContainerName;
+        if (!await StorageManager.FileExistsAsync(containerName, filePath))
             return (false, true);
 
         var allowOverride = await _jsRuntime.InvokeAsync<bool>("confirm",
@@ -237,9 +298,10 @@ public partial class ExternalUserFileExplorer
             _uploadingFiles.Add(fileMetadata);
         }
 
+        var containerName = _selectedContainerName ?? ContainerName;
         _ = InvokeAsync(async () =>
         {
-            var succeeded = await StorageManager.UploadFileAsync(ContainerName, fileMetadata, uploadedBytes =>
+            var succeeded = await StorageManager.UploadFileAsync(containerName, fileMetadata, uploadedBytes =>
             {
                 fileMetadata.uploadedBytes = uploadedBytes;
                 _ = InvokeAsync(StateHasChanged);
@@ -264,6 +326,15 @@ public partial class ExternalUserFileExplorer
                     }
 
                     _files.Add(fileMetadata);
+                    
+                    // Set initial scan status for newly uploaded file
+                    _fileScanResults[fileMetadata.name] = new FileScanResult
+                    {
+                        FileName = fileMetadata.name,
+                        Status = FileScanStatus.ScanInProgress,
+                        ScanDate = DateTime.UtcNow,
+                        HideError = false
+                    };
                 }
             }
 
@@ -273,7 +344,8 @@ public partial class ExternalUserFileExplorer
 
     private async Task HandleFileDownload(string filename)
     {
-        var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
+        var containerName = _selectedContainerName ?? ContainerName;
+        var uri = await StorageManager.DownloadFileAsync(containerName, JoinPath(_currentFolder, filename));
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
 
