@@ -1,3 +1,6 @@
+<!-- textlint-disable -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable MD024 -->
 # Changelog
 
 ## [8.2.1](https://github.com/ssc-sp/datahub-portal/compare/v8.2.0...v8.2.1) (2026-01-27)
@@ -296,3 +299,7 @@
 ### Code Refactoring
 
 * Changed GC Hosting Controller output to dictionary to simplify oci integration ([#1648](https://github.com/ssc-sp/datahub-portal/issues/1648)) ([baa6334](https://github.com/ssc-sp/datahub-portal/commit/baa63347a6122520669848f03b65d74f167bce0e))
+
+
+
+<!-- prettier-ignore-end -->
