@@ -1,0 +1,30 @@
+name: Pullrequest AI Review
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+on:
+  pull_request_target:
+    types: [opened, synchronize]
+  pull_request_review_comment:
+    types: [created]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: presubmit/ai-reviewer@5f1290b6142b14b44cd2e8e3ffda84cd0a22e94f #v0.2.5
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_MODEL: "gpt-5-nano"
+        with:
+          style_guide_rules: |
+            # Style Guide Rules
+            - Prefer descriptive variable and function names
+            - Write clear docstrings for all public functions
+            - Avoid deeply nested code (more than 3 levels)
+            - Follow PEP8 for Python (or equivalent in other languages)
+            - Ensure unit tests are present for all new functionality
