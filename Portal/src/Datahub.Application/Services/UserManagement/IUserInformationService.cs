@@ -48,6 +48,12 @@ public interface IUserInformationService
     Task<ExtendedPortalUser?> GetUserByEmailAsync(string email);
 
     /// <summary>
+    /// Returns the external user's name identifier from the authentication claims.
+    /// </summary>
+    /// <returns>The external user's name identifier or <c>null</c> if not found.</returns>
+    Task<string?> GetExternalUserNameIdentifier();
+
+    /// <summary>
     /// Handles updating portal state when an Entra user registration collision was caused by a deleted account.
     /// This typically updates an existing portal user record with a new graph id and other bookkeeping fields.
     /// </summary>

@@ -275,4 +275,8 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(true);
     }
 
+    public Task<string?> GetExternalUserNameIdentifier()
+    {
+        return Task.FromResult<string?>(null);
+    }
 }

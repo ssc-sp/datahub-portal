@@ -48,7 +48,7 @@
 	protected override async Task OnInitializedAsync()
 	{
 		_traceClaims = await _featureManager.IsEnabledAsync(Features.Trace_Claims);
-		if (_traceClaims && _userInformationService.IsExternalUser())
+		if (_traceClaims && (await _userInformationService.IsExternalUser()))
 		{
 			_externalUserId = await _userInformationService.GetExternalUserNameIdentifier();			
 		}
