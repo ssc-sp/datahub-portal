@@ -6,6 +6,7 @@ namespace ResourceProvisioner.Application.Config;
 public class Backend
 {
     public string ResourceGroupName { get; set; }
+    public string SubscriptionId { get; set; }
 }
 
 public class CommonTags
