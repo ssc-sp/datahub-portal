@@ -13,6 +13,7 @@ on:
 
 jobs:
   review:
+    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     steps:
       - uses: presubmit/ai-reviewer@5f1290b6142b14b44cd2e8e3ffda84cd0a22e94f #v0.2.5
