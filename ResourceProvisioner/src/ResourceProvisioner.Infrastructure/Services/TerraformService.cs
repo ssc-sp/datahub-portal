@@ -409,7 +409,7 @@ public class TerraformService(
             TerraformVariables.BackendKeyName =>
                 $"{resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
             TerraformVariables.BackendSubscriptionIdName =>
-                $"{resourceProvisionerConfiguration.Terraform.Variables.az_subscription_id}",
+                $"{resourceProvisionerConfiguration.Terraform.Backend.SubscriptionId}",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
         };
