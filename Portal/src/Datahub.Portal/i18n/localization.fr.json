@@ -80,7 +80,7 @@
     "This page allows you to block publishing for specific departments or organizations based on workspace owner email address.": "Cette page vous permet de bloquer la publication pour des ministères ou organisations spécifiques en fonction de l'adresse courriel du propriétaire de l'espace de travail.",
     "Trusted Entra Login": "Connexion Entra sécurisée",
     "External Login": "Connexion externe",
-    "{0} has been blocked.": "{0} a été bloqué."
+    "{0} has been blocked.": "{0} a été bloqué.",
   "AECL Restructuring": "Restructuration d'EACL",
   "AECLR": "REACL",
   "AFC": "CFA",
