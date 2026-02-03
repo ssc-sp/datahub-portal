@@ -3,6 +3,15 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.2.2](https://github.com/ssc-sp/datahub-portal/compare/v8.2.1...v8.2.2) (2026-02-03)
+
+
+### Bug Fixes
+
+* Adds missing comma to french localization file ([#1854](https://github.com/ssc-sp/datahub-portal/issues/1854)) ([043b9e6](https://github.com/ssc-sp/datahub-portal/commit/043b9e6367476692710521e7305264ca17dfb258))
+* Corrected subscription id for terraform backend ([#1843](https://github.com/ssc-sp/datahub-portal/issues/1843)) ([b3da91b](https://github.com/ssc-sp/datahub-portal/commit/b3da91ba2d25d89c8b036f8eafa1df50d39b45e4))
+* test ([#1845](https://github.com/ssc-sp/datahub-portal/issues/1845)) ([d82b22b](https://github.com/ssc-sp/datahub-portal/commit/d82b22b6db7454923cda6ee1b46eaef11fda202e))
+
 ## [8.2.1](https://github.com/ssc-sp/datahub-portal/compare/v8.2.0...v8.2.1) (2026-01-27)
 
 
