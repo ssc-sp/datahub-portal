@@ -18,6 +18,7 @@
 @inject IWorkspaceVersionService WorkspaceVersionService
 @inject ISnackbar Snackbar
 @inject IMemoryCache MemoryCache
+@inject IDbContextFactory<DatahubProjectDBContext> ContextFactory
 
 
 <MudPaper Elevation="0" Outlined Style=@PaperStyle>
@@ -32,10 +33,10 @@
             <FeaturedProjectToggle Project="@Workspace" />
             <MudSpacer />
             <MudChip T="string" Color="@GetSecurityColor(Workspace.Data_Sensitivity)" Size="Size.Small" title="@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]">
-                <DHIcon Icon=@(Workspace.Data_Sensitivity == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock)/>
+                <DHIcon Icon=@(Workspace.Data_Sensitivity == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
                 <MudText Typo="Typo.body1">
-                  <strong>
-                    @Localizer[(Workspace.Data_Sensitivity.ToSpacedString())]
+                    <strong>
+                        @Localizer[(Workspace.Data_Sensitivity.ToSpacedString())]
                     </strong>
                 </MudText>
                 <span class="sr-only">@Localizer[GetSecurityTitle(Workspace.Data_Sensitivity)]</span>
@@ -46,11 +47,11 @@
                                            NumberOfRepositories=@NumberOfRepositories />
             <MudSpacer />
         </MudStack>
-        @if (!string.IsNullOrWhiteSpace(Workspace.ProjectDescription))
+        @if (!string.IsNullOrWhiteSpace(_description))
         {
             <div style=@ProjectDescriptionContainerStyle>
-                <MudText title="@Workspace.ProjectDescription" Style=@ProjectDescriptionStyle>
-                    @Workspace.ProjectDescription
+                <MudText title="@_description" Style=@ProjectDescriptionStyle>
+                    @_description
                 </MudText>
             </div>
         }
@@ -189,6 +190,7 @@
     // Display state
     private int NumberOfUsers;
     private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
+    private string _description = "";
     private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
     private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
@@ -198,6 +200,20 @@
         var users = await ProjectUserManagementService.GetProjectUsersAsync(Workspace?.Project_Acronym_CD);
 
         NumberOfUsers = users?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed) ?? 0;
+
+        _description = Workspace.ProjectDescription;
+
+        using var context = await ContextFactory.CreateDbContextAsync();
+
+        if (Workspace is not null && Workspace.ParentGCHostingBudgetId.HasValue)
+        {
+            var _gcHosting = await context.GCHostingWorkspaceDetails
+                .AsNoTracking()
+                .Include(b => b.WorkspacesInBudget)
+                .FirstOrDefaultAsync(b => b.Id == Workspace.ParentGCHostingBudgetId);
+
+            _description = _gcHosting.WorkspaceDescription;
+        }
     }
 
     private void UpdateResourceStatusesFromHealthChecks()
@@ -279,27 +295,27 @@
 
     private Color GetSecurityColor(ClassificationType securityLevel)
     {
-            switch (securityLevel)
-            {
-                case ClassificationType.ProtectedB:
-                    return Color.Tertiary;
-                case ClassificationType.ProtectedA:
-                    return Color.Secondary;
-                default:
-                    return Color.Info;
-            }
+        switch (securityLevel)
+        {
+            case ClassificationType.ProtectedB:
+                return Color.Tertiary;
+            case ClassificationType.ProtectedA:
+                return Color.Secondary;
+            default:
+                return Color.Info;
+        }
     }
 
     private string GetSecurityTitle(ClassificationType securityLevel)
     {
-            switch (securityLevel)
-            {
-                case ClassificationType.ProtectedB:
-                        return "This workspace has Protected B security level";
-                case ClassificationType.ProtectedA:
-                    return "This workspace has Protected A security level";
-                default:
-                    return "This workspace has Unclassified security level";
-            }
+        switch (securityLevel)
+        {
+            case ClassificationType.ProtectedB:
+                return "This workspace has Protected B security level";
+            case ClassificationType.ProtectedA:
+                return "This workspace has Protected A security level";
+            default:
+                return "This workspace has Unclassified security level";
+        }
     }
 }
