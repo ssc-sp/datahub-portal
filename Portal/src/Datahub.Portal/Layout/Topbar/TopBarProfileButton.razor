@@ -1,5 +1,5 @@
 @inject IUserInformationService _userInformationService
-@inject NavigationManager _navigationManager
+@inject NavigationManager _navigation_manager
 
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Achievements
@@ -21,7 +21,7 @@
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
         <LanguageToggle @ref="_languageToggle" Size="Size.Small" />
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
-        <DHButton HtmlTag="button" Style="margin-top: 20px; text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Small">
+        <DHButton HtmlTag="button" Style="margin-top:20px; text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Small">
             <MudText>@Localizer["Sign out"]</MudText>
         </DHButton>
     </MudHidden>
@@ -33,7 +33,7 @@
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
         <LanguageToggle @ref="_languageToggle" Size="Size.Medium" />
         <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
-        <DHButton HtmlTag="button" Style="text-wrap: nowrap"  OnClick="@HandleLogOut" Size="Size.Medium">
+        <DHButton HtmlTag="button" Style="text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Medium">
             <MudText>@Localizer["Sign out"]</MudText>
         </DHButton>
     </MudHidden>
@@ -42,30 +42,21 @@
 @code {
 
 
-    private PortalUser _viewedUser;
-    private bool _isViewAsAdmin;
-    
-    private LanguageToggle _languageToggle;
+	private PortalUser? _viewedUser;
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; }
+	private LanguageToggle _languageToggle;
+
+	[CascadingParameter]
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
     protected override async Task OnInitializedAsync()
     {
         _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-        _isViewAsAdmin = !await _userInformationService.IsViewingAsGuest();
-    }
-
-    private async Task ToggleAdminMode()
-    {
-        _isViewAsAdmin = !_isViewAsAdmin;
-        await _userInformationService.SetViewingAsGuest(!_isViewAsAdmin);
-        _navigationManager.NavigateTo(_navigationManager.Uri, true);
     }
 
     private void HandleLogOut()
     {
-        _navigationManager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
+        _navigation_manager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
     }
 
     private async Task HandleLanguageToggle(MouseEventArgs arg)

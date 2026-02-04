@@ -72,4 +72,7 @@ public static class PageRoutes
 
     public const string CreateWorkspace = "/create-workspace";
     public const string CreateWorkspace_FR = "/creer-espace-de-travail";
+
+    public const string AccessDenied = "/access-denied";
+    public const string AccessDenied_FR = "/acces-refuse";
 }
