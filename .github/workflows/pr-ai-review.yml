@@ -22,7 +22,7 @@ jobs:
           mode: analyze
           sysdig-version: "sha256:c63ec30ce5db5b0d934343028031bba32b81cb7cb3f82e82d87b72c9b1694922"
 
-      - uses: gccloudone-aurora-collab/ai-pr-reviewer@v2.0.1
+      - uses: gccloudone-aurora-collab/ai-pr-reviewer@f14b4a38505c0bffe62a87c4b3fec35b23e3f336 #v2.0.1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
