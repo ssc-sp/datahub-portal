@@ -267,8 +267,8 @@ public class HostingServicesController : ControllerBase
             _logger.LogInformation("Creating GC Hosting workspace record.");
             _context.GCHostingWorkspaceDetails.Add(workspaceDetails);
             project.ParentGCHostingBudget = workspaceDetails;
-            project.Project_Summary_Desc = workspaceDetails.WorkspaceDescription;
-            project.Project_Summary_Desc_Fr = workspaceDetails.WorkspaceDescription;
+            project.Project_Summary_Desc = workspaceDetails.WorkspaceDescription ?? string.Empty;
+            project.Project_Summary_Desc_Fr = workspaceDetails.WorkspaceDescription ?? string.Empty;
             await _context.SaveChangesAsync();
 
             await _workspaceCreationService.SaveWorkspaceMetadataFromGCHostingDetails(acronym, workspaceDetails);
