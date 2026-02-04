@@ -57,6 +57,7 @@ public static class ConfigureServices
         services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
+        services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
 
 
         services.AddAzureResourceManager(configuration);

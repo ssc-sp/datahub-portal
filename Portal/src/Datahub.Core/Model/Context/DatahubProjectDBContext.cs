@@ -143,6 +143,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// </summary>
     public DbSet<EntraUser> EntraUsers { get; set; }
 
+    /// <summary>
+    /// Gets or sets the table for storing workspace-specific user locks
+    /// </summary>
+    public DbSet<UserWorkspaceLock> UserWorkspaceLocks { get; set; }
+
     // below are used for migrations
 #if MIGRATION
     public DatahubProjectDBContext() { }
@@ -330,6 +335,29 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .WithMany(g => g.WorkspacesInBudget)
             .HasForeignKey(p => p.ParentGCHostingBudgetId)
             .IsRequired(false);
+
+        modelBuilder.Entity<UserWorkspaceLock>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.PortalUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasOne(e => e.Workspace)
+                .WithMany()
+                .HasForeignKey(e => e.WorkspaceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            
+            entity.HasOne(e => e.PerformedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.PerformedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.PortalUserId, e.WorkspaceId, e.EventDate });
+            entity.HasIndex(e => e.EventType);
+        });
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {

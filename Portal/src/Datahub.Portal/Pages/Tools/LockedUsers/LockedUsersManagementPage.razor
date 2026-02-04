@@ -1,11 +1,13 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Core.Model.Projects
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
 @using Microsoft.EntityFrameworkCore
 
 @inject IUserInformationService _userInformationService
+@inject ILockedUserManagementService _lockedUserService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ISnackbar _snackbar
 @inject IDialogService _dialogService
@@ -35,146 +37,88 @@
                              Class="mt-0"/>
             </ToolBarContent>
             <HeaderContent>
-                <MudTh></MudTh>
                 <MudTh>@Localizer["User"]</MudTh>
                 <MudTh>@Localizer["Email"]</MudTh>
                 <MudTh>@Localizer["Locked Since"]</MudTh>
-                <MudTh>@Localizer["Workspaces"]</MudTh>
-                <MudTh>@Localizer["Total Requests"]</MudTh>
+                <MudTh>@Localizer["Workspace"]</MudTh>
+                <MudTh>@Localizer["Evidence"]</MudTh>
+                <MudTh>@Localizer["Actions"]</MudTh>
             </HeaderContent>
             <RowTemplate>
                 @if (FilterUser(context))
                 {
-                    <MudTd>
-                        <MudIconButton Icon="@(IsExpanded(context) ? Icons.Material.Filled.KeyboardArrowUp : Icons.Material.Filled.KeyboardArrowDown)"
-                                      Size="Size.Small"
-                                      OnClick="@(() => ToggleExpand(context))"/>
-                    </MudTd>
                     <MudTd DataLabel="User">
-                        <MudText Typo="Typo.body1">@context.User.DisplayName</MudText>
+                        <MudText Typo="Typo.body1">@context.UserName</MudText>
                     </MudTd>
                     <MudTd DataLabel="Email">
-                        <MudText Typo="Typo.body2">@context.User.Email</MudText>
+                        <MudText Typo="Typo.body2">@context.UserEmail</MudText>
                     </MudTd>
                     <MudTd DataLabel="Locked Since">
-                        <MudText Typo="Typo.body2">
-                            @context.LockedDate.ToString("yyyy-MM-dd HH:mm")
-                        </MudText>
-                    </MudTd>
-                    <MudTd DataLabel="Workspaces">
-                        <MudText Typo="Typo.body2">
-                            @string.Join(", ", context.WorkspaceLocks.Select(w => w.WorkspaceAcronym))
-                        </MudText>
-                    </MudTd>
-                    <MudTd DataLabel="Total Requests">
-                        @{
-                            var requestCount = context.WorkspaceLocks.Count(w => w.RequestedByAdminUserId != null);
-                            var totalWorkspaces = context.WorkspaceLocks.Count;
+                        @if (context.LockedDate.HasValue)
+                        {
+                            <MudText Typo="Typo.body2">
+                                @context.LockedDate.Value.ToString("yyyy-MM-dd HH:mm")
+                            </MudText>
                         }
-                        <MudChip T="string" 
-                                Color="@(requestCount > 0 ? Color.Info : Color.Default)" 
-                                Size="Size.Small">
-                            @requestCount / @totalWorkspaces
-                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Workspace">
+                        @if (!string.IsNullOrEmpty(context.WorkspaceAcronym))
+                        {
+                            <MudText Typo="Typo.body2">
+                                <strong>@context.WorkspaceAcronym</strong>
+                            </MudText>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">
+                                @Localizer["Global Lock"]
+                            </MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Evidence">
+                        @if (!string.IsNullOrEmpty(context.LatestEvidenceUrl))
+                        {
+                            <MudLink Typo="Typo.body2" 
+                                     Color="Color.Primary" 
+                                     Href="@context.LatestEvidenceUrl"
+                                     Target="_blank"
+                                     Style="cursor: pointer;">
+                                @Localizer["View Evidence"]
+                            </MudLink>
+                            @if (context.LatestEvidenceDate.HasValue)
+                            {
+                                <br/>
+                                <MudText Typo="Typo.caption">@context.LatestEvidenceDate.Value.ToString("yyyy-MM-dd")</MudText>
+                            }
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                                @Localizer["Pending"]
+                            </MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        @if (string.IsNullOrEmpty(context.LatestEvidenceUrl))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Default">
+                                @Localizer["Awaiting Evidence"]
+                            </MudText>
+                        }
+                        else
+                        {
+                            <DHButton Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="Color.Success"
+                                     StartIcon="@Icons.Material.Filled.LockOpen"
+                                     OnClick="@(() => UnlockUser(context))">
+                                @Localizer["Unlock"]
+                            </DHButton>
+                        }
                     </MudTd>
                 }
             </RowTemplate>
             <ChildRowContent>
-                @if (IsExpanded(context))
-                {
-                    <MudTr>
-                        <td colspan="6">
-                            <MudCard Elevation="0" Class="ma-2">
-                                <MudCardContent>
-                                    <MudText Typo="Typo.h6" Class="mb-2">@Localizer["Workspace Details"]</MudText>
-                                    <MudTable Items="@context.WorkspaceLocks" Dense="true" Hover="true" Elevation="0">
-                                        <HeaderContent>
-                                            <MudTh>@Localizer["Workspace"]</MudTh>
-                                            <MudTh>@Localizer["Unlock Requested By"]</MudTh>
-                                            <MudTh>@Localizer["Request Date"]</MudTh>
-                                            <MudTh>@Localizer["Evidence"]</MudTh>
-                                            <MudTh>@Localizer["Actions"]</MudTh>
-                                        </HeaderContent>
-                                        <RowTemplate Context="workspaceLock">
-                                            <MudTd>
-                                                <MudText Typo="Typo.body2">
-                                                    <strong>@workspaceLock.WorkspaceAcronym</strong>
-                                                    <br/>
-                                                    <MudText Typo="Typo.caption">@workspaceLock.WorkspaceName</MudText>
-                                                </MudText>
-                                            </MudTd>
-                                            <MudTd>
-                                                @if (workspaceLock.RequestedByAdminUserId != null)
-                                                {
-                                                    <MudText Typo="Typo.body2">@workspaceLock.RequestedByAdminName</MudText>
-                                                    <MudText Typo="Typo.caption">@workspaceLock.RequestedByAdminUserId</MudText>
-                                                }
-                                                else
-                                                {
-                                                    <MudChip T="string" Size="Size.Small" Color="Color.Default">
-                                                        @Localizer["No Request"]
-                                                    </MudChip>
-                                                }
-                                            </MudTd>
-                                            <MudTd>
-                                                @if (workspaceLock.RequestDate.HasValue)
-                                                {
-                                                    <MudText Typo="Typo.body2">@workspaceLock.RequestDate.Value.ToString("yyyy-MM-dd HH:mm")</MudText>
-                                                }
-                                                else
-                                                {
-                                                    <MudText Typo="Typo.caption">-</MudText>
-                                                }
-                                            </MudTd>
-                                            <MudTd>
-                                                @if (!string.IsNullOrEmpty(workspaceLock.EvidenceUrl))
-                                                {
-                                                    <MudLink Typo="Typo.body2" 
-                                                             Color="Color.Primary" 
-                                                             OnClick="@(() => DownloadEvidence(workspaceLock))"
-                                                             Style="cursor: pointer;">
-                                                        @Localizer["Provided"]
-                                                    </MudLink>
-                                                }
-                                                else
-                                                {
-                                                    <MudChip T="string" Color="Color.Warning" Size="Size.Small">
-                                                        @Localizer["Pending"]
-                                                    </MudChip>
-                                                }
-                                            </MudTd>
-                                            <MudTd>
-                                                @if (workspaceLock.IsUnlocked)
-                                                {
-                                                    <MudChip T="string" Color="Color.Success" Size="Size.Small" Icon="@Icons.Material.Filled.LockOpen">
-                                                        @Localizer["Unlocked"]
-                                                    </MudChip>
-                                                }
-                                                else if (string.IsNullOrEmpty(workspaceLock.EvidenceUrl))
-                                                {
-                                                    <MudText Typo="Typo.body2" Color="Color.Default">
-                                                        @Localizer["Awaiting Evidence"]
-                                                    </MudText>
-                                                }
-                                                else
-                                                {
-                                                    <DHButton Size="Size.Small"
-                                                             Variant="Variant.Filled"
-                                                             Color="Color.Success"
-                                                             StartIcon="@Icons.Material.Filled.LockOpen"
-                                                             OnClick="@(() => UnlockUserForWorkspace(workspaceLock))">
-                                                        @Localizer["Unlock"]
-                                                    </DHButton>
-                                                }
-                                            </MudTd>
-                                        </RowTemplate>
-                                    </MudTable>
-                                </MudCardContent>
-                            </MudCard>
-                        </td>
-                    </MudTr>
-                }
-            </ChildRowContent>
             <NoRecordsContent>
                 <MudText Typo="Typo.body1">@Localizer["No locked users found."]</MudText>
             </NoRecordsContent>
@@ -183,42 +127,14 @@
 </MudContainer>
 
 @code {
-    // Mock class to hold locked user data for UI demonstration
-    private class MockLockedUser
-    {
-        public PortalUser User { get; set; } = null!;
-        public DateTime LockedDate { get; set; }
-        public List<WorkspaceLockInfo> WorkspaceLocks { get; set; } = new();
-    }
-    
-    private class WorkspaceLockInfo
-    {
-        public string WorkspaceAcronym { get; set; } = null!;
-        public string WorkspaceName { get; set; } = null!;
-        public string? RequestedByAdminUserId { get; set; }
-        public string? RequestedByAdminName { get; set; }
-        public DateTime? RequestDate { get; set; }
-        public string? EvidenceUrl { get; set; }
-        public bool IsUnlocked { get; set; }
-    }
-    
-    private List<MockLockedUser> _lockedUsers = new();
+    private List<UserLockStatus> _lockedUsers = new();
     private string _searchString = "";
     private bool _loading = true;
-    private HashSet<MockLockedUser> _expandedRows = new();
-    
-    private bool IsExpanded(MockLockedUser user) => _expandedRows.Contains(user);
-    
-    private void ToggleExpand(MockLockedUser user)
-    {
-        if (_expandedRows.Contains(user))
-            _expandedRows.Remove(user);
-        else
-            _expandedRows.Add(user);
-    }
+    private PortalUser? _currentUser;
 
     protected override async Task OnInitializedAsync()
     {
+        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
         await LoadLockedUsers();
     }
 
@@ -227,164 +143,76 @@
         _loading = true;
         StateHasChanged();
 
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-        
-        // MOCK DATA - For UI demonstration only
-        // In production, this would query UserSettings where IsLockedOut == true
-        var allUsers = await dbContext.PortalUsers
-            .Include(u => u.UserSettings)
-            .ToListAsync();
-            
-        // Get user project memberships
-        var userProjects = await dbContext.UserRolesLinks
-            .Include(pu => pu.Project)
-            .Include(pu => pu.PortalUser)
-            .ToListAsync();
-            
-        // Simulate locked users based on email pattern (external/test users)
-        var lockedUsersList = allUsers
-            .Where(u => u.Email != null && (u.Email.Contains("external", StringComparison.OrdinalIgnoreCase) || 
-                                           u.Email.Contains("test", StringComparison.OrdinalIgnoreCase)))
-            .Take(5) // Limit for demo
-            .ToList();
-            
-        _lockedUsers = new List<MockLockedUser>();
-        var random = new Random();
-        
-        foreach (var user in lockedUsersList)
+        try
         {
-            // Get workspaces this user belongs to
-            var userWorkspaces = userProjects
-                .Where(pu => pu.PortalUser.Id == user.Id)
-                .Select(pu => pu.Project)
-                .ToList();
-                
-            if (!userWorkspaces.Any())
-            {
-                // If user has no workspaces, still show them with a placeholder
-                userWorkspaces = new List<Datahub_Project> 
-                { 
-                    new Datahub_Project 
-                    { 
-                        Project_Acronym_CD = "N/A", 
-                        Project_Name = "No Workspace" 
-                    } 
-                };
-            }
-            
-            var workspaceLocks = new List<WorkspaceLockInfo>();
-            
-            foreach (var workspace in userWorkspaces)
-            {
-                // Randomly simulate if workspace admin has requested unlock
-                var hasRequest = random.Next(0, 3) == 0; // 33% chance
-                
-                // If there's a request, 80% chance they also uploaded evidence
-                var hasEvidence = hasRequest && random.Next(0, 5) < 4;
-                
-                workspaceLocks.Add(new WorkspaceLockInfo
-                {
-                    WorkspaceAcronym = workspace.Project_Acronym_CD,
-                    WorkspaceName = workspace.ProjectName ?? workspace.Project_Acronym_CD,
-                    RequestedByAdminUserId = hasRequest ? $"admin_{workspace.Project_Acronym_CD}@example.com" : null,
-                    RequestedByAdminName = hasRequest ? $"Workspace Admin ({workspace.Project_Acronym_CD})" : null,
-                    RequestDate = hasRequest ? DateTime.UtcNow.AddHours(-random.Next(1, 48)) : null,
-                    EvidenceUrl = hasEvidence ? $"https://storage.example.com/evidence/{workspace.Project_Acronym_CD}_{user.Id}_virusscan.pdf" : null,
-                    IsUnlocked = false
-                });
-            }
-            
-            _lockedUsers.Add(new MockLockedUser
-            {
-                User = user,
-                LockedDate = DateTime.UtcNow.AddDays(-random.Next(1, 7)),
-                WorkspaceLocks = workspaceLocks
-            });
+            _lockedUsers = await _lockedUserService.GetAllLockedUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add($"Error loading locked users: {ex.Message}", Severity.Error);
         }
 
         _loading = false;
         StateHasChanged();
     }
 
-    private bool FilterUser(MockLockedUser user)
+    private bool FilterUser(UserLockStatus user)
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
 
-        return user.User.DisplayName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
-               user.User.Email?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+        return user.UserName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
+               user.UserEmail?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
+               user.WorkspaceAcronym?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
     }
 
-    private void DownloadEvidence(WorkspaceLockInfo workspaceLock)
+    private async Task UnlockUser(UserLockStatus lockStatus)
     {
-        // MOCK: Simulate downloading evidence for review
-        _snackbar.Add($"(DEMO) Downloading evidence from: {workspaceLock.EvidenceUrl}", Severity.Info);
-        _snackbar.Add($"(DEMO) Evidence submitted by workspace admin: {workspaceLock.RequestedByAdminName}", Severity.Info);
-    }
+        if (string.IsNullOrEmpty(lockStatus.LatestEvidenceUrl))
+        {
+            _snackbar.Add(Localizer["Cannot unlock user. Virus scan evidence must be uploaded first."], Severity.Warning);
+            return;
+        }
 
-    private async Task UnlockUserForWorkspace(WorkspaceLockInfo workspaceLock)
-    {
+        var workspaceText = !string.IsNullOrEmpty(lockStatus.WorkspaceAcronym) 
+            ? lockStatus.WorkspaceAcronym 
+            : Localizer["all workspaces"];
+            
         var confirmed = await _dialogService.ShowMessageBox(
             Localizer["Confirm Unlock"],
-            Localizer["Are you sure you want to unlock this user for workspace {0}? If evidence has been uploaded for at least one workspace, the user will regain access to all workspaces.", workspaceLock.WorkspaceAcronym],
+            Localizer["Are you sure you want to unlock {0} for {1}?", lockStatus.UserName, workspaceText],
             yesText: Localizer["Unlock"],
             cancelText: Localizer["Cancel"]);
 
         if (confirmed == true)
         {
-            // MOCK - Mark as unlocked
-            workspaceLock.IsUnlocked = true;
-            
-            // Find the parent user
-            var parentUser = _lockedUsers.FirstOrDefault(u => u.WorkspaceLocks.Contains(workspaceLock));
-            if (parentUser != null)
+            try
             {
-                // Check if ANY workspace has evidence uploaded
-                var hasAnyEvidence = parentUser.WorkspaceLocks.Any(w => !string.IsNullOrEmpty(w.EvidenceUrl));
-                
-                if (hasAnyEvidence)
+                if (_currentUser == null)
                 {
-                    // MOCK: In production, this would:
-                    // 1. Update database to mark user as unlocked
-                    // 2. Send email to user notifying them of access restoration
-                    // 3. Send email to workspace admin(s) who requested the unlock
-                    
-                    _snackbar.Add(
-                        Localizer["User unlocked for {0}. Email notifications sent to user and workspace admin (DEMO).", workspaceLock.WorkspaceAcronym], 
-                        Severity.Success
-                    );
-                    
-                    // Simulate email notifications
-                    _snackbar.Add(
-                        Localizer["📧 Email sent to: {0}", parentUser.User.Email], 
-                        Severity.Info
-                    );
-                    
-                    if (!string.IsNullOrEmpty(workspaceLock.RequestedByAdminUserId))
-                    {
-                        _snackbar.Add(
-                            Localizer["📧 Email sent to workspace admin: {0}", workspaceLock.RequestedByAdminUserId], 
-                            Severity.Info
-                        );
-                    }
+                    _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                    return;
                 }
-                else
-                {
-                    _snackbar.Add(
-                        Localizer["Cannot unlock user. Please upload virus scan evidence first.", workspaceLock.WorkspaceAcronym], 
-                        Severity.Warning
-                    );
-                    workspaceLock.IsUnlocked = false;
-                }
-            }
-            
-            StateHasChanged();
-        }
-    }
 
-    private void ViewEvidence(string evidenceUrl)
-    {
-        // MOCK: Show alert for demo
-        _snackbar.Add($"Evidence URL: {evidenceUrl} (DEMO)", Severity.Info);
+                await _lockedUserService.UnlockUserAsync(
+                    lockStatus.PortalUserId,
+                    lockStatus.WorkspaceId,
+                    $"Unlocked by FSDH admin after reviewing evidence",
+                    _currentUser.Id
+                );
+
+                _snackbar.Add(
+                    Localizer["User successfully unlocked for {0}", workspaceText], 
+                    Severity.Success
+                );
+
+                // Reload the list
+                await LoadLockedUsers();
+            }
+            catch (Exception ex)
+            {
+                _snackbar.Add($"Error unlocking user: {ex.Message}", Severity.Error);
+            }
+        }
     }
 }
