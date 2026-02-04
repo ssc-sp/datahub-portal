@@ -37,7 +37,10 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
                 foreach (var (role, project) in authorizedProjects)
                 {                   
-                    claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleSuffixes(role)}"));
+                    foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role))
+                    {
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
+                    }
                 }
             }
             else
@@ -75,7 +78,9 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                     }
                     else
                     {
-                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleSuffixes(role)}"));
+                        foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role)) {
+                            claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
+                        }
                     }
                     if (project.WebAppEnabled == true)
                     {
