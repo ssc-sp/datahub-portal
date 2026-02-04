@@ -18,7 +18,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 {
     // Not included in ClaimTypes or ClaimConstants
     public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
-    public const string IDP_PROVIDER_CLAIM = "idp_provider";
+    //public const string IDP_PROVIDER_CLAIM = "idp_provider";
+    public const string IDP_QUALIFIER_CLAIM = "idp_qualifier";
     public const string IDP_GCCF = "clegc-gckey.gc.ca";
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -116,7 +117,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
         if (!trusted)
         {
-            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_PROVIDER_CLAIM)?.Value;
+            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_QUALIFIER_CLAIM)?.Value;
             if (idp?.EndsWith(IDP_GCCF) ?? false)
             {
                 claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
