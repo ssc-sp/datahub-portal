@@ -1,0 +1,55 @@
+name: Pullrequest AI Review
+
+permissions: read-all
+
+on:
+  pull_request_review_comment:
+    types: [created]
+  pull_request:
+    types: [opened, synchronize, reopened, review_requested]
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Start Sysdig System Capture
+        uses: gccloudone-aurora-collab/falco-actions/start@54d299d4c40de1ad6bf680fefbbfed1bc5b8f057
+        with:
+          mode: analyze
+          sysdig-version: "sha256:c63ec30ce5db5b0d934343028031bba32b81cb7cb3f82e82d87b72c9b1694922"
+
+      - uses: gccloudone-aurora-collab/ai-pr-reviewer@f14b4a38505c0bffe62a87c4b3fec35b23e3f336 #v2.0.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_MODEL: "gpt-5-nano"
+        with:
+          style_guide_rules: |
+            # Style Guide Rules
+            - Prefer descriptive variable and function names
+            - Write clear docstrings for all public functions
+            - Avoid deeply nested code (more than 3 levels)
+            - Follow PEP8 for Python (or equivalent in other languages)
+            - Ensure unit tests are present for all new functionality
+
+      - name: Stop Sysdig System Capture
+        uses: gccloudone-aurora-collab/falco-actions/stop@54d299d4c40de1ad6bf680fefbbfed1bc5b8f057
+        with:
+          mode: analyze
+
+  analyze:
+    needs: run
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+    steps:
+      - name: Analyze
+        uses: gccloudone-aurora-collab/falco-actions/analyze@54d299d4c40de1ad6bf680fefbbfed1bc5b8f057
+        with:
+          falco-version: "sha256:ba05dfb209cc1c2e912ce116d230b5f59c4542e7286f05b663c499066d5d6a42"
+          custom-rule-file: ".github/falco/rules/custom_rules.yaml"

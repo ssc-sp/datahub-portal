@@ -135,7 +135,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             {
                 var roleChangeRecord = new PortalUserRoleChange
                 {
-                    PortalUserId = (int)userToUpdate.PortalUserId, 
+                    PortalUserId = userToUpdate.PortalUserId ?? throw new InvalidOperationException("User is not associated with a PortalUser"),
                     RoleId = (Project_Role.RoleNames)projectUserUpdateCommand.NewRoleId,
                     ChangeDate = DateTime.UtcNow
                 };
@@ -260,9 +260,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         var users = await GetProjectUsersAsync(projectAcronym);
-        var admin = users?.Where(u => RoleConstants.GetRoleConstants(u.Role) == RoleConstants.WORKSPACE_LEAD_SUFFIX);
-
-        return admin?.FirstOrDefault();
+        return users?.FirstOrDefault(u => RoleConstants.GetRoleSuffixes(u.Role).Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX));        
     }
 
     public async Task<bool> RunWorkspaceSync(string projectAcronym)
