@@ -19,18 +19,19 @@ public interface IServiceAuthManager
     List<string> GetAllProjects();
 
     /// <summary>
-    /// Sets whether the specified user is viewing the application as a guest.
+    /// Sets whether the specified user should be in Admin Mode view.
+    /// When Admin Mode is enabled, the user is not treated as a guest and retains admin capabilities.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
-    /// <param name="isGuest">True to mark the user as viewing as guest; otherwise false.</param>
-    void SetViewingAsGuest(string userId, bool isGuest);
+    /// <param name="isAdminMode">True to enable Admin Mode; false to view as guest.</param>
+    void SetAdminModeView(string userId, bool isAdminMode);
 
     /// <summary>
-    /// Gets whether the specified user is currently marked as viewing as a guest.
+    /// Gets whether Admin Mode is enabled for the specified user.
     /// </summary>
     /// <param name="userId">The identifier of the user.</param>
-    /// <returns>True if the user is viewing as a guest; otherwise false.</returns>
-    bool GetViewingAsGuest(string userId);
+    /// <returns>True if Admin Mode is enabled; otherwise false.</returns>
+    bool IsAdminModeEnabled(string userId);
 
     /// <summary>
     /// Gets the project-level admin roles assigned to the given user.
@@ -92,7 +93,18 @@ public interface IServiceAuthManager
     /// A task that resolves to an immutable list of tuples containing the role and project
     /// the user is authorized for.
     /// </returns>
-    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetUserAuthorizations(string userGraphId);
+    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetEntraUserAuthorizations(string userGraphId);
+
+    /// <summary>
+    /// Gets the authorizations (project role and project) for the specified user external id.
+    /// </summary>
+    /// <param name="externalId">The user's name identifier.</param>
+    /// <returns>
+    /// A task that resolves to an immutable list of tuples containing the role and project
+    /// the user is authorized for.
+    /// </returns>
+    Task<ImmutableList<(Project_Role Role, Datahub_Project Project)>> GetExternalUserAuthorizations(string externalId);
+
 
     /// <summary>
     /// Determines whether the specified user (by email) is an owner of any CBR resources.

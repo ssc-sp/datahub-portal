@@ -2147,16 +2147,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("RemovedByUser");
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Onboarding.GCHostingWorkspaceDetails", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Datahub_Project")
-                        .WithMany()
-                        .HasForeignKey("Datahub_ProjectProject_ID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Datahub_Project");
-                });
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "CreatedBy")

@@ -1,3 +1,6 @@
+using System.ComponentModel;
+using System.Net.Mail;
+using System.Security.Claims;
 using Azure.Identity;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
@@ -19,9 +22,7 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
-using System.ComponentModel;
-using System.Net.Mail;
-using System.Security.Claims;
+using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
 
@@ -87,7 +88,7 @@ public class UserInformationService(
 
     public async Task<string?> GetCurrentUserEntraId()
     {
-        await CheckUser();
+        _ = await GetGraphUserAsyncInternal();
         return GetEntraOid();
     }
 
@@ -106,14 +107,14 @@ public class UserInformationService(
 
     public async Task<string> GetUserEmail()
     {
-        await CheckUser();
-        return currentEntraUser.Mail ?? throw new InvalidOperationException("Email is not available for current user");
+        var user = await GetGraphUserAsyncInternal();
+        return user.Mail ?? throw new InvalidOperationException("Email is not available for current user");
     }
 
     public async Task<string> GetDisplayName()
     {
-        await CheckUser();
-        return currentEntraUser.DisplayName ?? string.Empty;
+        var user = await GetGraphUserAsyncInternal();
+        return user.DisplayName ?? string.Empty;
     }
 
     public async Task<string> GetUserEmailDomain()
@@ -160,9 +161,9 @@ public class UserInformationService(
         return !claims.Any() || (claims.Count == 1 && claims[0].Value == "default");
     }
 
-    private async Task LoadUserAsyncInternal()
+    private async Task<User> GetGraphUserAsyncInternal()
     {
-        if (currentEntraUser != null) return;
+        if (currentEntraUser != null) return currentEntraUser;
         var authenticatedUser = await GetAuthenticatedUser();
         if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
         {
@@ -194,26 +195,32 @@ public class UserInformationService(
             //_logger.LogError(e, "Error Loading User"); redundant
             throw new InvalidOperationException("Cannot retrieve user list", e);
         }
+        return currentEntraUser;
     }
 
     private bool HasEntraOid()
     {
-        return authenticatedUser?.Claims?
-                   .Any(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ?? false;
+        // Prefer standard OIDC oid claim; fall back to NameIdentifier if needed
+        return authenticatedUser?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false;
     }
 
     private string GetEntraOid()
     {
-        // ReSharper disable once ConstantConditionalAccessQualifier
-        return (authenticatedUser?.Claims?
-                    .FirstOrDefault(c => c.Type == "http://schemas.microsoft.com/identity/claims/objectidentifier") ??
-                throw new InvalidOperationException("Cannot access user claims")).Value;
+        if (!HasEntraOid())
+            throw new InvalidOperationException("User does not have a valid Entra OID");
+        // Try standard OIDC oid first
+        var claim = authenticatedUser?.Claims?
+            .FirstOrDefault(c => c.Type == ClaimConstants.ObjectId);
+
+        if (claim is null)
+            throw new InvalidOperationException("Cannot access user claims");
+
+        return claim.Value;
     }
 
     public async Task<User> GetCurrentGraphUserAsync()
     {
-        await CheckUser();
-        return currentEntraUser;
+        return await GetGraphUserAsyncInternal();
     }
 
     private void PrepareAuthenticatedClient()
@@ -238,14 +245,6 @@ public class UserInformationService(
             logger.LogError($"Error preparing authentication client: {e.Message}");
             Console.WriteLine($"Error preparing authentication client: {e.Message}");
             throw;
-        }
-    }
-
-    private async Task CheckUser()
-    {
-        if (currentEntraUser == null)
-        {
-            await LoadUserAsyncInternal();
         }
     }
 
@@ -278,14 +277,15 @@ public class UserInformationService(
         }
     }
 
-    public async Task<bool> IsViewingAsGuest()
+    public async Task<bool> IsAdminModeEnabled()
     {
-        return serviceAuthManager.GetViewingAsGuest((await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id"));
+        var userId = (await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id");
+        return serviceAuthManager.IsAdminModeEnabled(userId);
     }
 
-    public async Task SetViewingAsGuest(bool isGuest)
+    public async Task SetAdminModeView(bool isAdminMode)
     {
-        serviceAuthManager.SetViewingAsGuest((await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id"), isGuest);
+        serviceAuthManager.SetAdminModeView((await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id"), isAdminMode);
     }
 
     public Task<bool> IsViewingAsVisitor()
@@ -301,7 +301,7 @@ public class UserInformationService(
 
     private async Task<bool> IsUserInDataHubAdminRole()
     {
-        if ((await IsViewingAsGuest()) || _isViewingAsVisitor)
+        if (!(await IsAdminModeEnabled()) || _isViewingAsVisitor)
             return false;
         return await IsUserDatahubAdmin();
     }
@@ -723,5 +723,38 @@ public class UserInformationService(
                 userOid);
             return null;
         }
+    }
+
+    public async Task<bool> IsEntraUser()
+    {
+        var user = await GetAuthenticatedUser();
+        if (user == null) return false;
+        if (user.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN))
+        {
+            // User is already marked as trusted or external
+            return true;
+        }
+        return false;
+    }
+
+    public async Task<bool> IsExternalUser()
+    {
+        var user = await GetAuthenticatedUser();
+        if (user == null) return false;
+        return await IsExternalAsync(user);
+    }
+
+    public async Task<bool> IsAuthorized()
+    {
+        if (await IsEntraUser())
+            return true;
+        if (await IsExternalUser() && await IsGCCFEnabled())
+        {
+            var user = await GetAuthenticatedUser();
+            var externalId = user.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("No GCCF ID available");
+            var authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
+            return authorizedProjects.Count > 0;
+        }
+        return false;
     }
 }
