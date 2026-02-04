@@ -94,10 +94,11 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
     private bool VerifyTrustedEntraLogin(ClaimsIdentity claims)
     {
-        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN))
+        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN) 
+            || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
         {
             // User is already marked as trusted or external
-            return true;
+            return claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN);
         }        
 
         var utid = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.UniqueTenantIdentifier)?.Value;
