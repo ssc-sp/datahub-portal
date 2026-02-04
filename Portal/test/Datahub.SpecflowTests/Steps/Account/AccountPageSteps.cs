@@ -72,7 +72,7 @@ public class AccountPageSteps : BunitTestSteps
         else
         {
             var externalIdp = " https://te.clegc-gckey.gc.ca";
-            userClaimsIdentity.AddClaim(new Claim(RoleClaimTransformer.IDP_PROVIDER_CLAIM, externalIdp));
+            userClaimsIdentity.AddClaim(new Claim(RoleClaimTransformer.IDP_QUALIFIER_CLAIM, externalIdp));
             userClaimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "rDtRMzVvnuG-DPEfaOZMtPsn2_i-ayRIxIGvFzBIm-q"));
         }
 
