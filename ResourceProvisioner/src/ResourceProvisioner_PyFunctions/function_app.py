@@ -125,13 +125,19 @@ def keys_upper(dictionary):
     """
     res = dict()
     for key in dictionary.keys():
-        if isinstance(dictionary[key], dict):
-            res[key[0].upper()+key[1:]] = keys_upper(dictionary[key])
-        elif isinstance(dictionary[key], list):
-            if dictionary[key] and isinstance(dictionary[key][0], dict):
-                res[key[0].upper()+key[1:]] = [keys_upper(item) for item in dictionary[key]]
+        value = dictionary[key]
+        uppercase_key = key[0].upper() + key[1:]
+
+        if isinstance(value, dict):
+            res[uppercase_key] = keys_upper(value)
+        elif isinstance(value, list):
+            # Preserve empty lists and lists of primitives; recursively process lists of dicts.
+            if value and isinstance(value[0], dict):
+                res[uppercase_key] = [keys_upper(item) for item in value]
+            else:
+                res[uppercase_key] = value
         else:
-            res[key[0].upper()+key[1:]] = dictionary[key]
+            res[uppercase_key] = value
     return res
    
 def new_sync_workspace(workspace_definition):

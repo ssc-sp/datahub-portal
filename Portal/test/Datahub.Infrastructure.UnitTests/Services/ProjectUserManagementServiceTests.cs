@@ -17,6 +17,7 @@ using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using NSubstitute;
 
@@ -117,7 +118,7 @@ public class ProjectUserManagementServiceTests
         var mockMemoryCache = new Mock<IMemoryCache>();
 
         _serviceAuthManager =
-            new ServiceAuthManager(mockMemoryCache.Object, _mockFactory.Object);
+            new ServiceAuthManager(mockMemoryCache.Object, _mockFactory.Object, NullLogger<ServiceAuthManager>.Instance);
     }
 
     [TearDown]

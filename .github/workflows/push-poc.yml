@@ -5,41 +5,53 @@ on:
   release:
     types: [released]
 
+permissions: read-all
+
 jobs:
   sync:
     runs-on: ubuntu-latest
 
     steps:
       - name: Convert App token
-        id: create_token 
-        uses: getsentry/action-github-app-token@v3.0.0
+        id: create_token
+        uses: actions/create-github-app-token@29824e69f54612133e76f7eaac726eef6c875baf # v2.2.1
         with:
-          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
-          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+          app-id: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
 
       - name: Checkout proof-of-concept branch
-        uses: actions/checkout@v4
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 #v6.0.1
         with:
           ref: proof-of-concept
+          fetch-depth: 1
+          persist-credentials: true
           token: ${{ steps.create_token.outputs.token }}
 
-      - name: Fetch develop for SHA compare
-        run: git fetch origin develop --depth=1
-
-      - name: Skip if not from develop branch
+      - name: Ensure Release is from Develop
         run: |
-          DEV_SHA=$(git rev-parse origin/develop)
-          if [ "$DEV_SHA" != "${{ github.event.release.target_commitish }}" ]; then
-            echo "Release not cut from develop (got ${{ github.event.release.target_commitish }}, expected $DEV_SHA). Skipping."
+          TARGET="${GITHUB_EVENT_RELEASE_TARGET_COMMITISH}"
+          echo "Release target: $TARGET"
+
+          if [ "$TARGET" != "develop" ]; then
+            echo "Skipping: Release was targeted at '$TARGET', not 'develop'."
             exit 0
           fi
+        env:
+          GITHUB_EVENT_RELEASE_TARGET_COMMITISH: ${{ github.event.release.target_commitish }}
 
-      - name: Fetch latest develop commit
-        run: git fetch origin develop --depth=1
+      - name: Fetch the Release Tag
+        run: git fetch origin "${GITHUB_REF}" --depth=1
 
-      - name: Hard‑reset proof-of-concept to develop
+      - name: Output Release Info
         run: |
-          git reset --hard FETCH_HEAD
+          echo "Deploying Release Version: ${GITHUB_EVENT_RELEASE_TAG_NAME}"
+          echo "Commit SHA: ${{ github.sha }}"
+        env:
+          GITHUB_EVENT_RELEASE_TAG_NAME: ${{ github.event.release.tag_name }}
+
+      - name: Hard-reset proof-of-concept to Release
+        run: |
+          git reset --hard ${{ github.sha }}
           git push origin proof-of-concept --force-with-lease
         env:
           GITHUB_TOKEN: ${{ steps.create_token.outputs.token }}

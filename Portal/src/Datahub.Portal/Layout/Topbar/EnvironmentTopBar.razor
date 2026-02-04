@@ -3,12 +3,13 @@
 @using Datahub.Metadata.Model
 @using MudBlazor.Utilities
 
-    <h2 class="sr-only">
-        @Localizer["Workspace security level information"]
-    </h2>
-    <p style="@_styles">
-        @Localizer[GetSecurityLabel(SecurityLevel)]
-    </p>
+<h2 class="sr-only">
+    @Localizer["Workspace security level information"]
+</h2>
+<p style="@_styles" Class="d-flex align-center">
+    <DHIcon Icon=@(SecurityLevel == ClassificationType.Unclassified ? Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) Size="Size.Small" />
+    @Localizer[GetSecurityLabel(SecurityLevel)]
+</p>
 
 @code {
     [Parameter] public ClassificationType SecurityLevel { get; set; }
@@ -20,7 +21,7 @@
         base.OnInitialized();
 
         _styles = new StyleBuilder()
-            .AddStyle("height", "20px")
+            .AddStyle("height", "25px")
             .AddStyle("width", "100%")
             .AddStyle("background-color", GetSecurityColor(SecurityLevel))
             .AddStyle("position", "fixed")
@@ -28,10 +29,10 @@
             .AddStyle("left", "0px")
             .AddStyle("z-index", "1400")
             .AddStyle("text-align", "center")
-            .AddStyle("font-size", "12px")
+            .AddStyle("font-size", "14px")
             .AddStyle("color", "white")
             .AddStyle("font-weight", "bold")
-            .AddStyle("font-family", "Consolas, monospace")
+            .AddStyle("justify-content", "center")
             .Build();
     }
 
@@ -40,11 +41,11 @@
         switch (securityLevel)
         {
             case ClassificationType.ProtectedB:
-                return "rgb(244, 67, 54)";
+                return "#2b4380";
             case ClassificationType.ProtectedA:
-                return "rgb(255,152,0)";
+                return "#0535d2";
             default:
-                return "rgb(89, 74, 226)";
+                return "#2460FF";
         }
     }
 

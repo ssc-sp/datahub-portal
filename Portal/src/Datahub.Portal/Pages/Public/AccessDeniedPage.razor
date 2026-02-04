@@ -1,4 +1,13 @@
-﻿<PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
+@attribute [Route(PageRoutes.AccessDenied)]
+@attribute [Route(PageRoutes.AccessDenied_FR)]
+
+@layout BarebonesPublicLayout
+
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject IUserInformationService _userInformationService
+@inject ILogger<AccessDeniedPage> _logger;
+
+<PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
 
 <MudContainer MaxWidth=@MaxWidth.Medium>
     <MudPaper Class="pt-12 px-12 mt-12">
@@ -20,10 +29,39 @@
                     @Localizer["Access Denied"]
                 </strong>
             </MudText>
-            <MudText Typo="Typo.h6" Class="text-center">
+			@if (_traceClaims && _externalUserId is not null)
+			{
+				<MudText Typo="Typo.h6" Class="text-center">
+					@Localizer["Your external user ID is: {0}", _externalUserId]
+				</MudText>
+			}
+			<MudText Typo="Typo.h6" Class="text-center">
                 @Localizer["This site is monitored. Further attempts to log in may be reported to the authorities."]
             </MudText>
         </MudStack>
         <DHFooter />
     </MudPaper>
 </MudContainer>
+
+@code
+{
+	private bool _traceClaims = false;
+	private string? _externalUserId = null;
+
+	protected override async Task OnInitializedAsync()
+	{
+		_traceClaims = await _featureManager.IsEnabledAsync(Features.Trace_Claims);
+		if (_traceClaims)
+		{
+			if ((await _userInformationService.IsExternalUser()))
+			{
+				_externalUserId = await _userInformationService.GetExternalUserNameIdentifier();
+				_logger.LogInformation("Access Denied page accessed by external user with ID: {ExternalUserId}", _externalUserId);
+			}
+			else
+			{				
+				_logger.LogInformation("Access Denied page accessed by internal user.");
+			}
+		}
+	}
+}

@@ -49,7 +49,7 @@ public class AccountPageSteps : BunitTestSteps
         _scenarioContext = scenarioContext;
     }
 
-    private async Task SetupAuthenticationWithTrustedUser(bool gocUser)
+    private async Task SetupAuthenticationWithUser(bool gocUser)
     {
         var userClaimsIdentity = new ClaimsIdentity([
                 new Claim(ClaimTypes.Name, TEST_USER_EMAIL),
@@ -69,11 +69,20 @@ public class AccountPageSteps : BunitTestSteps
             var idProvider = $"https://sts.windows.net/{utid}/";
             userClaimsIdentity.AddClaim(new Claim(RoleClaimTransformer.IDENTITY_PROVIDER_CLAIM_TYPE, idProvider, ClaimValueTypes.String, tenantIssuer));
         }
+        else
+        {
+            var externalIdp = " https://te.clegc-gckey.gc.ca";
+            userClaimsIdentity.AddClaim(new Claim(RoleClaimTransformer.IDP_QUALIFIER_CLAIM, externalIdp));
+            userClaimsIdentity.AddClaim(new Claim(ClaimTypes.NameIdentifier, "rDtRMzVvnuG-DPEfaOZMtPsn2_i-ayRIxIGvFzBIm-q"));
+        }
 
         var userPrincipal = new ClaimsPrincipal(userClaimsIdentity);
 
         var serviceAuthManager = Substitute.For<IServiceAuthManager>();
-        serviceAuthManager.GetUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
+        if (gocUser)
+            serviceAuthManager.GetEntraUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
+        else
+            serviceAuthManager.GetExternalUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
 
         var transformer = new RoleClaimTransformer(serviceAuthManager, _portalConfig, Substitute.For<ILogger<RoleClaimTransformer>>());
         userPrincipal = await transformer.TransformAsync(userPrincipal);
@@ -82,7 +91,7 @@ public class AccountPageSteps : BunitTestSteps
         {
             User = userPrincipal
         };
-        
+
         Services.AddScoped<AuthenticationStateProvider>(sp => new TestAuthStateProvider(authContext));
         Services.AddScoped<IAuthorizationService>(sp => new TestAuthorizationService(authContext));
         Services.AddSingleton<IAuthorizationPolicyProvider, TestAuthorizationPolicyProvider>();
@@ -135,7 +144,7 @@ public class AccountPageSteps : BunitTestSteps
             Email = TEST_USER_EMAIL,
             Id = 1
         };
-        
+
         Services.AddSingleton<IDbContextFactory<DatahubProjectDBContext>>(CreateDbContextWithMinimalNecessaryData(testPortalUser));
 
         var mockUserInfo = Substitute.For<IUserInformationService>();
@@ -176,14 +185,14 @@ public class AccountPageSteps : BunitTestSteps
     public async Task GivenTheUserIsAuthenticatedWithGocLogin()
     {
         AddRequiredServices();
-        await SetupAuthenticationWithTrustedUser(true);
+        await SetupAuthenticationWithUser(true);
     }
 
     [Given(@"the user is authenticated with external login")]
     public async Task GivenTheUserIsAuthenticatedWithExternalLogin()
     {
         AddRequiredServices();
-        await SetupAuthenticationWithTrustedUser(false);
+        await SetupAuthenticationWithUser(false);
     }
 
     [Given(@"the user is on the account page")]
@@ -207,7 +216,7 @@ public class AccountPageSteps : BunitTestSteps
 
     private IRenderedComponent<MudChip<string>>? FindLoginProviderChip(IRenderedComponent<CascadingAuthenticationState> render, bool gocLogin)
     {
-        var which = gocLogin? AccountPublicProfile.TRUSTED_LOGIN_TAG : AccountPublicProfile.EXTERNAL_USER_TAG;
+        var which = gocLogin ? AccountPublicProfile.TRUSTED_LOGIN_TAG : AccountPublicProfile.EXTERNAL_USER_TAG;
 
         var allChips = render.FindComponents<MudChip<string>>();
         var loginChip = allChips.FirstOrDefault(c => c.Instance.Tag is string tagStr && tagStr == which);

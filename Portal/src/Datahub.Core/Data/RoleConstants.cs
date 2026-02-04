@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using Datahub.Core.Model.Projects;
+using static Datahub.Core.Model.Projects.Project_Role;
 
 namespace Datahub.Core.Data;
 
@@ -14,6 +15,7 @@ public static class RoleConstants
     public const string GUEST_ROLE = "guest";
     public const string GUEST_SUFFIX = "-" + GUEST_ROLE;
     public const string WEBAPP_SUFFIX = "-webapp";
+    public const string STORAGE_SUFFIX = "-storage";
     public const string CBR_OWNER_ROLE = "cbr-owner";
     public const string CBR_OWNER_SUFFIX = "-" + CBR_OWNER_ROLE;
 
@@ -27,15 +29,18 @@ public static class RoleConstants
     public const string TRUSTED_ENTRA_LOGIN = "trusted-entra-login";
     public const string EXTERNAL_LOGIN = "external-login";
 
-    public static string GetRoleConstants(Project_Role role)
+    public static string[] GetRoleSuffixes(Project_Role role)
     {
         return role.Id switch
         {
-            2 => WORKSPACE_LEAD_SUFFIX,
-            3 => ADMIN_SUFFIX,
-            4 => COLLABORATOR_SUFFIX,
-            5 => GUEST_SUFFIX,
-            _ => "role not found"
+            (int)RoleNames.WorkspaceLead => [WORKSPACE_LEAD_SUFFIX],
+            (int)RoleNames.Admin => [ADMIN_SUFFIX],
+            (int)RoleNames.Collaborator => [COLLABORATOR_SUFFIX],
+            (int)RoleNames.Guest => [GUEST_SUFFIX],
+            (int)RoleNames.WebApp => [WEBAPP_SUFFIX],
+            (int)RoleNames.Storage => [STORAGE_SUFFIX],
+            (int)RoleNames.WebAppAndStorage => [WEBAPP_SUFFIX, STORAGE_SUFFIX],
+            _ => ["role not found"]
         };
     }
 
