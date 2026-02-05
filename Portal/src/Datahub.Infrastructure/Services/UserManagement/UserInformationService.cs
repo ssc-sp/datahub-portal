@@ -2,6 +2,7 @@ using System.ComponentModel;
 using System.Net.Mail;
 using System.Security.Claims;
 using Azure.Identity;
+using Datahub.Application.RoleManagement;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
@@ -103,6 +104,19 @@ public class UserInformationService(
         if (!await IsExternalAsync(user)) return null;
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
         return userId;
+    }
+
+    /// <summary>
+    /// Gets the current authenticated user's preferred locale from the authentication claims.
+    /// Returns null when the claim is not present or the user is not authenticated.
+    /// </summary>
+    public async Task<string?> GetExternalUserNamePreferredLanguage()
+    {
+        var user = await GetAuthenticatedUser();
+        if (user == null) return null;
+        if (!await IsExternalAsync(user)) return null;
+        var preferredLocale = user.FindFirstValue(RoleClaimTransformer.EXTERNAL_LOCALE_CLAIM);
+        return preferredLocale;
     }
 
     public async Task<string> GetUserEmail()

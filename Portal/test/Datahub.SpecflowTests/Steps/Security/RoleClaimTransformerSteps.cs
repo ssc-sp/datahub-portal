@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Security.Claims;
 using Datahub.Application.Configuration;
 using Datahub.Application.RoleManagement;
@@ -6,10 +7,10 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
+using Microsoft.Identity.Web;
 using NSubstitute;
 using Reqnroll;
-using System.Collections.Immutable;
-using Microsoft.Identity.Web;
 
 namespace Datahub.SpecflowTests.Steps.Security;
 
@@ -79,7 +80,9 @@ public class RoleClaimTransformerSteps
     {
         var loggerFactory = LoggerFactory.Create(builder => { });
         var logger = loggerFactory.CreateLogger<RoleClaimTransformer>();
-        var transformer = new RoleClaimTransformer(_authManager, _config, logger);
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(false);
+        var transformer = new RoleClaimTransformer(_authManager, _config, featureManager, logger);
         _result = await transformer.TransformAsync(_principal!);
     }
 
