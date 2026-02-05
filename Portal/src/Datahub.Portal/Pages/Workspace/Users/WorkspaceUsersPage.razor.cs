@@ -2,6 +2,7 @@ using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
@@ -37,62 +38,41 @@ namespace Datahub.Portal.Pages.Workspace.Users
         private async Task InitializedProjectMembers()
         {
             _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
-            
-            // MOCK: Add fake locked users for demo purposes
-            await AddMockLockedUsers();
-            
+
+            _workspaceId = await ResolveWorkspaceIdAsync();
+            await LoadLockedUsersForWorkspace();
+
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
         }
-        
-        // MOCK: Add fake locked users to demonstrate the locked user workflow
-        private async Task AddMockLockedUsers()
+
+        private async Task<int?> ResolveWorkspaceIdAsync()
         {
-            // Create fake locked users if they don't already exist
-            var fakeLockedUsers = new[]
+            var projectId = _projectUsers.FirstOrDefault()?.Project_ID;
+            if (projectId.HasValue)
             {
-                new { Email = "external.contractor@example.com", Name = "External Contractor" },
-                new { Email = "test.user@example.com", Name = "Test User" }
-            };
-            
-            var index = 0;
-            foreach (var fakeUser in fakeLockedUsers)
-            {
-                // Check if user already exists
-                if (!_projectUsers.Any(u => u.PortalUser?.Email == fakeUser.Email))
-                {
-                    // Create a fake UserRole with PortalUser
-                    // Use negative IDs to avoid conflicts with real database records
-                    var mockPortalUserId = -1000 - index; // Negative IDs for mock data
-                    
-                    var mockPortalUser = new PortalUser
-                    {
-                        Email = fakeUser.Email,
-                        DisplayName = fakeUser.Name,
-                        Id = mockPortalUserId
-                    };
-                    
-                    var mockRole = new Project_Role
-                    {
-                        Id = (int)Project_Role.RoleNames.Collaborator,
-                        Name = "Collaborator",
-                        Description = "Collaborator role for demo"
-                    };
-                    
-                    var mockUser = new UserRoleLinks
-                    {
-                        PortalUser = mockPortalUser,
-                        Role = mockRole,
-                        RoleId = mockRole.Id,
-                        IsDataSteward = false,
-                        Approved_DT = DateTime.Now.AddDays(-30),
-                        PortalUserId = mockPortalUser.Id
-                    };
-                    
-                    _projectUsers.Add(mockUser);
-                }
-                index++;
+                return projectId.Value;
             }
+
+            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+            return await dbContext.Projects
+                .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
+                .Select(p => (int?)p.Project_ID)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task LoadLockedUsersForWorkspace()
+        {
+            _lockedUsersByPortalUserId = new Dictionary<int, UserLockStatus>();
+            if (!_workspaceId.HasValue)
+            {
+                return;
+            }
+
+            var lockedUsers = await _lockedUserManagementService.GetLockedUsersInWorkspaceAsync(_workspaceId.Value);
+            _lockedUsersByPortalUserId = lockedUsers
+                .Where(u => u.PortalUserId > 0)
+                .ToDictionary(u => u.PortalUserId, u => u);
         }
 
         private bool CombinedFilter(UserRoleLinks projectUser)
@@ -261,9 +241,16 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private async Task OpenUploadEvidenceDialog(PortalUser user)
         {
+            if (!_workspaceId.HasValue)
+            {
+                _snackbar.Add(Localizer["Workspace not found"], Severity.Error);
+                return;
+            }
+
             var parameters = new DialogParameters
             {
-                { "User", user }
+                { "User", user },
+                { "WorkspaceId", _workspaceId.Value }
             };
 
             var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
@@ -278,14 +265,16 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 await InitializedProjectMembers();
             }
         }
-        
-        // MOCK: Simulate locked user based on email pattern for UI demo
-        private bool IsMockLockedUser(PortalUser? user)
+
+        private bool TryGetLockedUser(UserRoleLinks projectUser, out UserLockStatus lockStatus)
         {
-            if (user?.Email == null) return false;
-            // For demo purposes, treat users with 'external' or 'test' in email as locked
-            return user.Email.Contains("external", StringComparison.OrdinalIgnoreCase) ||
-                   user.Email.Contains("test", StringComparison.OrdinalIgnoreCase);
+            lockStatus = null;
+            if (projectUser?.PortalUserId == null)
+            {
+                return false;
+            }
+
+            return _lockedUsersByPortalUserId.TryGetValue(projectUser.PortalUserId.Value, out lockStatus);
         }
     }
 }

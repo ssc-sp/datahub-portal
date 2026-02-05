@@ -339,17 +339,17 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
         modelBuilder.Entity<UserWorkspaceLock>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
+
             entity.HasOne(e => e.User)
                 .WithMany()
                 .HasForeignKey(e => e.PortalUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasOne(e => e.Workspace)
                 .WithMany()
                 .HasForeignKey(e => e.WorkspaceId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             entity.HasOne(e => e.PerformedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.PerformedByUserId)

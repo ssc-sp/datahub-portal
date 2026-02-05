@@ -1,10 +1,13 @@
+@using Datahub.Application.Services
 @using Datahub.Core.Model.Users
-@using Datahub.Core.Model.Projects
+@using Azure.Storage.Blobs
+@using Azure.Storage.Sas
 @using Microsoft.AspNetCore.Components.Forms
 @using MudBlazor
-@using Microsoft.EntityFrameworkCore
 
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
+@inject ILockedUserManagementService _lockedUserManagementService
 @inject ISnackbar _snackbar
 
 <MudDialog>
@@ -64,6 +67,7 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter] public PortalUser? User { get; set; }
+    [Parameter] public int? WorkspaceId { get; set; }
 
     private IBrowserFile? _selectedFile;
     private bool _uploading;
@@ -77,7 +81,7 @@
 
     private async Task Upload()
     {
-        if (_selectedFile == null || User == null)
+        if (_selectedFile == null || User == null || WorkspaceId == null)
             return;
 
         _uploading = true;
@@ -86,22 +90,41 @@
 
         try
         {
-            // MOCK: Simulate upload progress (in production, would upload to Azure Blob Storage)
-            for (int i = 0; i <= 100; i += 10)
+            var connectionString = _configuration.GetConnectionString("VirusScanEvidence");
+            if (string.IsNullOrWhiteSpace(connectionString))
             {
-                _uploadProgress = i;
-                StateHasChanged();
-                await Task.Delay(100);
+                _snackbar.Add(Localizer["Evidence storage connection string is not configured."], Severity.Error);
+                return;
             }
 
-            // MOCK: In production, would save URL to database
-            // For demo, just show success message
-            var mockUrl = $"mock://evidence/{User.Email}/{_selectedFile.Name}";
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var containerClient = blobServiceClient.GetBlobContainerClient("virus-scan-evidence");
+            await containerClient.CreateIfNotExistsAsync();
 
-            _snackbar.Add(Localizer["Virus scan evidence uploaded successfully (DEMO)."], Severity.Success);
-            
-            // Simulate email notification to datahub admin group
-            _snackbar.Add($"(DEMO) Email sent to DataHub Admin Group", Severity.Info);
+            var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
+            var blobName = $"{WorkspaceId}/{User.Id}/{Guid.NewGuid()}-{safeFileName}";
+            var blobClient = containerClient.GetBlobClient(blobName);
+
+            await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
+
+            var evidenceUrl = blobClient.CanGenerateSasUri
+                ? blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddDays(7)).ToString()
+                : blobClient.Uri.ToString();
+
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+            {
+                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                return;
+            }
+
+            await _lockedUserManagementService.RecordEvidenceUploadAsync(
+                User.Id,
+                WorkspaceId,
+                evidenceUrl,
+                currentUser.Id);
+
+            _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)

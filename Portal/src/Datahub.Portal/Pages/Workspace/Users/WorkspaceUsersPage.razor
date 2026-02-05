@@ -1,13 +1,17 @@
 @using Datahub.Application.Services
+@using Datahub.Core.Model.Context
 @using Datahub.Core.Model.Projects
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
 @using Datahub.Application.Services.UserManagement
+@using Microsoft.EntityFrameworkCore
 
 
 @inject IUserInformationService _userInformationService
 @inject IProjectUserManagementService _projectUserManagementService
+@inject ILockedUserManagementService _lockedUserManagementService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 
@@ -196,12 +200,11 @@
           @rowContext.PortalUser.Email
         </MudTd>
         <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-          @* MOCK: Check if user email contains 'external' or 'test' to simulate locked status *@
-          @if (IsMockLockedUser(rowContext.PortalUser))
+          @if (TryGetLockedUser(rowContext, out var lockStatus))
           {
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
               <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Lock">
-                @Localizer["Locked (DEMO)"]
+                @Localizer["Locked"]
               </MudChip>
               <DHButton Size="Size.Small"
                        Variant="Variant.Text"
@@ -289,6 +292,9 @@
 
   private List<UserRoleLinks> _projectUsers;
   private List<WorkspaceUserInfo> _originalUserInfo = new();
+
+  private int? _workspaceId;
+  private Dictionary<int, UserLockStatus> _lockedUsersByPortalUserId = new();
 
   private int? _currentRoleFilter = default;
 
