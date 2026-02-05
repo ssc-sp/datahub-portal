@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Services.UserManagement;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
@@ -21,7 +21,7 @@ public class UserCircuitCounterService : IDisposable, IUserCircuitCounterService
     {
         if (enabled is null)
         {
-            sessionId = await userInformationService.GetCurrentUserEntraId();
+            sessionId = await userInformationService.GetGenericUserId();
             enabled = sessionManager.TryAddSession(sessionId);
         }
         return enabled.Value;
