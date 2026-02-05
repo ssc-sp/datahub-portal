@@ -218,7 +218,7 @@
             .ThenInclude(p => p.Resources)
             .AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser == PortalUser)
+			      .Where(u => u.PortalUser == PortalUser)
             .ToListAsync();
         
         _userEmail = PortalUser.Email;
