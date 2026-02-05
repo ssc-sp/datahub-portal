@@ -509,56 +509,6 @@ namespace Datahub.Core.Migrations
                     b.UseTptMappingStrategy();
                 });
 
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenGovPublishingBlocklist", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AddedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("DateAdded")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime?>("DateRemoved")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("DepartmentName")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("EmailHostname")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Notes")
-                        .HasMaxLength(2000)
-                        .HasColumnType("nvarchar(2000)");
-
-                    b.Property<int?>("RemovedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AddedByUserId");
-
-                    b.HasIndex("DepartmentName");
-
-                    b.HasIndex("EmailHostname");
-
-                    b.HasIndex("RemovedByUserId");
-
-                    b.HasIndex("Status");
-
-                    b.ToTable("OpenGovPublishingBlocklist");
-                });
-
             modelBuilder.Entity("Datahub.Core.Model.Datahub.SharedDataFile", b =>
                 {
                     b.Property<long>("SharedDataFile_ID")
@@ -2176,24 +2126,6 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Project");
 
                     b.Navigation("RequestingUser");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Datahub.OpenGovPublishingBlocklist", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "AddedByUser")
-                        .WithMany()
-                        .HasForeignKey("AddedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "RemovedByUser")
-                        .WithMany()
-                        .HasForeignKey("RemovedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("AddedByUser");
-
-                    b.Navigation("RemovedByUser");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Onboarding.ProjectCreationDetails", b =>
