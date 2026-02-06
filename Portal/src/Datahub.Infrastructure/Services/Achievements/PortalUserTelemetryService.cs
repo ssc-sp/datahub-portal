@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services;
+using Datahub.Application.Services;
 using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Achievements;
@@ -119,8 +119,8 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         // report the new achievements
         if (newAchievements.Any())
         {
-            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, _portalUser.UserSettings.HideAchievements));
-            await auditingService.TrackEvent("Achivements", ("Codes", string.Join(", ", newAchievements)));
+            OnAchievementsEarned?.Invoke(this, new AchievementsEarnedEventArgs(newAchievements, _portalUser.UserSettings?.HideAchievements ?? false));
+            await auditingService.TrackEvent("Achievements", ("Codes", string.Join(", ", newAchievements)));
         }
     }
 }
