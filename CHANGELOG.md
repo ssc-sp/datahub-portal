@@ -3,6 +3,27 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.3.1](https://github.com/ssc-sp/datahub-portal/compare/v8.3.0...v8.3.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* Updating StorageHeading name so it appears in file explorer ([#1865](https://github.com/ssc-sp/datahub-portal/issues/1865)) ([246fe68](https://github.com/ssc-sp/datahub-portal/commit/246fe68b76e83fd6d0e54275e24afc7f4a3aeb2b))
+
+## [8.3.0](https://github.com/ssc-sp/datahub-portal/compare/v8.2.2...v8.3.0) (2026-02-05)
+
+
+### Features
+
+* Implemented user services for GCCF and redirecting to Access Denied when no roles are available ([#1849](https://github.com/ssc-sp/datahub-portal/issues/1849)) ([b45f3b6](https://github.com/ssc-sp/datahub-portal/commit/b45f3b677dc10795a18f2061439f317813f2315e))
+
+
+### Bug Fixes
+
+* corrected idp claim and fixed layout for access denied ([#1858](https://github.com/ssc-sp/datahub-portal/issues/1858)) ([a5764d7](https://github.com/ssc-sp/datahub-portal/commit/a5764d7df4f685be354ccb499caea3f1a33e662d))
+* Fixes for the announcements page ([#1855](https://github.com/ssc-sp/datahub-portal/issues/1855)) ([83534aa](https://github.com/ssc-sp/datahub-portal/commit/83534aadd2ca4b20d1ee19cf29807927cf568a14))
+* method spec changes on GetRoleSuffixes(Project_Role role) ([#1860](https://github.com/ssc-sp/datahub-portal/issues/1860)) ([e178c97](https://github.com/ssc-sp/datahub-portal/commit/e178c97a14234fc8e19a722c8679b14a4367a648))
+
 ## [8.2.2](https://github.com/ssc-sp/datahub-portal/compare/v8.2.1...v8.2.2) (2026-02-03)
 
 

@@ -18,7 +18,8 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 {
     // Not included in ClaimTypes or ClaimConstants
     public const string IDENTITY_PROVIDER_CLAIM_TYPE = "http://schemas.microsoft.com/identity/claims/identityprovider";
-    public const string IDP_PROVIDER_CLAIM = "idp_provider";
+    //public const string IDP_PROVIDER_CLAIM = "idp_provider";
+    public const string IDP_QUALIFIER_CLAIM = "idp_qualifier";
     public const string IDP_GCCF = "clegc-gckey.gc.ca";
 
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
@@ -36,7 +37,10 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
                 foreach (var (role, project) in authorizedProjects)
                 {                   
-                    claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleSuffixes(role)}"));
+                    foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role))
+                    {
+                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
+                    }
                 }
             }
             else
@@ -74,7 +78,9 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                     }
                     else
                     {
-                        claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.GetRoleSuffixes(role)}"));
+                        foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role)) {
+                            claims.AddClaim(new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
+                        }
                     }
                     if (project.WebAppEnabled == true)
                     {
@@ -94,10 +100,11 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
     private bool VerifyTrustedEntraLogin(ClaimsIdentity claims)
     {
-        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN))
+        if (claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN) 
+            || claims.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
         {
             // User is already marked as trusted or external
-            return true;
+            return claims.HasClaim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN);
         }        
 
         var utid = claims.Claims.FirstOrDefault(c => c.Type == ClaimConstants.UniqueTenantIdentifier)?.Value;
@@ -115,7 +122,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
         if (!trusted)
         {
-            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_PROVIDER_CLAIM)?.Value;
+            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_QUALIFIER_CLAIM)?.Value;
             if (idp?.EndsWith(IDP_GCCF) ?? false)
             {
                 claims.AddClaim(new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));

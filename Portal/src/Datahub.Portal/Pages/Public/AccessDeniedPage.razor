@@ -1,8 +1,11 @@
 @attribute [Route(PageRoutes.AccessDenied)]
 @attribute [Route(PageRoutes.AccessDenied_FR)]
 
+@layout BarebonesPublicLayout
+
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 @inject IUserInformationService _userInformationService
+@inject ILogger<AccessDeniedPage> _logger;
 
 <PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
 
@@ -48,9 +51,17 @@
 	protected override async Task OnInitializedAsync()
 	{
 		_traceClaims = await _featureManager.IsEnabledAsync(Features.Trace_Claims);
-		if (_traceClaims && (await _userInformationService.IsExternalUser()))
+		if (_traceClaims)
 		{
-			_externalUserId = await _userInformationService.GetExternalUserNameIdentifier();			
+			if ((await _userInformationService.IsExternalUser()))
+			{
+				_externalUserId = await _userInformationService.GetExternalUserNameIdentifier();
+				_logger.LogInformation("Access Denied page accessed by external user with ID: {ExternalUserId}", _externalUserId);
+			}
+			else
+			{				
+				_logger.LogInformation("Access Denied page accessed by internal user.");
+			}
 		}
 	}
 }
