@@ -1,3 +1,5 @@
+using System.Collections.Immutable;
+using System.Security.Claims;
 using Bunit;
 using Datahub.Application.Configuration;
 using Datahub.Application.RoleManagement;
@@ -22,13 +24,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Microsoft.Identity.Web;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
-using System.Collections.Immutable;
-using System.Security.Claims;
 using Toolbelt.Blazor.Globalization;
 
 namespace Datahub.SpecflowTests.Steps.Account;
@@ -84,7 +85,9 @@ public class AccountPageSteps : BunitTestSteps
         else
             serviceAuthManager.GetExternalUserAuthorizations(Arg.Any<string>()).Returns(Task.FromResult(ImmutableList<(Project_Role, Datahub_Project)>.Empty));
 
-        var transformer = new RoleClaimTransformer(serviceAuthManager, _portalConfig, Substitute.For<ILogger<RoleClaimTransformer>>());
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(false);
+        var transformer = new RoleClaimTransformer(serviceAuthManager, _portalConfig, featureManager, Substitute.For<ILogger<RoleClaimTransformer>>());
         userPrincipal = await transformer.TransformAsync(userPrincipal);
 
         var authContext = new TestAuthorizationContext

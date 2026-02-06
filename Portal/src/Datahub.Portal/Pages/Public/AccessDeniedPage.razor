@@ -13,9 +13,16 @@
     <MudPaper Class="pt-12 px-12 mt-12">
         <MudStack>
             <MudGrid>
-                <MudItem xs="11">
+                <MudItem xs="9">
                     <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
                 </MudItem>
+                <MudItem xs="2">
+				  <DHButton HtmlTag="button" Href=@GetLogoutURL() focusable="true" translate="no"  Size="@Size.Medium" >
+					  <MudText>
+						  @Localizer["Logout"]
+					  </MudText>
+				  </DHButton>
+				</MudItem>
                 <MudItem xs="1">
                     <LanguageToggle />
                 </MudItem>
@@ -47,6 +54,11 @@
 {
 	private bool _traceClaims = false;
 	private string? _externalUserId = null;
+
+	private string GetLogoutURL()
+	{
+		return $"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}";	
+	}
 
 	protected override async Task OnInitializedAsync()
 	{

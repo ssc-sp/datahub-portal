@@ -54,6 +54,12 @@ public interface IUserInformationService
     Task<string?> GetExternalUserNameIdentifier();
 
     /// <summary>
+    /// Gets the current authenticated user's preferred locale from the authentication claims.
+    /// Returns null when the claim is not present or the user is not authenticated.
+    /// </summary>
+    Task<string?> GetExternalUserNamePreferredLanguage();
+
+    /// <summary>
     /// Handles updating portal state when an Entra user registration collision was caused by a deleted account.
     /// This typically updates an existing portal user record with a new graph id and other bookkeeping fields.
     /// </summary>
