@@ -237,6 +237,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
+            .ThenInclude(pu => pu.EntraUser)
             .Include(u => u.Role)
             .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
             .Where(u => u.PortalUser != null)

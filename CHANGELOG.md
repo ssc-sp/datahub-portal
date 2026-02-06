@@ -3,6 +3,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.3.1](https://github.com/ssc-sp/datahub-portal/compare/v8.3.0...v8.3.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* Updating StorageHeading name so it appears in file explorer ([#1865](https://github.com/ssc-sp/datahub-portal/issues/1865)) ([246fe68](https://github.com/ssc-sp/datahub-portal/commit/246fe68b76e83fd6d0e54275e24afc7f4a3aeb2b))
+
 ## [8.3.0](https://github.com/ssc-sp/datahub-portal/compare/v8.2.2...v8.3.0) (2026-02-05)
 
 
