@@ -29,7 +29,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
     public const string IDP_GCCF = "clegc-gckey.gc.ca";
     private bool? traceClaimsEnabled = null;
 
-    private void AddClaim(ClaimsIdentity claimsIdentity, Claim claim, string? message = null)
+    private void AddAndTraceClaim(ClaimsIdentity claimsIdentity, Claim claim, string? message = null)
     {
         claimsIdentity.AddClaim(claim);
         if (traceClaimsEnabled == true)
@@ -58,7 +58,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 {
                     foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role))
                     {
-                        AddClaim(claims, new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
+                        AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
                     }
                 }
             }
@@ -67,8 +67,6 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
                 var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == ClaimConstants.ObjectId)?.Value ?? throw new InvalidOperationException("User Entra ID not found");
                 authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
-                AddClaim(claims, new Claim(ClaimTypes.Role, "default"));
-                AddClaim(claims, new Claim(ClaimTypes.Role, userEntraId));
 
                 var userEmail = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
                 if (userEmail is null)
@@ -77,7 +75,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 }
                 else if (await serviceAuthManager.IsUserCbrOwner(userEmail))
                 {
-                    AddClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.CBR_OWNER_ROLE));
+                    AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.CBR_OWNER_ROLE));
                     var cbrWorkspaces = await serviceAuthManager.GetUserCbrWorkspaceAcronyms(userEmail);
                     claims.AddClaims(cbrWorkspaces.Select(w => new Claim(ClaimTypes.Role, $"{w}{RoleConstants.CBR_OWNER_SUFFIX}")));
                 }
@@ -89,22 +87,22 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
                 {
                     if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_ADMIN_PROJECT && !isAdminMode)
                     {
-                        AddClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
+                        AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST));
                     }
                     else if (!alreadyAdded && project.Project_Acronym_CD == RoleConstants.DATAHUB_APPROVER_PROJECT)
                     {
-                        AddClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE));
+                        AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.DATAHUB_APPROVER_ROLE));
                     }
                     else
                     {
                         foreach (var roleSuffix in RoleConstants.GetRoleSuffixes(role))
                         {
-                            AddClaim(claims, new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
+                            AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{roleSuffix}"));
                         }
                     }
                     if (project.WebAppEnabled == true)
                     {
-                        AddClaim(claims, new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.WEBAPP_SUFFIX}"));
+                        AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, $"{project.Project_Acronym_CD}{RoleConstants.WEBAPP_SUFFIX}"));
                     }
                 }
             }
@@ -145,7 +143,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_QUALIFIER_CLAIM)?.Value;
             if (idp?.EndsWith(IDP_GCCF) ?? false)
             {
-                AddClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
+                AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
             }
             else
                 throw new SecurityException("Invalid IDP login");
@@ -154,7 +152,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
         else
         {
             var trustedClaim = new Claim(ClaimTypes.Role, RoleConstants.TRUSTED_ENTRA_LOGIN);
-            AddClaim(claims, trustedClaim);
+            AddAndTraceClaim(claims, trustedClaim);
             return true;
         }
     }
