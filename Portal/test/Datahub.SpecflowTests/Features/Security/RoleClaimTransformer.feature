@@ -10,10 +10,11 @@ Scenario: External user receives workspace role claims
   When claims are transformed
   Then the user should have role "PRJ1-guest"
   And the user should have role "PRJ2-admin"
+  And the user should have role "external-login"
 
 Scenario: Entra user receives workspace role claims and special roles
   Given an entra user with object id "entra-456" and email "user@example.com"
   When claims are transformed
-  Then the user should have role "default"
+  Then the user should have role "trusted-entra-login"
   And the user should have role "PRJ1-collaborator"
   And the user should have role "PRJ2-admin"

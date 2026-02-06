@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Services;
+using Datahub.Core.Services;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -34,6 +34,7 @@ public class UserCircuitCounterServiceTests
     {
         var service = new Mock<IUserInformationService>();
         service.Setup(s => s.GetCurrentUserEntraId()).Returns(Task.FromResult(userId));
+        service.Setup(s => s.IsEntraUser()).Returns(Task.FromResult(true));
         return service.Object;
     }
 
