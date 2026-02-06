@@ -107,21 +107,9 @@
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
                             <MudPaper Class="pa-2" Outlined="true">
                                 <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
-                                @foreach (KeyValuePair<string, bool> topic in _ticketTopics)
-                                {
-                                    @if (topic.Value)
-                                    {
-                                        <MudText Typo="@Typo.body2">@Localizer[@topic.Key]</MudText>
-                                    }
-                                }
+                                <MudText Typo="@Typo.body2">@string.Join(", ", _selectedTopics)</MudText>
                                 <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
-                                @foreach (KeyValuePair<string, bool> workspace in _ticketWorkspaces)
-                                {
-                                    @if (workspace.Value)
-                                    {
-                                        <MudText Typo="@Typo.body2">@Localizer[@workspace.Key]</MudText>
-                                    }
-                                }
+                                <MudText Typo="@Typo.body2">@string.Join(", ", _selectedWorkspaces)</MudText>
                                 <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
                                 <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
                                 <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
@@ -417,10 +405,8 @@
         var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
 
         // We retrieve the selected checkboxes that indicate the issue topics
-        var matchingTopics = _ticketTopics.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
-        var matchingWorkspaces = _ticketWorkspaces.Where(kvp => kvp.Value == true).Select(kvp => kvp.Key);
-        var topics = string.Join("; ", matchingTopics);
-        var workspaces = string.Join(", ", matchingWorkspaces);
+        string topics = string.Join("; ", _selectedTopics);
+        string workspaces = string.Join(", ", _selectedWorkspaces);
         if (topics.Length == 0)
         {
             topics = "Issue";
