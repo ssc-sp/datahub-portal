@@ -142,7 +142,7 @@
         if (firstRender)
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-                "./Pages/Workspace/Storage/Heading.razor.js");
+                "./Pages/Workspace/Storage/StorageHeading.razor.js");
             _dotNetHelper = DotNetObjectReference.Create(this);
         }
     }
