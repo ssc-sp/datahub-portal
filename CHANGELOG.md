@@ -3,6 +3,50 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.4.0](https://github.com/ssc-sp/datahub-portal/compare/v8.3.1...v8.4.0) (2026-02-06)
+
+
+### Features
+
+* logout and more GCCF stuff ([#1862](https://github.com/ssc-sp/datahub-portal/issues/1862)) ([f0d3a83](https://github.com/ssc-sp/datahub-portal/commit/f0d3a83130fdfbcbbdf9c1bed7a73e046ef413bb))
+
+
+### Bug Fixes
+
+* Fixing missing topics/workspaces in support requests ([#1861](https://github.com/ssc-sp/datahub-portal/issues/1861)) ([fa28826](https://github.com/ssc-sp/datahub-portal/commit/fa28826a29eac43abac04e7058b51285d03ef6d5))
+* HostingServicesController now sets the workspace description in both places ([#1859](https://github.com/ssc-sp/datahub-portal/issues/1859)) ([3d4629b](https://github.com/ssc-sp/datahub-portal/commit/3d4629bd7dfbc91d2621c1d4a8c1e89ce40ed6b2))
+* Visiting other user profiles from the workspace dashboard is fixed ([#1864](https://github.com/ssc-sp/datahub-portal/issues/1864)) ([9b57305](https://github.com/ssc-sp/datahub-portal/commit/9b5730582c77f8f499e7a643303a2b84d1c08737))
+
+## [8.3.1](https://github.com/ssc-sp/datahub-portal/compare/v8.3.0...v8.3.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* Updating StorageHeading name so it appears in file explorer ([#1865](https://github.com/ssc-sp/datahub-portal/issues/1865)) ([246fe68](https://github.com/ssc-sp/datahub-portal/commit/246fe68b76e83fd6d0e54275e24afc7f4a3aeb2b))
+
+## [8.3.0](https://github.com/ssc-sp/datahub-portal/compare/v8.2.2...v8.3.0) (2026-02-05)
+
+
+### Features
+
+* Implemented user services for GCCF and redirecting to Access Denied when no roles are available ([#1849](https://github.com/ssc-sp/datahub-portal/issues/1849)) ([b45f3b6](https://github.com/ssc-sp/datahub-portal/commit/b45f3b677dc10795a18f2061439f317813f2315e))
+
+
+### Bug Fixes
+
+* corrected idp claim and fixed layout for access denied ([#1858](https://github.com/ssc-sp/datahub-portal/issues/1858)) ([a5764d7](https://github.com/ssc-sp/datahub-portal/commit/a5764d7df4f685be354ccb499caea3f1a33e662d))
+* Fixes for the announcements page ([#1855](https://github.com/ssc-sp/datahub-portal/issues/1855)) ([83534aa](https://github.com/ssc-sp/datahub-portal/commit/83534aadd2ca4b20d1ee19cf29807927cf568a14))
+* method spec changes on GetRoleSuffixes(Project_Role role) ([#1860](https://github.com/ssc-sp/datahub-portal/issues/1860)) ([e178c97](https://github.com/ssc-sp/datahub-portal/commit/e178c97a14234fc8e19a722c8679b14a4367a648))
+
+## [8.2.2](https://github.com/ssc-sp/datahub-portal/compare/v8.2.1...v8.2.2) (2026-02-03)
+
+
+### Bug Fixes
+
+* Adds missing comma to french localization file ([#1854](https://github.com/ssc-sp/datahub-portal/issues/1854)) ([043b9e6](https://github.com/ssc-sp/datahub-portal/commit/043b9e6367476692710521e7305264ca17dfb258))
+* Corrected subscription id for terraform backend ([#1843](https://github.com/ssc-sp/datahub-portal/issues/1843)) ([b3da91b](https://github.com/ssc-sp/datahub-portal/commit/b3da91ba2d25d89c8b036f8eafa1df50d39b45e4))
+* test ([#1845](https://github.com/ssc-sp/datahub-portal/issues/1845)) ([d82b22b](https://github.com/ssc-sp/datahub-portal/commit/d82b22b6db7454923cda6ee1b46eaef11fda202e))
+
 ## [8.2.1](https://github.com/ssc-sp/datahub-portal/compare/v8.2.0...v8.2.1) (2026-01-27)
 
 

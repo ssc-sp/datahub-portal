@@ -155,8 +155,18 @@
                 return datahubApprover;
             case AuthLevels.Unauthorized:
                 return "🏗️ Unauthorized";
-            default:
-                return "default";
+			default:
+				switch (AllowedUsers)
+				{
+					case UserType.AllUsers:
+						return $"{RoleConstants.TRUSTED_ENTRA_LOGIN},{RoleConstants.EXTERNAL_LOGIN}";
+					case UserType.TrustedEntraOnly:
+						return RoleConstants.TRUSTED_ENTRA_LOGIN;
+					case UserType.ExternalOnly:
+						return RoleConstants.EXTERNAL_LOGIN;
+					default:
+						return "🏗️ Unauthorized";
+				}
         }
     }
 

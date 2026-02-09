@@ -1,4 +1,5 @@
-﻿using Bunit;
+﻿using System.Reflection;
+using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Commands;
 using Datahub.Application.Configuration;
@@ -21,11 +22,11 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Localization;
+using Microsoft.FeatureManagement;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
 using Reqnroll;
-using System.Reflection;
 using Xunit;
 
 namespace Datahub.SpecflowTests.Steps
@@ -113,6 +114,10 @@ namespace Datahub.SpecflowTests.Steps
 
             Services.AddStub<ICultureService>();
             Services.AddStub<IDatahubAuditingService>();
+            var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+            featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(false);
+            Services.AddSingleton(featureManager);
+
             var userInfoService = Substitute.For<IUserInformationService>();
             Services.AddSingleton(userInfoService);
 

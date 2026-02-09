@@ -4,7 +4,6 @@
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web
 @using Datahub.Portal.Views.Dialogs
-@using Datahub.Portal.Components.PageAlerts
 @using System.Runtime.ExceptionServices
 
 @inject NavigationManager _navigationManager
@@ -78,6 +77,11 @@ else
 				_navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
 				return;
 			}
+			if (!await _userInformationService.IsAuthorized())
+			{
+				_navigationManager.NavigateTo(Localizer[PageRoutes.AccessDenied], true);
+				return;
+			}
 
 			_isUserValid = await _userSettingsService.HasUserAcceptedTAC();
 			_isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
@@ -95,41 +99,47 @@ else
 				// rethrow the original exception if consent handling fails
 				exceptionSrc.Throw();
 			}
+		}
+
+		// register and or update authenticated portal user
+		await _userInformationService.RegisterAuthenticatedPortalUser();
+		await _userSettingsService.RegisterUserSettingsAsync();
+
+		_isLoaded = true;
 	}
 
-        // register and or update authenticated portal user
-        await _userInformationService.RegisterAuthenticatedPortalUser();
-        await _userSettingsService.RegisterUserSettingsAsync();
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
 
-        _isLoaded = true;
-    }
+		if (firstRender)
+		{
+			await UpdateUserLanguageSetting();
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
+			_isUserValid = await _userSettingsService.HasUserAcceptedTAC();
+			if (!_isUserValid)
+			{
+				await _userSettingsService.RegisterUserTAC();
+				_isUserValid = true;
+			}
 
-        if (firstRender)
-        {
-            await UpdateUserLanguageSetting();
+			StateHasChanged();
+		}
+	}
 
-            _isUserValid = await _userSettingsService.HasUserAcceptedTAC();
-            if (!_isUserValid)
-            {
-                await _userSettingsService.RegisterUserTAC();
-                _isUserValid = true;
-            }
-
-            StateHasChanged();
-        }
-    }
-
-    private async Task UpdateUserLanguageSetting()
-    {
-        try {
-            var userLanguageSetting = await _userSettingsService.GetUserLanguage();
-            var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
-
-            if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
+	private async Task UpdateUserLanguageSetting()
+	{
+		try {
+			var userLanguageSetting = await _userSettingsService.GetUserLanguage();
+			var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
+			//finally if external try to get external preference
+			var externalLanguage = await _userInformationService.GetExternalUserNamePreferredLanguage();
+			if (externalLanguage != null && externalLanguage != userLanguageSetting)
+			{
+				//override local storage with external preference
+				localStorageLanguage = externalLanguage;
+			}
+			if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
             {
                 await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
             }

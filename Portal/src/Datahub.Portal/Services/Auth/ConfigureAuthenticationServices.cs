@@ -135,6 +135,26 @@ public static class ConfigureAuthenticationServices
                         context.Backchannel.SetBasicAuthenticationOAuth(context.TokenEndpointRequest.ClientId, context.TokenEndpointRequest.ClientSecret);
                         return Task.CompletedTask;
                     };
+                    options.Events.OnRedirectToIdentityProvider = context =>
+                    {
+                        // Check if locale is set in AuthenticationProperties
+                        if (context.Properties.Parameters.TryGetValue("ui_locales", out var localeObj) && localeObj is string locale)
+                        {
+                            context.ProtocolMessage.SetParameter("ui_locales", locale);
+                        }
+
+                        return Task.CompletedTask;
+                    };
+                    options.Events.OnRedirectToIdentityProviderForSignOut = context =>
+                    {
+                        // Check if locale is set in AuthenticationProperties
+                        if (context.Properties.Parameters.TryGetValue("ui_locales", out var localeObj) && localeObj is string locale)
+                        {
+                            context.ProtocolMessage.SetParameter("ui_locales", locale);
+                        }
+
+                        return Task.CompletedTask;
+                    };
                 });
         }
 

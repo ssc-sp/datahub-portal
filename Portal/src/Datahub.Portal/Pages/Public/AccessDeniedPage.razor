@@ -1,12 +1,28 @@
-﻿<PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
+@attribute [Route(PageRoutes.AccessDenied)]
+@attribute [Route(PageRoutes.AccessDenied_FR)]
+
+@layout BarebonesPublicLayout
+
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+@inject IUserInformationService _userInformationService
+@inject ILogger<AccessDeniedPage> _logger;
+
+<PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
 
 <MudContainer MaxWidth=@MaxWidth.Medium>
     <MudPaper Class="pt-12 px-12 mt-12">
         <MudStack>
             <MudGrid>
-                <MudItem xs="11">
+                <MudItem xs="9">
                     <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
                 </MudItem>
+                <MudItem xs="2">
+				  <DHButton HtmlTag="button" Href=@GetLogoutURL() focusable="true" translate="no"  Size="@Size.Medium" >
+					  <MudText>
+						  @Localizer["Logout"]
+					  </MudText>
+				  </DHButton>
+				</MudItem>
                 <MudItem xs="1">
                     <LanguageToggle />
                 </MudItem>
@@ -20,10 +36,44 @@
                     @Localizer["Access Denied"]
                 </strong>
             </MudText>
-            <MudText Typo="Typo.h6" Class="text-center">
+			@if (_traceClaims && _externalUserId is not null)
+			{
+				<MudText Typo="Typo.h6" Class="text-center">
+					@Localizer["Your external user ID is: {0}", _externalUserId]
+				</MudText>
+			}
+			<MudText Typo="Typo.h6" Class="text-center">
                 @Localizer["This site is monitored. Further attempts to log in may be reported to the authorities."]
             </MudText>
         </MudStack>
         <DHFooter />
     </MudPaper>
 </MudContainer>
+
+@code
+{
+	private bool _traceClaims = false;
+	private string? _externalUserId = null;
+
+	private string GetLogoutURL()
+	{
+		return $"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}";	
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		_traceClaims = await _featureManager.IsEnabledAsync(Features.Trace_Claims);
+		if (_traceClaims)
+		{
+			if ((await _userInformationService.IsExternalUser()))
+			{
+				_externalUserId = await _userInformationService.GetExternalUserNameIdentifier();
+				_logger.LogInformation("Access Denied page accessed by external user with ID: {ExternalUserId}", _externalUserId);
+			}
+			else
+			{				
+				_logger.LogInformation("Access Denied page accessed by internal user.");
+			}
+		}
+	}
+}

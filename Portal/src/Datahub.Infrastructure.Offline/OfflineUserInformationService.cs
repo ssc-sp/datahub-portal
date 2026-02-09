@@ -177,15 +177,15 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(false);
     }
 
-    public Task<bool> IsViewingAsGuest()
+    public Task<bool> IsAdminModeEnabled()
     {
-        return Task.FromResult(false);
+        return Task.FromResult(true);
     }
 
-    public Task SetViewingAsGuest(bool isGuest)
+    public Task SetAdminModeView(bool isAdminMode)
     {
-        // do nothing
-        return Task.Delay(0);
+        // offline: no-op
+        return Task.CompletedTask;
     }
 
     public Task<bool> IsViewingAsVisitor()
@@ -258,5 +258,30 @@ public class OfflineUserInformationService : IUserInformationService
     public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry)
     {
         throw new NotImplementedException();
+    }
+
+    public Task<bool> IsEntraUser()
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task<bool> IsExternalUser()
+    {
+        return Task.FromResult(false);
+    }
+
+    public Task<bool> IsAuthorized()
+    {
+        return Task.FromResult(true);
+    }
+
+    public Task<string?> GetExternalUserNameIdentifier()
+    {
+        return Task.FromResult<string?>(null);
+    }
+
+    public Task<string?> GetExternalUserNamePreferredLanguage()
+    {
+        return Task.FromResult<string?>(null);
     }
 }

@@ -30,13 +30,13 @@
                     var authLevel = announcement.IsVisible() ? DatahubAuthView.AuthLevels.Authenticated : DatahubAuthView.AuthLevels.DatahubSupport;
                     <DatahubAuthView AuthLevel="authLevel">
                         <AnnouncementItem Announcement="@announcement"
-                                          OnAnnouncementDeleted="ReloadAnnouncements" 
-                                          IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())"/>
+                                          OnAnnouncementDeleted="ReloadAnnouncements"
+                                          IsHidden="@(announcement.IsDeleted || announcement.IsScheduled())" />
+                        @if (i < _announcements.Count - 1)
+                        {
+                            <MudDivider Class="my-2" />
+                        }
                     </DatahubAuthView>
-                    @if (i < _announcements.Count - 1)
-                    {
-                        <MudDivider Class="my-2" />
-                    }
                 }
             </MudStack>
         }

@@ -58,9 +58,7 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
         var users = await GetProjectUsersAsync(projectAcronym);
-        var admin = users?.Where(u => RoleConstants.GetRoleConstants(u.Role) == RoleConstants.WORKSPACE_LEAD_SUFFIX);
-
-        return admin?.FirstOrDefault();
+        return users?.FirstOrDefault(u => RoleConstants.GetRoleSuffixes(u.Role).Contains(RoleConstants.WORKSPACE_LEAD_SUFFIX));
     }
 
     public async Task<bool> RunWorkspaceSync(string projectAcronym)
