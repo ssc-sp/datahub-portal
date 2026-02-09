@@ -3,6 +3,14 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.4.1](https://github.com/ssc-sp/datahub-portal/compare/v8.4.0...v8.4.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* Removing an extra bracket that appears on the database page ([#1868](https://github.com/ssc-sp/datahub-portal/issues/1868)) ([e0877e8](https://github.com/ssc-sp/datahub-portal/commit/e0877e8edac4a32691a06f9794b0010952638f69))
+* Workspace role filtering ([#1870](https://github.com/ssc-sp/datahub-portal/issues/1870)) ([b4f7266](https://github.com/ssc-sp/datahub-portal/commit/b4f72664f011a7b12c7521860bc6af7d17f0e1e8))
+
 ## [8.4.0](https://github.com/ssc-sp/datahub-portal/compare/v8.3.1...v8.4.0) (2026-02-06)
 
 
