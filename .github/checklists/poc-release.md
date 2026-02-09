@@ -1,0 +1,52 @@
+<!-- checklist-start -->
+## Reviewer checklist
+
+- [ ] Verify that `Datahub.Portal` is successfully deployed
+- [ ] Test login and logout functionality
+- [ ] Clear user settings and verify: Language prompt, Terms and Conditions prompt, and Welcome prompt
+- [ ] Test: Home page, News page, Explore page, Learn page, Search bar, Help icon, and profile button links
+- [ ] Test all page links under `My account` sidebar
+  - [ ] Profile
+  - [ ] Customization
+  - [ ] Appearance
+  - [ ] Notifications
+  - [ ] Achievements
+- [ ] Test viewing a workspace with access
+- [ ] Test viewing a workspace without access
+- [ ] Test viewing a workspace without access overwritten by DHPGLIST admin access
+- [ ] Test creating a workspace
+  - [ ] Test invalid acronyms
+  - [ ] Test existing acronyms
+  - [ ] Test new acronym
+  - [ ] Verify that new workspace triggers Resource Provisioner run
+  - [ ] Verify Pull Request details in the workspace infrastructure repository
+  - [ ] Verify the CD pipeline runs for the workspace infrastructure repository
+  - [ ] Verify Terraform output for the workspace is captured in the `TerraformOutputHandler` queue function and appropriately displayed in the portal
+- [ ] Repeat the previous steps for all the other workspace tools
+- [ ] Test inviting another user to the workspace
+- [ ] Test modifying the user's permissions
+  - [ ] Verify database changes
+  - [ ] Verify Databricks changes
+- [ ] Verify Storage
+  - [ ] Test file upload (drag and drop)
+  - [ ] Test file rename
+  - [ ] Test file delete
+  - [ ] Test folder create
+  - [ ] Test folder delete
+  - [ ] Verify embedded documentation is correct
+- [ ] Verify Databricks URL
+- [ ] Verify Postgres
+  - [ ] Test database connection
+  - [ ] Test IP whitelisting
+    - [ ] Add
+    - [ ] Remove
+    - [ ] Update
+- [ ] Test documentation bilingual (random sampling of pages)
+- [ ] Test viewing another user's profile
+  - [ ] Check correct workspaces
+  - [ ] Check correct achievements
+  - [ ] Check correct images
+  - [ ] Test toggling back and forth between yourself and another user using browser back/forward buttons
+- [ ] Test submitting a help ticket to ADO
+- [ ] Make sure Python Function App shows the two functions
+<!-- checklist-end -->
