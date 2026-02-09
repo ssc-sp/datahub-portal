@@ -19,9 +19,6 @@
 		<PackageReference Include="Yarp.ReverseProxy" Version="2.3.*" />
 	</ItemGroup>
 
-	<ItemGroup>
-	  <Folder Include="RoleManagement\" />
-	</ItemGroup>
 </Project>
 
 
