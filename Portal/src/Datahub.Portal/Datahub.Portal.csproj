@@ -63,6 +63,7 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\..\..\Datahub.LocaAuthProvider\Datahub.LocaAuthProvider.csproj" />
 		<ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
 		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
 		<ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />

@@ -12,11 +12,11 @@ using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
 using Microsoft.Identity.Web;
 
-namespace Datahub.Application.RoleManagement;
+namespace Datahub.Application.Authentication;
 
 //https://stackoverflow.com/questions/58483620/net-core-3-0-claimstransformation
 public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, DatahubPortalConfiguration portalConfiguration,
-    Microsoft.FeatureManagement.IFeatureManagerSnapshot featureManager,
+    IFeatureManagerSnapshot featureManager,
     ILogger<RoleClaimTransformer> logger)
     : IClaimsTransformation
 {
