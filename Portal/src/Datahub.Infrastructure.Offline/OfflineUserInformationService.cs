@@ -279,4 +279,9 @@ public class OfflineUserInformationService : IUserInformationService
     {
         return Task.FromResult<string?>(null);
     }
+
+    public Task<string?> GetExternalUserNamePreferredLanguage()
+    {
+        return Task.FromResult<string?>(null);
+    }
 }

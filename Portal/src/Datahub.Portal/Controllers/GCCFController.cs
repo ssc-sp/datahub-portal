@@ -21,11 +21,24 @@ public class GCCFController() : Controller
     public async Task<IActionResult> Login(string returnUrl = "/", string locale = "en-CA")
     {       
         var props = new AuthenticationProperties { RedirectUri = returnUrl };
-        // Pass the current UI culture as 'ui_locales' parameter
-        props.Items["ui_locales"] = locale;
+        // Pass the current UI culture as 'ui_locales' parameter so OIDC handler forwards it
+        props.Parameters["ui_locales"] = locale;
 
         // This triggers the OIDC middleware to construct the URL and redirect
         return Challenge(props, ConfigureAuthenticationServices.GccfOidcScheme);
+    }
+
+    [HttpGet("logout")]
+    [HttpGet("deconnexion")]
+    public async Task<IActionResult> Logout(string returnUrl = "/", string locale = "en-CA")
+    {
+        // Prepare sign-out to clear the GCCF cookie and trigger OIDC end-session
+        var props = new AuthenticationProperties { RedirectUri = returnUrl };
+        // Ensure 'ui_locales' is forwarded to the OIDC end-session request
+        props.Parameters["ui_locales"] = locale;
+
+        // Sign out both the GCCF cookie and the GCCF OIDC session
+        return SignOut(props, ConfigureAuthenticationServices.GccfCookieScheme, ConfigureAuthenticationServices.GccfOidcScheme);
     }
 
     [HttpGet("sector-identifier.json")]
