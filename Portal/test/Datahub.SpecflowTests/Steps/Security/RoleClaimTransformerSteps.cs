@@ -2,6 +2,7 @@ using System.Collections.Immutable;
 using System.Security.Claims;
 using Datahub.Application.Authentication;
 using Datahub.Application.Configuration;
+using Datahub.Application.RoleManagement;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
