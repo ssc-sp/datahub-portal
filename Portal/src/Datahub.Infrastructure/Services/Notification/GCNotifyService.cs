@@ -281,7 +281,7 @@ public class GCNotifyService : IGCNotifyService
     public async Task SendUserAccessRegrantedNotification(string email, string userName, string workspace)
     {
         using var _ = _logger.BeginScope("UserAccessRegrantedNotification {Email}", "<redacted>");
-        _logger.LogInformation("Composing user access regranted notification. userName={UserName}, workspace={Workspace}", userName, workspace);
+        _logger.LogInformation("Composing user access regranted notification. workspace={Workspace}", workspace);
         var templateId = GetTemplateId("user-access-regranted", _mappingsJson);
         var postData = new
         {
