@@ -120,6 +120,7 @@ public class ErrorBoundaryTests
 
         using var ctx = new Bunit.BunitContext();
         ctx.Services.AddSingleton(_dbConextFactoryMock); 
+        ctx.Services.AddSingleton<IConfiguration>(configuration);
         ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
         ctx.Services.AddSingleton(_auditingServiceMock.Object);

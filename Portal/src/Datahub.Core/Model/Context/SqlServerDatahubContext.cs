@@ -1,4 +1,5 @@
-﻿using Datahub.Core.Model.Datahub;
+﻿using System;
+using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Core.Model.Context
@@ -15,7 +16,15 @@ namespace Datahub.Core.Model.Context
         {
         }
 #if MIGRATION
-    protected override void OnConfiguring(DbContextOptionsBuilder options) {
+    protected override void OnConfiguring(DbContextOptionsBuilder options)
+    {
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionStrings__datahub_mssql_project");
+        if (!string.IsNullOrWhiteSpace(connectionString))
+        {
+            options.UseSqlServer(connectionString);
+            return;
+        }
+
         options.UseSqlServer("Server=(LocalDB);Integrated Security=True;MultipleActiveResultSets=True");
     }
 

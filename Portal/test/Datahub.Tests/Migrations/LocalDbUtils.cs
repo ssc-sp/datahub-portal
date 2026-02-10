@@ -8,6 +8,32 @@ namespace Datahub.Tests.Migrations;
 /// </summary>
 public static class LocalDbUtils
 {
+    public static bool IsLocalDbAvailable()
+    {
+        try
+        {
+            using var conn = new SqlConnection("Server=(localdb)\\MSSQLLocalDB;Integrated Security=true;TrustServerCertificate=true");
+            conn.Open();
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public static string? TryCreateUniqueLocalDbDatabase(string prefix)
+    {
+        try
+        {
+            return CreateUniqueLocalDbDatabase(prefix);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public static string CreateUniqueLocalDbDatabase(string prefix)
     {
         var dbName = $"{prefix}_{Guid.NewGuid():N}";
