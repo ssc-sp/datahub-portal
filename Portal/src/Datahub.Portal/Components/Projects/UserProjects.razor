@@ -43,7 +43,7 @@
                         SelectionMode="SelectionMode.MultiSelection"
                         Ripple="false"
                         CheckMark>
-                @foreach (var group in WorkspaceDisplayGroups)
+                @foreach (var group in RoleDisplayGroups)
                 {
                     <MudChip Class="dh_themed_chip" T="string"
                              title=@group.FilterLabel
@@ -175,99 +175,99 @@ else
 
 @code {
 
-	// Parameters
-	[Parameter] public bool ShowTitle { get; set; } = true;
-	[Parameter] public int SmSize { get; set; } = 4;
-	[Parameter] public required PortalUser PortalUser { get; set; } = null!;
-	[Parameter] public bool NewStyle { get; set; }
+    // Parameters
+    [Parameter] public bool ShowTitle { get; set; } = true;
+    [Parameter] public int SmSize { get; set; } = 4;
+    [Parameter] public required PortalUser PortalUser { get; set; } = null!;
+    [Parameter] public bool NewStyle { get; set; }
 
-	// Display state
-	private class WorkspaceDisplayGroup
-	{
-		public string Label { get; init; }
-		public Color Color { get; init; }
-		public bool FilterToggle { get; set; }
-		public string FilterLabel { get; init; }
-		public bool ShowCost { get; init; }
-		public List<Datahub_Project> Workspaces { get; init; }
-	}
+    // Display state
+    private class WorkspaceDisplayGroup
+    {
+        public string Label { get; init; }
+        public Color Color { get; init; }
+        public bool FilterToggle { get; set; }
+        public string FilterLabel { get; init; }
+        public bool ShowCost { get; init; }
+        public List<Datahub_Project> Workspaces { get; init; }
+    }
 
-	private WorkspaceDisplayGroup _leadGroup = new();
-	private WorkspaceDisplayGroup _adminGroup = new();
-	private WorkspaceDisplayGroup _collaboratorGroup = new();
-	private WorkspaceDisplayGroup _guestGroup = new();
-	private WorkspaceDisplayGroup _unclassifiedGroup = new();
-	private WorkspaceDisplayGroup _protectedAGroup = new();
-	private WorkspaceDisplayGroup _protectedBGroup = new();
+    private WorkspaceDisplayGroup _leadGroup = new();
+    private WorkspaceDisplayGroup _adminGroup = new();
+    private WorkspaceDisplayGroup _collaboratorGroup = new();
+    private WorkspaceDisplayGroup _guestGroup = new();
+    private WorkspaceDisplayGroup _unclassifiedGroup = new();
+    private WorkspaceDisplayGroup _protectedAGroup = new();
+    private WorkspaceDisplayGroup _protectedBGroup = new();
 
-	private List<WorkspaceDisplayGroup> AllDisplayGroups =>
+    private List<WorkspaceDisplayGroup> AllDisplayGroups =>
     [
-		_leadGroup, _adminGroup, _collaboratorGroup, _guestGroup, _unclassifiedGroup, _protectedAGroup, _protectedBGroup
-	];
+        _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup, _unclassifiedGroup, _protectedAGroup, _protectedBGroup
+    ];
 
-	private List<WorkspaceDisplayGroup> WorkspaceDisplayGroups =>
+    private List<WorkspaceDisplayGroup> RoleDisplayGroups =>
     [
-		_leadGroup, _adminGroup, _collaboratorGroup, _guestGroup
-	];
+        _leadGroup, _adminGroup, _collaboratorGroup, _guestGroup
+    ];
 
-	private List<WorkspaceDisplayGroup> SecurityDisplayGroups =>
+    private List<WorkspaceDisplayGroup> SecurityDisplayGroups =>
     [
-		_unclassifiedGroup, _protectedAGroup, _protectedBGroup
-	];
+        _unclassifiedGroup, _protectedAGroup, _protectedBGroup
+    ];
 
-	bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
-	bool HasWorkspaces => _allWorkspaces.Count > 0;
-	int FilteredWorkspacesCount;
+    bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
+    bool HasWorkspaces => _allWorkspaces.Count > 0;
+    int FilteredWorkspacesCount;
 
-	// User, Roles, and Projects
-	private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
-	private List<Datahub_Project> _leadWorkspaces = new List<Datahub_Project>();
-	private List<Datahub_Project> _adminWorkspaces = new List<Datahub_Project>();
-	private List<Datahub_Project> _collaboratorWorkspaces = new List<Datahub_Project>();
-	private List<Datahub_Project> _guestWorkspaces = new List<Datahub_Project>();
-	private List<UserRoleLinks>? _userRoles = null;
-	private List<Datahub_Project> _filteredWorkspaces = new();
-	private List<Datahub_Project> _unclassifiedWorkspaces = new();
-	private List<Datahub_Project> _protectedAWorkspaces = new();
-	private List<Datahub_Project> _protectedBWorkspaces = new();
-	private string? _latestVersion;
-	private string? _userEmail;
-	private bool roleFiltered = false;
-	private PortalUser? _previousPortalUser;
+    // User, Roles, and Projects
+    private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _leadWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _adminWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _collaboratorWorkspaces = new List<Datahub_Project>();
+    private List<Datahub_Project> _guestWorkspaces = new List<Datahub_Project>();
+    private List<UserRoleLinks>? _userRoles = null;
+    private List<Datahub_Project> _filteredWorkspaces = new();
+    private List<Datahub_Project> _unclassifiedWorkspaces = new();
+    private List<Datahub_Project> _protectedAWorkspaces = new();
+    private List<Datahub_Project> _protectedBWorkspaces = new();
+    private string? _latestVersion;
+    private string? _userEmail;
+    private bool roleFiltered = false;
+    private PortalUser? _previousPortalUser;
 
-	// Styles
-	string SectionTitleStyle => new StyleBuilder()
-		.AddStyle("padding-right", "16px")
-		.Build();
+    // Styles
+    string SectionTitleStyle => new StyleBuilder()
+        .AddStyle("padding-right", "16px")
+        .Build();
 
-	string ItalicTextStyle => new StyleBuilder()
-		.AddStyle("font-style", "italic")
-		.Build();
+    string ItalicTextStyle => new StyleBuilder()
+        .AddStyle("font-style", "italic")
+        .Build();
 
-	string DisplayGroupStyle => new StyleBuilder()
-		.AddStyle("display", "flex")
-		.AddStyle("flex-wrap", "wrap")
-		.AddStyle("flex-grow", "1")
-		.AddStyle("list-style-type", "none")
-		.AddStyle("gap", "30px")
-		.AddStyle("justify-content", "start")
-		.Build();
+    string DisplayGroupStyle => new StyleBuilder()
+        .AddStyle("display", "flex")
+        .AddStyle("flex-wrap", "wrap")
+        .AddStyle("flex-grow", "1")
+        .AddStyle("list-style-type", "none")
+        .AddStyle("gap", "30px")
+        .AddStyle("justify-content", "start")
+        .Build();
 
-	string NoContentGroupStyle => new StyleBuilder()
-		.AddStyle("display", "flex")
-		.AddStyle("flex-direction", "column")
-		.AddStyle("list-style-type", "none")
-		.AddStyle("gap", "25px")
-		.AddStyle("flex-wrap", "wrap")
-		.Build();
+    string NoContentGroupStyle => new StyleBuilder()
+        .AddStyle("display", "flex")
+        .AddStyle("flex-direction", "column")
+        .AddStyle("list-style-type", "none")
+        .AddStyle("gap", "25px")
+        .AddStyle("flex-wrap", "wrap")
+        .Build();
 
-	// Hooks
-	protected override async Task OnInitializedAsync()
-	{
-		await base.OnInitializedAsync();
-		await QueryWorkspaces();
-		InitiateDisplayState();
-	}
+    // Hooks
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await QueryWorkspaces();
+        InitiateDisplayState();
+    }
 
     private async Task QueryWorkspaces()
     {
@@ -293,9 +293,9 @@ else
             .ThenInclude(p => p.Resources)
             .AsNoTracking()
             .AsSingleQuery()
-			.Where(u => u.PortalUser == PortalUser)
+            .Where(u => u.PortalUser == PortalUser)
             .ToListAsync();
-        
+
         _userEmail = PortalUser.Email;
 
         _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
@@ -315,26 +315,24 @@ else
     {
         List<Datahub_Project> _tempSecurityWorkspaces = new List<Datahub_Project>();
         List<Datahub_Project> _tempRoleWorkspaces = new List<Datahub_Project>();
-        bool securityFiltered = false;
-        roleFiltered = false;
+        bool securityFiltered = SecurityDisplayGroups.Any(g => g.FilterToggle);
+        roleFiltered = RoleDisplayGroups.Any(g => g.FilterToggle);
         if(AnyFilter)
         {
             foreach (var group in SecurityDisplayGroups)
             {
                 if (Show(group) && group.Workspaces.Any())
                 {
-                    securityFiltered = true;
                     foreach (var workspace in group.Workspaces)
                     {
                         _tempSecurityWorkspaces.Add(workspace);
-                    } 
+                    }
                 }
             }
-            foreach (var group2 in WorkspaceDisplayGroups)
+            foreach (var group2 in RoleDisplayGroups)
             {
                 if (Show(group2) && group2.Workspaces.Any())
                 {
-                    roleFiltered = true;
                     foreach (var workspace in group2.Workspaces)
                     {
                         _tempRoleWorkspaces.Add(workspace);
@@ -484,7 +482,7 @@ else
         label += Localizer[" workspaces where you are a "];
 
         anyCondition = false;
-        foreach (var group in WorkspaceDisplayGroups)
+        foreach (var group in RoleDisplayGroups)
         {
             if (Show(group))
             {

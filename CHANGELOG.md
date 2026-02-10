@@ -3,6 +3,35 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.4.1](https://github.com/ssc-sp/datahub-portal/compare/v8.4.0...v8.4.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* Removing an extra bracket that appears on the database page ([#1868](https://github.com/ssc-sp/datahub-portal/issues/1868)) ([e0877e8](https://github.com/ssc-sp/datahub-portal/commit/e0877e8edac4a32691a06f9794b0010952638f69))
+* Workspace role filtering ([#1870](https://github.com/ssc-sp/datahub-portal/issues/1870)) ([b4f7266](https://github.com/ssc-sp/datahub-portal/commit/b4f72664f011a7b12c7521860bc6af7d17f0e1e8))
+
+## [8.4.0](https://github.com/ssc-sp/datahub-portal/compare/v8.3.1...v8.4.0) (2026-02-06)
+
+
+### Features
+
+* logout and more GCCF stuff ([#1862](https://github.com/ssc-sp/datahub-portal/issues/1862)) ([f0d3a83](https://github.com/ssc-sp/datahub-portal/commit/f0d3a83130fdfbcbbdf9c1bed7a73e046ef413bb))
+
+
+### Bug Fixes
+
+* Fixing missing topics/workspaces in support requests ([#1861](https://github.com/ssc-sp/datahub-portal/issues/1861)) ([fa28826](https://github.com/ssc-sp/datahub-portal/commit/fa28826a29eac43abac04e7058b51285d03ef6d5))
+* HostingServicesController now sets the workspace description in both places ([#1859](https://github.com/ssc-sp/datahub-portal/issues/1859)) ([3d4629b](https://github.com/ssc-sp/datahub-portal/commit/3d4629bd7dfbc91d2621c1d4a8c1e89ce40ed6b2))
+* Visiting other user profiles from the workspace dashboard is fixed ([#1864](https://github.com/ssc-sp/datahub-portal/issues/1864)) ([9b57305](https://github.com/ssc-sp/datahub-portal/commit/9b5730582c77f8f499e7a643303a2b84d1c08737))
+
+## [8.3.1](https://github.com/ssc-sp/datahub-portal/compare/v8.3.0...v8.3.1) (2026-02-06)
+
+
+### Bug Fixes
+
+* Updating StorageHeading name so it appears in file explorer ([#1865](https://github.com/ssc-sp/datahub-portal/issues/1865)) ([246fe68](https://github.com/ssc-sp/datahub-portal/commit/246fe68b76e83fd6d0e54275e24afc7f4a3aeb2b))
+
 ## [8.3.0](https://github.com/ssc-sp/datahub-portal/compare/v8.2.2...v8.3.0) (2026-02-05)
 
 

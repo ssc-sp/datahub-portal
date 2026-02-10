@@ -1,4 +1,4 @@
-﻿using Bunit;
+using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
@@ -7,6 +7,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.SpecflowTests.Utils;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Datahub.SpecflowTests.Steps.Workspace
 {
@@ -114,8 +115,9 @@ namespace Datahub.SpecflowTests.Steps.Workspace
         {
             var roleNames = new List<string>
             {
-                $"{workspaceName}{RoleConstants.WORKSPACE_LEAD_SUFFIX}",
-                "default"
+                // Mark as trusted Entra login so AuthView and UserInformationService treat this as Entra
+                RoleConstants.TRUSTED_ENTRA_LOGIN,
+                $"{workspaceName}{RoleConstants.WORKSPACE_LEAD_SUFFIX}"
             };
 
             if (isCbrOwner)
@@ -132,6 +134,15 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             var authContext = BunitTestSteps.AddAuthorization();
             authContext.SetAuthorized("TEST USER");
             authContext.SetRoles([.. roleNames]);
+
+            // Provide minimal required claims for Entra scenarios
+            // oid for object id and email claim are used by services
+            var oid = Guid.NewGuid().ToString();
+            var email = isCbrOwner ? "cbrowner@example.com" : "wlead@example.com";
+            authContext.SetClaims(
+                new Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
+                new Claim(ClaimTypes.Email, email)
+            );
         }
 
     }
