@@ -278,6 +278,22 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
+    public async Task SendUserAccessRegrantedNotification(string email, string userName, string workspace)
+    {
+        using var _ = _logger.BeginScope("UserAccessRegrantedNotification {Email}", "<redacted>");
+        _logger.LogInformation("Composing user access regranted notification. userName={UserName}, workspace={Workspace}", userName, workspace);
+        var templateId = GetTemplateId("user-access-regranted", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId,
+            personalisation = new { userName, workspace }
+        };
+        _logger.LogDebug("Dispatching user access regranted notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     public async Task SendStorageScanSuccessEmailAsync(
         StorageScanNotificationHelper.StorageScanSuccessEventPayload payload,
         string? recipientEmail = null,

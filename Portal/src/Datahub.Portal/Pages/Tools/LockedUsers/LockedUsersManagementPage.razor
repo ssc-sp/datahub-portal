@@ -1,5 +1,6 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Core.Model.Projects
+@using Datahub.Application.Services.Notification
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Application.Services
 @using Microsoft.AspNetCore.Components.Forms
@@ -9,6 +10,7 @@
 @inject IUserInformationService _userInformationService
 @inject ILockedUserManagementService _lockedUserService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject IGCNotifyService _gcNotifyService
 @inject ISnackbar _snackbar
 @inject IDialogService _dialogService
 @inject NavigationManager _navigationManager
@@ -200,6 +202,8 @@
                     _currentUser.Id
                 );
 
+                await NotifyAccessRegrantedAsync(lockStatus);
+
                 _snackbar.Add(
                     Localizer["User successfully unlocked for {0}", workspaceText], 
                     Severity.Success
@@ -212,6 +216,60 @@
             {
                 _snackbar.Add($"Error unlocking user: {ex.Message}", Severity.Error);
             }
+        }
+    }
+
+    private async Task NotifyAccessRegrantedAsync(UserLockStatus lockStatus)
+    {
+        if (string.IsNullOrWhiteSpace(lockStatus.UserEmail))
+        {
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            lockStatus.UserEmail = await ctx.PortalUsers
+                .Where(u => u.Id == lockStatus.PortalUserId)
+                .Select(u => u.Email)
+                .FirstOrDefaultAsync();
+        }
+
+        if (string.IsNullOrWhiteSpace(lockStatus.UserEmail))
+        {
+            _snackbar.Add(Localizer["Unable to send notification: user email not found"], Severity.Warning);
+            return;
+        }
+
+        var workspaceName = string.IsNullOrWhiteSpace(lockStatus.WorkspaceAcronym)
+            ? Localizer["all workspaces"].Value
+            : lockStatus.WorkspaceAcronym;
+
+        var recipientEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            lockStatus.UserEmail
+        };
+
+        if (lockStatus.WorkspaceId.HasValue)
+        {
+            await using var ctx = await _dbContextFactory.CreateDbContextAsync();
+            var adminEmails = await ctx.UserRolesLinks
+                .Where(u => u.Project_ID == lockStatus.WorkspaceId.Value &&
+                            (u.RoleId == (int)Project_Role.RoleNames.Admin ||
+                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead))
+                .Select(u => u.PortalUser.Email)
+                .ToListAsync();
+
+            foreach (var email in adminEmails)
+            {
+                if (!string.IsNullOrWhiteSpace(email))
+                {
+                    recipientEmails.Add(email);
+                }
+            }
+        }
+
+        foreach (var email in recipientEmails)
+        {
+            await _gcNotifyService.SendUserAccessRegrantedNotification(
+                email,
+                lockStatus.UserName ?? lockStatus.UserEmail,
+                workspaceName);
         }
     }
 }

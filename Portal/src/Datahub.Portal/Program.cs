@@ -29,6 +29,12 @@ builder.Logging.AddFilter<ApplicationInsightsLoggerProvider>("Microsoft.AspNetCo
 // App configuration
 builder.Configuration.AddUserSecrets<Startup>();
 
+if (builder.Environment.IsDevelopment())
+{
+    // Ensure launch-profile env vars override user secrets in dev.
+    builder.Configuration.AddEnvironmentVariables();
+}
+
 StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
 // Add services from Startup

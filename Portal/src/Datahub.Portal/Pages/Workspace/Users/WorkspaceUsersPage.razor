@@ -206,12 +206,21 @@
               <MudChip T="string" Color="Color.Error" Size="Size.Small" Icon="@Icons.Material.Filled.Lock">
                 @Localizer["Locked"]
               </MudChip>
-              <DHButton Size="Size.Small"
-                       Variant="Variant.Text"
-                       Color="Color.Primary"
-                       OnClick="@(() => OpenUploadEvidenceDialog(rowContext.PortalUser))">
-                @Localizer["Upload Evidence"]
-              </DHButton>
+              @if (string.IsNullOrWhiteSpace(lockStatus?.LatestEvidenceUrl))
+              {
+                <DHButton Size="Size.Small"
+                         Variant="Variant.Text"
+                         Color="Color.Primary"
+                         OnClick="@(() => OpenUploadEvidenceDialog(rowContext.PortalUser))">
+                  @Localizer["Upload Evidence"]
+                </DHButton>
+              }
+              else
+              {
+                <MudText Typo="Typo.caption">
+                  @Localizer["Evidence uploaded"]
+                </MudText>
+              }
             </MudStack>
           }
           else
