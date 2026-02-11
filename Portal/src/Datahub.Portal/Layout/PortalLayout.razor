@@ -40,12 +40,6 @@
         <MudMainContent>
             <ErrorBoundary @ref="_errorBoundary">
                 <ChildContent>
-              @if (DevTools.IsDevelopment() && !string.IsNullOrWhiteSpace(_projectDbName))
-              {
-                <MudAlert Severity="Severity.Info" Dense Class="mb-3">
-                  @Localizer["Project DB"]: @_projectDbName
-                </MudAlert>
-              }
                     @Body
                 </ChildContent>
                 <ErrorContent Context="ex">
