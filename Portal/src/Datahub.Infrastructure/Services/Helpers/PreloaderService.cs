@@ -1,4 +1,4 @@
-﻿using Amazon.Runtime.Internal.Util;
+using Amazon.Runtime.Internal.Util;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
