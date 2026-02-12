@@ -1,7 +1,9 @@
+@using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Model.Users
 
 @inject IUserInformationService _userInformationService
+@inject ILockedUserManagementService _lockedUserManagementService
 @inject NavigationManager _navigationManager
 
 @if (_isChecked)
@@ -31,10 +33,9 @@
         {
             var user = await _userInformationService.GetCurrentPortalUserAsync();
             
-            // MOCK: Check if user is locked (based on email pattern for demo)
-            var isLockedOut = user?.Email != null && 
-                             (user.Email.Contains("external", StringComparison.OrdinalIgnoreCase) ||
-                              user.Email.Contains("test", StringComparison.OrdinalIgnoreCase));
+            // Check if user is locked globally (null workspace ID means global lock)
+            var isLockedOut = user?.Id > 0 && 
+                             await _lockedUserManagementService.IsUserLockedAsync(user.Id, workspaceId: null);
             
             if (isLockedOut)
             {
