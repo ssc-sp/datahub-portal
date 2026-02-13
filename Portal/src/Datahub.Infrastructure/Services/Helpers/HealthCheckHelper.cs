@@ -51,10 +51,6 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string DatahubStorageQueueConnectionStringConfigKey = "DatahubStorageQueue:ConnectionString";
         public const string DatahubServiceBusConnectionStringConfigKey = "DatahubServiceBus:ConnectionString";
 
-        public const string AzureTenantIdEnvKey = "AZURE_TENANT_ID";
-        public const string AzureClientIdEnvKey = "AZURE_CLIENT_ID";
-        public const string AzureClientSecretEnvKey = "AZURE_CLIENT_SECRET";
-
         public const string BugReportUsername = "Datahub Portal";
     }
 
@@ -75,16 +71,11 @@ namespace Datahub.Infrastructure.Services.Helpers
         private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
         private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
 
-        private string AzureTenantId => portalConfiguration.AzureAd.TenantId;
-        private string DevopsClientId => portalConfiguration.AzureAd.InfraClientId;
-        private string DevopsClientSecret => portalConfiguration.AzureAd.InfraClientSecret;
-        private string SubscriptionId => portalConfiguration.AzureAd.SubscriptionId;
-
         private AzureDevOpsConfiguration BuildDevopsConfig() => new()
         {
-            ClientId = DevopsClientId,
-            ClientSecret = DevopsClientSecret,
-            TenantId = AzureTenantId
+            ClientId = portalConfiguration.AzureAd.InfraClientId,
+            ClientSecret = portalConfiguration.AzureAd.InfraClientSecret,
+            TenantId = portalConfiguration.AzureAd.TenantId
         };
 
         public static List<InfrastructureHealthResourceType> CoreHealthChecks { get; } =
@@ -201,12 +192,8 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             try
             {
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureTenantIdEnvKey, AzureTenantId);
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, DevopsClientId);
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, DevopsClientSecret);
-
                 var kvUrl = GetAzureKeyVaultUrl(request);
-                var credential = new DefaultAzureCredential();
+                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId, portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
 
                 var secretClient = new SecretClient(kvUrl, credential);
                 var keyClient = new KeyClient(kvUrl, credential);
@@ -222,10 +209,9 @@ namespace Datahub.Infrastructure.Services.Helpers
 
                 try
                 {
-                    // Iterate through the secrets in the key vault and check if they are expired
                     await foreach (var secretProperties in secretClient.GetPropertiesOfSecretsAsync())
                     {
-                        if (secretProperties.ExpiresOn < DateTime.UtcNow)
+                        if (secretProperties.ExpiresOn < DateTimeOffset.UtcNow)
                         {
                             errors.Add($"The secret {secretProperties.Name} has expired.");
                         }
@@ -233,16 +219,15 @@ namespace Datahub.Infrastructure.Services.Helpers
                 }
                 catch (Exception ex)
                 {
-                    errors.Add("Unable to retrieve the secrets from the key vault." + ex.GetType().ToString());
+                    errors.Add("Unable to retrieve the secrets from the key vault." + ex.GetType());
                     errors.Add($"Details: {ex.Message}");
                 }
 
                 try
                 {
-                    // Iterate through the keys in the key vault and check if they are expired
                     await foreach (var keyProperties in keyClient.GetPropertiesOfKeysAsync())
                     {
-                        if (keyProperties.ExpiresOn < DateTime.UtcNow)
+                        if (keyProperties.ExpiresOn < DateTimeOffset.UtcNow)
                         {
                             errors.Add($"The key {keyProperties.Name} has expired.");
                         }
@@ -250,13 +235,13 @@ namespace Datahub.Infrastructure.Services.Helpers
                 }
                 catch (Exception ex)
                 {
-                    errors.Add("Unable to retrieve the keys from the key vault." + ex.GetType().ToString());
+                    errors.Add("Unable to retrieve the keys from the key vault." + ex.GetType());
                     errors.Add($"Details: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
-                errors.Add("Unable to connect and retrieve a key or secret. " + ex.GetType().ToString());
+                errors.Add("Unable to connect and retrieve a key or secret. " + ex.GetType());
                 errors.Add($"Details: {ex.Message}");
             }
 
@@ -265,7 +250,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 status = InfrastructureHealthStatus.Unhealthy;
             }
 
-            return new(status, errors);
+            return new IntermediateHealthCheckResult(status, errors);
         }
 
         /// <summary>
@@ -509,12 +494,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             try
             {
-                var credential = new ClientSecretCredential(AzureTenantId, DevopsClientId, DevopsClientSecret);
+                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId, portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
 
                 var armClient = new ArmClient(credential);
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 
                 //var subscription = await armClient.GetDefaultSubscriptionAsync();
-                var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(SubscriptionId);
+                var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(portalConfiguration.AzureAd.SubscriptionId);
                 var subscription = armClient.GetSubscriptionResource(subscriptionResourceId); 
                 
                 var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{configuration.GetCurrentEnvironment()}-rg");

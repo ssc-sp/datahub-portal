@@ -1,3 +1,4 @@
+using System.Net;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -8,6 +9,7 @@ using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
@@ -31,13 +33,12 @@ using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Caching.Memory; // ADDED
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
-using System.Net;
-using Microsoft.Extensions.Caching.Memory; // ADDED
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -59,7 +60,7 @@ if (!string.IsNullOrWhiteSpace(connectionString))
         options.UseSqlServer(connectionString));
 }
 
-builder.Services.AddHttpClient(AzureManagementService.ClientName)
+builder.Services.AddHttpClient(IMSGraphService.HttpClientName)
     .AddPolicyHandler(
         Policy<HttpResponseMessage>
             .Handle<HttpRequestException>()
@@ -75,7 +76,6 @@ if (devopsConfig is not null)
 
 builder.Services.AddSingleton<AzureConfig>();
 builder.Services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
-builder.Services.AddSingleton<AzureManagementService>();
 builder.Services.AddAzureResourceManager(config);
 builder.Services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
 builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
@@ -85,7 +85,6 @@ builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStora
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
-builder.Services.AddScoped<ProjectUsageService>();
 builder.Services.AddScoped<IQueuePongService, QueuePongService>();
 builder.Services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
 builder.Services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();

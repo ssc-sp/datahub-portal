@@ -1,21 +1,22 @@
+using System.Text.Json;
 using Azure.Identity;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Services.Azure;
 using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Moq;
-using NSubstitute;
-using System.Text.Json;
 using MassTransit;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
+using NSubstitute.ExceptionExtensions;
 
 namespace Datahub.Functions.UnitTests.Functions
 {
     [TestFixture]
     public class AddUserToGroupTests
     {
-        private Mock<AzureManagementService> _azureManagementService;
+        private IMSGraphService _graphService;
         private AzureConfig _azureConfig;
         private AddUserToGroupRequest _validRequest;
         private AddUserToGroupRequest _invalidRequest;
@@ -31,11 +32,10 @@ namespace Datahub.Functions.UnitTests.Functions
             httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
 
             _azureConfig = new AzureConfig(Substitute.For<IConfiguration>());
-            _azureManagementService = new Mock<AzureManagementService>(MockBehavior.Strict, _azureConfig, httpClientFactory);
-            _azureManagementService.Setup(f => f.GetGraphServiceClientFromEnvVariables())
-                .Returns(TestHelper.MockGraphServiceClient());
+            _graphService = Substitute.For<IMSGraphService>();
+            _graphService.GetAuthenticatedClient().Returns(TestHelper.MockGraphServiceClient());
 
-            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService.Object, Substitute.For<ISendEndpointProvider>(), null);
+            _function = new CreateGraphUser(loggerFactory, _azureConfig, _graphService, Substitute.For<ISendEndpointProvider>(), null);
 
             _validRequest = new AddUserToGroupRequest(Guid.NewGuid().ToString());
             _invalidRequest = new AddUserToGroupRequest("");
@@ -74,8 +74,7 @@ namespace Datahub.Functions.UnitTests.Functions
         public async Task AddUserToGroup_ShouldReturnBadRequest_WhenExceptionIsThrown()
         {
             // Arrange
-            _azureManagementService.Setup(f => f.GetGraphServiceClientFromEnvVariables())
-                .Throws(new Exception("Graph API error"));
+            _graphService.GetAuthenticatedClient().Throws(new Exception("Graph API error"));
             var requestBody = JsonSerializer.Serialize(_validRequest);
             var httpRequestData = TestHelper.CreateHttpRequestData(requestBody);
 

@@ -1,7 +1,8 @@
-﻿using System.Net.Mail;
+using System.Net.Mail;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Graph;
 
 namespace Datahub.Infrastructure.Offline;
 
@@ -31,43 +32,6 @@ public class OfflineMSGraphService : IMSGraphService
             }
         });
     }
-
-    //public async Task<Dictionary<string, GraphUser>> GetUsersAsync()
-    //{
-    //    if (UsersDict != null)
-    //    {
-    //        return UsersDict;
-    //    }
-
-    //    await LoadUsersAsync();
-    //    return UsersDict;
-    //}
-
-    private void PrepareAuthenticatedClient()
-    {
-        // Create Microsoft Graph client.
-        try
-        {
-
-        }
-        catch (Exception ex)
-        {
-            throw new InvalidOperationException("Cannot Prepare Authenticated Request", ex);
-        }
-    }
-
-    //public GraphUser GetUser(string userId)
-    //{
-    //    if (!string.IsNullOrWhiteSpace(userId))
-    //    {
-    //        if (UsersDict != null && UsersDict.ContainsKey(userId))
-    //        {
-    //            return UsersDict[userId];
-    //        }
-    //    }
-
-    //    return null;
-    //}
 
     public Task<string> GetUserName(string userId, CancellationToken tkn)
     {
@@ -111,5 +75,10 @@ public class OfflineMSGraphService : IMSGraphService
     public Task<GraphUser> GetUserFromSamAccountNameAsync(string account, CancellationToken tkn)
     {
         return Task.FromResult((GraphUser)null);
+    }
+
+    public GraphServiceClient GetAuthenticatedClient()
+    {
+        throw new NotImplementedException();
     }
 }
