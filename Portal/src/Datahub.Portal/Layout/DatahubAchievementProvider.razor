@@ -1,6 +1,7 @@
 @using Blazored.LocalStorage
 @using Datahub.Core.Data
 @using Datahub.Core.Model.Achievements;
+@using Datahub.Core.Model.Projects
 @using Microsoft.EntityFrameworkCore
 @using System.Linq
 @using Datahub.Application.Services.Achievements
@@ -9,6 +10,7 @@
 @using Datahub.Portal.Pages.Account.Achievements
 @using Microsoft.Graph.Auth;
 @using Microsoft.Graph.Models
+@using System.Collections.Immutable
 
 @inject IPortalUserTelemetryService _telemetryService
 @inject ISnackbar _snackbar
@@ -17,38 +19,46 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject ILogger<DatahubAchievementProvider> _logger
+@inject IServiceAuthManager _serviceAuthManager
 
 @implements IDisposable
 
 @code {
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
+	protected override void OnInitialized()
+	{
+		base.OnInitialized();
 
-        _navigationManager.LocationChanged += OnLocationChanged;
-        _telemetryService.OnAchievementsEarned += OnAchievementsEarned;
+		_navigationManager.LocationChanged += OnLocationChanged;
+		_telemetryService.OnAchievementsEarned += OnAchievementsEarned;
 
-        _snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
-    }
+		_snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopCenter;
+	}
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
+	protected override async Task OnAfterRenderAsync(bool firstRender)
+	{
+		await base.OnAfterRenderAsync(firstRender);
 
-        if (firstRender)
-        {
-            try
-            {
-                await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLogin);
+		if (firstRender)
+		{
+			try
+			{
+				await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserLogin);
 
-                await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-                var userId = await _userInformationService.GetCurrentUserEntraId();
+				await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+				ImmutableList<(Project_Role Role, Datahub_Project Project)> authorizedProjects;
+				if (await _userInformationService.IsEntraUser())
+				{
+					var userId = await _userInformationService.GetCurrentUserEntraId();
+					authorizedProjects = await _serviceAuthManager.GetEntraUserAuthorizations(userId!);
+				}
+				else
+				{
+					var externalId = await _userInformationService.GetExternalUserNameIdentifier();
+					authorizedProjects = await _serviceAuthManager.GetExternalUserAuthorizations(externalId ?? throw new InvalidOperationException("User is not authenticated"));
+				}
 
-				var numberOfProjects = projectContext.UserRolesLinks.Include(ur => ur.PortalUser).ThenInclude(u => u.EntraUser)
-                    .Count(p => p.PortalUser != null && p.PortalUser.EntraUser != null && p.PortalUser.EntraUser.GraphGuid == userId);
-
-                if (numberOfProjects > 0)
+                if (authorizedProjects.Count > 0)
                     await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserJoinedProject);
 
                 if (await _userInformationService.IsDailyLogin())
