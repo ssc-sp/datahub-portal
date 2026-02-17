@@ -1,5 +1,7 @@
 ﻿using System.Globalization;
 using Azure;
+using Azure.Core;
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
@@ -88,8 +90,7 @@ public class DataRetrievalService : BaseService
     {
         try
         {
-            var connectionString = await GetProjectConnectionString(project);
-            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobServiceClient = await GetBlobServiceClient(project);
             var containerClient = blobServiceClient.GetBlobContainerClient(container);
 
             var folder = new Folder
@@ -152,9 +153,28 @@ public class DataRetrievalService : BaseService
 
     public async Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName)
     {
-        var cxnstring = await GetProjectConnectionString(project);
-        BlobServiceClient blobServiceClient = new BlobServiceClient(cxnstring);
+        var blobServiceClient = await GetBlobServiceClient(project);
         return blobServiceClient.GetBlobContainerClient(containerName);
+    }
+
+    /// <summary>
+    /// Gets a BlobServiceClient using managed identity/token credential (User Delegation SAS)
+    /// </summary>
+    private async Task<BlobServiceClient> GetBlobServiceClient(string project)
+    {
+        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+        envName = envName != null ? envName.ToLower() : "dev";
+        if (envName.Equals("development"))
+        {
+            envName = "dev";
+        }
+
+        var storageAccountName = $"dh{project}{envName}";
+        var blobUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
+        
+        // Use DefaultAzureCredential for User Delegation SAS
+        var credential = new DefaultAzureCredential();
+        return new BlobServiceClient(blobUri, credential);
     }
 
     static BlobSasBuilder GetBlobSasBuilder(string container, string fileName, int days, BlobSasPermissions permissions)
@@ -176,12 +196,17 @@ public class DataRetrievalService : BaseService
     private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions, bool containerLevel = false)
     {
         var project = projectUploadCode.ToLowerInvariant();
-        var containerClient = await GetBlobContainerClient(project, container);
+        var blobServiceClient = await GetBlobServiceClient(project);
+        var containerClient = blobServiceClient.GetBlobContainerClient(container);
+        
         var sasBuilder = containerLevel
             ? GetContainerSasBuild(containerClient.Name, days, permissions) 
             : GetBlobSasBuilder(container, fileName, days, permissions);
 
-        var sharedKeyCred = await _dataLakeClientService.GetSharedKeyCredential(project);
+        // Use User Delegation SAS instead of Shared Key
+        var userDelegationKey = await blobServiceClient.GetUserDelegationKeyAsync(
+            startsOn: DateTimeOffset.UtcNow,
+            expiresOn: DateTimeOffset.UtcNow.AddDays(days));
 
         Uri uri;
         if (!string.IsNullOrEmpty(fileName))
@@ -194,9 +219,10 @@ public class DataRetrievalService : BaseService
             uri = containerClient.Uri;
         }
 
+        var storageAccountName = blobServiceClient.AccountName;
         var blobUriBuilder = new BlobUriBuilder(uri)
         {
-            Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, storageAccountName)
         };
 
         return blobUriBuilder.ToUri();
@@ -246,10 +272,13 @@ public class DataRetrievalService : BaseService
             var fileSystemClient = await _dataLakeClientService.GetDataLakeFileSystemClient();
             DataLakeDirectoryClient directoryClient = fileSystemClient.GetDirectoryClient(file.folderpath);
             DataLakeFileClient fileClient = directoryClient.GetFileClient(file.filename);
-            Response<FileDownloadInfo> downloadResponse = await fileClient.ReadAsync();
 
-            var sharedKeyCredential = await _dataLakeClientService.GetSharedKeyCredential();
-
+            // Get User Delegation Key from DataLake service for User Delegation SAS
+            var dataLakeServiceClient = await _dataLakeClientService.GetDataLakeServiceClient();
+            var userDelegationKeyResponse = await dataLakeServiceClient.GetUserDelegationKeyAsync(
+                startsOn: DateTimeOffset.UtcNow,
+                expiresOn: DateTimeOffset.UtcNow.AddDays(7));
+            var userDelegationKey = userDelegationKeyResponse.Value;
 
             DataLakeSasBuilder sasBuilder = new DataLakeSasBuilder()
             {
@@ -264,14 +293,10 @@ public class DataRetrievalService : BaseService
             sasBuilder.SetPermissions(DataLakeAccountSasPermissions.Read |
                                       DataLakeAccountSasPermissions.Write);
 
-
             DataLakeUriBuilder dataLakeUriBuilder = new DataLakeUriBuilder(fileClient.Uri)
             {
-                // Specify the user delegation key.
-                //Sas = sasBuilder.ToSasQueryParameters(userDelegationKey,
-                //                                  fileClient.AccountName)
-
-                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCredential)
+                // Use User Delegation Key instead of Shared Key
+                Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, dataLakeServiceClient.AccountName)
             };
 
             _logger.LogDebug($"File URI Generation: {file.folderpath}/{file.filename} SUCCEEDED.");
@@ -428,8 +453,7 @@ public class DataRetrievalService : BaseService
 
     public async Task<AzureStorageMetadata> GetStorageMetadata(string project)
     {
-        var connectionString = await GetProjectConnectionString(project?.ToLower());
-        var blobServiceClient = new BlobServiceClient(connectionString);
+        var blobServiceClient = await GetBlobServiceClient(project?.ToLower());
         var containerClient = blobServiceClient.GetBlobContainerClient("datahub");
 
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
@@ -449,8 +473,7 @@ public class DataRetrievalService : BaseService
 
     public async Task<List<string>> ListContainers(string projectAcronym, User user)
     {
-        var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
-        var blobServiceClient = new BlobServiceClient(connectionString);
+        var blobServiceClient = await GetBlobServiceClient(projectAcronym.ToLower());
         var pages = blobServiceClient.GetBlobContainersAsync().AsPages();
         var containers = new List<string>();
         await foreach (var page in pages)
@@ -466,8 +489,7 @@ public class DataRetrievalService : BaseService
     {
         try
         {
-            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
-            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobServiceClient = await GetBlobServiceClient(projectAcronym.ToLower());
             var containerClient = blobServiceClient.GetBlobContainerClient(container);
 
             var resultSegment = containerClient
@@ -572,15 +594,14 @@ public class DataRetrievalService : BaseService
     }
 
     [Obsolete("Obsolete")]
-    public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default)
+    public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string? continuationToken = default)
     {
         try
         {
             var folders = new List<string>();
             var files = new List<FileMetaData>();
                 
-            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
-            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobServiceClient = await GetBlobServiceClient(projectAcronym.ToLower());
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
             var resultSegment = containerClient
@@ -625,8 +646,7 @@ public class DataRetrievalService : BaseService
 
     public async Task<bool> StorageBlobExistsAsync(string filename, string projectAcronym, string containerName)
     {
-        var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
-        var blobServiceClient = new BlobServiceClient(connectionString);
+        var blobServiceClient = await GetBlobServiceClient(projectAcronym.ToLower());
             
         var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
         var blobClient = containerClient.GetBlobClient(filename);

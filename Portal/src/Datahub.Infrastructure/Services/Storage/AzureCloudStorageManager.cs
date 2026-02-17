@@ -1,5 +1,8 @@
-﻿using Azure.Storage;
+﻿using Azure.Core;
+using Azure.Identity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
@@ -9,31 +12,54 @@ using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Microsoft.VisualStudio.Services.Common;
 using Datahub.Infrastructure.Services.Helpers;
+using BlobUserDelegationKey = Azure.Storage.Blobs.Models.UserDelegationKey;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
 public class AzureCloudStorageManager : ICloudStorageManager
 {
     private readonly string _accountName;
-    private readonly string _accountKey;
+    private readonly string? _accountKey;
+    private readonly TokenCredential? _tokenCredential;
     private readonly bool _inboxAccount;
-    private readonly string _connectionString;
+    private readonly string? _connectionString;
     private readonly string _displayName;
+    private readonly bool _useUserDelegationSas;
 
     public bool IsInboxAccount => _inboxAccount;
 
+    /// <summary>
+    /// Constructor using Shared Key (legacy - not recommended)
+    /// </summary>
+    [Obsolete("Use constructor with TokenCredential for User Delegation SAS instead")]
     public AzureCloudStorageManager(string accountName, string accountKey, string? displayName = default)
     {
         _accountName = accountName;
         _accountKey = accountKey;
+        _tokenCredential = null;
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
         _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+        _useUserDelegationSas = false;
+    }
+
+    /// <summary>
+    /// Constructor using TokenCredential for User Delegation SAS (recommended)
+    /// </summary>
+    public AzureCloudStorageManager(string accountName, TokenCredential tokenCredential, string? displayName = default)
+    {
+        _accountName = accountName;
+        _accountKey = null;
+        _tokenCredential = tokenCredential;
+        _inboxAccount = displayName == default;
+        _displayName = displayName ?? _accountName;
+        _connectionString = null;
+        _useUserDelegationSas = true;
     }
 
     public async Task<List<string>> GetContainersAsync()
     {
-        var dlClient = new DataLakeServiceClient(_connectionString);
+        var dlClient = GetDataLakeServiceClientInternal();
 
         var pages = dlClient.GetFileSystemsAsync().AsPages();
 
@@ -61,20 +87,35 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return new DfsPage(folders, files, continuationToken!);
     }
 
-    public Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
+    public async Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
     {
         ValidateContainerName(container);
 
         var containerClient = GetBlobContainerClient(container);
         var sasBuilder = GetContainerSasBuild(container, timeSpan, BlobSasPermissions.All);
-        var sharedKeyCred = GetSharedKeyCredentialAsync();
 
-        var blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+        BlobUriBuilder blobUriBuilder;
+        if (_useUserDelegationSas && _tokenCredential != null)
         {
-            Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-        };
+            // Use User Delegation SAS (recommended)
+            var blobServiceClient = GetBlobServiceClientInternal();
+            var userDelegationKey = await GetUserDelegationKeyAsync(blobServiceClient, timeSpan);
+            blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, _accountName)
+            };
+        }
+        else
+        {
+            // Use Shared Key SAS (legacy)
+            var sharedKeyCred = GetSharedKeyCredentialAsync();
+            blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            };
+        }
 
-        return Task.FromResult(blobUriBuilder.ToUri());
+        return blobUriBuilder.ToUri();
     }
 
     public Task<bool> FileExistsAsync(string container, string filePath)
@@ -84,20 +125,36 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return Task.FromResult<bool>(fileClient.Exists());
     }
 
-    public Task<Uri> DownloadFileAsync(string container, string filePath)
+    public async Task<Uri> DownloadFileAsync(string container, string filePath)
     {
         var containerClient = GetBlobContainerClient(container);
         var sasBuilder = GetBlobSasBuilder(container, filePath, 1, BlobSasPermissions.Read);
-        var sharedKeyCred = GetSharedKeyCredentialAsync();
 
         var blobClient = containerClient.GetBlobClient(filePath);
         var uri = blobClient.Uri;
-        var blobUriBuilder = new BlobUriBuilder(uri)
+        
+        BlobUriBuilder blobUriBuilder;
+        if (_useUserDelegationSas && _tokenCredential != null)
         {
-            Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-        };
+            // Use User Delegation SAS (recommended)
+            var blobServiceClient = GetBlobServiceClientInternal();
+            var userDelegationKey = await GetUserDelegationKeyAsync(blobServiceClient, TimeSpan.FromDays(1));
+            blobUriBuilder = new BlobUriBuilder(uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(userDelegationKey, _accountName)
+            };
+        }
+        else
+        {
+            // Use Shared Key SAS (legacy)
+            var sharedKeyCred = GetSharedKeyCredentialAsync();
+            blobUriBuilder = new BlobUriBuilder(uri)
+            {
+                Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            };
+        }
 
-        return Task.FromResult(blobUriBuilder.ToUri());
+        return blobUriBuilder.ToUri();
     }
 
     public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
@@ -165,7 +222,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<StorageMetadata> GetStorageMetadataAsync(string container)
     {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
+        var blobServiceClient = GetBlobServiceClientInternal();
         var containerClient = blobServiceClient.GetBlobContainerClient(container);
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
@@ -330,16 +387,52 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return dict.TryGetValue(key, out var value) ? value : defaultValue;
     }
 
+    private DataLakeServiceClient GetDataLakeServiceClientInternal()
+    {
+        if (_useUserDelegationSas && _tokenCredential != null)
+        {
+            var dfsUri = new Uri($"https://{_accountName}.dfs.core.windows.net");
+            return new DataLakeServiceClient(dfsUri, _tokenCredential);
+        }
+        else
+        {
+            return new DataLakeServiceClient(_connectionString);
+        }
+    }
+
+    private BlobServiceClient GetBlobServiceClientInternal()
+    {
+        if (_useUserDelegationSas && _tokenCredential != null)
+        {
+            var blobUri = new Uri($"https://{_accountName}.blob.core.windows.net");
+            return new BlobServiceClient(blobUri, _tokenCredential);
+        }
+        else
+        {
+            return new BlobServiceClient(_connectionString);
+        }
+    }
+
     private DataLakeFileSystemClient GetFileSystemClient(string containerName)
     {
-        var client = new DataLakeServiceClient(_connectionString);
+        var client = GetDataLakeServiceClientInternal();
         return client.GetFileSystemClient(containerName);
     }
 
     private BlobContainerClient GetBlobContainerClient(string containerName)
     {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
+        var blobServiceClient = GetBlobServiceClientInternal();
         return blobServiceClient.GetBlobContainerClient(containerName);
+    }
+
+    /// <summary>
+    /// Gets a user delegation key for generating User Delegation SAS tokens
+    /// </summary>
+    private async Task<BlobUserDelegationKey> GetUserDelegationKeyAsync(BlobServiceClient blobServiceClient, TimeSpan validity)
+    {
+        var startsOn = DateTimeOffset.UtcNow;
+        var expiresOn = startsOn.Add(validity);
+        return await blobServiceClient.GetUserDelegationKeyAsync(startsOn, expiresOn);
     }
 
     static BlobSasBuilder GetContainerSasBuild(string containerName, TimeSpan timeSpan, BlobSasPermissions permissions)
@@ -359,6 +452,10 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     private StorageSharedKeyCredential GetSharedKeyCredentialAsync()
     {
+        if (_accountKey == null)
+        {
+            throw new InvalidOperationException("Account key is not available. Use the TokenCredential constructor for User Delegation SAS.");
+        }
         return new StorageSharedKeyCredential(_accountName, _accountKey);
     }
 

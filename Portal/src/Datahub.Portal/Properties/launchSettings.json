@@ -39,6 +39,15 @@
       },
       "applicationUrl": "https://localhost:5001;http://localhost:5000"
     },
+    "Console Portal (Development TempDb)": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "ConnectionStrings__datahub_mssql_project": "Server=tcp:fsdh-portal-sql-dev.database.windows.net,1433;Database=dh-portal-projectdb-localtest;Authentication=Active Directory Interactive;",
+        "ConnectionStrings__datahub_mssql_metadata": "Server=tcp:fsdh-portal-sql-dev.database.windows.net,1433;Database=dh-portal-metadata;Authentication=Active Directory Interactive;"
+      },
+      "applicationUrl": "https://localhost:5001;http://localhost:5000"
+    },
     "Console Portal (Offline)": {
       "commandName": "Project",
       "launchBrowser": true,

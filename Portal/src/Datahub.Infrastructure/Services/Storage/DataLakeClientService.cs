@@ -1,4 +1,7 @@
-﻿using Azure.Storage;
+﻿using Azure.Core;
+using Azure.Identity;
+using Azure.Storage;
+using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Datahub.Application.Services.Security;
@@ -15,7 +18,9 @@ public class DataLakeClientService
     private IKeyVaultService _keyVaultService;
     private IOptions<APITargets> _targets;
     private StorageSharedKeyCredential _sharedKeyCredential;
+    private TokenCredential _tokenCredential;
     private Dictionary<string, DataLakeServiceClient> _projectServiceClients;
+    private BlobServiceClient _blobServiceClient;
 
     public DataLakeClientService(ILogger<DataLakeClientService> logger,
         IKeyVaultService keyVaultService,
@@ -25,20 +30,25 @@ public class DataLakeClientService
         _logger = logger;
         _keyVaultService = keyVaultService;
         _targets = targets;
+        _tokenCredential = new DefaultAzureCredential();
     }
 
     private DataLakeServiceClient dataLakeServiceClient { get; set; }
     private DataLakeFileSystemClient dataLakeFileSystemClient { get; set; }
+    
     private async Task SetDataLakeServiceClient()
     {
-        var datalakeSecret = await _keyVaultService.GetSecret(DatahubSecretName);
-        _sharedKeyCredential = new StorageSharedKeyCredential(_targets.Value.StorageAccountName, datalakeSecret);
+        // Use TokenCredential (DefaultAzureCredential) for User Delegation SAS
         string dfsUri = $"https://{_targets.Value.StorageAccountName}.dfs.core.windows.net";
-
-        dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), _sharedKeyCredential);
+        dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), _tokenCredential);
         dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
+        
+        // Also initialize BlobServiceClient for User Delegation Keys
+        string blobUri = $"https://{_targets.Value.StorageAccountName}.blob.core.windows.net";
+        _blobServiceClient = new BlobServiceClient(new Uri(blobUri), _tokenCredential);
     }
 
+    [Obsolete("Use GetTokenCredential instead for User Delegation SAS")]
     public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
     {
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -54,10 +64,28 @@ public class DataLakeClientService
         return new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
     }
 
+    [Obsolete("Use GetTokenCredential instead for User Delegation SAS")]
     public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
     {
         await CheckClients();
         return _sharedKeyCredential;
+    }
+
+    /// <summary>
+    /// Gets TokenCredential for User Delegation SAS (recommended approach)
+    /// </summary>
+    public TokenCredential GetTokenCredential()
+    {
+        return _tokenCredential;
+    }
+
+    /// <summary>
+    /// Gets BlobServiceClient for User Delegation SAS generation
+    /// </summary>
+    public async Task<BlobServiceClient> GetBlobServiceClient()
+    {
+        await CheckClients();
+        return _blobServiceClient;
     }
 
     public async Task<DataLakeServiceClient> GetDataLakeServiceClient()

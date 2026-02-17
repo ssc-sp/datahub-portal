@@ -20,6 +20,13 @@ using Azure.Storage.Blobs.Models;
 
 namespace Datahub.Tests;
 
+/// <summary>
+/// NOTE: These tests are currently skipped and use legacy Shared Key authentication.
+/// If re-enabling these tests, they should be updated to use User Delegation SAS 
+/// with Azure.Identity.DefaultAzureCredential instead of StorageSharedKeyCredential.
+/// See the updated AzureCloudStorageManager, DataRetrievalService, and DataLakeClientService 
+/// for examples of User Delegation SAS implementation.
+/// </summary>
 public class Metadata
 {
     public string folderowner { get; set; }
