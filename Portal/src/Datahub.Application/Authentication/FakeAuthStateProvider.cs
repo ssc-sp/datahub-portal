@@ -1,14 +1,14 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
 
+namespace Datahub.Application.Authentication;
 
-namespace Datahub.Portal.Services;
-
-public class CustomAuthStateProvider : AuthenticationStateProvider
+public class FakeAuthStateProvider : AuthenticationStateProvider
 {
     public override Task<AuthenticationState> GetAuthenticationStateAsync()
     {
-        var identity = new ClaimsIdentity(new[]
+        var identity = new ClaimsIdentity(
+            new[]
         {
             new Claim(ClaimTypes.Name, "Offline User"),
         }, "Fake authentication type");
