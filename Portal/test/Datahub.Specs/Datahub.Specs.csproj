@@ -12,6 +12,7 @@
 		<PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="9.0.*" />
         <PackageReference Include="Microsoft.Playwright.NUnit" Version="1.55.*" />
         <PackageReference Include="Playwright.Axe" Version="1.3.0" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
         <PackageReference Include="nunit" Version="4.4.*" />
         <PackageReference Include="NUnit3TestAdapter" Version="5.1.*" />
         <PackageReference Include="FluentAssertions" Version="8.8.*" />
