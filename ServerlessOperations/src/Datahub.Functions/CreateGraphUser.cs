@@ -1,14 +1,16 @@
+using System.Text.Json;
+using System.Text.Json.Nodes;
+using Azure.Identity;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Infrastructure.Services.Azure;
+using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
-using System.Text.Json;
-using System.Text.Json.Nodes;
-using MassTransit;
-using Datahub.Infrastructure.Services.Azure;
-using Datahub.Application.Services.Notification;
 using static System.Guid;
 
 namespace Datahub.Functions;
@@ -16,7 +18,7 @@ namespace Datahub.Functions;
 public class CreateGraphUser(
     ILoggerFactory loggerFactory,
     AzureConfig configuration,
-    AzureManagementService azureManagementService,
+    IMSGraphService graphService,
     ISendEndpointProvider sendEndpointProvider,
     IGCNotifyService notifyService)
 {
@@ -75,7 +77,7 @@ public class CreateGraphUser(
         try
         {
             ValidateAddUserRequest(data);
-            var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
+            var graphClient = graphService.GetAuthenticatedClient();
             var groupId = configuration.ServicePrincipalGroupID;
 
             await AddToGroup(data.userId, groupId!, graphClient, _logger);
@@ -100,7 +102,7 @@ public class CreateGraphUser(
         log.LogInformation("Creating graph service client");
 
         // sanity check the service principal credentials
-        var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
+        var graphClient = graphService.GetAuthenticatedClient();
 
         var groupId = configuration.ServicePrincipalGroupID;
 
@@ -120,7 +122,7 @@ public class CreateGraphUser(
     private async Task<IActionResult> InviteUser(ILogger log, string userEmail, string inviter)
     {
         log.LogInformation("Creating graph service client");
-        var graphClient = azureManagementService.GetGraphServiceClientFromEnvVariables();
+        var graphClient = graphService.GetAuthenticatedClient();
 
         log.LogInformation("Sending invitation to {UserEmail}", userEmail);
 

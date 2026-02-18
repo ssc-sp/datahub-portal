@@ -202,8 +202,6 @@ public class Startup
         services.AddScoped<ICultureService, UserCultureService>();
 
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
-        services.AddSingleton<AzureManagementService>();
-        services.AddSingleton<ProjectUsageService>();
         services.AddScoped<ProjectStorageConfigurationService>();
 
         //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
