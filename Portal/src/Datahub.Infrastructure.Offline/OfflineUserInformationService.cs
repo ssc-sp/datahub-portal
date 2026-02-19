@@ -223,7 +223,7 @@ public class OfflineUserInformationService : IUserInformationService
         return Task.FromResult(false);
     }
 
-    public Task RegisterAuthenticatedPortalUser()
+    public Task RegisterAuthenticatedEntraUser()
     {
         return Task.FromResult(true);
     }

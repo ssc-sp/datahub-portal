@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Security.Claims;
 using Bunit;
+using Datahub.Application.Authentication;
 using Datahub.Application.Configuration;
-using Datahub.Application.RoleManagement;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services.Security;

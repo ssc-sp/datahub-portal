@@ -1,6 +1,6 @@
 namespace Datahub.Core.Services;
 
-public class PropagationService : IPropagationService
+public class NotificationPropagationService : IPropagationService
 {
     public event Func<IEnumerable<string>, Task>? UpdateSystemNotifications;
 
