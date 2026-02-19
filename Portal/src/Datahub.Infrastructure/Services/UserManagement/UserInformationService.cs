@@ -1,4 +1,4 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
@@ -659,7 +659,7 @@ public class UserInformationService(
                     FirstName = first,
                     LastName = last,
                     Organization = org,
-                    Affiliation = jobTitle
+                    //Affiliation = jobTitle
                 },
                 Email = email,
                 DisplayName = displayName,

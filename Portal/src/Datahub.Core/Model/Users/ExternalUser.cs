@@ -32,11 +32,6 @@ namespace Datahub.Core.Model.Users
         public required string Organization { get; set; }
 
         /// <summary>
-        /// Gets or sets the organization or group with which the entity is associated. This can be the role of the user within their organization.
-        /// </summary>
-        public required string Affiliation { get; set; }
-
-        /// <summary>
         /// Gets or sets the timestamp of the first login event for the external user. This is redundant with PortalUser but kept for historical tracking.
         /// </summary>
         public DateTimeOffset? FirstLoginDateTime { get; set; }

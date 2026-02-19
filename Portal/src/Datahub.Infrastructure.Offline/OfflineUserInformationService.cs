@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;

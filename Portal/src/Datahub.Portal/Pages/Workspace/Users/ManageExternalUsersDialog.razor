@@ -1,0 +1,100 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Mail
+@using Datahub.Application.Commands
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@using static Datahub.Portal.Pages.Workspace.Users.AddNewExternalUsersToProjectDialog
+@inject IMSGraphService _msGraphService
+@inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
+<MudDialog Style="min-width: 40vw; max-width: 75vw;">
+    <DialogContent>
+        <MudStack>
+            <MudText Class="py-2">@Localizer["Manage user"]</MudText>
+            <MudTextField T="string"
+                          Class="form-control"
+                          Value="updateUserModel.FirstName"
+                          ValueChanged="UserInfoChanged"
+                          Label="@Localizer["First Name"]"
+                          Required="true"
+                          RequiredError="@Localizer["Name is required"]"
+                          Variant="Variant.Outlined"/>
+            <MudTextField T="string"
+                          Class="form-control"
+                          Value="updateUserModel.LastName"
+                          ValueChanged="UserInfoChanged"
+                          Label="@Localizer["Last Name"]"
+                          Required="true"
+                          RequiredError="@Localizer["Name is required"]"
+                          Variant="Variant.Outlined" />
+            <MudTextField T="string"
+                          Class="form-control"
+                          Value="updateUserModel.Organization"
+                          ValueChanged="UserInfoChanged"
+                          Label="@Localizer["Organization"]"
+                          Required="true"
+                          RequiredError="@Localizer["Name is required"]"
+                          Variant="Variant.Outlined" />
+               
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+        <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled" Disabled="!_changed">@Localizer["Save changes"]</DHButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    #nullable enable
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public ExternalUser SelectedUser { get; set; } = null!;
+
+    [Parameter]
+    public PortalUser CurrentUser { get; set; } = null!;
+
+    private AddExternalUserModel updateUserModel = new AddExternalUserModel();
+    private bool _changed = false;
+
+
+    private void Cancel() => MudDialog.Cancel();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        updateUserModel.FirstName = SelectedUser.FirstName;
+        updateUserModel.LastName = SelectedUser.LastName;
+        updateUserModel.Organization = SelectedUser.Organization;
+    }
+
+    private async Task SaveUserChanges()
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        SelectedUser.Organization = "test";
+
+        context.Update(SelectedUser);
+        await context.SaveChangesAsync();
+        UpdateProject();
+    }
+
+    private void UpdateProject()
+    {
+        MudDialog.Close(DialogResult.Ok(SelectedUser));
+    }
+
+    private void UserInfoChanged()
+    {
+        _changed = true;
+    }
+
+
+
+
+}

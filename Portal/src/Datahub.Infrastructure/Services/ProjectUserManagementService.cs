@@ -75,6 +75,31 @@ public class ProjectUserManagementService : IProjectUserManagementService
         }
     }
 
+    public async Task<bool> ProcessProjectExternalUserCommandsAsync(List<ProjectUserAddExternalUserCommand> projectUserAddUserCommands, string requesterUserId)
+    {
+        // if there are no commands, return true
+        if (!projectUserAddUserCommands.Any())
+        {
+            return true;
+        }
+
+        try
+        {
+            if (projectUserAddUserCommands.Any())
+            {
+                await AddNewExternalUsersToProjectAsync(projectUserAddUserCommands);
+            }
+
+            //await PropagateUserUpdatesToExternalPermissions(projectUserUpdateCommands, projectUserAddUserCommands, requesterUserId);
+            return true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error updating project users");
+            return false;
+        }
+    }
+
     private async Task AddPortalUserRoleChangeAsync(PortalUserRoleChange roleChangeRecord)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
@@ -225,6 +250,49 @@ public class ProjectUserManagementService : IProjectUserManagementService
             }
 
             context.Attach(portalUser);
+
+            await context.TrackSaveChangesAsync(_datahubAuditingService);
+        }
+    }
+    private async Task AddNewExternalUsersToProjectAsync(List<ProjectUserAddExternalUserCommand> projectUserAddUserCommands)
+    {
+        foreach (var projectUserAddUserCommand in projectUserAddUserCommands)
+        {
+            if (projectUserAddUserCommand.RoleId == (int)Project_Role.RoleNames.Removed)
+            {
+                throw new InvalidOperationException("Cannot remove a user that is not already a member of the project");
+            }
+
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+
+            await _userEnrollmentService.SendExternalUserDatahubPortalInvite(projectUserAddUserCommand.Email, projectUserAddUserCommand.FirstName);
+
+            await using var context = await _contextFactory.CreateDbContextAsync();
+            var project = await context.Projects
+                .FirstOrDefaultAsync(p => p.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym);
+
+            // Verify that the project exists
+            if (project == null)
+            {
+                _logger.LogError("Project {ProjectAcronym} not found", projectUserAddUserCommand.ProjectAcronym);
+                throw new ProjectNotFoundException($"Project {projectUserAddUserCommand.ProjectAcronym} not found");
+            }
+
+
+            var projectUser = await context.UserRolesLinks
+                .FirstOrDefaultAsync(u => u.Project.Project_Acronym_CD == projectUserAddUserCommand.ProjectAcronym
+                                          && u.PortalUser.Email != null);
+
+            // Double check that the user is not already a member of the project
+
+
+            // If current user is not the user being added to the project
+            if (projectUser?.PortalUserId != currentUser.Id)
+            {
+                context.Attach(currentUser);
+            }
+
+            context.Attach(projectUserAddUserCommand);
 
             await context.TrackSaveChangesAsync(_datahubAuditingService);
         }

@@ -34,9 +34,9 @@ namespace Datahub.Core.Model.Users.Configuration
                 .IsRequired()
                 .HasMaxLength(255);
 
-            builder.Property(e => e.Affiliation)
-                .IsRequired()
-                .HasMaxLength(255);
+            //builder.Property(e => e.Affiliation)
+            //    .IsRequired()
+            //    .HasMaxLength(255);
 
             builder.Property(e => e.DeactivationReason)
                 .HasMaxLength(500);

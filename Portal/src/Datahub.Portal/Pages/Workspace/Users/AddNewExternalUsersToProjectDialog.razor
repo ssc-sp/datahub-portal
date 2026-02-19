@@ -1,0 +1,246 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Mail
+@using Datahub.Application.Commands
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@inject IMSGraphService _msGraphService
+@inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+
+<MudDialog Style="min-width: 40vw; max-width: 75vw;">
+    <DialogContent>
+        @if (_page == 1)
+        {
+          <MudForm Model="@addExternalUserModel" @bind-IsValid="@_successes[0]">
+          <MudStack>
+              <MudText Class="py-2">@Localizer["Enter the user's primary email address"]</MudText>
+          </MudStack>
+          <MudTextField Class="form-control"
+                        InputId="Email"
+                        @bind-Value="addExternalUserModel.Email"
+                          For="@(() => addExternalUserModel.Email)"
+                          Label="@Localizer["Email"]"
+                        Required="true"
+                        RequiredError="@Localizer["Email is required"]"
+                        Variant="Variant.Outlined" />
+            </MudForm>
+        }
+        @if (_page == 2)
+        {
+          <MudForm Model="@addExternalUserModel" @bind-IsValid="@_successes[1]">
+          <MudStack>
+            <MudText Class="py-2">@Localizer["Enter the user details"]</MudText>
+          </MudStack>
+          <MudTooltip Text="First Name">
+              <MudTextField Class="form-control"
+                            @bind-Value="addExternalUserModel.FirstName"
+                            For="@(() => addExternalUserModel.FirstName)"
+                            Label="@Localizer["First Name"]"
+                            Required="true"
+                            RequiredError="@Localizer["Name is required"]"
+                            Variant="Variant.Outlined" />
+                </MudTooltip>
+                <MudTextField Class="form-control"
+                              @bind-Value="addExternalUserModel.LastName"
+                              For="@(() => addExternalUserModel.LastName)"
+                              Label="@Localizer["Last Name"]"
+                              Required="true"
+                              RequiredError="@Localizer["Name is required"]"
+                              Variant="Variant.Outlined" />
+                <MudTextField Class="form-control"
+                              @bind-Value="addExternalUserModel.Affiliation"
+                              Label="@Localizer["Affiliation"]"
+                              Required="true"
+                              RequiredError="@Localizer["Name is required"]"
+                              Variant="Variant.Outlined" />
+                <MudTextField Class="form-control"
+                              @bind-Value="addExternalUserModel.Organization"
+                              Label="@Localizer["Organization"]"
+                              Required="true"
+                              RequiredError="@Localizer["Name is required"]"
+                              Variant="Variant.Outlined" />
+                <MudTextField Class="form-control"
+                              InputId="Email"
+                              Value="addExternalUserModel.Email"
+                              For="@(() => addExternalUserModel.Email)"
+                              Label="@Localizer["Email"]"
+                              Required="true"
+                              RequiredError="@Localizer["Email is required"]"
+                              Variant="Variant.Outlined" />
+                <MudDatePicker Label="Account Expiry"
+                               @bind-Date="addExternalUserModel.AccountExpiry"
+                               Required="true"
+                               ShowToolbar="false" />
+            </MudForm>
+        }
+        @if (_page == 3)
+        {
+          <MudForm Model="@addExternalUserModel" @bind-IsValid="@_successes[2]">
+            <MudStack>
+                <MudText Class="py-2">@Localizer["Define Collaboration Objectives (Mandatory)"]</MudText>
+            </MudStack>
+            <MudInput Class="form-control"
+                      @bind-value="addExternalUserModel.CollaborationObjectives"
+                      For="@(() => addExternalUserModel.CollaborationObjectives)"
+                      Placeholder="@Localizer["e.g. Define external user models and collaborate on compliance"]"
+                      Required="true"
+                      RequiredError="@Localizer["Objectives are required"]"
+                      Variant="Variant.Outlined"
+                      Lines="5"/>
+            </MudForm>
+        }
+        @if (_page == 4)
+        {
+            <EditForm Model="@addExternalUserModel" OnValidSubmit="AddExternalUser">
+            <DataAnnotationsValidator />
+            <MudStack>
+                <MudText Class="py-2" Typo="Typo.h5">@Localizer["Review user to be added"]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["Name:"]</MudText>
+                  <MudText>@Localizer[addExternalUserModel.FirstName] @Localizer[addExternalUserModel.LastName]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["Email:"]</MudText>
+                  <MudText>@Localizer[addExternalUserModel.Email]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["Affiliation:"]</MudText>
+                  <MudText>@Localizer[addExternalUserModel.Affiliation]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["Organization:"]</MudText>
+                  <MudText>@Localizer[addExternalUserModel.Organization]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["Account Expiry:"]</MudText>
+                  <MudText>@Localizer[addExternalUserModel.AccountExpiry.ToString()]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["Collaboration Objectives:"]</MudText>
+                  <MudText>@Localizer[addExternalUserModel.CollaborationObjectives]</MudText>
+            </MudStack>
+            </EditForm>
+        }
+    </DialogContent>
+    <DialogActions>
+        <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+        @if (_page > 1)
+        {
+            <DHButton Color="Color.Default" OnClick="BackPage" Variant="Variant.Filled">@Localizer["Back"]</DHButton>
+        }
+        @if (_page < 4)
+        {
+            <DHButton Color="Color.Primary" OnClick="NextPage" Variant="Variant.Filled" Disabled="@(!(_successes[_page-1]))">@Localizer["Next"]</DHButton>
+        }
+        @if (_page == 4)
+        {
+            <DHButton Color="Color.Primary" OnClick="AddExternalUser" Variant="Variant.Filled">@Localizer["Send user invite"]</DHButton>
+        }
+    </DialogActions>
+</MudDialog>
+
+<style>
+    .role-dropdown {
+        min-width: 150px;
+        max-width: 200px;
+    }
+
+    .user-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .user-table th, .user-table td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .user-table th {
+            background-color: var(--mud-palette-background-gray);
+        }
+</style>
+
+@code {
+    #nullable enable
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public string ProjectAcronym { get; set; } = null!;
+
+    [Parameter]
+    public PortalUser Inviter { get; set; } = null!;
+
+    [Parameter]
+    public List<UserRoleLinks> CurrentProjectUsers { get; set; } = new();
+
+    private readonly List<ProjectUserAddExternalUserCommand> _usersToAdd = new();
+
+    private int _page = 1;
+    private bool[] _successes = {false, false, false};
+
+    private void Cancel() => MudDialog.Cancel();
+
+
+    private AddExternalUserModel addExternalUserModel = new AddExternalUserModel();
+
+    private void NextPage()
+    {
+        _page++;
+    }
+    private void BackPage()
+    {
+        _page--;
+    }
+
+    internal void AddExternalUser()
+    {
+        if (_usersToAdd.Any(userInList => userInList.Email.Equals(addExternalUserModel.Email, StringComparison.OrdinalIgnoreCase)))
+        {
+            Console.WriteLine("already in file");
+            return;
+        }
+
+        var addUserCommand = new ProjectUserAddExternalUserCommand()
+        {
+            ProjectAcronym = ProjectAcronym,
+            Email = addExternalUserModel.Email,
+            FirstName = addExternalUserModel.FirstName,
+            LastName = addExternalUserModel.LastName,
+            CollaborationObjectives = addExternalUserModel.CollaborationObjectives,
+            RoleId = 5,
+        };
+
+        _usersToAdd.Add(addUserCommand);
+        StateHasChanged();
+        UpdateProject();
+    }
+
+    private void UpdateProject()
+    {
+        MudDialog.Close(DialogResult.Ok(_usersToAdd));
+    }
+
+    private static string GetListText(ProjectUserAddExternalUserCommand projectUserAddUserCommand)
+    {
+        return $"{projectUserAddUserCommand.FirstName}";
+    }
+
+    public class AddExternalUserModel
+    {
+        [Required(ErrorMessage = "Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid email address.")]
+        public string Email { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "First name is required.")]
+        public string FirstName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Last name is required.")]
+        public string LastName { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Affiliation is required.")]
+        public string Affiliation { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Organization is required.")]
+        public string Organization { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Expiry date is required.")]
+        public DateTime? AccountExpiry { get; set; } = DateTime.Today;
+
+        [Required(ErrorMessage = "Collaboration objectives are required.")]
+        public string CollaborationObjectives { get; set; } = string.Empty;
+    }
+
+}

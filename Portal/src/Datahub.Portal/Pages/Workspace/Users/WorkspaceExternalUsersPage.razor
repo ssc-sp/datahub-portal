@@ -1,0 +1,306 @@
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Pages.Tools.Users
+@using MudBlazor.Utilities
+@using Datahub.Portal.Components.User
+@using Datahub.Application.Commands
+@using Datahub.Application.Services.UserManagement
+@using static Datahub.Portal.Pages.Workspace.Users.AddNewExternalUsersToProjectDialog
+
+@inject IDatahubAuditingService _datahubAuditingService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+
+@if (_updateInProgress)
+{
+    <DHLoadingInitializer />
+}
+
+@if (_usersToAdd.Any())
+  {
+          <DHButton Variant="Variant.Outlined" Color="Color.Primary" Disabled="@(_updateInProgress || _validationErrorMessage is not null)" OnClick="SaveChanges" Tag=@("SaveChanges")>
+            @Localizer["Save Changes"]
+          </DHButton>
+  }
+
+<MudStack>
+  <MudStack Row Class="mt-6 mb-4">
+      <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
+      <MudSpacer />
+      <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+          <DHButton Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenInviteUserDialog">
+              @Localizer["Add user"]
+          </DHButton>
+      </DatahubAuthView>
+  </MudStack>
+  @if(_externalUsers is not null && _externalUsers.Any())
+  {
+        <MudTable Items="@_externalUsers">
+      <ToolBarContent>
+          <MudText Typo="Typo.h3">External Users</MudText>
+      </ToolBarContent>
+      <HeaderContent>
+          <MudTh>@Localizer["Name"]</MudTh>
+          <MudTh>@Localizer["Email"]</MudTh>
+          <MudTh>@Localizer["Organization"]</MudTh>
+          <MudTh>@Localizer["Status"]</MudTh>
+          <MudTh>@Localizer["Account Expiry"]</MudTh>
+          <MudTh>@Localizer["Actions"]</MudTh>
+      </HeaderContent>
+      <RowTemplate Context="rowContext">
+          <MudTd>
+              <MudStack Row AlignItems="AlignItems.Center">
+                  <MudText>
+                    <strong>
+                      @(rowContext.FirstName)
+                      </strong>
+                  </MudText>
+              </MudStack>
+          </MudTd>
+          <MudTd>
+              <MudStack Row AlignItems="AlignItems.Center">
+                  <MudText>
+                      @rowContext.LastName
+                  </MudText>
+              </MudStack>
+          </MudTd>
+          <MudTd>
+              <MudStack Row AlignItems="AlignItems.Center">
+                  <MudText>
+                      @rowContext.Organization
+                  </MudText>
+              </MudStack>
+          </MudTd>
+          <MudTd>
+              <MudStack Row AlignItems="AlignItems.Center">
+                  <MudText>
+                            @if(rowContext.UserDeactivatedAt is not null)
+                            {
+                                <MudChip T="string" Color="Color.Error" Variant="Variant.Text">@Localizer["Deactivated"]</MudChip>
+                            }
+                            else if(rowContext.FirstLoginDateTime is null)
+                            {
+                                <MudChip T="string" Color="Color.Warning" Variant="Variant.Text">@Localizer["Pending Invite"]</MudChip>
+                            }
+                            else
+                            {
+                                <MudChip T="string" Color="Color.Primary" Variant="Variant.Text">@Localizer["Active"]</MudChip>
+                            }
+                        </MudText>
+              </MudStack>
+          </MudTd>
+          <MudTd>
+              <MudStack Row AlignItems="AlignItems.Center">
+                  <MudText>
+                            @if (rowContext.UserExpiryDate is null)
+                            {
+                                @Localizer["N/A"]
+                            }
+                            else
+                            {
+                              @rowContext.LastLoginDateTime
+                            }
+                  </MudText>
+              </MudStack>
+          </MudTd>
+            <MudTd>
+                <MudStack Row AlignItems="AlignItems.Center">
+                        <DHButton OnClick="() => OpenManageUserDialog(rowContext)">@Localizer["View/Edit"]</DHButton>
+                    @if(rowContext.UserDeactivatedAt is null)
+                    {
+                            <DHButton OnClick="() => OpenDeactivateUserDialog(rowContext)">@Localizer["Deactivate User"]</DHButton>
+                    }
+                    else
+                    {
+                            <DHButton OnClick="() => ReactivateUser(rowContext)">Reactivate User</DHButton>
+                    }
+                    </MudStack>
+            </MudTd>
+      </RowTemplate>
+      <PagerContent>
+          <MudTablePager />
+      </PagerContent>
+  </MudTable>
+  }
+</MudStack>
+
+
+@code {
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+
+    private string _filterString = null;
+    private string _tabStyle;
+
+    private bool _updateInProgress = true;
+    private bool _loading = true;
+    private bool _deactivatingUser = false;
+
+    private List<UserRoleLinks> _projectUsers;
+    private List<UserRoleLinks> _projectExternalUsers;
+    private List<ExternalUser> _externalUsers;
+    private List<ExternalUserTableRow> _externalUserTableRow = new();
+    private List<WorkspaceUserInfo> _originalUserInfo = new();
+    private readonly List<ProjectUserAddExternalUserCommand> _usersToAdd = new();
+
+    private int _allCount => _projectExternalUsers?.Count(x => x.Role?.Id == (int)Project_Role.RoleNames.Admin) ?? 0;
+
+    private string _modifiedCellStyle;
+
+    private string? _validationErrorMessage = null;
+    private string _deactivateUserButton = "Deactivate User";
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await InitializedProjectMembers();
+        _loading = false;
+    }
+    private async Task InitializedProjectMembers()
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        _externalUsers = await context.ExternalUsers.ToListAsync();
+
+        var portalExternalUsers = await context.PortalUsers.Where(u => u.ExternalUserId != null).ToListAsync();
+
+        for(int i=0; i< portalExternalUsers.Count; i++)
+        {
+            _externalUserTableRow.Add(new ExternalUserTableRow(_externalUsers[0], portalExternalUsers[0]));
+        }
+
+
+        _updateInProgress = false;
+
+    }
+
+    private async Task OpenInviteUserDialog()
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+        var dialogParameters = new DialogParameters
+        {
+            { "CurrentProjectUsers", _projectUsers.Where(x => x.Role.Id != (int)Project_Role.RoleNames.Removed).ToList() },
+            { "ProjectAcronym", WorkspaceAcronym },
+            { "Inviter", currentUser }
+        };
+        var dialog = await _dialogService.ShowAsync<AddNewExternalUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is not List<ProjectUserAddExternalUserCommand> userAddUserCommands)
+            {
+                _snackbar.Add(Localizer["Error inviting external users to workspace"], Severity.Error);
+            }
+            else
+            {
+                _usersToAdd.AddRange(userAddUserCommands
+                .Where(c =>
+                    !_usersToAdd.Any(x => x.Email.Equals(c.Email, StringComparison.InvariantCultureIgnoreCase)))
+                .ToList());
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task OpenDeactivateUserDialog(ExternalUser selectedUser)
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+        var dialogParameters = new DialogParameters
+        {
+            { "SelectedUser", selectedUser },
+            { "CurrentUser", currentUser }
+        };
+        var dialog = await _dialogService.ShowAsync<DisableExternalUserDialog>(Localizer["Deactivate user"], dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is not ExternalUser changedUser)
+            {
+                _snackbar.Add(Localizer["Error editing user"], Severity.Error);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["User deactivated"], Severity.Success);
+
+                StateHasChanged();
+            }
+        }
+    }
+    private async Task OpenManageUserDialog(ExternalUser selectedUser)
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+        var dialogParameters = new DialogParameters
+        {
+            { "SelectedUser", selectedUser },
+            { "CurrentUser", currentUser }
+        };
+        var dialog = await _dialogService.ShowAsync<ManageExternalUsersDialog>(Localizer["Deactivate user"], dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is not ExternalUser changedUser)
+            {
+                _snackbar.Add(Localizer["Error editing user"], Severity.Error);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["User profile updated"], Severity.Success);
+                
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task ReactivateUser(ExternalUser selectedUser)
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+
+        selectedUser.UserDeactivatedAt = null!;
+        selectedUser.DeactivationReason = string.Empty;
+
+        context.Update(selectedUser);
+        await context.SaveChangesAsync();
+
+        StateHasChanged();
+    }
+
+    private async Task SaveChanges()
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        if (_usersToAdd.Any())
+        {
+            _updateInProgress = true;
+            StateHasChanged();
+            await _projectUserManagementService.ProcessProjectExternalUserCommandsAsync(_usersToAdd, currentUser.Id.ToString());
+            _usersToAdd.Clear();
+        }
+        else
+        {
+            _snackbar.Add(Localizer["No changes to save"], Severity.Info);
+        }
+
+        _updateInProgress = false;
+        await InitializedProjectMembers();
+        StateHasChanged();
+    }
+
+    private class ExternalUserTableRow
+    {
+        public ExternalUser ExternalUserRow = null!;
+        public PortalUser PortalUserRow = null!;
+
+        public ExternalUserTableRow(ExternalUser e, PortalUser p)
+        {
+            ExternalUserRow = e;
+            PortalUserRow = p;
+        }
+    }
+
+}

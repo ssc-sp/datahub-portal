@@ -188,6 +188,7 @@
         public const string ArcGis = "arcgis";
         public const string Toolbox = "toolbox";
         public const string Users = "users";
+        public const string ExternalUsers = "externalusers";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
         public const string Healthcheck = "healthcheck";
@@ -222,6 +223,7 @@
     [
         SectionViews.Toolbox,
         SectionViews.Users,
+        SectionViews.ExternalUsers,
         SectionViews.Metadata,
         SectionViews.Reports,
         SectionViews.Healthcheck,
@@ -291,6 +293,7 @@
             SectionViews.DeleteWorkspace => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
+            SectionViews.ExternalUsers => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -376,6 +379,7 @@
             SectionViews.ArcGis => SidebarIcons.ArcGis,
             SectionViews.Toolbox => SidebarIcons.Toolbox,
             SectionViews.Users => SidebarIcons.Users,
+            SectionViews.ExternalUsers => SidebarIcons.ExternalUsers,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
             SectionViews.Healthcheck => SidebarIcons.HealthCheck,
@@ -399,6 +403,7 @@
             SectionViews.ArcGis => Localizer["ArcGIS"],
             SectionViews.Toolbox => Localizer["Toolbox"],
             SectionViews.Users => Localizer["Users"],
+            SectionViews.ExternalUsers => Localizer["External Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
             SectionViews.Healthcheck => Localizer["Health Check"],

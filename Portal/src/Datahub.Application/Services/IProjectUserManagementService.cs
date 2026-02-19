@@ -15,6 +15,9 @@ public interface IProjectUserManagementService
     /// <returns></returns>
     Task<bool> ProcessProjectUserCommandsAsync(List<ProjectUserUpdateCommand> projectUserUpdateCommands, List<ProjectUserAddEntraUserCommand> projectUserAddUserCommands, string requesterUserId);
 
+
+    Task<bool> ProcessProjectExternalUserCommandsAsync(List<ProjectUserAddExternalUserCommand> projectUserAddUserCommands, string requesterUserId);
+
     /// <summary>
     /// Gets all users in a project.
     /// </summary>

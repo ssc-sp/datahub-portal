@@ -116,6 +116,60 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         return id;
     }
 
+    public async Task<string> SendExternalUserDatahubPortalInvite(string? registrationRequestEmail, string? inviterName)
+    {
+        _logger.LogInformation("Sending invite");
+
+        var payload = new Dictionary<string, JsonNode>
+        {
+            ["email"] = registrationRequestEmail!,
+            ["inviter"] = inviterName!
+        };
+
+        var jsonBody = new JsonObject(payload!);
+        var url = _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl;
+
+        var numberOfRetries = 0;
+        const int maxNumberOfRetries = 5;
+        string id = string.Empty, resultString = string.Empty;
+
+        var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
+        do
+        {
+            try
+            {
+                using var client = _httpClientFactory.CreateClient();
+                var result = await client.PostAsync(url, content);
+                // ensure the result is ok
+                result.EnsureSuccessStatusCode();
+
+                resultString = await result.Content.ReadAsStringAsync();
+
+                var resultJson = JsonNode.Parse(resultString);
+                id = resultJson?["data"]?["id"]?.ToString() ?? string.Empty;
+
+                // try to see if function wrapped it in a "Value" object
+                if (string.IsNullOrWhiteSpace(id))
+                {
+                    id = resultJson?["Value"]?["data"]?["id"]?.ToString() ?? string.Empty;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to send invite - retrying");
+                await Task.Delay(1000);
+            }
+        } while (string.IsNullOrWhiteSpace(id) && numberOfRetries++ < maxNumberOfRetries);
+
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new InvalidOperationException($"No ID available in response '{resultString}' from {url}");
+        }
+
+        _logger.LogInformation("Invite sent and received id {Id}", id);
+        return id;
+    }
+
     public async Task<string> InviteUserToGroup(string userId)
     {
         if (string.IsNullOrWhiteSpace(userId))
