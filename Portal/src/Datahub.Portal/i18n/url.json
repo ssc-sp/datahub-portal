@@ -57,6 +57,8 @@
   "/locked": "/locked",
   "/account/-lt": "/compte",
   "/account-lt": "/compte",
+  "/gccf/logout": "/gccf/logout",
+  "/login": "/login",
   "https://documentation.sds.canada.ca/": "https://documentation.sds.canada.ca/en/",
   "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html": "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html",
   "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html": "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html",

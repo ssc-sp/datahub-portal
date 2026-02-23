@@ -58,6 +58,7 @@
   "/compte/-lt": "/account",
   "/access-denied": "/acces-refuse",
   "/gccf/logout": "/gccf/deconnexion",
+  "/login": "/connexion",
   "https://documentation.sds.canada.ca/": "https://documentation.sds.canada.ca/fr/",
   "https://documentation.sds.canada.ca/en/managing-workspaces-and-users/Preregistration.html": "https://documentation.sds.canada.ca/fr/gerer-espaces-et-utilisateurs/Preregistration.html",
   "https://documentation.sds.canada.ca/en/postgresql/Postgres-Add-User.html": "https://documentation.sds.canada.ca/fr/postgresql/Postgres-Ajouter-Utilisateur.html",
