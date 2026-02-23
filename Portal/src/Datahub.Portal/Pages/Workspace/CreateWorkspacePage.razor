@@ -12,38 +12,25 @@
 <PageTitle>@Localizer["Create a Workspace - Federal Science DataHub"]</PageTitle>
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <FSDHEnvironment Environments="@_environmentsToAllowCreation">
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ElevatedWorkspaceAccessEnabled="true">
-            <Authorized>
-                <CreateWorkspaceForm ShowAllCBRs />
-            </Authorized>
-            <NotAuthorized>
-                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.CbrOwner">
-                    <Authorized>
-                        <CreateWorkspaceForm />
-                    </Authorized>
-                    <NotAuthorized>
-                        <MudText Tag=NON_CBR_OWNER_MESSAGE_TAG>
-                            @Localizer["Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information."]
-                        </MudText>
-                    </NotAuthorized>
-                </DatahubAuthView>
-            </NotAuthorized>
-        </DatahubAuthView>
-    </FSDHEnvironment>
-    <FSDHEnvironment Environments="@_environmentsToShowDisabledMessage">
-        <MudAlert Severity="Severity.Warning" Dense="true" Class="my-2">
-            @Localizer["Workspace creation is disabled in this environment. Please contact FSDH support to create a workspace."]
-        </MudAlert>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ElevatedWorkspaceAccessEnabled="true">
-            <CreateWorkspaceForm ShowAllCBRs />
-        </DatahubAuthView>
-    </FSDHEnvironment>
+  <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport" ElevatedWorkspaceAccessEnabled="true">
+    <Authorized>
+      <CreateWorkspaceForm ShowAllCBRs />
+    </Authorized>
+    <NotAuthorized>
+      <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.CbrOwner">
+        <Authorized>
+          <CreateWorkspaceForm />
+        </Authorized>
+        <NotAuthorized>
+          <MudText Tag=NON_CBR_OWNER_MESSAGE_TAG>
+            @Localizer["Workspaces may only be created through GC Hosting or with an existing CBR. Please contact your workspace lead or the FSDH support team for more information."]
+          </MudText>
+        </NotAuthorized>
+      </DatahubAuthView>
+    </NotAuthorized>
+  </DatahubAuthView>
 </DatahubAuthView>
 
 @code {
-    public const string NON_CBR_OWNER_MESSAGE_TAG = "NonCbrOwnerMessage";
-
-    private List<TopBarEnvironments> _environmentsToShowDisabledMessage = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Production, TopBarEnvironments.ProductionProtected };
-    private List<TopBarEnvironments> _environmentsToAllowCreation = new List<TopBarEnvironments> { TopBarEnvironments.Development, TopBarEnvironments.Integration, TopBarEnvironments.ProofOfConcept, TopBarEnvironments.QualityControl };
+  public const string NON_CBR_OWNER_MESSAGE_TAG = "NonCbrOwnerMessage";
 }
