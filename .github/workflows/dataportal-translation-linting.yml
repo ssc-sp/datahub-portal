@@ -60,7 +60,6 @@ jobs:
 
               # Search for the regex pattern in the file
               if grep -qP "$pattern" "$file"; then
-                  echo "Pattern found in file: $relative_file"
                   matching_files+=("$file")
               fi
           done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
@@ -73,10 +72,8 @@ jobs:
             # Extract the relative path (strip the target_path)
             relative_file="${file#$target_path/}"
 
-            echo "Checking translations in file: $relative_file"
-
             # Extract Localizer keys from the file (line-delimited)
-            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\])' "$file" | sort | uniq)
+            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\]|",)' "$file" | sort | uniq)
             
             # Process each key line by line
             while IFS= read -r key; do
