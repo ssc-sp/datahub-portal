@@ -77,9 +77,6 @@ jobs:
             
             # Process each key line by line
             while IFS= read -r key; do
-                # Shorten the key to the first 5 words inline using awk
-                shortened_key=$(echo "$key" | awk '{if (NF>5) {for(i=1;i<=5;i++) printf $i " "; print "..."} else print $0}')
-
                 # Check if the key exists in any English JSON file
                 english_found=0
                 for file_base in "${translation_files[@]}"; do
@@ -92,7 +89,7 @@ jobs:
                 done
 
                 if [ "$english_found" -eq 0 ]; then
-                    echo "Error: Missing English translation for key '$shortened_key' in file '$relative_file'"
+                    echo "Error: Missing English translation for key '$key' in file '$relative_file'"
                     error_found=1
                 fi
 
@@ -108,7 +105,7 @@ jobs:
                 done
 
                 if [ "$french_found" -eq 0 ]; then
-                    echo "Error: Missing French translation for key '$shortened_key' in file '$relative_file'"
+                    echo "Error: Missing French translation for key '$key' in file '$relative_file'"
                     error_found=1
                 fi
             done <<< "$keys"
