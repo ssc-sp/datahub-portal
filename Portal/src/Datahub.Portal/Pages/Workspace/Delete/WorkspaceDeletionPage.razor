@@ -1,4 +1,4 @@
-﻿@namespace Datahub.Portal.Pages.Workspace.Delete
+@namespace Datahub.Portal.Pages.Workspace.Delete
 
 @using Datahub.Application.Services
 @using Datahub.Core.Extensions;
@@ -166,7 +166,7 @@
         }
         else
         {
-            var message = string.Format(Localizer["Are you sure you want to delete the workspace \"{0}\"?"], WorkspaceAcronym);
+            var message = string.Format(Localizer["Are you sure you want to delete the workspace {0}?"], WorkspaceAcronym);
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
 
