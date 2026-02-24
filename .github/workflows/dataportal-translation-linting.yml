@@ -75,7 +75,7 @@ jobs:
 
               # Extract Localizer keys from the file (line-delimited)
               keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\]|",)' "$file" | sort | uniq)
-              
+
               # Process each key line by line
               while IFS= read -r key; do
                   # Check if the key exists in any English JSON file
