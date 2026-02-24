@@ -1,3 +1,4 @@
+---
 name: Check Translations
 
 on:
@@ -39,11 +40,11 @@ jobs:
           declare -A french_jsons
 
           for file_base in "${translation_files[@]}"; do
-              if [ -f "$target_path/i18n/${file_base}.json" ]; then
-                  english_jsons[$file_base]=$(cat "$target_path/i18n/${file_base}.json" | jq -r '.')
+              if [ -f "${target_path}/i18n/${file_base}.json" ]; then
+                  english_jsons[$file_base]=$(cat "${target_path}/i18n/${file_base}.json" | jq -r '.')
               fi
-              if [ -f "$target_path/i18n/${file_base}.fr.json" ]; then
-                  french_jsons[$file_base]=$(cat "$target_path/i18n/${file_base}.fr.json" | jq -r '.')
+              if [ -f "${target_path}/i18n/${file_base}.fr.json" ]; then
+                  french_jsons[$file_base]=$(cat "${target_path}/i18n/${file_base}.fr.json" | jq -r '.')
               fi
           done
 
