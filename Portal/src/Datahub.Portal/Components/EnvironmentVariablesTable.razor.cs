@@ -108,11 +108,6 @@ namespace Datahub.Portal.Components
         {
             return key.ToLower().Replace("_", "-");
         }
-        
-        private string ToEnvironmentVariableName(string key)
-        {
-            return key.ToUpper().Replace("-", "_");
-        }
 
         private void HandleCommitEditClicked(MouseEventArgs args)
         {
