@@ -166,7 +166,7 @@ jobs:
               if grep -qP "$pattern" "$file"; then
                   matching_files+=("$file")
               fi
-          done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \ ))
+          done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
 
         # Now, we will search for extra translations in the JSON files that are not used in the matched files
         error_found=0  # Variable to track if an error is found
