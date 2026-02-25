@@ -63,6 +63,7 @@ public class ErrorBoundaryTests
     private readonly Mock<IStringLocalizer> _stringLocalizerMock;
     private readonly Mock<ISessionStorageService> _sessionStorageMock;
     private readonly Mock<IServiceAuthManager> _serviceAuthManager;
+    private readonly Mock<ILockedUserManagementService> _lockedUserManagementServiceMock;
 
     public ErrorBoundaryTests()
     {
@@ -97,6 +98,9 @@ public class ErrorBoundaryTests
         _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
         _sessionStorageMock = new Mock<ISessionStorageService> { CallBase = false };
         _serviceAuthManager = new Mock<IServiceAuthManager>();
+        _lockedUserManagementServiceMock = new Mock<ILockedUserManagementService>();
+        _lockedUserManagementServiceMock.Setup(x => x.IsUserLockedAsync(It.IsAny<int>(), null))
+            .ReturnsAsync(false);
         _serviceAuthManager.Setup(x => x.GetEntraUserAuthorizations(It.IsAny<string>()))
             .ReturnsAsync(System.Collections.Immutable.ImmutableList<(Project_Role Role, Datahub_Project Project)>.Empty);
         _hostingMock = Substitute.For<IWebHostEnvironment>();
@@ -155,9 +159,9 @@ public class ErrorBoundaryTests
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
 
-    await using var ctx = new Bunit.BunitContext();
-    ctx.Services.AddSingleton(_dbConextFactoryMock);
-    ctx.Services.AddSingleton<IConfiguration>(configuration);
+        await using var ctx = new Bunit.BunitContext();
+        ctx.Services.AddSingleton(_dbConextFactoryMock);
+        ctx.Services.AddSingleton<IConfiguration>(configuration);
         ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
         ctx.Services.AddSingleton(_auditingServiceMock.Object);
@@ -175,6 +179,7 @@ public class ErrorBoundaryTests
         ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
         ctx.Services.AddSingleton(_sessionStorageMock.Object);
         ctx.Services.AddSingleton(_serviceAuthManager.Object);
+        ctx.Services.AddSingleton(_lockedUserManagementServiceMock.Object);
         ctx.Services.AddSingleton(_authorizationPolicyProvider.Object);
         ctx.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
         ctx.Services.AddAuthorizationCore();
