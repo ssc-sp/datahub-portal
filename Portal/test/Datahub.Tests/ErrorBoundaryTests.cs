@@ -1,14 +1,21 @@
-﻿using Blazored.LocalStorage;
+using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Bunit;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Achievements;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data.Databricks;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
@@ -16,7 +23,9 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Portal.Layout;
 using Datahub.Tests.Portal;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
@@ -29,9 +38,6 @@ using Moq;
 using MudBlazor;
 using MudBlazor.Services;
 using NSubstitute;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace Datahub.Tests;
@@ -41,6 +47,7 @@ public class ErrorBoundaryTests
     private readonly IDbContextFactory<DatahubProjectDBContext> _dbConextFactoryMock;
     private readonly IWebHostEnvironment _hostingMock;
     private readonly Mock<IDatahubCatalogSearch> _datahubCatalogSearchMock;
+    private readonly Mock<IAuthorizationPolicyProvider> _authorizationPolicyProvider;
     private readonly Mock<IDatahubAuditingService> _auditingServiceMock;
     private readonly Mock<IUserInformationService> _userInformationMock;
     private readonly Mock<IUserSettingsService> _userSettingsMock;
@@ -55,14 +62,28 @@ public class ErrorBoundaryTests
     private readonly Mock<IPortalUserTelemetryService> _portalUserTelemetryServiceMock;
     private readonly Mock<IStringLocalizer> _stringLocalizerMock;
     private readonly Mock<ISessionStorageService> _sessionStorageMock;
+    private readonly Mock<IServiceAuthManager> _serviceAuthManager;
 
     public ErrorBoundaryTests()
     {
         _dbConextFactoryMock = new MockProjectDbContextFactory();
         _auditingServiceMock = new Mock<IDatahubAuditingService>();
         _datahubCatalogSearchMock = new Mock<IDatahubCatalogSearch>();
+        _authorizationPolicyProvider = new Mock<IAuthorizationPolicyProvider>();
         //_hostingMock = new Mock<IWebHostEnvironment>();
         _userInformationMock = new Mock<IUserInformationService>();
+        _userInformationMock.Setup(x => x.GetCurrentPortalUserAsync()).ReturnsAsync(new PortalUser
+        {
+            Id = 1,
+            Email = "john.doe@ssc-spc.gc.ca",
+            DisplayName = "Test User",
+            EntraUser = new EntraUser
+            {
+                GraphGuid = Guid.NewGuid().ToString(),
+                PortalUser = null!
+            }
+        });
+        _userInformationMock.Setup(x => x.IsEntraUser()).ReturnsAsync(true);
         _userSettingsMock = new Mock<IUserSettingsService>();
         _cultureServiceMock = new Mock<ICultureService>();
         _httpContextAccessorMock =new Mock<IHttpContextAccessor>() { CallBase = true };
@@ -75,8 +96,24 @@ public class ErrorBoundaryTests
         _portalUserTelemetryServiceMock = new Mock<IPortalUserTelemetryService>();
         _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
         _sessionStorageMock = new Mock<ISessionStorageService> { CallBase = false };
-
+        _serviceAuthManager = new Mock<IServiceAuthManager>();
+        _serviceAuthManager.Setup(x => x.GetEntraUserAuthorizations(It.IsAny<string>()))
+            .ReturnsAsync(System.Collections.Immutable.ImmutableList<(Project_Role Role, Datahub_Project Project)>.Empty);
         _hostingMock = Substitute.For<IWebHostEnvironment>();
+    }
+
+    private sealed class TestAuthStateProvider : AuthenticationStateProvider
+    {
+        public override Task<AuthenticationState> GetAuthenticationStateAsync()
+        {
+            var identity = new ClaimsIdentity(new[]
+            {
+                new Claim(ClaimTypes.Name, "test.user@ssc-spc.gc.ca")
+            }, "TestAuthType");
+
+            var user = new ClaimsPrincipal(identity);
+            return Task.FromResult(new AuthenticationState(user));
+        }
     }
 
     [Fact]
@@ -118,9 +155,9 @@ public class ErrorBoundaryTests
         var datahubPortalConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubPortalConfiguration);
 
-        using var ctx = new Bunit.BunitContext();
-        ctx.Services.AddSingleton(_dbConextFactoryMock); 
-        ctx.Services.AddSingleton<IConfiguration>(configuration);
+    await using var ctx = new Bunit.BunitContext();
+    ctx.Services.AddSingleton(_dbConextFactoryMock);
+    ctx.Services.AddSingleton<IConfiguration>(configuration);
         ctx.Services.AddSingleton(datahubPortalConfiguration);
         ctx.Services.AddSingleton(_datahubCatalogSearchMock.Object);
         ctx.Services.AddSingleton(_auditingServiceMock.Object);
@@ -137,15 +174,25 @@ public class ErrorBoundaryTests
         ctx.Services.AddSingleton(_stringLocalizerMock.Object);
         ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
         ctx.Services.AddSingleton(_sessionStorageMock.Object);
+        ctx.Services.AddSingleton(_serviceAuthManager.Object);
+        ctx.Services.AddSingleton(_authorizationPolicyProvider.Object);
+        ctx.Services.AddScoped<AuthenticationStateProvider, TestAuthStateProvider>();
+        ctx.Services.AddAuthorizationCore();
+        var authContext = ctx.AddAuthorization();
+        authContext.SetAuthorizing();
         ctx.Services.AddMudServices();
 
-        // Act
-        var cut = ctx.Render<PortalLayout>();
+        // Act - wrap PortalLayout in CascadingAuthenticationState so AuthorizeView gets AuthenticationState
+        var cut = ctx.Render<CascadingAuthenticationState>(parameters =>
+        {
+            parameters.AddChildContent<PortalLayout>();
+        });
 
-        await cut.Instance.ReportIssue(ex, corrlationId);
+        var portalLayout = cut.FindComponent<PortalLayout>();
+        await portalLayout.Instance.ReportIssue(ex, corrlationId);
 
         await ctx.DisposeComponentsAsync();
-        await ctx.DisposeAsync();
+        // Note: Do not call ctx.Dispose() here as BunitContext is being asynchronously disposed via await using
         _mediatrMock.Verify(m => m.Send(It.IsAny<BugReportMessage>(), default), Times.Once);
     }
 }
