@@ -357,9 +357,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     else
                     {
                         string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                        string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
-
-                        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+                        var projectStorageManager = new AzureCloudStorageManager(accountName, new DefaultAzureCredential());
 
                         if (projectStorageManager is null)
                         {

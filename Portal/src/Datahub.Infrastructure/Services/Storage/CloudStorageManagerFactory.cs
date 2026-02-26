@@ -1,6 +1,7 @@
 ﻿using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
+using Azure.Identity;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 
@@ -88,7 +89,7 @@ namespace Datahub.Infrastructure.Services.Storage
                 var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AZ_AccountName] : name;
 
                 ICloudStorageManager storageManager = enabled ?
-                    new AzureCloudStorageManager(connectionData[AZ_AccountName], connectionData[AZ_AccountKey], stAccountName) :
+                    new AzureCloudStorageManager(connectionData[AZ_AccountName], new DefaultAzureCredential(), stAccountName) :
                     new DisabledCloudStorageManager(CloudStorageProviderType.Azure, stAccountName);
 
                 return storageManager;

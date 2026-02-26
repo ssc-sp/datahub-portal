@@ -1,13 +1,13 @@
 ﻿using Azure.Core;
-using Azure.Identity;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
-using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Web;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -15,22 +15,23 @@ public class DataLakeClientService
 {
     private const string DatahubSecretName = "Datahub-StorageDL-Secret";
     private ILogger<DataLakeClientService> _logger;
-    private IKeyVaultService _keyVaultService;
+    private readonly ITokenAcquisition _tokenAcquisition;
+    private readonly IUserInformationService _userInformationService;
     private IOptions<APITargets> _targets;
-    private StorageSharedKeyCredential _sharedKeyCredential;
     private TokenCredential _tokenCredential;
     private Dictionary<string, DataLakeServiceClient> _projectServiceClients;
     private BlobServiceClient _blobServiceClient;
 
     public DataLakeClientService(ILogger<DataLakeClientService> logger,
-        IKeyVaultService keyVaultService,
+        ITokenAcquisition tokenAcquisition,
+        IUserInformationService userInformationService,
         IOptions<APITargets> targets
     )
     {
         _logger = logger;
-        _keyVaultService = keyVaultService;
+        _tokenAcquisition = tokenAcquisition;
+        _userInformationService = userInformationService;
         _targets = targets;
-        _tokenCredential = new DefaultAzureCredential();
     }
 
     private DataLakeServiceClient dataLakeServiceClient { get; set; }
@@ -38,7 +39,8 @@ public class DataLakeClientService
     
     private async Task SetDataLakeServiceClient()
     {
-        // Use TokenCredential (DefaultAzureCredential) for User Delegation SAS
+        await EnsureTokenCredentialAsync();
+
         string dfsUri = $"https://{_targets.Value.StorageAccountName}.dfs.core.windows.net";
         dataLakeServiceClient = new DataLakeServiceClient(new Uri(dfsUri), _tokenCredential);
         dataLakeFileSystemClient = dataLakeServiceClient.GetFileSystemClient(_targets.Value.FileSystemName);
@@ -48,27 +50,41 @@ public class DataLakeClientService
         _blobServiceClient = new BlobServiceClient(new Uri(blobUri), _tokenCredential);
     }
 
-    [Obsolete("Use GetTokenCredential instead for User Delegation SAS")]
-    public async Task<StorageSharedKeyCredential> GetSharedKeyCredential(string project)
+    private async Task EnsureTokenCredentialAsync()
     {
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        envName = envName != null ? envName.ToLower() : "dev";
-        if (envName.Equals("development"))
+        if (_tokenCredential is not null)
         {
-            envName = "dev";
+            return;
         }
 
-        var key = $"datahub-blob-key-{project}";
-        var storageAccountName = $"dh{project}{envName}";
-        var datalakeSecret = await _keyVaultService.GetSecret(key);
-        return new StorageSharedKeyCredential(storageAccountName, datalakeSecret);
+        await GetStorageAccessTokenAsync();
+        _tokenCredential = new DelegatedUserTokenCredential(GetStorageAccessTokenAsync);
     }
 
-    [Obsolete("Use GetTokenCredential instead for User Delegation SAS")]
-    public async Task<StorageSharedKeyCredential> GetSharedKeyCredential()
+    private async Task<string> GetStorageAccessTokenAsync()
     {
-        await CheckClients();
-        return _sharedKeyCredential;
+        var user = await _userInformationService.GetAuthenticatedUser();
+        var scopes = new[] { "https://storage.azure.com/user_impersonation" };
+
+        return await _tokenAcquisition.GetAccessTokenForUserAsync(
+            scopes,
+            authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
+            user: user);
+    }
+
+    private sealed class DelegatedUserTokenCredential(Func<Task<string>> tokenFactory) : TokenCredential
+    {
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var token = tokenFactory().GetAwaiter().GetResult();
+            return new AccessToken(token, DateTimeOffset.UtcNow.AddMinutes(50));
+        }
+
+        public override async ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        {
+            var token = await tokenFactory();
+            return new AccessToken(token, DateTimeOffset.UtcNow.AddMinutes(50));
+        }
     }
 
     /// <summary>

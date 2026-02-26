@@ -10,6 +10,7 @@ using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Metadata.DTO;
 using Datahub.Metadata.Utils;
+using Azure.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Infrastructure.Services.Publishing;
@@ -96,8 +97,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         else
         {
             var accountName = projectStorageConfigService.GetProjectStorageAccountName(projectAcronym);
-            var accountKey = await projectStorageConfigService.GetProjectStorageAccountKey(projectAcronym);
-            var storageManager = new AzureCloudStorageManager(accountName, accountKey);
+            var storageManager = new AzureCloudStorageManager(accountName, new DefaultAzureCredential());
             return await Task.FromResult(storageManager);
         }
     }

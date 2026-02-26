@@ -37,14 +37,26 @@ namespace Datahub.Functions.UnitTests.Functions
         }
 
         [TearDown]
-        [OneTimeTearDown]
         public void TearDown()
         {
-            if (_dbContext!=null)
+            if (_dbContext != null)
             {
-                _dbContext.Database.EnsureDeleted();
+                try
+                {
+                    _dbContext.Database.EnsureDeleted();
+                }
+                catch (ObjectDisposedException)
+                {
+                }
+
                 _dbContext.Dispose();
+                _dbContext = null!;
             }
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
             _loggerFactory?.Dispose();
         }
 
