@@ -1,6 +1,4 @@
 ﻿using Azure.Core;
-using Azure.Identity;
-using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
@@ -19,38 +17,18 @@ namespace Datahub.Infrastructure.Services.Storage;
 public class AzureCloudStorageManager : ICloudStorageManager
 {
     private readonly string _accountName;
-    private readonly string? _accountKey;
-    private readonly TokenCredential? _tokenCredential;
+    private readonly TokenCredential _tokenCredential;
     private readonly bool _inboxAccount;
-    private readonly string? _connectionString;
     private readonly string _displayName;
-    private readonly bool _useUserDelegationSas;
 
     public bool IsInboxAccount => _inboxAccount;
 
-    public AzureCloudStorageManager(string accountName, string accountKey, string? displayName = default)
-        : this(accountName, displayName)
-    {
-        _accountKey = accountKey;
-        _tokenCredential = null;
-        _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
-        _useUserDelegationSas = false;
-    }
-
     public AzureCloudStorageManager(string accountName, TokenCredential tokenCredential, string? displayName = default)
-        : this(accountName, displayName)
-    {
-        _accountKey = null;
-        _tokenCredential = tokenCredential;
-        _connectionString = null;
-        _useUserDelegationSas = true;
-    }
-
-    private AzureCloudStorageManager(string accountName, string? displayName)
     {
         _accountName = accountName;
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
+        _tokenCredential = tokenCredential;
     }
 
     public async Task<List<string>> GetContainersAsync()
@@ -87,8 +65,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
     {
         ValidateContainerName(container);
 
-        EnsureUserDelegationSasEnabled();
-
         var containerClient = GetBlobContainerClient(container);
         var sasBuilder = GetContainerSasBuild(container, timeSpan, BlobSasPermissions.All);
 
@@ -111,8 +87,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<Uri> DownloadFileAsync(string container, string filePath)
     {
-        EnsureUserDelegationSasEnabled();
-
         var containerClient = GetBlobContainerClient(container);
         var sasBuilder = GetBlobSasBuilder(container, filePath, 1, BlobSasPermissions.Read);
 
@@ -361,28 +335,14 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     private DataLakeServiceClient GetDataLakeServiceClientInternal()
     {
-        if (_useUserDelegationSas && _tokenCredential != null)
-        {
-            var dfsUri = new Uri($"https://{_accountName}.dfs.core.windows.net");
-            return new DataLakeServiceClient(dfsUri, _tokenCredential);
-        }
-        else
-        {
-            return new DataLakeServiceClient(_connectionString);
-        }
+        var dfsUri = new Uri($"https://{_accountName}.dfs.core.windows.net");
+        return new DataLakeServiceClient(dfsUri, _tokenCredential);
     }
 
     private BlobServiceClient GetBlobServiceClientInternal()
     {
-        if (_useUserDelegationSas && _tokenCredential != null)
-        {
-            var blobUri = new Uri($"https://{_accountName}.blob.core.windows.net");
-            return new BlobServiceClient(blobUri, _tokenCredential);
-        }
-        else
-        {
-            return new BlobServiceClient(_connectionString);
-        }
+        var blobUri = new Uri($"https://{_accountName}.blob.core.windows.net");
+        return new BlobServiceClient(blobUri, _tokenCredential);
     }
 
     private DataLakeFileSystemClient GetFileSystemClient(string containerName)
@@ -405,14 +365,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
         var startsOn = DateTimeOffset.UtcNow;
         var expiresOn = startsOn.Add(validity);
         return await blobServiceClient.GetUserDelegationKeyAsync(startsOn, expiresOn);
-    }
-
-    private void EnsureUserDelegationSasEnabled()
-    {
-        if (!_useUserDelegationSas || _tokenCredential == null)
-        {
-            throw new InvalidOperationException("This storage manager instance does not support SAS generation. Use the TokenCredential constructor to generate User Delegation SAS.");
-        }
     }
 
     static BlobSasBuilder GetContainerSasBuild(string containerName, TimeSpan timeSpan, BlobSasPermissions permissions)

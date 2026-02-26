@@ -1,4 +1,5 @@
 ﻿@using Datahub.Application.Services;
+@using Azure.Identity;
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
@@ -219,9 +220,7 @@
 
         // pick the project storage containers
         var accountName = _projectStorageConfigService.GetProjectStorageAccountName(WorkspaceAcronym);
-        var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(WorkspaceAcronym);
-
-        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+        var projectStorageManager = new AzureCloudStorageManager(accountName, new DefaultAzureCredential());
         var containerNames = await projectStorageManager.GetContainersAsync();
 
         _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
