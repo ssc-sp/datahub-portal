@@ -6,6 +6,7 @@
 @using Datahub.Portal.Pages.Home
 @using MudBlazor.Utilities
 @using Color = MudBlazor.Color
+@using static Datahub.Core.Components.AuthViews.DatahubAuthView
 
 @inject IUserInformationService UserInformationService
 @inject IConfiguration Configuration
@@ -68,14 +69,16 @@
                     </MudChip>
                 }
             </MudChipSet>
-            <MudFlexBreak/>
-            <DHButton Color="Color.Primary"
-            Underline
-            NoWrap
-            Href="@Localizer[PageRoutes.Explore]"
-            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                @Localizer["Explore other workspaces and users"]
-            </DHButton>
+			<DatahubAuthView AllowedUsers="UserType.TrustedEntraOnly">
+			  <MudFlexBreak/>
+			  <DHButton Color="Color.Primary"
+			  Underline
+			  NoWrap
+			  Href="@Localizer[PageRoutes.Explore]"
+			  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+				  @Localizer["Explore other workspaces and users"]
+			  </DHButton>
+			</DatahubAuthView>
         }
     </MudStack>
     @if (HasWorkspaces)
