@@ -171,6 +171,38 @@ public static class ConfigureAuthenticationServices
 
                         return Task.CompletedTask;
                     };
+
+                    options.Events.OnTokenValidated = context =>
+                    {
+                        // read OIDC locale claim ("en" or "fr")
+                        var locale = context.Principal?.FindFirst("locale")?.Value?.Trim().ToLowerInvariant();
+
+                        // map to supported cultures in the portal
+                        var culture = locale == "fr" ? "fr-CA" : "en-CA";
+
+                        //// persist as ASP.NET Core localization cookie
+                        //// (requires: using Microsoft.AspNetCore.Localization;)
+                        //var requestCulture = new Microsoft.AspNetCore.Localization.RequestCulture(culture);
+                        //var cookieValue = Microsoft.AspNetCore.Localization.CookieRequestCultureProvider.MakeCookieValue(requestCulture);
+
+                        //context.Response.Cookies.Append(
+                        //    Microsoft.AspNetCore.Localization.CookieRequestCultureProvider.DefaultCookieName,
+                        //    cookieValue,
+                        //    new CookieOptions
+                        //    {
+                        //        IsEssential = true,
+                        //        Path = "/",
+                        //        // Optional: align with auth cookie lifetime if you want it to persist longer
+                        //        Expires = DateTimeOffset.UtcNow.AddDays(365)
+                        //    });
+
+                        // Optional (affects current request thread immediately; cookie affects future requests)
+                        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
+                        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo(culture);
+
+                        return Task.CompletedTask;
+                    };
+
                     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
                     {
                         // Check if locale is set in AuthenticationProperties
