@@ -64,6 +64,7 @@
   "Department Name": "Nom du ministère",
   "Department name is required": "Le nom du ministère est requis",
   "Edit Blocklist Entry": "Modifier l'entrée de blocage",
+  "External user": "Utilisateur externe",
   "Email Domain": "Domaine de courriel",
   "Email Domain is required": "Le domaine de courriel est requis",
   "Email Domain must end with .gc.ca": "Le domaine de courriel doit se terminer par .gc.ca",
