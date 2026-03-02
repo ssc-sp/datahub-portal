@@ -43,21 +43,30 @@
 
 
 	private PortalUser? _viewedUser;
+	private bool _isEntraUser;
 
-	private LanguageToggle _languageToggle;
+	private LanguageToggle _languageToggle = null!;
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		_viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+		_isEntraUser = await _userInformationService.IsEntraUser();
+	}
 
-    private void HandleLogOut()
-    {
-        _navigation_manager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
-    }
+	private void HandleLogOut()
+	{
+		if (_isEntraUser)
+		{
+			_navigation_manager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
+		}
+		else
+		{
+			_navigation_manager.NavigateTo($"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}", true);
+		}
+	}
 
     private async Task HandleLanguageToggle(MouseEventArgs arg)
     {

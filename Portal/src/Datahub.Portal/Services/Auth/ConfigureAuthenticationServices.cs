@@ -16,6 +16,7 @@ using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
 using Datahub.Application.Authentication;
+using Datahub.Infrastructure.Services.UserManagement;
 
 namespace Datahub.Portal.Services.Auth;
 
@@ -171,6 +172,19 @@ public static class ConfigureAuthenticationServices
 
                         return Task.CompletedTask;
                     };
+
+                    options.Events.OnTicketReceived = context =>
+                    {
+                        var locale = context.Principal?.FindFirst("locale")?.Value;
+                        if (!string.IsNullOrEmpty(locale))
+                        {
+                            // Send the return url to the culture controller to preserve the culture selection after login
+                            var returnUrl = context.ReturnUri;
+                            context.ReturnUri = UserSettingsService.GetCultureControllerRedirect(locale, returnUrl);
+                        }
+                        return Task.CompletedTask;
+                    };
+
                     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
                     {
                         // Check if locale is set in AuthenticationProperties

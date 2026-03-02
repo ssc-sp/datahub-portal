@@ -67,7 +67,7 @@
     private async Task HandleLanguageChanged(string language)
     {
         await _localStorage.SetItemAsStringAsync("language", language);
-        await _userSettingsService.RegisterUserLanguage(language);
+        await _userSettingsService.SaveUserLanguage(language);
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         await _userSettingsService.SetLanguage(language);
 
