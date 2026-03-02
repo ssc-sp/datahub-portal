@@ -48,7 +48,7 @@
         else
         {
             await CultureService.SetLanguageInLocalStorageAsync(language);
-            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SaveUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         }
 

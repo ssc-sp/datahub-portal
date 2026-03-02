@@ -134,18 +134,18 @@ else
 	{
 		try
 		{
+			// order of language: 1) current localization 2) local settings 3) user settings
 			var userLanguageSetting = await _userSettingsService.GetUserLanguage();
-			var localStorageLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
-			//finally if external try to get external preference
-			var externalLanguage = await _userInformationService.GetExternalUserNamePreferredLanguage();
-			if (externalLanguage != null && externalLanguage != userLanguageSetting)
+			var finalUserLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
+			var currentLocalization = Thread.CurrentThread.CurrentCulture.Name;
+			if (!currentLocalization.Equals(finalUserLanguage, StringComparison.OrdinalIgnoreCase))
 			{
-				//override local storage with external preference
-				localStorageLanguage = externalLanguage;
+				finalUserLanguage = currentLocalization;
+				await CultureService.SetLanguageInLocalStorageAsync(finalUserLanguage);
 			}
-			if (userLanguageSetting != localStorageLanguage && !string.IsNullOrEmpty(localStorageLanguage))
+			if (!userLanguageSetting.Equals(finalUserLanguage, StringComparison.OrdinalIgnoreCase))
 			{
-				await _userSettingsService.RegisterUserLanguage(localStorageLanguage);
+				await _userSettingsService.SaveUserLanguage(finalUserLanguage);
 			}
 		}
 		catch (JSDisconnectedException)
