@@ -21,7 +21,7 @@
     [Parameter(CaptureUnmatchedValues = true)]
     public Dictionary<string, object> InputAttributes { get; set; }
 
-    private string Language => CultureService.IsFrench ? CultureService.CanadaEnglish : CultureService.CanadaFrench;
+    private string Language => CultureService.IsFrench ? ICultureService.CanadaEnglish : ICultureService.CanadaFrench;
     private string LanguageDisplay => CultureService.IsFrench ? "English" : "Français";
 
     private static List<string> TranslatedPageRoutes = new() { 
@@ -48,7 +48,7 @@
         else
         {
             await CultureService.SetLanguageInLocalStorageAsync(language);
-            await _userSettingsService.RegisterUserLanguage(language);
+            await _userSettingsService.SaveUserLanguage(language);
             await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         }
 

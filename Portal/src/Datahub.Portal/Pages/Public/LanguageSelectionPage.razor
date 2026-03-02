@@ -1,4 +1,4 @@
-﻿@page "/language-langue"
+@page "/language-langue"
 @layout BarebonesPublicLayout
 
 @inject NavigationManager _navManager
@@ -25,12 +25,12 @@
                         <MudStack lang="en" Style="width: 50%">
                             <MudText translate="no" Align=@Align.Right Typo=@Typo.h2 Style="font-size: 24px">Federal Science DataHub</MudText>
                             <MudSpacer/>
-                            <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaEnglish))>English</MudButton>
+                            <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(ICultureService.CanadaEnglish))>English</MudButton>
                         </MudStack>
                         <MudStack lang="fr" Style="width: 50%">
                             <MudText translate="no" Align=@Align.Left Typo=@Typo.h2 Style="font-size: 24px">Plateforme fédérale de données scientifiques</MudText>
                             <MudSpacer/>
-                            <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(CultureService.CanadaFrench))>
+                            <MudButton translate="no" Variant=@Variant.Filled Color=@Color.Primary OnClick=@(() => SetLanguage(ICultureService.CanadaFrench))>
                                 Français
                             </MudButton>
                         </MudStack>
@@ -70,8 +70,8 @@
     private string ImageSrc => IsDarkMode
     ? "/img/canada-fip-dark.png"
     : "/img/canada-fip.svg";
-    private string EnglishTermsUrl => $"{PageRoutes.TermsAndConditions}?culture={CultureService.CanadaEnglish}";
-    private string FrenchTermsUrl => $"{PageRoutes.TermsAndConditions_FR}?culture={CultureService.CanadaFrench}";
+    private string EnglishTermsUrl => $"{PageRoutes.TermsAndConditions}?culture={ICultureService.CanadaEnglish}";
+    private string FrenchTermsUrl => $"{PageRoutes.TermsAndConditions_FR}?culture={ICultureService.CanadaFrench}";
 
     private async Task SetLanguage(string language)
     {
