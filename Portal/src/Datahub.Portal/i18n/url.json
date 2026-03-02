@@ -8,6 +8,7 @@
   "/create-workspace": "/create-workspace",
   "/explore": "/explore",
   "/explore-lt": "/explorer",
+  "/gccf/login": "/gccf/login",
   "/gccf/logout": "/gccf/logout",
   "/home": "/home",
   "/home-lt": "/accueil",

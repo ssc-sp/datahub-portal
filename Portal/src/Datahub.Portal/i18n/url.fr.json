@@ -13,6 +13,7 @@
   "/create-workspace": "/creer-espace-de-travail",
   "/explore": "/explorer",
   "/explorer-lt": "/explore",
+  "/gccf/login": "/gccf/connexion",
   "/gccf/logout": "/gccf/deconnexion",
   "/home": "/accueil",
   "/inscription-lt": "/register",
