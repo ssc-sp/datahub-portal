@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 
 namespace Datahub.Application.Services.UserManagement
 {
@@ -9,8 +9,8 @@ namespace Datahub.Application.Services.UserManagement
 
         const string CaCultureSuffix = "CA";
 
-        string CanadaEnglish => $"{English}-{CaCultureSuffix}";
-        string CanadaFrench => $"{French}-{CaCultureSuffix}";
+        const string CanadaEnglish = $"{English}-{CaCultureSuffix}";
+        const string CanadaFrench = $"{French}-{CaCultureSuffix}";
 
         CultureInfo CanadaEnglishCulture => CultureInfo.GetCultureInfo(CanadaEnglish);
         CultureInfo CanadaFrenchCulture => CultureInfo.GetCultureInfo(CanadaFrench);

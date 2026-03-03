@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Users;
 
@@ -51,7 +51,7 @@ namespace Datahub.Core.Services.Offline
             return Task.FromResult(true);
         }
 
-        public Task<bool> RegisterUserLanguage(string language)
+        public Task<bool> SaveUserLanguage(string language)
         {
             return Task.FromResult(true);
         }

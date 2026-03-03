@@ -16,6 +16,7 @@
 @inject IResourceMessagingService ResourceMessagingService
 @inject IRequestManagementService RequestManagementService
 @inject IWorkspaceVersionService WorkspaceVersionService
+@inject IUserInformationService UserInformationService
 @inject ISnackbar Snackbar
 @inject IMemoryCache MemoryCache
 
@@ -63,7 +64,7 @@
         <MudSpacer />
         <nav>
             <ul style=@CardActionListStyle>
-                @foreach (var tool in ToolActions)
+				@foreach (var tool in IsEntraUser ? EntraToolActions : ExternalToolActions)
                 {
                     @if (ToolExists(tool))
                     {
@@ -115,90 +116,101 @@
 
 @code {
 
-    // Params
-    [Parameter] public Datahub_Project Workspace { get; set; }
-    [Parameter] public bool ShowCost { get; set; }
-    [Parameter] public string LatestVersion { get; set; }
-    [Parameter] public string UserEmail { get; set; }
-    [Parameter] public bool IsLead { get; set; }
+	// Params
+	[Parameter] public required Datahub_Project Workspace { get; set; }
+	[Parameter] public bool ShowCost { get; set; } = false;
+	[Parameter] public string? LatestVersion { get; set; }
+	[Parameter] public string? UserEmail { get; set; }
+	[Parameter] public bool IsLead { get; set; } = false;
 
-    // Styles
-    private string PaperStyle => new StyleBuilder()
-        .AddStyle("display", "flex")
-        .AddStyle("flex-direction", "column")
-        .AddStyle("flex-grow", "1")
-        .AddStyle("min-width", "385px")
-        .AddStyle("min-height", "250px")
-        .Build();
+	// Styles
+	private string PaperStyle => new StyleBuilder()
+		.AddStyle("display", "flex")
+		.AddStyle("flex-direction", "column")
+		.AddStyle("flex-grow", "1")
+		.AddStyle("min-width", "385px")
+		.AddStyle("min-height", "250px")
+		.Build();
 
-    private string CostBarStyle => new StyleBuilder()
-        .AddStyle("height", "35px")
-        .AddStyle("margin-left", "0")
-        .AddStyle("margin-right", "0")
-        .AddStyle("margin-bottom", "0")
-        .Build();
+	private string CostBarStyle => new StyleBuilder()
+		.AddStyle("height", "35px")
+		.AddStyle("margin-left", "0")
+		.AddStyle("margin-right", "0")
+		.AddStyle("margin-bottom", "0")
+		.Build();
 
-    private string MainStackStyle => new StyleBuilder()
-        .AddStyle("padding", "8px 16px 16px 16px")
-        .AddStyle("width", "100%")
-        .AddStyle("height", "100%")
-        .Build();
+	private string MainStackStyle => new StyleBuilder()
+		.AddStyle("padding", "8px 16px 16px 16px")
+		.AddStyle("width", "100%")
+		.AddStyle("height", "100%")
+		.Build();
 
-    private string WorkspaceNameStyle => new StyleBuilder()
-        .AddStyle("padding-top", "6px")
-        .Build();
+	private string WorkspaceNameStyle => new StyleBuilder()
+		.AddStyle("padding-top", "6px")
+		.Build();
 
-    private string ContainerStyle => new StyleBuilder()
-        .AddStyle("flex-grow", "1")
-        .AddStyle("width", "100%")
-        .AddStyle("height", "100%")
-        .Build();
+	private string ContainerStyle => new StyleBuilder()
+		.AddStyle("flex-grow", "1")
+		.AddStyle("width", "100%")
+		.AddStyle("height", "100%")
+		.Build();
 
-    private string CardActionListStyle => new StyleBuilder()
-        .AddStyle("display", "flex")
-        .AddStyle("flex-wrap", "wrap")
-        .AddStyle("list-style-type", "none")
-        .AddStyle("row-gap", "5px")
-        .AddStyle("justify-content", "space-evenly")
-        .AddStyle("align-items", "center")
-        .Build();
+	private string CardActionListStyle => new StyleBuilder()
+		.AddStyle("display", "flex")
+		.AddStyle("flex-wrap", "wrap")
+		.AddStyle("list-style-type", "none")
+		.AddStyle("row-gap", "5px")
+		.AddStyle("justify-content", "space-evenly")
+		.AddStyle("align-items", "center")
+		.Build();
 
-    private string CardActionStyle => new StyleBuilder()
-        .AddStyle("width", "150px")
-        .Build();
+	private string CardActionStyle => new StyleBuilder()
+		.AddStyle("width", "150px")
+		.Build();
 
-    private string CardMainActionStyle => new StyleBuilder()
-        .AddStyle("width", "100%")
-        .Build();
+	private string CardMainActionStyle => new StyleBuilder()
+		.AddStyle("width", "100%")
+		.Build();
 
-    private string ItalicTextStyle => new StyleBuilder()
-        .AddStyle("font-style", "italic")
-        .Build();
+	private string ItalicTextStyle => new StyleBuilder()
+		.AddStyle("font-style", "italic")
+		.Build();
 
-    private string ProjectDescriptionContainerStyle => new StyleBuilder()
-        .AddStyle("overflow", "hidden")
-        .Build();
+	private string ProjectDescriptionContainerStyle => new StyleBuilder()
+		.AddStyle("overflow", "hidden")
+		.Build();
 
-    private string ProjectDescriptionStyle => new StyleBuilder()
-        .AddStyle("display", "-webkit-box")
-        .AddStyle("-webkit-line-clamp", "5")
-        .AddStyle("-webkit-box-orient", "vertical")
-        .AddStyle("overflow", "hidden")
-        .Build();
+	private string ProjectDescriptionStyle => new StyleBuilder()
+		.AddStyle("display", "-webkit-box")
+		.AddStyle("-webkit-line-clamp", "5")
+		.AddStyle("-webkit-box-orient", "vertical")
+		.AddStyle("overflow", "hidden")
+		.Build();
 
-    // Display state
-    private int NumberOfUsers;
-    private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
-    private List<string> ToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
-    private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
+	// Display state
+	private int NumberOfUsers;
+	private bool IsEntraUser;
+	private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
+	private static List<string> EntraToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
+	private static List<string> ExternalToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureAppService];
+	private Tuple<decimal, decimal> WorkspaceUsage => ShowCost ? new Tuple<decimal, decimal>(Workspace.Credits == null ? 0 : (decimal)Workspace.Credits.Current, Workspace.Project_Budget ?? 100) : null;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        UpdateResourceStatusesFromHealthChecks();
-        var users = await ProjectUserManagementService.GetProjectUsersAsync(Workspace?.Project_Acronym_CD);
+	protected override async Task OnParametersSetAsync()
+	{
+		UpdateResourceStatusesFromHealthChecks();
+		var users = await ProjectUserManagementService.GetProjectUsersAsync(Workspace?.Project_Acronym_CD);
 
-        NumberOfUsers = users?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed) ?? 0;
-    }
+		NumberOfUsers = users?.Count(x => x.Role?.Id != (int)Project_Role.RoleNames.Removed) ?? 0;
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		IsEntraUser = await UserInformationService.IsEntraUser();
+		if (!IsEntraUser)
+		{
+			ShowCost = false;
+		}
+	}
 
     private void UpdateResourceStatusesFromHealthChecks()
     {
