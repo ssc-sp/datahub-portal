@@ -1,95 +1,122 @@
-name: Check Missing Translations
+---
+name: Check Translations
 
 on:
   pull_request:
     branches:
-      - devel
+      - develop
       - main
     paths:
-      - 'Portal/src/Datahub.Portal/**'
+      - "Portal/src/Datahub.Portal/**"
   push:
     branches:
-      - devel
+      - develop
       - main
     paths:
-      - 'Portal/src/Datahub.Portal/**'
-  workflow_dispatch:  
+      - "Portal/src/Datahub.Portal/**"
+  workflow_dispatch:
 
 jobs:
-  check-translations:
+  check-missing-translations:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    - name: Install jq (for JSON processing)
-      run: sudo apt-get install -y jq
+      - name: Install jq (for JSON processing)
+        run: sudo apt-get install -y jq
 
-    - name: Check for missing translations
-      run: |
-        # Define the path to focus on (Portal/src/Datahub.Portal)
-        target_path="Portal/src/Datahub.Portal"
+      - name: Check for missing translations
+        run: |
+          # Define the path to focus on (Portal/src/Datahub.Portal)
+          target_path="Portal/src/Datahub.Portal"
 
-        # Load the English and French JSON files into variables
-        english_json=$(cat "$target_path/i18n/localization.json" | jq -r '.')
-        french_json=$(cat "$target_path/i18n/localization.fr.json" | jq -r '.')
+          # Define all translation file names (without extensions)
+          translation_files=("localization" "cbr" "databricks" "gchosting" "url" "workspace_versions")
 
-        # Create an array to hold file paths with matching Localizer patterns
-        matching_files=()
+          # Load all English and French JSON files into associative arrays
+          declare -A english_jsons
+          declare -A french_jsons
 
-        # Define the regex pattern to match @Localizer[""] or Localizer[""]
-        pattern='@Localizer\["|Localizer\["'
-
-        # Find all .cs and .razor files and search for the Localizer pattern
-          while IFS= read -r file; do
-              # Extract the relative path (strip the target_path)
-              relative_file="${file#$target_path/}"
-
-              # Search for the regex pattern in the file
-              if grep -qP "$pattern" "$file"; then
-                  echo "Pattern found in file: $relative_file"
-                  matching_files+=("$file")
+          for file_base in "${translation_files[@]}"; do
+              if [ -f "${target_path}/i18n/${file_base}.json" ]; then
+                  english_jsons[$file_base]=$(cat "${target_path}/i18n/${file_base}.json" | jq -r '.')
               fi
-          done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
+              if [ -f "${target_path}/i18n/${file_base}.fr.json" ]; then
+                  french_jsons[$file_base]=$(cat "${target_path}/i18n/${file_base}.fr.json" | jq -r '.')
+              fi
+          done
 
-        # Now, we will search for missing translations in the matched files
-        error_found=0  # Variable to track if an error is found
+          # Create an array to hold file paths with matching Localizer patterns
+          matching_files=()
 
-        # Iterate over the files with Localizer patterns
-        for file in "${matching_files[@]}"; do
-            # Extract the relative path (strip the target_path)
-            relative_file="${file#$target_path/}"
+          # Define the regex pattern to match @Localizer[""] or Localizer[""]
+          pattern='@Localizer\["|Localizer\["'
 
-            echo "Checking translations in file: $relative_file"
+          # Find all .cs and .razor files and search for the Localizer pattern
+            while IFS= read -r file; do
+                # Extract the relative path (strip the target_path)
+                relative_file="${file#${target_path}/}"
 
-            # Extract Localizer keys from the file (line-delimited)
-            keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\])' "$file" | sort | uniq)
-            
-            # Process each key line by line
-            while IFS= read -r key; do
-                # Shorten the key to the first 5 words inline using awk
-                shortened_key=$(echo "$key" | awk '{if (NF>5) {for(i=1;i<=5;i++) printf $i " "; print "..."} else print $0}')
-
-                # Check if the key exists in the English JSON file
-                if ! echo "$english_json" | jq -e --arg key "$key" '.[$key]' > /dev/null; then
-                    echo "Error: Missing English translation for key '$shortened_key' in file '$relative_file'"
-                    error_found=1
+                # Search for the regex pattern in the file
+                if grep -qP "$pattern" "$file"; then
+                    matching_files+=("$file")
                 fi
+            done < <(find "$target_path" -type f \( -name "*.cs" -o -name "*.razor" \))
 
-                # Check if the key exists in the French JSON file
-                if ! echo "$french_json" | jq -e --arg key "$key" '.[$key]' > /dev/null; then
-                    echo "Error: Missing French translation for key '$shortened_key' in file '$relative_file'"
-                    error_found=1
-                fi
-            done <<< "$keys"
-        done
+          # Now, we will search for missing translations in the matched files
+          error_found=0  # Variable to track if an error is found
 
-        # If any error is found, exit with an error code; otherwise, exit cleanly
-        if [ "$error_found" -eq 1 ]; then
-            echo "Missing translations detected!"
-            exit 1
-        else
-            echo "All translations found!"
-            exit 0
-        fi
+          # Iterate over the files with Localizer patterns
+          for file in "${matching_files[@]}"; do
+              # Extract the relative path (strip the target_path)
+              relative_file="${file#${target_path}/}"
+
+              # Extract Localizer keys from the file (line-delimited)
+              keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\]|",)' "$file" | sort | uniq)
+
+              # Process each key line by line
+              while IFS= read -r key; do
+                  # Check if the key exists in any English JSON file
+                  english_found=0
+                  for file_base in "${translation_files[@]}"; do
+                      if [ -n "${english_jsons[$file_base]}" ]; then
+                          if echo "${english_jsons[$file_base]}" | jq -e --arg key "$key" '.[$key]' > /dev/null 2>&1; then
+                              english_found=1
+                              break
+                          fi
+                      fi
+                  done
+
+                  if [ "$english_found" -eq 0 ]; then
+                      echo "Error: Missing English translation for key '$key' in file '$relative_file'"
+                      error_found=1
+                  fi
+
+                  # Check if the key exists in any French JSON file
+                  french_found=0
+                  for file_base in "${translation_files[@]}"; do
+                      if [ -n "${french_jsons[$file_base]}" ]; then
+                          if echo "${french_jsons[$file_base]}" | jq -e --arg key "$key" '.[$key]' > /dev/null 2>&1; then
+                              french_found=1
+                              break
+                          fi
+                      fi
+                  done
+
+                  if [ "$french_found" -eq 0 ]; then
+                      echo "Error: Missing French translation for key '$key' in file '$relative_file'"
+                      error_found=1
+                  fi
+              done <<< "$keys"
+          done
+
+          # If any error is found, exit with an error code; otherwise, exit cleanly
+          if [ "$error_found" -eq 1 ]; then
+              echo "Missing translations detected!"
+              exit 1
+          else
+              echo "All translations found!"
+              exit 0
+          fi

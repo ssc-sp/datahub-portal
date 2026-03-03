@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Users;
 using Microsoft.AspNetCore.Components;
@@ -316,7 +316,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
         /// </summary>
         /// <param name="language">The two letter language code, i.e. "en" or "fr"</param>
         /// <returns>True if the operation was successful, false otherwise</returns>
-        public async Task<bool> RegisterUserLanguage(string language)
+        public async Task<bool> SaveUserLanguage(string language)
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
 
@@ -383,12 +383,18 @@ namespace Datahub.Infrastructure.Services.UserManagement
             if (redirectUrl != string.Empty)
                 uri = redirectUrl;
 
-            var query = $"?culture={Uri.EscapeDataString(language)}&" +
-                        $"redirectionUri={Uri.EscapeDataString(uri)}";
-            navigationManager.NavigateTo($"/Culture/SetCulture{query}", forceLoad: true);
-
+            navigationManager.NavigateTo(GetCultureControllerRedirect(language,uri), forceLoad: true);
             return true;
         }
+
+        public static string GetCultureControllerRedirect(string language, string? redirectUrl)
+        {
+            var query = $"?culture={Uri.EscapeDataString(language)}&" +
+                        (redirectUrl != null ? $"redirectionUri={Uri.EscapeDataString(redirectUrl)}" : "");
+            return $"{CultureControllerRoute}{query}";
+        }
+
+        public const string CultureControllerRoute = "/Culture/SetCulture";
 
         /// <summary>
         /// Gets the user's selected language.
