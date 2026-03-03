@@ -15,8 +15,6 @@
                     @ErrorMessage
                 </MudText>
             }
-
-            <MudCheckBox T="bool" @bind-Value="@_hideError" Label="@Localizer["Hide error"]" Color="Color.Primary" />
         </MudStack>
     </DialogContent>
     <DialogActions>
@@ -32,11 +30,9 @@
     [Parameter] public string FileName { get; set; }
     [Parameter] public string ErrorMessage { get; set; }
 
-    private bool _hideError = false;
-
     void Submit()
     {
-        MudDialog.Close(DialogResult.Ok(_hideError));
+        MudDialog.Close(DialogResult.Ok(true));
     }
 
     void Cancel()

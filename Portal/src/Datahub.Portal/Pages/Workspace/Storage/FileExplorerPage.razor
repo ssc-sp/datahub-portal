@@ -24,7 +24,6 @@
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @inject IKeyVaultUserService keyVaultUserService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
-@inject IFileScanService _fileScanService
 @inject NavigationManager NavigationManager
 
 
@@ -96,8 +95,7 @@
                                         @if (_isExternalUser)
                                         {
                                             <ExternalUserFileExplorer ProjectId=@_projectId 
-                                                                      Container="@_selectedContainer" 
-                                                                      FileScanService="@_fileScanService" />
+                                                                      Container="@_selectedContainer" />
                                         }
                                         else
                                         {

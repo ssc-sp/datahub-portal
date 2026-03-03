@@ -13,6 +13,7 @@
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDialogService _dialogService
+@inject IFileScanService FileScanService
 @inject ILogger<ExternalUserFileExplorer> _logger;
 @inject NavigationManager _navManager;
 @inject DatahubPortalConfiguration _config;
@@ -141,7 +142,6 @@
                             }
                             @foreach (var file in _files
                                               .Where(f => f?.name?.Contains(_filterValue) ?? false)
-                                              .Where(f => !ShouldHideFile(f.name))
                                               .OrderBy(f => f.name.ToLower()))
                             {
                                 var scanResult = GetFileScanResult(file.name);
@@ -210,8 +210,6 @@ else
 
     [Parameter] public CloudStorageContainer Container { get; set; }
 
-    [Parameter] public IFileScanService FileScanService { get; set; }
-
     public StorageMetadata StorageAccountMetadata { get; set; }
 
     private bool _allFilesSelected = false;
@@ -241,7 +239,6 @@ else
     private string _filterValue = string.Empty;
 
     private Dictionary<string, FileScanResult> _fileScanResults = new();
-    private HashSet<string> _hiddenErrorFiles = new();
 
     private bool _showingContainers = true;
     private List<string> _availableContainers = new();
@@ -305,11 +302,6 @@ else
         return null;
     }
 
-    private bool ShouldHideFile(string fileName)
-    {
-        return _hiddenErrorFiles.Contains(fileName);
-    }
-
     private async Task ShowScanErrorDialog(string fileName, FileScanResult? scanResult)
     {
         if (scanResult == null || scanResult.Status != FileScanStatus.Error)
@@ -323,14 +315,7 @@ else
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
         var dialog = await _dialogService.ShowAsync<FileScanErrorDialog>(Localizer["Scan Error"], dialogParams, options);
-        var result = await dialog.Result;
-
-        if (!result.Canceled && result.Data is bool hideError && hideError)
-        {
-            _hiddenErrorFiles.Add(fileName);
-            await FileScanService.HideFileScanErrorAsync(fileName);
-            StateHasChanged();
-        }
+        await dialog.Result;
     }
 
     private async Task HandleFileDownloadWithScanCheck(string filename)

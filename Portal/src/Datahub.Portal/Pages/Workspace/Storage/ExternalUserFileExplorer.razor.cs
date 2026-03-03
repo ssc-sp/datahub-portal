@@ -332,8 +332,7 @@ public partial class ExternalUserFileExplorer
                     {
                         FileName = fileMetadata.name,
                         Status = FileScanStatus.ScanInProgress,
-                        ScanDate = DateTime.UtcNow,
-                        HideError = false
+                        ScanDate = DateTime.UtcNow
                     };
                 }
             }

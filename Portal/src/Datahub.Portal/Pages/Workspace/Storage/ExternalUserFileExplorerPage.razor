@@ -18,7 +18,6 @@
 @inject IUserInformationService _userInformationService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
 @inject ILogger<ExternalUserFileExplorerPage> _logger
-@inject IFileScanService _fileScanService
 @inject IKeyVaultUserService keyVaultUserService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
@@ -54,8 +53,7 @@
                             {
                                 <ExternalUserFileExplorer 
                                     ProjectId=@_projectId 
-                                    Container="@_selectedContainer" 
-                                    FileScanService="@_fileScanService" />
+                                    Container="@_selectedContainer" />
                             }
                         </MudStack>
                     </MudPaper>
