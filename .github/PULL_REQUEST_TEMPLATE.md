@@ -6,8 +6,8 @@
 ## Description
 <!-- A brief description of what this PR does -->
 
-## Related Issues
-<!-- List any related issues or tickets -->
+## Related Work Items
+<!-- List any related work items or tickets. Use the format `AB#XXXX` for Azure DevOps work items. -->
 
 ## Changes
 <!-- List the key changes in this PR -->
@@ -36,8 +36,7 @@ I have...
 - [ ] Added `!` to the type prefix if change is a breaking change (i.e., requires minor or major version bump)
 - [ ] Targeted the correct branch (see [External Collaboration](https://github.com/fsdh-pfds/.github/blob/main/CONTRIBUTING.md#external-collaboration))
 - [ ] ensured that my code follows coding standards
-- [ ] written tests and theyre passing
-
+- [ ] written tests and they're passing
 
 ### Reviewers Checklist
 
@@ -49,7 +48,6 @@ I have...
 - [ ] confirmed the correct [type prefix](https://github.com/commitizen/conventional-commit-types/blob/v3.0.0/index.json) in the PR title
 - [ ] confirmed `!` in the type prefix if API or client breaking change
 - [ ] confirmed all author checklist items have been addressed 
-- [ ] reviewed state machine logic
 - [ ] reviewed design and naming
 - [ ] reviewed documentation is accurate
 - [ ] reviewed tests and test coverage

@@ -1,0 +1,27 @@
+name: Verify Azure Boards Work Item Link
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+jobs:
+  check-ab-link:
+    name: Check for AB# Work Item Link
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify PR description contains AB# link
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "Checking PR description for Azure Boards work item link (AB#)..."
+
+          if echo "$PR_BODY" | grep -qE 'AB#[0-9]+'; then
+            echo "✅ Found Azure Boards work item link."
+            exit 0
+          else
+            echo "❌ ERROR: PR description must include an Azure Boards work item link."
+            echo ""
+            echo "Please add AB#<work-item-id> to your PR description."
+            echo "Example: 'AB#1234 - Implements the new login flow'"
+            exit 1
+          fi
