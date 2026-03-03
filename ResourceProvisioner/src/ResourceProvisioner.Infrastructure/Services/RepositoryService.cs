@@ -36,6 +36,15 @@ public partial class RepositoryService(
     [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
     private static partial Regex ModuleRegex();
 
+    private static bool IsTransientGitCloneException(LibGit2SharpException exception)
+    {
+        var message = exception.Message;
+
+        return message.Contains("unexpected http status code: 5", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
     
@@ -115,10 +124,26 @@ public partial class RepositoryService(
             version = $"{branch}-{version}";
             logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
-            DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
             logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-            Repository.Clone(repositoryUrl, repositoryPath);
+            Policy
+                .Handle<LibGit2SharpException>(IsTransientGitCloneException)
+                .Or<IOException>()
+                .WaitAndRetry(
+                    retryCount: 3,
+                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    onRetry: (exception, delay, retryAttempt, _) =>
+                    {
+                        logger.LogWarning(exception,
+                            "Transient error cloning module repository. Retrying attempt {RetryAttempt} in {DelaySeconds} seconds",
+                            retryAttempt,
+                            delay.TotalSeconds);
+                    })
+                .Execute(() =>
+                {
+                    DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
+                    Repository.Clone(repositoryUrl, repositoryPath);
+                });
 
             using var repo = new Repository(repositoryPath);
             var repoTag = string.IsNullOrWhiteSpace(version) ? null : repo.Tags[version];
