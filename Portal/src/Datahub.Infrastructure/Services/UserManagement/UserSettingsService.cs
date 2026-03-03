@@ -316,7 +316,7 @@ namespace Datahub.Infrastructure.Services.UserManagement
         /// </summary>
         /// <param name="language">The two letter language code, i.e. "en" or "fr"</param>
         /// <returns>True if the operation was successful, false otherwise</returns>
-        public async Task<bool> RegisterUserLanguage(string language)
+        public async Task<bool> SaveUserLanguage(string language)
         {
             var currentUser = await userInformationService.GetCurrentPortalUserAsync();
 

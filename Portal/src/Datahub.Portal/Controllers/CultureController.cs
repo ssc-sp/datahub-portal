@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Localization;
+using Datahub.Infrastructure.Services.UserManagement;
+using Microsoft.AspNetCore.Localization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Datahub.Portal.Controllers;
@@ -15,16 +16,12 @@ public class CultureController : Controller
 
     public IActionResult SetCulture(string culture, string redirectionUri)
     {
-        if (culture != null)
-        {
-            HttpContext.Response.Cookies.Append(
-                CookieRequestCultureProvider.DefaultCookieName,
-                CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)));
-        }
+        culture = UserCultureService.GetValidCulture(culture);
+        HttpContext.Response.Cookies.Append(
+            CookieRequestCultureProvider.DefaultCookieName,
+            CookieRequestCultureProvider.MakeCookieValue(new RequestCulture(culture)));
 
-        _logger.LogInformation($"New Culture = {culture}");
-        _logger.LogInformation($"Redirect URL = {redirectionUri}");
-        _logger.LogInformation($"Current Thread Culture = {Thread.CurrentThread.CurrentCulture.Name}");
+        _logger.LogInformation($"New Culture = {culture} - Current Thread Culture = {Thread.CurrentThread.CurrentCulture.Name} - Redirect URL = {redirectionUri}");
         if (redirectionUri == null)
         {
             redirectionUri = "/";

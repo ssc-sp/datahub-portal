@@ -1,4 +1,4 @@
-﻿#nullable enable
+#nullable enable
 
 using Datahub.Core.Model.Users;
 
@@ -15,7 +15,7 @@ namespace Datahub.Application.Services.UserManagement
         Task<List<string>> GetHiddenAlerts();
         Task<bool> AddHiddenAlert(string alertKey);
         Task<bool> SetHideAchievements(bool hideAchievements);
-        Task<bool> RegisterUserLanguage(string language);
+        Task<bool> SaveUserLanguage(string language);
         Task<bool> SetLanguage(string language, string redirectUrl = "");
         Task<string> GetUserLanguage();
         Task<bool> SetTheme(string theme, string redirectUrl = "");

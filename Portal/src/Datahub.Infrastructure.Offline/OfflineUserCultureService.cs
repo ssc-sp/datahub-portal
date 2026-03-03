@@ -1,4 +1,4 @@
-﻿using Blazored.LocalStorage;
+using Blazored.LocalStorage;
 using Datahub.Application.Services.UserManagement;
 using System.Globalization;
 
@@ -16,6 +16,11 @@ namespace Datahub.Infrastructure.Offline
         {
             var language = await _localStorageService.GetItemAsStringAsync(LANGUAGE_LOCALSTORAGE_KEY);
             return language;
+        }
+
+        public string GetValidCulture(string language)
+        {
+            throw new NotImplementedException();
         }
 
         public void OverrideCurrentCulture(string cultureName)
