@@ -17,14 +17,13 @@ public class LockedUserManagementService : ILockedUserManagementService
         _contextFactory = contextFactory;
     }
 
-    public async Task<UserWorkspaceLock> LockUserAsync(int portalUserId, int? workspaceId, string reason, string? evidenceUrl, int performedByUserId)
+    public async Task<UserWorkspaceLock> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         var lockEvent = new UserWorkspaceLock
         {
             PortalUserId = portalUserId,
-            WorkspaceId = workspaceId,
             EventType = LockEventType.Locked,
             EventDate = DateTime.UtcNow,
             Reason = reason,
@@ -38,14 +37,13 @@ public class LockedUserManagementService : ILockedUserManagementService
         return lockEvent;
     }
 
-    public async Task<UserWorkspaceLock> UnlockUserAsync(int portalUserId, int? workspaceId, string? notes, int performedByUserId)
+    public async Task<UserWorkspaceLock> UnlockUserAsync(int portalUserId, string? notes, int performedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         var unlockEvent = new UserWorkspaceLock
         {
             PortalUserId = portalUserId,
-            WorkspaceId = workspaceId,
             EventType = LockEventType.Unlocked,
             EventDate = DateTime.UtcNow,
             Notes = notes,
@@ -58,14 +56,13 @@ public class LockedUserManagementService : ILockedUserManagementService
         return unlockEvent;
     }
 
-    public async Task<UserWorkspaceLock> RecordEvidenceUploadAsync(int portalUserId, int? workspaceId, string evidenceUrl, int uploadedByUserId)
+    public async Task<UserWorkspaceLock> RecordEvidenceUploadAsync(int portalUserId, string evidenceUrl, int uploadedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         var evidenceEvent = new UserWorkspaceLock
         {
             PortalUserId = portalUserId,
-            WorkspaceId = workspaceId,
             EventType = LockEventType.EvidenceUploaded,
             EventDate = DateTime.UtcNow,
             EvidenceUrl = evidenceUrl,
@@ -78,29 +75,26 @@ public class LockedUserManagementService : ILockedUserManagementService
         return evidenceEvent;
     }
 
-    public async Task<bool> IsUserLockedAsync(int portalUserId, int? workspaceId)
+    public async Task<bool> IsUserLockedAsync(int portalUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        // Get the most recent event for this user/workspace combination
+        // Get the most recent event for this user
         var latestEvent = await context.UserWorkspaceLocks
-            .Where(l => l.PortalUserId == portalUserId && 
-                       (l.WorkspaceId == workspaceId || (workspaceId == null && l.WorkspaceId == null)))
+            .Where(l => l.PortalUserId == portalUserId)
             .OrderByDescending(l => l.EventDate)
             .FirstOrDefaultAsync();
 
         return latestEvent != null && latestEvent.EventType == LockEventType.Locked;
     }
 
-    public async Task<UserLockStatus?> GetUserLockStatusAsync(int portalUserId, int? workspaceId)
+    public async Task<UserLockStatus?> GetUserLockStatusAsync(int portalUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         var events = await context.UserWorkspaceLocks
             .Include(l => l.User)
-            .Include(l => l.Workspace)
-            .Where(l => l.PortalUserId == portalUserId && 
-                       (l.WorkspaceId == workspaceId || (workspaceId == null && l.WorkspaceId == null)))
+            .Where(l => l.PortalUserId == portalUserId)
             .OrderByDescending(l => l.EventDate)
             .ToListAsync();
 
@@ -121,8 +115,6 @@ public class LockedUserManagementService : ILockedUserManagementService
             PortalUserId = portalUserId,
             UserName = latestEvent.User?.DisplayName,
             UserEmail = latestEvent.User?.Email,
-            WorkspaceId = workspaceId,
-            WorkspaceAcronym = latestEvent.Workspace?.Project_Acronym_CD,
             IsLocked = true,
             LockedDate = lockEvent?.EventDate,
             LockReason = lockEvent?.Reason,
@@ -137,52 +129,7 @@ public class LockedUserManagementService : ILockedUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         // Get all users who have lock events
-        var userWorkspaceCombinations = await context.UserWorkspaceLocks
-            .Select(l => new { l.PortalUserId, l.WorkspaceId })
-            .Distinct()
-            .ToListAsync();
-
-        var lockedUsers = new List<UserLockStatus>();
-
-        foreach (var combo in userWorkspaceCombinations)
-        {
-            var status = await GetUserLockStatusAsync(combo.PortalUserId, combo.WorkspaceId);
-            if (status != null && status.IsLocked)
-            {
-                lockedUsers.Add(status);
-            }
-        }
-
-        return lockedUsers;
-    }
-
-    public async Task<List<UserWorkspaceLock>> GetUserLockHistoryAsync(int portalUserId, int? workspaceId = null)
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        var query = context.UserWorkspaceLocks
-            .Include(l => l.User)
-            .Include(l => l.Workspace)
-            .Include(l => l.PerformedByUser)
-            .Where(l => l.PortalUserId == portalUserId);
-
-        if (workspaceId.HasValue)
-        {
-            query = query.Where(l => l.WorkspaceId == workspaceId);
-        }
-
-        return await query
-            .OrderByDescending(l => l.EventDate)
-            .ToListAsync();
-    }
-
-    public async Task<List<UserLockStatus>> GetLockedUsersInWorkspaceAsync(int workspaceId)
-    {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        // Get all users who have events in this workspace
         var userIds = await context.UserWorkspaceLocks
-            .Where(l => l.WorkspaceId == workspaceId)
             .Select(l => l.PortalUserId)
             .Distinct()
             .ToListAsync();
@@ -191,7 +138,7 @@ public class LockedUserManagementService : ILockedUserManagementService
 
         foreach (var userId in userIds)
         {
-            var status = await GetUserLockStatusAsync(userId, workspaceId);
+            var status = await GetUserLockStatusAsync(userId);
             if (status != null && status.IsLocked)
             {
                 lockedUsers.Add(status);
@@ -199,5 +146,19 @@ public class LockedUserManagementService : ILockedUserManagementService
         }
 
         return lockedUsers;
+    }
+
+    public async Task<List<UserWorkspaceLock>> GetUserLockHistoryAsync(int portalUserId)
+    {
+        await using var context = await _contextFactory.CreateDbContextAsync();
+
+        var query = context.UserWorkspaceLocks
+            .Include(l => l.User)
+            .Include(l => l.PerformedByUser)
+            .Where(l => l.PortalUserId == portalUserId);
+
+        return await query
+            .OrderByDescending(l => l.EventDate)
+            .ToListAsync();
     }
 }

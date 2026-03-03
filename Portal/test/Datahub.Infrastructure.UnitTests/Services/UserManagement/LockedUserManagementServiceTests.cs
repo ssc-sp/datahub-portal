@@ -43,12 +43,11 @@ public class LockedUserManagementServiceTests
 
         var service = new LockedUserManagementService(factory.Object);
 
-        var result = await service.UnlockUserAsync(1, 10, "Unlocked for testing", 2);
+        var result = await service.UnlockUserAsync(1, "Unlocked for testing", 2);
 
         Assert.That(result, Is.Not.Null);
         Assert.That(result!.EventType, Is.EqualTo(LockEventType.Unlocked));
         Assert.That(result.PortalUserId, Is.EqualTo(1));
-        Assert.That(result.WorkspaceId, Is.EqualTo(10));
 
         await using var verifyCtx = new DatahubProjectDBContext(options);
         var savedEvent = await verifyCtx.UserWorkspaceLocks.FirstOrDefaultAsync();

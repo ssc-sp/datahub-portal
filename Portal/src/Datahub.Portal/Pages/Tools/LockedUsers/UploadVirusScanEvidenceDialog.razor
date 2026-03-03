@@ -67,7 +67,6 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter] public PortalUser? User { get; set; }
-    [Parameter] public int? WorkspaceId { get; set; }
 
     private IBrowserFile? _selectedFile;
     private bool _uploading;
@@ -81,7 +80,7 @@
 
     private async Task Upload()
     {
-        if (_selectedFile == null || User == null || WorkspaceId == null)
+        if (_selectedFile == null || User == null)
             return;
 
         _uploading = true;
@@ -102,7 +101,7 @@
             await containerClient.CreateIfNotExistsAsync();
 
             var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
-            var blobName = $"{WorkspaceId}/{User.Id}/{Guid.NewGuid()}-{safeFileName}";
+            var blobName = $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
             var blobClient = containerClient.GetBlobClient(blobName);
 
             await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
@@ -120,7 +119,6 @@
 
             await _lockedUserManagementService.RecordEvidenceUploadAsync(
                 User.Id,
-                WorkspaceId,
                 evidenceUrl,
                 currentUser.Id);
 

@@ -345,17 +345,12 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
                 .HasForeignKey(e => e.PortalUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(e => e.Workspace)
-                .WithMany()
-                .HasForeignKey(e => e.WorkspaceId)
-                .OnDelete(DeleteBehavior.Restrict);
-
             entity.HasOne(e => e.PerformedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.PerformedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasIndex(e => new { e.PortalUserId, e.WorkspaceId, e.EventDate });
+            entity.HasIndex(e => new { e.PortalUserId, e.EventDate });
             entity.HasIndex(e => e.EventType);
         });
 

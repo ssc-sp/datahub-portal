@@ -1844,18 +1844,13 @@ namespace Datahub.Core.Migrations
                     b.Property<string>("Reason")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("WorkspaceId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("EventType");
 
                     b.HasIndex("PerformedByUserId");
 
-                    b.HasIndex("WorkspaceId");
-
-                    b.HasIndex("PortalUserId", "WorkspaceId", "EventDate");
+                    b.HasIndex("PortalUserId", "EventDate");
 
                     b.ToTable("UserWorkspaceLocks");
                 });
@@ -2369,16 +2364,9 @@ namespace Datahub.Core.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Workspace")
-                        .WithMany()
-                        .HasForeignKey("WorkspaceId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("PerformedByUser");
 
                     b.Navigation("User");
-
-                    b.Navigation("Workspace");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>

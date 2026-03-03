@@ -33,9 +33,9 @@
         {
             var user = await _userInformationService.GetCurrentPortalUserAsync();
             
-            // Check if user is locked globally (null workspace ID means global lock)
+            // Check if user is locked globally
             var isLockedOut = user?.Id > 0 && 
-                             await _lockedUserManagementService.IsUserLockedAsync(user.Id, workspaceId: null);
+                             await _lockedUserManagementService.IsUserLockedAsync(user.Id);
             
             if (isLockedOut)
             {

@@ -40,7 +40,7 @@
                 <MudTh>@Localizer["User"]</MudTh>
                 <MudTh>@Localizer["Email"]</MudTh>
                 <MudTh>@Localizer["Locked Since"]</MudTh>
-                <MudTh>@Localizer["Workspace"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
                 <MudTh>@Localizer["Evidence"]</MudTh>
                 <MudTh>@Localizer["Actions"]</MudTh>
             </HeaderContent>
@@ -61,19 +61,10 @@
                             </MudText>
                         }
                     </MudTd>
-                    <MudTd DataLabel="Workspace">
-                        @if (!string.IsNullOrEmpty(context.WorkspaceAcronym))
-                        {
-                            <MudText Typo="Typo.body2">
-                                <strong>@context.WorkspaceAcronym</strong>
-                            </MudText>
-                        }
-                        else
-                        {
-                            <MudChip T="string" Size="Size.Small" Color="Color.Warning">
-                                @Localizer["Global Lock"]
-                            </MudChip>
-                        }
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning">
+                            @Localizer["Locked"]
+                        </MudChip>
                     </MudTd>
                     <MudTd DataLabel="Evidence">
                         @if (!string.IsNullOrEmpty(context.LatestEvidenceUrl))
@@ -161,8 +152,7 @@
             return true;
 
         return user.UserName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
-               user.UserEmail?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
-               user.WorkspaceAcronym?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+             user.UserEmail?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
     }
 
     private async Task UnlockUser(UserLockStatus lockStatus)
@@ -173,9 +163,7 @@
             return;
         }
 
-        var workspaceText = !string.IsNullOrEmpty(lockStatus.WorkspaceAcronym) 
-            ? lockStatus.WorkspaceAcronym 
-            : Localizer["all workspaces"];
+        var workspaceText = Localizer["all workspaces"];
             
         var confirmed = await _dialogService.ShowMessageBox(
             Localizer["Confirm Unlock"],
@@ -195,12 +183,11 @@
 
                 await _lockedUserService.UnlockUserAsync(
                     lockStatus.PortalUserId,
-                    lockStatus.WorkspaceId,
-                    $"Unlocked by FSDH admin after reviewing evidence",
+                    $"Unlocked by {_currentUser.DisplayName ?? _currentUser.Email} after reviewing evidence",
                     _currentUser.Id
                 );
 
-                await _userAccessNotificationService.NotifyAccessRegrantedAsync(lockStatus);
+                await _userAccessNotificationService.NotifyAccessRegrantedAsync(lockStatus, _currentUser.DisplayName ?? _currentUser.Email);
 
                 _snackbar.Add(
                     Localizer["User successfully unlocked for {0}", workspaceText], 

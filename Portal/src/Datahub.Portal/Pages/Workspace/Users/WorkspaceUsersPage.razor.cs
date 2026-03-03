@@ -2,11 +2,9 @@ using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
-using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
-using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Utilities;
 using Datahub.Portal.Pages.Tools.LockedUsers;
@@ -39,37 +37,16 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
 
-            _workspaceId = await ResolveWorkspaceIdAsync();
             await LoadLockedUsersForWorkspace();
 
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
         }
 
-        private async Task<int?> ResolveWorkspaceIdAsync()
-        {
-            var projectId = _projectUsers.FirstOrDefault()?.Project_ID;
-            if (projectId.HasValue)
-            {
-                return projectId.Value;
-            }
-
-            await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-            return await dbContext.Projects
-                .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
-                .Select(p => (int?)p.Project_ID)
-                .FirstOrDefaultAsync();
-        }
-
         private async Task LoadLockedUsersForWorkspace()
         {
             _lockedUsersByPortalUserId = new Dictionary<int, UserLockStatus>();
-            if (!_workspaceId.HasValue)
-            {
-                return;
-            }
-
-            var lockedUsers = await _lockedUserManagementService.GetLockedUsersInWorkspaceAsync(_workspaceId.Value);
+            var lockedUsers = await _lockedUserManagementService.GetAllLockedUsersAsync();
             _lockedUsersByPortalUserId = lockedUsers
                 .Where(u => u.PortalUserId > 0)
                 .ToDictionary(u => u.PortalUserId, u => u);
@@ -241,16 +218,9 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private async Task OpenUploadEvidenceDialog(PortalUser user)
         {
-            if (!_workspaceId.HasValue)
-            {
-                _snackbar.Add(Localizer["Workspace not found"], Severity.Error);
-                return;
-            }
-
             var parameters = new DialogParameters
             {
-                { "User", user },
-                { "WorkspaceId", _workspaceId.Value }
+                { "User", user }
             };
 
             var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };

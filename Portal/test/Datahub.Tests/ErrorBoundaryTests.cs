@@ -99,7 +99,7 @@ public class ErrorBoundaryTests
         _sessionStorageMock = new Mock<ISessionStorageService> { CallBase = false };
         _serviceAuthManager = new Mock<IServiceAuthManager>();
         _lockedUserManagementServiceMock = new Mock<ILockedUserManagementService>();
-        _lockedUserManagementServiceMock.Setup(x => x.IsUserLockedAsync(It.IsAny<int>(), null))
+        _lockedUserManagementServiceMock.Setup(x => x.IsUserLockedAsync(It.IsAny<int>()))
             .ReturnsAsync(false);
         _serviceAuthManager.Setup(x => x.GetEntraUserAuthorizations(It.IsAny<string>()))
             .ReturnsAsync(System.Collections.Immutable.ImmutableList<(Project_Role Role, Datahub_Project Project)>.Empty);

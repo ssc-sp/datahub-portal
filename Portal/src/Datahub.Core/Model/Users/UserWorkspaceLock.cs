@@ -1,10 +1,9 @@
 using Datahub.Shared.Entities;
-using Datahub.Core.Model.Projects;
 
 namespace Datahub.Core.Model.Users;
 
 /// <summary>
-/// Represents an audit record for user lock/unlock events in a workspace.
+/// Represents an audit record for global user lock/unlock events.
 /// Tracks the complete history of locks, unlocks, and evidence uploads.
 /// </summary>
 public class UserWorkspaceLock
@@ -23,16 +22,6 @@ public class UserWorkspaceLock
     /// Gets or sets the portal user associated with this lock event.
     /// </summary>
     public PortalUser? User { get; set; }
-
-    /// <summary>
-    /// Gets or sets the workspace project ID. Null means this is a global lock across all workspaces.
-    /// </summary>
-    public int? WorkspaceId { get; set; }
-
-    /// <summary>
-    /// Gets or sets the workspace project. Null means this is a global lock across all workspaces.
-    /// </summary>
-    public Datahub_Project? Workspace { get; set; }
 
     /// <summary>
     /// Gets or sets the type of event: "Locked", "Unlocked", "EvidenceUploaded"

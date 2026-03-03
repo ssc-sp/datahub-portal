@@ -18,7 +18,6 @@ namespace Datahub.Core.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     PortalUserId = table.Column<int>(type: "int", nullable: false),
-                    WorkspaceId = table.Column<int>(type: "int", nullable: true),
                     EventType = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     EventDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -41,12 +40,6 @@ namespace Datahub.Core.Migrations
                         principalTable: "PortalUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
-                    table.ForeignKey(
-                        name: "FK_UserWorkspaceLocks_Projects_WorkspaceId",
-                        column: x => x.WorkspaceId,
-                        principalTable: "Projects",
-                        principalColumn: "Project_ID",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -60,14 +53,9 @@ namespace Datahub.Core.Migrations
                 column: "PerformedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserWorkspaceLocks_PortalUserId_WorkspaceId_EventDate",
+                name: "IX_UserWorkspaceLocks_PortalUserId_EventDate",
                 table: "UserWorkspaceLocks",
-                columns: new[] { "PortalUserId", "WorkspaceId", "EventDate" });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_UserWorkspaceLocks_WorkspaceId",
-                table: "UserWorkspaceLocks",
-                column: "WorkspaceId");
+                columns: new[] { "PortalUserId", "EventDate" });
         }
 
         /// <inheritdoc />
