@@ -80,12 +80,11 @@ public partial class FileExplorer
         var message = string.Format(Localizer["You are about to delete {0} files. Are you sure?"], fileCount);
         if (fileCount == 1)
         {
-            message = string.Format(Localizer["Are you sure you want to delete file \"{0}\"?"].ToString(), fileName);
+            message = string.Format(Localizer["Are you sure you want to delete file {0}?"].ToString(), fileName);
         }
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
-        
         foreach (var selectedFile in toBeDeleted)
         {
             if (!await StorageManager.DeleteFileAsync(ContainerName, JoinPath(_currentFolder, selectedFile)))
@@ -160,8 +159,8 @@ public partial class FileExplorer
 
         var folderNameOnly = folderName.TrimEnd('/').Split('/').Last();
 
-        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"], folderNameOnly);
-      
+        var message = string.Format(Localizer["Are you sure you want to delete folder {0}?"], folderNameOnly);
+
         if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
             return;
 
