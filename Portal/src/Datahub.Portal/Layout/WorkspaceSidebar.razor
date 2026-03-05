@@ -214,6 +214,7 @@
         public const string ArcGis = "arcgis";
         public const string Toolbox = "toolbox";
         public const string Users = "users";
+        public const string ExternalUsers = "external-users";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
         public const string Healthcheck = "healthcheck";
@@ -226,6 +227,7 @@
         public const string Repositories_FR = "depots";
         public const string Toolbox_FR = "boite-a-outils";
         public const string Users_FR = "utilisateurs";
+        public const string ExternalUsers_FR = "external-utilisateurs";
         public const string Metadata_FR = "metadonnees";
         public const string Reports_FR = "rapports";
         public const string Healthcheck_FR = "verification-sante";
@@ -248,6 +250,7 @@
     [
         SectionViews.Toolbox,
         SectionViews.Users,
+        SectionViews.ExternalUsers,
         SectionViews.Metadata,
         SectionViews.Reports,
         SectionViews.Healthcheck,
@@ -327,6 +330,7 @@
             SectionViews.DeleteWorkspace => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
+            SectionViews.ExternalUsers => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -412,6 +416,7 @@
             SectionViews.ArcGis => SidebarIcons.ArcGis,
             SectionViews.Toolbox => SidebarIcons.Toolbox,
             SectionViews.Users => SidebarIcons.Users,
+            SectionViews.ExternalUsers => SidebarIcons.ExternalUsers,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
             SectionViews.Healthcheck => SidebarIcons.HealthCheck,
@@ -435,6 +440,7 @@
             SectionViews.ArcGis => Localizer["ArcGIS"],
             SectionViews.Toolbox => Localizer["Toolbox"],
             SectionViews.Users => Localizer["Users"],
+            SectionViews.ExternalUsers => Localizer["External Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
             SectionViews.Healthcheck => Localizer["Health Check"],

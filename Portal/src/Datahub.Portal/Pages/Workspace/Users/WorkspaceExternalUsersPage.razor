@@ -1,0 +1,235 @@
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Pages.Tools.Users
+@using MudBlazor.Utilities
+@using Datahub.Portal.Components.User
+@using Datahub.Application.Commands
+@using Datahub.Application.Services.UserManagement
+@* @using static Datahub.Portal.Pages.Workspace.Users.AddNewExternalUsersToProjectDialog *@
+
+@inject IDatahubAuditingService _datahubAuditingService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject IUserInformationService _userInformationService
+@inject IProjectUserManagementService _projectUserManagementService
+@inject IDialogService _dialogService
+@inject ISnackbar _snackbar
+
+@if (_loading)
+{
+    <DHLoadingInitializer />
+}
+else
+{
+  <MudStack>
+      <MudStack Row Class="mt-6 mb-4">
+          <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
+          <MudSpacer />
+          <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+              <DHButton OnClick="() => OpenInviteUserDialog()" Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd">
+                  @Localizer["Add user"]
+              </DHButton>
+          </DatahubAuthView>
+      </MudStack>
+      @if (_externalProjectUsers is not null && _externalProjectUsers.Any())
+      {
+          <MudTable Items="@_externalProjectUsers" Striped Filter="@(new Func<UserRoleLinks, bool>(CombinedFilter))">
+              <ToolBarContent>
+                  <MudTextField @bind-Value="_filterString"
+                                Placeholder="@Localizer["Search"]"
+                                Immediate
+                                Adornment="Adornment.Start"
+                                AdornmentIcon="@Icons.Material.Filled.Search"
+                                Label="@Localizer["Search"]"
+                                IconSize="Size.Medium" />
+              </ToolBarContent>
+              <HeaderContent>
+                  <MudTh>@Localizer["Name"]</MudTh>
+                  <MudTh>@Localizer["Email"]</MudTh>
+                  <MudTh>@Localizer["Organization"]</MudTh>
+                  <MudTh>@Localizer["Status"]</MudTh>
+                  <MudTh>@Localizer["Account Expiry"]</MudTh>
+                  <MudTh>@Localizer["Actions"]</MudTh>
+              </HeaderContent>
+              <RowTemplate Context="rowContext">
+                  <MudTd>
+                      <MudStack Row AlignItems="AlignItems.Center">
+                          <MudText>
+                              <strong>
+                                  @rowContext.PortalUser.DisplayName
+                              </strong>
+                          </MudText>
+                      </MudStack>
+                  </MudTd>
+                  <MudTd>
+                      <MudStack Row AlignItems="AlignItems.Center">
+                          <MudText>
+                              @rowContext.PortalUser.Email
+                          </MudText>
+                      </MudStack>
+                  </MudTd>
+                  <MudTd>
+                      <MudStack Row AlignItems="AlignItems.Center">
+                          <MudText>
+                              @rowContext.PortalUser.ExternalUser.Organization
+                          </MudText>
+                      </MudStack>
+                  </MudTd>
+                  <MudTd>
+                      <MudStack Row AlignItems="AlignItems.Center">
+                          <MudText>
+                              @if (rowContext.PortalUser.ExternalUser.UserDeactivatedAt is not null)
+                              {
+                                  <MudChip T="string" Color="Color.Error">@Localizer["Deactivated"]</MudChip>
+                              }
+                              else if (rowContext.PortalUser.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow)
+                              {
+                                  <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
+                              }
+                              else if (rowContext.PortalUser.ExternalUser.FirstLoginDateTime is null)
+                              {
+                                  <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
+                              }
+                              else
+                              {
+                                  <MudChip T="string" Color="Color.Success">@Localizer["Active"]</MudChip>
+                              }
+                          </MudText>
+                      </MudStack>
+                  </MudTd>
+                  <MudTd>
+                      <MudStack Row AlignItems="AlignItems.Center">
+                          <MudText>
+                              @rowContext.PortalUser.ExternalUser.UserExpiryDate.ToString("yyyy-MM-dd")
+                          </MudText>
+                      </MudStack>
+                  </MudTd>
+                  <MudTd>
+                      <MudStack Row AlignItems="AlignItems.Center">
+                          <DHButton OnClick="() => OpenManageUserDialog(rowContext)">@Localizer["View/Edit"]</DHButton>
+                          @if (rowContext.PortalUser.ExternalUser.UserDeactivatedAt is null)
+                          {
+                              <DHButton OnClick="() => OpenDeactivateUserDialog(rowContext)">@Localizer["Deactivate User"]</DHButton>
+                          }
+                      </MudStack>
+                  </MudTd>
+              </RowTemplate>
+              <PagerContent>
+                  <MudTablePager />
+              </PagerContent>
+          </MudTable>
+      }
+      else
+      {
+          <MudText>
+            @Localizer["There are no external users invited to this workspace"]
+          </MudText>
+      }
+  </MudStack>
+}
+
+
+@code {
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+
+    private string _filterString = null;
+    private string _tabStyle;
+
+    private bool _updateInProgress = true;
+    private bool _loading = true;
+    private bool _deactivatingUser = false;
+
+    private List<UserRoleLinks> _externalProjectUsers;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        await InitializedProjectMembers();
+        _loading = false;
+    }
+    private async Task InitializedProjectMembers()
+    {
+        var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+        _externalProjectUsers = projectUsers.Where(u => u.PortalUser.ExternalUser != null).ToList();
+
+        _loading = false;
+
+    }
+
+    private async Task OpenInviteUserDialog()
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+        var dialogParameters = new DialogParameters
+        {
+            { "ProjectAcronym", WorkspaceAcronym },
+            { "Inviter", currentUser }
+        };
+        var dialog = await _dialogService.ShowAsync<AddNewExternalUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+    }
+
+    private async Task OpenDeactivateUserDialog(UserRoleLinks selectedUser)
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+        var dialogParameters = new DialogParameters
+        {
+            { "SelectedUser", selectedUser },
+            { "CurrentUser", currentUser }
+        };
+        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Deactivate user"], dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is not UserRoleLinks changedUser)
+            {
+                _snackbar.Add(Localizer["Error editing user"], Severity.Error);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["User deactivated"], Severity.Success);
+
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task OpenManageUserDialog(UserRoleLinks selectedUser)
+    {
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
+        var dialogParameters = new DialogParameters
+        {
+            { "SelectedExternalUser", selectedUser },
+            { "CurrentUser", currentUser }
+        };
+        var dialog = await _dialogService.ShowAsync<ManageExternalUserDialog>(Localizer["Manage user"], dialogParameters, dialogOptions);
+        var result = await dialog.Result;
+        if (!result.Canceled)
+        {
+            if (result.Data is not UserRoleLinks changedUser)
+            {
+                _snackbar.Add(Localizer["Error editing user"], Severity.Error);
+            }
+            else
+            {
+                _snackbar.Add(Localizer["User profile updated"], Severity.Success);
+
+                StateHasChanged();
+            }
+        }
+    }
+
+    private bool CombinedFilter(UserRoleLinks projectUser)
+    {
+        var matchesSearch = string.IsNullOrWhiteSpace(_filterString) ||
+            projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true ||
+            projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
+
+        return matchesSearch;
+    }
+
+}
