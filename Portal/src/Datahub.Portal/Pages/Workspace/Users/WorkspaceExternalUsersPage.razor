@@ -109,7 +109,7 @@ else
                           <DHButton OnClick="() => OpenManageUserDialog(rowContext)">@Localizer["View/Edit"]</DHButton>
                           @if (rowContext.PortalUser.ExternalUser.UserDeactivatedAt is null)
                           {
-                              <DHButton OnClick="() => OpenDeactivateUserDialog(rowContext)">@Localizer["Deactivate User"]</DHButton>
+                              <DHButton OnClick="() => OpenDeactivateUserDialog(rowContext)">@Localizer["Deactivate user"]</DHButton>
                           }
                       </MudStack>
                   </MudTd>
@@ -118,12 +118,6 @@ else
                   <MudTablePager />
               </PagerContent>
           </MudTable>
-      }
-      else
-      {
-          <MudText>
-            @Localizer["There are no external users invited to this workspace"]
-          </MudText>
       }
   </MudStack>
 }
