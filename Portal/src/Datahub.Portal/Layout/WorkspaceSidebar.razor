@@ -153,7 +153,7 @@
                             <ul>
                                 @foreach (var toolSection in _workspaceAdministration)
                                 {
-                                    if(toolSection == SectionViews.ExternalUsers)
+                                    if(toolSection == SectionViews.ExternalUsers && _externalProjectUsersCount != 0)
                                     {
                                         continue;
                                     }
@@ -193,6 +193,7 @@
     private List<Datahub_Project> _allProjects;
     private bool _isPublishingBlockedForWorkspace = false;
     private string? _entraUserGuid;
+    private int _externalProjectUsersCount;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -272,6 +273,9 @@
             .AsNoTracking()
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+        _externalProjectUsersCount = projectUsers.Where(u => u.PortalUser.ExternalUser != null).Count();
 
         // Check if publishing is blocked for this workspace
         _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
