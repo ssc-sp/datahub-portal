@@ -1,0 +1,59 @@
+@using Datahub.Application.Attributes
+@using Datahub.Core.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Reflection
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Rendering
+@using MudBlazor
+@using Datahub.Portal.Layout
+
+@inject IStringLocalizer Localizer
+
+@if (IsAllowed)
+{
+	@ChildContent
+}
+else
+{
+	<LayoutView Layout="@typeof(PortalLayout)">
+		<MudContainer>
+			<MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
+			@if (new Random().Next(0, 2) == 0)
+			{
+				<MudImage Src="img/errors/dogs/2288512261_31eedc8b0d_b.jpg" Alt="@Localizer["DogImageAltText"]" Elevation="25" Width="400" Class="rounded-lg my-5" />
+			}
+			else
+			{
+				<MudImage Src="img/errors/cats/8369751532_e0596f5f8e_c.jpg" Alt="@Localizer["CatImageAltText"]" Elevation="25" Width="300" Class="rounded-lg my-5" />
+			}
+		</MudContainer>
+	</LayoutView>
+}
+
+@code {
+	[Parameter] public RenderFragment ChildContent { get; set; }
+	[Parameter] public RouteData RouteData { get; set; }
+	[CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; }
+
+	private bool IsAllowed = true;
+
+	protected override async Task OnParametersSetAsync()
+	{
+		await base.OnParametersSetAsync();
+
+		var user = (await AuthenticationState).User;
+		var isExternal = user.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN);
+
+		var attr = RouteData.PageType.GetCustomAttribute<ExternalUserPageAttribute>();
+
+		// If the attribute is present and IsAllowed is false, and the user is external, block access
+		if (attr != null && !attr.IsAllowed && isExternal)
+		{
+			IsAllowed = false;
+		}
+		else
+		{
+			IsAllowed = true;
+		}
+	}
+}
