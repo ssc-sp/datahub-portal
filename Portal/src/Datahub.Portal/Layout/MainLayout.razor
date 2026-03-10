@@ -5,6 +5,7 @@
 @using Microsoft.Identity.Web
 @using Datahub.Portal.Views.Dialogs
 @using System.Runtime.ExceptionServices
+@using System.Security.Claims
 
 @inject NavigationManager _navigationManager
 @inject IDatahubAuditingService _auditingService
@@ -64,12 +65,19 @@ else
 		return LOAD_MESSAGES[new Random().Next(LOAD_MESSAGES.Length)];
 	}
 
+	private ClaimsPrincipal? _user;
+
 	protected override async Task OnInitializedAsync()
 	{
 		try
 		{
 			var user = await _userInformationService.GetAuthenticatedUser(true);
-
+			if (user == _user)
+			{
+				// if the user is the same as before, no need to re-check authentication/authorization
+				return;
+			}
+			_user = user;
 			if (!user.Identity?.IsAuthenticated ?? true)
 			{
 				var returnUrl = _navigationManager.ToBaseRelativePath(_navigationManager.Uri);

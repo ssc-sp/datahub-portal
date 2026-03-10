@@ -7,7 +7,7 @@
 @inject IDialogService _dialogService
 @inject IUserSettingsService _userSettingsService
 
-<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserUID=@ViewedUser.UserUID()>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.UserUID UserUID=@ViewedUser.UserUID()>
 
     <Authorized>
         <MudStack Spacing="8" Class="mb-16">
