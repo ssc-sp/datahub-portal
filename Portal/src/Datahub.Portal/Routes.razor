@@ -1,4 +1,4 @@
-﻿@inject IJSRuntime _jsRuntime
+@inject IJSRuntime _jsRuntime
 @inject NavigationManager _navManager
 @inject IUserSettingsService _userSettingsService
 @inject ICultureService CultureService
@@ -44,7 +44,7 @@
 @code {
 
     [SupplyParameterFromQuery(Name = "culture")]
-    public string CultureOverride { get; set; }
+    public string? CultureOverride { get; set; }
 
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";

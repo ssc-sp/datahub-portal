@@ -69,17 +69,17 @@
                     </MudChip>
                 }
             </MudChipSet>
-			<DatahubAuthView AllowedUsers="UserType.TrustedEntraOnly">
-			  <MudFlexBreak/>
-			  <DHButton Color="Color.Primary"
-			  Underline
-			  NoWrap
-			  Href="@Localizer[PageRoutes.Explore]"
-			  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-				  @Localizer["Explore other workspaces and users"]
-			  </DHButton>
-			</DatahubAuthView>
-        }
+		}
+		<DatahubAuthView AllowedUsers="UserType.TrustedEntraOnly">
+			<MudFlexBreak />
+			<DHButton Color="Color.Primary"
+					  Underline
+					  NoWrap
+					  Href="@Localizer[PageRoutes.Explore]"
+					  EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+				@Localizer["Explore other workspaces and users"]
+			</DHButton>
+		</DatahubAuthView>
     </MudStack>
     @if (HasWorkspaces)
     {
@@ -267,7 +267,6 @@ else
     // Hooks
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         await QueryWorkspaces();
         InitiateDisplayState();
     }
