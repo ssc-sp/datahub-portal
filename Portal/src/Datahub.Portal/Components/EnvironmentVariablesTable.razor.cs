@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Shared.Entities;
@@ -87,7 +87,7 @@ namespace Datahub.Portal.Components
                 catch (KeyVaultErrorException e)
                 {
                     _logger.LogError(e, $"Error getting environment variable {key} from KeyVault.");
-                    _snackbar.Add(Localizer["Error getting environment variable \"{0}\" from KeyVault.", key],
+                    _snackbar.Add(Localizer["Error getting environment variable {0} from KeyVault.", key],
                         Severity.Error);
                 }
             }
@@ -107,11 +107,6 @@ namespace Datahub.Portal.Components
         private string ToKeyVaultName(string key)
         {
             return key.ToLower().Replace("_", "-");
-        }
-        
-        private string ToEnvironmentVariableName(string key)
-        {
-            return key.ToUpper().Replace("-", "_");
         }
 
         private void HandleCommitEditClicked(MouseEventArgs args)
