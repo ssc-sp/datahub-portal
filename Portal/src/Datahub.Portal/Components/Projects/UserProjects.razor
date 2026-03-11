@@ -15,6 +15,7 @@
 @inject NavigationManager NavigationManager
 @inject DatahubPortalConfiguration DatahubPortalConfiguration
 @inject IWorkspaceVersionService WorkspaceVersionService
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 
 @if (_userRoles is null)
 {
@@ -57,10 +58,12 @@
             </MudChip>
           }
         }
-        @foreach (var group in SecurityDisplayGroups)
+        @if (pb_enabled)
         {
-          if (group.Count > 0)
+          foreach (var group in SecurityDisplayGroups)
           {
+            if (group.Count > 0)
+            {
             <MudChip T="string"
                      title=@group.FilterLabel
                      Text=@group.Label
@@ -72,6 +75,7 @@
                 @group.Label
               </strong>
             </MudChip>
+            }
           }
         }
       </MudChipSet>
@@ -228,6 +232,7 @@ else
   bool AnyFilter => AllDisplayGroups.Any(g => g.FilterToggle);
   bool HasWorkspaces => _allWorkspaces.Count > 0;
   int FilteredWorkspacesCount;
+  private bool pb_enabled = false;
 
   // User, Roles, and Projects
   private List<Datahub_Project> _allWorkspaces = new List<Datahub_Project>();
@@ -274,6 +279,7 @@ else
   // Hooks
   protected override async Task OnInitializedAsync()
   {
+    pb_enabled = await _featureManager.IsEnabledAsync(Features.PB_Feature);
     await QueryWorkspaces();
     InitiateDisplayState();
   }
