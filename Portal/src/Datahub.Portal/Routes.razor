@@ -30,8 +30,8 @@
 
 @code {
 
-	[SupplyParameterFromQuery(Name = "culture")]
-	public string CultureOverride { get; set; }
+    [SupplyParameterFromQuery(Name = "culture")]
+    public string? CultureOverride { get; set; }
 
 	private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
 	private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";

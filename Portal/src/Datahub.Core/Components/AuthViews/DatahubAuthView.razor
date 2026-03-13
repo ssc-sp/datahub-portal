@@ -4,157 +4,223 @@
 @using System.Security.Claims
 
 <AuthorizeView Roles="@GetRoles()">
-    <Authorized>
-        @if (IsAllowedUserType())
-        {
-            @AuthorizedContent
-        }
-        else
-        {
-            @NotAuthorized
-        }
-    </Authorized>
-    <NotAuthorized>
-        @NotAuthorized
-    </NotAuthorized>
-    <Authorizing>
-        @Authorizing
-    </Authorizing>
+	<Authorized>
+		@if (IsAllowedUserType())
+		{
+			@AuthorizedContent
+		}
+		else
+		{
+			@NotAuthorized
+		}
+	</Authorized>
+	<NotAuthorized>
+		@NotAuthorized
+	</NotAuthorized>
+	<Authorizing>
+		@Authorizing
+	</Authorizing>
 </AuthorizeView>
 
 @code {
 
-    public enum UserType
-    {
-        AllUsers,
-        TrustedEntraOnly,
-        ExternalOnly,
-    }
+	public enum UserType
+	{
+		AllUsers,
+		TrustedEntraOnly,
+		ExternalOnly,
+	}
 
-    [Parameter]
-    public RenderFragment? ChildContent { get; set; }
+	[Parameter]
+	public RenderFragment? ChildContent { get; set; }
 
-    [Parameter]
-    public RenderFragment? Authorizing { get; set; }
+	[Parameter]
+	public RenderFragment? Authorizing { get; set; }
 
-    [Parameter]
-    public RenderFragment? Authorized { get; set; }
+	[Parameter]
+	public RenderFragment? Authorized { get; set; }
 
-    [Parameter]
-    public RenderFragment? NotAuthorized { get; set; }
+	[Parameter]
+	public RenderFragment? NotAuthorized { get; set; }
 
-    [Parameter]
-    public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
+	[Parameter]
+	public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
 
-    [Parameter]
-    public string? ProjectAcronym { get; set; }
+	[Parameter]
+	public string? ProjectAcronym { get; set; }
 
-    [Parameter]
-    public string? UserUID { get; set; }
+	[Parameter]
+	public string? UserUID { get; set; }
 
-    [Parameter]
-    public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+	[Parameter]
+	public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    [Parameter]
-    public UserType AllowedUsers { get; set; } = UserType.AllUsers;
+	[Parameter]
+	public UserType AllowedUsers { get; set; } = UserType.AllUsers;
 
-    [CascadingParameter]
-    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+	[CascadingParameter]
+	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
-    private ClaimsPrincipal? _user;
+	private ClaimsPrincipal? _user;
 
-    private RenderFragment? AuthorizedContent => Authorized ?? ChildContent;
+	private RenderFragment? AuthorizedContent => Authorized ?? ChildContent;
 
-    public enum AuthLevels
-    {
-        Authenticated,
-        Personal,
-        WorkspaceGuest,
-        WorkspaceCollaborator,
-        WorkspaceAdmin,
-        WorkspaceLead,
-        DatahubAdminGuestView,
-        DatahubSupport,
-        DatahubApprover,
-        Unauthorized,
-        CbrOwner,
-        WorkspaceCbrOwner
-    }
+	/// <summary>
+	/// Authorization levels understood by <see cref="DatahubAuthView"/>.
+	/// </summary>
+	/// <remarks>
+	/// These values map to role strings returned from <c>GetRoles()</c> and are used by Blazor's <c>AuthorizeView</c>.
+	/// </remarks>
+	public enum AuthLevels
+	{
+		/// <summary>
+		/// Any authenticated user. Currently does not alter the roles returned by <c>GetRoles()</c>.
+		/// </summary>
+		Authenticated,
 
-    private bool IsAllowedUserType() => AllowedUsers switch
-    {
-        UserType.AllUsers => true,
-        UserType.TrustedEntraOnly => _user?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false,
-        UserType.ExternalOnly => _user?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false,
-        _ => false,
-    };
-    
+		/// <summary>
+		/// A specific user identified by <see cref="DatahubAuthView.UserUID"/> or a Datahub support admin.
+		/// Uses <c>"{UserUID},{DATAHUB_ROLE_ADMIN}"</c> as the roles string.
+		/// </summary>
+		UserUID,
 
-    protected override async Task OnInitializedAsync()
-    {
-        var authState = await AuthenticationStateTask;
-        _user = authState.User;
-        await base.OnInitializedAsync();
-    }
+		/// <summary>
+		/// A user with at least guest access to the workspace identified by <see cref="ProjectAcronym"/>.
+		/// Roles: guest, collaborator, admin or workspace lead for the project, and optionally <c>DATAHUB_ROLE_ADMIN</c>
+		/// when <see cref="ElevatedWorkspaceAccessEnabled"/> is true.
+		/// </summary>
+		WorkspaceGuest,
 
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
+		/// <summary>
+		/// A user with collaborator-or-higher access to the workspace identified by <see cref="ProjectAcronym"/>.
+		/// Roles: collaborator, admin or workspace lead for the project, and optionally <c>DATAHUB_ROLE_ADMIN</c>
+		/// when <see cref="ElevatedWorkspaceAccessEnabled"/> is true.
+		/// </summary>
+		WorkspaceCollaborator,
 
-        ProjectAcronym = ProjectAcronym?.ToUpperInvariant();
+		/// <summary>
+		/// A user with admin-or-higher access to the workspace identified by <see cref="ProjectAcronym"/>.
+		/// Roles: admin or workspace lead for the project, and optionally <c>DATAHUB_ROLE_ADMIN</c>
+		/// when <see cref="ElevatedWorkspaceAccessEnabled"/> is true.
+		/// </summary>
+		WorkspaceAdmin,
 
-        if (ChildContent != null && Authorized != null)
-        {
-            throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
-        }
+		/// <summary>
+		/// A workspace lead for the workspace identified by <see cref="ProjectAcronym"/>.
+		/// Roles: workspace lead for the project, and optionally <c>DATAHUB_ROLE_ADMIN</c>
+		/// when <see cref="ElevatedWorkspaceAccessEnabled"/> is true.
+		/// </summary>
+		WorkspaceLead,
 
-        if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin or AuthLevels.WorkspaceLead)
-        {
-            throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
-        }
+		/// <summary>
+		/// A Datahub admin accessing a workspace in a limited guest context.
+		/// Roles: <c>DATAHUB_ROLE_ADMIN</c> and/or <c>DATAHUB_ROLE_ADMIN_AS_GUEST</c>.
+		/// </summary>
+		DatahubAdminGuestView,
 
-        if (string.IsNullOrWhiteSpace(UserUID) && AuthLevel is AuthLevels.Personal)
-        {
-            throw new InvalidOperationException($"'{nameof(UserUID)}' is required");
-        }
-    }
+		/// <summary>
+		/// A Datahub support/admin user with system-wide privileges.
+		/// Roles: <c>DATAHUB_ROLE_ADMIN</c>.
+		/// </summary>
+		DatahubSupport,
 
-    private string? GetRoles()
-    {
-        var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
-        var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
-        var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
-        var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
-        var datahubSupportRole = RoleConstants.DATAHUB_ROLE_ADMIN;
-        var datahubAdminAsGuestRole = RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST;
-        var datahubApprover = RoleConstants.DATAHUB_APPROVER_ROLE;
-        var cbrOwnerRole = RoleConstants.CBR_OWNER_ROLE;
-        var workspaceCbrOwnerRole = $"{ProjectAcronym}{RoleConstants.CBR_OWNER_SUFFIX}";
+		/// <summary>
+		/// A Datahub approver who can approve requests or workflows.
+		/// Roles: <c>DATAHUB_APPROVER_ROLE</c>.
+		/// </summary>
+		DatahubApprover,
 
-        switch (AuthLevel)
-        {
-            case AuthLevels.WorkspaceCbrOwner:
-                return ElevatedWorkspaceAccessEnabled ? $"{workspaceCbrOwnerRole},{datahubSupportRole}" : $"{workspaceCbrOwnerRole}";
-            case AuthLevels.CbrOwner:
-                return $"{cbrOwnerRole}";
-            case AuthLevels.Personal:
-                return $"{UserUID},{datahubSupportRole}";
-            case AuthLevels.WorkspaceGuest:
-                return ElevatedWorkspaceAccessEnabled ? $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
-            case AuthLevels.WorkspaceCollaborator:
-                return ElevatedWorkspaceAccessEnabled ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{collaboratorRole},{adminRole},{workspaceLeadRole}";
-            case AuthLevels.WorkspaceAdmin:
-                return ElevatedWorkspaceAccessEnabled ? $"{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{adminRole},{workspaceLeadRole}";
-            case AuthLevels.WorkspaceLead:
-                return ElevatedWorkspaceAccessEnabled ? $"{workspaceLeadRole},{datahubSupportRole}" : workspaceLeadRole;
-            case AuthLevels.DatahubAdminGuestView:
-                return $"{datahubSupportRole},{datahubAdminAsGuestRole}";
-            case AuthLevels.DatahubSupport:
-                return datahubSupportRole;
-            case AuthLevels.DatahubApprover:
-                return datahubApprover;
-            case AuthLevels.Unauthorized:
-                return "🏗️ Unauthorized";
+		/// <summary>
+		/// No access. Returns a placeholder role string and effectively denies all users.
+		/// </summary>
+		Unauthorized,
+
+		/// <summary>
+		/// Global CBR owner across the system.
+		/// Roles: <c>CBR_OWNER_ROLE</c>.
+		/// </summary>
+		CbrOwner,
+
+		/// <summary>
+		/// Workspace-scoped CBR owner for the workspace identified by <see cref="ProjectAcronym"/>.
+		/// Roles: the workspace CBR owner role for the project, and optionally <c>DATAHUB_ROLE_ADMIN</c>
+		/// when <see cref="ElevatedWorkspaceAccessEnabled"/> is true.
+		/// </summary>
+		WorkspaceCbrOwner
+	}
+
+	private bool IsAllowedUserType() => AllowedUsers switch
+	{
+		UserType.AllUsers => true,
+		UserType.TrustedEntraOnly => _user?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false,
+		UserType.ExternalOnly => _user?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false,
+		_ => false,
+	};
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		var authState = await AuthenticationStateTask;
+		_user = authState.User;
+		await base.OnInitializedAsync();
+	}
+
+	protected override void OnParametersSet()
+	{
+		base.OnParametersSet();
+
+		ProjectAcronym = ProjectAcronym?.ToUpperInvariant();
+
+		if (ChildContent != null && Authorized != null)
+		{
+			throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
+		}
+
+		if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin or AuthLevels.WorkspaceLead)
+		{
+			throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
+		}
+
+		if (string.IsNullOrWhiteSpace(UserUID) && AuthLevel is AuthLevels.UserUID)
+		{
+			throw new InvalidOperationException($"'{nameof(UserUID)}' is required");
+		}
+	}
+
+	private string? GetRoles()
+	{
+		var guestRole = $"{ProjectAcronym}{RoleConstants.GUEST_SUFFIX}";
+		var collaboratorRole = $"{ProjectAcronym}{RoleConstants.COLLABORATOR_SUFFIX}";
+		var adminRole = $"{ProjectAcronym}{RoleConstants.ADMIN_SUFFIX}";
+		var workspaceLeadRole = $"{ProjectAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}";
+		var datahubSupportRole = RoleConstants.DATAHUB_ROLE_ADMIN;
+		var datahubAdminAsGuestRole = RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST;
+		var datahubApprover = RoleConstants.DATAHUB_APPROVER_ROLE;
+		var cbrOwnerRole = RoleConstants.CBR_OWNER_ROLE;
+		var workspaceCbrOwnerRole = $"{ProjectAcronym}{RoleConstants.CBR_OWNER_SUFFIX}";
+
+		switch (AuthLevel)
+		{
+			case AuthLevels.WorkspaceCbrOwner:
+				return ElevatedWorkspaceAccessEnabled ? $"{workspaceCbrOwnerRole},{datahubSupportRole}" : $"{workspaceCbrOwnerRole}";
+			case AuthLevels.CbrOwner:
+				return $"{cbrOwnerRole}";
+			case AuthLevels.UserUID:
+				return $"{UserUID},{datahubSupportRole}";
+			case AuthLevels.WorkspaceGuest:
+				return ElevatedWorkspaceAccessEnabled ? $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
+			case AuthLevels.WorkspaceCollaborator:
+				return ElevatedWorkspaceAccessEnabled ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{collaboratorRole},{adminRole},{workspaceLeadRole}";
+			case AuthLevels.WorkspaceAdmin:
+				return ElevatedWorkspaceAccessEnabled ? $"{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{adminRole},{workspaceLeadRole}";
+			case AuthLevels.WorkspaceLead:
+				return ElevatedWorkspaceAccessEnabled ? $"{workspaceLeadRole},{datahubSupportRole}" : workspaceLeadRole;
+			case AuthLevels.DatahubAdminGuestView:
+				return $"{datahubSupportRole},{datahubAdminAsGuestRole}";
+			case AuthLevels.DatahubSupport:
+				return datahubSupportRole;
+			case AuthLevels.DatahubApprover:
+				return datahubApprover;
 			default:
 				switch (AllowedUsers)
 				{
@@ -167,7 +233,7 @@
 					default:
 						return "🏗️ Unauthorized";
 				}
-        }
-    }
+		}
+	}
 
 }
