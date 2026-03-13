@@ -606,7 +606,11 @@ public class UserInformationService(
         if (graphId is null)
         {
             var externalId = await GetExternalUserIdentifierInternal(user);
-            return await GetExternalUserAsync(externalId ?? throw new InvalidOperationException("External user does not have a NameIdentifier claim"));
+            if (externalId is null)
+            {
+                return null;
+            }
+            return await GetExternalUserAsync(externalId);
         }
         return await GetEntraUserAsync(graphId);
     }

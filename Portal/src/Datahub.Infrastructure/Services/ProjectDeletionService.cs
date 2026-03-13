@@ -40,17 +40,17 @@ namespace Datahub.Infrastructure.Services
                        .Where(r => r.Project.Project_Acronym_CD == acronym)
                        .ToListAsync(CancellationToken.None);
 
+                var project = await ctx.Projects
+                    .Where(p => p.Project_Acronym_CD == acronym)
+                    .FirstOrDefaultAsync(CancellationToken.None);
+
+                questionnaire.Project = project ?? throw new Exception($"Project not found for acronym - {acronym}");
+
                 var rgName = string.Empty;
                 var env = configuration.GetCurrentEnvironment();
                 foreach (var resource in resources)
                 {
-                    if (questionnaire.Project is null)
-                    {
-                        questionnaire.Project = resource.Project;
-                    }
-
                     resource.Status = resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate) ? TerraformStatus.DeleteRequested : TerraformStatus.Deleted;
-                    resource.Project.Deleted_DT = resource.Project.Deleted_DT ?? DateTime.Now;
                     if (resource.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
                     {
                         rgName = resource.Project.GetResourceGroupName();
@@ -65,7 +65,8 @@ namespace Datahub.Infrastructure.Services
                 
                 var currentUser = await userInformationService.GetCurrentPortalUserAsync();
                 questionnaire.DeletedDate = DateTime.Now;
-                questionnaire.DeletedBy = currentUser;
+                questionnaire.Project.Deleted_DT = questionnaire.DeletedDate;
+                questionnaire.DeletedBy = currentUser ?? throw new Exception("Current user not found");
 
                 ctx.Attach(currentUser);
                 ctx.Project_Delete_Questionnaires.Add(questionnaire);

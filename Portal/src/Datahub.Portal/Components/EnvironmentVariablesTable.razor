@@ -1,4 +1,4 @@
-﻿@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Projects
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.Identity.Web
 
@@ -13,7 +13,7 @@
 <MudText Typo="Typo.h2" Class="mt-4">
     @Localizer["Environment variables"]
 </MudText>
-@if (((projectUser?.Role?.IsAtLeastAdmin ?? false) && loading) || projectUser is null)
+@if (loading || projectUser is null)
 {
     <MudProgressCircular Color="Color.Default" Indeterminate="true"/>
 }
@@ -21,180 +21,179 @@ else if (envError)
 {
     <MudText>@Localizer["Error accessing the environment variables"]</MudText>
 }
-else if (!projectUser.Role.IsAtLeastAdmin)
+else
 {
-    <MudText>@Localizer["Environment variables are only visible to project administrators"]</MudText>
-}
-else if (isEditable)
-{
-    <MudTable @ref="editTable"
-              Items="@envVars"
-              Dense="true"
-              Hover="true"
-              Outlined="true"
-              Class=""
-              CanCancelEdit="true"
-              Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
-              @bind-SelectedItem="@_selectedItem"
-              SortLabel="@Localizer["Sort by"]"
-              CommitEditTooltip="@Localizer["Commit edit"]"
-              CancelEditTooltip="@Localizer["Cancel edit"]"
-              IsEditRowSwitchingBlocked="true"
-              EditTrigger="TableEditTrigger.EditButton"
-              EditButtonPosition="TableEditButtonPosition.Start"
-              OnCommitEditClick="@HandleCommitEditClicked"
-              ApplyButtonPosition="TableApplyButtonPosition.Start"
-              RowEditPreview="@BackupItem"
-              RowEditCancel="@HandleRowEditCancel"
-              RowEditCommit="@HandleRowEditCommit"
-              FooterClass="pa-8">
+  <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@projectAcronym" ElevatedWorkspaceAccessEnabled="true"> 
+    <Authorized>
+      <MudTable @ref="editTable"
+                Items="@envVars"
+                Dense="true"
+                Hover="true"
+                Outlined="true"
+                Class=""
+                CanCancelEdit="true"
+                Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
+                @bind-SelectedItem="@_selectedItem"
+                SortLabel="@Localizer["Sort by"]"
+                CommitEditTooltip="@Localizer["Commit edit"]"
+                CancelEditTooltip="@Localizer["Cancel edit"]"
+                IsEditRowSwitchingBlocked="true"
+                EditTrigger="TableEditTrigger.EditButton"
+                EditButtonPosition="TableEditButtonPosition.Start"
+                OnCommitEditClick="@HandleCommitEditClicked"
+                ApplyButtonPosition="TableApplyButtonPosition.Start"
+                RowEditPreview="@BackupItem"
+                RowEditCancel="@HandleRowEditCancel"
+                RowEditCommit="@HandleRowEditCommit"
+                FooterClass="pa-8">
 
         <ToolBarContent>
-            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Class="align-self-end" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])"/>
-            <MudSpacer/>
-            <MudTextField @bind-Value="@_filterString"
-                          Label="@Localizer["Filter"]"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@SidebarIcons.Search"
-                          IconSize="Size.Small"
-                          Class="mt-0"/>
+          <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" Class="align-self-end" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])" />
+          <MudSpacer />
+          <MudTextField @bind-Value="@_filterString"
+                        Label="@Localizer["Filter"]"
+                        Adornment="Adornment.End"
+                        AdornmentIcon="@SidebarIcons.Search"
+                        IconSize="Size.Small"
+                        Class="mt-0" />
         </ToolBarContent>
 
 
         <ColGroup>
-            <col/>
-            <col/>
+          <col />
+          <col />
         </ColGroup>
 
         <HeaderContent>
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<KeyValuePair, string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<KeyValuePair, string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
-            </MudTh>
+          <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<KeyValuePair, string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
+          </MudTh>
+          <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<KeyValuePair, string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
+          </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="@Localizer["Key"]">@context.Key</MudTd>
-            @if (!string.IsNullOrEmpty(context.Value))
-            {
-                <MudTd DataLabel="@Localizer["Value"]">
-                    <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
-                </MudTd>
-            }
-            else
-            {
-                <MudTd DataLabel="@Localizer["Value"]">
-                    <MudAlert Dense Variant="Variant.Outlined" Severity="MudBlazor.Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert>
-                </MudTd>
-            }
+          <MudTd DataLabel="@Localizer["Key"]">@context.Key</MudTd>
+          @if (!string.IsNullOrEmpty(context.Value))
+          {
+            <MudTd DataLabel="@Localizer["Value"]">
+              <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
+            </MudTd>
+          }
+          else
+          {
+            <MudTd DataLabel="@Localizer["Value"]">
+              <MudAlert Dense Variant="Variant.Outlined" Severity="MudBlazor.Severity.Error" Style="color: #000">@Localizer["Could not find value"]</MudAlert>
+            </MudTd>
+          }
         </RowTemplate>
         <RowEditingTemplate>
-            <MudTd DataLabel="@Localizer["Key"]">
-                @context.Key
-            </MudTd>
-            <MudTd DataLabel="@Localizer["Value"]">
-                <MudTextField @bind-Value="@context.Value" Required Validation="@ValidateKeyValuePair()" OnlyValidateIfDirty/>
-            </MudTd>
+          <MudTd DataLabel="@Localizer["Key"]">
+            @context.Key
+          </MudTd>
+          <MudTd DataLabel="@Localizer["Value"]">
+            <MudTextField @bind-Value="@context.Value" Required Validation="@ValidateKeyValuePair()" OnlyValidateIfDirty />
+          </MudTd>
         </RowEditingTemplate>
         <EditButtonContent Context="button">
-            <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+          <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0" OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled" />
         </EditButtonContent>
         <FooterContent>
-            <MudTd >
-                <DHButton HtmlTag="button" Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
-                    @Localizer["Add environment variable"]
-                </DHButton>
+          <MudTd>
+            <DHButton HtmlTag="button" Variant="Variant.Filled" OnClick="@AddNewEnvironmentVariable" StartIcon="@SidebarIcons.Plus">
+              @Localizer["Add environment variable"]
+            </DHButton>
+          </MudTd>
+          @if (needsRestart)
+          {
+            <MudTd>
+              <MudAlert Variant="Variant.Outlined" Severity="MudBlazor.Severity.Warning" Style="color: #000000">@Localizer["You must restart your web application to apply the latest changes."]</MudAlert>
             </MudTd>
-            @if (needsRestart)
-            {
-                <MudTd>
-                    <MudAlert Variant="Variant.Outlined" Severity="MudBlazor.Severity.Warning" Style="color: #000000">@Localizer["You must restart your web application to apply the latest changes."]</MudAlert>
-                </MudTd>
-            }
+          }
         </FooterContent>
-    </MudTable>
-    <MudText Align="Align.Start" Class="mb-6">
+      </MudTable>
+      <MudText Align="Align.Start" Class="mb-6">
         <MudMarkdown Value="@Localizer["_Environment variables are stored in [Azure Keyvault](https://azure.microsoft.com/en-us/products/key-vault) and are made available to your web application as operating system level environment variables. They are available during the build process and the run process of your web application._"]"></MudMarkdown>
-    </MudText>
-}
-else
-{
-    <MudTable Items="@envVars"
-              Dense="false"
-              Hover="false"
-              Outlined="true"
-              Class="mb-12"
-              Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
-              SortLabel="@Localizer["Sort by"]">
+      </MudText>
+    </Authorized>
+    <NotAuthorized>
+      <MudTable Items="@envVars"
+                Dense="false"
+                Hover="false"
+                Outlined="true"
+                Class="mb-12"
+                Filter="@(new Func<KeyValuePair, bool>(FilterFunc))"
+                SortLabel="@Localizer["Sort by"]">
 
         <ToolBarContent>
-            <MudTextField @bind-Value="@_filterString"
-                          Label="@Localizer["Filter"]"
-                          Adornment="Adornment.End"
-                          AdornmentIcon="@SidebarIcons.Search"
-                          IconSize="Size.Small"
-                          Class="mt-0"/>
-            <MudSpacer/>
-            <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])" />
+          <MudTextField @bind-Value="@_filterString"
+                        Label="@Localizer["Filter"]"
+                        Adornment="Adornment.End"
+                        AdornmentIcon="@SidebarIcons.Search"
+                        IconSize="Size.Small"
+                        Class="mt-0" />
+          <MudSpacer />
+          <MudToggleIconButton @bind-Toggled="@_show" Icon="@SidebarIcons.Show" ToggledIcon="@SidebarIcons.Hide" title="@(_show ? Localizer["Hide environment variable values"] : Localizer["Show environment variable values"])" />
         </ToolBarContent>
 
         <HeaderContent>
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
-            </MudTh>
-            <MudTh>
-                <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
-            </MudTh>
+          <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Key))">@Localizer["Key"]</MudTableSortLabel>
+          </MudTh>
+          <MudTh>
+            <MudTableSortLabel SortBy="@(new Func<(string Key, string Value), string>(x => x.Value))">@Localizer["Value"]</MudTableSortLabel>
+          </MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd DataLabel="@Localizer["Key"]">
-                @context.Key
-            </MudTd>
-            <MudTd DataLabel="@Localizer["Value"]" >
-                <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
-            </MudTd>
+          <MudTd DataLabel="@Localizer["Key"]">
+            @context.Key
+          </MudTd>
+          <MudTd DataLabel="@Localizer["Value"]">
+            <code>@(_show ? context.Value : GetHiddenValue(context.Value))</code>
+          </MudTd>
         </RowTemplate>
-    </MudTable>
+      </MudTable>
+    </NotAuthorized>
+  </DatahubAuthView>
 }
 
 @code {
-    [Parameter] public Project_Resources2 resource { get; set; }
-    [Parameter] public string projectAcronym { get; set; }
-    [Parameter] public bool isEditable { get; set; }
+  [Parameter] public Project_Resources2 resource { get; set; }
+  [Parameter] public string projectAcronym { get; set; }
+  [Parameter] public bool isEditable { get; set; }
 
-    private string _filterString = default;
-    private KeyValuePair _selectedItem = default;
-    private string _editKey = default;
-    private string _editValue = default;
-    private KeyValuePair _elementBeforeEdit = default;
-    public List<KeyValuePair> envVars = null;
-    private MudTable<KeyValuePair>? editTable;
-    private bool _show = false;
-    private bool envError = false;
-    private bool loading = true;
-    public bool needsRestart = false;
-    private UserRoleLinks? projectUser;
-    
+  private string _filterString = default;
+  private KeyValuePair _selectedItem = default;
+  private string _editKey = default;
+  private string _editValue = default;
+  private KeyValuePair _elementBeforeEdit = default;
+  public List<KeyValuePair> envVars = null;
+  private MudTable<KeyValuePair>? editTable;
+  private bool _show = false;
+  private bool envError = false;
+  private bool loading = true;
+  public bool needsRestart = false;
+  private UserRoleLinks? projectUser;
 
-    protected override async Task OnInitializedAsync()
+
+  protected override async Task OnInitializedAsync()
+  {
+    try
     {
-        try
-        {
-            var ctx = await _dbContextFactory.CreateDbContextAsync();
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            projectUser = ctx.UserRolesLinks.Include(datahubProjectUser => datahubProjectUser.Role)
-                .FirstOrDefault(u => u.PortalUser.Id == currentUser.Id);
-            var role = projectUser.Role;
-            envVars = await GetEnvironmentVariables();
-            loading = false;
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to get environment variables");
-            envError = true;
-        }
+      var ctx = await _dbContextFactory.CreateDbContextAsync();
+      var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+      projectUser = ctx.UserRolesLinks.Include(datahubProjectUser => datahubProjectUser.Role)
+          .FirstOrDefault(u => u.PortalUser.Id == currentUser.Id);
+      var role = projectUser.Role;
+      envVars = await GetEnvironmentVariables();
+      loading = false;
+      StateHasChanged();
     }
+    catch (Exception ex)
+    {
+      _logger.LogError(ex, "Failed to get environment variables");
+      envError = true;
+    }
+  }
 
-}
+  }
