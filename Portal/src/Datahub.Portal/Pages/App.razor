@@ -220,7 +220,8 @@
     </script>
 
 
-    <script src="_framework/blazor.server.js"></script>
+    @* <script src="_framework/blazor.server.js"></script> *@
+	<script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js?v=@(Assembly.GetAssembly(typeof(MudBlazor.AbstractLocalizationInterceptor))?.GetName().Version?.ToString())"></script>
     <script defer src="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.js"></script>
 </body>
