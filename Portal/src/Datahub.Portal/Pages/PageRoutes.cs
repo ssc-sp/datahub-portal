@@ -54,7 +54,9 @@ public static class PageRoutes
     public const string ToolDefault_FR = $"/{ToolPrefix_FR}/";
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
     public const string Tool_FR = $"/{ToolPrefix_FR}/{{Section}}";
-    
+
+    public const string NotFound = "/404";
+
     public const string Logout = "/signout-oidc";
     public const string Login = "/login";
     public const string Login_FR = "/connexion";
