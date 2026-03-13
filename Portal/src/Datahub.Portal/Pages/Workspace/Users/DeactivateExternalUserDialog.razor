@@ -18,10 +18,10 @@
             <MudTextField T="string"
                           Class="form-control"
                           @bind-value="_reasonForDeactivating"
-                          Label="@Localizer["Deactivation reason"]"
+                          Label=@Localizer["Deactivation reason"]
                           Required="true"
-                          RequiredError="@Localizer["Deactivation reason is required"]"
-                          Variant="Variant.Outlined">@Localizer["e.g. User is not needed for project"]</MudTextField>
+                          RequiredError=@Localizer["Deactivation reason is required"]
+                          Variant="Variant.Outlined" HelperText=@Localizer["e.g. User is not needed for project"] />
 
         </MudStack>
     </DialogContent>
