@@ -9,6 +9,7 @@
 @inject IMSGraphService _msGraphService
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 <MudDialog Style="min-width: 40vw; max-width: 75vw;">
     <DialogContent>
@@ -64,11 +65,15 @@
                               Required="true"
                               RequiredError="@Localizer["Organization name is required"]"
                               Variant="Variant.Outlined" />
-                <MudSelect @bind-Value="addExternalUserModel.Role" Label="Select user role" Placeholder="Please Select">
-                    <MudSelectItem Value="7">@Localizer["Web App"]</MudSelectItem>
-                    <MudSelectItem Value="8">@Localizer["Storage"]</MudSelectItem>
-                    <MudSelectItem Value="9">@Localizer["Web App and Storage"]</MudSelectItem>
-                </MudSelect>
+                @if (_externalRoles is not null)
+                {
+                    <MudSelect @bind-Value="addExternalUserModel.Role" Label="Select user role" Placeholder="Please Select" Required="true" RequiredError="@Localizer["Role is required"]">
+                        @foreach (var role in _externalRoles)
+                        {
+                            <MudSelectItem Value="@role.Id">@Localizer[role.Name]</MudSelectItem>
+                        }
+                    </MudSelect>
+                }
 
                 <MudDatePicker Label="Account Expiry"
                                @bind-Date="addExternalUserModel.AccountExpiry"
@@ -177,6 +182,8 @@
 
     private void Cancel() => MudDialog.Cancel();
 
+    private List<Project_Role>? _externalRoles = null;
+
 
     private AddExternalUserModel addExternalUserModel = new AddExternalUserModel();
 
@@ -189,6 +196,14 @@
         _page--;
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        if (_externalRoles is not null)
+          return;
+        using var ctx = await _dbContextFactory.CreateDbContextAsync();
+        _externalRoles = ctx.Project_Roles.Where(r => r.IsExternalRole).ToList();
+    }
+
     internal void AddExternalUser()
     {
         var addUserCommand = new ProjectUserAddExternalUserCommand()
@@ -198,7 +213,7 @@
             FirstName = addExternalUserModel.FirstName,
             LastName = addExternalUserModel.LastName,
             CollaborationObjectives = addExternalUserModel.CollaborationObjectives,
-            RoleId = 5
+            Role = addExternalUserModel.Role
         };
     }
 
@@ -225,7 +240,7 @@
         public string LastName { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Role is required.")]
-        public int Role { get; set; } = 0;
+        public Project_Role Role { get; set; } = null!;
 
         [Required(ErrorMessage = "Organization is required.")]
         public string Organization { get; set; } = string.Empty;

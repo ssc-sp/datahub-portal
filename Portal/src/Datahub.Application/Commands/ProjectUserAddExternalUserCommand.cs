@@ -1,18 +1,19 @@
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 
 namespace Datahub.Application.Commands;
 
 public class ProjectUserAddExternalUserCommand
 {
-    public string ProjectAcronym { get; set; }
-    public string FirstName { get; set; }
-    public string LastName { get; set; }
-    public string Email { get; set; }
-    public string Affiliation { get; set; }
-    public string Organization { get; set; }
-    public DateTime AccountExpiry { get; set; }
-    public string CollaborationObjectives { get; set; }
-    public int RoleId { get; set; }
+    public required string ProjectAcronym { get; set; }
+    public required string FirstName { get; set; }
+    public required string LastName { get; set; }
+    public required string Email { get; set; }
+    public required string Affiliation { get; set; }
+    public required string Organization { get; set; }
+    public required DateTime AccountExpiry { get; set; }
+    public required string CollaborationObjectives { get; set; }
+    public required Project_Role Role { get; set; }
 
     public ExternalUser? ExternalUser { get; set; }
 }
