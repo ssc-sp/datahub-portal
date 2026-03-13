@@ -43,13 +43,13 @@
                         {
                         <MudStack Row>
                             <DatahubAuthView 
-                                AuthLevel="DatahubAuthView.AuthLevels.Personal" 
+                                AuthLevel="DatahubAuthView.AuthLevels.UserUID" 
                                 UserUID="@ViewedUser.UserUID()" 
                                 AllowedUsers="DatahubAuthView.UserType.TrustedEntraOnly">
                                 <MudChip T="string" Text="@Localizer["Trusted Entra Login"]" Color="Color.Success" Class="ml-2" Tag=TRUSTED_LOGIN_TAG />
                             </DatahubAuthView>
                             <DatahubAuthView 
-                                AuthLevel="DatahubAuthView.AuthLevels.Personal"
+                                AuthLevel="DatahubAuthView.AuthLevels.UserUID"
                                 UserUID="@ViewedUser.UserUID()"
                                 AllowedUsers="DatahubAuthView.UserType.ExternalOnly">
                                 <MudChip T="string" Text="@Localizer["External Login"]" Color="Color.Info" Class="ml-2" Tag=EXTERNAL_USER_TAG />

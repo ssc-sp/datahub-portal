@@ -7,7 +7,8 @@
       "bump-patch-for-minor-pre-major": false,
       "draft": false,
       "prerelease": false,
-      "include-component-in-tag": false
+      "include-component-in-tag": false,
+      "pull-request-footer": "AB#2373 - Release Epic, see Features for individual releases\n\nThis PR was generated with Release Please."
     }
   },
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
