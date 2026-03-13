@@ -1,6 +1,7 @@
 param(
     [string]$BaseBranch = "origin/develop",
-    [switch]$NoFetch
+    [switch]$NoFetch,
+    [switch]$DeleteUnpushed
 )
 
 if (-not $NoFetch)
@@ -26,17 +27,36 @@ foreach ($branch in $localBranches)
     if ($LASTEXITCODE -eq 0)
     {
         $deadBranches += $branch
+        continue
+    }
+
+    if ($DeleteUnpushed)
+    {
+        git rev-parse --abbrev-ref --symbolic-full-name "$branch@{upstream}" 1>$null 2>$null
+        if ($LASTEXITCODE -ne 0)
+        {
+            $deadBranches += $branch
+        }
     }
 }
 
+$deadBranches = @($deadBranches | Sort-Object -Unique)
+
 if ($deadBranches.Count -eq 0)
 {
-    Write-Host "No merged local branches found against '$BaseBranch'."
+    if ($DeleteUnpushed)
+    {
+        Write-Host "No merged or unpushed local branches found."
+    }
+    else
+    {
+        Write-Host "No merged local branches found against '$BaseBranch'."
+    }
     exit 0
 }
 
 foreach ($branch in $deadBranches)
 {
     Write-Host "Deleting branch '$branch'"
-    git branch -d $branch
+    git branch -D $branch
 }
