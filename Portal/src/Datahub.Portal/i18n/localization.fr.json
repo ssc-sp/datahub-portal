@@ -3467,5 +3467,19 @@
   "Organization:": "Organisation\u00a0:",
   "Account Expiry:": "Expiration du compte\u00a0:",
   "Collaboration Objectives:": "Objectifs de collaboration\u00a0:",
-  "Send user invite": "Envoyer l\u0027invitation \u00e0 l\u0027utilisateur"
+  "Send user invite": "Envoyer l\u0027invitation \u00e0 l\u0027utilisateur",
+  "Add user": "Ajouter un utilisateur",
+  "Deactivate User": "D\u00e9sactiver l\u0027utilisateur",
+  "Deactivation reason": "Raison de la d\u00e9sactivation",
+  "Deactivation reason is required": "La raison de la d\u00e9sactivation est obligatoire",
+  "e.g. User is not needed for project": "p. ex. L\u0027utilisateur n\u0027est pas n\u00e9cessaire pour le projet",
+  "Error editing user": "Erreur lors de la modification de l\u0027utilisateur",
+  "Manage user": "G\u00e9rer l\u0027utilisateur",
+  "Please provide a reason for deactivating the user.": "Veuillez fournir une raison pour d\u00e9sactiver l\u0027utilisateur.",
+  "Reason:": "Raison\u00a0:",
+  "Save changes": "Enregistrer les modifications",
+  "User deactivated": "Utilisateur d\u00e9sactiv\u00e9",
+  "User has been deactivated": "L\u0027utilisateur a \u00e9t\u00e9 d\u00e9sactiv\u00e9",
+  "User profile updated": "Profil de l\u0027utilisateur mis \u00e0 jour",
+  "Web App and Storage": "Application Web et stockage"
 }
