@@ -1,7 +1,7 @@
 @attribute [Route(PageRoutes.AccessDenied)]
 @attribute [Route(PageRoutes.AccessDenied_FR)]
 
-@layout BarebonesPublicLayout
+@layout HeaderPublicLayout
 
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 @inject IUserInformationService _userInformationService
@@ -9,56 +9,30 @@
 
 <PageTitle>@Localizer["Access Denied - Federal Science DataHub"]</PageTitle>
 
-<MudContainer MaxWidth=@MaxWidth.Medium>
-    <MudPaper Class="pt-12 px-12 mt-12">
-        <MudStack>
-            <MudGrid>
-                <MudItem xs="9">
-                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
-                </MudItem>
-				<MudItem xs="3">
-					<MudStack Row="true" AlignItems="AlignItems.End">
-					  <DHButton HtmlTag="button" Href=@GetLogoutURL() focusable="true" translate="no"  Size="@Size.Medium" >
-						  <MudText>
-							  @Localizer["Logout"]
-						  </MudText>
-					  </DHButton>
-					  <LanguageToggle />
-					</MudStack>
-                </MudItem>
-            </MudGrid>
-            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
-        </MudStack>
-        <MudStack AlignItems="AlignItems.Center" Class="mt-4" Style="width: 100%">
-            <DHIcon Icon="@Icons.Material.Filled.Error" />
-            <MudText Typo="Typo.h4" Class="text-center">
-                <strong>
-                    @Localizer["Access Denied"]
-                </strong>
-            </MudText>
-			@if (_traceClaims && _externalUserId is not null)
-			{
-				<MudText Typo="Typo.h6" Class="text-center">
-					@Localizer["Your external user ID is: {0}", _externalUserId]
-				</MudText>
-			}
-			<MudText Typo="Typo.h6" Class="text-center">
-                @Localizer["This site is monitored. Further attempts to log in may be reported to the authorities."]
-            </MudText>
-        </MudStack>
-        <DHFooter />
-    </MudPaper>
-</MudContainer>
+
+<MudStack AlignItems="AlignItems.Center" Class="mt-4" Style="width: 100%">
+    <DHIcon Icon="@Icons.Material.Filled.Error" />
+    <MudText Typo="Typo.h4" Class="text-center">
+        <strong>
+            @Localizer["Access Denied"]
+        </strong>
+    </MudText>
+	@if (_traceClaims && _externalUserId is not null)
+	{
+		<MudText Typo="Typo.h6" Class="text-center">
+			@Localizer["Your external user ID is: {0}", _externalUserId]
+		</MudText>
+	}
+	<MudText Typo="Typo.h6" Class="text-center">
+        @Localizer["This site is monitored. Further attempts to log in may be reported to the authorities."]
+    </MudText>
+</MudStack>
+
 
 @code
 {
 	private bool _traceClaims = false;
 	private string? _externalUserId = null;
-
-	private string GetLogoutURL()
-	{
-		return $"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}";	
-	}
 
 	protected override async Task OnInitializedAsync()
 	{
