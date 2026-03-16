@@ -13,7 +13,7 @@
 
 <MudStack Class="mb-4">
   <MudText Typo="Typo.h2">@Localizer["Test Standard Emails"]</MudText>
-  <MudText Typo="Typo.body1">@Localizer["This allows you to test the standard FSDH email templates. Emails will only be sent to you."]</MudText>
+  <MudText Typo="Typo.body1">@Localizer["This allows you to test the standard FSDH email templates. Emails will only be    sent to you."]</MudText>
   <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestAccountCreatedNotification">
     @Localizer["Send Account Created Notification"]
   </MudButton>
@@ -87,12 +87,9 @@
     <MudItem xs="10">
       @if (_recipientType == RecipientType.Projects)
       {
-        <MudSelect T="string"
-                   SelectedValues=@_selectedProjects
+        <MudSelect T="string"                   SelectedValues=@_selectedProjects
                    MultiSelectionTextFunc="@(new Func<List<string>, string>(GetMultiSelectionText))"
-                   SelectedValuesChanged=@HandleSelectedValuesChanged
-                   MultiSelection="true"
-                   Label="Select workspaces"
+                   SelectedValuesChanged=@HandleSelectedValuesChanged                   MultiSelection="true"                   Label="Select workspaces"
                    Variant="Variant.Outlined">
 
           @foreach (var p in _projects)
@@ -109,42 +106,28 @@
 
       @if (_recipientType == RecipientType.Addresses)
       {
-        <MudTextField @bind-Value="_recipients"
-                      DebounceInterval="250"
-                      Label=@Localizer["Enter email addresses"]
-                      HelperText=@Localizer["Enter email addresses separated by commas"]
-                      Adornment=@Adornment.End
-                      AdornmentIcon=@Icons.Material.Filled.Email
-                      Variant="Variant.Outlined" />
+        <MudTextField @bind-Value="_recipients"                      DebounceInterval="250"                      Label=@Localizer["Enter email addresses"]
+                      HelperText=@Localizer["Enter email addresses separated by commas"]                      Adornment=@Adornment.End
+                      AdornmentIcon=@Icons.Material.Filled.Email                      Variant="Variant.Outlined" />
       }
     </MudItem>
   </MudGrid>
 
   @*subject*@
-  <MudTextField @bind-Value="_subject"
-                DebounceInterval="250"
-                Label=@Localizer["Subject"]
-                Adornment="@Adornment.End"
-                AdornmentIcon="@Icons.Material.Filled.Subject"
-                Variant="Variant.Outlined" />
+  <MudTextField @bind-Value="_subject"                DebounceInterval="250"                Label=@Localizer["Subject"]                Adornment="@Adornment.End"
+                AdornmentIcon="@Icons.Material.Filled.Subject"                Variant="Variant.Outlined" />
 
   @*body*@
   <DHMarkdownEditor InitialValue="@_emailBody" ValueChanged="HandleBodyChanged" />
 
   @*buttons*@
   <MudStack Row Justify="Justify.FlexStart">
-    <DHButton Variant="Variant.Filled"
-              EndIcon="@Icons.Material.Filled.Send"
-              Color="Color.Warning"
-              Disabled="@IsPreviewDisabled()"
-              OnClick="@HandleEmailYourself">
+    <DHButton Variant="Variant.Filled"              EndIcon="@Icons.Material.Filled.Send"              Color="Color.Warning"
+              Disabled="@IsPreviewDisabled()"              OnClick="@HandleEmailYourself">
       @Localizer["Send Preview to yourself"]
     </DHButton>
-    <DHButton Variant="Variant.Filled"
-              EndIcon="@Icons.Material.Filled.Send"
-              Color="Color.Primary"
-              Disabled="@IsSendDisabled()"
-              OnClick="@HandleSendEmail">
+    <DHButton Variant="Variant.Filled"              EndIcon="@Icons.Material.Filled.Send"              Color="Color.Primary"
+              Disabled="@IsSendDisabled()"              OnClick="@HandleSendEmail">
       @Localizer["Send"]
     </DHButton>
   </MudStack>
@@ -251,7 +234,8 @@
 
   private string GetToAddress()
   {
-    return _configuration["EmailNotification:SenderAddress"] ?? "ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca";
+    return _configuration["EmailNotification:SenderAddress"] ??
+"ssc.datahub.donotreply-nepasrepondre.datahub.spc@ssc-spc.gc.ca";
   }
 
   private string GetBodyHtml()
@@ -283,12 +267,14 @@
 
   private async Task TestDataHubErrorNotification()
   {
-    await _gcNotifyService.SendDataHubErrorNotification("This is a test error", await _userInformationService.GetUserEmail());
+    await _gcNotifyService.SendDataHubErrorNotification("This is a test error", await
+_userInformationService.GetUserEmail());
   }
 
   private async Task TestDatahubResourceDeletedNotification()
   {
-    await _gcNotifyService.SendDatahubResourceDeletedNotification(await _userInformationService.GetUserEmail(), "Storage", "Stockage", "TEST-EMAIL");
+    await _gcNotifyService.SendDatahubResourceDeletedNotification(await _userInformationService.GetUserEmail(), "Storage",
+"Stockage", "TEST-EMAIL");
   }
 
   private async Task TestDatahubWelcomeNotification()
@@ -303,18 +289,21 @@
 
   private async Task TestBugReportNotification()
   {
-    await _gcNotifyService.SendBugReportNotification("1337", "Test Bug Report", "This is a test bug report email message", await _userInformationService.GetUserEmail());
+    await _gcNotifyService.SendBugReportNotification("1337", "Test Bug Report", "This is a test bug report email message",
+await _userInformationService.GetUserEmail());
   }
 
   private async Task TestInfectedFileNotification()
   {
-    await _gcNotifyService.SendInfectedFileNotification(await _userInformationService.GetUserEmail(), "test_notice.txt", "TEST NOTICE", "1900-01-01");
+    await _gcNotifyService.SendInfectedFileNotification(await _userInformationService.GetUserEmail(), "test_notice.txt",
+"TEST NOTICE", "1900-01-01");
   }
 
   private async Task TestExternalInviteEmail()
   {
     var email = await _userInformationService.GetUserEmail();
-    await _gcNotifyService.SendExternalUserInviteNotification(email, "external-user-name-test", "workspace-name-test", "inviter-test");
+    await _gcNotifyService.SendExternalUserInviteNotification(email, "external-user-name-test", "workspace-name-test",
+"inviter-test");
   }
 
   private async Task TestStorageScanSuccessEmail()

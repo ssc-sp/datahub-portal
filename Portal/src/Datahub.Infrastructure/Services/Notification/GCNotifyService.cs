@@ -248,7 +248,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendExternalUserInviteNotification(string email, string externalUserName, string workspace, string inviterName)
     {
-               using var _ = _logger.BeginScope("ExternalUserInviteNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("ExternalUserInviteNotification {Email}", MaskEmail(email));
         _logger.LogInformation("Composing external user invite notification. externalUserName={ExternalUserName}, workspace={Workspace}, inviterName={InviterName}", externalUserName, workspace, inviterName);
         var templateId = GetTemplateId("user-invited-external", _mappingsJson);
         var postData = new
