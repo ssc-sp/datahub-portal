@@ -1,4 +1,4 @@
-﻿using Azure.Storage.Blobs;
+using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
@@ -245,6 +245,23 @@ public class GCNotifyService : IGCNotifyService
         string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
     }
+
+    public async Task SendExternalUserInviteNotification(string email, string externalUserName, string workspace, string inviterName)
+    {
+        using var _ = _logger.BeginScope("ExternalUserInviteNotification {Email}", MaskEmail(email));
+        _logger.LogInformation("Composing external user invite notification. externalUserName={ExternalUserName}, workspace={Workspace}, inviterName={InviterName}", externalUserName, workspace, inviterName);
+        var templateId = GetTemplateId("user-invited-external", _mappingsJson);
+        var postData = new
+        {
+            email_address = email,
+            template_id = templateId,
+            personalisation = new { externalUserName, workspace, inviterName }
+        };
+        _logger.LogDebug("Dispatching external user invite notification with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     public async Task SendBugReportNotification(string id, string title, string body, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca")
     {
         using var _ = _logger.BeginScope("BugReportNotification ID={Id}", id);
