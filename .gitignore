@@ -71,3 +71,4 @@ TestResults/
 /.mcp.json
 /Portal/src/Datahub.Portal/MissingTranslations-en.json
 /Portal/src/Datahub.Portal/MissingTranslations-fr.json
+/data
