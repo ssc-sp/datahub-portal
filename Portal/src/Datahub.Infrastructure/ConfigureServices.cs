@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Datahub.Application.Configuration;
@@ -55,6 +55,7 @@ public static class ConfigureServices
         services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
         services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
         services.AddScoped<IUserInformationService, UserInformationService>();
+        services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
 
