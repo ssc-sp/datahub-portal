@@ -1,4 +1,4 @@
-﻿@* PublishingSubmissionPage.razor *@
+@* PublishingSubmissionPage.razor *@
 
 @using Datahub.Application.Exceptions
 @using Datahub.Application.Services.Publishing;
@@ -90,7 +90,7 @@
     {
         try 
         {
-            await _kvService.Authenticate();
+            await _kvService.AuthenticateWithUserContext();
         }
         catch (Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException e)
         {

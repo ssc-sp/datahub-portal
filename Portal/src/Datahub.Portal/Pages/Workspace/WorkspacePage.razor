@@ -24,6 +24,7 @@
 @attribute [Route(PageRoutes.WorkspaceDefault)]
 @attribute [Route(PageRoutes.Workspace)]
 @attribute [Route(PageRoutes.WorkspaceSubSection)]
+@attribute [ExternalUserPage]
 
 <PageTitle>
     @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]
@@ -50,7 +51,10 @@
 
     if (containsKey)
     {
-        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)" ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
+        <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(Section)"
+                         AllowedUsers="@WorkspaceSidebar.GetAllowedUsers(Section)"
+                         ProjectAcronym="@WorkspaceAcronymParam"
+                         ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
                 <DynamicComponent Type=@SwitchDynamicComponentType() Parameters="@parameters"/>
             </Authorized>
@@ -63,7 +67,9 @@
     {
         _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
-        ProjectAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
+                         AllowedUsers="@WorkspaceSidebar.GetAllowedUsers(WorkspaceSidebar.SectionViews.Dashboard)"
+                         ProjectAcronym="@WorkspaceAcronymParam"
+                         ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
                 <WorkspaceDashboard WorkspaceAcronym="@WorkspaceAcronymParam" ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins" />
             </Authorized>
@@ -76,7 +82,7 @@
 
 
 @code {
-    [Parameter] public string WorkspaceAcronymParam { get; set; }
+    [Parameter] public required string WorkspaceAcronymParam { get; set; }
 
     [Parameter] public string Section { get; set; } = WorkspaceSidebar.SectionViews.Dashboard;
 
@@ -133,10 +139,16 @@
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _project = dbContext.Projects
+        var project = dbContext.Projects
             .AsNoTracking()
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronymParam);
+        // If project not found, throw a404 HttpRequestException so callers can handle it as a404.
+        if (project == null)
+        {
+            throw new System.Net.Http.HttpRequestException($"Workspace '{WorkspaceAcronymParam}' not found.", null, System.Net.HttpStatusCode.NotFound);
+        }
+        _project = project;
     }
 
     protected override async Task OnParametersSetAsync()

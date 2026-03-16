@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.ReverseProxy
 @using Datahub.Portal.Components.Sidebar
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
@@ -6,6 +6,7 @@
 @inject IReverseProxyConfigService _reverseProxyConfigService
 
 @attribute [Route(PageRoutes.WorkspaceWebAppShare)]
+@attribute [ExternalUserPage]
 
 <PageTitle>
     @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]

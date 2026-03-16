@@ -8,7 +8,7 @@
 @using Datahub.Portal.Layout
 @using System.Net
 @inject NavigationManager NavigationManager
-
+@inject ILogger<ExternalUserRouteGuard> _logger
 @inject IStringLocalizer Localizer
 
 @if (IsAllowed is not null && IsAllowed.Value)
@@ -47,6 +47,7 @@
 
         if (!IsAllowed.Value)
         {
+            _logger.LogDebug("Blocking access to page {Page} for external user {User}.", RouteData.PageType.FullName, _user.Identity?.Name);
             NavigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
         }
     }
