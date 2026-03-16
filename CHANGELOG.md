@@ -3,6 +3,22 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.6.0](https://github.com/ssc-sp/datahub-portal/compare/v8.5.0...v8.6.0) (2026-03-16)
+
+
+### Features
+
+* added caching for workspace versions and streamlined path ([#1893](https://github.com/ssc-sp/datahub-portal/issues/1893)) ([58cc8fb](https://github.com/ssc-sp/datahub-portal/commit/58cc8fb48301fb96c3e58411eb657707363f03d7))
+* Adding GC Notify email for a new user invite ([#1899](https://github.com/ssc-sp/datahub-portal/issues/1899)) ([0c30bd8](https://github.com/ssc-sp/datahub-portal/commit/0c30bd8ba826e8d66a33d28d05db31e2da15e4e9))
+* External users page ([#1890](https://github.com/ssc-sp/datahub-portal/issues/1890)) ([4ce7654](https://github.com/ssc-sp/datahub-portal/commit/4ce765490fc986484309c38bc15f45b03826bf0b))
+* Restrict pages for external users ([#1897](https://github.com/ssc-sp/datahub-portal/issues/1897)) ([c674740](https://github.com/ssc-sp/datahub-portal/commit/c674740aeda6994abb99f9040c2644f2dc7780ef))
+
+
+### Bug Fixes
+
+* Adding the environment topbar on web app share page ([#1896](https://github.com/ssc-sp/datahub-portal/issues/1896)) ([6007514](https://github.com/ssc-sp/datahub-portal/commit/60075148bca0ebc3d8142a77875dd59931bddaf3))
+* Filters on user projects are now hidden if not applicable or if feature flag blocks it ([#1894](https://github.com/ssc-sp/datahub-portal/issues/1894)) ([2d59956](https://github.com/ssc-sp/datahub-portal/commit/2d59956d427811a6079ffa8817bce225eaf9cb9a))
+
 ## [8.5.0](https://github.com/ssc-sp/datahub-portal/compare/v8.4.1...v8.5.0) (2026-03-10)
 
 
