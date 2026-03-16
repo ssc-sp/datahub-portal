@@ -26,6 +26,11 @@ public interface IProjectUserManagementService
     Task<List<string>> GetProjectListForPortalUser(int portalUserId);
 
     /// <summary>
+    /// Get list of projects where user has any role assigned. Optionally can filter by graph user guid or gccf user id.
+    /// </summary>
+    Task<List<Datahub_Project>> GetProjectsForUser(string? graphUserGuid = null, string? gccfUserId = null);
+
+    /// <summary>
     /// Get project lead if defined.
     /// </summary>
     Task<UserRoleLinks?> GetProjectLeadAsync(string projectAcronym);
