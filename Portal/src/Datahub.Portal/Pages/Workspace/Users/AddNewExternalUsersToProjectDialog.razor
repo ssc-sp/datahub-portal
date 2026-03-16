@@ -70,7 +70,7 @@
                     <MudSelect @bind-Value="ProjectUserAddExternalUserCommand.Role" Label="Select user role" Placeholder="Please Select" Required="true" RequiredError="@Localizer["Role is required"]">
                         @foreach (var role in _externalRoles)
                         {
-                            <MudSelectItem Value="@role.Id">@Localizer[role.Name]</MudSelectItem>
+                            <MudSelectItem Value="@role">@Localizer[role.Name]</MudSelectItem>
                         }
                     </MudSelect>
                 }
