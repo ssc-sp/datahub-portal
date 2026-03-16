@@ -34,7 +34,7 @@ namespace Datahub.Infrastructure.Services.Security
         }
 
 
-        public async Task Authenticate()
+        public async Task AuthenticateWithUserContext()
         {
             var user = await _userInfoService.GetAuthenticatedUser();
             var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
@@ -61,7 +61,7 @@ namespace Datahub.Infrastructure.Services.Security
             {
                 try
                 {
-                    await Authenticate();
+                    await AuthenticateWithUserContext();
                 }
                 catch (Exception ex)
                 {

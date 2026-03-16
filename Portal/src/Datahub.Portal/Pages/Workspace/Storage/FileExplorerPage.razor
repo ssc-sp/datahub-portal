@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services;
+@using Datahub.Application.Services;
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
@@ -82,8 +82,8 @@
                                     }
                                     else if (_searchPerformed)
                                     {
-                                        <SearchResultsExplorer ProjectId=@_projectId 
-                                                               Container="@_selectedContainer" 
+                                        <SearchResultsExplorer ProjectId=@_projectId
+                                                               Container="@_selectedContainer"
                                                                SearchResults="_searchResults" />
                                     }
                                     else
@@ -142,7 +142,7 @@
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public required string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
     private Datahub_Project? _project;
@@ -150,7 +150,7 @@
     private string _title;
 
     private List<CloudStorageContainer> _cloudContainers = new();
-    private CloudStorageContainer _selectedContainer;
+    private CloudStorageContainer? _selectedContainer;
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private PortalUser _user = null!;
@@ -170,15 +170,23 @@
     private List<FileSearchResult> _searchResults = new();
     private bool _searchPerformed = false;
     private bool IsLoading { get; set; } = false;
+    private bool _isEntraUser = false;
 
     protected override async Task OnInitializedAsync()
     {
+        if (_project != null)
+        {
+            return;
+        }
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _user = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("User is not authenticated");
-        _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(WorkspaceAcronym) ||
-                              await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
-
+        _isEntraUser = await _userInformationService.IsEntraUser();
+        if (_isEntraUser)
+        {
+            _isUserProjectAdmin = await _userInformationService.IsUserProjectAdmin(WorkspaceAcronym) ||
+                                  await _userInformationService.IsUserProjectWorkspaceLead(WorkspaceAcronym);
+        }
         _project = await projectContext.Projects
             .Include(p => p.UserRoles)
             .AsSingleQuery()
@@ -192,7 +200,14 @@
         {
             _isProjectKeyEnabled = await IsProjectKeyEnabled();
             if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
-            await keyVaultUserService.Authenticate();
+            if (_isEntraUser)
+            {
+                await keyVaultUserService.AuthenticateWithUserContext();
+            }
+            else
+            {
+                //await keyVaultUserService.AuthenticateWithPortalContext();
+            }
             await LoadContainersAsync();
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
@@ -265,7 +280,7 @@
         return await ctx.ProjectCloudStorages.AsNoTracking().Where(e => e.ProjectId == _project.Project_ID).ToListAsync();
     }
 
-    private async Task<DialogResult> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, ProjectCloudStorage settings)
+    private async Task<DialogResult?> ShowCloudStorageDialog(CloudStorageProviderType cloudStorageProvider, ProjectCloudStorage settings)
     {
         var dialogOptions = new DialogOptions() { MaxWidth = MaxWidth.Medium, FullWidth = true };
 
@@ -388,9 +403,9 @@
         // but we don't exactly have a good way to use portal credentials to query workspace KV, which is needed to check project key
         // so I am doing a workaround here to force the core KV service to target the workspace KV
         var apiTarget = new APITargets
-            {
-                KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
-            };
+        {
+            KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
+        };
         var options = Options.Create<APITargets>(apiTarget);
 
         var logger = (new LoggerFactory()).CreateLogger<KeyVaultCoreService>();

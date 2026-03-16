@@ -25,6 +25,7 @@ public static class SidebarIcons
     // Workspace Administration Sidebar Icons
     public const string Toolbox = "fa-light fa-toolbox";
     public const string Users = "fa-light fa-users";
+    public const string ExternalUsers = "fa-light fa-user-lock";
     public const string Metadata = "fa-light fa-tags";
     public const string Reports = "fa-light fa-chart-mixed";
     public const string Sudo = "fa-light fa-face-hand-over-mouth";
