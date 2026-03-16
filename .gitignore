@@ -69,3 +69,4 @@ ServerlessOperations/test/CodeCoverage/
 ServerlessOperations/test/Datahub.Functions.UnitTests/TestResults/
 TestResults/
 /.mcp.json
+/Portal/src/Datahub.Portal/MissingTranslations-en.json
