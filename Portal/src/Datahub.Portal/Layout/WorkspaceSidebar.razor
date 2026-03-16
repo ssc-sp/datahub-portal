@@ -194,6 +194,7 @@
     private bool _isPublishingBlockedForWorkspace = false;
     private string? _entraUserGuid;
     private int _externalProjectUsersCount;
+    private string? _gccfUserId;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -300,19 +301,10 @@
     protected override async Task OnParametersSetAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-
         _entraUserGuid = await _userInformationService.GetCurrentUserEntraId();
-        var userRoles = await dbContext.UserRolesLinks
-            .Include(u => u.Role)
-            .Include(u => u.Project)
-            .ThenInclude(p => p.UserRoles)
-            .Include(u => u.Project)
-            .ThenInclude(p => p.Credits) // Include the Credits table
-            .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null && u.PortalUser.EntraUser.GraphGuid == _entraUserGuid)
-            .ToListAsync();
+        _gccfUserId = await _userInformationService.GetExternalUserNameIdentifier();
 
-        _allProjects = userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _allProjects = await _projectUserManagementService.GetProjectsForUser(graphUserGuid: _entraUserGuid, gccfUserId: _gccfUserId);
     }
 
     public async Task HandleProjectChange(string projectAcronym)

@@ -1,20 +1,30 @@
-﻿using Datahub.Application.Services;
+using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
 using Datahub.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Caching.Memory;
 
 
 namespace Datahub.Infrastructure.Services
 {
     public class WorkspaceVersionService(
         IDbContextFactory<DatahubProjectDBContext> datahubProjectDbFactory,
-        ILogger<WorkspaceVersionService> logger) : IWorkspaceVersionService
+        ILogger<WorkspaceVersionService> logger,
+        IMemoryCache memoryCache) : IWorkspaceVersionService
     {
+        private const string LatestVersionCacheKey = "WorkspaceVersionService.LatestVersion";
+        private static readonly TimeSpan LatestVersionCacheDuration = TimeSpan.FromHours(1);
+
         public async Task<string> GetLatestVersionAsync()
         {
+            if (memoryCache.TryGetValue<string>(LatestVersionCacheKey, out var cachedVersion) && !string.IsNullOrWhiteSpace(cachedVersion))
+            {
+                return cachedVersion;
+            }
+
             try
             {
                 await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
@@ -28,6 +38,8 @@ namespace Datahub.Infrastructure.Services
                      .OrderByDescending(v => v)
                      .First();
                 var latestStr = $"v{latest.ToString()}";
+
+                memoryCache.Set(LatestVersionCacheKey, latestStr, LatestVersionCacheDuration);
 
                 return latestStr;
             }
@@ -81,7 +93,13 @@ namespace Datahub.Infrastructure.Services
                 await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
                 await db.VersionTags.AddAsync(versionTag);
                 var isSaved = await db.SaveChangesAsync();
-                return isSaved > 0;
+
+                if (isSaved >0)
+                {
+                    memoryCache.Remove(LatestVersionCacheKey);
+                }
+
+                return isSaved >0;
             }
             catch (Exception ex)
             {
@@ -97,7 +115,13 @@ namespace Datahub.Infrastructure.Services
                 await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
                 db.VersionTags.Update(versionTag);
                 var isSaved = await db.SaveChangesAsync();
-                return isSaved > 0;
+
+                if (isSaved >0)
+                {
+                    memoryCache.Remove(LatestVersionCacheKey);
+                }
+
+                return isSaved >0;
             }
             catch (Exception ex)
             {
@@ -113,7 +137,13 @@ namespace Datahub.Infrastructure.Services
                 await using var db = await datahubProjectDbFactory.CreateDbContextAsync();
                 db.VersionTags.Remove(versionTag);
                 var isDeleted = await db.SaveChangesAsync();
-                return isDeleted > 0;
+
+                if (isDeleted >0)
+                {
+                    memoryCache.Remove(LatestVersionCacheKey);
+                }
+
+                return isDeleted >0;
             }
             catch (Exception ex)
             {
@@ -133,7 +163,7 @@ namespace Datahub.Infrastructure.Services
 
                 projectResources.ForEach(resource => resource.Status = TerraformStatus.CreateRequested);
 
-                return await db.SaveChangesAsync() > 0;
+                return await db.SaveChangesAsync() >0;
             }
             catch (Exception ex)
             {
@@ -156,7 +186,7 @@ namespace Datahub.Infrastructure.Services
                 }
 
                 project.IsVersionUpdateRequested = true;
-                return await db.SaveChangesAsync() > 0;
+                return await db.SaveChangesAsync() >0;
             }
             catch (Exception ex)
             {
@@ -217,9 +247,9 @@ namespace Datahub.Infrastructure.Services
                 // Count workspaces with pending update requests
                 var workspacesWithUpdateRequested = allWorkspaces.Count(p => p.IsVersionUpdateRequested);
                 
-                var percentageOnLatest = totalWorkspaces > 0 
-                    ? Math.Round((decimal)latestVersionWorkspaces / totalWorkspaces * 100, 1)
-                    : 0;
+                var percentageOnLatest = totalWorkspaces >0 
+                    ? Math.Round((decimal)latestVersionWorkspaces / totalWorkspaces *100,1)
+                    :0;
 
                 return new WorkspaceVersionStatistics
                 {

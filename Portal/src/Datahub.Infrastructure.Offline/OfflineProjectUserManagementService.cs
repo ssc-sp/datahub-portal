@@ -65,4 +65,9 @@ public class OfflineProjectUserManagementService : IProjectUserManagementService
     {
         return false; // cannot run sync while offline
     }
+
+    public Task<List<Datahub_Project>> GetProjectsForUser(string? graphUserGuid = null, string? gccfUserId = null)
+    {
+        throw new NotImplementedException();
+    }
 }

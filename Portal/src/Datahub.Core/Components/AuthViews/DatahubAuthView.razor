@@ -44,7 +44,7 @@
 	public RenderFragment? NotAuthorized { get; set; }
 
 	[Parameter]
-	public AuthLevels AuthLevel { get; set; } = AuthLevels.Unauthorized;
+	public AuthLevels? AuthLevel { get; set; }
 
 	[Parameter]
 	public string? ProjectAcronym { get; set; }
@@ -221,6 +221,8 @@
 				return datahubSupportRole;
 			case AuthLevels.DatahubApprover:
 				return datahubApprover;
+			case AuthLevels.Unauthorized:
+				return "🏗️ Unauthorized";
 			default:
 				switch (AllowedUsers)
 				{
