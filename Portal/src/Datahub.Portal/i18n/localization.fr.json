@@ -2633,6 +2633,7 @@
   "Send Bug Report Notification": "Envoyer une notification de rapport de bogue",
   "Send DataHub Error Notification": "Envoyer une notification d'erreur de DataHub",
   "Send Datahub Resource Deleted Notification": "Envoyer une notification de ressource DataHub supprimée",
+  "Send External User Invite Email": "Envoyer un e-mail d'invitation à un utilisateur externe",
   "Send Infected File Notification": "Envoyer une notification de fichier infecté",
   "Send Preview to yourself": "Envoyer un aperçu à vous-même",
   "Send Storage Scan Success Email": "Envoyer un e-mail de succès de scan de stockage",
