@@ -10,5 +10,6 @@ namespace Datahub.Core.Configuration
     {
         public const string GCCF_Feature = "GCCF";
         public const string Trace_Claims = "Trace_Claims";
+        public const string PB_Feature = "PB";
     }
 }

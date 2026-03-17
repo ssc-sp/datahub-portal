@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.ReverseProxy
 @using Datahub.Portal.Views.Dialogs
 @using Datahub.Portal.Pages.Account
 @using Datahub.Shared.Entities
@@ -321,7 +321,7 @@
 
         try
         {
-            await _keyVaultUserService.Authenticate();
+            await _keyVaultUserService.AuthenticateWithUserContext();
             _isElevated = true;
         }
         catch (MicrosoftIdentityWebChallengeUserException e)

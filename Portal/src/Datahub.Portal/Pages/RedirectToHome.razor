@@ -1,17 +1,24 @@
 @page "/"
 @inject NavigationManager Navigation
+@attribute [ExternalUserPage]
 
 @code {
+    private bool _navigated;
 
-    protected override void OnInitialized()
+    protected override void OnAfterRender(bool firstRender)
     {
-        try
+        if (!_navigated && firstRender)
         {
-            Navigation.NavigateTo(Localizer[PageRoutes.Home], true);
-        }
-        catch (NavigationException)
-        {
-            // Should be ignored, see https://github.com/dotnet/aspnetcore/issues/13582
+            _navigated = true;
+
+            try
+            {
+                Navigation.NavigateTo(Localizer[PageRoutes.Home], forceLoad: false);
+            }
+            catch (NavigationException)
+            {
+                // ignore
+            }
         }
     }
 }

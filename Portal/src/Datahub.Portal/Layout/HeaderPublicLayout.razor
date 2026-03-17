@@ -1,0 +1,88 @@
+@using MudBlazor.Utilities
+@using Datahub.Portal.Pages.Public
+
+@inherits LayoutComponentBase
+
+@attribute [AllowAnonymous]
+
+@layout BarebonesPublicLayout
+
+<MudLayout>
+    <MudContainer MaxWidth=@MaxWidth.Medium>
+        <MudPaper Class="pt-12 px-12 mt-12">
+            <MudStack>
+                <MudGrid>
+                    <MudItem xs="9">
+                        <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
+                    </MudItem>
+                    <MudItem xs="3">
+                        <MudStack Row="true" AlignItems="AlignItems.End">
+                            <DHButton HtmlTag="button" Href=@GetLogoutURL() focusable="true" translate="no" Size="@Size.Medium">
+                                <MudText>
+                                    @Localizer["Logout"]
+                                </MudText>
+                            </DHButton>
+                            <LanguageToggle />
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+                <DHMainContentTitle Title="@Localizer["MainTitle"]" />
+            </MudStack>
+            @Body
+            <DHFooter />
+        </MudPaper>
+    </MudContainer>
+
+    <div style="@_backgroundStyle"></div>
+</MudLayout>
+
+@code {
+    private string _imageUrl;
+    private string _backgroundStyle;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _imageUrl = await GetBackgroundImage();
+
+        _backgroundStyle = new StyleBuilder()
+                .AddStyle("background-image", "url('" + _imageUrl + "')")
+                .AddStyle("background-size", "cover")
+                .AddStyle("background-position", "center")
+                .AddStyle("background-repeat", "no-repeat")
+                .AddStyle("min-height", "100vh")
+                .AddStyle("position", "fixed")
+                .AddStyle("left", "0")
+                .AddStyle("right", "0")
+                .AddStyle("top", "0")
+                .AddStyle("z-index", "-100")
+                .AddStyle("filter", "blur(8px)")
+                .Build();
+    }
+
+	private string GetLogoutURL()
+	{
+		return $"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}";	
+	}
+
+    private async Task<string> GetBackgroundImage()
+    {
+        int month = DateTime.Now.Month;
+
+        if (month == 12 || month == 1 || month == 2)
+        {
+            return "/img/winter.jpg"; // Winter
+        }
+        else if (month >= 3 && month <= 5)
+        {
+            return "/img/spring.jpg"; // Spring
+        }
+        else if (month >= 6 && month <= 8)
+        {
+            return "/img/summer.jpg"; // Summer
+        }
+        else // September to November
+        {
+            return "/img/fall.jpg"; // Fall
+        }
+    }
+}

@@ -6,7 +6,7 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 
-<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserUID=@ViewedUser.UserUID()>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.UserUID UserUID=@ViewedUser.UserUID()>
     
     <Authorized>
         @* TODO: External users will not receive email notifications *@

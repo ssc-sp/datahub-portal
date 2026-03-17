@@ -1,4 +1,3 @@
-using System.Linq.Dynamic.Core;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
@@ -9,7 +8,10 @@ using Datahub.Core.Model.Users;
 using Datahub.Core.Services.Projects;
 using Datahub.Shared.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
+using Microsoft.VisualStudio.Services.UserAccountMapping;
+using System.Linq.Dynamic.Core;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -72,6 +74,41 @@ public class ProjectUserManagementService : IProjectUserManagementService
         {
             _logger.LogError(e, "Error updating project users");
             return false;
+        }
+    }
+
+    public async Task<List<Datahub_Project>> GetProjectsForUser(string? graphUserGuid = null, string? gccfUserId = null)
+    {
+        if (gccfUserId  == null && graphUserGuid == null)
+        {
+            throw new InvalidOperationException("Either graphUserGuid or gccfUserId must be provided");
+        }
+        await using var dbContext = await _contextFactory.CreateDbContextAsync();
+        if (gccfUserId is not null)
+        {
+            var userRoles = await dbContext.UserRolesLinks
+                .Include(u => u.Role)
+                .Include(u => u.Project)
+                .ThenInclude(p => p.UserRoles)
+                .Include(u => u.Project)
+                .ThenInclude(p => p.Credits) // Include the Credits table
+                .Include(u => u.PortalUser)
+                .Where(u => u.PortalUser != null && u.PortalUser.ExternalUser != null && u.PortalUser.ExternalUser.ExternalSubject == gccfUserId)
+                .ToListAsync();
+            return userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        }
+        else
+        {
+            var userRoles = await dbContext.UserRolesLinks
+                .Include(u => u.Role)
+                .Include(u => u.Project)
+                .ThenInclude(p => p.UserRoles)
+                .Include(u => u.Project)
+                .ThenInclude(p => p.Credits) // Include the Credits table
+                .Include(u => u.PortalUser)
+                .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null && u.PortalUser.EntraUser.GraphGuid == graphUserGuid)
+                .ToListAsync();
+            return userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         }
     }
 

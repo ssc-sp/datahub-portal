@@ -10,7 +10,7 @@
 
 @attribute [Route(PageRoutes.Home)]
 @attribute [Route(PageRoutes.Home_FR)]
-
+@attribute [ExternalUserPage]
 
 <MudStack>
     @if (ViewedPortalUser is null)
@@ -51,7 +51,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
         _currentUser = ViewedPortalUser ?? await GetViewedPortalUserAsync();
         if (ViewedPortalUser != null)
         {
