@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.14");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1836,6 +1836,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<long>("Request_DT")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("Requested_RoleId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
@@ -1850,6 +1853,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsUnique();
 
                     b.HasIndex("Project_ID");
+
+                    b.HasIndex("Requested_RoleId");
 
                     b.HasIndex("UserId");
 
@@ -2311,6 +2316,12 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Requested_Role")
+                        .WithMany()
+                        .HasForeignKey("Requested_RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Users.ExternalUser", "User")
                         .WithMany("Invitations")
                         .HasForeignKey("UserId")
@@ -2318,6 +2329,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .IsRequired();
 
                     b.Navigation("Project");
+
+                    b.Navigation("Requested_Role");
 
                     b.Navigation("User");
                 });

@@ -71,6 +71,11 @@ namespace Datahub.Core.Model.Users
         public DateTimeOffset Request_DT { get; set; }
 
         /// <summary>
+        /// Gets or sets the project role that is being requested.
+        /// </summary>
+        public required Project_Role Requested_Role { get; set; } = null!;
+
+        /// <summary>
         /// Gets or sets the timestamp for concurrency control.
         /// </summary>
         public byte[]? Timestamp { get; set; }

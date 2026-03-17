@@ -26,12 +26,20 @@
                 <MudTextField Class="form-control"
                               InputId="Email"
                               @bind-Value="ProjectUserAddExternalUserCommand.Email"
+                              @bind-Value:after="ValidateEmailAsync"
                               For="@(() => ProjectUserAddExternalUserCommand.Email)"
                               Label="@Localizer["Email"]"
                               Required="true"
                               RequiredError="@Localizer["Email is required"]"
                               Immediate="true"
-                              Variant="Variant.Outlined" />
+                              Variant="Variant.Outlined"
+                              Validation="@(new Func<string, Task<string?>>(ValidateEmailNotExistsAsync))" />
+                @if (!string.IsNullOrEmpty(_emailValidationMessage))
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">
+                        @_emailValidationMessage
+                    </MudAlert>
+                }
             </MudForm>
         }
         @if (_page == 2)
@@ -103,13 +111,13 @@
                 </MudStack>
                 <MudTextField Class="form-control"
                               @bind-Value="ProjectUserAddExternalUserCommand.CollaborationObjectives"
-                              For="@(() => ProjectUserAddExternalUserCommand.CollaborationObjectives)"
-                              Placeholder="@Localizer["e.g. Define external user models and collaborate on compliance"]"
-                              Required="true"
-                              RequiredError="@Localizer["Objectives are required"]"
+                          For="@(() => ProjectUserAddExternalUserCommand.CollaborationObjectives)"
+                          Placeholder="@Localizer["e.g. Define external user models and collaborate on compliance"]"
+                          Required="true"
+                          RequiredError="@Localizer["Objectives are required"]"
                               Immediate="true"
-                              Variant="Variant.Outlined"
-                              Lines="5" />
+                          Variant="Variant.Outlined"
+                          Lines="5" />
             </MudForm>
         }
         @if (_page == 4)
@@ -119,17 +127,17 @@
                 <MudStack>
                     <MudText Class="py-2" Typo="Typo.h5">@Localizer["Review user to be added"]</MudText>
                     <MudText Typo="Typo.h6">@Localizer["Name:"]</MudText>
-                    <MudText>@Localizer[ProjectUserAddExternalUserCommand.FirstName] @Localizer[ProjectUserAddExternalUserCommand.LastName]</MudText>
+                    <MudText>@ProjectUserAddExternalUserCommand.FirstName @ProjectUserAddExternalUserCommand.LastName</MudText>
                     <MudText Typo="Typo.h6">@Localizer["Email:"]</MudText>
-                    <MudText>@Localizer[ProjectUserAddExternalUserCommand.Email]</MudText>
+                    <MudText>@ProjectUserAddExternalUserCommand.Email</MudText>
                     <MudText Typo="Typo.h6">@Localizer["Role:"]</MudText>
-                    <MudText>@ProjectUserAddExternalUserCommand.Role</MudText>
+                    <MudText>@Localizer[@ProjectUserAddExternalUserCommand.Role.Description]</MudText>
                     <MudText Typo="Typo.h6">@Localizer["Organization:"]</MudText>
-                    <MudText>@Localizer[ProjectUserAddExternalUserCommand.Organization]</MudText>
+                    <MudText>@ProjectUserAddExternalUserCommand.Organization</MudText>
                     <MudText Typo="Typo.h6">@Localizer["Account Expiry:"]</MudText>
-                    <MudText>@Localizer[ProjectUserAddExternalUserCommand.AccountExpiry.ToString()]</MudText>
+                    <MudText>@ProjectUserAddExternalUserCommand.AccountExpiry!.ToString()</MudText>
                     <MudText Typo="Typo.h6">@Localizer["Collaboration Objectives:"]</MudText>
-                    <MudText>@Localizer[ProjectUserAddExternalUserCommand.CollaborationObjectives]</MudText>
+                    <MudText>@ProjectUserAddExternalUserCommand.CollaborationObjectives</MudText>
                 </MudStack>
             </EditForm>
         }
@@ -189,23 +197,20 @@
     [Parameter]
     public PortalUser Inviter { get; set; } = null!;
 
-    // [Parameter]
-    // public List<UserRoleLinks> CurrentProjectUsers { get; set; } = new();
-
     private int _page = 1;
     private bool[] _successes = { false, false, false };
+    private string? _emailValidationMessage;
 
     private void Cancel() => MudDialog.Cancel();
 
     private List<Project_Role>? _externalRoles = null;
-
-
     private ProjectUserAddExternalUserCommand ProjectUserAddExternalUserCommand = null!;
 
     private void NextPage()
     {
         _page++;
     }
+    
     private void BackPage()
     {
         _page--;
@@ -224,17 +229,52 @@
         ProjectUserAddExternalUserCommand = new ProjectUserAddExternalUserCommand() { ProjectAcronym = this.ProjectAcronym};
         _page = 1;
         _successes = [false, false, false];
+        _emailValidationMessage = null;
+    }
+
+    private async Task<string?> ValidateEmailNotExistsAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            return null;
+        }
+
+        // Check for valid email format first
+        if (!new EmailAddressAttribute().IsValid(email))
+        {
+            return null; // Let the EmailAddress attribute handle format validation
+        }
+
+        await using var context = await _dbContextFactory.CreateDbContextAsync();
+        var existingUser = await context.PortalUsers
+            .Include(p => p.ExternalUser)
+            .FirstOrDefaultAsync(p => p.Email == email && p.ExternalUser != null);
+
+        if (existingUser is not null)
+        {
+            return Localizer["An external user with this email address already exists. Please use a different email address."];
+        }
+
+        return null;
+    }
+
+    private async Task ValidateEmailAsync()
+    {
+        var validationResult = await ValidateEmailNotExistsAsync(ProjectUserAddExternalUserCommand.Email);
+        _emailValidationMessage = validationResult;
     }
 
     internal async Task AddExternalUser()
     {
         if (ProjectUserAddExternalUserCommand.AccountExpiry is null)
         {
+            _snackbar.Add(Localizer["Account expiry date is required"], Severity.Error);
             return;
         }
 
         if (ProjectUserAddExternalUserCommand.Role is null)
         {
+            _snackbar.Add(Localizer["User role is required"], Severity.Error);
             return;
         }
 
@@ -252,68 +292,44 @@
                 throw new InvalidOperationException($"Project {ProjectAcronym} not found.");
             }
 
-            var portalUser = await context.PortalUsers
+            // Check if external user already exists
+            var existingPortalUser = await context.PortalUsers
                 .Include(p => p.ExternalUser)
                 .FirstOrDefaultAsync(p => p.Email == ProjectUserAddExternalUserCommand.Email && p.ExternalUser != null);
 
-            if (portalUser is null)
+            if (existingPortalUser is not null)
             {
-                portalUser = await _userInformationService.CreatePortalExternalUserAsync(
-                    string.Empty,
-                    ProjectUserAddExternalUserCommand.FirstName,
-                    ProjectUserAddExternalUserCommand.LastName,
-                    ProjectUserAddExternalUserCommand.Organization,
-                    ProjectUserAddExternalUserCommand.Email,
-                    accountExpiry);
-
-                if (portalUser is null || portalUser.ExternalUser is null)
-                {
-                    throw new InvalidOperationException("Unable to create external user profile.");
-                }
-            }
-            else
-            {
-                portalUser.DisplayName = $"{ProjectUserAddExternalUserCommand.FirstName} {ProjectUserAddExternalUserCommand.LastName}";
-                portalUser.ExternalUser.FirstName = ProjectUserAddExternalUserCommand.FirstName;
-                portalUser.ExternalUser.LastName = ProjectUserAddExternalUserCommand.LastName;
-                portalUser.ExternalUser.Organization = ProjectUserAddExternalUserCommand.Organization;
-                portalUser.ExternalUser.UserExpiryDate = accountExpiry;
-                context.Update(portalUser);
+                _snackbar.Add(Localizer["An external user with this email address already exists. Cannot add duplicate user."], Severity.Error);
+                return;
             }
 
-            var existingWorkspaceRole = await context.UserRolesLinks
-                .FirstOrDefaultAsync(u => u.Project_ID == project.Project_ID && u.PortalUserId == portalUser.Id);
+            // Create new external user
+            var portalUser = await _userInformationService.CreatePortalExternalUserAsync(
+                string.Empty,
+                ProjectUserAddExternalUserCommand.FirstName,
+                ProjectUserAddExternalUserCommand.LastName,
+                ProjectUserAddExternalUserCommand.Organization,
+                ProjectUserAddExternalUserCommand.Email,
+                accountExpiry);
 
-            if (existingWorkspaceRole is null)
+            if (portalUser is null || portalUser.ExternalUser is null)
             {
-                await context.UserRolesLinks.AddAsync(new UserRoleLinks
-                {
-                    Project_ID = project.Project_ID,
-                    PortalUserId = portalUser.Id,
-                    ApprovedPortalUserId = Inviter.Id,
-                    Approved_DT = DateTime.UtcNow,
-                    RoleId = ProjectUserAddExternalUserCommand.Role.Id
-                });
-            }
-            else
-            {
-                existingWorkspaceRole.RoleId = ProjectUserAddExternalUserCommand.Role.Id;
-                context.Update(existingWorkspaceRole);
+                throw new InvalidOperationException("Unable to create external user profile.");
             }
 
-            await context.SaveChangesAsync();
-
+            // Create invitation
             await _externalUserInvitationService.CreateInvitationAsync(
                 portalUser.ExternalUser.Id,
                 ProjectAcronym,
-                ProjectUserAddExternalUserCommand.Email,
-                "Initial Invitation");
+                ProjectUserAddExternalUserCommand.Email,                
+                "Initial Invitation",
+                ProjectUserAddExternalUserCommand.Role.Id);
 
             MudDialog.Close(DialogResult.Ok(ProjectUserAddExternalUserCommand));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            _snackbar.Add(Localizer["Error inviting new users to workspace"], Severity.Error);
+            _snackbar.Add(Localizer["Error inviting new user to workspace"], Severity.Error);
         }
     }
 
@@ -326,5 +342,4 @@
     {
         return $"{projectUserAddUserCommand.FirstName}";
     }
-
 }

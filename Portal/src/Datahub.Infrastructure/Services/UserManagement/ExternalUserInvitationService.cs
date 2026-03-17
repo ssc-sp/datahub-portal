@@ -2,6 +2,7 @@ using System.Security.Cryptography;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Users;
+using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -13,6 +14,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
     private const int InvitationCodeLength = 12;
     private const int InvitationCodeSegmentLength = 4;
     private const int MaxInvitationCodeAttempts = 10;
+    public const int InvitationDurationDays = 7;
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly ILogger<ExternalUserInvitationService> _logger;
@@ -51,6 +53,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string projectAcronym,
         string invitedEmail,
         string invitationRationale,
+        int projectRoleId,
         DateTimeOffset? invitationExpiry = null,
         CancellationToken cancellationToken = default)
     {
@@ -59,7 +62,187 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         ArgumentException.ThrowIfNullOrWhiteSpace(invitationRationale);
 
         await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        return await CreateInvitationAsync(
+            context,
+            externalUserId,
+            projectAcronym,
+            invitedEmail,
+            invitationRationale,
+            projectRoleId,
+            invitationExpiry,
+            cancellationToken);
+    }
 
+    public async Task<WorkspaceInvitation?> CancelInvitationAsync(
+        int requestId,
+        CancellationToken cancellationToken = default)
+    {
+        if (requestId <= 0)
+        {
+            return null;
+        }
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var invitation = await context.ExternalUserRequests
+            .Include(i => i.Project)
+            .Include(i => i.User)
+            .FirstOrDefaultAsync(i => i.RequestID == requestId, cancellationToken);
+
+        if (invitation is null)
+        {
+            return null;
+        }
+
+        invitation.InvitationExpiry = DateTimeOffset.UtcNow;
+        await context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Cancelled workspace invitation {RequestId} for external user {ExternalUserId} in project {ProjectAcronym}",
+            invitation.RequestID,
+            invitation.User.Id,
+            invitation.Project.Project_Acronym_CD);
+
+        return invitation;
+    }
+
+    public async Task<WorkspaceInvitation> ResendInvitationAsync(
+        int externalUserId,
+        string projectAcronym,
+        string invitedEmail,
+        int projectRoleId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(projectAcronym);
+        ArgumentException.ThrowIfNullOrWhiteSpace(invitedEmail);
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+
+        var activeInvitations = await context.ExternalUserRequests
+            .Where(i => i.User.Id == externalUserId)
+            .Where(i => i.Project.Project_Acronym_CD == projectAcronym)
+            .Where(i => i.InvitationTokenAccepted == null)
+            .Where(i => i.InvitationExpiry >= now)
+            .ToListAsync(cancellationToken);
+
+        foreach (var invitation in activeInvitations)
+        {
+            invitation.InvitationExpiry = now;
+        }
+
+        if (activeInvitations.Count > 0)
+        {
+            await context.SaveChangesAsync(cancellationToken);
+        }
+
+        return await CreateInvitationAsync(
+            context,
+            externalUserId,
+            projectAcronym,
+            invitedEmail,
+            "Resent Invitation",
+            projectRoleId,
+            null,
+            cancellationToken);
+    }
+
+    public async Task<bool> CompleteInvitationAsync(
+        Guid invitationToken,
+        string invitationCode,
+        string externalUserOid,
+        CancellationToken cancellationToken = default)
+    {
+        if (invitationToken == Guid.Empty || string.IsNullOrWhiteSpace(invitationCode) || string.IsNullOrWhiteSpace(externalUserOid))
+        {
+            throw new InvalidOperationException("Invitation token, code, and external user OID must be provided.");
+        }
+
+        await using var context = await _contextFactory.CreateDbContextAsync(cancellationToken);
+        var now = DateTimeOffset.UtcNow;
+        var normalizedCode = NormalizeInvitationCode(invitationCode);
+
+        var invitation = await context.ExternalUserRequests
+            .Include(i => i.User)
+            .Include(i => i.Project)
+            .Include(i => i.Requested_Role)
+            .FirstOrDefaultAsync(i => i.InvitationToken == invitationToken, cancellationToken);
+
+        if (invitation is null || invitation.InvitationTokenAccepted is not null || invitation.InvitationExpiry < now)
+        {
+            return false;
+        }
+
+        if (!string.Equals(NormalizeInvitationCode(invitation.InvitationCode), normalizedCode, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var trimmedOid = externalUserOid.Trim();
+
+        var existingUserWithOid = await context.ExternalUsers
+            .FirstOrDefaultAsync(u => u.ExternalSubject == trimmedOid && u.Id != invitation.User.Id, cancellationToken);
+
+        ExternalUser activeUser;
+        if (existingUserWithOid is not null)
+        {
+            invitation.User = existingUserWithOid;
+            activeUser = existingUserWithOid;
+        }
+        else
+        {
+            invitation.User.ExternalSubject = trimmedOid;
+            activeUser = invitation.User;
+        }
+
+        activeUser.FirstLoginDateTime ??= now;
+
+        invitation.InvitationCodeAccepted = now;
+        invitation.InvitationTokenAccepted = now;
+
+        var projectUserLink = await context.UserRolesLinks
+            .FirstOrDefaultAsync(
+                x => x.Project_ID == invitation.Project.Project_ID && x.PortalUserId == activeUser.PortalUserId,
+                cancellationToken);
+
+        if (projectUserLink is null)
+        {
+            context.UserRolesLinks.Add(new UserRoleLinks
+            {
+                Project_ID = invitation.Project.Project_ID,
+                PortalUserId = activeUser.PortalUserId,
+                RoleId = invitation.Requested_Role.Id,
+                Approved_DT = now.UtcDateTime
+            });
+        }
+        else
+        {
+            projectUserLink.RoleId = invitation.Requested_Role.Id;
+            projectUserLink.Approved_DT ??= now.UtcDateTime;
+        }
+
+        await context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Completed invitation {RequestId} for external subject {ExternalSubject} in project {ProjectAcronym}",
+            invitation.RequestID,
+            activeUser.ExternalSubject,
+            invitation.Project.Project_Acronym_CD);
+
+        return true;
+    }
+
+    private async Task<WorkspaceInvitation> CreateInvitationAsync(
+        DatahubProjectDBContext context,
+        int externalUserId,
+        string projectAcronym,
+        string invitedEmail,
+        string invitationRationale,
+        int projectRoleId,
+        DateTimeOffset? invitationExpiry,
+        CancellationToken cancellationToken)
+    {
+        var requestedRole = await context.Project_Roles
+            .FirstAsync(r => r.Id == projectRoleId, cancellationToken);
         var externalUser = await context.ExternalUsers
             .FirstOrDefaultAsync(u => u.Id == externalUserId, cancellationToken);
 
@@ -82,13 +265,14 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             Project = project,
             InvitationToken = Guid.NewGuid(),
             InvitedEmail = invitedEmail.Trim(),
-            InvitationExpiry = invitationExpiry ?? DateTimeOffset.UtcNow.AddDays(14),
+            InvitationExpiry = invitationExpiry ?? DateTimeOffset.UtcNow.AddDays(InvitationDurationDays),
             InvitationCode = await GenerateUniqueInvitationCodeAsync(context, cancellationToken),
             InvitationRationale_EN = invitationRationale.Trim(),
             ExternalSubjectInvited = string.IsNullOrWhiteSpace(externalUser.ExternalSubject)
                 ? null
                 : externalUser.ExternalSubject,
-            Request_DT = DateTimeOffset.UtcNow
+            Request_DT = DateTimeOffset.UtcNow,
+            Requested_Role = requestedRole
         };
 
         context.ExternalUserRequests.Add(invitation);
@@ -148,5 +332,10 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
                     buffer[i] = source[sourceIndex++];
                 }
             });
+    }
+
+    private static string NormalizeInvitationCode(string code)
+    {
+        return code.Trim().Replace("-", string.Empty, StringComparison.Ordinal).ToUpperInvariant();
     }
 }

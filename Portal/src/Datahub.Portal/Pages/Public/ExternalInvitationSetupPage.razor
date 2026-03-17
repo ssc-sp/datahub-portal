@@ -1,0 +1,143 @@
+@attribute [Route(PageRoutes.ExternalInvitationSetupWithToken)]
+@attribute [Route(PageRoutes.ExternalInvitationSetupWithToken_FR)]
+@layout HeaderPublicLayout
+
+@inject IExternalUserInvitationService _externalUserInvitationService
+@inject IUserInformationService _userInformationService
+@inject ISnackbar _snackbar
+@inject NavigationManager _navigationManager
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
+
+<PageTitle>@Localizer["Complete Invitation - Federal Science DataHub"]</PageTitle>
+
+@if (_loading)
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
+        <MudPaper Class="pa-6">
+            <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            <MudText Class="mt-4">@Localizer["Loading invitation..."]</MudText>
+        </MudPaper>
+    </MudContainer>
+}
+else
+{
+    <MudContainer MaxWidth="MaxWidth.Small" Class="mt-12">
+            @if (_completed)
+            {
+                <MudStack Spacing="2">
+                    <MudText Typo="Typo.h5">@Localizer["Invitation validated"]</MudText>
+                    <MudText>@Localizer["Your access has been activated."]</MudText>
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="@Localizer[PageRoutes.Home]">
+                        @Localizer["Go to homepage"]
+                    </MudButton>
+                </MudStack>
+            }
+            else
+            {
+                <MudStack Spacing="2">
+                    <MudText Typo="Typo.h5">@Localizer["Verify your invitation"]</MudText>
+                    <MudText Typo="Typo.body2">@Localizer["Enter the validation code from your invitation email."]</MudText>
+
+                    <MudTextField @bind-Value="_invitationCode"
+                                  Label="@Localizer["Validation code"]"
+                                  Placeholder="ABCD-EFGH-IJKL"
+                                  Variant="Variant.Outlined"
+                                  Immediate="true"
+                                  Required="true" />
+
+                    @if (_showCodeError)
+                    {
+                        <MudAlert Severity="Severity.Error" Dense="true">@Localizer["Invalid validation code."]</MudAlert>
+                    }
+
+                    <MudButton Color="Color.Primary"
+                               Variant="Variant.Filled"
+                               Disabled="@_submitting"
+                               OnClick="SubmitValidationAsync">
+                        @if (_submitting)
+                        {
+                            <MudProgressCircular Class="mr-2" Size="Size.Small" Indeterminate="true" />
+                        }
+                        @Localizer["Validate code"]
+                    </MudButton>
+                </MudStack>
+            }
+    </MudContainer>
+}
+
+@code {
+    [Parameter] public Guid InvitationToken { get; set; }
+
+    private bool _loading = true;
+    private bool _submitting;
+    private bool _completed;
+    private bool _showCodeError;
+    private string _invitationCode = string.Empty;
+    private bool _gccfEnabled = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (await _featureManager.IsEnabledAsync(Features.GCCF_Feature))
+        {
+            _gccfEnabled = true;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        _loading = true;
+        _showCodeError = false;
+        var externalUserOid = await _userInformationService.GetExternalUserNameIdentifier();
+        if (externalUserOid is null && _gccfEnabled)
+        {
+            _snackbar.Add(Localizer["Please sign in with your account to access this invitation."], Severity.Warning);
+            _navigationManager.NavigateTo($"{PageRoutes.GCCF_Login}?locale={CultureInfo.CurrentCulture.Name}&returnUrl={_navigationManager.Uri}", forceLoad: true);
+            return;
+        }
+
+        var isValid = await _externalUserInvitationService.IsInvitationTokenValidAsync(InvitationToken);
+        if (!isValid || !_gccfEnabled)
+        {
+            _navigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+            return;
+        }
+
+        _loading = false;
+    }
+
+    private async Task SubmitValidationAsync()
+    {
+        _showCodeError = false;
+
+        if (string.IsNullOrWhiteSpace(_invitationCode))
+        {
+            _showCodeError = true;
+            return;
+        }
+
+        var externalUserOid = await _userInformationService.GetExternalUserNameIdentifier();
+        if (string.IsNullOrWhiteSpace(externalUserOid))
+        {
+            _snackbar.Add(Localizer["Please sign in with your external account before validating this invitation."], Severity.Warning);
+            return;
+        }
+
+        _submitting = true;
+
+        var completed = await _externalUserInvitationService.CompleteInvitationAsync(
+            InvitationToken,
+            _invitationCode,
+            externalUserOid);
+
+        _submitting = false;
+
+        if (!completed)
+        {
+            _showCodeError = true;
+            return;
+        }
+
+        _completed = true;
+        _snackbar.Add(Localizer["Invitation accepted"], Severity.Success);
+    }
+}

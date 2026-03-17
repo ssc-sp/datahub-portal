@@ -3481,5 +3481,20 @@
   "User deactivated": "Utilisateur d\u00e9sactiv\u00e9",
   "User has been deactivated": "L\u0027utilisateur a \u00e9t\u00e9 d\u00e9sactiv\u00e9",
   "User profile updated": "Profil de l\u0027utilisateur mis \u00e0 jour",
-  "Web App and Storage": "Application Web et stockage"
+  "Web App and Storage": "Application Web et stockage",
+  "Activation Code": "Code d'activation",
+  "Code Acceptance Page": "Page d'acceptation du code",
+  "Copy link": "Copier le lien",
+  "Cancel invite": "Annuler l'invitation",
+  "Resend invitation": "Renvoyer l'invitation",
+  "Complete Invitation - Federal Science DataHub": "Compléter l'invitation - Federal Science DataHub",
+  "Loading invitation...": "Chargement de l'invitation...",
+  "Validation code": "Code de validation",
+  "Verify your invitation": "Vérifiez votre invitation",
+  "Enter the validation code from your invitation email.": "Entrez le code de validation de votre e-mail d'invitation.",
+  "Validate code": "Valider le code",
+  "Please sign in with your account before validating this invitation.": "Veuillez vous connecter avec votre compte avant de valider cette invitation.",
+  "Last Login": "Dernière connexion",
+  "Accepted on": "Accepté le",
+  "Disable user": "Désactiver l'utilisateur"
 }
