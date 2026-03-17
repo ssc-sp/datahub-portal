@@ -394,12 +394,13 @@ else
             _snackbar.Add(Localizer["Unable to resend invitation"], Severity.Error);
             return;
         }
-
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("cannot load current user");
         await _externalUserInvitationService.ResendInvitationAsync(
             selectedUser.ExternalUser.Id,
             WorkspaceAcronym,
             selectedUser.PortalUser.Email,
-            roleId.Value);
+            roleId.Value,
+            currentUser);
 
         _snackbar.Add(Localizer["Invitation resent"], Severity.Success);
         await InitializeProjectMembersAsync();

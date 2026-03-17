@@ -323,7 +323,8 @@
                 ProjectAcronym,
                 ProjectUserAddExternalUserCommand.Email,                
                 "Initial Invitation",
-                ProjectUserAddExternalUserCommand.Role.Id);
+                ProjectUserAddExternalUserCommand.Role.Id,
+                Inviter);
 
             MudDialog.Close(DialogResult.Ok(ProjectUserAddExternalUserCommand));
         }

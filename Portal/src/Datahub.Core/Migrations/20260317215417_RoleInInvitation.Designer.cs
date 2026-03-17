@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    [Migration("20260316210418_RoleInInvitation")]
+    [Migration("20260317215417_RoleInInvitation")]
     partial class RoleInInvitation
     {
         /// <inheritdoc />
@@ -1898,6 +1898,9 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTimeOffset?>("InvitationTokenAccepted")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("InvitedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("InvitedEmail")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -1924,6 +1927,8 @@ namespace Datahub.Core.Migrations
 
                     b.HasIndex("InvitationToken")
                         .IsUnique();
+
+                    b.HasIndex("InvitedById");
 
                     b.HasIndex("Project_ID");
 
@@ -2385,6 +2390,12 @@ namespace Datahub.Core.Migrations
 
             modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
                 {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "InvitedBy")
+                        .WithMany()
+                        .HasForeignKey("InvitedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID")
@@ -2402,6 +2413,8 @@ namespace Datahub.Core.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("InvitedBy");
 
                     b.Navigation("Project");
 

@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    [Migration("20260316210426_RoleInInvitation")]
+    [Migration("20260317215423_RoleInInvitation")]
     partial class RoleInInvitation
     {
         /// <inheritdoc />
@@ -1828,6 +1828,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<long?>("InvitationTokenAccepted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("InvitedById")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("InvitedEmail")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -1854,6 +1857,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.HasIndex("InvitationToken")
                         .IsUnique();
+
+                    b.HasIndex("InvitedById");
 
                     b.HasIndex("Project_ID");
 
@@ -2313,6 +2318,12 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
             modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
                 {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "InvitedBy")
+                        .WithMany()
+                        .HasForeignKey("InvitedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID")
@@ -2330,6 +2341,8 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("InvitedBy");
 
                     b.Navigation("Project");
 

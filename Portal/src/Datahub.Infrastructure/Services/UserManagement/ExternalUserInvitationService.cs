@@ -5,6 +5,7 @@ using Datahub.Core.Model.Users;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Datahub.Application.Services.Notification;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
 
@@ -17,13 +18,16 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
     public const int InvitationDurationDays = 7;
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+    private readonly IGCNotifyService _gcNotifyService;
     private readonly ILogger<ExternalUserInvitationService> _logger;
 
     public ExternalUserInvitationService(
         IDbContextFactory<DatahubProjectDBContext> contextFactory,
+        IGCNotifyService gcNotifyService,
         ILogger<ExternalUserInvitationService> logger)
     {
         _contextFactory = contextFactory;
+        _gcNotifyService = gcNotifyService;
         _logger = logger;
     }
 
@@ -54,6 +58,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string invitedEmail,
         string invitationRationale,
         int projectRoleId,
+        PortalUser inviter,
         DateTimeOffset? invitationExpiry = null,
         CancellationToken cancellationToken = default)
     {
@@ -69,6 +74,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             invitedEmail,
             invitationRationale,
             projectRoleId,
+            inviter,
             invitationExpiry,
             cancellationToken);
     }
@@ -110,6 +116,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string projectAcronym,
         string invitedEmail,
         int projectRoleId,
+        PortalUser inviter,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(projectAcronym);
@@ -142,6 +149,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             invitedEmail,
             "Resent Invitation",
             projectRoleId,
+            inviter,
             null,
             cancellationToken);
     }
@@ -238,12 +246,13 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string invitedEmail,
         string invitationRationale,
         int projectRoleId,
+        PortalUser inviter,
         DateTimeOffset? invitationExpiry,
         CancellationToken cancellationToken)
     {
         var requestedRole = await context.Project_Roles
             .FirstAsync(r => r.Id == projectRoleId, cancellationToken);
-        var externalUser = await context.ExternalUsers
+        var externalUser = await context.ExternalUsers.Include(p => p.PortalUser)
             .FirstOrDefaultAsync(u => u.Id == externalUserId, cancellationToken);
 
         if (externalUser is null)
@@ -268,6 +277,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             InvitationExpiry = invitationExpiry ?? DateTimeOffset.UtcNow.AddDays(InvitationDurationDays),
             InvitationCode = await GenerateUniqueInvitationCodeAsync(context, cancellationToken),
             InvitationRationale_EN = invitationRationale.Trim(),
+            InvitedBy = inviter,
             ExternalSubjectInvited = string.IsNullOrWhiteSpace(externalUser.ExternalSubject)
                 ? null
                 : externalUser.ExternalSubject,
@@ -283,6 +293,12 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             invitation.RequestID,
             externalUserId,
             projectAcronym);
+
+        await _gcNotifyService.SendExternalUserInviteNotification(
+            invitation.InvitedEmail,
+            externalUser.PortalUser.DisplayName ?? "<user>",
+            project.ProjectName ?? "Workspace",
+            inviter.DisplayName ?? "Inviter");
 
         return invitation;
     }
