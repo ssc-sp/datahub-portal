@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    [Migration("20260317215417_RoleInInvitation")]
+    [Migration("20260317221144_RoleInInvitation")]
     partial class RoleInInvitation
     {
         /// <inheritdoc />

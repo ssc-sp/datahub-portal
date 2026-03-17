@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    [Migration("20260317215423_RoleInInvitation")]
+    [Migration("20260317221151_RoleInInvitation")]
     partial class RoleInInvitation
     {
         /// <inheritdoc />
