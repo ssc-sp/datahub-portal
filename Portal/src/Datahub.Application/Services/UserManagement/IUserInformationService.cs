@@ -15,7 +15,7 @@ public interface IUserInformationService
     /// Gets the currently signed-in Azure AD graph user (Microsoft Graph <see cref="User"/>).
     /// </summary>
     /// <returns>A <see cref="User"/> representing the current Graph user.</returns>
-    Task<User> GetCurrentGraphUserAsync();
+    Task<User?> GetCurrentGraphUserAsync();
 
     /// <summary>
     /// Retrieves a Microsoft Graph user by their graph id.
@@ -88,7 +88,7 @@ public interface IUserInformationService
     Task<User> GetAnonymousGraphUserAsync();
 
     /// <summary>
-    /// Gets the current authenticated user's Azure AD object id (Entra id) if available.
+    /// Gets the current authenticated user's Azure AD object id (Entra id) if available. This method will throw an exception if the user is not authenticated or does not have an Entra id claim. Use <see cref="IsEntraUser"/> to check for Entra authentication before calling this method to avoid exceptions.
     /// </summary>
     /// <returns>The object id string or <c>null</c> when not available.</returns>
     Task<string?> GetCurrentUserEntraId();
@@ -196,7 +196,7 @@ public interface IUserInformationService
     /// Ensures that the authenticated graph user has a corresponding portal user record and updates
     /// first/last login timestamps appropriately.
     /// </summary>
-    Task RegisterAuthenticatedPortalUser();
+    Task RegisterAuthenticatedEntraUser();
 
     /// <summary>
     /// Creates a new <see cref="PortalUser"/> with an associated <see cref="EntraUser"/> if one does not already exist.

@@ -389,7 +389,7 @@ public partial class RepositoryService(
             ["completionOptions"] = new JsonObject
             {
                 ["deleteSourceBranch"] = false,
-                ["mergeCommitMessage"] = "Auto-merged by ResourceProvisioner"
+                ["mergeCommitMessage"] = $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
             }
         };
         var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");

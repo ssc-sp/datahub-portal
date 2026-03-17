@@ -5,13 +5,13 @@ using BlazorDownloadFile;
 using Blazored.LocalStorage;
 using Blazored.SessionStorage;
 using Datahub.Application;
+using Datahub.Application.Authentication;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Publishing;
-using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Application.Services.WebApp;
@@ -39,7 +39,6 @@ using Datahub.Infrastructure.Services.Metadata;
 using Datahub.Infrastructure.Services.Notification;
 using Datahub.Infrastructure.Services.Projects;
 using Datahub.Infrastructure.Services.Publishing;
-using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
@@ -51,15 +50,12 @@ using Datahub.Portal.Services;
 using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
 using Datahub.Portal.Services.Offline;
-using Microsoft.ApplicationInsights.Extensibility;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.FeatureManagement;
-using Microsoft.FeatureManagement.FeatureFilters;
 using Microsoft.Graph;
 using Microsoft.Identity.Web;
 using Microsoft.Identity.Web.UI;
@@ -73,7 +69,6 @@ using System.Text;
 using Tewr.Blazor.FileReader;
 using Toolbelt.Blazor.Extensions.DependencyInjection;
 using Yarp.ReverseProxy.Configuration;
-using Yarp.ReverseProxy.Transforms;
 
 [assembly: InternalsVisibleTo("Datahub.Tests")]
 
@@ -207,8 +202,6 @@ public class Startup
         services.AddScoped<ICultureService, UserCultureService>();
 
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
-        services.AddSingleton<AzureManagementService>();
-        services.AddSingleton<ProjectUsageService>();
         services.AddScoped<ProjectStorageConfigurationService>();
 
         //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
@@ -248,6 +241,15 @@ public class Startup
         }
 
         services.AddMiniProfiler().AddEntityFramework();
+
+        // Configure DevAuth only when DevAuth:UserEmail is specified
+        var devAuthSection = Configuration.GetSection("GccfOidc:DevAuth");
+        var devAuthUserEmail = devAuthSection.GetValue<string>("UserEmail");
+        if (!string.IsNullOrWhiteSpace(devAuthUserEmail))
+        {
+            services.Configure<DevAuthOptions>(devAuthSection);
+            services.AddScoped<DevAuthDBEntities>();
+        }
     }
 
     private bool ReverseProxyEnabled()
@@ -275,10 +277,12 @@ public class Startup
 
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-    public void Configure(WebApplication app, IWebHostEnvironment env, ILogger<Startup> logger,
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILogger<Startup> logger,
     IConfiguration configuration,
     IDbContextFactory<MetadataDbContext> metadataFactory)
     {
+        var services = app.ApplicationServices;
+
         if (Configuration.GetValue<bool>("HttpLogging:Enabled"))
         {
             app.UseHttpLogging();
@@ -286,18 +290,18 @@ public class Startup
         var dbDriver = configuration.GetDriver();
         if (dbDriver == DbDriver.Sqlite)
         {
-            var ctx = app.Services.GetRequiredService<IDbContextFactory<SqliteDatahubContext>>();
+            var ctx = services.GetRequiredService<IDbContextFactory<SqliteDatahubContext>>();
             InitializeDatabase(logger, ctx);
         }
         else
         {
-            var ctx = app.Services.GetRequiredService<IDbContextFactory<SqlServerDatahubContext>>();
+            var ctx = services.GetRequiredService<IDbContextFactory<SqlServerDatahubContext>>();
             InitializeDatabase(logger, ctx);
         }
 
         InitializeDatabase(logger, metadataFactory, true);
 
-        app.UseRequestLocalization(app.Services.GetService<IOptions<RequestLocalizationOptions>>()
+        app.UseRequestLocalization(services.GetService<IOptions<RequestLocalizationOptions>>()
             .Value);
 
         if (Debug)
@@ -320,27 +324,39 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseStatusCodePagesWithReExecute("/404");
+
+        // this needs to be as late as possible in the pipeline to ensure antiforgery tokens are validated for all endpoints, including reverse proxy
         app.UseAntiforgery();
 
         app.UseMiddleware<IFrameMiddleware>();
 
-        // Replaced UseEndpoints with top-level route registrations
-
-        //DOTNET 9 app.MapStaticAssets();
-        app.MapControllers();
-
-        // Reverse proxy
-        var provider = app.Services.GetService<IProxyConfigProvider>();
-        if (ReverseProxyEnabled() && provider != null)
+        app.UseEndpoints(endpoints =>
         {
-            app.MapReverseProxy();
-        }
-        else
+            endpoints.MapControllers();
+
+            var provider = services.GetService<IProxyConfigProvider>();
+            if (ReverseProxyEnabled() && provider != null)
+            {
+                endpoints.MapReverseProxy();
+            }
+            else
+            {
+                logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+            }
+
+            endpoints.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+        });
+
+        // Run DevAuth bootstrap only when dev auth is configured
+        var devAuthSection = configuration.GetSection("GccfOidc:DevAuth");
+        var devAuthUserEmail = devAuthSection.GetValue<string>("UserEmail");
+        if (env.IsDevelopment() && !string.IsNullOrWhiteSpace(devAuthUserEmail))
         {
-            logger.LogWarning($"Invalid Reverse Proxy configuration - No provider available");
+            using var scope = services.CreateScope();
+            var bootstrapper = scope.ServiceProvider.GetRequiredService<DevAuthDBEntities>();
+            bootstrapper.EnsureDevUserAsync().GetAwaiter().GetResult();
         }
-        
-        app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
     }
 
     private void ConfigureLocalization(IServiceCollection services)
@@ -419,7 +435,7 @@ public class Startup
             services.AddSingleton<CommonAzureServices>();
             //services.AddScoped<DataLakeClientService>();
 
-            services.AddScoped<AuthenticationStateProvider, CustomAuthStateProvider>();
+            services.AddScoped<AuthenticationStateProvider, FakeAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
             services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
@@ -452,7 +468,7 @@ public class Startup
 
         services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
-        services.AddSingleton<IPropagationService, PropagationService>();
+        services.AddSingleton<IPropagationService, NotificationPropagationService>();
 
         services.AddSingleton<IOpenDataService, OpenDataService>();
         

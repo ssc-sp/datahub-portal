@@ -1,7 +1,8 @@
-﻿using Azure.Identity;
+using Azure.Identity;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
+using Datahub.Infrastructure.Services.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -9,24 +10,13 @@ using Microsoft.Graph.Models;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
 
-public class MSGraphService : IMSGraphService
+public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory clientFactory,
+    IAzureServicePrincipalConfig azureServicePrincipalConfig) : IMSGraphService
 {
-    private readonly IConfiguration _configuration;
-    private readonly ILogger<MSGraphService> _logger;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IKeyVaultService _keyVaultService;
-    private GraphServiceClient _graphServiceClient;
-
-    public Dictionary<string, GraphUser> UsersDict { get; set; }
-
-    public MSGraphService(IConfiguration configureOptions, ILogger<MSGraphService> logger, IHttpClientFactory clientFactory,
-        IKeyVaultService keyVaultService)
-    {
-        _configuration = configureOptions;
-        _logger = logger;
-        _httpClientFactory = clientFactory;
-        _keyVaultService = keyVaultService;
-    }
+    private readonly ILogger<MSGraphService> _logger = logger;
+    private readonly IHttpClientFactory _httpClientFactory = clientFactory;
+    private readonly IAzureServicePrincipalConfig _azureServicePrincipalConfig = azureServicePrincipalConfig;
+    private GraphServiceClient _graphServiceClient = null!;
 
     public async Task<GraphUser> GetUserAsync(string userId, CancellationToken token)
     {
@@ -63,9 +53,9 @@ public class MSGraphService : IMSGraphService
     public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token)
     {
         Dictionary<string, GraphUser> users = new();
-        PrepareAuthenticatedClient();
+        var client = GetAuthenticatedClient();
 
-        var usersPage = await _graphServiceClient.Users.GetAsync(
+        var usersPage = await client.Users.GetAsync(
             requestConfiguration =>
             {
                 requestConfiguration.QueryParameters.Filter = $"startswith(mail,'{filterText}')";
@@ -91,7 +81,7 @@ public class MSGraphService : IMSGraphService
         return users;
     }
 
-    private void PrepareAuthenticatedClient()
+    public GraphServiceClient GetAuthenticatedClient()
     {
         if (_graphServiceClient == null)
         {
@@ -104,13 +94,11 @@ public class MSGraphService : IMSGraphService
                     AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
                 };
                 var clientCertCredential = new ClientSecretCredential(
-                    _configuration.GetSection("AzureAd").GetValue<string>("TenantId"),
-                    _configuration.GetSection("AzureAd").GetValue<string>("ClientId"), 
-                    _configuration.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
-                var httpClient = _httpClientFactory.CreateClient();
+                    _azureServicePrincipalConfig.TenantId,                    
+                    _azureServicePrincipalConfig.ClientId,
+                    _azureServicePrincipalConfig.ClientSecret, options);
+                var httpClient = _httpClientFactory.CreateClient(IMSGraphService.HttpClientName);
                 _graphServiceClient = new(httpClient, clientCertCredential);
-
-
             }
             catch (Exception e)
             {
@@ -118,14 +106,15 @@ public class MSGraphService : IMSGraphService
                 throw;
             }
         }
+        return _graphServiceClient;
     }
 
     private async Task<GraphUser> QueryUserAsync(string filter, CancellationToken token)
     {
-        PrepareAuthenticatedClient();
+        var client = GetAuthenticatedClient();
         try
         {
-            var user = await _graphServiceClient.Users.GetAsync(
+            var user = await client.Users.GetAsync(
                 requestConfiguration =>
                 {
                     requestConfiguration.QueryParameters.Filter = filter;
@@ -147,10 +136,10 @@ public class MSGraphService : IMSGraphService
 
     public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
     {
-        PrepareAuthenticatedClient();
+        var client = GetAuthenticatedClient();
         try
         {
-            var user = await _graphServiceClient.Users.GetAsync(
+            var user = await client.Users.GetAsync(
                 requestConfiguration =>
                 {
                     requestConfiguration.QueryParameters.Search = $"\"onPremisesSamAccountName:{userName}\"";

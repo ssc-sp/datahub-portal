@@ -2,7 +2,7 @@ using System.ComponentModel;
 using System.Net.Mail;
 using System.Security.Claims;
 using Azure.Identity;
-using Datahub.Application.RoleManagement;
+using Datahub.Application.Authentication;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
@@ -89,8 +89,11 @@ public class UserInformationService(
 
     public async Task<string?> GetCurrentUserEntraId()
     {
-        _ = await GetGraphUserAsyncInternal();
-        return GetEntraOid();
+        var user = await GetAuthenticatedUser();
+        if (user == null) return null;
+
+        _ = await GetGraphUserAsyncInternal(user);
+        return GetEntraOid(user) ?? throw new InvalidOperationException("User does not have a valid Entra OID");
     }
 
     /// <summary>
@@ -101,6 +104,11 @@ public class UserInformationService(
     {
         var user = await GetAuthenticatedUser();
         if (user == null) return null;
+        return await GetExternalUserIdentifierInternal(user);
+    }
+
+    private async Task<string?> GetExternalUserIdentifierInternal(ClaimsPrincipal user)
+    {
         if (!await IsExternalAsync(user)) return null;
         var userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
         return userId;
@@ -121,13 +129,15 @@ public class UserInformationService(
 
     public async Task<string> GetUserEmail()
     {
-        var user = await GetGraphUserAsyncInternal();
+        var authenticatedUser = await GetAuthenticatedUser();
+        var user = await GetGraphUserAsyncInternal(authenticatedUser);
         return user.Mail ?? throw new InvalidOperationException("Email is not available for current user");
     }
 
     public async Task<string> GetDisplayName()
     {
-        var user = await GetGraphUserAsyncInternal();
+        var authenticatedUser = await GetAuthenticatedUser();
+        var user = await GetGraphUserAsyncInternal(authenticatedUser);
         return user.DisplayName ?? string.Empty;
     }
 
@@ -175,19 +185,18 @@ public class UserInformationService(
         return !claims.Any() || (claims.Count == 1 && claims[0].Value == "default");
     }
 
-    private async Task<User> GetGraphUserAsyncInternal()
+    private async Task<User> GetGraphUserAsyncInternal(ClaimsPrincipal claimsPrincipal)
     {
         if (currentEntraUser != null) return currentEntraUser;
-        var authenticatedUser = await GetAuthenticatedUser();
-        if (authenticatedUser.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
+        if (claimsPrincipal.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN))
         {
             // Throw501 (Not Implemented) if external login
             throw new HttpRequestException("External login is not allowed", null, System.Net.HttpStatusCode.NotImplemented);
         }
         try
         {
-            var email = authenticatedUser?.Identity?.Name;
-            var userId = GetEntraOid();
+            var email = claimsPrincipal?.Identity?.Name;
+            var userId = GetEntraOid(claimsPrincipal);
             if (email is null)
             {
                 throw new InvalidOperationException("Cannot resolve user email");
@@ -212,18 +221,18 @@ public class UserInformationService(
         return currentEntraUser;
     }
 
-    private bool HasEntraOid()
+    private bool HasEntraOid(ClaimsPrincipal claimsPrincipal)
     {
         // Prefer standard OIDC oid claim; fall back to NameIdentifier if needed
-        return authenticatedUser?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false;
+        return claimsPrincipal?.IsInRole(RoleConstants.TRUSTED_ENTRA_LOGIN) ?? false;
     }
 
-    private string GetEntraOid()
+    private string? GetEntraOid(ClaimsPrincipal claimsPrincipal)
     {
-        if (!HasEntraOid())
-            throw new InvalidOperationException("User does not have a valid Entra OID");
+        if (!HasEntraOid(claimsPrincipal))
+            return null;
         // Try standard OIDC oid first
-        var claim = authenticatedUser?.Claims?
+        var claim = claimsPrincipal?.Claims?
             .FirstOrDefault(c => c.Type == ClaimConstants.ObjectId);
 
         if (claim is null)
@@ -232,9 +241,11 @@ public class UserInformationService(
         return claim.Value;
     }
 
-    public async Task<User> GetCurrentGraphUserAsync()
+    public async Task<User?> GetCurrentGraphUserAsync()
     {
-        return await GetGraphUserAsyncInternal();
+        var user = await GetAuthenticatedUser();
+        if (user == null) return null;
+        return await GetGraphUserAsyncInternal(user);
     }
 
     private void PrepareAuthenticatedClient()
@@ -543,7 +554,7 @@ public class UserInformationService(
         await ctx.SaveChangesAsync();
     }
 
-    public async Task RegisterAuthenticatedPortalUser()
+    public async Task RegisterAuthenticatedEntraUser()
     {
         var graphId = await GetCurrentUserEntraId();
 
@@ -589,11 +600,18 @@ public class UserInformationService(
 
     public async Task<PortalUser?> GetCurrentPortalUserAsync()
     {
-        if (!HasEntraOid())
+        var user = await GetAuthenticatedUser();
+
+        var graphId = GetEntraOid(user);
+        if (graphId is null)
         {
-            return null;
+            var externalId = await GetExternalUserIdentifierInternal(user);
+            if (externalId is null)
+            {
+                return null;
+            }
+            return await GetExternalUserAsync(externalId);
         }
-        var graphId = await GetCurrentUserEntraId();
         return await GetEntraUserAsync(graphId);
     }
 
@@ -618,6 +636,26 @@ public class UserInformationService(
         return await CreatePortalEntraUserAsync(userGraphId) ?? throw new InvalidOperationException("Failed to create portal user");
     }
 
+    private async Task<PortalUser> GetExternalUserAsync(string externalId)
+    {
+        PortalUser? portalUser;
+        await using (var ctx = await datahubContextFactory.CreateDbContextAsync())
+        {
+            portalUser = await ctx.PortalUsers
+                .AsNoTracking()
+                .Include(u => u.UserSettings)
+                .Include(u => u.ExternalUser)
+                .FirstOrDefaultAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == externalId);
+
+            if (portalUser is not null)
+            {
+                return portalUser;
+            }
+        }
+
+        throw new InvalidOperationException($"User with External ID: {externalId} does not exist and has not been invited");
+    }
+
     public async Task<bool> IsDailyLogin()
     {
         var portalUser = await GetCurrentPortalUserAsync();
@@ -635,7 +673,9 @@ public class UserInformationService(
     {
         if (_userWithAchievements != null)
             return _userWithAchievements;
-        _userWithAchievements = await LoadUserWithAchievementsAsync(await GetCurrentUserEntraId(), await GetExternalUserNameIdentifier());
+        var user = await GetAuthenticatedUser();
+
+        _userWithAchievements = await LoadUserWithAchievementsAsync(GetEntraOid(user), await GetExternalUserIdentifierInternal(user));
 
         return _userWithAchievements;
     }
@@ -658,7 +698,8 @@ public class UserInformationService(
         if (entraId is not null)
         {
             portalUser = await query.FirstAsync(p => p.EntraUser != null && p.EntraUser.GraphGuid == entraId);
-        } else if (userOID is not null)
+        }
+        else if (userOID is not null)
         {
             portalUser = await query.FirstAsync(p => p.ExternalUser != null && p.ExternalUser.ExternalSubject == userOID);
         }

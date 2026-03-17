@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
 using Datahub.Application;
-using Datahub.Application.RoleManagement;
 using Datahub.Core.Configuration;
 using Datahub.Core.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication;
@@ -16,6 +15,8 @@ using Microsoft.IdentityModel.Logging;
 using Microsoft.IdentityModel.Protocols.OpenIdConnect;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
+using Datahub.Application.Authentication;
+using Datahub.Infrastructure.Services.UserManagement;
 
 namespace Datahub.Portal.Services.Auth;
 
@@ -31,18 +32,34 @@ public static class ConfigureAuthenticationServices
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var devAuthEmail = configuration["GccfOidc:DevAuth:UserEmail"];
+
         // Base authentication: default cookie is provided by AddMicrosoftIdentityWebApp + Azure AD OIDC
         services.AddAuthentication(options =>
         {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            if (!string.IsNullOrWhiteSpace(devAuthEmail))
+            {
+                options.DefaultScheme = DevAuthHandler.Scheme;
+                options.DefaultAuthenticateScheme = DevAuthHandler.Scheme;
+                options.DefaultSignInScheme = DevAuthHandler.Scheme;
+                options.DefaultChallengeScheme = DevAuthHandler.Scheme;
+            }
+            else
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            }
         })
         .AddMicrosoftIdentityWebApp(configuration, "AzureAd", OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
         .EnableTokenAcquisitionToCallDownstreamApi()
         .AddMicrosoftGraph(configuration.GetSection("Graph"))
         .AddInMemoryTokenCaches();
+
+        // Register dev scheme at the root AuthenticationBuilder level
+        services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, DevAuthHandler>(DevAuthHandler.Scheme, _ => { });
 
         // add the JWT bearer authentication for APIs
         services.AddAuthentication()
@@ -72,13 +89,23 @@ public static class ConfigureAuthenticationServices
 
         if (gccfEnabled)
         {
-            // Reconfigure defaults to use composite selector
+            // Reconfigure defaults to use composite selector only when dev auth is not forcing defaults
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = CompositeCookieScheme;
-                options.DefaultAuthenticateScheme = CompositeCookieScheme;
-                options.DefaultSignInScheme = CompositeCookieScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                if (!string.IsNullOrWhiteSpace(devAuthEmail))
+                {
+                    options.DefaultScheme = DevAuthHandler.Scheme;
+                    options.DefaultAuthenticateScheme = DevAuthHandler.Scheme;
+                    options.DefaultSignInScheme = DevAuthHandler.Scheme;
+                    options.DefaultChallengeScheme = DevAuthHandler.Scheme;
+                }
+                else
+                {
+                    options.DefaultScheme = CompositeCookieScheme;
+                    options.DefaultAuthenticateScheme = CompositeCookieScheme;
+                    options.DefaultSignInScheme = CompositeCookieScheme;
+                    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                }
             })
             .AddPolicyScheme(CompositeCookieScheme, CompositeCookieScheme, policyOptions =>
             {
@@ -145,6 +172,19 @@ public static class ConfigureAuthenticationServices
 
                         return Task.CompletedTask;
                     };
+
+                    options.Events.OnTicketReceived = context =>
+                    {
+                        var locale = context.Principal?.FindFirst("locale")?.Value;
+                        if (!string.IsNullOrEmpty(locale))
+                        {
+                            // Send the return url to the culture controller to preserve the culture selection after login
+                            var returnUrl = context.ReturnUri;
+                            context.ReturnUri = UserSettingsService.GetCultureControllerRedirect(locale, returnUrl);
+                        }
+                        return Task.CompletedTask;
+                    };
+
                     options.Events.OnRedirectToIdentityProviderForSignOut = context =>
                     {
                         // Check if locale is set in AuthenticationProperties

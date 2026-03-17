@@ -1,30 +1,14 @@
-using Azure.Identity;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Datahub.Application.Services.Notification;
-using Datahub.Functions.Services;
-using Datahub.Infrastructure.Services.Azure;
-using Datahub.Infrastructure.Services.Notification;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Infrastructure.Services.UserManagement;
 using FluentAssertions;
 using MassTransit;
-using MassTransit.Transports;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
-using Microsoft.Graph.Models;
-using Microsoft.Kiota.Abstractions;
-using Microsoft.Kiota.Abstractions.Authentication;
-using Microsoft.Kiota.Abstractions.Serialization;
-using Microsoft.Kiota.Abstractions.Store;
-using Microsoft.Kiota.Serialization.Json;
-using Moq;
-using Moq.Protected;
 using NSubstitute;
-using NSubstitute.ExceptionExtensions;
-using System.Reflection;
-using System.Text.Json;
-using System.Text.Json.Nodes; 
 
 namespace Datahub.Functions.UnitTests.Functions
 {
@@ -33,7 +17,7 @@ namespace Datahub.Functions.UnitTests.Functions
     {
         private IConfiguration _config = Substitute.For<IConfiguration>();
         private AzureConfig _azureConfig;
-        private Mock<AzureManagementService> _azureManagementService;
+        private IMSGraphService _azureManagementService;
         private ISendEndpointProvider _sendEndpointProvider;
         private IGCNotifyService _gcNotifyService;
         private CreateGraphUser _function; 
@@ -53,11 +37,9 @@ namespace Datahub.Functions.UnitTests.Functions
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             
             var _mockGraphClient = TestHelper.MockGraphServiceClient();
-            _azureManagementService = new Mock<AzureManagementService>(MockBehavior.Strict,_azureConfig, httpClientFactory);
-            _azureManagementService.Setup(f => f.GetGraphServiceClientFromEnvVariables()).Returns(_mockGraphClient);
-
-            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService.Object, _sendEndpointProvider, _gcNotifyService);
-
+            _azureManagementService = Substitute.For<IMSGraphService>(); 
+            _azureManagementService.GetAuthenticatedClient().Returns(_mockGraphClient);
+            _function = new CreateGraphUser(loggerFactory, _azureConfig, _azureManagementService, _sendEndpointProvider, _gcNotifyService);
         }
 
         [Test]
@@ -108,7 +90,7 @@ namespace Datahub.Functions.UnitTests.Functions
             // Assert
             result.Should().BeOfType<OkObjectResult>();
             var okResult = (OkObjectResult)result;
-            var response = JsonSerializer.Deserialize<JsonObject>(okResult.Value.ToString());
+            var response = JsonSerializer.Deserialize<JsonObject>(okResult.Value?.ToString());
             response["message"].ToString().Should().Contain("Successfully invited mockuser@example.com and added to group");
         }
 

@@ -1,4 +1,4 @@
-﻿@namespace Datahub.Portal.Pages.Workspace.Delete
+@namespace Datahub.Portal.Pages.Workspace.Delete
 
 @using Datahub.Application.Services
 @using Datahub.Core.Extensions;
@@ -98,7 +98,7 @@
         var newTemplateResource = await ctx.Project_Resources2.Where(
                     r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
                     r.ResourceType == newProjectTemplateType)
-               .FirstOrDefaultAsync();
+                    .FirstOrDefaultAsync();
 
         if (newTemplateResource != null)
         {
@@ -106,7 +106,7 @@
         }
 
         _deleteButtonText = _deleteRequested ? Localizer["Deleted"] : Localizer["Delete Workspace"];
-        _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();        
+        _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();
 
         if (WorkspaceAcronym == null)
         {
@@ -122,7 +122,7 @@
                 _questionnaire.IsDataMigrated &&
                 _questionnaire.IsDataNotSubjectToLitigation &&
                 _questionnaire.DoesDataNotHaveArchivalValue &&
-                _questionnaire.IsDeletionConfirmed;        
+                _questionnaire.IsDeletionConfirmed;
     }
 
     private void HandleValueChanged(int questionNumber)
@@ -147,7 +147,7 @@
             default:
                 throw new InvalidOperationException($"Question {questionNumber} not found");
                 break;
-        }        
+        }
 
         _disableDeleteButton = _deleteRequested || !IsQuestionnaireComplete();
     }
@@ -166,11 +166,11 @@
         }
         else
         {
-            var message = string.Format(Localizer["Are you sure you want to delete the workspace \"{0}\"?"], WorkspaceAcronym);
+            var message = string.Format(Localizer["Are you sure you want to delete the workspace {0}?"], WorkspaceAcronym);
             if (!await _jSRuntime.InvokeAsync<bool>("confirm", message))
                 return;
 
-            var isRecentLinksCleaned = await _projectDeletionService.CleanWorkspaceFromRecentLinks(WorkspaceAcronym);            
+            var isRecentLinksCleaned = await _projectDeletionService.CleanWorkspaceFromRecentLinks(WorkspaceAcronym);
             _deleteRequested = await _projectDeletionService.DeleteWorkspace(WorkspaceAcronym, _questionnaire);
 
             if (_deleteRequested)

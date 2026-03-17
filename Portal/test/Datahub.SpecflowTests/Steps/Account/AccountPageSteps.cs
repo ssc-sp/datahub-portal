@@ -1,8 +1,8 @@
 using System.Collections.Immutable;
 using System.Security.Claims;
 using Bunit;
+using Datahub.Application.Authentication;
 using Datahub.Application.Configuration;
-using Datahub.Application.RoleManagement;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services.Security;
@@ -162,6 +162,10 @@ public class AccountPageSteps : BunitTestSteps
 
         Services.AddSingleton(_portalConfig);
         Services.AddDatahubLocalization(_portalConfig);
+
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(false);
+        Services.AddSingleton(featureManager);
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         workspaceVersionService.GetLatestVersionAsync().Returns(Task.FromResult("v1.0.0"));

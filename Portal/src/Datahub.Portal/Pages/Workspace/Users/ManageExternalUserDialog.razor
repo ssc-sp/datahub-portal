@@ -1,0 +1,125 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Mail
+@using Datahub.Application.Commands
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@inject IMSGraphService _msGraphService
+@inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
+<MudDialog Style="min-width: 40vw; max-width: 75vw;">
+    <DialogContent>
+        <MudStack>
+            @if (SelectedExternalUser.PortalUser.ExternalUser.UserDeactivatedAt is not null)
+            {
+                //IsDateDisabledFunc="@((DateTime dt) => (dt < DateTime.Today))"
+                <DHIcon Icon="Icons.Material.Outlined.Warning" Color="Color.Warning"/>
+                <MudText>@Localizer["User has been deactivated"]</MudText>
+                <MudText>@Localizer["Reason:"]</MudText>
+                <MudText>@Localizer[SelectedExternalUser.PortalUser.ExternalUser.DeactivationReason]</MudText>
+
+            }
+            <MudTextField T="string"
+                          Class="form-control"
+                          @bind-value="name"
+                          Label="@Localizer["Display name"]"
+                          Required="true"
+                          RequiredError="@Localizer["Name is required"]"
+                          Variant="Variant.Outlined" />
+            <MudTextField T="string"
+                          Class="form-control"
+                          @bind-value="email"
+                          Label="@Localizer["Email"]"
+                          Disabled="true"
+                          Variant="Variant.Outlined" />
+            <MudTextField T="string"
+                          Class="form-control"
+                          @bind-value="organization"
+                          Label="@Localizer["Organization"]"
+                          Required="true"
+                          RequiredError="@Localizer["Name is required"]"
+                          Variant="Variant.Outlined" />
+            <MudSelect @bind-Value="role" Label="Select user role" Placeholder="Please Select">
+                <MudSelectItem Value="7">@Localizer["Web App"]</MudSelectItem>
+                <MudSelectItem Value="8">@Localizer["Storage"]</MudSelectItem>
+                <MudSelectItem Value="9">@Localizer["Web App and Storage"]</MudSelectItem>
+            </MudSelect>
+            <MudDatePicker Label="Account Expiry"
+                           @bind-Date="accountExpiry"
+                           Required="true"
+                           ShowToolbar="false" />
+
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudGrid>
+            <MudItem xs="6" class="d-flex justify-start">
+                <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+            </MudItem>
+            <MudItem xs="6" class="d-flex justify-end">
+                <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled" Disabled="(SelectedExternalUser.PortalUser.ExternalUser.UserDeactivatedAt is null ? false : true)">@Localizer["Save changes"]</DHButton>
+            </MudItem>
+        </MudGrid>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    #nullable enable
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public UserRoleLinks SelectedExternalUser { get; set; } = null!;
+
+    // [Parameter]
+    // public PortalUser SelectedPortalUser { get; set; } = null!;
+
+    [Parameter]
+    public PortalUser CurrentUser { get; set; } = null!;
+
+    private bool _changed = false;
+    private string name = string.Empty;
+    private string email = string.Empty;
+    private string organization = string.Empty;
+    private int role = 0;
+    private DateTime? accountExpiry = DateTime.Today;
+
+
+    private void Cancel() => MudDialog.Cancel();
+
+    protected override void OnInitialized()
+    {
+        name = SelectedExternalUser.PortalUser.DisplayName;
+        email = SelectedExternalUser.PortalUser.Email;
+        organization = SelectedExternalUser.PortalUser.ExternalUser.Organization;
+        accountExpiry = SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate.DateTime;
+    }
+
+    private async Task SaveUserChanges()
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        SelectedExternalUser.PortalUser.DisplayName = name;
+        // SelectedExternalUser.PortalUser.Email = email;
+        SelectedExternalUser.PortalUser.ExternalUser.Organization = organization;
+        SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate = (accountExpiry.HasValue ? DateTime.SpecifyKind(accountExpiry.Value, DateTimeKind.Utc) : SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate);
+
+        context.Update(SelectedExternalUser);
+        await context.SaveChangesAsync();
+        UpdateProject();
+    }
+
+    private void UpdateProject()
+    {
+        MudDialog.Close(DialogResult.Ok(SelectedExternalUser));
+    }
+
+    private void UserInfoChanged()
+    {
+        _changed = true;
+    }
+
+}

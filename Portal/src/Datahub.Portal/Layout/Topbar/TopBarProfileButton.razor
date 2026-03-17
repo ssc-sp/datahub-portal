@@ -8,56 +8,61 @@
 @using Microsoft.Identity.Web
 @using MudBlazor.Utilities
 
-@if (_viewedUser is null)
-{
-    return;
-}
-<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-    <MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
-        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Settings"]</MudText>
-        <DHButton Size="Size.Small" Href="@Localizer[PageRoutes.AccountDefault]">
-            <MudText>@Localizer["Settings"]</MudText>
-        </DHButton>
-        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
-        <LanguageToggle @ref="_languageToggle" Size="Size.Small" />
-        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
-        <DHButton HtmlTag="button" Style="margin-top:20px; text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Small">
-            <MudText>@Localizer["Sign out"]</MudText>
-        </DHButton>
-    </MudHidden>
-    <MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
-        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Settings"]</MudText>
-        <DHButton Size="Size.Medium" Href="@Localizer[PageRoutes.AccountDefault]">
-            <MudText>@Localizer["Settings"]</MudText>
-        </DHButton>
-        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
-        <LanguageToggle @ref="_languageToggle" Size="Size.Medium" />
-        <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
-        <DHButton HtmlTag="button" Style="text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Medium">
-            <MudText>@Localizer["Sign out"]</MudText>
-        </DHButton>
-    </MudHidden>
-</DatahubAuthView>
+
+<MudHidden Breakpoint="Breakpoint.MdAndDown" Invert="true">
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Settings"]</MudText>
+    <DHButton Size="Size.Small" Href="@Localizer[PageRoutes.AccountDefault]" Disabled=@(_viewedUser is null)>
+        <MudText>@Localizer["Settings"]</MudText>
+    </DHButton>
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+    <LanguageToggle @ref="_languageToggle" Size="Size.Small" />
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
+	<DHButton HtmlTag="button" Style="margin-top:20px; text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Small" Disabled=@(_viewedUser is null)>
+        <MudText>@Localizer["Sign out"]</MudText>
+    </DHButton>
+</MudHidden>
+<MudHidden Breakpoint="Breakpoint.LgAndUp" Invert="true">
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Settings"]</MudText>
+	<DHButton Size="Size.Medium" Href="@Localizer[PageRoutes.AccountDefault]" Disabled=@(_viewedUser is null)>
+        <MudText>@Localizer["Settings"]</MudText>
+    </DHButton>
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Language selection"]</MudText>
+    <LanguageToggle @ref="_languageToggle" Size="Size.Medium" />
+    <MudText Typo="Typo.h2" Class="sr-only">@Localizer["Sign in or out"]</MudText>
+	<DHButton HtmlTag="button" Style="text-wrap: nowrap" OnClick="@HandleLogOut" Size="Size.Medium" Disabled=@(_viewedUser is null)>
+        <MudText>@Localizer["Sign out"]</MudText>
+    </DHButton>
+</MudHidden>
+
 
 @code {
 
 
 	private PortalUser? _viewedUser;
+	private bool _isEntraUser;
 
-	private LanguageToggle _languageToggle;
+	private LanguageToggle _languageToggle = null!;
 
 	[CascadingParameter]
 	private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
 
-    protected override async Task OnInitializedAsync()
-    {
-        _viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		_viewedUser = await _userInformationService.GetCurrentPortalUserAsync();
+		_isEntraUser = await _userInformationService.IsEntraUser();
+	}
 
-    private void HandleLogOut()
-    {
-        _navigation_manager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
-    }
+	private void HandleLogOut()
+	{
+		if (_isEntraUser)
+		{
+			_navigation_manager.NavigateTo("MicrosoftIdentity/Account/SignOut", true);
+		}
+		else
+		{
+			_navigation_manager.NavigateTo($"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}", true);
+		}
+	}
 
     private async Task HandleLanguageToggle(MouseEventArgs arg)
     {

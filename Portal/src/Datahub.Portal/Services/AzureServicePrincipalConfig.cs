@@ -1,4 +1,4 @@
-﻿using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Azure;
 
 namespace Datahub.Portal.Services;
 
@@ -11,8 +11,8 @@ public class AzureServicePrincipalConfig : IAzureServicePrincipalConfig
         _config = config;
     }
 
-    public string SubscriptionId => _config["AzureAD:SubscriptionId"];
-    public string TenantId => _config["AzureAD:TenantId"];
-    public string ClientId => _config["AzureAD:ClientId"];
-    public string ClientSecret => _config["AzureAD:ClientSecret"];
+    public string SubscriptionId => _config["AzureAD:SubscriptionId"]?? throw new InvalidOperationException("SubscriptionId not found");
+    public string TenantId => _config["AzureAD:TenantId"]?? throw new InvalidOperationException("TenantId not found");
+    public string ClientId => _config["AzureAD:ClientId"]?? throw new InvalidOperationException("ClientId not found");
+    public string ClientSecret => _config["AzureAD:ClientSecret"]?? throw new InvalidOperationException("ClientSecret not found");
 }

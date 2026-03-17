@@ -3,6 +3,47 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.6.0](https://github.com/ssc-sp/datahub-portal/compare/v8.5.0...v8.6.0) (2026-03-16)
+
+
+### Features
+
+* added caching for workspace versions and streamlined path ([#1893](https://github.com/ssc-sp/datahub-portal/issues/1893)) ([58cc8fb](https://github.com/ssc-sp/datahub-portal/commit/58cc8fb48301fb96c3e58411eb657707363f03d7))
+* Adding GC Notify email for a new user invite ([#1899](https://github.com/ssc-sp/datahub-portal/issues/1899)) ([0c30bd8](https://github.com/ssc-sp/datahub-portal/commit/0c30bd8ba826e8d66a33d28d05db31e2da15e4e9))
+* External users page ([#1890](https://github.com/ssc-sp/datahub-portal/issues/1890)) ([4ce7654](https://github.com/ssc-sp/datahub-portal/commit/4ce765490fc986484309c38bc15f45b03826bf0b))
+* Restrict pages for external users ([#1897](https://github.com/ssc-sp/datahub-portal/issues/1897)) ([c674740](https://github.com/ssc-sp/datahub-portal/commit/c674740aeda6994abb99f9040c2644f2dc7780ef))
+
+
+### Bug Fixes
+
+* Adding the environment topbar on web app share page ([#1896](https://github.com/ssc-sp/datahub-portal/issues/1896)) ([6007514](https://github.com/ssc-sp/datahub-portal/commit/60075148bca0ebc3d8142a77875dd59931bddaf3))
+* Filters on user projects are now hidden if not applicable or if feature flag blocks it ([#1894](https://github.com/ssc-sp/datahub-portal/issues/1894)) ([2d59956](https://github.com/ssc-sp/datahub-portal/commit/2d59956d427811a6079ffa8817bce225eaf9cb9a))
+
+## [8.5.0](https://github.com/ssc-sp/datahub-portal/compare/v8.4.1...v8.5.0) (2026-03-10)
+
+
+### Features
+
+* Simulate GCCF users locally and misc GCCF fixes ([#1872](https://github.com/ssc-sp/datahub-portal/issues/1872)) ([bc58873](https://github.com/ssc-sp/datahub-portal/commit/bc588738589aa91f0d1d5fb5ff94ffb102dba7c1))
+
+
+### Bug Fixes
+
+* added workspace acronym to commit message ([#1885](https://github.com/ssc-sp/datahub-portal/issues/1885)) ([deefe4d](https://github.com/ssc-sp/datahub-portal/commit/deefe4de8aadb51cf26c6ef4ac80281b50e004ea))
+* Changed the Environment Variables table to use DatahubAuthView ([#1886](https://github.com/ssc-sp/datahub-portal/issues/1886)) ([766f54b](https://github.com/ssc-sp/datahub-portal/commit/766f54b270a104ecae571b343e6f31e83e53ca58))
+* Empty workspaces can now be deleted ([#1879](https://github.com/ssc-sp/datahub-portal/issues/1879)) ([bb5a678](https://github.com/ssc-sp/datahub-portal/commit/bb5a67816a2467d428b6b94c58096f9eba15a171))
+* Fixed CBR owner access to create workspaces ([#1877](https://github.com/ssc-sp/datahub-portal/issues/1877)) ([f153f54](https://github.com/ssc-sp/datahub-portal/commit/f153f542c82ae53dbb3cd4cfd54133a78d0dce82))
+* Fixing a crash on open gov publishing page during the language check ([#1892](https://github.com/ssc-sp/datahub-portal/issues/1892)) ([84e2ba6](https://github.com/ssc-sp/datahub-portal/commit/84e2ba64af1779eae0c1c078b7416b4a02d48260))
+* setup correct culture in culture controller for GCCF ([#1884](https://github.com/ssc-sp/datahub-portal/issues/1884)) ([108978a](https://github.com/ssc-sp/datahub-portal/commit/108978a30b79ae83ec6ae82244f581419ea1547e))
+
+## [8.4.1](https://github.com/ssc-sp/datahub-portal/compare/v8.4.0...v8.4.1) (2026-02-09)
+
+
+### Bug Fixes
+
+* Removing an extra bracket that appears on the database page ([#1868](https://github.com/ssc-sp/datahub-portal/issues/1868)) ([e0877e8](https://github.com/ssc-sp/datahub-portal/commit/e0877e8edac4a32691a06f9794b0010952638f69))
+* Workspace role filtering ([#1870](https://github.com/ssc-sp/datahub-portal/issues/1870)) ([b4f7266](https://github.com/ssc-sp/datahub-portal/commit/b4f72664f011a7b12c7521860bc6af7d17f0e1e8))
+
 ## [8.4.0](https://github.com/ssc-sp/datahub-portal/compare/v8.3.1...v8.4.0) (2026-02-06)
 
 
