@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations.SqliteDatahub
 {
     [DbContext(typeof(SqliteDatahubContext))]
-    [Migration("20260317221151_RoleInInvitation")]
+    [Migration("20260317224156_RoleInInvitation")]
     partial class RoleInInvitation
     {
         /// <inheritdoc />
@@ -1553,7 +1553,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ExternalSubject")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 

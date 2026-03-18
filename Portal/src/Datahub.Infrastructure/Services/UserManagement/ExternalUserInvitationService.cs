@@ -59,6 +59,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string invitationRationale,
         int projectRoleId,
         PortalUser inviter,
+        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
         DateTimeOffset? invitationExpiry = null,
         CancellationToken cancellationToken = default)
     {
@@ -76,6 +77,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             projectRoleId,
             inviter,
             invitationExpiry,
+            GetCodeAcceptancePageUrl,
             cancellationToken);
     }
 
@@ -116,6 +118,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string projectAcronym,
         string invitedEmail,
         int projectRoleId,
+        Func<WorkspaceInvitation,string> GetCodeAcceptancePageUrl,
         PortalUser inviter,
         CancellationToken cancellationToken = default)
     {
@@ -151,6 +154,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             projectRoleId,
             inviter,
             null,
+            GetCodeAcceptancePageUrl,
             cancellationToken);
     }
 
@@ -248,8 +252,11 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         int projectRoleId,
         PortalUser inviter,
         DateTimeOffset? invitationExpiry,
+        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
         CancellationToken cancellationToken)
     {
+        // attach inviter to context to avoid duplicate key error if inviter is also the user being invited
+        context.Attach(inviter);
         var requestedRole = await context.Project_Roles
             .FirstAsync(r => r.Id == projectRoleId, cancellationToken);
         var externalUser = await context.ExternalUsers.Include(p => p.PortalUser)
@@ -294,11 +301,13 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             externalUserId,
             projectAcronym);
 
+        var invitationURL = GetCodeAcceptancePageUrl(invitation);
         await _gcNotifyService.SendExternalUserInviteNotification(
             invitation.InvitedEmail,
             externalUser.PortalUser.DisplayName ?? "<user>",
             project.ProjectName ?? "Workspace",
-            inviter.DisplayName ?? "Inviter");
+            inviter.DisplayName ?? "Inviter",
+            invitationURL);
 
         return invitation;
     }

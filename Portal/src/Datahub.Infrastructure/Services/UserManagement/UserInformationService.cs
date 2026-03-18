@@ -723,20 +723,25 @@ public class UserInformationService(
         return false;
     }
 
-    public async Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry)
+    public async Task<PortalUser?> CreatePortalExternalUserAsync(string? userOid, string first, string last, string org, string email, DateTimeOffset expiry)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         await using var transaction = await ctx.Database.BeginTransactionAsync();
-        var exists = await ctx.ExternalUsers
-            .FirstOrDefaultAsync(p => p.ExternalSubject == userOid);
+        var displayName = $"{first} {last}";
 
-        if (exists is not null)
+        if (!string.IsNullOrWhiteSpace(userOid))
         {
-            logger.LogInformation("External user with OID: {Oid} already exists", userOid);
-            return null;
+            var exists = await ctx.ExternalUsers
+                .FirstOrDefaultAsync(p => p.ExternalSubject == userOid);
+
+            if (exists is not null)
+            {
+                logger.LogInformation("External user with OID: {Oid} already exists", userOid);
+                return null;
+            }
+
         }
 
-        var displayName = $"{first} {last}";
 
         var portalUser = new PortalUser
         {
@@ -767,7 +772,7 @@ public class UserInformationService(
         var catalogObject = new Core.Model.Catalog.CatalogObject()
         {
             ObjectType = Core.Model.Catalog.CatalogObjectType.User,
-            ObjectId = userOid.ToString(),
+            ObjectId = $"externaluser-{portalUser.Id}",
             Name_English = displayName,
             Name_French = displayName,
             Desc_English = "External User",
@@ -775,6 +780,8 @@ public class UserInformationService(
         };
 
         await datahubCatalogSearch.AddCatalogObject(catalogObject);
+
+
         return portalUser;
     }
 

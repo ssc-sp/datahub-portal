@@ -18,6 +18,7 @@ public interface IExternalUserInvitationService
     /// <param name="invitationRationale">The rationale or reason for the invitation. Used to provide context to the recipient.</param>
     /// <param name="projectRoleId">The identifier of the project role assigned to the invited user. Must correspond to a valid project role.</param>
     /// <param name="inviter">The user creating the invitation. Must be a valid user ID.</param>
+    /// <param name="GetCodeAcceptancePageUrl">Function that generates the acceptance link with proper domain and localized url</param>
     /// <param name="invitationExpiry">The optional expiration date and time for the invitation. If null, the invitation does not expire.</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests. Allows the operation to be cancelled.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the created workspace invitation.</returns>
@@ -28,6 +29,7 @@ public interface IExternalUserInvitationService
         string invitationRationale,
         int projectRoleId,
         PortalUser inviter,
+        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
         DateTimeOffset? invitationExpiry = null,
         CancellationToken cancellationToken = default);
 
@@ -59,6 +61,7 @@ public interface IExternalUserInvitationService
     /// <param name="projectAcronym">The acronym of the project to which the user is being invited. Cannot be null or empty.</param>
     /// <param name="invitedEmail">The new email address of the user receiving the invitation. Cannot be null or empty.</param>
     /// <param name="projectRoleId">The identifier of the project role assigned to the invited user. Must correspond to a valid project role.</param>
+    /// <param name="GetCodeAcceptancePageUrl">Function that generates the acceptance link with proper domain and localized url</param>
     /// <param name="inviter">The user who is sending the invitation</param>
     /// <param name="cancellationToken">A token to monitor for cancellation requests. Allows the operation to be cancelled.</param>
     /// <returns>A task that represents the asynchronous operation. The task result contains the resent workspace invitation.</returns>
@@ -67,6 +70,7 @@ public interface IExternalUserInvitationService
         string projectAcronym,
         string invitedEmail,
         int projectRoleId,
+        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
         PortalUser inviter,
         CancellationToken cancellationToken = default);
 

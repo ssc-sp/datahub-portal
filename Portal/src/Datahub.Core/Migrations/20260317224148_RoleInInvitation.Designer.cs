@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Datahub.Core.Migrations
 {
     [DbContext(typeof(SqlServerDatahubContext))]
-    [Migration("20260317221144_RoleInInvitation")]
+    [Migration("20260317224148_RoleInInvitation")]
     partial class RoleInInvitation
     {
         /// <inheritdoc />
@@ -1612,7 +1612,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ExternalSubject")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1659,7 +1658,8 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("DeactivatedByUserId");
 
                     b.HasIndex("ExternalSubject")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ExternalSubject] IS NOT NULL");
 
                     b.HasIndex("PortalUserId");
 

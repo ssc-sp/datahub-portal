@@ -268,13 +268,10 @@ else
             .FirstOrDefault();
     }
 
-    private string GetCodeAcceptancePageUrl(WorkspaceInvitation? invitation)
-    {
-        if (invitation is null)
-        {
-            return _navigationManager.ToAbsoluteUri(PageRoutes.NotFound).ToString();
-        }
 
+
+    private string GetCodeAcceptancePageUrl(WorkspaceInvitation invitation)
+    {
         var relativeUrl = $"{Localizer[PageRoutes.ExternalInvitationSetup]}/{invitation.InvitationToken}";
         return _navigationManager.ToAbsoluteUri(relativeUrl).ToString();
     }
@@ -306,9 +303,10 @@ else
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
         {
-            { "ProjectAcronym", WorkspaceAcronym },
-            { "Inviter", currentUser }
-        };
+            { nameof(AddNewExternalUsersToProjectDialog.ProjectAcronym), WorkspaceAcronym },
+            { nameof(AddNewExternalUsersToProjectDialog.Inviter), currentUser },
+            { nameof(AddNewExternalUsersToProjectDialog.GetGcInvitationLink), GetCodeAcceptancePageUrl }
+       };
         var dialog = await _dialogService.ShowAsync<AddNewExternalUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
         var result = await dialog.Result;
 
@@ -400,6 +398,7 @@ else
             WorkspaceAcronym,
             selectedUser.PortalUser.Email,
             roleId.Value,
+            GetCodeAcceptancePageUrl,
             currentUser);
 
         _snackbar.Add(Localizer["Invitation resent"], Severity.Success);

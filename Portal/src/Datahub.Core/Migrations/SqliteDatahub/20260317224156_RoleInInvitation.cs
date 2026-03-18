@@ -24,6 +24,16 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                 nullable: false,
                 defaultValue: 0);
 
+            migrationBuilder.AlterColumn<string>(
+                name: "ExternalSubject",
+                table: "ExternalUsers",
+                type: "TEXT",
+                maxLength: 100,
+                nullable: true,
+                oldClrType: typeof(string),
+                oldType: "TEXT",
+                oldMaxLength: 100);
+
             migrationBuilder.CreateIndex(
                 name: "IX_WorkspaceInvitations_InvitedById",
                 table: "WorkspaceInvitations",
@@ -77,6 +87,18 @@ namespace Datahub.Core.Migrations.SqliteDatahub
             migrationBuilder.DropColumn(
                 name: "Requested_RoleId",
                 table: "WorkspaceInvitations");
+
+            migrationBuilder.AlterColumn<string>(
+                name: "ExternalSubject",
+                table: "ExternalUsers",
+                type: "TEXT",
+                maxLength: 100,
+                nullable: false,
+                defaultValue: "",
+                oldClrType: typeof(string),
+                oldType: "TEXT",
+                oldMaxLength: 100,
+                oldNullable: true);
         }
     }
 }
