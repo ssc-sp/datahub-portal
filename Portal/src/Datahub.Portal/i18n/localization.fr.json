@@ -3496,5 +3496,22 @@
   "Please sign in with your account before validating this invitation.": "Veuillez vous connecter avec votre compte avant de valider cette invitation.",
   "Last Login": "Dernière connexion",
   "Accepted on": "Accepté le",
-  "Disable user": "Désactiver l'utilisateur"
+  "Disable user": "Désactiver l'utilisateur",
+  "Go to homepage": "Accueil",
+  "Invalid validation code.": "Code d'authentification invalide.",
+  "Invitation accepted": "Invitation acceptée",
+  "Invitation validated": "Invitation validée",
+  "Please sign in with your account to access this invitation.": "Veuillez vous connecter à votre compte pour accéder à cette invitation.",
+  "Please sign in with your external account before validating this invitation.": "Veuillez vous connecter à votre compte externe avant de valider cette invitation.",
+  "Your access has been activated.": "Votre accès a été activé.",
+  "Account expiry date is required": "Date d'expiration du compte est requise",
+  "An external user with this email address already exists. Existing profile details have been loaded.": "Un utilisateur externe avec cette adresse e-mail existe déjà. Les détails du profil existants ont été chargés.",
+  "Error inviting new user to workspace": "Erreur : ajout de nouvel utilisateur a l'espace de travail",
+  "User role is required": "Rôle de l'utilisateur est requis",
+  "Invitation canceled": "Invitation annulée",
+  "Invitation resent": "Invitation renvoyée",
+  "Link copied": "Lien copié",
+  "No invitation found": "Aucune invitation trouvée",
+  "Unable to copy link": "Impossible de copier le lien",
+  "Unable to resend invitation": "Impossible de renvoyer l'invitation"
 }

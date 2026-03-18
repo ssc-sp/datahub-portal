@@ -2540,5 +2540,22 @@
   "Please sign in with your account before validating this invitation.": "Please sign in with your account before validating this invitation.",
   "Last Login": "Last Login",
   "Accepted on": "Accepted on",
-  "Disable user": "Disable user"
+  "Disable user": "Disable user",
+  "Go to homepage": "Go to homepage",
+  "Invalid validation code.": "Invalid validation code.",
+  "Invitation accepted": "Invitation accepted",
+  "Invitation validated": "Invitation validated",
+  "Please sign in with your account to access this invitation.": "Please sign in with your account to access this invitation.",
+  "Please sign in with your external account before validating this invitation.": "Please sign in with your external account before validating this invitation.",
+  "Your access has been activated.": "Your access has been activated.",
+  "Account expiry date is required": "Account expiry date is required",
+  "An external user with this email address already exists. Existing profile details have been loaded.": "An external user with this email address already exists. Existing profile details have been loaded.",
+  "Error inviting new user to workspace": "Error inviting new user to workspace",
+  "User role is required": "User role is required",
+  "Invitation canceled": "Invitation canceled",
+  "Invitation resent": "Invitation resent",
+  "Link copied": "Link copied",
+  "No invitation found": "No invitation found",
+  "Unable to copy link": "Unable to copy link",
+  "Unable to resend invitation": "Unable to resend invitation"
 }
