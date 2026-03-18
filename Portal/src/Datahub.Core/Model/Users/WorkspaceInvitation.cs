@@ -21,6 +21,11 @@ namespace Datahub.Core.Model.Users
         public ExternalUser User { get; set; } = null!;
 
         /// <summary>
+        /// Gets or sets the navigation to the user who created the invite request. This is used for auditing purposes to track who initiated the invitation.
+        /// </summary>
+        public PortalUser InvitedBy { get; set; } = null!;
+
+        /// <summary>
         /// Gets or sets the workspace (project) this invite targets.
         /// </summary>
         public Datahub_Project Project { get; set; } = null!;
@@ -69,6 +74,11 @@ namespace Datahub.Core.Model.Users
         /// Gets or sets the timestamp for when the invite request was created.
         /// </summary>
         public DateTimeOffset Request_DT { get; set; }
+
+        /// <summary>
+        /// Gets or sets the project role that is being requested.
+        /// </summary>
+        public required Project_Role Requested_Role { get; set; } = null!;
 
         /// <summary>
         /// Gets or sets the timestamp for concurrency control.

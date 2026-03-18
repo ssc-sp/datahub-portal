@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.12")
+                .HasAnnotation("ProductVersion", "9.0.14")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1609,7 +1609,6 @@ namespace Datahub.Core.Migrations
                         .HasColumnType("nvarchar(500)");
 
                     b.Property<string>("ExternalSubject")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
@@ -1656,7 +1655,8 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("DeactivatedByUserId");
 
                     b.HasIndex("ExternalSubject")
-                        .IsUnique();
+                        .IsUnique()
+                        .HasFilter("[ExternalSubject] IS NOT NULL");
 
                     b.HasIndex("PortalUserId");
 
@@ -1895,6 +1895,9 @@ namespace Datahub.Core.Migrations
                     b.Property<DateTimeOffset?>("InvitationTokenAccepted")
                         .HasColumnType("datetimeoffset");
 
+                    b.Property<int>("InvitedById")
+                        .HasColumnType("int");
+
                     b.Property<string>("InvitedEmail")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -1905,6 +1908,9 @@ namespace Datahub.Core.Migrations
 
                     b.Property<DateTimeOffset>("Request_DT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Requested_RoleId")
+                        .HasColumnType("int");
 
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
@@ -1919,7 +1925,11 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("InvitationToken")
                         .IsUnique();
 
+                    b.HasIndex("InvitedById");
+
                     b.HasIndex("Project_ID");
+
+                    b.HasIndex("Requested_RoleId");
 
                     b.HasIndex("UserId");
 
@@ -2377,9 +2387,21 @@ namespace Datahub.Core.Migrations
 
             modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
                 {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "InvitedBy")
+                        .WithMany()
+                        .HasForeignKey("InvitedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Requested_Role")
+                        .WithMany()
+                        .HasForeignKey("Requested_RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2389,7 +2411,11 @@ namespace Datahub.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("InvitedBy");
+
                     b.Navigation("Project");
+
+                    b.Navigation("Requested_Role");
 
                     b.Navigation("User");
                 });
