@@ -19,7 +19,6 @@ namespace Datahub.Core.Model.Users.Configuration
                 .IsUnique();
 
             builder.Property(e => e.ExternalSubject)
-                .IsRequired()
                 .HasMaxLength(100);
 
             builder.Property(e => e.FirstName)

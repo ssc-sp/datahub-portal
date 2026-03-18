@@ -303,7 +303,7 @@ await _userInformationService.GetUserEmail());
   {
     var email = await _userInformationService.GetUserEmail();
     await _gcNotifyService.SendExternalUserInviteNotification(email, "external-user-name-test", "workspace-name-test",
-"inviter-test");
+    "inviter-test", "https://dev.fsdh-dhsf.science.cloud-nuage.canada.ca/");
   }
 
   private async Task TestStorageScanSuccessEmail()

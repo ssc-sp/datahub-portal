@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Datahub.Application.Commands;
 
-public class ProjectUserAddExternalUserCommand
+public class ProjectUserAddExternalUserCommand : IValidatableObject
 {
     public ExternalUser? ExternalUser { get; set; }
 
@@ -31,4 +31,27 @@ public class ProjectUserAddExternalUserCommand
     public string CollaborationObjectives { get; set; } = string.Empty;
 
     public required string ProjectAcronym { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (!HasMinimumTrimmedLength(FirstName, 2))
+        {
+            yield return new ValidationResult("First name must be at least 2 characters.", [nameof(FirstName)]);
+        }
+
+        if (!HasMinimumTrimmedLength(LastName, 2))
+        {
+            yield return new ValidationResult("Last name must be at least 2 characters.", [nameof(LastName)]);
+        }
+
+        if (!HasMinimumTrimmedLength(Organization, 2))
+        {
+            yield return new ValidationResult("Organization must be at least 2 characters.", [nameof(Organization)]);
+        }
+    }
+
+    private static bool HasMinimumTrimmedLength(string? value, int minimumLength)
+    {
+        return !string.IsNullOrWhiteSpace(value) && value.Trim().Length >= minimumLength;
+    }
 }

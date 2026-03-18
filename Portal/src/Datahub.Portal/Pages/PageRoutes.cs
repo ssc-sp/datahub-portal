@@ -11,6 +11,8 @@ public static class PageRoutes
     public const string News = "/announcements";
     public const string News_FR = "/annonces";
 
+    public const string GCCF_Login = "/gccf/login";
+
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
@@ -77,4 +79,10 @@ public static class PageRoutes
 
     public const string AccessDenied = "/access-denied";
     public const string AccessDenied_FR = "/acces-refuse";
+
+    public const string ExternalInvitationSetup = "/account-setup";
+    public const string ExternalInvitationSetupWithToken = $"{ExternalInvitationSetup}/{{InvitationToken:guid}}";
+
+    public const string ExternalInvitationSetup_FR = "/configuration-compte";
+    public const string ExternalInvitationSetupWithToken_FR = $"{ExternalInvitationSetup_FR}/{{InvitationToken:guid}}";
 }

@@ -1,6 +1,3 @@
-using System.ComponentModel;
-using System.Net.Mail;
-using System.Security.Claims;
 using Azure.Identity;
 using Datahub.Application.Authentication;
 using Datahub.Application.Services;
@@ -13,6 +10,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
+using DocumentFormat.OpenXml.Drawing;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +21,9 @@ using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using Microsoft.Identity.Client;
 using Microsoft.Identity.Web;
+using System.ComponentModel;
+using System.Net.Mail;
+using System.Security.Claims;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
@@ -250,7 +251,7 @@ public class UserInformationService(
 
     private void PrepareAuthenticatedClient()
     {
-        //if (graphServiceClient != null) return;
+        if (graphServiceClient != null) return;
         try
         {
             //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
@@ -393,7 +394,7 @@ public class UserInformationService(
                     GraphGuid = userGraphId,
                     PortalUser = null!,
                 },
-                Email = graphUser.Mail,
+                Email = graphUser.Mail ?? throw new InvalidOperationException("No email address available in Entra"),
                 DisplayName = graphUser.DisplayName,
             };
 
@@ -722,62 +723,66 @@ public class UserInformationService(
         return false;
     }
 
-    public async Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry)
+    public async Task<PortalUser?> CreatePortalExternalUserAsync(string? userOid, string first, string last, string org, string email, DateTimeOffset expiry)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
-        var exists = await ctx.ExternalUsers
-            .FirstOrDefaultAsync(p => p.ExternalSubject == userOid);
+        await using var transaction = await ctx.Database.BeginTransactionAsync();
+        var displayName = $"{first} {last}";
 
-        if (exists is not null)
+        if (!string.IsNullOrWhiteSpace(userOid))
         {
-            logger.LogInformation("External user with OID: {Oid} already exists", userOid);
-            return null;
-        }
+            var exists = await ctx.ExternalUsers
+                .FirstOrDefaultAsync(p => p.ExternalSubject == userOid);
 
-        try
-        {
-            PrepareAuthenticatedClient();
-            var displayName = $"{first} {last}";
-            var portalUser = new PortalUser
+            if (exists is not null)
             {
-                ExternalUser = new ExternalUser
-                {
-                    ExternalSubject = userOid,
-                    PortalUser = null!,
-                    FirstName = first,
-                    LastName = last,
-                    Organization = org,
-                    UserExpiryDate = expiry,
-                },
-                Email = email,
-                DisplayName = displayName,
-            };
+                logger.LogInformation("External user with OID: {Oid} already exists", userOid);
+                return null;
+            }
 
-            ctx.PortalUsers.Add(portalUser);
-            await ctx.SaveChangesAsync();
-            logger.LogInformation("Created new External Portal User with OID: {Oid}", userOid);
-
-            var catalogObject = new Core.Model.Catalog.CatalogObject()
-            {
-                ObjectType = Core.Model.Catalog.CatalogObjectType.User,
-                ObjectId = userOid.ToString(),
-                Name_English = displayName,
-                Name_French = displayName,
-                Desc_English = "External User",
-                Desc_French = "Utilisateur externe"
-            };
-
-            await datahubCatalogSearch.AddCatalogObject(catalogObject);
-            return portalUser;
         }
-        catch (Exception e)
+
+
+        var portalUser = new PortalUser
         {
-            logger.LogError(
-                e,
-                "Error Loading External User from Graph with OID: {Oid}. It's possible they no longer exist",
-                userOid);
-            return null;
-        }
+            Email = email,
+            DisplayName = displayName,
+        };
+
+        portalUser = ctx.PortalUsers.Add(portalUser).Entity;
+
+        var externalUser = new ExternalUser
+        {
+            ExternalSubject = userOid,
+            PortalUser = portalUser,
+            FirstName = first,
+            LastName = last,
+            Organization = org,
+            UserExpiryDate = expiry,
+        };
+
+        externalUser = ctx.ExternalUsers.Add(externalUser).Entity;
+        await ctx.SaveChangesAsync();
+        portalUser.ExternalUser = externalUser;
+        await ctx.SaveChangesAsync();
+        await transaction.CommitAsync();
+
+        logger.LogInformation("Created new External Portal User with OID: {Oid}", userOid);
+
+        var catalogObject = new Core.Model.Catalog.CatalogObject()
+        {
+            ObjectType = Core.Model.Catalog.CatalogObjectType.User,
+            ObjectId = $"externaluser-{portalUser.Id}",
+            Name_English = displayName,
+            Name_French = displayName,
+            Desc_English = "External User",
+            Desc_French = "Utilisateur externe"
+        };
+
+        await datahubCatalogSearch.AddCatalogObject(catalogObject);
+
+
+        return portalUser;
     }
 
     public async Task<bool> IsEntraUser()

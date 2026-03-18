@@ -69,5 +69,7 @@
   "tool": "outil",
   "toolbox": "boite-a-outils",
   "verrouille-lt": "locked",
-  "webapp": "application-web"
+  "webapp": "application-web",
+  "/account-setup": "/configuration-compte",
+  "external-users": "utilisateurs-externes"
 }
