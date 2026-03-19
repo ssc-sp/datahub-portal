@@ -7,6 +7,7 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
@@ -26,17 +27,20 @@ public class DataRetrievalService : BaseService
     private readonly ILogger<DataRetrievalService> _logger;
     private readonly DataLakeClientService _dataLakeClientService;
     private readonly IKeyVaultService _keyVaultService;
+    private readonly DatahubPortalConfiguration _portalConfiguration;
 
 
     public DataRetrievalService(ILogger<DataRetrievalService> logger,
         IKeyVaultService keyVaultService,
         DataLakeClientService dataLakeClientService,
+        DatahubPortalConfiguration portalConfiguration,
         NavigationManager navigationManager)
         : base(navigationManager)
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;
         _keyVaultService = keyVaultService;
+        _portalConfiguration = portalConfiguration;
     }
 
 
@@ -172,8 +176,10 @@ public class DataRetrievalService : BaseService
         var storageAccountName = $"dh{project}{envName}";
         var blobUri = new Uri($"https://{storageAccountName}.blob.core.windows.net");
         
-        // Use DefaultAzureCredential for User Delegation SAS
-        var credential = new DefaultAzureCredential();
+        var credential = new ClientSecretCredential(
+            _portalConfiguration.AzureAd.TenantId,
+            _portalConfiguration.AzureAd.InfraClientId,
+            _portalConfiguration.AzureAd.InfraClientSecret);
         return new BlobServiceClient(blobUri, credential);
     }
 

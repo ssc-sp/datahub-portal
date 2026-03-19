@@ -116,8 +116,10 @@ public class MediaController : Controller
         var blobServiceClient = new BlobServiceClient(_datahubPortalConfiguration.Media.StorageConnectionString);
         var accountName = blobServiceClient.AccountName;
         
-        // Use DefaultAzureCredential for User Delegation SAS
-        var credential = new DefaultAzureCredential();
+        var credential = new ClientSecretCredential(
+            _datahubPortalConfiguration.AzureAd.TenantId,
+            _datahubPortalConfiguration.AzureAd.InfraClientId,
+            _datahubPortalConfiguration.AzureAd.InfraClientSecret);
         var blobUri = new Uri($"https://{accountName}.blob.core.windows.net");
         var authBlobServiceClient = new BlobServiceClient(blobUri, credential);
         

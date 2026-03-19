@@ -97,7 +97,8 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
         else
         {
             var accountName = projectStorageConfigService.GetProjectStorageAccountName(projectAcronym);
-            var storageManager = new AzureCloudStorageManager(accountName, new DefaultAzureCredential());
+            var credential = new ClientSecretCredential(config.AzureAd.TenantId, config.AzureAd.InfraClientId, config.AzureAd.InfraClientSecret);
+            var storageManager = new AzureCloudStorageManager(accountName, credential);
             return await Task.FromResult(storageManager);
         }
     }
