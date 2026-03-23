@@ -91,7 +91,7 @@ else
         if (externalUserOid is null && _gccfEnabled)
         {
             _snackbar.Add(Localizer["Please sign in with your account to access this invitation."], Severity.Warning);
-            _navigationManager.NavigateTo($"{PageRoutes.GCCF_Login}?locale={CultureInfo.CurrentCulture.Name}&returnUrl={_navigationManager.Uri}", forceLoad: true);
+            _navigationManager.NavigateTo($"{PageRoutes.GCCF_Login}?locale={Uri.EscapeDataString(CultureInfo.CurrentCulture.Name)}&returnUrl={Uri.EscapeDataString(_navigationManager.Uri)}", forceLoad: true);
             return;
         }
 
