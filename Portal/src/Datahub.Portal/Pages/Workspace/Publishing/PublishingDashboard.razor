@@ -1,4 +1,4 @@
-﻿@* @page "/w/{ProjectAcronym}/publishing" *@
+@* @page "/w/{ProjectAcronym}/publishing" *@
 @using Datahub.Application.Exceptions
 @using Datahub.Application.Services.Publishing;
 @using Datahub.Application.Services.Security;
@@ -197,7 +197,7 @@
     {
         try 
         {
-            await _kvService.Authenticate();
+            await _kvService.AuthenticateWithUserContext();
             await ResetSettings();
         }
         catch (Microsoft.Identity.Web.MicrosoftIdentityWebChallengeUserException e)

@@ -1,11 +1,11 @@
-﻿using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
 
 namespace Datahub.Infrastructure.Offline.Security
 {
 	public class OfflineKeyVaultUserService : IKeyVaultUserService
     {
-        public async Task Authenticate()
+        public async Task AuthenticateWithUserContext()
         {
             // nothing to do
         }

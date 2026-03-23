@@ -8,7 +8,7 @@
 @inject ILocalStorageService _localStorage
 @inject IPortalUserTelemetryService _telemetryService
 
-<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.Personal UserUID=@ViewedUser.UserUID()>
+<DatahubAuthView AuthLevel=DatahubAuthView.AuthLevels.UserUID UserUID=@ViewedUser.UserUID()>
 
     <Authorized>
         <MudStack Spacing="8" Class="mb-16">
@@ -67,7 +67,7 @@
     private async Task HandleLanguageChanged(string language)
     {
         await _localStorage.SetItemAsStringAsync("language", language);
-        await _userSettingsService.RegisterUserLanguage(language);
+        await _userSettingsService.SaveUserLanguage(language);
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleCulture);
         await _userSettingsService.SetLanguage(language);
 

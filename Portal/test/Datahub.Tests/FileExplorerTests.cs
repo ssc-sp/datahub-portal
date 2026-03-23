@@ -64,7 +64,6 @@ namespace Datahub.Tests
             // Mock IMSGraphService so ProfileCircle can fetch user display name if needed
             var mockGraphService = new Mock<IMSGraphService>();
             mockGraphService.SetupAllProperties();
-            mockGraphService.Object.UsersDict = new System.Collections.Generic.Dictionary<string, Datahub.Core.Data.GraphUser>();
             mockGraphService.Setup(g => g.GetUserAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync((string id, CancellationToken ct) =>
                 {
@@ -72,8 +71,6 @@ namespace Datahub.Tests
                     var mgUser = new Microsoft.Graph.Models.User { Id = id, DisplayName = portalUser.DisplayName, Mail = portalUser.Email };
                     var gu = Datahub.Core.Data.GraphUser.Create(mgUser);
 
-                    // cache in dictionary
-                    mockGraphService.Object.UsersDict[id] = gu;
                     return gu;
                 });
 

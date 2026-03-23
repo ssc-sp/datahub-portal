@@ -202,8 +202,6 @@ public class Startup
         services.AddScoped<ICultureService, UserCultureService>();
 
         services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
-        services.AddSingleton<AzureManagementService>();
-        services.AddSingleton<ProjectUsageService>();
         services.AddScoped<ProjectStorageConfigurationService>();
 
         //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
@@ -326,6 +324,9 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
+        app.UseStatusCodePagesWithReExecute("/404");
+
+        // this needs to be as late as possible in the pipeline to ensure antiforgery tokens are validated for all endpoints, including reverse proxy
         app.UseAntiforgery();
 
         app.UseMiddleware<IFrameMiddleware>();

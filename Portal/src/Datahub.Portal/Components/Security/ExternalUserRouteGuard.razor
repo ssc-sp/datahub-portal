@@ -1,0 +1,55 @@
+@using Datahub.Application.Attributes
+@using Datahub.Core.Data
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Reflection
+@using System.Security.Claims
+@using Microsoft.AspNetCore.Components.Rendering
+@using MudBlazor
+@using Datahub.Portal.Layout
+@using System.Net
+@inject NavigationManager NavigationManager
+@inject ILogger<ExternalUserRouteGuard> _logger
+@inject IStringLocalizer Localizer
+
+@if (IsAllowed is not null && IsAllowed.Value)
+{
+    @ChildContent
+}
+
+@code {
+    [Parameter] public required RenderFragment ChildContent { get; set; }
+    [Parameter] public required RouteData RouteData { get; set; }
+    [CascadingParameter] private Task<AuthenticationState> AuthenticationState { get; set; } = null!;
+
+    private bool? IsAllowed;
+    private ClaimsPrincipal? _user;
+    private bool? _isExternal;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (_user is null || _isExternal is null)
+        {
+            _user = (await AuthenticationState).User;
+            _isExternal = _user.HasClaim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN);
+        }
+
+        var attr = RouteData.PageType.GetCustomAttribute<ExternalUserPageAttribute>();
+
+        // If the attribute is present and IsAllowed is false, and the user is external, block access
+        if (attr != null && !attr.IsAllowed && _isExternal.Value)
+        {
+            IsAllowed = false;
+        }
+        else
+        {
+            IsAllowed = (attr is null) ? (!_isExternal.Value) : (!_isExternal.Value || attr.IsAllowed);
+        }
+
+        if (!IsAllowed.Value)
+        {
+            _logger.LogDebug("Blocking access to page {Page} for external user {User}.", RouteData.PageType.FullName, _user.Identity?.Name);
+            NavigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+        }
+    }
+
+}

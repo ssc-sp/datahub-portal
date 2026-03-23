@@ -163,6 +163,10 @@ public class AccountPageSteps : BunitTestSteps
         Services.AddSingleton(_portalConfig);
         Services.AddDatahubLocalization(_portalConfig);
 
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(false);
+        Services.AddSingleton(featureManager);
+
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         workspaceVersionService.GetLatestVersionAsync().Returns(Task.FromResult("v1.0.0"));
         Services.AddSingleton(workspaceVersionService);

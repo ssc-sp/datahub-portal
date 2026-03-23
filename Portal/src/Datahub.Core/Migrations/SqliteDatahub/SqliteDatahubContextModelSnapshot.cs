@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.12");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.14");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1550,7 +1550,6 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .HasColumnType("TEXT");
 
                     b.Property<string>("ExternalSubject")
-                        .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
@@ -1825,6 +1824,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Property<long?>("InvitationTokenAccepted")
                         .HasColumnType("INTEGER");
 
+                    b.Property<int>("InvitedById")
+                        .HasColumnType("INTEGER");
+
                     b.Property<string>("InvitedEmail")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -1835,6 +1837,9 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
                     b.Property<long>("Request_DT")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<int>("Requested_RoleId")
+                        .HasColumnType("INTEGER");
 
                     b.Property<byte[]>("Timestamp")
                         .IsConcurrencyToken()
@@ -1849,7 +1854,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("InvitationToken")
                         .IsUnique();
 
+                    b.HasIndex("InvitedById");
+
                     b.HasIndex("Project_ID");
+
+                    b.HasIndex("Requested_RoleId");
 
                     b.HasIndex("UserId");
 
@@ -2305,9 +2314,21 @@ namespace Datahub.Core.Migrations.SqliteDatahub
 
             modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
                 {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "InvitedBy")
+                        .WithMany()
+                        .HasForeignKey("InvitedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
                         .WithMany()
                         .HasForeignKey("Project_ID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Projects.Project_Role", "Requested_Role")
+                        .WithMany()
+                        .HasForeignKey("Requested_RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2317,7 +2338,11 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("InvitedBy");
+
                     b.Navigation("Project");
+
+                    b.Navigation("Requested_Role");
 
                     b.Navigation("User");
                 });

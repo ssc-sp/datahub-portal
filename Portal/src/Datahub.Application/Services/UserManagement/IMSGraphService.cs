@@ -1,11 +1,12 @@
-﻿using Datahub.Core.Data;
+using Datahub.Core.Data;
+using Microsoft.Graph;
 
 namespace Datahub.Application.Services.UserManagement;
 
 public interface IMSGraphService
 {
-    Dictionary<string, GraphUser> UsersDict { get; set; }
-
+    const string HttpClientName = "MSGraphClient";
+    GraphServiceClient GetAuthenticatedClient();
     Task<GraphUser> GetUserAsync(string userId, CancellationToken token = default);
     Task<GraphUser> GetUserFromEmailAsync(string email, CancellationToken token);
     Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token);

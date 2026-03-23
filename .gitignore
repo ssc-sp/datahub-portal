@@ -68,3 +68,7 @@ ResourceProvisioner/test/ResourceProvisioner_PyFunctions_Tests/venv/*
 ServerlessOperations/test/CodeCoverage/
 ServerlessOperations/test/Datahub.Functions.UnitTests/TestResults/
 TestResults/
+/.mcp.json
+/Portal/src/Datahub.Portal/MissingTranslations-en.json
+/Portal/src/Datahub.Portal/MissingTranslations-fr.json
+/data
