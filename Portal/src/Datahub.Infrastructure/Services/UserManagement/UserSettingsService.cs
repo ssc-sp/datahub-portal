@@ -389,6 +389,14 @@ namespace Datahub.Infrastructure.Services.UserManagement
 
         public static string GetCultureControllerRedirect(string language, string? redirectUrl)
         {
+            if (!string.IsNullOrWhiteSpace(redirectUrl)
+                && Uri.TryCreate(redirectUrl, UriKind.Absolute, out var absoluteRedirectUri)
+                && (absoluteRedirectUri.Scheme == Uri.UriSchemeHttp || absoluteRedirectUri.Scheme == Uri.UriSchemeHttps)
+                && !string.IsNullOrWhiteSpace(absoluteRedirectUri.Host))
+            {
+                redirectUrl = absoluteRedirectUri.GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped);
+            }
+
             var query = $"?culture={Uri.EscapeDataString(language)}&" +
                         (redirectUrl != null ? $"redirectionUri={Uri.EscapeDataString(redirectUrl)}" : "");
             return $"{CultureControllerRoute}{query}";
