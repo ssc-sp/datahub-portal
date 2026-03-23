@@ -1,6 +1,7 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Pages.Tools.Users
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
@@ -26,134 +27,134 @@
 }
 else
 {
-  <MudStack>
-      <MudStack Row Class="mt-6 mb-4">
-          <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
-          <MudSpacer />
-          <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-              <DHButton OnClick="OpenInviteUserDialog" Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd">
-                  @Localizer["Add user"]
-              </DHButton>
-          </DatahubAuthView>
-      </MudStack>
-      @if (_externalProjectUsers.Any())
-      {
-          <MudTable Items="@_externalProjectUsers" Striped Filter="@(new Func<ExternalWorkspaceUserRow, bool>(CombinedFilter))">
-              <ToolBarContent>
-                  <MudTextField @bind-Value="_filterString"
-                                Placeholder="@Localizer["Search"]"
-                                Immediate
-                                Adornment="Adornment.Start"
-                                AdornmentIcon="@Icons.Material.Filled.Search"
-                                Label="@Localizer["Search"]"
-                                IconSize="Size.Medium" />
-              </ToolBarContent>
-              <HeaderContent>
-                  <MudTh>@Localizer["Name"]</MudTh>
-                  <MudTh>@Localizer["Email"]</MudTh>
-                  <MudTh>@Localizer["Organization"]</MudTh>
-                  <MudTh>@Localizer["Status"]</MudTh>
-                  <MudTh>@Localizer["Last Login"]</MudTh>
-                  <MudTh>@Localizer["Account Expiry"]</MudTh>
-                  <MudTh>@Localizer["Activation Code"]</MudTh>
-                  <MudTh>@Localizer["Code Acceptance Page"]</MudTh>
-                  <MudTh>@Localizer["Actions"]</MudTh>
-              </HeaderContent>
-              <RowTemplate Context="rowContext">
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              <strong>@rowContext.PortalUser.DisplayName</strong>
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>@rowContext.PortalUser.Email</MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>@rowContext.ExternalUser.Organization</MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              @if (rowContext.ExternalUser.UserDeactivatedAt is not null)
-                              {
-                                  <MudChip T="string" Color="Color.Error">@Localizer["Deactivated"]</MudChip>
-                              }
-                              else if (rowContext.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow)
-                              {
-                                  <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
-                              }
-                              else if (rowContext.ExternalUser.FirstLoginDateTime is null)
-                              {
-                                  <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
-                              }
-                              else
-                              {
-                                  <MudChip T="string" Color="Color.Success">@Localizer["Active"]</MudChip>
-                              }
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
+    <MudStack>
+        <MudStack Row Class="mt-6 mb-4">
+            <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
+            <MudSpacer />
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <DHButton OnClick="OpenInviteUserDialog" Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd">
+                    @Localizer["Add user"]
+                </DHButton>
+            </DatahubAuthView>
+        </MudStack>
+        @if (_externalProjectUsers.Any())
+        {
+            <MudTable Items="@_externalProjectUsers" Striped Filter="@(new Func<ExternalWorkspaceUserRow, bool>(CombinedFilter))">
+                <ToolBarContent>
+                    <MudTextField @bind-Value="_filterString"
+                                  Placeholder="@Localizer["Search"]"
+                                  Immediate
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Label="@Localizer["Search"]"
+                                  IconSize="Size.Medium" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>@Localizer["Name"]</MudTh>
+                    <MudTh>@Localizer["Email"]</MudTh>
+                    <MudTh>@Localizer["Organization"]</MudTh>
+                    <MudTh>@Localizer["Status"]</MudTh>
+                    <MudTh>@Localizer["Last Login"]</MudTh>
+                    <MudTh>@Localizer["Account Expiry"]</MudTh>
+                    <MudTh>@Localizer["Activation Code"]</MudTh>
+                    <MudTh>@Localizer["Code Acceptance Page"]</MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="rowContext">
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>
+                                <strong>@rowContext.PortalUser.DisplayName</strong>
+                            </MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@rowContext.PortalUser.Email</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@rowContext.ExternalUser.Organization</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>
+                                @if (rowContext.ExternalUser.UserDeactivatedAt is not null)
+                                {
+                                    <MudChip T="string" Color="Color.Error">@Localizer["Deactivated"]</MudChip>
+                                }
+                                else if (rowContext.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow)
+                                {
+                                    <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
+                                }
+                                else if (rowContext.ExternalUser.FirstLoginDateTime is null)
+                                {
+                                    <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Success">@Localizer["Active"]</MudChip>
+                                }
+                            </MudText>
+                        </MudStack>
+                    </MudTd>
                     <MudTd>
                         <MudStack Row AlignItems="AlignItems.Center">
                             <MudText>@(rowContext.PortalUser.LastLoginDateTime?.ToString("yyyy-MM-dd") ?? "-")</MudText>
                         </MudStack>
                     </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>@rowContext.ExternalUser.UserExpiryDate.ToString("yyyy-MM-dd")</MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudText>@GetInvitationCode(rowContext)</MudText>
-                  </MudTd>
-                  <MudTd>
-                      @if (ShouldShowInvitationDetails(rowContext))
-                      {
-                          <MudButton Variant="Variant.Text"
-                                     Color="Color.Primary"
-                                     StartIcon="@Icons.Material.Outlined.ContentCopy"
-                                     OnClick="@(() => CopyInvitationLinkAsync(rowContext.LatestInvitation))">
-                              @Localizer["Copy link"]
-                          </MudButton>
-                      }
-                      else
-                      {
-                          <MudText>-</MudText>
-                      }
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
-                          @if (rowContext.UserRoleLink is not null)
-                          {
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@rowContext.ExternalUser.UserExpiryDate.ToString("yyyy-MM-dd")</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudText>@GetInvitationCode(rowContext)</MudText>
+                    </MudTd>
+                    <MudTd>
+                        @if (ShouldShowInvitationDetails(rowContext))
+                        {
+                            <MudButton Variant="Variant.Text"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Outlined.ContentCopy"
+                                       OnClick="@(() => CopyInvitationLinkAsync(rowContext.LatestInvitation))">
+                                @Localizer["Copy link"]
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                            @if (rowContext.UserRoleLink is not null)
+                            {
                                 <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">@Localizer["View/Edit"]</DHButton>
-                          }
-                          @if (CanDisableUser(rowContext))
-                          {
+                            }
+                            @if (CanDisableUser(rowContext))
+                            {
                                 <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">@Localizer["Disable user"]</DHButton>
-                          }
-                          @if (CanCancelInvitation(rowContext))
-                          {
-                              <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invite"]</DHButton>
-                          }
-                          @if (CanResendInvitation(rowContext))
-                          {
-                              <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
-                          }
-                      </MudStack>
-                  </MudTd>
-              </RowTemplate>
-              <PagerContent>
-                  <MudTablePager />
-              </PagerContent>
-          </MudTable>
-      }
-  </MudStack>
+                            }
+                            @if (CanCancelInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invite"]</DHButton>
+                            }
+                            @if (CanResendInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
+                            }
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        }
+    </MudStack>
 }
 
 
@@ -270,10 +271,26 @@ else
 
 
 
-    private string GetCodeAcceptancePageUrl(WorkspaceInvitation invitation)
+    private (string enURL, string frURL) GetCodeAcceptancePageUrl(WorkspaceInvitation invitation)
     {
-        var relativeUrl = $"{Localizer[PageRoutes.ExternalInvitationSetup]}/{invitation.InvitationToken}";
-        return _navigationManager.ToAbsoluteUri(relativeUrl).ToString();
+        // Force French (fr) for this lookup
+        CultureInfo.CurrentUICulture = new CultureInfo("fr");
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("fr");
+            string frenchURL = Localizer[PageRoutes.ExternalInvitationSetup];
+
+            var relativeUrlEn = $"{PageRoutes.ExternalInvitationSetup}/{invitation.InvitationToken}";
+            var relativeUrlFr = $"{frenchURL}/{invitation.InvitationToken}";
+            var setLocaleUrlEN = UserSettingsService.GetCultureControllerRedirect(ICultureService.CanadaEnglish, relativeUrlEn);
+            var setLocaleUrlFR = UserSettingsService.GetCultureControllerRedirect(ICultureService.CanadaFrench, relativeUrlFr);
+            return (_navigationManager.ToAbsoluteUri(setLocaleUrlEN).ToString(), _navigationManager.ToAbsoluteUri(setLocaleUrlFR).ToString());
+        }
+        finally
+        {
+            // Reset to the original culture after generating the URL
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+        }
     }
 
     private async Task CopyInvitationLinkAsync(WorkspaceInvitation? invitation)
@@ -415,7 +432,7 @@ else
     {
         return projectUser.LatestInvitation!.InvitationCodeAccepted is null
             ? projectUser.LatestInvitation!.InvitationCode
-            : (projectUser.LatestInvitation is null)?"-": $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value.ToString("yyyy-MM-dd")}";
+            : (projectUser.LatestInvitation is null) ? "-" : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value.ToString("yyyy-MM-dd")}";
     }
 
     private bool CanDisableUser(ExternalWorkspaceUserRow projectUser)
