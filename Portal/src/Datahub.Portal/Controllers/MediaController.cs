@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Azure;
 using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Sas;
@@ -42,9 +43,9 @@ public class MediaController : Controller
             var blobClient = await GetBlobClientWithUserDelegationSas("media", filePath);
             return Redirect(blobClient.Uri.ToString());
         }
-        catch (Exception ex)
+        catch (RequestFailedException)
         {
-            return BadRequest($"Error generating SAS token: {ex.Message}");
+            return BadRequest("Error generating SAS token.");
         }
     }
 
@@ -64,9 +65,9 @@ public class MediaController : Controller
             var blobClient = await GetBlobClientWithUserDelegationSas("docs", filePath);
             return Redirect(blobClient.Uri.ToString());
         }
-        catch (Exception ex)
+        catch (RequestFailedException)
         {
-            return BadRequest($"Error generating SAS token: {ex.Message}");
+            return BadRequest("Error generating SAS token.");
         }
     }
 

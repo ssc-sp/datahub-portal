@@ -47,6 +47,8 @@ namespace Datahub.Functions.UnitTests.Functions
                 }
                 catch (ObjectDisposedException)
                 {
+                    // The context may already have been disposed in a previous cleanup step;
+                    // ignore this exception to keep teardown best-effort and not fail tests.
                 }
 
                 _dbContext.Dispose();
