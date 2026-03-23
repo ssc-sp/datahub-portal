@@ -6,6 +6,7 @@ using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Datahub.Application.Services.Notification;
+using System.Reflection.Metadata;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
 
@@ -59,7 +60,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string invitationRationale,
         int projectRoleId,
         PortalUser inviter,
-        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
         DateTimeOffset? invitationExpiry = null,
         CancellationToken cancellationToken = default)
     {
@@ -118,7 +119,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         string projectAcronym,
         string invitedEmail,
         int projectRoleId,
-        Func<WorkspaceInvitation,string> GetCodeAcceptancePageUrl,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
         PortalUser inviter,
         CancellationToken cancellationToken = default)
     {
@@ -252,7 +253,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
         int projectRoleId,
         PortalUser inviter,
         DateTimeOffset? invitationExpiry,
-        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
         CancellationToken cancellationToken)
     {
         // attach inviter to context to avoid duplicate key error if inviter is also the user being invited
@@ -301,13 +302,14 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
             externalUserId,
             projectAcronym);
 
-        var invitationURL = GetCodeAcceptancePageUrl(invitation);
+        var invitationUrl = GetCodeAcceptancePageUrl(invitation);
         await _gcNotifyService.SendExternalUserInviteNotification(
             invitation.InvitedEmail,
             externalUser.PortalUser.DisplayName ?? "<user>",
             project.ProjectName ?? "Workspace",
             inviter.DisplayName ?? "Inviter",
-            invitationURL);
+            invitationUrl.enURL,
+            invitationUrl.frURL);
 
         return invitation;
     }
