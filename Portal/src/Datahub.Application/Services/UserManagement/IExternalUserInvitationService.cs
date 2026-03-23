@@ -29,7 +29,7 @@ public interface IExternalUserInvitationService
         string invitationRationale,
         int projectRoleId,
         PortalUser inviter,
-        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
         DateTimeOffset? invitationExpiry = null,
         CancellationToken cancellationToken = default);
 
@@ -70,7 +70,7 @@ public interface IExternalUserInvitationService
         string projectAcronym,
         string invitedEmail,
         int projectRoleId,
-        Func<WorkspaceInvitation, string> GetCodeAcceptancePageUrl,
+        Func<WorkspaceInvitation, (string enURL, string frURL)> GetCodeAcceptancePageUrl,
         PortalUser inviter,
         CancellationToken cancellationToken = default);
 
