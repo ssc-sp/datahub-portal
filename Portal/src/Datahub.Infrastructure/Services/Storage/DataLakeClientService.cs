@@ -96,6 +96,15 @@ public class DataLakeClientService
     }
 
     /// <summary>
+    /// Gets initialized TokenCredential for User Delegation SAS using logged-in user token.
+    /// </summary>
+    public async Task<TokenCredential> GetTokenCredentialAsync()
+    {
+        await EnsureTokenCredentialAsync();
+        return _tokenCredential;
+    }
+
+    /// <summary>
     /// Gets BlobServiceClient for User Delegation SAS generation
     /// </summary>
     public async Task<BlobServiceClient> GetBlobServiceClient()

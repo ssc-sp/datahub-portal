@@ -2,6 +2,7 @@
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
 using Azure.Identity;
+using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
 
@@ -11,16 +12,18 @@ namespace Datahub.Infrastructure.Services.Storage
 {
 	public class CloudStorageManagerFactory
     {
-        public CloudStorageManagerFactory(ILoggerFactory loggerFactory, IKeyVaultUserService keyVaultUserService)
+        public CloudStorageManagerFactory(ILoggerFactory loggerFactory, IKeyVaultUserService keyVaultUserService, DataLakeClientService dataLakeClientService)
         {
             _logFactory = loggerFactory;
             this.keyVaultUserService = keyVaultUserService;
+            _dataLakeClientService = dataLakeClientService;
             _logger = loggerFactory.CreateLogger<CloudStorageManagerFactory>();
         }
 
         private readonly ILogger<CloudStorageManagerFactory> _logger;
         private readonly ILoggerFactory _logFactory;
         private readonly IKeyVaultUserService keyVaultUserService;
+        private readonly DataLakeClientService _dataLakeClientService;
 
         public string KeyVaultSecretName(int id) => $"cloud-storage-{id}";
 
@@ -32,7 +35,8 @@ namespace Datahub.Infrastructure.Services.Storage
                 _logger.LogWarning("Could not find connection data for cloud storage provider with id {0}", stg.Id);
                 return null;
             }
-            return CreateCloudStorageManager(stg.Id, stg.Provider, stg.Name, connectionData, stg.Enabled);
+            var userCredential = await _dataLakeClientService.GetTokenCredentialAsync();
+            return CreateCloudStorageManager(stg.Id, stg.Provider, stg.Name, connectionData, stg.Enabled, userCredential);
         }
 
         public async Task<IDictionary<string,string>> GetConnectionSecrets(ProjectCloudStorage pcs, string? acronym = null)
@@ -79,17 +83,18 @@ namespace Datahub.Infrastructure.Services.Storage
         }
 
         public ICloudStorageManager? CreateTestCloudStorageManager(CloudStorageProviderType providerType, IDictionary<string, string> connectionData) =>
-            CreateCloudStorageManager(default, providerType.ToString(), "test", connectionData, true);
+            CreateCloudStorageManager(default, providerType.ToString(), "test", connectionData, true, new DefaultAzureCredential());
 
-        private ICloudStorageManager? CreateCloudStorageManager(int id, string provider, string name, IDictionary<string,string> connectionData, bool enabled)
+        private ICloudStorageManager? CreateCloudStorageManager(int id, string provider, string name, IDictionary<string,string> connectionData, bool enabled, TokenCredential? userCredential = null)
         {
             if (provider == CloudStorageProviderType.Azure.ToString())
             {
 
                 var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AZ_AccountName] : name;
+                var credential = userCredential ?? new DefaultAzureCredential();
 
                 ICloudStorageManager storageManager = enabled ?
-                    new AzureCloudStorageManager(connectionData[AZ_AccountName], new DefaultAzureCredential(), stAccountName) :
+                    new AzureCloudStorageManager(connectionData[AZ_AccountName], credential, stAccountName) :
                     new DisabledCloudStorageManager(CloudStorageProviderType.Azure, stAccountName);
 
                 return storageManager;
