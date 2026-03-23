@@ -246,7 +246,7 @@ public class GCNotifyService : IGCNotifyService
         await SendNotification(postDataJson);
     }
 
-    public async Task SendExternalUserInviteNotification(string email, string externalUserName, string workspace, string inviterName, string invitationURL)
+    public async Task SendExternalUserInviteNotification(string email, string externalUserName, string workspace, string inviterName, string invitationURL_en, string invitationURL_fr)
     {
         using var _ = _logger.BeginScope("ExternalUserInviteNotification {Email}", MaskEmail(email));
         _logger.LogInformation("Composing external user invite notification. externalUserName={ExternalUserName}, workspace={Workspace}, inviterName={InviterName}", externalUserName, workspace, inviterName);
@@ -255,7 +255,7 @@ public class GCNotifyService : IGCNotifyService
         {
             email_address = email,
             template_id = templateId,
-            personalisation = new { externalUserName, workspace, inviterName, invitationURL }
+            personalisation = new { externalUserName, workspace, inviterName, invitationURL_en, invitationURL_fr }
         };
         _logger.LogDebug("Dispatching external user invite notification with template {TemplateId}", templateId);
         string postDataJson = JsonSerializer.Serialize(postData);

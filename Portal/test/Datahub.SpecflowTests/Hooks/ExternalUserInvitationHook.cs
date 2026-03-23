@@ -29,6 +29,7 @@ public class ExternalUserInvitationHook
                 Arg.Any<string>(),
                 Arg.Any<string>(),
                 Arg.Any<string>(),
+                Arg.Any<string>(),
                 Arg.Any<string>())
             .Returns(Task.CompletedTask);
         objectContainer.RegisterInstanceAs(gcNotifyService);

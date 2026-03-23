@@ -160,7 +160,7 @@ public class ExternalUserInvitationServiceSteps(
                 invitationRationale: "Test invitation",
                 projectRoleId: (int)Project_Role.RoleNames.Guest,
                 inviter: inviter,
-                GetCodeAcceptancePageUrl: _ => "https://test.example.com/accept",
+                GetCodeAcceptancePageUrl: _ => ("https://test.example.com/accept", "https://test.example.com/accept"),
                 invitationExpiry: DateTimeOffset.UtcNow.AddDays(7));
             scenarioContext[InvitationKey] = invitation;
         }
@@ -183,7 +183,7 @@ public class ExternalUserInvitationServiceSteps(
                 invitationRationale: "Test",
                 projectRoleId: (int)Project_Role.RoleNames.Guest,
                 inviter: inviter,
-                GetCodeAcceptancePageUrl: _ => "https://test.example.com/accept");
+                GetCodeAcceptancePageUrl: _ => ("https://test.example.com/accept", "https://test.example.com/accept"));
         }
         catch (Exception ex)
         {
@@ -223,7 +223,7 @@ public class ExternalUserInvitationServiceSteps(
             projectAcronym: projectAcronym,
             invitedEmail: "external1@example.com",
             projectRoleId: (int)Project_Role.RoleNames.Guest,
-            GetCodeAcceptancePageUrl: _ => "https://test.example.com/accept",
+            GetCodeAcceptancePageUrl: _ => ("https://test.example.com/accept", "https://test.example.com/accept"),
             inviter: inviter);
         scenarioContext["newInvitation"] = newInvitation;
     }
@@ -298,6 +298,7 @@ public class ExternalUserInvitationServiceSteps(
     public async Task ThenANotificationEmailShouldBeSent()
     {
         await gcNotifyService.Received(1).SendExternalUserInviteNotification(
+            Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<string>(),
             Arg.Any<string>(),
