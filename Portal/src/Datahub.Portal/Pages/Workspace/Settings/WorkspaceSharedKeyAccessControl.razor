@@ -10,7 +10,7 @@
     return;
 }
 
-<SettingsField Label="@Localizer["Allow Shared Key Access (Legacy)"]" Description="@Localizer["Note: The workspace now uses User Delegation SAS by default, which is more secure and based on Azure AD authentication. Shared Key Access is no longer required for SAS token generation but can be enabled if needed for legacy applications."]">
+<SettingsField Label="@Localizer["Allow Shared Key Access"]">
     @if (_isLoadingAccessState)
     {
         <MudCheckBox T="bool?" Value="@_accessState" Label="@Localizer["Loading Shared Key Access State..."]" Disabled />
@@ -18,9 +18,9 @@
     else
     {
         <MudCheckBox T="bool?" 
-                     Value="@_accessState"
-                     ValueChanged="ToggleStorageAllowSharedKeyAccess" 
-                     Label="@Localizer["Allow Shared Key Access (Legacy)"]"/>
+                 Value="@_accessState"
+                 ValueChanged="ToggleStorageAllowSharedKeyAccess" 
+                 Label="@Localizer["Allow Shared Key Access"]"/>
     }
 
 </SettingsField>
