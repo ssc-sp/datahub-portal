@@ -80,6 +80,12 @@ namespace Datahub.Infrastructure.Services.Helpers
         private string DevopsClientSecret => portalConfiguration.AzureAd.InfraClientSecret;
         private string SubscriptionId => portalConfiguration.AzureAd.SubscriptionId;
 
+        private (string TenantId, string ClientId, string ClientSecret) GetInfraClientSecretCredentials()
+        {
+            var azureAd = portalConfiguration.AzureAd;
+            return (azureAd.TenantId, azureAd.InfraClientId, azureAd.InfraClientSecret);
+        }
+
         private AzureDevOpsConfiguration BuildDevopsConfig() => new()
         {
             ClientId = DevopsClientId,
@@ -201,9 +207,11 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             try
             {
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureTenantIdEnvKey, AzureTenantId);
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, DevopsClientId);
-                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, DevopsClientSecret);
+                var (tenantId, clientId, clientSecret) = GetInfraClientSecretCredentials();
+
+                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureTenantIdEnvKey, tenantId);
+                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientIdEnvKey, clientId);
+                Environment.SetEnvironmentVariable(InfrastructureHealthCheckConstants.AzureClientSecretEnvKey, clientSecret);
 
                 var kvUrl = GetAzureKeyVaultUrl(request);
                 var credential = new DefaultAzureCredential();
@@ -357,7 +365,8 @@ namespace Datahub.Infrastructure.Services.Helpers
                     else
                     {
                         string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                        var credential = new ClientSecretCredential(AzureTenantId, DevopsClientId, DevopsClientSecret);
+                        var (tenantId, clientId, clientSecret) = GetInfraClientSecretCredentials();
+                        var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
                         var projectStorageManager = new AzureCloudStorageManager(accountName, credential);
 
                         if (projectStorageManager is null)
@@ -508,7 +517,8 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             try
             {
-                var credential = new ClientSecretCredential(AzureTenantId, DevopsClientId, DevopsClientSecret);
+                var (tenantId, clientId, clientSecret) = GetInfraClientSecretCredentials();
+                var credential = new ClientSecretCredential(tenantId, clientId, clientSecret);
 
                 var armClient = new ArmClient(credential);
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 
