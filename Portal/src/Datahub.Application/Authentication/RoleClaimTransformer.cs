@@ -140,13 +140,13 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
 
         if (!trusted)
         {
-            var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_QUALIFIER_CLAIM)?.Value;
-            if (idp?.EndsWith(IDP_GCCF) ?? false)
-            {
-                AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
-            }
-            else
-                throw new SecurityException("Invalid IDP login");
+            //var idp = claims.Claims.FirstOrDefault(c => c.Type == IDP_QUALIFIER_CLAIM)?.Value;
+            //if (idp?.EndsWith(IDP_GCCF) ?? false)
+            //{
+            AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, RoleConstants.EXTERNAL_LOGIN));
+            //}
+            //else
+            //    throw new SecurityException("Invalid IDP login");
             return false;
         }
         else
