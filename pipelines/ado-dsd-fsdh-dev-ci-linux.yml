@@ -115,16 +115,6 @@ jobs:
     inputs:
       command: restore
       projects: Portal/src/Datahub.Portal/*.csproj
-  - task: Bash@3
-    displayName: debug source snapshot
-    inputs:
-      targetType: inline
-      script: |
-        echo "Build.SourceVersion=$(Build.SourceVersion)"
-        echo "Build.SourceBranch=$(Build.SourceBranch)"
-        git rev-parse HEAD
-        git log --oneline -n 3
-        sed -n '330,370p' Portal/src/Datahub.Infrastructure/Services/Helpers/HealthCheckHelper.cs
   - task: DotNetCoreCLI@2
     displayName: dotnet build
     inputs:
