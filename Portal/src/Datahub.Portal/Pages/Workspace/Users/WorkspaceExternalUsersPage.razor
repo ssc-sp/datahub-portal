@@ -20,6 +20,7 @@
 @inject IExternalUserInvitationService _externalUserInvitationService
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
+@inject ICultureService _cultureService
 
 @if (_loading)
 {
@@ -301,8 +302,8 @@ else
             return;
         }
 
-        var url = GetCodeAcceptancePageUrl(invitation);
-
+        var urls = GetCodeAcceptancePageUrl(invitation);
+        var url = _cultureService.IsEnglish ? urls.enURL : urls.frURL;
         try
         {
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", url);
