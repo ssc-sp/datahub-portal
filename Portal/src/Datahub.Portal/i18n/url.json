@@ -69,5 +69,7 @@
   "tool": "tool",
   "toolbox": "toolbox",
   "users": "users",
-  "webapp": "webapp"
+  "webapp": "webapp",
+  "/account-setup": "/account-setup",
+  "external-users": "external-users"
 }

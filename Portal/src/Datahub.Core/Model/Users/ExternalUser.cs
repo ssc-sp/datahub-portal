@@ -12,9 +12,9 @@ namespace Datahub.Core.Model.Users
 
         /// <summary>
         /// Gets or sets the GCCF object identifier (OID) associated with the external identity.
-        /// A blank OID indicates that the user has not completed the invitation flow or has been deactivated.
+        /// A null OID indicates that the user has not completed the invitation flow or has been deactivated.
         /// </summary>
-        public required string ExternalSubject { get; set; }
+        public string? ExternalSubject { get; set; }
 
         /// <summary>
         /// Gets or sets the first name of the person.

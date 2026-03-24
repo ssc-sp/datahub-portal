@@ -14,7 +14,7 @@ public interface IGCNotifyService
     Task SendDatahubResourceDeletedNotification(string email, string resource, string resource_fr, string acro);
     Task SendWelcomePackageNotification(string email);
     Task SendWorkspaceInactiveNotification(string email, string daysSince);
-    Task SendExternalUserInviteNotification(string email, string externalUserName, string workspace, string inviterName);
+    Task SendExternalUserInviteNotification(string email, string externalUserName, string workspace, string inviterName, string invitationURL_en, string invitationURL_fr);
     Task SendBugReportNotification(string id, string title, string body, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca");
     Task SendInfectedFileNotification(string email, string fileName, string workspace, string date);
     Task SendUserAccessRegrantedNotification(string email, string userName, string workspace, string unlockedBy);

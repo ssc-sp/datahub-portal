@@ -72,8 +72,34 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         return lastLogin;
     }
 
+    private (DateTimeOffset ts, string eventName)? lastEvent;
+
+    // call LogTelemetryEventAsync in the background, we don't want to await it here and we don't want exceptions to be thrown if it fails
     public async Task LogTelemetryEvent(string eventName)
     {
+        var ts = DateTimeOffset.UtcNow;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                await LogTelemetryEventAsync(eventName, ts);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to log telemetry event: {eventName}", eventName);
+            }
+        });
+    }
+
+    
+
+    private async Task LogTelemetryEventAsync(string eventName, DateTimeOffset eventTs)
+    {
+        if (lastEvent.HasValue && lastEvent.Value.eventName == eventName && (DateTimeOffset.UtcNow - lastEvent.Value.ts).TotalSeconds < 10)
+        {
+            logger.LogDebug("Skipping logging duplicate Telemetry event: {eventName}", eventName);
+            return;
+        }
         await using var ctx = await contextFactory.CreateDbContextAsync();
 
         if (_portalUser == null)
@@ -102,7 +128,7 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
                 PortalUserId = _portalUser.Id,
                 AchievementId = id,
                 Count = 1,
-                UnlockedAt = DateTime.UtcNow
+                UnlockedAt = eventTs.DateTime
             };
             ctx.UserAchievements.Add(newAchievement);
         }
@@ -111,8 +137,9 @@ public class PortalUserTelemetryService : IPortalUserTelemetryService
         {
             PortalUserId = _portalUser.Id,
             EventName = eventName,
-            EventDate = DateTime.UtcNow
+            EventDate = eventTs.DateTime
         });
+        lastEvent = (DateTimeOffset.UtcNow, eventName);
 
         await ctx.SaveChangesAsync();
 

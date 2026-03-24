@@ -53,7 +53,7 @@
 
 	private string GetLoginURL()
 	{
-			return $"{Localizer["/gccf/login"]}?locale={CultureInfo.CurrentCulture.Name}";
+        return $"{PageRoutes.GCCF_Login}?locale={CultureInfo.CurrentCulture.Name}";
 	}
 
     protected override async Task OnInitializedAsync()

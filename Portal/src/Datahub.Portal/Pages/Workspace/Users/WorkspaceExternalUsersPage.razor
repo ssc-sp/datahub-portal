@@ -1,12 +1,15 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Infrastructure.Services.UserManagement
 @using Datahub.Portal.Pages.Tools.Users
 @using MudBlazor.Utilities
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
 @using Datahub.Application.Services.UserManagement
-@* @using static Datahub.Portal.Pages.Workspace.Users.AddNewExternalUsersToProjectDialog *@
+@using Microsoft.EntityFrameworkCore
+@using Datahub.Portal.Pages
+@using Microsoft.JSInterop
 
 @inject IDatahubAuditingService _datahubAuditingService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
@@ -14,6 +17,9 @@
 @inject IProjectUserManagementService _projectUserManagementService
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
+@inject IExternalUserInvitationService _externalUserInvitationService
+@inject NavigationManager _navigationManager
+@inject IJSRuntime _jsRuntime
 
 @if (_loading)
 {
@@ -21,135 +27,291 @@
 }
 else
 {
-  <MudStack>
-      <MudStack Row Class="mt-6 mb-4">
-          <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
-          <MudSpacer />
-          <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-              <DHButton OnClick="() => OpenInviteUserDialog()" Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd">
-                  @Localizer["Add user"]
-              </DHButton>
-          </DatahubAuthView>
-      </MudStack>
-      @if (_externalProjectUsers is not null && _externalProjectUsers.Any())
-      {
-          <MudTable Items="@_externalProjectUsers" Striped Filter="@(new Func<UserRoleLinks, bool>(CombinedFilter))">
-              <ToolBarContent>
-                  <MudTextField @bind-Value="_filterString"
-                                Placeholder="@Localizer["Search"]"
-                                Immediate
-                                Adornment="Adornment.Start"
-                                AdornmentIcon="@Icons.Material.Filled.Search"
-                                Label="@Localizer["Search"]"
-                                IconSize="Size.Medium" />
-              </ToolBarContent>
-              <HeaderContent>
-                  <MudTh>@Localizer["Name"]</MudTh>
-                  <MudTh>@Localizer["Email"]</MudTh>
-                  <MudTh>@Localizer["Organization"]</MudTh>
-                  <MudTh>@Localizer["Status"]</MudTh>
-                  <MudTh>@Localizer["Account Expiry"]</MudTh>
-                  <MudTh>@Localizer["Actions"]</MudTh>
-              </HeaderContent>
-              <RowTemplate Context="rowContext">
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              <strong>
-                                  @rowContext.PortalUser.DisplayName
-                              </strong>
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              @rowContext.PortalUser.Email
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              @rowContext.PortalUser.ExternalUser.Organization
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              @if (rowContext.PortalUser.ExternalUser.UserDeactivatedAt is not null)
-                              {
-                                  <MudChip T="string" Color="Color.Error">@Localizer["Deactivated"]</MudChip>
-                              }
-                              else if (rowContext.PortalUser.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow)
-                              {
-                                  <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
-                              }
-                              else if (rowContext.PortalUser.ExternalUser.FirstLoginDateTime is null)
-                              {
-                                  <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
-                              }
-                              else
-                              {
-                                  <MudChip T="string" Color="Color.Success">@Localizer["Active"]</MudChip>
-                              }
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <MudText>
-                              @rowContext.PortalUser.ExternalUser.UserExpiryDate.ToString("yyyy-MM-dd")
-                          </MudText>
-                      </MudStack>
-                  </MudTd>
-                  <MudTd>
-                      <MudStack Row AlignItems="AlignItems.Center">
-                          <DHButton OnClick="() => OpenManageUserDialog(rowContext)">@Localizer["View/Edit"]</DHButton>
-                          @if (rowContext.PortalUser.ExternalUser.UserDeactivatedAt is null)
-                          {
-                              <DHButton OnClick="() => OpenDeactivateUserDialog(rowContext)">@Localizer["Deactivate user"]</DHButton>
-                          }
-                      </MudStack>
-                  </MudTd>
-              </RowTemplate>
-              <PagerContent>
-                  <MudTablePager />
-              </PagerContent>
-          </MudTable>
-      }
-  </MudStack>
+    <MudStack>
+        <MudStack Row Class="mt-6 mb-4">
+            <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
+            <MudSpacer />
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <DHButton OnClick="OpenInviteUserDialog" Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd">
+                    @Localizer["Add user"]
+                </DHButton>
+            </DatahubAuthView>
+        </MudStack>
+        @if (_externalProjectUsers.Any())
+        {
+            <MudTable Items="@_externalProjectUsers" Striped Filter="@(new Func<ExternalWorkspaceUserRow, bool>(CombinedFilter))">
+                <ToolBarContent>
+                    <MudTextField @bind-Value="_filterString"
+                                  Placeholder="@Localizer["Search"]"
+                                  Immediate
+                                  Adornment="Adornment.Start"
+                                  AdornmentIcon="@Icons.Material.Filled.Search"
+                                  Label="@Localizer["Search"]"
+                                  IconSize="Size.Medium" />
+                </ToolBarContent>
+                <HeaderContent>
+                    <MudTh>@Localizer["Name"]</MudTh>
+                    <MudTh>@Localizer["Email"]</MudTh>
+                    <MudTh>@Localizer["Organization"]</MudTh>
+                    <MudTh>@Localizer["Status"]</MudTh>
+                    <MudTh>@Localizer["Last Login"]</MudTh>
+                    <MudTh>@Localizer["Account Expiry"]</MudTh>
+                    <MudTh>@Localizer["Activation Code"]</MudTh>
+                    <MudTh>@Localizer["Code Acceptance Page"]</MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="rowContext">
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>
+                                <strong>@rowContext.PortalUser.DisplayName</strong>
+                            </MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@rowContext.PortalUser.Email</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@rowContext.ExternalUser.Organization</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>
+                                @if (rowContext.ExternalUser.UserDeactivatedAt is not null)
+                                {
+                                    <MudChip T="string" Color="Color.Error">@Localizer["Deactivated"]</MudChip>
+                                }
+                                else if (rowContext.ExternalUser.UserExpiryDate < DateTimeOffset.UtcNow)
+                                {
+                                    <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
+                                }
+                                else if (rowContext.ExternalUser.FirstLoginDateTime is null)
+                                {
+                                    <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
+                                }
+                                else
+                                {
+                                    <MudChip T="string" Color="Color.Success">@Localizer["Active"]</MudChip>
+                                }
+                            </MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@(rowContext.PortalUser.LastLoginDateTime?.ToString("yyyy-MM-dd") ?? "-")</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center">
+                            <MudText>@rowContext.ExternalUser.UserExpiryDate.ToString("yyyy-MM-dd")</MudText>
+                        </MudStack>
+                    </MudTd>
+                    <MudTd>
+                        <MudText>@GetInvitationCode(rowContext)</MudText>
+                    </MudTd>
+                    <MudTd>
+                        @if (ShouldShowInvitationDetails(rowContext))
+                        {
+                            <MudButton Variant="Variant.Text"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Outlined.ContentCopy"
+                                       OnClick="@(() => CopyInvitationLinkAsync(rowContext.LatestInvitation))">
+                                @Localizer["Copy link"]
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
+                    </MudTd>
+                    <MudTd>
+                        <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
+                            @if (rowContext.UserRoleLink is not null)
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">@Localizer["View/Edit"]</DHButton>
+                            }
+                            @if (CanDisableUser(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">@Localizer["Disable user"]</DHButton>
+                            }
+                            @if (CanCancelInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invite"]</DHButton>
+                            }
+                            @if (CanResendInvitation(rowContext))
+                            {
+                                <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
+                            }
+                        </MudStack>
+                    </MudTd>
+                </RowTemplate>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
+        }
+    </MudStack>
 }
 
 
 @code {
-
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = string.Empty;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    private string _filterString = null;
-    private string _tabStyle;
+    private string? _filterString;
 
-    private bool _updateInProgress = true;
     private bool _loading = true;
-    private bool _deactivatingUser = false;
 
-    private List<UserRoleLinks> _externalProjectUsers;
+    private List<ExternalWorkspaceUserRow> _externalProjectUsers = [];
+
+    private sealed class ExternalWorkspaceUserRow
+    {
+        public required PortalUser PortalUser { get; init; }
+        public required ExternalUser ExternalUser { get; init; }
+        public UserRoleLinks? UserRoleLink { get; set; }
+        public WorkspaceInvitation LatestInvitation { get; set; }
+    }
 
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
-        await InitializedProjectMembers();
+        await InitializeProjectMembersAsync();
+    }
+
+    private async Task InitializeProjectMembersAsync()
+    {
+        _loading = true;
+
+        await using var context = await _dbFactory.CreateDbContextAsync();
+        var projectUsers = await context.UserRolesLinks
+            .AsNoTracking()
+            .Include(u => u.Project)
+            .Include(u => u.Role)
+            .Include(u => u.PortalUser)
+            .ThenInclude(p => p.ExternalUser)
+            .ThenInclude(e => e!.Invitations)
+            .ThenInclude(i => i.Project)
+            .Include(u => u.PortalUser)
+            .ThenInclude(p => p.ExternalUser)
+            .ThenInclude(e => e!.Invitations)
+            .ThenInclude(i => i.Requested_Role)
+            .Where(u => u.Project.Project_Acronym_CD == WorkspaceAcronym)
+            .Where(u => u.PortalUser != null && u.PortalUser.ExternalUser != null)
+            .ToListAsync();
+
+        var pendingInvitations = await context.ExternalUserRequests
+            .AsNoTracking()
+            .Include(i => i.Project)
+            .Include(i => i.Requested_Role)
+            .Include(i => i.User)
+            .ThenInclude(u => u.PortalUser)
+            .Where(i => i.Project.Project_Acronym_CD == WorkspaceAcronym)
+            .Where(i => i.InvitationTokenAccepted == null || i.InvitationCodeAccepted == null)
+            .ToListAsync();
+
+        var rowsByPortalUserId = new Dictionary<int, ExternalWorkspaceUserRow>();
+
+        foreach (var projectUser in projectUsers)
+        {
+            var externalUser = projectUser.PortalUser.ExternalUser!;
+            rowsByPortalUserId[projectUser.PortalUser.Id] = new ExternalWorkspaceUserRow
+            {
+                PortalUser = projectUser.PortalUser,
+                ExternalUser = externalUser,
+                UserRoleLink = projectUser,
+                LatestInvitation = GetLatestInvitation(externalUser.Invitations)
+            };
+        }
+
+        foreach (var invitationGroup in pendingInvitations
+                     .Where(i => i.User?.PortalUser is not null)
+                     .GroupBy(i => i.User.PortalUser.Id))
+        {
+            var latestInvitation = invitationGroup
+                .OrderByDescending(i => i.Request_DT)
+                .First();
+
+            if (rowsByPortalUserId.TryGetValue(invitationGroup.Key, out var existingRow))
+            {
+                if (existingRow.LatestInvitation is null || latestInvitation.Request_DT > existingRow.LatestInvitation.Request_DT)
+                {
+                    existingRow.LatestInvitation = latestInvitation;
+                }
+
+                continue;
+            }
+
+            rowsByPortalUserId[invitationGroup.Key] = new ExternalWorkspaceUserRow
+            {
+                PortalUser = latestInvitation.User.PortalUser,
+                ExternalUser = latestInvitation.User,
+                LatestInvitation = latestInvitation
+            };
+        }
+
+        _externalProjectUsers = rowsByPortalUserId.Values
+            .OrderBy(u => u.PortalUser.DisplayName)
+            .ThenBy(u => u.PortalUser.Email)
+            .ToList();
+
         _loading = false;
     }
-    private async Task InitializedProjectMembers()
+
+    private WorkspaceInvitation? GetLatestInvitation(IEnumerable<WorkspaceInvitation>? invitations)
     {
-        var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
-        _externalProjectUsers = projectUsers.Where(u => u.PortalUser.ExternalUser != null).ToList();
+        return invitations?
+            .Where(i => i.Project.Project_Acronym_CD == WorkspaceAcronym)
+            .OrderByDescending(i => i.Request_DT)
+            .FirstOrDefault();
+    }
 
-        _loading = false;
 
+
+    private (string enURL, string frURL) GetCodeAcceptancePageUrl(WorkspaceInvitation invitation)
+    {
+        // Force French (fr) for this lookup
+        CultureInfo.CurrentUICulture = new CultureInfo("fr");
+        try
+        {
+            CultureInfo.CurrentUICulture = new CultureInfo("fr");
+            string frenchURL = Localizer[PageRoutes.ExternalInvitationSetup];
+
+            var relativeUrlEn = $"{PageRoutes.ExternalInvitationSetup}/{invitation.InvitationToken}";
+            var relativeUrlFr = $"{frenchURL}/{invitation.InvitationToken}";
+            var setLocaleUrlEN = UserSettingsService.GetCultureControllerRedirect(ICultureService.CanadaEnglish, relativeUrlEn);
+            var setLocaleUrlFR = UserSettingsService.GetCultureControllerRedirect(ICultureService.CanadaFrench, relativeUrlFr);
+            return (_navigationManager.ToAbsoluteUri(setLocaleUrlEN).ToString(), _navigationManager.ToAbsoluteUri(setLocaleUrlFR).ToString());
+        }
+        finally
+        {
+            // Reset to the original culture after generating the URL
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+        }
+    }
+
+    private async Task CopyInvitationLinkAsync(WorkspaceInvitation? invitation)
+    {
+        if (invitation is null)
+        {
+            _snackbar.Add(Localizer["No invitation found"], Severity.Warning);
+            return;
+        }
+
+        var url = GetCodeAcceptancePageUrl(invitation);
+
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", url);
+            _snackbar.Add(Localizer["Link copied"], Severity.Success);
+        }
+        catch (JSException)
+        {
+            _snackbar.Add(Localizer["Unable to copy link"], Severity.Error);
+        }
     }
 
     private async Task OpenInviteUserDialog()
@@ -158,11 +320,18 @@ else
         var dialogOptions = new DialogOptions { MaxWidth = MaxWidth.ExtraLarge };
         var dialogParameters = new DialogParameters
         {
-            { "ProjectAcronym", WorkspaceAcronym },
-            { "Inviter", currentUser }
-        };
+            { nameof(AddNewExternalUsersToProjectDialog.ProjectAcronym), WorkspaceAcronym },
+            { nameof(AddNewExternalUsersToProjectDialog.Inviter), currentUser },
+            { nameof(AddNewExternalUsersToProjectDialog.GetGcInvitationLink), GetCodeAcceptancePageUrl }
+       };
         var dialog = await _dialogService.ShowAsync<AddNewExternalUsersToProjectDialog>(Localizer["Invite New Users"], dialogParameters, dialogOptions);
         var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            await InitializeProjectMembersAsync();
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task OpenDeactivateUserDialog(UserRoleLinks selectedUser)
@@ -174,19 +343,19 @@ else
             { "SelectedUser", selectedUser },
             { "CurrentUser", currentUser }
         };
-        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Deactivate user"], dialogParameters, dialogOptions);
+        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Disable user"], dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            if (result.Data is not UserRoleLinks changedUser)
+            if (result.Data is not UserRoleLinks)
             {
                 _snackbar.Add(Localizer["Error editing user"], Severity.Error);
             }
             else
             {
                 _snackbar.Add(Localizer["User deactivated"], Severity.Success);
-
-                StateHasChanged();
+                await InitializeProjectMembersAsync();
+                await InvokeAsync(StateHasChanged);
             }
         }
     }
@@ -204,24 +373,98 @@ else
         var result = await dialog.Result;
         if (!result.Canceled)
         {
-            if (result.Data is not UserRoleLinks changedUser)
+            if (result.Data is not UserRoleLinks)
             {
                 _snackbar.Add(Localizer["Error editing user"], Severity.Error);
             }
             else
             {
                 _snackbar.Add(Localizer["User profile updated"], Severity.Success);
-
-                StateHasChanged();
+                await InitializeProjectMembersAsync();
+                await InvokeAsync(StateHasChanged);
             }
         }
     }
 
-    private bool CombinedFilter(UserRoleLinks projectUser)
+    private async Task CancelInvitationAsync(ExternalWorkspaceUserRow selectedUser)
+    {
+        var latestInvitation = selectedUser.LatestInvitation;
+        if (latestInvitation is null)
+        {
+            _snackbar.Add(Localizer["No invitation found"], Severity.Warning);
+            return;
+        }
+
+        await _externalUserInvitationService.CancelInvitationAsync(latestInvitation.RequestID);
+        _snackbar.Add(Localizer["Invitation canceled"], Severity.Success);
+        await InitializeProjectMembersAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ResendInvitationAsync(ExternalWorkspaceUserRow selectedUser)
+    {
+        var roleId = selectedUser.UserRoleLink?.RoleId ?? selectedUser.LatestInvitation?.Requested_Role?.Id;
+        if (roleId is null)
+        {
+            _snackbar.Add(Localizer["Unable to resend invitation"], Severity.Error);
+            return;
+        }
+        var currentUser = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("cannot load current user");
+        await _externalUserInvitationService.ResendInvitationAsync(
+            selectedUser.ExternalUser.Id,
+            WorkspaceAcronym,
+            selectedUser.PortalUser.Email,
+            roleId.Value,
+            GetCodeAcceptancePageUrl,
+            currentUser);
+
+        _snackbar.Add(Localizer["Invitation resent"], Severity.Success);
+        await InitializeProjectMembersAsync();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool ShouldShowInvitationDetails(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.ExternalUser.FirstLoginDateTime is null && projectUser.LatestInvitation is not null;
+    }
+
+    private string GetInvitationCode(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.LatestInvitation!.InvitationCodeAccepted is null
+            ? projectUser.LatestInvitation!.InvitationCode
+            : (projectUser.LatestInvitation is null) ? "-" : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value.ToString("yyyy-MM-dd")}";
+    }
+
+    private bool CanDisableUser(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.UserRoleLink is not null
+            && projectUser.ExternalUser.UserDeactivatedAt is null
+            && projectUser.ExternalUser.FirstLoginDateTime is not null;
+    }
+
+    private bool CanCancelInvitation(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.ExternalUser.UserDeactivatedAt is null
+            && projectUser.ExternalUser.FirstLoginDateTime is null
+            && projectUser.LatestInvitation is not null
+            && projectUser.LatestInvitation.InvitationTokenAccepted is null
+            && projectUser.LatestInvitation.InvitationExpiry >= DateTimeOffset.UtcNow;
+    }
+
+    private bool CanResendInvitation(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.ExternalUser.UserDeactivatedAt is null
+            && projectUser.ExternalUser.FirstLoginDateTime is null
+            && projectUser.LatestInvitation is not null;
+    }
+
+    private bool CombinedFilter(ExternalWorkspaceUserRow projectUser)
     {
         var matchesSearch = string.IsNullOrWhiteSpace(_filterString) ||
-            projectUser.PortalUser?.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true ||
-            projectUser.PortalUser?.Email?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
+            projectUser.PortalUser.DisplayName?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true ||
+            projectUser.PortalUser.Email.Contains(_filterString, StringComparison.OrdinalIgnoreCase) ||
+            projectUser.ExternalUser.Organization.Contains(_filterString, StringComparison.OrdinalIgnoreCase) ||
+            projectUser.LatestInvitation?.InvitationCode?.Contains(_filterString, StringComparison.OrdinalIgnoreCase) == true;
 
         return matchesSearch;
     }
