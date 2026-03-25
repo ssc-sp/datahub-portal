@@ -5,6 +5,7 @@
 @inject IUserInformationService _userInformationService
 @inject ILockedUserManagementService _lockedUserManagementService
 @inject NavigationManager _navigationManager
+@inject ILogger<LockedUserGatekeeper> _logger
 
 @if (_isChecked)
 {
@@ -44,10 +45,11 @@
                 return;
             }
         }
-        catch
+        catch (Exception ex)
         {
             // If we can't check the user status, allow them through
             // The authentication system will handle unauthorized access
+            _logger.LogError(ex, "Failed to check locked user status in LockedUserGatekeeper.");
         }
 
         _isChecked = true;
