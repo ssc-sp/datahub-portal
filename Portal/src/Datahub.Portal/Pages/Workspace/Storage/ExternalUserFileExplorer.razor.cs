@@ -11,6 +11,7 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class ExternalUserFileExplorer
 {
+    private readonly object _uploadingFilesLock = new();
     private string? _lastContainerName;
 
     private async Task LoadContainersAsync()
@@ -295,7 +296,7 @@ public partial class ExternalUserFileExplorer
             BrowserFile = browserFile
         };
 
-        lock (this)
+        lock (_uploadingFilesLock)
         {
             _uploadingFiles.Add(fileMetadata);
         }
@@ -309,7 +310,7 @@ public partial class ExternalUserFileExplorer
                 _ = InvokeAsync(StateHasChanged);
             });
 
-            lock (this)
+            lock (_uploadingFilesLock)
             {
                 _uploadingFiles.Remove(fileMetadata);
                 if (!_uploadingFiles.Any())
