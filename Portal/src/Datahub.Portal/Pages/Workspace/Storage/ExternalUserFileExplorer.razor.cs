@@ -11,6 +11,8 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class ExternalUserFileExplorer
 {
+    private string? _lastContainerName;
+
     private async Task LoadContainersAsync()
     {
         _loading = true;
@@ -69,7 +71,7 @@ public partial class ExternalUserFileExplorer
 
     private async Task RefreshStoragePageAsync()
     {
-        _lastContainer = Container;
+        _lastContainerName = Container?.Name;
         _loading = true;
         StateHasChanged();
 
@@ -91,7 +93,7 @@ public partial class ExternalUserFileExplorer
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_lastContainer != Container)
+        if (_lastContainerName != Container?.Name)
         {
             try
             {
