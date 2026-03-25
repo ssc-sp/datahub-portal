@@ -106,7 +106,7 @@
         {
             _isProjectKeyEnabled = await IsProjectKeyEnabled();
             if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
-            await keyVaultUserService.Authenticate();
+            await keyVaultUserService.AuthenticateWithUserContext();
             await LoadExternalUserContainerAsync();
         }
         catch (MicrosoftIdentityWebChallengeUserException e)

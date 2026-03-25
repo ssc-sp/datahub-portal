@@ -61,7 +61,7 @@ namespace Datahub.Infrastructure.Services.Security
             {
                 try
                 {
-                    await Authenticate();
+                    await AuthenticateWithUserContext();
                 }
                 catch (Exception ex)
                 {
