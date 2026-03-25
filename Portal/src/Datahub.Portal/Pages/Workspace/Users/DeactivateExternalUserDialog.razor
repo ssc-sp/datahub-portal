@@ -1,0 +1,77 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Net.Mail
+@using Datahub.Application.Commands
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Model.Achievements
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@inject IMSGraphService _msGraphService
+@inject IUserEnrollmentService _userEnrollmentService
+@inject IUserInformationService _userInformationService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+
+<MudDialog Style="min-width: 40vw; max-width: 75vw;">
+    <DialogContent>
+        <MudStack>
+          <MudText>@Localizer["Please provide a reason for deactivating the user."]</MudText>
+            <MudTextField T="string"
+                          Class="form-control"
+                          @bind-value="_reasonForDeactivating"
+                          Label=@Localizer["Deactivation reason"]
+                          Required="true"
+                          RequiredError=@Localizer["Deactivation reason is required"]
+                          Variant="Variant.Outlined" HelperText=@Localizer["e.g. User is not needed for project"] />
+
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+      <MudGrid>
+        <MudItem xs="6" class="d-flex justify-start">
+          <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+        </MudItem>
+        <MudItem xs="6" class="d-flex justify-end">
+          <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled">@Localizer["Deactivate User"]</DHButton>
+        </MudItem>
+      </MudGrid>
+    </DialogActions>
+</MudDialog>
+
+@code {
+#nullable enable
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public UserRoleLinks SelectedUser { get; set; } = null!;
+
+    [Parameter]
+    public PortalUser CurrentUser { get; set; } = null!;
+
+    private string _reasonForDeactivating = string.Empty;
+
+
+    private void Cancel() => MudDialog.Cancel();
+
+
+    private async Task SaveUserChanges()
+    {
+        await using var context = await _dbFactory.CreateDbContextAsync();
+
+        SelectedUser.PortalUser.ExternalUser.UserDeactivatedAt = DateTime.UtcNow;
+        SelectedUser.PortalUser.ExternalUser.DeactivationReason = _reasonForDeactivating;
+        SelectedUser.PortalUser.ExternalUser.DeactivatedByUser = CurrentUser;
+        // SelectedUser.DeactivatedByUserId = CurrentUser.Id;
+
+        context.Update(SelectedUser);
+        await context.SaveChangesAsync();
+
+        UpdateProject();
+    }
+
+    private void UpdateProject()
+    {
+        MudDialog.Close(DialogResult.Ok(SelectedUser));
+    }
+
+}

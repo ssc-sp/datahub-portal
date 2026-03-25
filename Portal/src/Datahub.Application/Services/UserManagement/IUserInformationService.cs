@@ -216,7 +216,7 @@ public interface IUserInformationService
     /// <param name="email">The email address of the external user.</param>
     /// <param name="expiry">The expiration date of the external user.</param>
     /// <returns>The newly created <see cref="PortalUser"/>, or <c>null</c> when a portal record already exists or creation fails.</returns>
-    public Task<PortalUser?> CreatePortalExternalUserAsync(string userOid, string first, string last, string org, string email, DateTimeOffset expiry);
+    public Task<PortalUser?> CreatePortalExternalUserAsync(string? userOid, string first, string last, string org, string email, DateTimeOffset expiry);
 
     /// <summary>
     /// Persists changes to the provided <see cref="PortalUser"/> instance.

@@ -11,6 +11,8 @@ public static class PageRoutes
     public const string News = "/announcements";
     public const string News_FR = "/annonces";
 
+    public const string GCCF_Login = "/gccf/login";
+
     public const string WorkspacePrefix = "w";
     public const string WorkspaceDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}";
     public const string Workspace = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{{Section}}";
@@ -54,7 +56,9 @@ public static class PageRoutes
     public const string ToolDefault_FR = $"/{ToolPrefix_FR}/";
     public const string Tool = $"/{ToolPrefix}/{{Section}}";
     public const string Tool_FR = $"/{ToolPrefix_FR}/{{Section}}";
-    
+
+    public const string NotFound = "/404";
+
     public const string Logout = "/signout-oidc";
     public const string Login = "/login";
     public const string Login_FR = "/connexion";
@@ -75,4 +79,10 @@ public static class PageRoutes
 
     public const string AccessDenied = "/access-denied";
     public const string AccessDenied_FR = "/acces-refuse";
+
+    public const string ExternalInvitationSetup = "/account-setup";
+    public const string ExternalInvitationSetupWithToken = $"{ExternalInvitationSetup}/{{InvitationToken:guid}}";
+
+    public const string ExternalInvitationSetup_FR = "/configuration-compte";
+    public const string ExternalInvitationSetupWithToken_FR = $"{ExternalInvitationSetup_FR}/{{InvitationToken:guid}}";
 }

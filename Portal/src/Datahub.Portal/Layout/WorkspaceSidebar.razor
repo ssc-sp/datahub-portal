@@ -22,6 +22,7 @@
 @inject IProjectUserManagementService _projectUserManagementService
 @inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 
 <MudDrawerContainer Style="overflow: hidden auto">
     <MudStack Row Class="py-7 px-4" AlignItems="AlignItems.Center">
@@ -101,6 +102,7 @@
                         {
                             <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
                                              ProjectAcronym="@WorkspaceAcronym"
+                                             AllowedUsers="@GetAllowedUsers(toolSection)"
                                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                                 <li>
                                     @if (toolSection == SectionViews.Publishing && _isPublishingBlockedForWorkspace)
@@ -153,6 +155,10 @@
                             <ul>
                                 @foreach (var toolSection in _workspaceAdministration)
                                 {
+                                    if(toolSection == SectionViews.ExternalUsers && _externalProjectUsersCount != 0)
+                                    {
+                                        continue;
+                                    }
                                     <li>
                                         <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
                                                          ProjectAcronym="@WorkspaceAcronym"
@@ -185,10 +191,10 @@
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
     [CascadingParameter] private DHSidebarDrawer Drawer { get; set; } = null!;
 
-    private Datahub_Project _project;
-    private List<Datahub_Project> _allProjects;
+    private Datahub_Project _project = null!;
+    private List<Datahub_Project> _allProjects = new();
     private bool _isPublishingBlockedForWorkspace = false;
-    private string? _entraUserGuid;
+    private int _externalProjectUsersCount;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -214,6 +220,7 @@
         public const string ArcGis = "arcgis";
         public const string Toolbox = "toolbox";
         public const string Users = "users";
+        public const string ExternalUsers = "external-users";
         public const string Metadata = "metadata";
         public const string Reports = "reports";
         public const string Healthcheck = "healthcheck";
@@ -226,6 +233,7 @@
         public const string Repositories_FR = "depots";
         public const string Toolbox_FR = "boite-a-outils";
         public const string Users_FR = "utilisateurs";
+        public const string ExternalUsers_FR = "utilisateurs-externes";
         public const string Metadata_FR = "metadonnees";
         public const string Reports_FR = "rapports";
         public const string Healthcheck_FR = "verification-sante";
@@ -248,6 +256,7 @@
     [
         SectionViews.Toolbox,
         SectionViews.Users,
+        SectionViews.ExternalUsers,
         SectionViews.Metadata,
         SectionViews.Reports,
         SectionViews.Healthcheck,
@@ -255,27 +264,32 @@
         SectionViews.Settings
     ];
 
+    private bool _GCCFEnabled;
+
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
+        _GCCFEnabled = await _featureManager.IsEnabledAsync(Features.GCCF_Feature);
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
-        _project = dbContext.Projects
+        var project = dbContext.Projects
             .AsNoTracking()
             .Include(p => p.Resources)
             .FirstOrDefault(p => p.Project_Acronym_CD == WorkspaceAcronym);
+
+        // If project not found, throw a404 HttpRequestException so callers can handle it as a404.
+        if (project == null)
+        {
+            throw new System.Net.Http.HttpRequestException($"Workspace '{WorkspaceAcronym}' not found.", null, System.Net.HttpStatusCode.NotFound);
+        }
+        var projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+        _externalProjectUsersCount = projectUsers.Where(u => u.PortalUser.ExternalUser != null).Count();
 
         // Check if publishing is blocked for this workspace
         _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
 
         // check the resources against what to display in the sidebar
 
-        // If project not found, throw a404 HttpRequestException so callers can handle it as a404.
-        if (_project == null)
-        {
-            throw new System.Net.Http.HttpRequestException($"Workspace '{WorkspaceAcronym}' not found.", null, System.Net.HttpStatusCode.NotFound);
-        }
+        _project = project;
     }
 
     private async Task ShowPublishingBlockedDialog()
@@ -289,19 +303,18 @@
     protected override async Task OnParametersSetAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var isExternal = await _userInformationService.IsExternalUser();
+        string? gccfUserId = null, entraUserGuid = null;
+        if (isExternal)
+        {
+            gccfUserId = await _userInformationService.GetExternalUserNameIdentifier();            
+        }
+        else
+        {
+            entraUserGuid = await _userInformationService.GetCurrentUserEntraId();
+        }
 
-        _entraUserGuid = await _userInformationService.GetCurrentUserEntraId();
-        var userRoles = await dbContext.UserRolesLinks
-            .Include(u => u.Role)
-            .Include(u => u.Project)
-            .ThenInclude(p => p.UserRoles)
-            .Include(u => u.Project)
-            .ThenInclude(p => p.Credits) // Include the Credits table
-            .Include(u => u.PortalUser)
-            .Where(u => u.PortalUser != null && u.PortalUser.EntraUser != null && u.PortalUser.EntraUser.GraphGuid == _entraUserGuid)
-            .ToListAsync();
-
-        _allProjects = userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _allProjects = await _projectUserManagementService.GetProjectsForUser(graphUserGuid: entraUserGuid, gccfUserId: gccfUserId);
     }
 
     public async Task HandleProjectChange(string projectAcronym)
@@ -309,15 +322,26 @@
         _navigationManager.NavigateTo($"/w/{projectAcronym}", true);
     }
 
-    public static DatahubAuthView.AuthLevels GetAuthLevel(string sectionView)
+    public static DatahubAuthView.UserType GetAllowedUsers(string toolName)
     {
-        return sectionView switch
+        return toolName switch
+        {
+            SectionViews.Dashboard => DatahubAuthView.UserType.AllUsers,
+            SectionViews.Storage => DatahubAuthView.UserType.AllUsers,
+            SectionViews.WebApp => DatahubAuthView.UserType.AllUsers,
+            _ => DatahubAuthView.UserType.TrustedEntraOnly
+        };
+    }
+
+    public static DatahubAuthView.AuthLevels GetAuthLevel(string toolName)
+    {
+        return toolName switch
         {
             SectionViews.Dashboard => DatahubAuthView.AuthLevels.Authenticated,
             SectionViews.Databricks => DatahubAuthView.AuthLevels.WorkspaceGuest,
-            SectionViews.Storage => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.Storage => DatahubAuthView.AuthLevels.Storage,
             SectionViews.Publishing => DatahubAuthView.AuthLevels.WorkspaceGuest,
-            SectionViews.WebApp => DatahubAuthView.AuthLevels.WorkspaceGuest,
+            SectionViews.WebApp => DatahubAuthView.AuthLevels.WebApp,
             SectionViews.SqlDatabase => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.Repositories => DatahubAuthView.AuthLevels.WorkspaceGuest,
             SectionViews.ArcGis => DatahubAuthView.AuthLevels.WorkspaceGuest,
@@ -327,6 +351,7 @@
             SectionViews.DeleteWorkspace => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
+            SectionViews.ExternalUsers => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Healthcheck => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -338,6 +363,7 @@
             SectionViews.Repositories_FR => DatahubAuthView.AuthLevels.WorkspaceGuest,
 
             SectionViews.Toolbox_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
+            SectionViews.ExternalUsers_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users_FR => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
             SectionViews.Metadata_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports_FR => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -353,29 +379,29 @@
         switch (toolSection)
         {
             case SectionViews.Databricks:
-            {
-                var userRecentLink = new UserRecentLink()
+                {
+                    var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.Databricks,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                break;
-            }
+                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                    break;
+                }
             case SectionViews.WebApp:
-            {
-                var userRecentLink = new UserRecentLink()
+                {
+                    var userRecentLink = new UserRecentLink()
                 {
                     LinkType = DatahubLinkType.AzureWebApp,
                     DataProject = WorkspaceAcronym,
                     AccessedTime = DateTimeOffset.Now
                 };
 
-                await _userLocationManagerService.RegisterNavigation(userRecentLink);
-                break;
-            }
+                    await _userLocationManagerService.RegisterNavigation(userRecentLink);
+                    break;
+                }
         }
     }
 
@@ -383,7 +409,7 @@
     {
         return sectionView switch
         {
-            SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project, CultureService.IsFrench),
+            SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project, CultureService.IsFrench)!,
             SectionViews.WebApp => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym),
             _ => $"{_path}/{sectionView}"
         };
@@ -412,6 +438,7 @@
             SectionViews.ArcGis => SidebarIcons.ArcGis,
             SectionViews.Toolbox => SidebarIcons.Toolbox,
             SectionViews.Users => SidebarIcons.Users,
+            SectionViews.ExternalUsers => SidebarIcons.ExternalUsers,
             SectionViews.Metadata => SidebarIcons.Metadata,
             SectionViews.Reports => SidebarIcons.Reports,
             SectionViews.Healthcheck => SidebarIcons.HealthCheck,
@@ -435,6 +462,7 @@
             SectionViews.ArcGis => Localizer["ArcGIS"],
             SectionViews.Toolbox => Localizer["Toolbox"],
             SectionViews.Users => Localizer["Users"],
+            SectionViews.ExternalUsers => Localizer["External Users"],
             SectionViews.Metadata => Localizer["Metadata"],
             SectionViews.Reports => Localizer["Reports"],
             SectionViews.Healthcheck => Localizer["Health Check"],
@@ -446,9 +474,19 @@
 
     private bool ShouldToolBeShown(string toolSection)
     {
+        if (_project is null)
+            return false;
+
         if (_project.IsDeleted)
         {
             return toolSection == SectionViews.Dashboard;
+        }
+
+
+        if (toolSection == SectionViews.ExternalUsers)
+        {
+            // Only show External Users section if workspace is not Protected B and GCCF is enabled
+            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
         }
 
         return toolSection switch

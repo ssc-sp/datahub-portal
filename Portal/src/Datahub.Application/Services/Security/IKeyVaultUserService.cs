@@ -1,10 +1,10 @@
-﻿using Datahub.Core.Model.CloudStorage;
+using Datahub.Core.Model.CloudStorage;
 
 namespace Datahub.Application.Services.Security
 {
     public interface IKeyVaultUserService
     {
-        Task Authenticate();
+        Task AuthenticateWithUserContext();
         Task<IDictionary<string, string>> GetAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym);
 
         Task StoreAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym,

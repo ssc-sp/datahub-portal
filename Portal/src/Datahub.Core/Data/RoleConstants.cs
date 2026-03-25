@@ -14,6 +14,8 @@ public static class RoleConstants
     public const string COLLABORATOR_SUFFIX = "-" + COLLABORATOR_ROLE;
     public const string GUEST_ROLE = "guest";
     public const string GUEST_SUFFIX = "-" + GUEST_ROLE;
+    public const string EXTERNAL_GUEST_ROLE = "extguest";
+    public const string EXTERNAL_GUEST_SUFFIX = "-" + GUEST_ROLE;
     public const string WEBAPP_SUFFIX = "-webapp";
     public const string STORAGE_SUFFIX = "-storage";
     public const string CBR_OWNER_ROLE = "cbr-owner";
