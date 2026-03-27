@@ -135,13 +135,13 @@ else
                             {
                                 <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">@Localizer["View/Edit"]</DHButton>
                             }
-                            @if (CanDisableUser(rowContext))
+                            @if (CanDeactivateUser(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">@Localizer["Disable user"]</DHButton>
+                                <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">@Localizer["Deactivate user"]</DHButton>
                             }
                             @if (CanCancelInvitation(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invite"]</DHButton>
+                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
                             }
                             @if (CanResendInvitation(rowContext))
                             {
@@ -344,7 +344,7 @@ else
             { "SelectedUser", selectedUser },
             { "CurrentUser", currentUser }
         };
-        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Disable user"], dialogParameters, dialogOptions);
+        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Deactivate user"], dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
@@ -436,7 +436,7 @@ else
             : (projectUser.LatestInvitation is null) ? "-" : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value.ToString("yyyy-MM-dd")}";
     }
 
-    private bool CanDisableUser(ExternalWorkspaceUserRow projectUser)
+    private bool CanDeactivateUser(ExternalWorkspaceUserRow projectUser)
     {
         return projectUser.UserRoleLink is not null
             && projectUser.ExternalUser.UserDeactivatedAt is null
