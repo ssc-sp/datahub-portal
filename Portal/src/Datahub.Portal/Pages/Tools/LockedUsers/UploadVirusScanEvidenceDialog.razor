@@ -125,9 +125,9 @@
             _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
-        catch (Exception ex)
+        catch
         {
-            _snackbar.Add(Localizer["Failed to upload evidence: {0}", ex.Message], Severity.Error);
+            _snackbar.Add(Localizer["Failed to upload evidence while processing the file."], Severity.Error);
         }
         finally
         {

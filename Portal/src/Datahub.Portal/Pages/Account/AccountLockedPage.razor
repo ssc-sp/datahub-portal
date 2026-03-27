@@ -85,10 +85,10 @@
                 </DHButton>
             </MudStack>
 
-            @if (_lockedDate.HasValue)
+            @if (_lockedDate is DateTime lockedDate)
             {
                 <MudText Typo="Typo.caption" Class="mt-4">
-                    @Localizer["Locked on: {0}", _lockedDate.Value.ToString("yyyy-MM-dd HH:mm")]
+                    @Localizer["Locked on: {0}", lockedDate.ToString("yyyy-MM-dd HH:mm")]
                 </MudText>
             }
         </MudStack>

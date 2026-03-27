@@ -303,7 +303,7 @@
   private List<UserRoleLinks> _projectUsers;
   private List<WorkspaceUserInfo> _originalUserInfo = new();
 
-  private Dictionary<int, UserLockStatus> _lockedUsersByPortalUserId = new();
+  private readonly Dictionary<int, UserLockStatus> _lockedUsersByPortalUserId = new();
 
   private int? _currentRoleFilter = default;
 

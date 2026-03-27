@@ -4,6 +4,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Application.Services
 @using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Logging
 @using MudBlazor
 
 @inject IUserInformationService _userInformationService
@@ -11,6 +12,7 @@
 @inject IUserAccessNotificationService _userAccessNotificationService
 @inject ISnackbar _snackbar
 @inject IDialogService _dialogService
+@inject ILogger<LockedUsersManagementPage> _logger
 @inject NavigationManager _navigationManager
 
 <MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
@@ -139,7 +141,8 @@
         }
         catch (Exception ex)
         {
-            _snackbar.Add($"Error loading locked users: {ex.Message}", Severity.Error);
+            _logger.LogError(ex, "Error loading locked users list.");
+            _snackbar.Add(Localizer["Unable to load locked users."], Severity.Error);
         }
 
         _loading = false;
@@ -199,7 +202,8 @@
             }
             catch (Exception ex)
             {
-                _snackbar.Add($"Error unlocking user: {ex.Message}", Severity.Error);
+                _logger.LogError(ex, "Error unlocking user for PortalUserId {PortalUserId}", lockStatus.PortalUserId);
+                _snackbar.Add(Localizer["Error unlocking user."], Severity.Error);
             }
         }
     }
