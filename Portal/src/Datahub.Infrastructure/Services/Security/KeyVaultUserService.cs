@@ -87,7 +87,7 @@ namespace Datahub.Infrastructure.Services.Security
                     return null;
                 }
 
-                _logger.LogError(kvex, "Error retrieving secret {0} from vault {1}", secretName, vaultName);
+                _logger.LogError(kvex, "Error retrieving secret from key vault.");
                 throw;
             }
 

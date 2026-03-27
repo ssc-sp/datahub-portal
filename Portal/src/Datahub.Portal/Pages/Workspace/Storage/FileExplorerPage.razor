@@ -256,7 +256,7 @@
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
+                _logger.LogCritical(ex, "Cannot access one or more configured storage containers.");
                 try
                 {
                     await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
@@ -266,7 +266,7 @@
                 }
                 catch (Exception ex2)
                 {
-                    _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");
+                    _logger.LogCritical(ex2, "Error disabling inaccessible storage containers.");
                 }
             }
         }
