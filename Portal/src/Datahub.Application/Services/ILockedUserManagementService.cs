@@ -15,7 +15,7 @@ public interface ILockedUserManagementService
     /// <param name="evidenceUrl">URL to virus scan evidence</param>
     /// <param name="performedByUserId">Admin user performing the action</param>
     /// <returns>The created lock event</returns>
-    Task<UserWorkspaceLock> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId);
+    Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId);
 
     /// <summary>
     /// Unlocks a user globally
@@ -24,7 +24,7 @@ public interface ILockedUserManagementService
     /// <param name="notes">Notes about why user was unlocked</param>
     /// <param name="performedByUserId">Admin user performing the action</param>
     /// <returns>The created unlock event</returns>
-    Task<UserWorkspaceLock> UnlockUserAsync(int portalUserId, string? notes, int performedByUserId);
+    Task<ExternalUserLockAuditEvent> UnlockUserAsync(int portalUserId, string? notes, int performedByUserId);
 
     /// <summary>
     /// Records evidence upload for a locked user
@@ -33,7 +33,7 @@ public interface ILockedUserManagementService
     /// <param name="evidenceUrl">URL to the uploaded evidence</param>
     /// <param name="uploadedByUserId">Admin user who uploaded evidence</param>
     /// <returns>The created evidence upload event</returns>
-    Task<UserWorkspaceLock> RecordEvidenceUploadAsync(int portalUserId, string evidenceUrl, int uploadedByUserId);
+    Task<ExternalUserLockAuditEvent> RecordEvidenceUploadAsync(int portalUserId, string evidenceUrl, int uploadedByUserId);
 
     /// <summary>
     /// Checks if a user is currently locked
@@ -60,7 +60,7 @@ public interface ILockedUserManagementService
     /// </summary>
     /// <param name="portalUserId">The user</param>
     /// <returns>Complete lock/unlock history</returns>
-    Task<List<UserWorkspaceLock>> GetUserLockHistoryAsync(int portalUserId);
+    Task<List<ExternalUserLockAuditEvent>> GetUserLockHistoryAsync(int portalUserId);
 }
 
 /// <summary>

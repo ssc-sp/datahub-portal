@@ -13,6 +13,7 @@
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IUserInformationService _userInformationService
+@inject ILockedUserManagementService _lockedUserManagementService
 @inject IUserSettingsService _userSettingsService
 @inject IDialogService _dialogService
 @inject ICultureService CultureService
@@ -56,6 +57,8 @@ else
 	private bool? _isSessionEnabled;
 	private bool _isLoaded = false;
 	private const string LogoutUrl = PageRoutes.Logout;
+	private const string LockedAccountPath = "/account/locked";
+	private const string LockedAccountPathFr = "/compte/verrouille";
 	private bool _isUserValid = false;
 
 	private static readonly string[] LOAD_MESSAGES = new[] { "Recomputing DNA sequence", "Identifying the pathogen", "Recalculating fungal genome", "Predicting soil mapping", "Analyzing forest coverage" };
@@ -84,6 +87,22 @@ else
 				_navigationManager.NavigateTo($"/login?redirectUri={returnUrl}", forceLoad: true);
 				return;
 			}
+
+			var currentPortalUser = await _userInformationService.GetCurrentPortalUserAsync();
+			if (currentPortalUser?.Id > 0)
+			{
+				var isLocked = await _lockedUserManagementService.IsUserLockedAsync(currentPortalUser.Id);
+				var currentPath = "/" + _navigationManager.ToBaseRelativePath(_navigationManager.Uri).TrimStart('/');
+				var isLockedPage = currentPath.StartsWith(LockedAccountPath, StringComparison.OrdinalIgnoreCase)
+					|| currentPath.StartsWith(LockedAccountPathFr, StringComparison.OrdinalIgnoreCase);
+
+				if (isLocked && !isLockedPage)
+				{
+					_navigationManager.NavigateTo(LockedAccountPath, forceLoad: true);
+					return;
+				}
+			}
+
 			if (!await _userInformationService.IsAuthorized())
 			{
 				_navigationManager.NavigateTo(Localizer[PageRoutes.AccessDenied], true);

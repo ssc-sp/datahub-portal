@@ -144,9 +144,9 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<EntraUser> EntraUsers { get; set; }
 
     /// <summary>
-    /// Gets or sets the table for storing workspace-specific user locks
+    /// Gets or sets the table for storing external user lock audit events
     /// </summary>
-    public DbSet<UserWorkspaceLock> UserWorkspaceLocks { get; set; }
+    public DbSet<ExternalUserLockAuditEvent> ExternalUserLockAuditEvents { get; set; }
 
     // below are used for migrations
 #if MIGRATION
@@ -336,9 +336,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .HasForeignKey(p => p.ParentGCHostingBudgetId)
             .IsRequired(false);
 
-        modelBuilder.Entity<UserWorkspaceLock>(entity =>
+        modelBuilder.Entity<ExternalUserLockAuditEvent>(entity =>
         {
             entity.HasKey(e => e.Id);
+
+            entity.ToTable("ExternalUserLockAuditEvents");
 
             entity.HasOne(e => e.User)
                 .WithMany()

@@ -11,65 +11,107 @@ namespace Datahub.Infrastructure.Services;
 public class LockedUserManagementService : ILockedUserManagementService
 {
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
+    private static readonly TimeSpan LockOffset = TimeSpan.FromMinutes(1);
+    private static readonly TimeSpan DefaultUnlockDuration = TimeSpan.FromDays(365);
 
     public LockedUserManagementService(IDbContextFactory<DatahubProjectDBContext> contextFactory)
     {
         _contextFactory = contextFactory;
     }
 
-    public async Task<UserWorkspaceLock> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId)
+    public async Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        var lockEvent = new UserWorkspaceLock
+        var externalUser = await context.ExternalUsers
+            .FirstOrDefaultAsync(e => e.PortalUserId == portalUserId);
+
+        DateTimeOffset? previousExpiryDate = null;
+        DateTimeOffset? appliedExpiryDate = null;
+
+        if (externalUser != null)
+        {
+            previousExpiryDate = externalUser.UserExpiryDate;
+            appliedExpiryDate = DateTimeOffset.UtcNow.Subtract(LockOffset);
+            externalUser.UserExpiryDate = appliedExpiryDate.Value;
+        }
+
+        var lockEvent = new ExternalUserLockAuditEvent
         {
             PortalUserId = portalUserId,
-            EventType = LockEventType.Locked,
+            EventType = ExternalUserLockEventType.Locked,
             EventDate = DateTime.UtcNow,
             Reason = reason,
             EvidenceUrl = evidenceUrl,
+            PreviousExpiryDate = previousExpiryDate,
+            AppliedExpiryDate = appliedExpiryDate,
             PerformedByUserId = performedByUserId
         };
 
-        context.UserWorkspaceLocks.Add(lockEvent);
+        context.ExternalUserLockAuditEvents.Add(lockEvent);
         await context.SaveChangesAsync();
 
         return lockEvent;
     }
 
-    public async Task<UserWorkspaceLock> UnlockUserAsync(int portalUserId, string? notes, int performedByUserId)
+    public async Task<ExternalUserLockAuditEvent> UnlockUserAsync(int portalUserId, string? notes, int performedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        var unlockEvent = new UserWorkspaceLock
+        var externalUser = await context.ExternalUsers
+            .FirstOrDefaultAsync(e => e.PortalUserId == portalUserId);
+
+        DateTimeOffset? previousExpiryDate = null;
+        DateTimeOffset? appliedExpiryDate = null;
+
+        if (externalUser != null)
+        {
+            previousExpiryDate = externalUser.UserExpiryDate;
+
+            var latestLockEvent = await context.ExternalUserLockAuditEvents
+                .Where(l => l.PortalUserId == portalUserId && l.EventType == ExternalUserLockEventType.Locked)
+                .OrderByDescending(l => l.EventDate)
+                .FirstOrDefaultAsync();
+
+            var restoredExpiry = latestLockEvent?.PreviousExpiryDate;
+            appliedExpiryDate = restoredExpiry.HasValue && restoredExpiry.Value > DateTimeOffset.UtcNow
+                ? restoredExpiry.Value
+                : DateTimeOffset.UtcNow.Add(DefaultUnlockDuration);
+
+            externalUser.UserExpiryDate = appliedExpiryDate.Value;
+        }
+
+        var unlockEvent = new ExternalUserLockAuditEvent
         {
             PortalUserId = portalUserId,
-            EventType = LockEventType.Unlocked,
+            EventType = ExternalUserLockEventType.Unlocked,
             EventDate = DateTime.UtcNow,
             Notes = notes,
+            PreviousExpiryDate = previousExpiryDate,
+            AppliedExpiryDate = appliedExpiryDate,
             PerformedByUserId = performedByUserId
         };
 
-        context.UserWorkspaceLocks.Add(unlockEvent);
+        context.ExternalUserLockAuditEvents.Add(unlockEvent);
         await context.SaveChangesAsync();
 
         return unlockEvent;
     }
 
-    public async Task<UserWorkspaceLock> RecordEvidenceUploadAsync(int portalUserId, string evidenceUrl, int uploadedByUserId)
+    public async Task<ExternalUserLockAuditEvent> RecordEvidenceUploadAsync(int portalUserId, string evidenceUrl, int uploadedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        var evidenceEvent = new UserWorkspaceLock
+        var evidenceEvent = new ExternalUserLockAuditEvent
         {
             PortalUserId = portalUserId,
-            EventType = LockEventType.EvidenceUploaded,
+            EventType = ExternalUserLockEventType.EvidenceUploaded,
             EventDate = DateTime.UtcNow,
             EvidenceUrl = evidenceUrl,
             PerformedByUserId = uploadedByUserId
         };
 
-        context.UserWorkspaceLocks.Add(evidenceEvent);
+        context.ExternalUserLockAuditEvents.Add(evidenceEvent);
         await context.SaveChangesAsync();
 
         return evidenceEvent;
@@ -80,19 +122,19 @@ public class LockedUserManagementService : ILockedUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         // Get the most recent event for this user
-        var latestEvent = await context.UserWorkspaceLocks
+        var latestEvent = await context.ExternalUserLockAuditEvents
             .Where(l => l.PortalUserId == portalUserId)
             .OrderByDescending(l => l.EventDate)
             .FirstOrDefaultAsync();
 
-        return latestEvent != null && latestEvent.EventType == LockEventType.Locked;
+        return latestEvent != null && latestEvent.EventType == ExternalUserLockEventType.Locked;
     }
 
     public async Task<UserLockStatus?> GetUserLockStatusAsync(int portalUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        var events = await context.UserWorkspaceLocks
+        var events = await context.ExternalUserLockAuditEvents
             .Include(l => l.User)
             .Where(l => l.PortalUserId == portalUserId)
             .OrderByDescending(l => l.EventDate)
@@ -102,12 +144,12 @@ public class LockedUserManagementService : ILockedUserManagementService
             return null;
 
         var latestEvent = events.First();
-        var isLocked = latestEvent.EventType == LockEventType.Locked;
+        var isLocked = latestEvent.EventType == ExternalUserLockEventType.Locked;
 
         if (!isLocked)
             return null;
 
-        var lockEvent = events.FirstOrDefault(e => e.EventType == LockEventType.Locked);
+        var lockEvent = events.FirstOrDefault(e => e.EventType == ExternalUserLockEventType.Locked);
         var latestEvidence = events.FirstOrDefault(e => !string.IsNullOrEmpty(e.EvidenceUrl));
 
         return new UserLockStatus
@@ -129,7 +171,7 @@ public class LockedUserManagementService : ILockedUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         // Get all users who have lock events
-        var userIds = await context.UserWorkspaceLocks
+        var userIds = await context.ExternalUserLockAuditEvents
             .Select(l => l.PortalUserId)
             .Distinct()
             .ToListAsync();
@@ -148,11 +190,11 @@ public class LockedUserManagementService : ILockedUserManagementService
         return lockedUsers;
     }
 
-    public async Task<List<UserWorkspaceLock>> GetUserLockHistoryAsync(int portalUserId)
+    public async Task<List<ExternalUserLockAuditEvent>> GetUserLockHistoryAsync(int portalUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
-        var query = context.UserWorkspaceLocks
+        var query = context.ExternalUserLockAuditEvents
             .Include(l => l.User)
             .Include(l => l.PerformedByUser)
             .Where(l => l.PortalUserId == portalUserId);

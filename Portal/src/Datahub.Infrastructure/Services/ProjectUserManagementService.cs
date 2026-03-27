@@ -93,7 +93,11 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .Include(u => u.Project)
                 .ThenInclude(p => p.Credits) // Include the Credits table
                 .Include(u => u.PortalUser)
-                .Where(u => u.PortalUser != null && u.PortalUser.ExternalUser != null && u.PortalUser.ExternalUser.ExternalSubject == gccfUserId)
+                .Where(u => u.PortalUser != null
+                    && u.PortalUser.ExternalUser != null
+                    && u.PortalUser.ExternalUser.ExternalSubject == gccfUserId
+                    && u.PortalUser.ExternalUser.UserDeactivatedAt == null
+                    && u.PortalUser.ExternalUser.UserExpiryDate > DateTimeOffset.UtcNow)
                 .ToListAsync();
             return userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         }

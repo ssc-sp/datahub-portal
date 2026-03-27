@@ -12,7 +12,7 @@ namespace Datahub.Core.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "UserWorkspaceLocks",
+                name: "ExternalUserLockAuditEvents",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
@@ -22,20 +22,22 @@ namespace Datahub.Core.Migrations
                     EventDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Reason = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     EvidenceUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PreviousExpiryDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    AppliedExpiryDate = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
                     PerformedByUserId = table.Column<int>(type: "int", nullable: true),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserWorkspaceLocks", x => x.Id);
+                    table.PrimaryKey("PK_ExternalUserLockAuditEvents", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_UserWorkspaceLocks_PortalUsers_PerformedByUserId",
+                        name: "FK_ExternalUserLockAuditEvents_PortalUsers_PerformedByUserId",
                         column: x => x.PerformedByUserId,
                         principalTable: "PortalUsers",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
-                        name: "FK_UserWorkspaceLocks_PortalUsers_PortalUserId",
+                        name: "FK_ExternalUserLockAuditEvents_PortalUsers_PortalUserId",
                         column: x => x.PortalUserId,
                         principalTable: "PortalUsers",
                         principalColumn: "Id",
@@ -43,18 +45,18 @@ namespace Datahub.Core.Migrations
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserWorkspaceLocks_EventType",
-                table: "UserWorkspaceLocks",
+                name: "IX_ExternalUserLockAuditEvents_EventType",
+                table: "ExternalUserLockAuditEvents",
                 column: "EventType");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserWorkspaceLocks_PerformedByUserId",
-                table: "UserWorkspaceLocks",
+                name: "IX_ExternalUserLockAuditEvents_PerformedByUserId",
+                table: "ExternalUserLockAuditEvents",
                 column: "PerformedByUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserWorkspaceLocks_PortalUserId_EventDate",
-                table: "UserWorkspaceLocks",
+                name: "IX_ExternalUserLockAuditEvents_PortalUserId_EventDate",
+                table: "ExternalUserLockAuditEvents",
                 columns: new[] { "PortalUserId", "EventDate" });
         }
 
@@ -62,7 +64,7 @@ namespace Datahub.Core.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "UserWorkspaceLocks");
+                name: "ExternalUserLockAuditEvents");
         }
     }
 }

@@ -1,9 +1,11 @@
 @using Datahub.Core.Model.Users
+@using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
 @using MudBlazor
 @using Microsoft.AspNetCore.Authorization
 
 @inject IUserInformationService _userInformationService
+@inject Datahub.Application.Services.ILockedUserManagementService _lockedUserManagementService
 @inject NavigationManager _navigationManager
 
 @page "/account/locked"
@@ -98,14 +100,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        // MOCK: For demo purposes, show locked 2 days ago
-        _lockedDate = DateTime.UtcNow.AddDays(-2);
-        
-        // In production, would query from database:
-        // var user = await _userInformationService.GetCurrentPortalUserAsync();
-        // if (user?.UserSettings != null)
-        // {
-        //     _lockedDate = user.UserSettings.LockedOutDate;
-        // }
+        var user = await _userInformationService.GetCurrentPortalUserAsync();
+        if (user?.Id > 0)
+        {
+            var lockStatus = await _lockedUserManagementService.GetUserLockStatusAsync(user.Id);
+            _lockedDate = lockStatus?.LockedDate;
+        }
     }
 }
