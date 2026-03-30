@@ -25,8 +25,8 @@
                 <strong>@Localizer["Email"]:</strong> @User?.Email
             </MudText>
 
-            <MudFileUpload T="IBrowserFile" 
-                          Accept=".png,.jpg,.jpeg,.pdf" 
+            <MudFileUpload T="IBrowserFile"
+                          Accept=".png,.jpg,.jpeg,.pdf"
                           FilesChanged="OnFileSelected"
                           MaximumFileCount="1">
                 <ActivatorContent>
@@ -47,16 +47,16 @@
 
             @if (_uploadProgress > 0)
             {
-                <MudProgressLinear Value="_uploadProgress" Color="Color.Primary" Size="Size.Medium"/>
+                <MudProgressLinear Value="_uploadProgress" Color="Color.Primary" Size="Size.Medium" />
                 <MudText Typo="Typo.caption">@Localizer["Uploading... {0}%", _uploadProgress.ToString("F0")]</MudText>
             }
         </MudStack>
     </DialogContent>
     <DialogActions>
         <DHButton OnClick="Cancel" Variant="Variant.Text">@Localizer["Cancel"]</DHButton>
-        <DHButton OnClick="Upload" 
-                 Variant="Variant.Filled" 
-                 Color="Color.Primary" 
+        <DHButton OnClick="Upload"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary"
                  Disabled="@(_selectedFile == null || _uploading)">
             @Localizer["Upload"]
         </DHButton>
@@ -81,7 +81,9 @@
     private async Task Upload()
     {
         if (_selectedFile == null || User == null)
+        {
             return;
+        }
 
         _uploading = true;
         _uploadProgress = 0;
@@ -102,8 +104,8 @@
 
             var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
             var blobName = $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
-            var blobClient = containerClient.GetBlobClient(blobName);
 
+            var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
 
             var evidenceUrl = blobClient.CanGenerateSasUri
@@ -125,7 +127,7 @@
             _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
-        catch
+        catch (Exception ex)
         {
             _snackbar.Add(Localizer["Failed to upload evidence while processing the file."], Severity.Error);
         }
@@ -151,6 +153,7 @@
             order++;
             len = len / 1024;
         }
+
         return $"{len:0.##} {sizes[order]}";
     }
 }

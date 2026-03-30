@@ -44,6 +44,7 @@ public static class ConfigureServices
             cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
+        services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddScoped<CloudStorageManagerFactory>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();

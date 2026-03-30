@@ -1,5 +1,4 @@
 using Datahub.Core.Model.Users;
-
 namespace Datahub.Application.Services;
 
 /// <summary>

@@ -3,6 +3,7 @@ using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
+using Azure.Identity;
 using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
@@ -19,6 +20,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private readonly bool _inboxAccount;
     private readonly string _connectionString;
     private readonly string _displayName;
+    private readonly string? _sasToken;
 
     public bool IsInboxAccount => _inboxAccount;
 
@@ -29,6 +31,25 @@ public class AzureCloudStorageManager : ICloudStorageManager
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
         _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+    }
+
+    /// <summary>
+    /// Constructor for SAS token authentication
+    /// </summary>
+    public AzureCloudStorageManager(string accountName, string sasToken, bool useSasToken, string? displayName = default)
+    {
+        if (!useSasToken)
+            throw new ArgumentException("Use the other constructor for account key authentication");
+            
+        _accountName = accountName;
+        _accountKey = string.Empty;
+        _sasToken = sasToken;
+        _inboxAccount = displayName == default;
+        _displayName = displayName ?? _accountName;
+        
+        // SAS token connection string format
+        var sasTokenParam = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
+        _connectionString = @$"BlobEndpoint=https://{accountName}.blob.core.windows.net/;SharedAccessSignature={sasTokenParam}";
     }
 
     public async Task<List<string>> GetContainersAsync()
@@ -66,15 +87,12 @@ public class AzureCloudStorageManager : ICloudStorageManager
         ValidateContainerName(container);
 
         var containerClient = GetBlobContainerClient(container);
-        var sasBuilder = GetContainerSasBuild(container, timeSpan, BlobSasPermissions.All);
-        var sharedKeyCred = GetSharedKeyCredentialAsync();
-
-        var blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+        if (!string.IsNullOrWhiteSpace(_sasToken))
         {
-            Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
-        };
+            return Task.FromResult(AppendSasToken(containerClient.Uri));
+        }
 
-        return Task.FromResult(blobUriBuilder.ToUri());
+        return GenerateContainerSasUriAsync(containerClient, timeSpan);
     }
 
     public Task<bool> FileExistsAsync(string container, string filePath)
@@ -84,20 +102,24 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return Task.FromResult<bool>(fileClient.Exists());
     }
 
-    public Task<Uri> DownloadFileAsync(string container, string filePath)
+    public async Task<Uri> DownloadFileAsync(string container, string filePath)
     {
         var containerClient = GetBlobContainerClient(container);
-        var sasBuilder = GetBlobSasBuilder(container, filePath, 1, BlobSasPermissions.Read);
-        var sharedKeyCred = GetSharedKeyCredentialAsync();
 
         var blobClient = containerClient.GetBlobClient(filePath);
-        var uri = blobClient.Uri;
-        var blobUriBuilder = new BlobUriBuilder(uri)
+        if (!string.IsNullOrWhiteSpace(_sasToken))
         {
-            Sas = sasBuilder.ToSasQueryParameters(sharedKeyCred)
+            return AppendSasToken(blobClient.Uri);
+        }
+
+        var sasBuilder = GetBlobSasBuilder(container, filePath, 1, BlobSasPermissions.Read);
+        var sasQueryParameters = await GetSasQueryParametersAsync(sasBuilder);
+        var blobUriBuilder = new BlobUriBuilder(blobClient.Uri)
+        {
+            Sas = sasQueryParameters
         };
 
-        return Task.FromResult(blobUriBuilder.ToUri());
+        return blobUriBuilder.ToUri();
     }
 
     public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
@@ -360,6 +382,59 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private StorageSharedKeyCredential GetSharedKeyCredentialAsync()
     {
         return new StorageSharedKeyCredential(_accountName, _accountKey);
+    }
+
+    private async Task<Uri> GenerateContainerSasUriAsync(BlobContainerClient containerClient, TimeSpan timeSpan)
+    {
+        var sasBuilder = GetContainerSasBuild(containerClient.Name, timeSpan, BlobSasPermissions.All);
+        var sasQueryParameters = await GetSasQueryParametersAsync(sasBuilder);
+
+        var blobUriBuilder = new BlobUriBuilder(containerClient.Uri)
+        {
+            Sas = sasQueryParameters
+        };
+
+        return blobUriBuilder.ToUri();
+    }
+
+    private async Task<BlobSasQueryParameters> GetSasQueryParametersAsync(BlobSasBuilder sasBuilder)
+    {
+        var userDelegationKey = await TryGetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn);
+        if (userDelegationKey is not null)
+        {
+            return sasBuilder.ToSasQueryParameters(userDelegationKey, _accountName);
+        }
+
+        var sharedKeyCred = GetSharedKeyCredentialAsync();
+        return sasBuilder.ToSasQueryParameters(sharedKeyCred);
+    }
+
+    private async Task<global::Azure.Storage.Blobs.Models.UserDelegationKey?> TryGetUserDelegationKeyAsync(DateTimeOffset startsOn, DateTimeOffset expiresOn)
+    {
+        try
+        {
+            var serviceUri = new Uri($"https://{_accountName}.blob.core.windows.net");
+            var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
+            {
+                ExcludeInteractiveBrowserCredential = true
+            });
+
+            var blobServiceClient = new BlobServiceClient(serviceUri, credential);
+            var response = await blobServiceClient.GetUserDelegationKeyAsync(startsOn, expiresOn);
+            return response.Value;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private Uri AppendSasToken(Uri resourceUri)
+    {
+        var sasToken = _sasToken ?? string.Empty;
+        var trimmedToken = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
+        var separator = string.IsNullOrWhiteSpace(resourceUri.Query) ? "?" : "&";
+        return new Uri($"{resourceUri}{separator}{trimmedToken}");
     }
 
     static BlobSasBuilder GetBlobSasBuilder(string container, string fileName, int days, BlobSasPermissions permissions)

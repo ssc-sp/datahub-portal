@@ -225,12 +225,12 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
             var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
             var dialog = await _dialogService.ShowAsync<UploadVirusScanEvidenceDialog>(
-                Localizer["Upload Virus Scan Evidence"], 
-                parameters, 
+                Localizer["Upload Virus Scan Evidence"],
+                parameters,
                 options);
 
             var result = await dialog.Result;
-            if (result != null && !result.Canceled)
+            if (!result.Canceled)
             {
                 await InitializedProjectMembers();
             }
