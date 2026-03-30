@@ -134,26 +134,26 @@
         var containerName = externalStorageConfig.ContainerName;
         var accountName = externalStorageConfig.AccountName;
         
-        _logger.LogInformation($"Loading external users container for workspace: {WorkspaceAcronym}, Shared Account: {accountName}, Container: {containerName}");
+        _logger.LogInformation("Loading external users container.");
 
         // Get the external users storage key - from central Key Vault if configured, otherwise from workspace Key Vault
         string? accountKey;
         if (externalStorageConfig.UseCentralKeyVault)
         {
-            _logger.LogInformation($"Retrieving storage key from central Key Vault: {externalStorageConfig.CentralKeyVaultName}");
+            _logger.LogInformation("Retrieving storage key from central key vault.");
             accountKey = await keyVaultUserService.GetSecretFromCentralKeyVaultAsync(
                 externalStorageConfig.CentralKeyVaultName, 
                 externalStorageConfig.AccountKeySecretName);
         }
         else
         {
-            _logger.LogInformation($"Retrieving storage key from workspace Key Vault: {WorkspaceAcronym}");
+            _logger.LogInformation("Retrieving storage key from workspace key vault.");
             accountKey = await keyVaultUserService.GetSecretAsync(WorkspaceAcronym, externalStorageConfig.AccountKeySecretName);
         }
         
         if (string.IsNullOrEmpty(accountKey))
         {
-            _logger.LogError($"External users storage key not found in Key Vault. Secret name: {externalStorageConfig.AccountKeySecretName}");
+            _logger.LogError("External users storage key not found in key vault.");
             _failedToLoadContainers = true;
             return;
         }
@@ -161,7 +161,7 @@
         var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
-        _logger.LogInformation($"Found {containerNames.Count} containers in {accountName}: {string.Join(", ", containerNames)}");
+        _logger.LogInformation("Retrieved containers from external users storage account.");
 
         // Check if external-users container exists
         var externalUsersContainer = containerNames.FirstOrDefault(c => 
@@ -169,7 +169,7 @@
 
         if (externalUsersContainer != null)
         {
-            _logger.LogInformation($"Found external users container: {externalUsersContainer}");
+            _logger.LogInformation("External users container found.");
             _selectedContainer = new CloudStorageContainer(
                 accountName, 
                 externalUsersContainer, 
@@ -178,7 +178,7 @@
         }
         else
         {
-            _logger.LogWarning($"External users container '{containerName}' not found in shared storage account {accountName}. Available containers: {string.Join(", ", containerNames)}");
+            _logger.LogWarning("External users container not found in shared storage account.");
             _failedToLoadContainers = true;
         }
     }

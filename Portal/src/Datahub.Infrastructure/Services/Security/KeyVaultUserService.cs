@@ -80,7 +80,7 @@ namespace Datahub.Infrastructure.Services.Security
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving secret {cleanedSecretName} from central Key Vault {keyVaultName}");
+                _logger.LogError(ex, "Error retrieving secret from central key vault.");
                 return null;
             }
         }
@@ -117,7 +117,7 @@ namespace Datahub.Infrastructure.Services.Security
                     return null;
                 }
 
-                _logger.LogError(kvex, "Error retrieving secret {0} from vault {1}", secretName, vaultName);
+                _logger.LogError(kvex, "Error retrieving secret from key vault.");
                 throw;
             }
 

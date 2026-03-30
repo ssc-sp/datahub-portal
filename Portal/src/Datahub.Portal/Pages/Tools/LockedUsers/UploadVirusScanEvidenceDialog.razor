@@ -143,7 +143,7 @@
             // Record evidence upload
             await _lockedUserManagementService.RecordEvidenceUploadAsync(
                 User.Id,
-                WorkspaceId,
+                WorkspaceId.Value,
                 evidenceUrl);
 
             // Notify workspace lead if this is an evidence upload (not external user)
