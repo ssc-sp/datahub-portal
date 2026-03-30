@@ -281,7 +281,9 @@
     {
         return toolName switch
         {
-            TerraformTemplate.AzureStorageBlob => $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspaceStoragePrefix}",
+            TerraformTemplate.AzureStorageBlob => IsEntraUser
+                ? $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspaceStoragePrefix}"
+                : $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/storage-external",
             TerraformTemplate.AzureDatabricks => TerraformVariableExtraction.ExtractDatabricksUrl(Workspace, CultureService.IsFrench)!,
             TerraformTemplate.AzurePostgres => $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspacePostgresPrefix}",
             TerraformTemplate.AzureAppService => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", Workspace!.Project_Acronym_CD),

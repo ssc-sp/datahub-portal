@@ -5,6 +5,7 @@
 @inject DatahubPortalConfiguration _config
 @inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
+@inject IUserInformationService _userInformationService
 
 
 <MudPaper Outlined Class="pa-4">
@@ -22,7 +23,7 @@
             {
             <MudStack Row>
                 <DHButton
-                    Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}")"
+                    Href="@GetStorageUrl()"
                     Color="Color.Primary"
                     Variant="@Variant.Text"
                     EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
@@ -65,6 +66,7 @@
 @code {
 
     private bool _isPublishingBlockedForWorkspace = false;
+    private bool _isExternalUser = false;
 
     [Parameter]
     [EditorRequired]
@@ -81,7 +83,15 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        _isExternalUser = await _userInformationService.IsExternalUser();
         _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
+    }
+
+    private string GetStorageUrl()
+    {
+        return _isExternalUser
+            ? $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/storage-external"
+            : $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}";
     }
 
     private async Task ShowPublishingBlockedDialog()

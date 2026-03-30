@@ -10,6 +10,7 @@ using Microsoft.Identity.Web;
 using System.Text.RegularExpressions;
 using Datahub.Application.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Azure.Services.AppAuthentication;
 
 namespace Datahub.Infrastructure.Services.Security
 {
@@ -19,7 +20,7 @@ namespace Datahub.Infrastructure.Services.Security
         private readonly IUserInformationService _userInfoService;
         private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
         private readonly ILogger<KeyVaultUserService> _logger;
-        private string _vaultToken;
+        private string? _vaultToken;
         private KeyVaultClient? _keyVaultClient = null;
 
         public KeyVaultUserService(ITokenAcquisition tokenAcquisition,
@@ -36,15 +37,48 @@ namespace Datahub.Infrastructure.Services.Security
 
         public async Task AuthenticateWithUserContext()
         {
-            var user = await _userInfoService.GetAuthenticatedUser();
-            var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
-            _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme, user: user);
-            _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
+            if (await _userInfoService.IsExternalUser())
+            {
+                AuthenticateWithAppContext();
+                return;
+            }
+
+            try
+            {
+                var user = await _userInfoService.GetAuthenticatedUser();
+                var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
+                _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme, user: user);
+                _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context. Falling back to app context.");
+                AuthenticateWithAppContext();
+            }
         }
 
         private async Task<string> GetUserAccessToken(string auth, string res, string scope)
         {
-            return await Task.FromResult(_vaultToken);
+            return await Task.FromResult(_vaultToken ?? string.Empty);
+        }
+
+        private void AuthenticateWithAppContext()
+        {
+            if (_datahubPortalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _logger.LogInformation("Authenticating Key Vault with managed identity app context.");
+                var azureServiceTokenProvider = new AzureServiceTokenProvider("RunAs=App");
+                _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
+                return;
+            }
+
+            var tenantId = _datahubPortalConfiguration.AzureAd.TenantId;
+            var clientId = _datahubPortalConfiguration.AzureAd.ClientId;
+            var clientSecret = _datahubPortalConfiguration.AzureAd.ClientSecret;
+
+            _logger.LogInformation("Authenticating Key Vault with configured app credentials.");
+            var tokenProvider = new AzureServiceTokenProvider($"RunAs=App;AppId={clientId};TenantId={tenantId};AppKey={clientSecret}");
+            _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(tokenProvider.KeyVaultTokenCallback));
         }
 
         //    rg_name = f"fsdh_proj_{workspace_definition['Workspace']['Acronym']}_{environment_name}_rg"
@@ -102,7 +136,7 @@ namespace Datahub.Infrastructure.Services.Security
 
             var secretName = CleanName(name);
             // This retrieves the secret/certificate with the private key
-            SecretBundle secret = null;
+            SecretBundle? secret = null;
             var vaultName =
                 GetKeyVaultURL(GetVaultName(acronym.ToLowerInvariant(),
                     _datahubPortalConfiguration.Hosting.EnvironmentName));
@@ -121,7 +155,7 @@ namespace Datahub.Infrastructure.Services.Security
                 throw;
             }
 
-            return secret.Value;
+            return secret?.Value;
         }
 
         public async Task<bool?> IsSecretExpired(string acronym, string name)
@@ -130,7 +164,7 @@ namespace Datahub.Infrastructure.Services.Security
 
             var secretName = CleanName(name);
             // This retrieves the secret/certificate with the private key
-            SecretBundle secret = null;
+            SecretBundle? secret = null;
             try
             {
                 secret = await this._keyVaultClient.GetSecretAsync(
@@ -149,7 +183,7 @@ namespace Datahub.Infrastructure.Services.Security
             }
 
             // Check if the secret is expired
-            if (secret.Attributes.Expires.HasValue)
+            if (secret?.Attributes?.Expires.HasValue == true)
             {
                 return DateTimeOffset.UtcNow > secret.Attributes.Expires.Value;
             }

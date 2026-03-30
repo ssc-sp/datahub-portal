@@ -21,8 +21,21 @@ public partial class ExternalUserFileExplorer
 
         try
         {
-            _availableContainers = await StorageManager.GetContainersAsync();
-            _showingContainers = true;
+            if (string.IsNullOrWhiteSpace(ContainerName))
+            {
+                _availableContainers = new List<string>();
+                _showingContainers = false;
+                return;
+            }
+
+            _availableContainers = new List<string> { ContainerName };
+            _selectedContainerName = ContainerName;
+            _showingContainers = false;
+
+            // Load metadata and content immediately for the allowed container.
+            StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(_selectedContainerName);
+            _folderList = await GetFileCountAsync(_currentFolder);
+            await RefreshStoragePageAsync();
         }
         catch (Exception ex)
         {
@@ -34,45 +47,9 @@ public partial class ExternalUserFileExplorer
         StateHasChanged();
     }
 
-    private async Task SelectContainer(string containerName)
-    {
-        _selectedContainerName = containerName;
-        _showingContainers = false;
-        _currentFolder = _root;
-        
-        // Load metadata for the selected container
-        StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(containerName);
-        _folderList = await GetFileCountAsync(_currentFolder);
-        
-        await RefreshStoragePageAsync();
-    }
-
-    private void ToggleContainerSelection(string containerName)
-    {
-        if (_selectedItems.Contains(containerName))
-        {
-            _selectedItems.Remove(containerName);
-        }
-        else
-        {
-            _selectedItems = new HashSet<string> { containerName };
-        }
-    }
-
-    private async Task BackToContainers()
-    {
-        _showingContainers = true;
-        _selectedContainerName = null;
-        _currentFolder = _root;
-        _selectedItems = new HashSet<string>();
-        _files = new List<FileMetaData>();
-        _folders = new List<string>();
-        StateHasChanged();
-    }
-
     private async Task RefreshStoragePageAsync()
     {
-        _lastContainerName = Container?.Name;
+        _lastContainerName = ContainerName;
         _loading = true;
         StateHasChanged();
 
@@ -84,7 +61,11 @@ public partial class ExternalUserFileExplorer
         _folders = dfsPage.Folders;
 
         // Load scan results for all files
-        var fileNames = _files.Select(f => f.name).ToList();
+        var fileNames = _files
+            .Select(f => f.name)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Select(name => name!)
+            .ToList();
         _fileScanResults = await FileScanService.GetFileScanResultsAsync(fileNames);
 
         _loading = false;
@@ -413,7 +394,11 @@ public partial class ExternalUserFileExplorer
 
         if (_allFilesSelected)
         {
-            _selectedItems = _files.Select(f => f.name).ToHashSet();
+            _selectedItems = _files
+                .Select(f => f.name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(name => name!)
+                .ToHashSet();
         }
         else
         {

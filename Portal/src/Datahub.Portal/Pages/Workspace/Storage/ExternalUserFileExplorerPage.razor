@@ -1,4 +1,5 @@
 @page "/w/{WorkspaceAcronym}/storage-external"
+@attribute [ExternalUserPage]
 @using Datahub.Application.Services;
 @using Datahub.Core.Data;
 @using Datahub.Core.Model;
@@ -163,7 +164,7 @@
 
         _logger.LogInformation("Retrieved containers from external users storage account.");
 
-        // Check if external-users container exists
+        // Check if external-uploads container exists
         var externalUsersContainer = containerNames.FirstOrDefault(c => 
             c.Equals(containerName, StringComparison.OrdinalIgnoreCase));
 

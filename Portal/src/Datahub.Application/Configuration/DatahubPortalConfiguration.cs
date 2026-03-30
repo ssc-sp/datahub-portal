@@ -283,7 +283,7 @@ public class ExternalUsersStorage
     /// <summary>
     /// Container name for external users files
     /// </summary>
-    public string ContainerName { get; set; } = "external-users";
+    public string ContainerName { get; set; } = "external-uploads";
     
     /// <summary>
     /// Optional SAS token for development/testing. If provided, will be used instead of Key Vault account key.

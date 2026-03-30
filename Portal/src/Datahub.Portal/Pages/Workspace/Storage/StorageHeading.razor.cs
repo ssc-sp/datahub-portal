@@ -1,4 +1,5 @@
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
 
@@ -59,7 +60,8 @@ public partial class StorageHeading
 
         var publishFiles = SelectedItems
             .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
-            .Where(f => f is not null);
+            .Where(f => f is not null)
+            .Select(f => f!);
 
         await OnPublishFiles.InvokeAsync(publishFiles);
         //TODO telemetry
@@ -114,7 +116,7 @@ public partial class StorageHeading
         if (selectedFile is not null && _ownsSelectedFiles)
         {
             var newName = await _jsRuntime.InvokeAsync<string>("prompt", Localizer["Enter a new name for the file."].ToString(), 
-                FileExplorer.GetFileName(selectedFile.filename));
+                FileExplorer.GetFileName(selectedFile.filename ?? string.Empty));
             newName = newName?.Replace("/", "").Trim();
 
             await OnFileRename.InvokeAsync(newName);
@@ -174,17 +176,21 @@ public partial class StorageHeading
         if (_currentUserRole is null)
             return true;
 
+        var hasExternalStorageAccess = _currentUserRole.Id is (int)Project_Role.RoleNames.Storage or (int)Project_Role.RoleNames.WebAppAndStorage;
+        var canWriteStorage = _currentUserRole.IsAtLeastCollaborator || hasExternalStorageAccess;
+        var canReadStorage = _currentUserRole.IsAtLeastGuest || hasExternalStorageAccess;
+
         return buttonAction switch
         {
-            ButtonAction.Upload => !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Upload => !canWriteStorage,
             ButtonAction.AzSync => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastGuest,
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage,
             ButtonAction.Share => !_isUnclassifiedSingleFile,
-            ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
-            ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
+            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
+            ButtonAction.NewFolder => !canWriteStorage,
+            ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !canWriteStorage,
+            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             _ => false
         };
     }
