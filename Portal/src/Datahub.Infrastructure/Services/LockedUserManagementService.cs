@@ -1,6 +1,7 @@
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Users;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Infrastructure.Services;
@@ -119,88 +120,122 @@ public class LockedUserManagementService : ILockedUserManagementService
 
     public async Task<bool> IsUserLockedAsync(int portalUserId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-        // Get the most recent event for this user
-        var latestEvent = await context.ExternalUserLockAuditEvents
-            .Where(l => l.PortalUserId == portalUserId)
-            .OrderByDescending(l => l.EventDate)
-            .FirstOrDefaultAsync();
+            // Get the most recent event for this user
+            var latestEvent = await context.ExternalUserLockAuditEvents
+                .Where(l => l.PortalUserId == portalUserId)
+                .OrderByDescending(l => l.EventDate)
+                .FirstOrDefaultAsync();
 
-        return latestEvent != null && latestEvent.EventType == ExternalUserLockEventType.Locked;
+            return latestEvent != null && latestEvent.EventType == ExternalUserLockEventType.Locked;
+        }
+        catch (SqlException ex) when (IsMissingExternalUserLockAuditTable(ex))
+        {
+            return false;
+        }
     }
 
     public async Task<UserLockStatus?> GetUserLockStatusAsync(int portalUserId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        var events = await context.ExternalUserLockAuditEvents
-            .Include(l => l.User)
-            .Where(l => l.PortalUserId == portalUserId)
-            .OrderByDescending(l => l.EventDate)
-            .ToListAsync();
-
-        if (!events.Any())
-            return null;
-
-        var latestEvent = events.First();
-        var isLocked = latestEvent.EventType == ExternalUserLockEventType.Locked;
-
-        if (!isLocked)
-            return null;
-
-        var lockEvent = events.FirstOrDefault(e => e.EventType == ExternalUserLockEventType.Locked);
-        var latestEvidence = events.FirstOrDefault(e => !string.IsNullOrEmpty(e.EvidenceUrl));
-
-        return new UserLockStatus
+        try
         {
-            PortalUserId = portalUserId,
-            UserName = latestEvent.User?.DisplayName,
-            UserEmail = latestEvent.User?.Email,
-            IsLocked = true,
-            LockedDate = lockEvent?.EventDate,
-            LockReason = lockEvent?.Reason,
-            LatestEvidenceUrl = latestEvidence?.EvidenceUrl,
-            LatestEvidenceDate = latestEvidence?.EventDate,
-            LockEventCount = events.Count
-        };
+            await using var context = await _contextFactory.CreateDbContextAsync();
+
+            var events = await context.ExternalUserLockAuditEvents
+                .Include(l => l.User)
+                .Where(l => l.PortalUserId == portalUserId)
+                .OrderByDescending(l => l.EventDate)
+                .ToListAsync();
+
+            if (!events.Any())
+                return null;
+
+            var latestEvent = events.First();
+            var isLocked = latestEvent.EventType == ExternalUserLockEventType.Locked;
+
+            if (!isLocked)
+                return null;
+
+            var lockEvent = events.FirstOrDefault(e => e.EventType == ExternalUserLockEventType.Locked);
+            var latestEvidence = events.FirstOrDefault(e => !string.IsNullOrEmpty(e.EvidenceUrl));
+
+            return new UserLockStatus
+            {
+                PortalUserId = portalUserId,
+                UserName = latestEvent.User?.DisplayName,
+                UserEmail = latestEvent.User?.Email,
+                IsLocked = true,
+                LockedDate = lockEvent?.EventDate,
+                LockReason = lockEvent?.Reason,
+                LatestEvidenceUrl = latestEvidence?.EvidenceUrl,
+                LatestEvidenceDate = latestEvidence?.EventDate,
+                LockEventCount = events.Count
+            };
+        }
+        catch (SqlException ex) when (IsMissingExternalUserLockAuditTable(ex))
+        {
+            return null;
+        }
     }
 
     public async Task<List<UserLockStatus>> GetAllLockedUsersAsync()
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
-
-        // Get all users who have lock events
-        var userIds = await context.ExternalUserLockAuditEvents
-            .Select(l => l.PortalUserId)
-            .Distinct()
-            .ToListAsync();
-
-        var lockedUsers = new List<UserLockStatus>();
-
-        foreach (var userId in userIds)
+        try
         {
-            var status = await GetUserLockStatusAsync(userId);
-            if (status != null && status.IsLocked)
-            {
-                lockedUsers.Add(status);
-            }
-        }
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-        return lockedUsers;
+            // Get all users who have lock events
+            var userIds = await context.ExternalUserLockAuditEvents
+                .Select(l => l.PortalUserId)
+                .Distinct()
+                .ToListAsync();
+
+            var lockedUsers = new List<UserLockStatus>();
+
+            foreach (var userId in userIds)
+            {
+                var status = await GetUserLockStatusAsync(userId);
+                if (status != null && status.IsLocked)
+                {
+                    lockedUsers.Add(status);
+                }
+            }
+
+            return lockedUsers;
+        }
+        catch (SqlException ex) when (IsMissingExternalUserLockAuditTable(ex))
+        {
+            return new List<UserLockStatus>();
+        }
     }
 
     public async Task<List<ExternalUserLockAuditEvent>> GetUserLockHistoryAsync(int portalUserId)
     {
-        await using var context = await _contextFactory.CreateDbContextAsync();
+        try
+        {
+            await using var context = await _contextFactory.CreateDbContextAsync();
 
-        var query = context.ExternalUserLockAuditEvents
-            .Include(l => l.User)
-            .Include(l => l.PerformedByUser)
-            .Where(l => l.PortalUserId == portalUserId);
+            var query = context.ExternalUserLockAuditEvents
+                .Include(l => l.User)
+                .Include(l => l.PerformedByUser)
+                .Where(l => l.PortalUserId == portalUserId);
 
-        return await query
-            .OrderByDescending(l => l.EventDate)
-            .ToListAsync();
+            return await query
+                .OrderByDescending(l => l.EventDate)
+                .ToListAsync();
+        }
+        catch (SqlException ex) when (IsMissingExternalUserLockAuditTable(ex))
+        {
+            return new List<ExternalUserLockAuditEvent>();
+        }
+    }
+
+    private static bool IsMissingExternalUserLockAuditTable(SqlException exception)
+    {
+        return exception.Number == 208 &&
+               exception.Message.Contains("ExternalUserLockAuditEvents", StringComparison.OrdinalIgnoreCase);
     }
 }
