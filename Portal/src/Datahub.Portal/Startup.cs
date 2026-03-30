@@ -28,6 +28,7 @@ using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Search;
 using Datahub.Core.Services.Storage;
+using Datahub.Core.Model;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Offline;
@@ -484,6 +485,8 @@ public class Startup
 
         services.AddScoped<IDownloadService, DownloadService>();
         services.AddScoped<ICsvService, CsvService>();
+        
+        services.AddScoped<IFileScanService, FileScanService>();
 
         services.AddTransient<CorrelationIdHandler>();
         services.AddHttpClient<ExternalSearchService>()

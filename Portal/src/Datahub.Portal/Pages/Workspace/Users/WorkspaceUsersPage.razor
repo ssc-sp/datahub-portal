@@ -4,12 +4,17 @@
 @using Datahub.Portal.Components.User
 @using Datahub.Application.Commands
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Data
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Pages.Tools.LockedUsers
 
 
 @inject IUserInformationService _userInformationService
 @inject IProjectUserManagementService _projectUserManagementService
+@inject ILockedUserManagementService _lockedUserManagementService
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 
 @if (_updateInProgress)
 {
@@ -180,6 +185,7 @@
             @Localizer["Added to Workspace"]
           </MudTableSortLabel>
         </MudTh>
+        <MudTh>@Localizer["Status"]</MudTh>
         <MudTh></MudTh>
       </HeaderContent>
 
@@ -229,6 +235,31 @@
           }
         </MudTd>
         <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
+          @if (TryGetLockedUser(rowContext, out var lockStatus))
+          {
+            <MudStack>
+              <MudText Color="Color.Warning">
+                @Localizer["Account Locked"]
+              </MudText>
+              @if (lockStatus != null)
+              {
+                <MudText Typo="Typo.caption">
+                  @Localizer["Locked on"]: @lockStatus.LockedDate?.ToString("yyyy-MM-dd HH:mm")
+                </MudText>
+                <DHButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary" OnClick="@(async () => await OpenUploadEvidenceDialog(rowContext.PortalUser))">
+                  @Localizer["Upload Evidence"]
+                </DHButton>
+              }
+            </MudStack>
+          }
+          else
+          {
+            <MudText Color="Color.Success">
+              @Localizer["Active"]
+            </MudText>
+          }
+        </MudTd>
+        <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
           <UserViewProfileIconButton ViewedUser="@rowContext.PortalUser" />
         </MudTd>
       </RowTemplate>
@@ -266,6 +297,8 @@
 
   private List<UserRoleLinks> _projectUsers;
   private List<WorkspaceUserInfo> _originalUserInfo = new();
+  private Dictionary<int, UserLockStatus> _lockedUsersByPortalUserId = new();
+  private int? _workspaceId;
 
   private int? _currentRoleFilter = default;
 

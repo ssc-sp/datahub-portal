@@ -1,0 +1,212 @@
+@using Datahub.Application.Services
+@using Datahub.Core.Model.Users
+@using Datahub.Application.Services.Notification
+@using Datahub.Core.Data
+@using Azure.Storage.Blobs
+@using Azure.Storage.Sas
+@using Microsoft.AspNetCore.Components.Forms
+@using MudBlazor
+
+@inject IConfiguration _configuration
+@inject IUserInformationService _userInformationService
+@inject ILockedUserManagementService _lockedUserManagementService
+@inject IProjectUserManagementService _projectUserManagementService
+@inject IGCNotifyService _gcNotifyService
+@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISnackbar _snackbar
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="4">
+            <MudAlert Severity="Severity.Info">
+                @Localizer["Please upload a screenshot of a clean virus scan from the affected user's system. DataHub administrators will review this evidence."]
+            </MudAlert>
+
+            <MudText Typo="Typo.h6">@Localizer["User Information"]</MudText>
+            <MudText Typo="Typo.body2">
+                <strong>@Localizer["Name"]:</strong> @User?.DisplayName
+            </MudText>
+            <MudText Typo="Typo.body2">
+                <strong>@Localizer["Email"]:</strong> @User?.Email
+            </MudText>
+
+            <MudFileUpload T="IBrowserFile" 
+                          Accept=".png,.jpg,.jpeg,.pdf" 
+                          FilesChanged="OnFileSelected"
+                          MaximumFileCount="1">
+                <ActivatorContent>
+                    <DHButton Variant="Variant.Filled"
+                             Color="Color.Primary"
+                             StartIcon="@Icons.Material.Filled.CloudUpload">
+                        @Localizer["Select File"]
+                    </DHButton>
+                </ActivatorContent>
+            </MudFileUpload>
+
+            @if (_selectedFile != null)
+            {
+                <MudChip T="string" Color="Color.Success" Icon="@Icons.Material.Filled.AttachFile">
+                    @_selectedFile.Name (@FormatFileSize(_selectedFile.Size))
+                </MudChip>
+            }
+
+            @if (_uploadProgress > 0)
+            {
+                <MudProgressLinear Value="_uploadProgress" Color="Color.Primary" Size="Size.Medium"/>
+                <MudText Typo="Typo.caption">@Localizer["Uploading... {0}%", _uploadProgress.ToString("F0")]</MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <DHButton OnClick="Cancel" Variant="Variant.Text">@Localizer["Cancel"]</DHButton>
+        <DHButton OnClick="Upload" 
+                 Variant="Variant.Filled" 
+                 Color="Color.Primary" 
+                 Disabled="@(_selectedFile == null || _uploading)">
+            @Localizer["Upload"]
+        </DHButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter] public PortalUser? User { get; set; }
+    [Parameter] public int? WorkspaceId { get; set; }
+    [Parameter] public string? WorkspaceAcronym { get; set; }
+
+    private IBrowserFile? _selectedFile;
+    private bool _uploading;
+    private double _uploadProgress;
+    private bool _isExternalUser = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isExternalUser = await _userInformationService.IsExternalUser();
+    }
+
+    private void OnFileSelected(IBrowserFile file)
+    {
+        _selectedFile = file;
+        StateHasChanged();
+    }
+
+    private async Task Upload()
+    {
+        if (_selectedFile == null || User == null || WorkspaceId == null)
+            return;
+
+        _uploading = true;
+        _uploadProgress = 0;
+        StateHasChanged();
+
+        try
+        {
+            var connectionString = _configuration.GetConnectionString("VirusScanEvidence");
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                _snackbar.Add(Localizer["Evidence storage connection string is not configured."], Severity.Error);
+                return;
+            }
+
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            
+            // Determine container and path based on user type
+            string containerName = _isExternalUser ? "external-uploads" : "virus-scan-evidence";
+            string safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
+            string blobName = _isExternalUser
+                ? $"{User.Email?.Split('@')[0]}/{Guid.NewGuid()}-{safeFileName}"
+                : $"{WorkspaceId}/{User.Id}/{Guid.NewGuid()}-{safeFileName}";
+
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
+            await containerClient.CreateIfNotExistsAsync();
+
+            var blobClient = containerClient.GetBlobClient(blobName);
+            await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
+
+            // Generate SAS with appropriate permissions
+            var sasPermissions = _isExternalUser 
+                ? BlobSasPermissions.Write  // Write-only for external users
+                : BlobSasPermissions.Read;   // Read for internal (admin review)
+            
+            var evidenceUrl = blobClient.CanGenerateSasUri
+                ? blobClient.GenerateSasUri(sasPermissions, DateTimeOffset.UtcNow.AddDays(7)).ToString()
+                : blobClient.Uri.ToString();
+
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+            {
+                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                return;
+            }
+
+            // Record evidence upload
+            await _lockedUserManagementService.RecordEvidenceUploadAsync(
+                User.Id,
+                WorkspaceId.Value,
+                evidenceUrl);
+
+            // Notify workspace lead if this is an evidence upload (not external user)
+            if (!_isExternalUser && !string.IsNullOrWhiteSpace(WorkspaceAcronym))
+            {
+                await NotifyWorkspaceLeadOfEvidenceUpload(WorkspaceAcronym, User, safeFileName);
+            }
+
+            _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(true));
+        }
+        catch (Exception ex)
+        {
+            _snackbar.Add(Localizer["Failed to upload evidence: {0}", ex.Message], Severity.Error);
+        }
+        finally
+        {
+            _uploading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task NotifyWorkspaceLeadOfEvidenceUpload(string projectAcronym, PortalUser user, string fileName)
+    {
+        try
+        {
+            var projectLead = await _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
+            if (projectLead?.PortalUser?.Email == null)
+            {
+                return; // No project lead or email
+            }
+
+            // Send notification to workspace lead about evidence upload
+            var subject = $"Evidence Uploaded - User {user.DisplayName} - {projectAcronym}";
+            var message = $"User {user.DisplayName} ({user.Email}) has uploaded virus scan evidence ({fileName}) " +
+                         $"for the workspace {projectAcronym}. Please review and unlock when appropriate.";
+
+            // You could use IGCNotifyService or send email directly
+            // For now, we'll log it and could extend with actual email sending
+            System.Diagnostics.Debug.WriteLine($"NotifyWorkspaceLeadOfEvidenceUpload: {subject} - {message}");
+        }
+        catch (Exception ex)
+        {
+            // Log error but don't fail the upload
+            System.Diagnostics.Debug.WriteLine($"Failed to notify workspace lead: {ex.Message}");
+        }
+    }
+
+    private void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    private string FormatFileSize(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        double len = bytes;
+        int order = 0;
+        while (len >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            len = len / 1024;
+        }
+        return $"{len:0.##} {sizes[order]}";
+    }
+}
