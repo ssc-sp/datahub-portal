@@ -30,7 +30,8 @@
   },
   "ConnectionStrings": {
     "datahub_mssql_project": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Initial Catalog=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-projectdb);Persist Security Info=False;$sqlCreds;MultipleActiveResultSets=False;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;",
-    "datahub_mssql_metadata": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Database=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=dh-portal-metadatadb);$sqlCreds;Encrypt=True;Trusted_Connection=False;"
+    "datahub_mssql_metadata": "Server=tcp:@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-mssql-server),1433;Database=@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=dh-portal-metadatadb);$sqlCreds;Encrypt=True;Trusted_Connection=False;",
+    "VirusScanEvidence": "@Microsoft.KeyVault(VaultName=fsdh-key-$Environment;SecretName=datahub-virus-scan-evidence-connection-string)"
   },
   "AzureAd": {
     "Domain": "$domain",
