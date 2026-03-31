@@ -90,7 +90,7 @@
     private string GetStorageUrl()
     {
         return _isExternalUser
-            ? $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/storage-external"
+            ? $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/s-ext"
             : $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Storage}";
     }
 

@@ -257,7 +257,7 @@ else
         var dialogParams = new DialogParameters
         {
             { "FileName", fileName },
-            { "ErrorMessage", scanResult.ErrorMessage ?? "An error occurred while scanning the file." }
+            { "ErrorMessage", scanResult.ErrorMessage ?? Localizer["An error occurred while scanning the file."] }
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };

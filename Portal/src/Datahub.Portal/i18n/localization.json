@@ -2503,6 +2503,7 @@
   "Scanning": "Scanning",
   "Succeeded": "Succeeded",
   "Containers": "Containers",
+  "An error occurred while scanning the file.": "An error occurred while scanning the file.",
   "File cannot be accessed until scan is successful.": "File cannot be accessed until scan is successful.",
   "Scan Error": "Scan Error",
   "Scan Result": "Scan Result",
