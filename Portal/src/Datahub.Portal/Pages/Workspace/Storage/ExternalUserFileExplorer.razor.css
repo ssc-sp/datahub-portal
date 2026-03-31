@@ -1,0 +1,79 @@
+/* External User File Explorer Styles */
+
+/* Header styles - current component scope */
+div.file-explorer-layout.external-user-file-explorer .file-list .file-list-header {
+    display: grid !important;
+    grid-template-columns: 36px 40% 10% 20% 30% !important;
+    gap: 8px !important;
+    align-items: center;
+    padding: 8px;
+}
+
+/* File item styles - nested component scope requires ::deep */
+div.file-explorer-layout.external-user-file-explorer .file-list ::deep .file-item {
+    display: grid !important;
+    grid-template-columns: 36px 40% 10% 20% 30% !important;
+    gap: 8px !important;
+    align-items: center;
+    padding: 8px;
+}
+
+/* Style header children directly */
+div.file-explorer-layout.external-user-file-explorer .file-list .file-list-header > margin {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block;
+}
+
+/* Match MudText in header */
+div.file-explorer-layout.external-user-file-explorer .file-list .file-list-header > .mud-typography {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    display: block !important;
+    margin: 0 !important;
+}
+
+/* File name and modified in ITEMS (nested component) */
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-name,
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-modified {
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+    display: block !important;
+}
+
+/* Scan status alignment */
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-scan-status {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+/* Scan status chips */
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-scan-status .mud-chip {
+    height: 32px !important;
+    font-size: 0.875rem !important;
+    padding: 0 12px !important;
+}
+
+/* Fixed width for scan status chips to ensure alignment */
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-scan-status .mud-chip.scan-status-chip {
+    width: 140px !important;
+    justify-content: center;
+}
+
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-scan-status .mud-chip .mud-chip-content {
+    gap: 6px;
+    width: 100%;
+    justify-content: center;
+}
+
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-scan-status .mud-chip-error {
+    cursor: pointer;
+}
+
+div.file-explorer-layout.external-user-file-explorer ::deep .file-item-scan-status .mud-chip-error:hover {
+    opacity: 0.8;
+}

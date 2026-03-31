@@ -17,6 +17,8 @@ public static class QueueConstants
     public const string UserInactivityNotification = "user-inactivity-notification";
     public const string TerraformOutputHandlerQueueName = "terraform-output-handler";
     public const string WorkspaceAppServiceConfigurationQueueName = "workspace-app-service-configuration";
+    public const string VirusScanNotificationQueueName = "virus-scan-notification";
+    public const string VirusScanUserStatusQueueName = "virus-scan-user-status";
 
     // Synchronization output queues
     public const string DatabricksSyncOutputQueueName = "databricks-sync-output";

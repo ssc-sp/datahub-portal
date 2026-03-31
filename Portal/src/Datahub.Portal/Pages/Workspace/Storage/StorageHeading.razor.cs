@@ -27,6 +27,11 @@ public partial class StorageHeading
         await _module.InvokeVoidAsync("promptForFileUpload");
     }
 
+    private async Task HandleBackToContainers()
+    {
+        await OnBackToContainers.InvokeAsync();
+    }
+
     private async Task HandleDownload()
     {
         if (IsActionDisabled(ButtonAction.Download))

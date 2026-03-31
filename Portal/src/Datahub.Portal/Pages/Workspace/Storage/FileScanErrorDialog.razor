@@ -1,0 +1,42 @@
+@using Datahub.Core.Model
+@using MudBlazor
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudAlert Severity="Severity.Error">
+                <MudText>@Localizer["An error occurred while scanning the file {0}. Please try again.", FileName]</MudText>
+            </MudAlert>
+            
+            @if (!string.IsNullOrEmpty(ErrorMessage))
+            {
+                <MudText Typo="Typo.body2">
+                    <strong>@Localizer["Error Details:"]</strong><br />
+                    @ErrorMessage
+                </MudText>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="Submit">@Localizer["OK"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] 
+    IMudDialogInstance MudDialog { get; set; }
+
+    [Parameter] public string FileName { get; set; }
+    [Parameter] public string ErrorMessage { get; set; }
+
+    void Submit()
+    {
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    void Cancel()
+    {
+        MudDialog.Cancel();
+    }
+}
