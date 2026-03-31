@@ -3517,7 +3517,7 @@
   "Loading invitation...": "Chargement de l'invitation...",
   "Validation code": "Code de validation",
   "Verify your invitation": "Vérifiez votre invitation",
-  "Enter the validation code from your invitation email.": "Entrez le code de validation de votre e-mail d'invitation.",
+  "Enter the validation code provided by your workspace lead.": "Entrez le code de validation fourni par votre responsable d'espace de travail.",
   "Validate code": "Valider le code",
   "Please sign in with your account before validating this invitation.": "Veuillez vous connecter avec votre compte avant de valider cette invitation.",
   "Last Login": "Dernière connexion",
