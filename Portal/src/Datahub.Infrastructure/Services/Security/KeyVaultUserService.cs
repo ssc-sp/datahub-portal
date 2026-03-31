@@ -7,6 +7,7 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.KeyVault.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Web;
+using Microsoft.Identity.Client;
 using System.Text.RegularExpressions;
 using Datahub.Application.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -50,10 +51,20 @@ namespace Datahub.Infrastructure.Services.Security
                 _vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme, user: user);
                 _keyVaultClient = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(GetUserAccessToken));
             }
+            catch (MicrosoftIdentityWebChallengeUserException ex)
+            {
+                _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context due to user challenge/consent issue. Falling back to app context.");
+                AuthenticateWithAppContext();
+            }
+            catch (MsalUiRequiredException ex)
+            {
+                _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context due to identity error. Falling back to app context.");
+                AuthenticateWithAppContext();
+            }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context. Falling back to app context.");
-                AuthenticateWithAppContext();
+                _logger.LogError(ex, "Unexpected error while authenticating Key Vault with user context.");
+                throw;
             }
         }
 
