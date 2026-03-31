@@ -205,7 +205,7 @@
 
         if (_isExternalUser)
         {
-            NavigationManager.NavigateTo($"/w/{WorkspaceAcronym}/s-ext", forceLoad: true);
+            NavigationManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WorkspaceExternalStoragePrefix}", forceLoad: true);
             return;
         }
 

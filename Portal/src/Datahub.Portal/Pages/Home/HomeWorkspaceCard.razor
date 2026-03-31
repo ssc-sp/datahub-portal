@@ -283,7 +283,7 @@
         {
             TerraformTemplate.AzureStorageBlob => IsEntraUser
                 ? $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspaceStoragePrefix}"
-                : $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/s-ext",
+                : $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspaceExternalStoragePrefix}",
             TerraformTemplate.AzureDatabricks => TerraformVariableExtraction.ExtractDatabricksUrl(Workspace, CultureService.IsFrench)!,
             TerraformTemplate.AzurePostgres => $"/{PageRoutes.WorkspacePrefix}/{Workspace?.Project_Acronym_CD}/{PageRoutes.WorkspacePostgresPrefix}",
             TerraformTemplate.AzureAppService => PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", Workspace!.Project_Acronym_CD),

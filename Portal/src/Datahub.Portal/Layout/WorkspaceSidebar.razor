@@ -411,7 +411,7 @@
     {
         if (sectionView == SectionViews.Storage && _isExternalUser)
         {
-            return $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/s-ext";
+            return $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WorkspaceExternalStoragePrefix}";
         }
 
         return sectionView switch
