@@ -100,7 +100,7 @@
                     <ul>
                         @foreach (var toolSection in _workspaceTools.Where(ShouldToolBeShown))
                         {
-                            <DatahubAuthView AuthLevel="@(toolSection == SectionViews.Storage && _isExternalUser ? DatahubAuthView.AuthLevels.Authenticated : GetAuthLevel(toolSection))"
+                            <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
                                              ProjectAcronym="@WorkspaceAcronym"
                                              AllowedUsers="@GetAllowedUsers(toolSection)"
                                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">

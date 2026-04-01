@@ -1,13 +1,16 @@
 @using Datahub.Application.Services
 @using Datahub.Application.Services.Publishing
+@using Datahub.Core.Data
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
+@using Microsoft.AspNetCore.Components.Authorization
 @inject DatahubPortalConfiguration _config
 @inject IOpenDataPublishingService _publishingService
 @inject IDialogService _dialogService
 @inject IUserInformationService _userInformationService
 
-
+@if (!_isExternalUser || _canAccessExternalStorage)
+{
 <MudPaper Outlined Class="pa-4">
     <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
@@ -62,11 +65,16 @@
         </MudElement>
     </MudStack>
 </MudPaper>
+}
 
 @code {
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
     private bool _isPublishingBlockedForWorkspace = false;
     private bool _isExternalUser = false;
+    private bool _canAccessExternalStorage = false;
 
     [Parameter]
     [EditorRequired]
@@ -83,7 +91,12 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+
         _isExternalUser = await _userInformationService.IsExternalUser();
+        _canAccessExternalStorage = !string.IsNullOrWhiteSpace(WorkspaceAcronym)
+            && user.IsInRole($"{WorkspaceAcronym}{RoleConstants.STORAGE_SUFFIX}");
         _isPublishingBlockedForWorkspace = await _publishingService.IsPublishingBlockedForWorkspaceAsync(WorkspaceAcronym);
     }
 

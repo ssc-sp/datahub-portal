@@ -13,6 +13,7 @@
 @using Microsoft.Extensions.Options
 @using Microsoft.Graph.Models;
 @using Microsoft.Identity.Web;
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -21,6 +22,7 @@
 @inject ILogger<ExternalUserFileExplorerPage> _logger
 @inject IKeyVaultUserService keyVaultUserService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject NavigationManager _navigationManager
 
 
 <!--suppress CssUnresolvedCustomProperty -->
@@ -74,6 +76,9 @@
 
 @code {
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
     [Parameter] public string WorkspaceAcronym { get; set; }
 
     private Datahub_Project? _project;
@@ -102,6 +107,15 @@
         var acronym = _project?.Project_Acronym_CD;
         _title = $"{acronym} - {Localizer["Storage"]}";
         _projectId = _project?.Project_ID;
+
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (!string.IsNullOrWhiteSpace(WorkspaceAcronym)
+            && !user.IsInRole($"{WorkspaceAcronym}{RoleConstants.STORAGE_SUFFIX}"))
+        {
+            _navigationManager.NavigateTo(PageRoutes.AccessDenied, forceLoad: true);
+            return;
+        }
         
         try
         {

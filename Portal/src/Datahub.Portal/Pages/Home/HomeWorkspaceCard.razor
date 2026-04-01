@@ -6,7 +6,10 @@
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Shared.Entities
 @using Datahub.Shared
+@using Datahub.Core.Data
+@using System.Security.Claims
 @using Microsoft.Extensions.Caching.Memory
+@using Microsoft.AspNetCore.Components.Authorization
 @using MudBlazor.Utilities
 @using Datahub.Portal.Pages.Explore
 
@@ -116,6 +119,9 @@
 
 @code {
 
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
 	// Params
 	[Parameter] public required Datahub_Project Workspace { get; set; }
 	[Parameter] public bool ShowCost { get; set; } = false;
@@ -190,6 +196,7 @@
 	// Display state
 	private int NumberOfUsers;
 	private bool IsEntraUser;
+    private ClaimsPrincipal? _authenticatedUser;
 	private int NumberOfRepositories => Workspace?.Repositories?.Count ?? 0;
 	private static List<string> EntraToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureDatabricks, TerraformTemplate.AzurePostgres, TerraformTemplate.AzureAppService];
 	private static List<string> ExternalToolActions => [TerraformTemplate.AzureStorageBlob, TerraformTemplate.AzureAppService];
@@ -205,6 +212,9 @@
 
 	protected override async Task OnInitializedAsync()
 	{
+        var authState = await AuthenticationStateTask;
+        _authenticatedUser = authState.User;
+
 		IsEntraUser = await UserInformationService.IsEntraUser();
 		if (!IsEntraUser)
 		{
@@ -262,7 +272,29 @@
 
     private bool ToolExists(string toolName)
     {
-        return Workspace.Resources.Any(x => x.ResourceType == TerraformTemplate.GetTerraformServiceType(toolName) && x.Status == TerraformStatus.Completed);
+        return Workspace.Resources.Any(x => x.ResourceType == TerraformTemplate.GetTerraformServiceType(toolName) && x.Status == TerraformStatus.Completed)
+            && UserCanAccessTool(toolName);
+    }
+
+    private bool UserCanAccessTool(string toolName)
+    {
+        if (IsEntraUser)
+        {
+            return true;
+        }
+
+        if (_authenticatedUser is null || string.IsNullOrWhiteSpace(Workspace?.Project_Acronym_CD))
+        {
+            return false;
+        }
+
+        var projectAcronym = Workspace.Project_Acronym_CD;
+        return toolName switch
+        {
+            TerraformTemplate.AzureStorageBlob => _authenticatedUser.IsInRole($"{projectAcronym}{RoleConstants.STORAGE_SUFFIX}"),
+            TerraformTemplate.AzureAppService => _authenticatedUser.IsInRole($"{projectAcronym}{RoleConstants.WEBAPP_SUFFIX}"),
+            _ => false
+        };
     }
 
     private string ToolLabel(string toolName)
