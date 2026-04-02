@@ -3,6 +3,26 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.7.0](https://github.com/ssc-sp/datahub-portal/compare/v8.6.0...v8.7.0) (2026-04-02)
+
+
+### Features
+
+* Added unit tests for external invitation service ([#1902](https://github.com/ssc-sp/datahub-portal/issues/1902)) ([ea6771d](https://github.com/ssc-sp/datahub-portal/commit/ea6771d1a680a449722a77377232e87f5d2a213f))
+* bilingual URL in external user invitation email ([#1906](https://github.com/ssc-sp/datahub-portal/issues/1906)) ([62ebb5f](https://github.com/ssc-sp/datahub-portal/commit/62ebb5f07c177df1d7888950200d84647ed322d3))
+* storage explorer changes for external users ([#1848](https://github.com/ssc-sp/datahub-portal/issues/1848)) ([a1671e4](https://github.com/ssc-sp/datahub-portal/commit/a1671e43a8041b5967092563484c5e3da2b767db))
+* Workspace invitation services and complete workflow ([#1900](https://github.com/ssc-sp/datahub-portal/issues/1900)) ([3e7aa0b](https://github.com/ssc-sp/datahub-portal/commit/3e7aa0b96d6bb84debd78a63e19661fecf593387))
+
+
+### Bug Fixes
+
+* added missing url escape ([#1905](https://github.com/ssc-sp/datahub-portal/issues/1905)) ([292a2ca](https://github.com/ssc-sp/datahub-portal/commit/292a2caffcf1933fe4474b1d763ac829617bd536))
+* added url fix for culturecontroller redirects ([#1907](https://github.com/ssc-sp/datahub-portal/issues/1907)) ([16cff48](https://github.com/ssc-sp/datahub-portal/commit/16cff4868d036f2ff3fdc3c178a1811a13c00a64))
+* Attempting to fix a crash when admin access is enabled in a workspace ([#1915](https://github.com/ssc-sp/datahub-portal/issues/1915)) ([53c78c0](https://github.com/ssc-sp/datahub-portal/commit/53c78c0e6a95011bb3484e5a70b6b9fc05ce41c4))
+* Fixing failure to invite new users ([#1916](https://github.com/ssc-sp/datahub-portal/issues/1916)) ([007a006](https://github.com/ssc-sp/datahub-portal/commit/007a0065d7d560503152bf18a52794f2a1ff6040))
+* gccf additional fixes ([#1908](https://github.com/ssc-sp/datahub-portal/issues/1908)) ([47a80c6](https://github.com/ssc-sp/datahub-portal/commit/47a80c67a690a014d525be5f8a98be8c6ae28b4b))
+* Swapping disable, invite terms ([#1912](https://github.com/ssc-sp/datahub-portal/issues/1912)) ([3516965](https://github.com/ssc-sp/datahub-portal/commit/3516965b8d7cad87a7e34e29c657377110f9908b))
+
 ## [8.6.0](https://github.com/ssc-sp/datahub-portal/compare/v8.5.0...v8.6.0) (2026-03-16)
 
 
