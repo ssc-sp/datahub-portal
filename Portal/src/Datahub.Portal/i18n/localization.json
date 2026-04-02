@@ -2561,7 +2561,7 @@
   "Loading invitation...": "Loading invitation...",
   "Validation code": "Validation code",
   "Verify your invitation": "Verify your invitation",
-  "Enter the validation code from your invitation email.": "Enter the validation code from your invitation email.",
+  "Enter the validation code provided by your workspace lead.": "Enter the validation code provided by your workspace lead.",
   "Validate code": "Validate code",
   "Please sign in with your account before validating this invitation.": "Please sign in with your account before validating this invitation.",
   "Last Login": "Last Login",
