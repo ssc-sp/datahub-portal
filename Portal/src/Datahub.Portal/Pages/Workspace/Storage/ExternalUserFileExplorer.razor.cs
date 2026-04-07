@@ -14,6 +14,58 @@ public partial class ExternalUserFileExplorer
     private readonly object _uploadingFilesLock = new();
     private string? _lastContainerName;
 
+    private void InitializeUserRootFolder()
+    {
+        var userFolder = GetSafeUserFolderName();
+        _root = $"{userFolder}/";
+
+        if (string.IsNullOrWhiteSpace(_currentFolder) || _currentFolder == "/" || !IsPathWithinUserRoot(_currentFolder))
+        {
+            _currentFolder = _root;
+        }
+
+        _selectedItems = new HashSet<string> { _currentFolder };
+    }
+
+    private string GetSafeUserFolderName()
+    {
+        var emailPrefix = PortalUser?.Email?.Split('@')[0] ?? string.Empty;
+        var sanitized = new string(emailPrefix
+            .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
+            .ToArray())
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(sanitized) ? "external-user" : sanitized.ToLowerInvariant();
+    }
+
+    private bool IsPathWithinUserRoot(string path)
+    {
+        var rootPrefix = _root.Trim('/');
+        var candidate = (path ?? string.Empty).Trim('/');
+
+        if (string.IsNullOrWhiteSpace(rootPrefix))
+            return false;
+
+        return candidate.Equals(rootPrefix, StringComparison.OrdinalIgnoreCase)
+            || candidate.StartsWith(rootPrefix + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private async Task EnsureUserRootFolderAsync(string containerName)
+    {
+        var userFolder = _root.TrimEnd('/');
+        if (string.IsNullOrWhiteSpace(userFolder))
+            return;
+
+        try
+        {
+            await StorageManager.CreateFolderAsync(containerName, string.Empty, userFolder);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "User root folder {Folder} already exists or could not be created explicitly.", userFolder);
+        }
+    }
+
     private async Task LoadContainersAsync()
     {
         _loading = true;
@@ -31,6 +83,9 @@ public partial class ExternalUserFileExplorer
             _availableContainers = new List<string> { ContainerName };
             _selectedContainerName = ContainerName;
             _showingContainers = false;
+
+            InitializeUserRootFolder();
+            await EnsureUserRootFolderAsync(_selectedContainerName);
 
             // Load metadata and content immediately for the allowed container.
             StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(_selectedContainerName);
@@ -349,6 +404,12 @@ public partial class ExternalUserFileExplorer
 
     private async Task SetCurrentFolder(string folderName)
     {
+        if (!IsPathWithinUserRoot(folderName))
+        {
+            _logger.LogWarning("Attempt to navigate outside user root was blocked. Requested: {Folder}", folderName);
+            folderName = _root;
+        }
+
         _currentFolder = folderName;
         _selectedItems = new HashSet<string> { folderName };
         await RefreshStoragePageAsync();
@@ -361,6 +422,12 @@ public partial class ExternalUserFileExplorer
 
     private async Task UploadFiles(InputFileChangeEventArgs e, string folderName)
     {
+        if (!IsPathWithinUserRoot(folderName))
+        {
+            _logger.LogWarning("Attempt to upload outside user root was blocked. Requested folder: {Folder}", folderName);
+            return;
+        }
+
         var uploadBatchId = GenerateUploadBatchId();
 
         foreach (var browserFile in e.GetMultipleFiles())
