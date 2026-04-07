@@ -146,12 +146,18 @@ else
 			var userLanguageSetting = await _userSettingsService.GetUserLanguage();
 			var finalUserLanguage = await CultureService.GetLanguageFromLocalStorageAsync();
 			var currentLocalization = Thread.CurrentThread.CurrentCulture.Name;
-			if (!currentLocalization.Equals(finalUserLanguage, StringComparison.OrdinalIgnoreCase))
+
+			if (string.IsNullOrWhiteSpace(finalUserLanguage))
+			{
+				finalUserLanguage = currentLocalization;
+			}
+
+			if (!string.Equals(currentLocalization, finalUserLanguage, StringComparison.OrdinalIgnoreCase))
 			{
 				finalUserLanguage = currentLocalization;
 				await CultureService.SetLanguageInLocalStorageAsync(finalUserLanguage);
 			}
-			if (!userLanguageSetting.Equals(finalUserLanguage, StringComparison.OrdinalIgnoreCase))
+			if (!string.Equals(userLanguageSetting, finalUserLanguage, StringComparison.OrdinalIgnoreCase))
 			{
 				await _userSettingsService.SaveUserLanguage(finalUserLanguage);
 			}
