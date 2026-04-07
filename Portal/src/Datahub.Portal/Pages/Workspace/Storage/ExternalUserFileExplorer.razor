@@ -9,7 +9,6 @@
 @using Datahub.Application.Services.UserManagement
 
 @inject IUserInformationService _userInformationService
-@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IJSRuntime _jsRuntime
 @inject IPortalUserTelemetryService _telemetryService
 @inject IDialogService _dialogService
@@ -25,78 +24,38 @@
 {
     <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
         <div class="file-explorer-layout external-user-file-explorer">
-            @if (!_showingContainers)
-            {
-                <StorageHeading
-                    CurrentFolder="@_currentFolder"
-                    SelectedItems="@_selectedItems"
-                    Files="@_files"
-                    Folders="@_folders"
-                    MetadataSignature=@_metadataSignature
-                    SetCurrentFolder="SetCurrentFolder"
-                    OnFileDelete="HandleFilesDelete"
-                    OnFileDownload="HandleFileDownloadWithScanCheck"
-                    OnFileRename="HandleFileRename"
-                    ShowNewFolder="false"
-                    ShowDeleteFolder="false"
-                    ShowPublish="false"
-                    ShowBackToContainers="true"
-                    OnBackToContainers="BackToContainers" />
-            }
-            else
-            {
-                <div class="storage-breadcrumbs">
-                    <MudText Typo="Typo.h3">@Localizer["Containers"]</MudText>
-                </div>
-            }
+            <StorageHeading
+                CurrentFolder="@_currentFolder"
+                SelectedItems="@_selectedItems"
+                Files="@_files"
+                Folders="@_folders"
+                MetadataSignature=@_metadataSignature
+                SetCurrentFolder="SetCurrentFolder"
+                OnFileDelete="HandleFilesDelete"
+                OnFileDownload="HandleFileDownloadWithScanCheck"
+                OnFileRename="HandleFileRename"
+                ShowNewFolder="false"
+                ShowDeleteFolder="false"
+                ShowPublish="false"
+                ShowBackToContainers="false" />
 
             <div class="file-list">
-                @if (!_showingContainers)
-                {
-                    <div class="file-list-header">
-                        <div>
-                            <span class="file-selection-icon" @onclick="ToggleSelectAllFiles">
-                                <i class="far fa-circle unchecked" style="display: @(!_allFilesSelected ? "inline" : "none")"></i>
-                                <i class="fas fa-check-circle checked" style="display: @(_allFilesSelected ? "inline" : "none")"></i>
-                            </span>
-                        </div>
-                        <MudText>@Localizer["Name"]</MudText>
-                        <MudText>@Localizer["Size"]</MudText>
-                        <MudText>@Localizer["Last Modified"]</MudText>
-                        <MudText>@Localizer["Scan Result"]</MudText>
+                <div class="file-list-header">
+                    <div>
+                        <span class="file-selection-icon" @onclick="ToggleSelectAllFiles">
+                            <i class="far fa-circle unchecked" style="display: @(!_allFilesSelected ? "inline" : "none")"></i>
+                            <i class="fas fa-check-circle checked" style="display: @(_allFilesSelected ? "inline" : "none")"></i>
+                        </span>
                     </div>
-                }
-                else
-                {
-                    <div class="file-list-header">
-                        <div></div>
-                        <MudText>@Localizer["Container Name"]</MudText>
-                        <MudText></MudText>
-                        <MudText></MudText>
-                        <MudText></MudText>
-                    </div>
-                }
+                    <MudText>@Localizer["Name"]</MudText>
+                    <MudText>@Localizer["Size"]</MudText>
+                    <MudText>@Localizer["Last Modified"]</MudText>
+                    <MudText>@Localizer["Scan Result"]</MudText>
+                </div>
 
                 @if (_loading)
                 {
                     <LoadingFileList/>
-                }
-                else if (_showingContainers)
-                {
-                    @foreach (var containerName in _availableContainers.OrderBy(c => c.ToLower()))
-                    {
-                        <ExternalUserFileItem
-                            Name="@containerName"
-                            Folder
-                            ScanStatus="null"
-                            Highlighted="_selectedItems.Contains(containerName)"
-                            @onclick="@(() => ToggleContainerSelection(containerName))"
-                            @ondblclick="async () => await SelectContainer(containerName)">
-                            <Icon>
-                                <i class="fas fa-database"></i>
-                            </Icon>
-                        </ExternalUserFileItem>
-                    }
                 }
                 else
                 {
@@ -122,7 +81,7 @@
                             }
                             @foreach (var folderName in _folders
                                               .Where(f => f?.Contains(_filterValue) ?? false)
-                                              .OrderBy(f => f.ToLower()))
+                                              .OrderBy(f => (f ?? string.Empty).ToLower()))
                             {
                                 <DropZone
                                     OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
@@ -142,18 +101,19 @@
                             }
                             @foreach (var file in _files
                                               .Where(f => f?.name?.Contains(_filterValue) ?? false)
-                                              .OrderBy(f => f.name.ToLower()))
+                                              .OrderBy(f => (f.name ?? string.Empty).ToLower()))
                             {
-                                var scanResult = GetFileScanResult(file.name);
+                                var fileName = file.name ?? string.Empty;
+                                var scanResult = GetFileScanResult(fileName);
                                 <ExternalUserFileItem
-                                    Name="@GetFileName(file.name)"
+                                    Name="@GetFileName(fileName)"
                                     Modified="@file.Modified"
                                     Size="@file.filesize"
                                     ScanStatus="@scanResult?.Status"
-                                    OnScanErrorClick="@(() => ShowScanErrorDialog(file.name, scanResult))"
-                                    @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
-                                    OnSelectionClick="() => HandleFileSelectionClick(file.name)"
-                                    Highlighted="_selectedItems.Contains(file.name)">
+                                    OnScanErrorClick="@(() => ShowScanErrorDialog(fileName, scanResult))"
+                                    @onclick="@(() => _selectedItems = new HashSet<string> { fileName })"
+                                    OnSelectionClick="() => HandleFileSelectionClick(fileName)"
+                                    Highlighted="_selectedItems.Contains(fileName)">
                                     <Icon>
                                         <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
                                     </Icon>
@@ -166,17 +126,13 @@
             <div class="item-details">
                 <div class="details-sticky">
                     <div class="details-container">
-                        @if (_showingContainers)
-                        {
-                            <StorageProperties DisplayName="@_selectedItem" Container="@Container"/>
-                        }
-                        else if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
+                        @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
                         {
                             <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container="@Container"/>
                         }
                         else
                         {
-                            var file = _files.FirstOrDefault(f => f.name.Equals(_selectedItem, StringComparison.OrdinalIgnoreCase));
+                            var file = _files.FirstOrDefault(f => string.Equals(f.name, _selectedItem, StringComparison.OrdinalIgnoreCase));
                             <FileProperties @key=@_selectedItem
                                             ProjectId=@ProjectId
                                             File=@file
@@ -201,32 +157,28 @@ else
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    public string ProjectAcronym { get; set; } = string.Empty;
 
     [CascadingParameter(Name = "PortalUser")]
-    public PortalUser PortalUser { get; set; }
+    public PortalUser PortalUser { get; set; } = null!;
 
     [Parameter] public int? ProjectId { get; set; }
 
-    [Parameter] public CloudStorageContainer Container { get; set; }
+    [Parameter] public CloudStorageContainer Container { get; set; } = null!;
 
-    public StorageMetadata StorageAccountMetadata { get; set; }
+    public StorageMetadata StorageAccountMetadata { get; set; } = null!;
 
     private bool _allFilesSelected = false;
 
-    private CloudStorageContainer _lastContainer = default;
+    private string ContainerName => Container.Name;
 
-    private string ContainerName => Container?.Name;
-
-    private ICloudStorageManager StorageManager => Container?.StorageManager;
-
-    private string? _userId;
+    private ICloudStorageManager StorageManager => Container.StorageManager;
 
     private bool _loading = true;
     private bool _failed = false;
     private List<FileMetaData> _uploadingFiles = [];
     private List<string> _blockedFiles = [];
-    private string _continuationToken;
+    private string _continuationToken = string.Empty;
 
     private readonly string _root = "/";
     private string _currentFolder = "/";
@@ -240,13 +192,13 @@ else
 
     private Dictionary<string, FileScanResult> _fileScanResults = new();
 
-    private bool _showingContainers = true;
+    private bool _showingContainers = false;
     private List<string> _availableContainers = new();
-    private string _selectedContainerName = null;
+    private string? _selectedContainerName;
 
-    private IJSObjectReference _module;
+    private IJSObjectReference _module = default!;
 
-    private Dictionary<string, int> _folderList;
+    private Dictionary<string, int> _folderList = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -267,11 +219,6 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
-        _userId = await _userInformationService.GetCurrentUserEntraId();
-
         _uploadingFiles = new List<FileMetaData>();
     }
 
@@ -310,7 +257,7 @@ else
         var dialogParams = new DialogParameters
         {
             { "FileName", fileName },
-            { "ErrorMessage", scanResult.ErrorMessage ?? "An error occurred while scanning the file." }
+            { "ErrorMessage", scanResult.ErrorMessage ?? Localizer["An error occurred while scanning the file."] }
         };
 
         var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };

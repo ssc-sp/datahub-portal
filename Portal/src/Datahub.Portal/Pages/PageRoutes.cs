@@ -23,6 +23,9 @@ public static class PageRoutes
     public const string WorkspaceStoragePrefix = "s";
     public const string WorkspaceStorageDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspaceStoragePrefix}";
 
+    public const string WorkspaceExternalStoragePrefix = "s-ext";
+    public const string WorkspaceExternalStorageDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspaceExternalStoragePrefix}";
+
     public const string WorkspacePostgresPrefix = "db";
     public const string WorkspacePostgresDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspacePostgresPrefix}";
 

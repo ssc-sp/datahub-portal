@@ -120,7 +120,7 @@
                                     }
                                     else
                                     {
-                                        <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
+                                        <MudNavLink Href="@GetSectionViewUrl(toolSection)"
                                                     Target="@GetTarget(toolSection)"
                                                     Disabled="@IsDisabled(toolSection)">
                                             <span @onclick="@(async () => await RegisterClickTelemetry(toolSection))">
@@ -163,7 +163,7 @@
                                         <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)"
                                                          ProjectAcronym="@WorkspaceAcronym"
                                                          ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-                                            <MudNavLink Href="@GetSectionViewUrl(Localizer[toolSection])"
+                                            <MudNavLink Href="@GetSectionViewUrl(toolSection)"
                                                         Target="@GetTarget(toolSection)" Match="NavLinkMatch.All">
                                                 <MudStack Row AlignItems="AlignItems.Center">
                                                     <DHIcon Icon="@GetIcon(toolSection)" Size="Size.Small"
@@ -195,6 +195,7 @@
     private List<Datahub_Project> _allProjects = new();
     private bool _isPublishingBlockedForWorkspace = false;
     private int _externalProjectUsersCount;
+    private bool _isExternalUser;
 
     private readonly string _workspaceTitleStyle = new StyleBuilder()
         .AddStyle("white-space", "nowrap")
@@ -304,6 +305,7 @@
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var isExternal = await _userInformationService.IsExternalUser();
+        _isExternalUser = isExternal;
         string? gccfUserId = null, entraUserGuid = null;
         if (isExternal)
         {
@@ -407,6 +409,11 @@
 
     private string GetSectionViewUrl(string sectionView)
     {
+        if (sectionView == SectionViews.Storage && _isExternalUser)
+        {
+            return $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WorkspaceExternalStoragePrefix}";
+        }
+
         return sectionView switch
         {
             SectionViews.Databricks => TerraformVariableExtraction.ExtractDatabricksUrl(_project, CultureService.IsFrench)!,
@@ -493,13 +500,13 @@
         {
             SectionViews.Dashboard => true,
             SectionViews.Healthcheck => true,
-            SectionViews.Databricks => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
-            SectionViews.Storage => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.Status != TerraformStatus.Deleted) ?? false,
-            SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && (_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)) ?? false),
-            SectionViews.WebApp => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && r.Status != TerraformStatus.Deleted) ?? false,
-            SectionViews.SqlDatabase => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Status != TerraformStatus.Deleted) ?? false,
-            SectionViews.Repositories => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted) ?? false,
-            SectionViews.ArcGis => _project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.Status != TerraformStatus.Deleted) ?? false,
+            SectionViews.Databricks => _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Storage => _isExternalUser || _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Publishing => _datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled && _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)),
+            SectionViews.WebApp => _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureAppService) && r.Status != TerraformStatus.Deleted),
+            SectionViews.SqlDatabase => _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.Status != TerraformStatus.Deleted),
+            SectionViews.Repositories => _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.Status != TerraformStatus.Deleted),
+            SectionViews.ArcGis => _project.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureArcGis) && r.Status != TerraformStatus.Deleted),
             _ => false
         };
     }
@@ -511,7 +518,7 @@
             SectionViews.Dashboard => false,
             SectionViews.Healthcheck => false,
             SectionViews.Databricks => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureDatabricks) && r.CreatedAt.HasValue) ?? true,
-            SectionViews.Storage => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true,
+            SectionViews.Storage => !_isExternalUser && (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
             SectionViews.Publishing => !_datahubPortalConfiguration.CkanConfiguration.IsFeatureEnabled || (!_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) && r.CreatedAt.HasValue) ?? true),
             SectionViews.WebApp => string.IsNullOrEmpty(_project?.WebApp_URL),
             SectionViews.SqlDatabase => !_project?.Resources.Any(r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres) && r.CreatedAt.HasValue) ?? true,
