@@ -29,6 +29,7 @@ using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -82,6 +83,7 @@ builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudget
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+builder.Services.AddSingleton<IMSGraphService, MSGraphService>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();

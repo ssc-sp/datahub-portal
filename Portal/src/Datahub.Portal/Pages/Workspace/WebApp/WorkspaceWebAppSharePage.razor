@@ -1,5 +1,7 @@
 @using Datahub.Application.Services.ReverseProxy
+@using Datahub.Core.Data
 @using Datahub.Portal.Components.Sidebar
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject NavigationManager _navigationManager
@@ -96,6 +98,9 @@ else if (isAvailable)
 
 @code {
 
+  [CascadingParameter]
+  private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
   [Parameter] public string WorkspaceAcronymParam { get; set; }
 
   private bool isAvailable = false;
@@ -108,6 +113,16 @@ else if (isAvailable)
 
   protected override async Task OnInitializedAsync()
   {
+    var authState = await AuthenticationStateTask;
+    var user = authState.User;
+    if (user.IsInRole(RoleConstants.EXTERNAL_LOGIN)
+        && (string.IsNullOrWhiteSpace(WorkspaceAcronymParam)
+            || !user.IsInRole($"{WorkspaceAcronymParam}{RoleConstants.WEBAPP_SUFFIX}")))
+    {
+      _navigationManager.NavigateTo(PageRoutes.AccessDenied, forceLoad: true);
+      return;
+    }
+
     await using var ctx = await _dbContextFactory.CreateDbContextAsync();
     var workspace = await ctx.Projects
         .Include(x => x.Resources)

@@ -174,7 +174,7 @@ else
         public required PortalUser PortalUser { get; init; }
         public required ExternalUser ExternalUser { get; init; }
         public UserRoleLinks? UserRoleLink { get; set; }
-        public WorkspaceInvitation LatestInvitation { get; set; }
+        public WorkspaceInvitation? LatestInvitation { get; set; }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -431,9 +431,14 @@ else
 
     private string GetInvitationCode(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.LatestInvitation!.InvitationCodeAccepted is null
-            ? projectUser.LatestInvitation!.InvitationCode
-            : (projectUser.LatestInvitation is null) ? "-" : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value.ToString("yyyy-MM-dd")}";
+        if (projectUser.LatestInvitation is null)
+        {
+            return "-";
+        }
+
+        return projectUser.LatestInvitation.InvitationCodeAccepted is null
+            ? projectUser.LatestInvitation.InvitationCode ?? "-"
+            : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value:yyyy-MM-dd}";
     }
 
     private bool CanDeactivateUser(ExternalWorkspaceUserRow projectUser)
