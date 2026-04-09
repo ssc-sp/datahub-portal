@@ -7,9 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Core" Version="1.49.*" />
-    <PackageReference Include="Azure.Identity" Version="1.16.*" />
-    <PackageReference Include="Microsoft.Identity.Client" Version="4.77.*" />
+    <PackageReference Include="Azure.Core" Version="1.52.*" />
+    <PackageReference Include="Azure.Identity" Version="1.20.*" />
+    <PackageReference Include="Microsoft.Identity.Client" Version="4.83.*" />
   </ItemGroup>
 
   <ItemGroup>
