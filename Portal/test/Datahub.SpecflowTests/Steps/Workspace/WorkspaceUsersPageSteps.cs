@@ -127,14 +127,13 @@ namespace Datahub.SpecflowTests.Steps
             var mockProjectUserManagementService = Substitute.For<IProjectUserManagementService>();
             Services.AddSingleton(mockProjectUserManagementService);
 
-            var mockLockedUserManagementService = Substitute.For<ILockedUserManagementService>();
-            mockLockedUserManagementService
-                .GetLockedUsersInWorkspaceAsync(Arg.Any<int>())
-                .Returns(Task.FromResult(new List<UserLockStatus>()));
-            Services.AddSingleton(mockLockedUserManagementService);
-
             var mockUserSettingsService = Substitute.For<IUserSettingsService>();
             Services.AddSingleton(mockUserSettingsService);
+
+            var mockLockedUserManagementService = Substitute.For<ILockedUserManagementService>();
+                mockLockedUserManagementService.GetLockedUsersInWorkspaceAsync(Arg.Any<int>())
+                .Returns(Task.FromResult(new List<UserLockStatus>()));
+            Services.AddSingleton(mockLockedUserManagementService);
 
             var mockProjectUsers = SetupProjectUsers();
 
