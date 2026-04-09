@@ -8,7 +8,6 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
 using Datahub.Application.Configuration;
-using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
 using Microsoft.AspNetCore.Components;
@@ -26,12 +25,10 @@ public class DataRetrievalService : BaseService
 
     private readonly ILogger<DataRetrievalService> _logger;
     private readonly DataLakeClientService _dataLakeClientService;
-    private readonly IKeyVaultService _keyVaultService;
     private readonly DatahubPortalConfiguration _portalConfiguration;
 
 
     public DataRetrievalService(ILogger<DataRetrievalService> logger,
-        IKeyVaultService keyVaultService,
         DataLakeClientService dataLakeClientService,
         DatahubPortalConfiguration portalConfiguration,
         NavigationManager navigationManager)
@@ -39,8 +36,14 @@ public class DataRetrievalService : BaseService
     {
         _logger = logger;
         _dataLakeClientService = dataLakeClientService;
-        _keyVaultService = keyVaultService;
         _portalConfiguration = portalConfiguration;
+    }
+
+    public DataRetrievalService(ILogger<DataRetrievalService> logger,
+        DatahubPortalConfiguration portalConfiguration,
+        NavigationManager navigationManager)
+        : this(logger, null!, portalConfiguration, navigationManager)
+    {
     }
 
 
@@ -48,35 +51,6 @@ public class DataRetrievalService : BaseService
     {
         return "datahub-nrcan" + ("dev" == getEnvSuffix() ? "-dev" : "");
     }
-
-    public async Task<string> getStorageConnString()
-    {
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        envName = envName != null ? envName.ToLower() : "dev";
-        if (envName.Equals("development"))
-        {
-            envName = "dev";
-        }
-
-        var blobKey = await _keyVaultService.GetSecret("DataHub-Blob-Access-Key");
-        return "DefaultEndpointsProtocol=https;AccountName=datahubstorage" + getEnvSuffix() + ";AccountKey=" +
-               blobKey + ";EndpointSuffix=core.windows.net";
-    }
-
-    public async Task<string> GetProjectConnectionString(string accountName)
-    {
-        var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
-        envName = envName != null ? envName.ToLower() : "dev";
-        if (envName.Equals("development"))
-        {
-            envName = "dev";
-        }
-
-        string key = $"datahub-blob-key-{accountName}";
-        var accountKey = await _keyVaultService.GetSecret(key);
-        return @$"DefaultEndpointsProtocol=https;AccountName=dh{accountName}{envName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
-    }
-
     private string getEnvSuffix()
     {
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
@@ -164,7 +138,7 @@ public class DataRetrievalService : BaseService
     /// <summary>
     /// Gets a BlobServiceClient using managed identity/token credential (User Delegation SAS)
     /// </summary>
-    private async Task<BlobServiceClient> GetBlobServiceClient(string project)
+    private Task<BlobServiceClient> GetBlobServiceClient(string project)
     {
         var envName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
         envName = envName != null ? envName.ToLower() : "dev";
@@ -180,7 +154,7 @@ public class DataRetrievalService : BaseService
             _portalConfiguration.AzureAd.TenantId,
             _portalConfiguration.AzureAd.InfraClientId,
             _portalConfiguration.AzureAd.InfraClientSecret);
-        return new BlobServiceClient(blobUri, credential);
+        return Task.FromResult(new BlobServiceClient(blobUri, credential));
     }
 
     static BlobSasBuilder GetBlobSasBuilder(string container, string fileName, int days, BlobSasPermissions permissions)
@@ -199,7 +173,7 @@ public class DataRetrievalService : BaseService
         return result;
     }
         
-    private async Task<Uri> GetDelegationSasBlobUri(string container, string fileName, string projectUploadCode, int days, BlobSasPermissions permissions, bool containerLevel = false)
+    private async Task<Uri> GetDelegationSasBlobUri(string container, string? fileName, string projectUploadCode, int days, BlobSasPermissions permissions, bool containerLevel = false)
     {
         var project = projectUploadCode.ToLowerInvariant();
         var blobServiceClient = await GetBlobServiceClient(project);

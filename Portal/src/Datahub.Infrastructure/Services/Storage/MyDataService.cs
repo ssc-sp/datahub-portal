@@ -228,11 +228,11 @@ public class MyDataService
 
     private async Task UploadFileToProject(FileMetaData fileMetadata, string projectUploadCode, string containerName, Action<long> progress)
     {
-        string cxnstring = await dataRetrievalService.GetProjectConnectionString(projectUploadCode);
         long maxFileSize = 1024000000000;
         var metadata = fileMetadata!.GenerateMetadata();
+        var containerClient = await dataRetrievalService.GetBlobContainerClient(projectUploadCode, containerName);
 
-        var blobClientUtil = new Core.Utils.BlobClientUtils(cxnstring, containerName);
+        var blobClientUtil = new Core.Utils.BlobClientUtils(containerClient);
 
         await using var stream = fileMetadata.BrowserFile?.OpenReadStream(maxFileSize) ??
                                  browserFile?.OpenReadStream(maxFileSize);

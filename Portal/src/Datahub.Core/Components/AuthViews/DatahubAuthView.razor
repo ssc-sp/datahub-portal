@@ -237,9 +237,13 @@
 			case AuthLevels.Unauthorized:
 				return "🏗️ Unauthorized";
             case AuthLevels.WebApp:
-                return ElevatedWorkspaceAccessEnabled ? $"{webAppRole}, {guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
+                return ElevatedWorkspaceAccessEnabled
+                    ? $"{webAppRole},{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}"
+                    : $"{webAppRole},{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
             case AuthLevels.Storage:
-                return ElevatedWorkspaceAccessEnabled ? $"{storageRole}, {guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
+                return ElevatedWorkspaceAccessEnabled
+                    ? $"{storageRole},{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}"
+                    : $"{storageRole},{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
             default:
 				switch (AllowedUsers)
 				{

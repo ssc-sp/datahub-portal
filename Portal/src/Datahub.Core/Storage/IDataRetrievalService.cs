@@ -8,8 +8,6 @@ namespace Datahub.Application.Services.Storage;
 public interface IDataRetrievalService
 {
     string GetBlobContainerName();
-    Task<string> GetStorageConnString();
-    Task<string> GetProjectConnectionString(string accountName);
     Task<Datahub.Core.Data.Folder> GetProjectFileList(string container, string project, User user);
     Task<BlobContainerClient> GetBlobContainerClient(string project, string containerName);
     Task<Uri> GetUserDelegationSasBlob(string container, string fileName, string projectUploadCode, int daysValidity = 1);

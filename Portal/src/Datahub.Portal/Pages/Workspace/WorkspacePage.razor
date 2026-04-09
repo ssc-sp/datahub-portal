@@ -65,7 +65,11 @@
     }
     else
     {
-        _logger.LogWarning("The section {Section} is not a valid section for the workspace page", Section);
+        if (!string.IsNullOrWhiteSpace(Section))
+        {
+                var sanitizedSection = Section.Replace("\r", string.Empty).Replace("\n", string.Empty);
+                _logger.LogWarning("The section {Section} is not a valid section for the workspace page", sanitizedSection);
+        }
         <DatahubAuthView AuthLevel="@WorkspaceSidebar.GetAuthLevel(WorkspaceSidebar.SectionViews.Dashboard)"
                          AllowedUsers="@WorkspaceSidebar.GetAllowedUsers(WorkspaceSidebar.SectionViews.Dashboard)"
                          ProjectAcronym="@WorkspaceAcronymParam"

@@ -1,0 +1,297 @@
+@* ExternalUserFileExplorer.razor *@
+@using Datahub.Application.Services.Publishing
+@using Datahub.Core.Model
+@using Datahub.Core.Model.Users
+@using Datahub.Core.Storage;
+@using Datahub.Core.Components.FileUpload
+@using Datahub.Core.Services.Storage;
+@using Datahub.Application.Services
+@using Datahub.Application.Services.UserManagement
+
+@inject IUserInformationService _userInformationService
+@inject IJSRuntime _jsRuntime
+@inject IPortalUserTelemetryService _telemetryService
+@inject IDialogService _dialogService
+@inject IFileScanService FileScanService
+@inject ILogger<ExternalUserFileExplorer> _logger;
+@inject NavigationManager _navManager;
+@inject DatahubPortalConfiguration _config;
+@inject IOpenDataPublishingService _publishingService;
+
+@implements IAsyncDisposable
+
+@if (!_failed)
+{
+    <CascadingValue Value="@StorageAccountMetadata" Name="StorageAccountMetadata">
+        <div class="file-explorer-layout external-user-file-explorer">
+            <StorageHeading
+                CurrentFolder="@_currentFolder"
+                SelectedItems="@_selectedItems"
+                Files="@_files"
+                Folders="@_folders"
+                MetadataSignature=@_metadataSignature
+                SetCurrentFolder="SetCurrentFolder"
+                OnFileDelete="HandleFilesDelete"
+                OnFileDownload="HandleFileDownloadWithScanCheck"
+                OnFileRename="HandleFileRename"
+                ShowNewFolder="false"
+                ShowDeleteFolder="false"
+                ShowPublish="false"
+                ShowBackToContainers="false" />
+
+            <div class="file-list">
+                <div class="file-list-header">
+                    <div>
+                        <span class="file-selection-icon" @onclick="ToggleSelectAllFiles">
+                            <i class="far fa-circle unchecked" style="display: @(!_allFilesSelected ? "inline" : "none")"></i>
+                            <i class="fas fa-check-circle checked" style="display: @(_allFilesSelected ? "inline" : "none")"></i>
+                        </span>
+                    </div>
+                    <MudText>@Localizer["Name"]</MudText>
+                    <MudText>@Localizer["Size"]</MudText>
+                    <MudText>@Localizer["Last Modified"]</MudText>
+                    <MudText>@Localizer["Scan Result"]</MudText>
+                </div>
+
+                @if (_loading)
+                {
+                    <LoadingFileList/>
+                }
+                else
+                {
+                    <UploadSnackbar UploadingFiles="_uploadingFiles" BlockedFiles="_blockedFiles">
+                        <DropZone MaxHeight OnFilesDrop="UploadFiles">
+                            @if (_currentFolder != _root)
+                            {
+                                var parentFolder = GetDirectoryName(_currentFolder);
+                                <DropZone
+                                    OnFilesDrop="async (e) => await UploadFiles(e, parentFolder)"
+                                    OnFileItemDrop="async filename => await HandleFileItemDrop(parentFolder, filename)">
+                                    <ExternalUserFileItem
+                                        Name="[..]"
+                                        Folder
+                                        ScanStatus="null"
+                                        @onclick="@(() => _selectedItems = new HashSet<string> { parentFolder })"
+                                        @ondblclick="async () => await SetCurrentFolder(parentFolder)">
+                                        <Icon>
+                                            <i class="fas fa-folder"></i>
+                                        </Icon>
+                                    </ExternalUserFileItem>
+                                </DropZone>
+                            }
+                            @foreach (var folderName in _folders
+                                              .Where(f => f?.Contains(_filterValue) ?? false)
+                                              .OrderBy(f => (f ?? string.Empty).ToLower()))
+                            {
+                                <DropZone
+                                    OnFilesDrop="async (e) => await UploadFiles(e, folderName)"
+                                    OnFileItemDrop="async filename => await HandleFileItemDrop(folderName, filename)">
+                                    <ExternalUserFileItem
+                                        Name="@GetFileName(folderName)"
+                                        Highlighted="_selectedItems.Contains(folderName)"
+                                        Folder
+                                        ScanStatus="null"
+                                        @onclick="@(() => _selectedItems = new HashSet<string> { folderName })"
+                                        @ondblclick="async () => await SetCurrentFolder(folderName)">
+                                        <Icon>
+                                            <i class="fas fa-folder"></i>
+                                        </Icon>
+                                    </ExternalUserFileItem>
+                                </DropZone>
+                            }
+                            @foreach (var file in _files
+                                              .Where(f => f?.name?.Contains(_filterValue) ?? false)
+                                              .OrderBy(f => (f.name ?? string.Empty).ToLower()))
+                            {
+                                var fileName = file.name ?? string.Empty;
+                                var scanResult = GetFileScanResult(fileName);
+                                <ExternalUserFileItem
+                                    Name="@GetFileName(fileName)"
+                                    Modified="@file.Modified"
+                                    Size="@file.filesize"
+                                    ScanStatus="@scanResult?.Status"
+                                    OnScanErrorClick="@(() => ShowScanErrorDialog(fileName, scanResult))"
+                                    @onclick="@(() => _selectedItems = new HashSet<string> { fileName })"
+                                    OnSelectionClick="() => HandleFileSelectionClick(fileName)"
+                                    Highlighted="_selectedItems.Contains(fileName)">
+                                    <Icon>
+                                        <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
+                                    </Icon>
+                                </ExternalUserFileItem>
+                            }
+                        </DropZone>
+                    </UploadSnackbar>
+                }
+            </div>
+            <div class="item-details">
+                <div class="details-sticky">
+                    <div class="details-container">
+                        @if (_loading || _folders.Contains(_selectedItem) || _currentFolder == _selectedItem)
+                        {
+                            <StorageProperties DisplayName="@GetFileName(_selectedItem)" Container="@Container"/>
+                        }
+                        else
+                        {
+                            var file = _files.FirstOrDefault(f => string.Equals(f.name, _selectedItem, StringComparison.OrdinalIgnoreCase));
+                            <FileProperties @key=@_selectedItem
+                                            ProjectId=@ProjectId
+                                            File=@file
+                                            Readonly="true"
+                                            OnMetadataChanged=@HandleMetadataChanged/>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    </CascadingValue>
+}
+else
+{
+    <MudPaper Class="pa-4" Outlined Elevation="0">
+        <MudText>
+            @Localizer["Failed to load file explorer"]
+        </MudText>
+    </MudPaper>
+}
+
+@code {
+
+    [CascadingParameter(Name = "ProjectAcronym")]
+    public string ProjectAcronym { get; set; } = string.Empty;
+
+    [CascadingParameter(Name = "PortalUser")]
+    public PortalUser PortalUser { get; set; } = null!;
+
+    [Parameter] public int? ProjectId { get; set; }
+
+    [Parameter] public CloudStorageContainer Container { get; set; } = null!;
+
+    public StorageMetadata StorageAccountMetadata { get; set; } = null!;
+
+    private bool _allFilesSelected = false;
+
+    private string ContainerName => Container.Name;
+
+    private ICloudStorageManager StorageManager => Container.StorageManager;
+
+    private bool _loading = true;
+    private bool _failed = false;
+    private List<FileMetaData> _uploadingFiles = [];
+    private List<string> _blockedFiles = [];
+    private string _continuationToken = string.Empty;
+
+    private readonly string _root = "/";
+    private string _currentFolder = "/";
+    private string _selectedItem => _selectedItems.FirstOrDefault("/");
+
+    private HashSet<string> _selectedItems = new();
+
+    private List<string> _folders = new();
+    private List<FileMetaData> _files = new();
+    private string _filterValue = string.Empty;
+
+    private Dictionary<string, FileScanResult> _fileScanResults = new();
+
+    private bool _showingContainers = false;
+    private List<string> _availableContainers = new();
+    private string? _selectedContainerName;
+
+    private IJSObjectReference _module = default!;
+
+    private Dictionary<string, int> _folderList = new();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        await base.OnAfterRenderAsync(firstRender);
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileExplorer.razor.js");
+            if (StorageManager != null && !_showingContainers)
+            {
+                var containerName = _selectedContainerName ?? ContainerName;
+                StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(containerName);
+                _folderList = await GetFileCountAsync(_currentFolder);
+                StateHasChanged();
+            }
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        _uploadingFiles = new List<FileMetaData>();
+    }
+
+    private Guid _metadataSignature = Guid.NewGuid();
+
+    private void HandleMetadataChanged()
+    {
+        _metadataSignature = Guid.NewGuid();
+    }
+
+    private async Task<Dictionary<string, int>> GetFileCountAsync(string folderPath)
+    {
+        Dictionary<string, int> folders = new();
+        if (StorageManager != null)
+        {
+            var containerName = _selectedContainerName ?? ContainerName;
+            folders = await StorageManager.ListFoldersAsync(containerName, folderPath);
+        }
+        return folders;
+    }
+
+    private FileScanResult? GetFileScanResult(string fileName)
+    {
+        if (_fileScanResults.TryGetValue(fileName, out var result))
+        {
+            return result;
+        }
+        return null;
+    }
+
+    private async Task ShowScanErrorDialog(string fileName, FileScanResult? scanResult)
+    {
+        if (scanResult == null || scanResult.Status != FileScanStatus.Error)
+            return;
+
+        var dialogParams = new DialogParameters
+        {
+            { "FileName", fileName },
+            { "ErrorMessage", scanResult.ErrorMessage ?? Localizer["An error occurred while scanning the file."] }
+        };
+
+        var options = new DialogOptions { MaxWidth = MaxWidth.Small, FullWidth = true };
+        var dialog = await _dialogService.ShowAsync<FileScanErrorDialog>(Localizer["Scan Error"], dialogParams, options);
+        await dialog.Result;
+    }
+
+    private async Task HandleFileDownloadWithScanCheck(string filename)
+    {
+        var scanResult = GetFileScanResult(filename);
+        if (scanResult != null && scanResult.Status != FileScanStatus.Succeeded)
+        {
+            await _dialogService.ShowMessageBox(
+                Localizer["Access Denied"],
+                Localizer["File cannot be accessed until scan is successful."],
+                Localizer["OK"]);
+            return;
+        }
+
+        await HandleFileDownload(filename);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_module != null)
+            {
+                await _module.DisposeAsync();
+            }
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+    }
+}

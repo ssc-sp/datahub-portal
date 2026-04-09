@@ -1,12 +1,11 @@
 ﻿using Azure.Storage.Files.DataLake;
+using Azure.Storage.Blobs.Models;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
 using Datahub.Core.Services.Api;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
 using Folder = Datahub.Core.Data.Folder;
 
 namespace Datahub.Portal.Services.Api;
@@ -68,28 +67,28 @@ public class DataUpdatingService : BaseService
         
     public async Task RenameStorageBlob(string oldName, string newName, string projectAcronym, string containerName)
     {
-        var connectionString = await _dataRetrievalService.GetProjectConnectionString(projectAcronym.ToLower());
-        var container = CloudStorageAccount.Parse(connectionString)
-            .CreateCloudBlobClient()
-            .GetContainerReference(containerName);
+        var containerClient = await _dataRetrievalService.GetBlobContainerClient(projectAcronym.ToLower(), containerName);
+        var source = containerClient.GetBlobClient(oldName);
+        var target = containerClient.GetBlobClient(newName);
 
-        var source = (CloudBlockBlob) await container.GetBlobReferenceFromServerAsync(oldName);
-        var target = container.GetBlockBlobReference(newName);
-
-        if (source is null)
+        if (!await source.ExistsAsync())
         {
             throw new Exception($"Could not find blob: {oldName}");
         }
-            
-        await target.StartCopyAsync(source);
 
-        while (target.CopyState.Status == CopyStatus.Pending)
+        await target.StartCopyFromUriAsync(source.Uri);
+
+        BlobProperties properties = (await target.GetPropertiesAsync()).Value;
+        while (properties.CopyStatus == CopyStatus.Pending)
+        {
             await Task.Delay(100);
+            properties = (await target.GetPropertiesAsync()).Value;
+        }
 
-        if (target.CopyState.Status != CopyStatus.Success)
-            throw new Exception("Rename failed: " + target.CopyState.Status);
+        if (properties.CopyStatus != CopyStatus.Success)
+            throw new Exception("Rename failed: " + properties.CopyStatus);
 
-        await source.DeleteAsync();
+        await source.DeleteIfExistsAsync();
     }
 
     public async Task<bool> RenameFile(FileMetaData file, string newFileName, Microsoft.Graph.Models.User currentUser)

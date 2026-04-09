@@ -1,0 +1,197 @@
+@page "/w/{WorkspaceAcronym}/s-ext"
+@attribute [ExternalUserPage]
+@using Datahub.Application.Services;
+@using Datahub.Core.Data;
+@using Datahub.Core.Model;
+@using Datahub.Core.Model.CloudStorage;
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@using Datahub.Core.Storage;
+@using Datahub.Infrastructure.Services.Security
+@using Datahub.Infrastructure.Services.Storage
+@using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Microsoft.Extensions.Options
+@using Microsoft.Graph.Models;
+@using Microsoft.Identity.Web;
+@using Microsoft.AspNetCore.Components.Authorization
+
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
+@inject IUserInformationService _userInformationService
+@inject IProjectStorageConfigurationService _projectStorageConfigService
+@inject ILogger<ExternalUserFileExplorerPage> _logger
+@inject IKeyVaultUserService keyVaultUserService
+@inject DatahubPortalConfiguration _datahubPortalConfiguration
+@inject DataLakeClientService _dataLakeClientService
+@inject NavigationManager _navigationManager
+
+
+<!--suppress CssUnresolvedCustomProperty -->
+<PageTitle>@_title</PageTitle>
+
+@if (_loading)
+{
+    <DHLoadingInitializer />
+    return;
+}
+<MudStack>
+    <MudStack Row Justify="Justify.SpaceBetween">
+        <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
+    </MudStack>
+    <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Storage" />
+    @if (_isProjectKeyEnabled)
+    {
+        <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
+            <CascadingValue Value="@_project" Name="Project">
+                <CascadingValue Value="_user" Name="PortalUser">
+                    <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
+                        <MudStack>
+                            <MudText Typo="Typo.h2">@Localizer["File Explorer"]</MudText>
+                            @if (_failedToLoadContainers)
+                            {
+                                <MudAlert Severity="Severity.Error">
+                                    <MudText>@Localizer["Failed to load storage containers"]</MudText>
+                                </MudAlert>
+                            }
+                            else
+                            {
+                                <ExternalUserFileExplorer 
+                                    ProjectId=@_projectId 
+                                    Container="@_selectedContainer" />
+                            }
+                        </MudStack>
+                    </MudPaper>
+                </CascadingValue>
+            </CascadingValue>
+        </CascadingValue>
+    }
+    else
+    {
+        <MudPaper Elevation="0" Outlined Class="pa-4">
+            <MudText>
+                @Localizer["Access to storage was disabled due to workspace being over budget."]
+            </MudText>
+        </MudPaper>
+    }
+</MudStack>
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
+    [Parameter] public string WorkspaceAcronym { get; set; }
+
+    private Datahub_Project? _project;
+    private int? _projectId;
+    private string _title;
+
+    private CloudStorageContainer _selectedContainer;
+    private PortalUser _user = null!;
+
+    private bool _loading = true;
+    private bool _isProjectKeyEnabled = false;
+    private bool _failedToLoadContainers = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
+
+        _user = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("User is not authenticated");
+
+        _project = await projectContext.Projects
+            .Include(p => p.UserRoles)
+            .AsSingleQuery()
+            .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
+            .FirstOrDefaultAsync();
+
+        var acronym = _project?.Project_Acronym_CD;
+        _title = $"{acronym} - {Localizer["Storage"]}";
+        _projectId = _project?.Project_ID;
+
+        var authState = await AuthenticationStateTask;
+        var user = authState.User;
+        if (!string.IsNullOrWhiteSpace(WorkspaceAcronym)
+            && !user.IsInRole($"{WorkspaceAcronym}{RoleConstants.STORAGE_SUFFIX}"))
+        {
+            _navigationManager.NavigateTo(PageRoutes.AccessDenied, forceLoad: true);
+            return;
+        }
+        
+        try
+        {
+            _isProjectKeyEnabled = await IsProjectKeyEnabled();
+            if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
+            await keyVaultUserService.AuthenticateWithUserContext();
+            await LoadExternalUserContainerAsync();
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+        catch (Azure.RequestFailedException e)
+        {
+            _logger.LogInformation(e, "Error loading cloud storage connection. Possibly due to Access Key not being set.");
+            _failedToLoadContainers = true;
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Error loading cloud storage connection");
+        }
+
+        _loading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadExternalUserContainerAsync()
+    {
+        // Get external users storage configuration from appsettings
+        var externalStorageConfig = _datahubPortalConfiguration.StorageConfiguration.ExternalUsersStorage;
+        var containerName = externalStorageConfig.ContainerName;
+        var accountName = externalStorageConfig.AccountName;
+        
+        _logger.LogInformation("Loading external users container.");
+
+        var credential = await _dataLakeClientService.GetTokenCredentialAsync();
+        var projectStorageManager = new AzureCloudStorageManager(accountName, credential);
+        var containerNames = await projectStorageManager.GetContainersAsync();
+
+        _logger.LogInformation("Retrieved containers from external users storage account.");
+
+        // Check if external-uploads container exists
+        var externalUsersContainer = containerNames.FirstOrDefault(c => 
+            c.Equals(containerName, StringComparison.OrdinalIgnoreCase));
+
+        if (externalUsersContainer != null)
+        {
+            _logger.LogInformation("External users container found.");
+            _selectedContainer = new CloudStorageContainer(
+                accountName, 
+                externalUsersContainer, 
+                CloudStorageProviderType.Azure, 
+                projectStorageManager);
+        }
+        else
+        {
+            _logger.LogWarning("External users container not found in shared storage account.");
+            _failedToLoadContainers = true;
+        }
+    }
+
+    private async Task<bool> IsProjectKeyEnabled()
+    {
+        var apiTarget = new APITargets
+        {
+            KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
+        };
+        var options = Options.Create<APITargets>(apiTarget);
+
+        using (var loggerFactory = new LoggerFactory())
+        {
+            var logger = loggerFactory.CreateLogger<KeyVaultCoreService>();
+            var keyVaultService = new KeyVaultCoreService(options, logger, _datahubPortalConfiguration);
+            var projectKey = await keyVaultService.GetKey(_datahubPortalConfiguration.KeyVault.ProjectKey);
+            return projectKey.Attributes.Enabled ?? false;
+        }
+    }
+}

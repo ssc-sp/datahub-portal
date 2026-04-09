@@ -20,6 +20,7 @@
 @inject IExternalUserInvitationService _externalUserInvitationService
 @inject NavigationManager _navigationManager
 @inject IJSRuntime _jsRuntime
+@inject ICultureService _cultureService
 
 @if (_loading)
 {
@@ -134,13 +135,13 @@ else
                             {
                                 <DHButton Variant="Variant.Filled" OnClick="() => OpenManageUserDialog(rowContext.UserRoleLink!)">@Localizer["View/Edit"]</DHButton>
                             }
-                            @if (CanDisableUser(rowContext))
+                            @if (CanDeactivateUser(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">@Localizer["Disable user"]</DHButton>
+                                <DHButton Variant="Variant.Filled" OnClick="() => OpenDeactivateUserDialog(rowContext.UserRoleLink!)">@Localizer["Deactivate user"]</DHButton>
                             }
                             @if (CanCancelInvitation(rowContext))
                             {
-                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invite"]</DHButton>
+                                <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
                             }
                             @if (CanResendInvitation(rowContext))
                             {
@@ -173,7 +174,7 @@ else
         public required PortalUser PortalUser { get; init; }
         public required ExternalUser ExternalUser { get; init; }
         public UserRoleLinks? UserRoleLink { get; set; }
-        public WorkspaceInvitation LatestInvitation { get; set; }
+        public WorkspaceInvitation? LatestInvitation { get; set; }
     }
 
     protected override async Task OnParametersSetAsync()
@@ -301,8 +302,8 @@ else
             return;
         }
 
-        var url = GetCodeAcceptancePageUrl(invitation);
-
+        var urls = GetCodeAcceptancePageUrl(invitation);
+        var url = _cultureService.IsEnglish ? urls.enURL : urls.frURL;
         try
         {
             await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", url);
@@ -343,7 +344,7 @@ else
             { "SelectedUser", selectedUser },
             { "CurrentUser", currentUser }
         };
-        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Disable user"], dialogParameters, dialogOptions);
+        var dialog = await _dialogService.ShowAsync<DeactivateExternalUserDialog>(Localizer["Deactivate user"], dialogParameters, dialogOptions);
         var result = await dialog.Result;
         if (!result.Canceled)
         {
@@ -430,12 +431,17 @@ else
 
     private string GetInvitationCode(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.LatestInvitation!.InvitationCodeAccepted is null
-            ? projectUser.LatestInvitation!.InvitationCode
-            : (projectUser.LatestInvitation is null) ? "-" : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value.ToString("yyyy-MM-dd")}";
+        if (projectUser.LatestInvitation is null)
+        {
+            return "-";
+        }
+
+        return projectUser.LatestInvitation.InvitationCodeAccepted is null
+            ? projectUser.LatestInvitation.InvitationCode ?? "-"
+            : $"{Localizer["Accepted on"]} {projectUser.LatestInvitation.InvitationCodeAccepted.Value:yyyy-MM-dd}";
     }
 
-    private bool CanDisableUser(ExternalWorkspaceUserRow projectUser)
+    private bool CanDeactivateUser(ExternalWorkspaceUserRow projectUser)
     {
         return projectUser.UserRoleLink is not null
             && projectUser.ExternalUser.UserDeactivatedAt is null
