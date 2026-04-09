@@ -3,6 +3,13 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [8.7.1](https://github.com/ssc-sp/datahub-portal/compare/v8.7.0...v8.7.1) (2026-04-07)
+
+
+### Bug Fixes
+
+* updated external-uploads logic ([#1913](https://github.com/ssc-sp/datahub-portal/issues/1913)) ([d29c3e0](https://github.com/ssc-sp/datahub-portal/commit/d29c3e0f51addb4474516bb59a72124f4c507f32))
+
 ## [8.7.0](https://github.com/ssc-sp/datahub-portal/compare/v8.6.0...v8.7.0) (2026-04-02)
 
 
