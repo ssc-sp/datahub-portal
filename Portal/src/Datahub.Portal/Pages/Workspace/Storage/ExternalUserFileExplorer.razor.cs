@@ -86,7 +86,6 @@ public partial class ExternalUserFileExplorer
 
             InitializeUserRootFolder();
             await EnsureUserRootFolderAsync(_selectedContainerName);
-
             // Load metadata and content immediately for the allowed container.
             StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(_selectedContainerName);
             _folderList = await GetFileCountAsync(_currentFolder);
