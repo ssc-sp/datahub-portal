@@ -22,7 +22,7 @@ namespace Datahub.Functions.UnitTests.Functions
         {
             var optionsBuilder =
                 new DbContextOptionsBuilder<DatahubProjectDBContext>()
-                   .UseInMemoryDatabase(new Guid().ToString());
+                   .UseInMemoryDatabase(Guid.NewGuid().ToString());
 
             // create a mock factory to return the db context when CreateDbContextAsync is called
             _dbContext = new DatahubProjectDBContext(optionsBuilder.Options);
