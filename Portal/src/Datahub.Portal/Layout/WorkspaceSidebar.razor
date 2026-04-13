@@ -57,7 +57,7 @@
                                                                                                             Icons.Material.Outlined.LockOpen : Icons.Material.Outlined.Lock) />
                                     <MudText Typo="Typo.body1">
                                         <strong>
-                                            @if (!(project.Data_Sensitivity == ClassificationType.Unclassified))
+                                            @if (project.Data_Sensitivity != ClassificationType.Unclassified)
                                             {
                                                 @Localizer[(project.Data_Sensitivity == ClassificationType.ProtectedA ? "A" : "B")]
                                             }
