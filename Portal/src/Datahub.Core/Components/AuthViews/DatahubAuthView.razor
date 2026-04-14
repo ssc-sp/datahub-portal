@@ -192,7 +192,8 @@
       throw new InvalidOperationException($"Do not specify both '{nameof(Authorized)}' and '{nameof(ChildContent)}'.");
     }
 
-    if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or AuthLevels.WorkspaceAdmin or AuthLevels.WorkspaceLead)
+    if (string.IsNullOrWhiteSpace(ProjectAcronym) && AuthLevel is AuthLevels.WorkspaceCollaborator or
+AuthLevels.WorkspaceAdmin or AuthLevels.WorkspaceLead)
     {
       throw new InvalidOperationException($"'{nameof(ProjectAcronym)}' is required");
     }
@@ -226,11 +227,15 @@
       case AuthLevels.UserUID:
         return $"{UserUID},{datahubSupportRole}";
       case AuthLevels.WorkspaceGuest:
-        return ElevatedWorkspaceAccessEnabled ? $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
+        return ElevatedWorkspaceAccessEnabled ?
+$"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" :
+$"{guestRole},{collaboratorRole},{adminRole},{workspaceLeadRole}";
       case AuthLevels.WorkspaceCollaborator:
-        return ElevatedWorkspaceAccessEnabled ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{collaboratorRole},{adminRole},{workspaceLeadRole}";
+        return ElevatedWorkspaceAccessEnabled ? $"{collaboratorRole},{adminRole},{workspaceLeadRole},{datahubSupportRole}" :
+$"{collaboratorRole},{adminRole},{workspaceLeadRole}";
       case AuthLevels.WorkspaceAdmin:
-        return ElevatedWorkspaceAccessEnabled ? $"{adminRole},{workspaceLeadRole},{datahubSupportRole}" : $"{adminRole},{workspaceLeadRole}";
+        return ElevatedWorkspaceAccessEnabled ? $"{adminRole},{workspaceLeadRole},{datahubSupportRole}" :
+$"{adminRole},{workspaceLeadRole}";
       case AuthLevels.WorkspaceLead:
         return ElevatedWorkspaceAccessEnabled ? $"{workspaceLeadRole},{datahubSupportRole}" : workspaceLeadRole;
       case AuthLevels.DatahubAdminGuestView:
