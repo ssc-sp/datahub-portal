@@ -17,7 +17,6 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
 using Datahub.Application.Authentication;
 using Datahub.Infrastructure.Services.UserManagement;
-using Datahub.Portal.Pages;
 
 namespace Datahub.Portal.Services.Auth;
 
@@ -29,18 +28,29 @@ public static class ConfigureAuthenticationServices
     public const string DefaultCookieName = ".AspNetCore.Cookies"; // Default cookie name used by Microsoft Identity
 
     public const string GccfSigninURL = "/gccf/signin-oidc";
-    public const string GccfSignedOutCallbackURL = "/gccf/signout-callback-oidc";
     private const string CompositeCookieScheme = "composite-cookie";
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
+        var devAuthEmail = configuration["GccfOidc:DevAuth:UserEmail"];
+
         // Base authentication: default cookie is provided by AddMicrosoftIdentityWebApp + Azure AD OIDC
         services.AddAuthentication(options =>
         {
-            options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            if (!string.IsNullOrWhiteSpace(devAuthEmail))
+            {
+                options.DefaultScheme = DevAuthHandler.Scheme;
+                options.DefaultAuthenticateScheme = DevAuthHandler.Scheme;
+                options.DefaultSignInScheme = DevAuthHandler.Scheme;
+                options.DefaultChallengeScheme = DevAuthHandler.Scheme;
+            }
+            else
+            {
+                options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+            }
         })
         .AddMicrosoftIdentityWebApp(configuration, "AzureAd", OpenIdConnectDefaults.AuthenticationScheme, CookieAuthenticationDefaults.AuthenticationScheme)
         .EnableTokenAcquisitionToCallDownstreamApi()
@@ -82,10 +92,20 @@ public static class ConfigureAuthenticationServices
             // Reconfigure defaults to use composite selector only when dev auth is not forcing defaults
             services.AddAuthentication(options =>
             {
-                options.DefaultScheme = CompositeCookieScheme;
-                options.DefaultAuthenticateScheme = CompositeCookieScheme;
-                options.DefaultSignInScheme = CompositeCookieScheme;
-                options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                if (!string.IsNullOrWhiteSpace(devAuthEmail))
+                {
+                    options.DefaultScheme = DevAuthHandler.Scheme;
+                    options.DefaultAuthenticateScheme = DevAuthHandler.Scheme;
+                    options.DefaultSignInScheme = DevAuthHandler.Scheme;
+                    options.DefaultChallengeScheme = DevAuthHandler.Scheme;
+                }
+                else
+                {
+                    options.DefaultScheme = CompositeCookieScheme;
+                    options.DefaultAuthenticateScheme = CompositeCookieScheme;
+                    options.DefaultSignInScheme = CompositeCookieScheme;
+                    options.DefaultChallengeScheme = OpenIdConnectDefaults.AuthenticationScheme;
+                }
             })
             .AddPolicyScheme(CompositeCookieScheme, CompositeCookieScheme, policyOptions =>
             {
