@@ -2,7 +2,6 @@ using System.Security.Claims;
 using System.Text.Encodings.Web;
 using Datahub.Core.Data;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -14,7 +13,6 @@ public class DevAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly IConfiguration _configuration;
     public new const string Scheme = "DevAuth";
-    public const string ActiveCookieName = "DevAuth.Active";
 
     public DevAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,
@@ -31,12 +29,6 @@ public class DevAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
         var email = _configuration["GccfOidc:DevAuth:UserEmail"];
         if (string.IsNullOrWhiteSpace(email))
             return Task.FromResult(AuthenticateResult.NoResult());
-
-        if (!Request.Cookies.TryGetValue(ActiveCookieName, out var active) ||
-            !string.Equals(active, bool.TrueString, StringComparison.OrdinalIgnoreCase))
-        {
-            return Task.FromResult(AuthenticateResult.NoResult());
-        }
 
         var name = _configuration["GccfOidc:DevAuth:UserName"] ?? email;
 

@@ -40,34 +40,6 @@ public class GCCFController(IConfiguration configuration) : Controller
         return !string.IsNullOrWhiteSpace(_configuration["GccfOidc:DevAuth:UserEmail"]);
     }
 
-    private void SetDevAuthActive(bool active)
-    {
-        if (active)
-        {
-            Response.Cookies.Append(
-                DevAuthHandler.ActiveCookieName,
-                bool.TrueString,
-                new CookieOptions
-                {
-                    HttpOnly = true,
-                    IsEssential = true,
-                    SameSite = SameSiteMode.Lax,
-                    Secure = Request.IsHttps,
-                    Expires = DateTimeOffset.UtcNow.AddHours(8)
-                });
-        }
-        else
-        {
-            Response.Cookies.Delete(
-                DevAuthHandler.ActiveCookieName,
-                new CookieOptions
-                {
-                    SameSite = SameSiteMode.Lax,
-                    Secure = Request.IsHttps
-                });
-        }
-    }
-
     [HttpGet("login")]
     public async Task<IActionResult> Login(string? returnUrl = null, string locale = "en-CA")
     {
@@ -75,8 +47,6 @@ public class GCCFController(IConfiguration configuration) : Controller
 
         if (IsDevAuthEnabled())
         {
-            SetDevAuthActive(true);
-
             if (Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
@@ -112,7 +82,6 @@ public class GCCFController(IConfiguration configuration) : Controller
 
         if (IsDevAuthEnabled())
         {
-            SetDevAuthActive(false);
             Response.Cookies.Delete(
                 ConfigureAuthenticationServices.GccfCookieName,
                 new CookieOptions

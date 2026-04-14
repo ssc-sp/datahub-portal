@@ -34,8 +34,6 @@ public static class ConfigureAuthenticationServices
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
-        var devAuthEmail = configuration["GccfOidc:DevAuth:UserEmail"];
-
         // Base authentication: default cookie is provided by AddMicrosoftIdentityWebApp + Azure AD OIDC
         services.AddAuthentication(options =>
         {
@@ -93,11 +91,6 @@ public static class ConfigureAuthenticationServices
             {
                 policyOptions.ForwardDefaultSelector = context =>
                 {
-                    var hasDevAuthCookie = context.Request.Cookies.TryGetValue(DevAuthHandler.ActiveCookieName, out var active)
-                        && string.Equals(active, bool.TrueString, StringComparison.OrdinalIgnoreCase);
-                    if (hasDevAuthCookie)
-                        return DevAuthHandler.Scheme;
-
                     // Favor Microsoft Identity default cookie first, then GCCF cookie
                     var hasDefaultCookie = context.Request.Cookies.ContainsKey(DefaultCookieName);
                     if (hasDefaultCookie)
