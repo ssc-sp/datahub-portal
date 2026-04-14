@@ -140,8 +140,7 @@ public static class ConfigureAuthenticationServices
                     options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret");
                     options.ResponseType = OpenIdConnectResponseType.Code;
                     options.CallbackPath = GccfSigninURL;
-                    options.SignedOutCallbackPath = GccfSignedOutCallbackURL;
-                    options.SignedOutRedirectUri = PageRoutes.Login;
+                    options.SignedOutRedirectUri = "/home";
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
