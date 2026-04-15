@@ -3,7 +3,6 @@ using Datahub.Application.Authentication;
 using Datahub.Portal.Pages;
 using Datahub.Portal.Services.Auth;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.FeatureManagement;
@@ -17,10 +16,8 @@ namespace Datahub.Portal.Controllers;
 /// </summary>
 [Route("/gccf")]
 [FeatureGate(Features.GCCF_Feature)]
-public class GCCFController(IConfiguration configuration) : Controller
+public class GCCFController() : Controller
 {
-    private readonly IConfiguration _configuration = configuration;
-
     private static string GetDefaultLoginReturnUrl(string locale)
     {
         return locale.StartsWith("fr", StringComparison.OrdinalIgnoreCase)
@@ -35,25 +32,10 @@ public class GCCFController(IConfiguration configuration) : Controller
             : PageRoutes.Login;
     }
 
-    private bool IsDevAuthEnabled()
-    {
-        return !string.IsNullOrWhiteSpace(_configuration["GccfOidc:DevAuth:UserEmail"]);
-    }
-
     [HttpGet("login")]
     public async Task<IActionResult> Login(string? returnUrl = null, string locale = "en-CA")
     {
         returnUrl ??= GetDefaultLoginReturnUrl(locale);
-
-        if (IsDevAuthEnabled())
-        {
-            if (Url.IsLocalUrl(returnUrl))
-            {
-                return LocalRedirect(returnUrl);
-            }
-
-            return Redirect(PageRoutes.Home);
-        }
 
         var devAuthResult = await HttpContext.AuthenticateAsync(DevAuthHandler.Scheme);
         if (devAuthResult.Succeeded)
@@ -79,24 +61,6 @@ public class GCCFController(IConfiguration configuration) : Controller
     public IActionResult Logout(string? returnUrl = null, string locale = "en-CA")
     {
         returnUrl ??= GetDefaultLogoutReturnUrl(locale);
-
-        if (IsDevAuthEnabled())
-        {
-            Response.Cookies.Delete(
-                ConfigureAuthenticationServices.GccfCookieName,
-                new CookieOptions
-                {
-                    SameSite = SameSiteMode.Lax,
-                    Secure = Request.IsHttps
-                });
-
-            if (Url.IsLocalUrl(returnUrl))
-            {
-                return LocalRedirect(returnUrl);
-            }
-
-            return Redirect(GetDefaultLogoutReturnUrl(locale));
-        }
 
         // Prepare sign-out to clear the GCCF cookie and trigger OIDC end-session
         var props = new AuthenticationProperties { RedirectUri = returnUrl };
