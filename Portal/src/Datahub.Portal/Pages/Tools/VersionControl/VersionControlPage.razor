@@ -290,7 +290,10 @@
             _versions.Add(versionTag);
 
             _versions = _versions
-                .OrderByDescending(v => System.Version.Parse(v.Tag.TrimStart('v')))
+                .OrderByDescending(v => {
+                    var versionMatch = Regex.Match(v.Tag, @"\d+(\.\d+)+");
+                    return versionMatch.Success ? System.Version.Parse(versionMatch.Value) : new System.Version(0, 0);
+                })
                 .ToList();
 
             // Refresh outdated workspaces and statistics since we have a new latest version
