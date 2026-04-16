@@ -111,9 +111,7 @@ public partial class RepositoryService(
         {
             var repositoryUrl = resourceProvisionerConfiguration.ModuleRepository.Url;
             var localPath = resourceProvisionerConfiguration.ModuleRepository.LocalPath;
-
             version = $"v{version}";
-
             logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
             var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
