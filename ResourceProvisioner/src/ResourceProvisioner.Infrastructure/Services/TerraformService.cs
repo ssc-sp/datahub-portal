@@ -68,8 +68,7 @@ public class TerraformService(
 
             var fileContent = await File.ReadAllTextAsync(file);
             
-            fileContent = fileContent.Replace(TerraformTagToken,
-                $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspaceDefinition.Workspace.Version}");
+            fileContent = fileContent.Replace(TerraformTagToken, $"?ref=v{workspaceDefinition.Workspace.Version}");
             fileContent = fileContent.Replace(TerraformVersionToken, workspaceDefinition.Workspace.Version);
 
             await File.WriteAllTextAsync(destinationFilename, fileContent);
