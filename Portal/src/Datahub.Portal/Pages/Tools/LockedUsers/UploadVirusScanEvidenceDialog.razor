@@ -109,13 +109,22 @@
                 return;
             }
 
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+            {
+                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                return;
+            }
+
             var blobServiceClient = new BlobServiceClient(connectionString);
             
             // Determine container and path based on user type
             string containerName = _isExternalUser ? "external-uploads" : "virus-scan-evidence";
             string safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
+
+            var externalFolder = GetSafeExternalFolderName(currentUser.Email ?? User.Email);
             string blobName = _isExternalUser
-                ? $"{User.Email?.Split('@')[0]}/{Guid.NewGuid()}-{safeFileName}"
+                ? $"{externalFolder}/{Guid.NewGuid()}-{safeFileName}"
                 : $"{WorkspaceId}/{User.Id}/{Guid.NewGuid()}-{safeFileName}";
 
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
@@ -132,13 +141,6 @@
             var evidenceUrl = blobClient.CanGenerateSasUri
                 ? blobClient.GenerateSasUri(sasPermissions, DateTimeOffset.UtcNow.AddDays(7)).ToString()
                 : blobClient.Uri.ToString();
-
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            if (currentUser == null)
-            {
-                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
-                return;
-            }
 
             // Record evidence upload
             await _lockedUserManagementService.RecordEvidenceUploadAsync(
@@ -195,6 +197,17 @@
     private void Cancel()
     {
         MudDialog.Cancel();
+    }
+
+    private static string GetSafeExternalFolderName(string? email)
+    {
+        var emailPrefix = email?.Split('@')[0] ?? string.Empty;
+        var sanitized = new string(emailPrefix
+            .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
+            .ToArray())
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(sanitized) ? "external-user" : sanitized.ToLowerInvariant();
     }
 
     private string FormatFileSize(long bytes)

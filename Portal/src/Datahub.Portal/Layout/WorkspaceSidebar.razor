@@ -34,7 +34,7 @@
         </SkipLink>
         @if (Drawer.Open)
         {
-            @if (_allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
+            @if (_project is not null && _allProjects is not null && _allProjects.Select(p => p.Project_Acronym_CD).Contains(WorkspaceAcronym))
             {
                 <span class="sr-only">
                     @Localizer["Workspace selected. Selecting a new workspace from this dropdown will navigate to the selected workspace."]
@@ -81,7 +81,10 @@
                     <MudText Typo="Typo.h2" Style=@_workspaceTitleStyle>
                         @WorkspaceAcronym
                     </MudText>
-                    <FeaturedProjectToggle Project="@_project" />
+                    @if (_project is not null)
+                    {
+                        <FeaturedProjectToggle Project="@_project" />
+                    }
                 </MudStack>
             }
         }
