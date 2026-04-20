@@ -15,7 +15,7 @@
 		<PackageReference Include="Azure.Identity" Version="1.20.*" />
 		<PackageReference Include="Azure.ResourceManager" Version="1.13.*" />
 		<PackageReference Include="Microsoft.Identity.Client" Version="4.83.*" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.*" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.5" />
 		<PackageReference Include="Yarp.ReverseProxy" Version="2.3.*" />
 	</ItemGroup>
 
