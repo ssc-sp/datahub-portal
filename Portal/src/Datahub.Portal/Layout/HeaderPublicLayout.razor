@@ -64,7 +64,6 @@
         var returnUrl = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.OrdinalIgnoreCase)
             ? PageRoutes.Login_FR
             : PageRoutes.Login;
-
         return $"{Localizer["/gccf/logout"]}?locale={CultureInfo.CurrentCulture.Name}&returnUrl={Uri.EscapeDataString(returnUrl)}";	
 	}
 
