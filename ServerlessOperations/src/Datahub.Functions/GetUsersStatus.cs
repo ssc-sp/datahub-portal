@@ -1,10 +1,13 @@
-﻿using System.Net;
+﻿extern alias AzIdentity;
+using System.Net;
 using Microsoft.Graph;
-using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
+using AzureAuthorityHosts = AzIdentity::Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
+using TokenCredentialOptions = AzIdentity::Azure.Identity.TokenCredentialOptions;
 
 namespace Datahub.Functions
 {

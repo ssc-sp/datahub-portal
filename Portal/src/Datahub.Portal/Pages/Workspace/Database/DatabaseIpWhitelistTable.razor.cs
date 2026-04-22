@@ -1,10 +1,11 @@
+extern alias AzIdentity;
 using System.Net;
 using System.Net.Sockets;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
+using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
 using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
 using Datahub.Shared.Entities;
