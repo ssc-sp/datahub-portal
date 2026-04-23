@@ -9,6 +9,8 @@
 @using Datahub.Core.Storage;
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
+@using Datahub.Metadata.Model
+@using Datahub.Portal.Components.Sidebar
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 @using Microsoft.Extensions.Options
 @using Microsoft.Graph.Models;
@@ -34,6 +36,12 @@
     <DHLoadingInitializer />
     return;
 }
+<EnvironmentTopBar SecurityLevel="@(_project?.Data_Sensitivity ?? ClassificationType.Unclassified)" />
+
+<DHSidebarDrawer>
+    <WorkspaceSidebar WorkspaceAcronym="@WorkspaceAcronym" />
+</DHSidebarDrawer>
+
 <MudStack>
     <MudStack Row Justify="Justify.SpaceBetween">
         <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />

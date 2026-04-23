@@ -65,7 +65,10 @@
         }
         else
         {
-            _navigation_manager.NavigateTo($"/gccf/logout?locale={CultureInfo.CurrentCulture.Name}", true);
+            var returnUrl = CultureInfo.CurrentCulture.Name.StartsWith("fr", StringComparison.OrdinalIgnoreCase)
+                ? PageRoutes.Login_FR
+                : PageRoutes.Login;
+            _navigation_manager.NavigateTo($"/gccf/logout?locale={CultureInfo.CurrentCulture.Name}&returnUrl={Uri.EscapeDataString(returnUrl)}", true);
         }
     }
 

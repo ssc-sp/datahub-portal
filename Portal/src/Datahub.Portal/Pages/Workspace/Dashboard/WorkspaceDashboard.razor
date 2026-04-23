@@ -29,7 +29,7 @@
         </DatahubAuthView>
         @if (!_isDeleted)
         {
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronym"
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.AllWorkspaceUsers" ProjectAcronym="@WorkspaceAcronym"
                              ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <Authorized>
                     @if (_resources.Any())
@@ -87,22 +87,22 @@
                 </Authorized>
                 <NotAuthorized>
                     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-                        <MudStack>
-                            <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
-                            @if (_projectRepositories != null && _projectRepositories.Any())
-                            {
-                                @foreach (var projectRepository in _projectRepositories)
-                                {
-                                    <RepositoryCard ProjectRepository="@projectRepository"/>
-                                }
-                            }
-                            else
-                            {
-                                <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
-                                <MudText
-                                    Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
-                            }
-                        </MudStack>
+                      <MudStack>
+                        <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
+                        @if (_projectRepositories != null && _projectRepositories.Any())
+                        {
+                          @foreach (var projectRepository in _projectRepositories)
+                          {
+                            <RepositoryCard ProjectRepository="@projectRepository" />
+                          }
+                        }
+                        else
+                        {
+                          <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                          <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
+                        }
+                        <a href="~/Pages/Workspace/Dashboard/WorkspaceDashboard.razor">~/Pages/Workspace/Dashboard/WorkspaceDashboard.razor</a>
+                      </MudStack>
                     </DatahubAuthView>
                 </NotAuthorized>
             </DatahubAuthView>
