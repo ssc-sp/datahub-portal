@@ -1,4 +1,4 @@
-using Azure.Identity;
+extern alias AzIdentity;
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -6,6 +6,7 @@ using Azure.ResourceManager.Resources;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Storage.Queues;
+using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.WebApp;
