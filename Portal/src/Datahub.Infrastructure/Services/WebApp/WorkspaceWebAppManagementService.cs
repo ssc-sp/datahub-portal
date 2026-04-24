@@ -1,6 +1,5 @@
 extern alias AzIdentity;
 using System.Text.Json;
-using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
