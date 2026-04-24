@@ -1,8 +1,11 @@
-using Azure.Identity;
+extern alias AzIdentity;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Infrastructure.Services.Azure;
+using AzureAuthorityHosts = AzIdentity::Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
+using ClientSecretCredentialOptions = AzIdentity::Azure.Identity.ClientSecretCredentialOptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -97,8 +100,7 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
                     _azureServicePrincipalConfig.TenantId,                    
                     _azureServicePrincipalConfig.ClientId,
                     _azureServicePrincipalConfig.ClientSecret, options);
-                var httpClient = _httpClientFactory.CreateClient(IMSGraphService.HttpClientName);
-                _graphServiceClient = new(httpClient, clientCertCredential);
+                _graphServiceClient = new(clientCertCredential);
             }
             catch (Exception e)
             {
