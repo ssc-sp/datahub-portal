@@ -1,4 +1,4 @@
-﻿using Markdig;
+using Markdig;
 using Markdig.Extensions.Yaml;
 using Markdig.Renderers.Roundtrip;
 using Markdig.Syntax;

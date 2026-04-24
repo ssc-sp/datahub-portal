@@ -1,0 +1,52 @@
+@using Datahub.Markdown
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Microsoft.AspNetCore.Mvc.RazorPages
+@using Markdig
+
+@inject ILogger<TermsAndConditionsDate> _logger
+@inject IHttpClientFactory _httpClientFactory
+
+@attribute [Route(PageRoutes.TermsAndConditionsExternal)]
+
+<MudStack>
+  <MudText>
+      @Localizer["These are the terms and these are the conditions. Read well and descend."]
+  </MudText>
+  <MudText>
+    @((MarkupString)mxmx)
+
+  </MudText>
+  <DHButton Variant="Variant.Outlined" Color="Color.Primary" Underline NoWrap Href="@Localizer[PageRoutes.Home]">
+    @Localizer["Clickez-moi"]
+  </DHButton>
+</MudStack>
+
+
+@code {
+    private string _termsAndConditionsURL  = "https://raw.githubusercontent.com/ssc-sp/fsdh-pfds-docs/refs/heads/main/docs/en/Terms-And-Conditions.md";
+    private string _termsAndConditionsMarkdown;
+    private string mxmx;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+      _termsAndConditionsMarkdown = await GetLastUpdatedMarkdownContent();
+      mxmx = Markdig.Markdown.ToHtml(_termsAndConditionsMarkdown);
+    }
+
+    private async Task<string> GetLastUpdatedMarkdownContent()
+    {
+        var client = _httpClientFactory.CreateClient();
+        try
+        {
+            var output = await client.GetStringAsync(_termsAndConditionsURL);
+            return MarkdownHelper.RemoveFrontMatter(output);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Cannot load date of latest update from documentation website.");
+            return null;
+        }
+    }
+}
