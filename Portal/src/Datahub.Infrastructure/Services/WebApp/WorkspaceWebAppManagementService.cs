@@ -147,7 +147,6 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         public async Task<Dictionary<string, string>> GetAppSettings(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
             var appSettings = await GetAzureAppSettings(webAppId);
 
             return appSettings.Properties.ToDictionary();
