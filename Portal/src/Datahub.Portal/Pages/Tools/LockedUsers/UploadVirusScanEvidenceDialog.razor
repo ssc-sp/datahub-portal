@@ -98,6 +98,13 @@
                 return;
             }
 
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+            {
+                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                return;
+            }
+
             var blobServiceClient = new BlobServiceClient(connectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient("virus-scan-evidence");
             await containerClient.CreateIfNotExistsAsync();
@@ -111,13 +118,6 @@
             var evidenceUrl = blobClient.CanGenerateSasUri
                 ? blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddDays(7)).ToString()
                 : blobClient.Uri.ToString();
-
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            if (currentUser == null)
-            {
-                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
-                return;
-            }
 
             await _lockedUserManagementService.RecordEvidenceUploadAsync(
                 User.Id,
@@ -141,6 +141,17 @@
     private void Cancel()
     {
         MudDialog.Cancel();
+    }
+
+    private static string GetSafeExternalFolderName(string? email)
+    {
+        var emailPrefix = email?.Split('@')[0] ?? string.Empty;
+        var sanitized = new string(emailPrefix
+            .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
+            .ToArray())
+            .Trim();
+
+        return string.IsNullOrWhiteSpace(sanitized) ? "external-user" : sanitized.ToLowerInvariant();
     }
 
     private string FormatFileSize(long bytes)
