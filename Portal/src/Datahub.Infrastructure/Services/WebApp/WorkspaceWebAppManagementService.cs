@@ -1,5 +1,6 @@
-﻿extern alias AzIdentity;
+extern alias AzIdentity;
 using System.Text.Json;
+using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -20,6 +21,7 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Services.Common;
 
 namespace Datahub.Infrastructure.Services.WebApp
@@ -31,15 +33,17 @@ namespace Datahub.Infrastructure.Services.WebApp
         private readonly ISendEndpointProvider _sendEndpointProvider;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IKeyVaultUserService _keyVaultUserService;
+        private readonly ILogger<WorkspaceWebAppManagementService> _logger;
 
         public WorkspaceWebAppManagementService(DatahubPortalConfiguration portalConfiguration,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ISendEndpointProvider sendEndpointProvider,
-            IKeyVaultUserService keyVaultUserService)
+            IKeyVaultUserService keyVaultUserService, ILogger<WorkspaceWebAppManagementService> logger)
         {
             _portalConfiguration = portalConfiguration;
             _dbContextFactory = dbContextFactory;
             _sendEndpointProvider = sendEndpointProvider;
             _keyVaultUserService = keyVaultUserService;
+            _logger = logger;
             var credential = new ClientSecretCredential(_portalConfiguration.AzureAd.TenantId,
                 _portalConfiguration.AzureAd.InfraClientId, _portalConfiguration.AzureAd.InfraClientSecret);
             _armClient = new ArmClient(credential);
@@ -49,7 +53,15 @@ namespace Datahub.Infrastructure.Services.WebApp
         {
             if (!string.IsNullOrEmpty(workspaceAcronym))
             {
-                await SetAppSettings(workspaceAcronym, webAppId);
+                // best-effort; swallow exceptions so UI doesn't crash
+                try
+                {
+                    await SetAppSettings(workspaceAcronym, webAppId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to apply app settings before start for webAppId={WebAppId}", webAppId);
+                }
             }
 
             return await Start(webAppId);
@@ -57,23 +69,78 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         public async Task<bool> Start(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            var response = await webAppResource.StartAsync();
-            return !response.IsError;
+            try
+            {
+                var webAppResource = await GetWebAppAzureResource(webAppId);
+                if (webAppResource is null)
+                {
+                    _logger.LogWarning("Web app resource not found for id {WebAppId}", webAppId);
+                    return false;
+                }
+
+                var response = await webAppResource.StartAsync();
+                return !response.IsError;
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogWarning(ex, "Azure Request failed when starting web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Invalid resource id format when starting web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when starting web app {WebAppId}", webAppId);
+                return false;
+            }
         }
 
         public async Task<bool> Stop(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            var response = await webAppResource.StopAsync();
-            return !response.IsError;
+            try
+            {
+                var webAppResource = await GetWebAppAzureResource(webAppId);
+                if (webAppResource is null)
+                {
+                    _logger.LogWarning("Web app resource not found for id {WebAppId}", webAppId);
+                    return false;
+                }
+
+                var response = await webAppResource.StopAsync();
+                return !response.IsError;
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogWarning(ex, "Azure Request failed when stopping web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Invalid resource id format when stopping web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when stopping web app {WebAppId}", webAppId);
+                return false;
+            }
         }
 
         public async Task<bool> Restart(string webAppId, string workspaceAcronym)
         {
             if (!string.IsNullOrEmpty(workspaceAcronym))
             {
-                await SetAppSettings(workspaceAcronym, webAppId);
+                try
+                {
+                    await SetAppSettings(workspaceAcronym, webAppId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Failed to apply app settings before restart for webAppId={WebAppId}", webAppId);
+                }
             }
 
             return await Restart(webAppId);
@@ -81,20 +148,62 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         public async Task<bool> Restart(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            var response = await webAppResource.RestartAsync();
-            return !response.IsError;
+            try
+            {
+                var webAppResource = await GetWebAppAzureResource(webAppId);
+                if (webAppResource is null)
+                {
+                    _logger.LogWarning("Web app resource not found for id {WebAppId}", webAppId);
+                    return false;
+                }
+
+                var response = await webAppResource.RestartAsync();
+                return !response.IsError;
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogWarning(ex, "Azure Request failed when restarting web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Invalid resource id format when restarting web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when restarting web app {WebAppId}", webAppId);
+                return false;
+            }
         }
 
         public async Task<bool> GetState(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            if (webAppResource.HasData && webAppResource.Data.State == "Running")
+            try
             {
-                return true;
-            }
+                var webAppResource = await GetWebAppAzureResource(webAppId);
+                if (webAppResource.HasData && webAppResource.Data.State == "Running")
+                {
+                    return true;
+                }
 
-            return false;
+                return false;
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogWarning(ex, "Azure Request failed when reading state for web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Invalid resource id format when reading state for web app {WebAppId}", webAppId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when reading state for web app {WebAppId}", webAppId);
+                return false;
+            }
         }
 
         public async Task FillSystemConfiguration(string workspaceAcronym, AppServiceConfiguration config)
@@ -108,67 +217,100 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         public async Task SetAppSettings(string workspaceAcronym, string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            using var ctx = await _dbContextFactory.CreateDbContextAsync();
-
-            var projectResource = await GetResource(ctx, workspaceAcronym);
-            var envVarKeys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(projectResource);
-            var appSettings = await GetAzureAppSettings(webAppId);
-            var keyVaultName = _keyVaultUserService.GetVaultName(workspaceAcronym,
-                _portalConfiguration.Hosting.EnvironmentName);
-
-            foreach (var key in envVarKeys)
+            try
             {
-                if (appSettings.Properties.ContainsKey(key))
+                var webAppResource = await GetWebAppAzureResource(webAppId);
+                if (webAppResource is null)
                 {
-                    // If the key already exists in the app settings, we update it with a secret reference
-                    appSettings.Properties[key] = BuildSecretReference(keyVaultName, key);
+                    _logger.LogWarning("Web app resource not found when setting app settings for id {WebAppId}", webAppId);
+                    return;
                 }
-                else
+
+                using var ctx = await _dbContextFactory.CreateDbContextAsync();
+
+                var projectResource = await GetResource(ctx, workspaceAcronym);
+                var envVarKeys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(projectResource);
+                var appSettings = await GetAzureAppSettings(webAppId);
+                var keyVaultName = _keyVaultUserService.GetVaultName(workspaceAcronym,
+                    _portalConfiguration.Hosting.EnvironmentName);
+
+                foreach (var key in envVarKeys)
                 {
-                    // Otherwise we add a new key with a secret reference
-                    var secretReference = BuildSecretReference(keyVaultName, key);
-                    appSettings.Properties.Add(key, secretReference);
+                    if (appSettings.Properties.ContainsKey(key))
+                    {
+                        appSettings.Properties[key] = BuildSecretReference(keyVaultName, key);
+                    }
+                    else
+                    {
+                        var secretReference = BuildSecretReference(keyVaultName, key);
+                        appSettings.Properties.Add(key, secretReference);
+                    }
                 }
+
+                await webAppResource.UpdateApplicationSettingsAsync(appSettings);
             }
-
-            await webAppResource.UpdateApplicationSettingsAsync(appSettings);
-        }
-
-        internal string BuildSecretReference(string keyVaultName, string envVarKey)
-        {
-            return $"@Microsoft.KeyVault(VaultName={keyVaultName};SecretName={ToSecretName(envVarKey)})";
-        }
-        
-        internal string ToSecretName(string key)
-        {
-            return key.ToLower().Replace("_", "-");
+            catch (RequestFailedException ex)
+            {
+                _logger.LogWarning(ex, "Azure Request failed when setting app settings for web app {WebAppId}", webAppId);
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Invalid resource id format when setting app settings for web app {WebAppId}", webAppId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when setting app settings for web app {WebAppId}", webAppId);
+            }
         }
 
         public async Task<Dictionary<string, string>> GetAppSettings(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            var appSettings = await GetAzureAppSettings(webAppId);
-
-            return appSettings.Properties.ToDictionary();
+            try
+            {
+                var appSettings = await GetAzureAppSettings(webAppId);
+                return appSettings.Properties.ToDictionary();
+            }
+            catch (RequestFailedException ex)
+            {
+                _logger.LogWarning(ex, "Azure Request failed when getting app settings for web app {WebAppId}", webAppId);
+                return new Dictionary<string, string>();
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning(ex, "Invalid resource id format when getting app settings for web app {WebAppId}", webAppId);
+                return new Dictionary<string, string>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error when getting app settings for web app {WebAppId}", webAppId);
+                return new Dictionary<string, string>();
+            }
         }
 
         internal async Task<AppServiceConfigurationDictionary> GetAzureAppSettings(string webAppId)
         {
-            var webAppResource = await GetWebAppAzureResource(webAppId);
-            var appSettingsResponse = await webAppResource.GetApplicationSettingsAsync();
-            if (!appSettingsResponse.HasValue)
+            try
             {
-                throw new Exception($"App settings not found for web app {webAppId}");
-            }
+                var webAppResource = await GetWebAppAzureResource(webAppId);
+                var appSettingsResponse = await webAppResource.GetApplicationSettingsAsync();
+                if (!appSettingsResponse.HasValue)
+                {
+                    throw new Exception($"App settings not found for web app {webAppId}");
+                }
 
-            var appSettings = appSettingsResponse.Value;
-            if (appSettings == null)
+                var appSettings = appSettingsResponse.Value;
+                if (appSettings == null)
+                {
+                    throw new Exception($"Could not get app settings for web app {webAppId}");
+                }
+
+                return appSettings;
+            }
+            catch (RequestFailedException ex)
             {
-                throw new Exception($"Could not get app settings for web app {webAppId}");
+                _logger.LogWarning(ex, "Azure Request failed when retrieving app settings for web app {WebAppId}", webAppId);
+                throw;
             }
-
-            return appSettings;
         }
 
         public async Task SaveConfiguration(string workspaceAcronym, AppServiceConfiguration config)
@@ -213,6 +355,11 @@ namespace Datahub.Infrastructure.Services.WebApp
             return response.Value;
         }
 
+        private static string BuildSecretReference(string keyVaultName, string secretName)
+        {
+            return $"@Microsoft.KeyVault(VaultName={keyVaultName};SecretName={secretName})";
+        }
+
         public async Task<Project_Resources2> GetResource(DatahubProjectDBContext context, string workspaceAcronym)
         {
             var workspace = await context.Projects
@@ -234,7 +381,7 @@ namespace Datahub.Infrastructure.Services.WebApp
 
         public async Task<Project_Resources2> GetResource(string workspaceAcronym)
         {
-            using var context = await _dbContextFactory.CreateDbContextAsync();
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
             return await GetResource(context, workspaceAcronym);
         }
     }
