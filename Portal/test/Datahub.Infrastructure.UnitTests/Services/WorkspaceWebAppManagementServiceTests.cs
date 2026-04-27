@@ -3,7 +3,6 @@ using Datahub.Infrastructure.Services.WebApp;
 using FluentAssertions;
 using MassTransit;
 using MediatR;
-using Microsoft.Extensions.Logging;
 using NSubstitute;
 using static Datahub.Infrastructure.UnitTests.Testing;
 
@@ -16,16 +15,14 @@ public class WorkspaceWebAppManagementServiceTests
     private WorkspaceWebAppManagementService _service;
     private ISendEndpointProvider _sendEndpointProvider;
     private IKeyVaultUserService _keyVaultUserService;
-    private ILogger<WorkspaceWebAppManagementService> _logger;
 
     [SetUp]
     public async Task Setup()
     {
         _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _keyVaultUserService = Substitute.For<IKeyVaultUserService>();
-        _logger = Substitute.For<ILogger<WorkspaceWebAppManagementService>>();
         _keyVaultUserService.GetVaultName(Arg.Any<string>(), Arg.Any<string>()).Returns("");
-        _service = new WorkspaceWebAppManagementService(_datahubPortalConfiguration, _dbContextFactory, _sendEndpointProvider, _keyVaultUserService, _logger);
+        _service = new WorkspaceWebAppManagementService(_datahubPortalConfiguration, _dbContextFactory, _sendEndpointProvider, _keyVaultUserService);
         await _service.Stop(TestWebAppId);
         await Task.Delay(1000);
     }
