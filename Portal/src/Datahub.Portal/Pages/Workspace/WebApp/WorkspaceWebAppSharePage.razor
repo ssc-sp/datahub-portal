@@ -127,6 +127,13 @@ else if (isAvailable)
     var workspace = await ctx.Projects
         .Include(x => x.Resources)
         .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronymParam);
+
+    if (workspace is null)
+    {
+      _navigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+      return;
+    }
+
     var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
     _dataSensitivity = workspace.Data_Sensitivity;
     isAvailable = workspace is not null && !(string.IsNullOrWhiteSpace(appConfiguration?.Framework) && string.IsNullOrWhiteSpace(appConfiguration?.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration?.ComposePath));
