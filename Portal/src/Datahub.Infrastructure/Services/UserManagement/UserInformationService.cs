@@ -1,8 +1,11 @@
-using Azure.Identity;
+extern alias AzIdentity;
 using Datahub.Application.Authentication;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
+using AzureAuthorityHosts = AzIdentity::Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
+using ClientSecretCredentialOptions = AzIdentity::Azure.Identity.ClientSecretCredentialOptions;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
