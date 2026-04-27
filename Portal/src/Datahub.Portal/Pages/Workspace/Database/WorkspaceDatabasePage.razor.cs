@@ -1,7 +1,8 @@
-﻿using Azure.Core;
-using Azure.Identity;
+﻿extern alias AzIdentity;
+using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
+using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
 using Datahub.Core.Model.Context;
 using Datahub.Portal.Model;
 using Datahub.Shared.Entities;

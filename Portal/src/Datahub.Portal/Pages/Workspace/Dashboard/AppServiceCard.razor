@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services.ReverseProxy
+@using Datahub.Application.Services.ReverseProxy
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
 @inject IReverseProxyConfigService _reverseProxyConfigService
@@ -6,9 +6,9 @@
 <MudPaper Outlined Class="pa-4">
     <MudStack>
         <MudStack Row AlignItems="AlignItems.Center">
-            <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium"/>
+            <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium" />
             <MudText Typo="Typo.h3">@Localizer["Web Application"]</MudText>
-            <MudSpacer/>
+            <MudSpacer />
 
         </MudStack>
         <MudText>
@@ -18,26 +18,24 @@
             @if (ProjectResource.Status == TerraformStatus.Completed)
             {
                 <MudStack Row>
-                    <DHButton
-                        Href="@GetWebAppUrl()"
-                        Color="Color.Primary"
-                        Variant="@Variant.Text"
-                        EndIcon="@SidebarIcons.External"
-                        Underline>
+                    <DHButton Href="@GetWebAppUrl()" Color="Color.Primary" Variant="@Variant.Text"
+                              EndIcon="@SidebarIcons.External" Underline>
                         @Localizer["Navigate to Web App"]
                     </DHButton>
-                    <DHButton Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
-                              Color="Color.Primary"
-                              Variant="@Variant.Text"
-                              EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
-                              Underline>
-                        @Localizer["View Web App configuration"]
-                    </DHButton>
+                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin"
+                                     ProjectAcronym="@WorkspaceAcronym">
+                        <DHButton
+                            Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
+                            Color="Color.Primary" Variant="@Variant.Text"
+                            EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                            @Localizer["View Web App configuration"]
+                        </DHButton>
+                    </DatahubAuthView>
                 </MudStack>
             }
             else
             {
-                <ToolBeingProvisionedButton/>
+                <ToolBeingProvisionedButton />
             }
         </MudElement>
     </MudStack>
@@ -45,9 +43,9 @@
 
 @code {
 
-    [Parameter] [EditorRequired] public Project_Resources2 ProjectResource { get; set; }
+    [Parameter][EditorRequired] public Project_Resources2 ProjectResource { get; set; }
 
-    [Parameter] [EditorRequired] public string WorkspaceAcronym { get; set; }
+    [Parameter][EditorRequired] public string WorkspaceAcronym { get; set; }
 
     private string GetWebAppUrl()
     {
