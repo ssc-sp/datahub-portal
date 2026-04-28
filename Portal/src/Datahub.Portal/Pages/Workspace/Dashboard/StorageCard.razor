@@ -9,8 +9,7 @@
 @inject IDialogService _dialogService
 @inject IUserInformationService _userInformationService
 
-@if (!_isExternalUser || _canAccessExternalStorage)
-{
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Storage" ProjectAcronym="@WorkspaceAcronym">
     <MudPaper Outlined Class="pa-4">
         <MudStack>
             <MudStack Row AlignItems="AlignItems.Center">
@@ -29,7 +28,7 @@
                                   EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
                             @Localizer["View storage"]
                         </DHButton>
-                
+
                         @if (_config.CkanConfiguration.IsFeatureEnabled)
                         {
                             @if (_isPublishingBlockedForWorkspace)
@@ -58,7 +57,7 @@
             </MudElement>
         </MudStack>
     </MudPaper>
-}
+</DatahubAuthView>
 
 @code {
 
