@@ -1,4 +1,4 @@
-﻿@inject ILogger<HelpPage> _logger
+@inject ILogger<HelpPage> _logger
 @inject IUserSettingsService _userSettingsService
 @inject IUserInformationService _userInformationService
 @inject IKeyVaultService _keyVaultService
@@ -49,7 +49,7 @@
 
 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
     <MudStack Spacing="6">
-        <DHMainContentTitle Title="@Localizer["Support"]"/>
+        <DHMainContentTitle Title="@Localizer["Support"]" />
         <ul class="my-4" style="display: flex; align-items: flex-start; gap: 25px; flex-wrap: wrap">
             <li class="d-flex flex-1">
                 <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
@@ -63,11 +63,12 @@
                         else if (_currentStep == Steps.Topics)
                         {
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["What are you having trouble with? (Please select all that apply)"]</MudText>
-                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true" AdornmentColor="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef">
+                            <MudSelect T="string" @bind-SelectedValues="_selectedTopics" MultiSelection="true"
+                                       AdornmentColor="@Color.Primary" Class="multiselect-textarea" @ref="_landingFieldRef">
                                 @foreach (var topic in _ticketTopicsList)
-                                {  
-                                    <MudSelectItem T="string" Value="@topic">@Localizer[topic]</MudSelectItem>  
-                                }  
+                                {
+                                    <MudSelectItem T="string" Value="@topic">@Localizer[topic]</MudSelectItem>
+                                }
                             </MudSelect>
 
                             if (_selectedTopics.Contains("Extended Storage Token"))
@@ -78,17 +79,13 @@
                             {
                                 <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please provide additional information that we can use to investigate this issue."]*</MudText>
                             }
-                            <MudTextField T="string"
-                                @bind-Value="@_ticketDescription"                                
-                                Required
-                                RequiredError="@Localizer["Please provide a description."]"
-                                Variant="Variant.Outlined"
-                                Lines="5"
-                                Class="no-margin-textarea"
-                                @ref="_descriptionFieldRef" />
+                            <MudTextField T="string" @bind-Value="@_ticketDescription" Required
+                                          RequiredError="@Localizer["Please provide a description."]" Variant="Variant.Outlined"
+                                          Lines="5" Class="no-margin-textarea" @ref="_descriptionFieldRef" />
 
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which workspaces you have this issue in. (Please select all that apply)"]</MudText>
-                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true" AdornmentColor="@Color.Primary" Class="multiselect-textarea">
+                            <MudSelect T="string" @bind-SelectedValues="_selectedWorkspaces" MultiSelection="true"
+                                       AdornmentColor="@Color.Primary" Class="multiselect-textarea">
                                 @foreach (var workspace in _ticketWorkspaces)
                                 {
                                     <MudSelectItem T="string" Value="@workspace.Key">@Localizer[workspace.Key]</MudSelectItem>
@@ -98,102 +95,112 @@
                         
                             <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please indicate which language you would like to be contacted in."]</MudText>
                             <MudRadioGroup T="int" @bind-Value="_ticketPreferredLanguage">
-                                <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["English"]</MudRadio>
-                                <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">@Localizer["French"]</MudRadio>
-                            </MudRadioGroup>
-                        }
+                                <MudRadio Value="1" Color="@Color.Default" UnCheckedColor="@Color.Default">
+                                    @Localizer["English"]</MudRadio>
+                                    <MudRadio Value="2" Color="@Color.Default" UnCheckedColor="@Color.Default">
+                                        @Localizer["French"]</MudRadio>
+                                    </MudRadioGroup>
+                                }
                         else if (_currentStep == Steps.Submit)
-                        {
-                            <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
-                            <MudPaper Class="pa-2" Outlined="true">
-                                <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
-                                <MudText Typo="@Typo.body2">@string.Join(", ", _selectedTopics)</MudText>
-                                <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
-                                <MudText Typo="@Typo.body2">@string.Join(", ", _selectedWorkspaces)</MudText>
-                                <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
-                                <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
-                                <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
-                                @if (_ticketPreferredLanguage == 1)
                                 {
-                                    <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
+                                    <MudText Typo="@Typo.body1" Class="py-3">@Localizer["Please confirm the following. If you see any errors, use the Previous button to change them. Otherwise, click Submit to submit your ticket."]</MudText>
+                                    <MudPaper Class="pa-2" Outlined="true">
+                                        <MudText Typo="@Typo.h6" Class="pb-3">@Localizer["Ticket Topics"]</MudText>
+                                        <MudText Typo="@Typo.body2">@string.Join(", ", _selectedTopics)</MudText>
+                                        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Workspaces"]</MudText>
+                                        <MudText Typo="@Typo.body2">@string.Join(", ", _selectedWorkspaces)</MudText>
+                                        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Ticket Description"]</MudText>
+                                        <MudText Typo="@Typo.body2">@_ticketDescription</MudText>
+                                        <MudText Typo="@Typo.h6" Class="py-3">@Localizer["Preferred Contact Language"]</MudText>
+                                        @if (_ticketPreferredLanguage == 1)
+                                        {
+                                            <MudText Typo="@Typo.body2">@Localizer["English"]</MudText>
+                                        }
+                                        else
+                                        {
+                                            <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
+                                        }
+                                    </MudPaper>
                                 }
-                                else
-                                {
-                                    <MudText Typo="@Typo.body2">@Localizer["Français"]</MudText>
-                                }
-                            </MudPaper>
-                        }
-                        <MudGrid Class="pt-3">
-                            <MudItem xs="6" align="@Align.Start" Class="pb-2">
-                                @if (_currentStep == Steps.Start)
-                                {
-                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
-                                }
-                                else
-                                {
-                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">@Localizer["Previous"]</DHButton>
-                                }
-                            </MudItem>
-                            <MudItem xs="6" align="@Align.End" Class="pb-2">
-                                @if (_currentStep == Steps.Submit)
-                                {
-                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">@Localizer["Submit"]</DHButton>
-                                }
+                                <MudGrid Class="pt-3">
+                                    <MudItem xs="6" align="@Align.Start" Class="pb-2">
+                                        @if (_currentStep == Steps.Start)
+                                        {
+                                            <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
+                                                      StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
+                                        }
+                                        else
+                                        {
+                                            <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
+                                                      StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">
+                                                @Localizer["Previous"]</DHButton>
+                                            }
+                                        </MudItem>
+                                        <MudItem xs="6" align="@Align.End" Class="pb-2">
+                                            @if (_currentStep == Steps.Submit)
+                                            {
+                                                <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
+                                                          StartIcon="@Icons.Material.Filled.CheckCircleOutline" OnClick="@SubmitForm">
+                                                    @Localizer["Submit"]</DHButton>
+                                                }
                                 else if (_currentStep != Steps.Start)
-                                {
-                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary" EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]</DHButton>
-                                }
-                            </MudItem>
-                        </MudGrid>
-                    </MudForm>
-                </MudPaper>
-            </li>
-            <li class="d-flex flex-1">
-                <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
-                    <MudStack>
-                        <MudText Typo="Typo.h2" Class="py-3">@Localizer["Resources"]</MudText>
-                        <MudText Typo="Typo.body1">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]</MudText>
-                        <MudItem xs="6" Class="py-3">
-                            <DHButton Href="/resources"
-                            Variant="Variant.Text"
-                            Color="Color.Primary"
-                            Underline
-                            EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
-                                @Localizer["View resources"]
-                            </DHButton>
-                        </MudItem>
-                    </MudStack>
-                </MudPaper>
-            </li>
-        </ul>
-        <MudDivider/>
-        <MudText Typo="Typo.h2">@Localizer["Your Support Requests"]</MudText>
-        <MudText Typo="Typo.body1">@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</MudText>
-        <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
-            <HeaderContent>
-                <MudTh>@Localizer["ID"]</MudTh>
-                <MudTh>@Localizer["Title"]</MudTh>
-                <MudTh>@Localizer["Description"]</MudTh>
-                <MudTh>@Localizer["Status"]</MudTh>
-                <MudTh>@Localizer["Submitted_DT"]</MudTh>
-                <MudTh>@Localizer["Last Update"]</MudTh>
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd>@context.Id</MudTd>
-                <MudTd>@context.Title</MudTd>
-                <MudTd>@context.Description</MudTd>
-                <MudTd>
-                    <MudChip Class="dh_themed_chip" T="string" Color="@GetColor(context.State)">@Localizer[context.Message]</MudChip>
-                </MudTd>
-                <MudTd>@context.SubmittedDate</MudTd>
-                <MudTd>@context.ChangedDate</MudTd>
-            </RowTemplate>
-            <PagerContent>
-                <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]" InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")"/>
-            </PagerContent>
-        </MudTable>
-    </MudStack>
-</DatahubAuthView>
+                                                {
+                                                    <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
+                                                              EndIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Next"]
+                                                    </DHButton>
+                                                }
+                                            </MudItem>
+                                        </MudGrid>
+                                    </MudForm>
+                                </MudPaper>
+                            </li>
+                            <li class="d-flex flex-1">
+                                <MudPaper Elevation="0" Outlined Class="py-2 px-3 flex-1">
+                                    <MudStack>
+                                        <MudText Typo="Typo.h2" Class="py-3">@Localizer["Resources"]</MudText>
+                                        <MudText Typo="Typo.body1">@Localizer["Our Resources page has many resources that could be helpful for you. Additional support is available using the FSDH Support Request Form."]
+                                        </MudText>
+                                        <MudItem xs="6" Class="py-3">
+                                            <DHButton Href="@Localizer[PageRoutes.ResourceSite]" Target="_blank" Variant="Variant.Text"
+                                                      Color="Color.Primary" Underline
+                                                      EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                                                @Localizer["View resources"]
+                                            </DHButton>
+                                        </MudItem>
+                                    </MudStack>
+                                </MudPaper>
+                            </li>
+                        </ul>
+                        <MudDivider />
+                        <MudText Typo="Typo.h2">@Localizer["Your Support Requests"]</MudText>
+                        <MudText Typo="Typo.body1">@Localizer["These are your previously submitted support requests. Requests may take up to 15 minutes to appear here."]</MudText>
+                        <MudTable Items="@_issues" Loading="@_loading" Hover Dense>
+                            <HeaderContent>
+                                <MudTh>@Localizer["ID"]</MudTh>
+                                <MudTh>@Localizer["Title"]</MudTh>
+                                <MudTh>@Localizer["Description"]</MudTh>
+                                <MudTh>@Localizer["Status"]</MudTh>
+                                <MudTh>@Localizer["Submitted_DT"]</MudTh>
+                                <MudTh>@Localizer["Last Update"]</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Id</MudTd>
+                                <MudTd>@context.Title</MudTd>
+                                <MudTd>@context.Description</MudTd>
+                                <MudTd>
+                                    <MudChip Class="dh_themed_chip" T="string" Color="@GetColor(context.State)">
+                                        @Localizer[context.Message]</MudChip>
+                                    </MudTd>
+                                    <MudTd>@context.SubmittedDate</MudTd>
+                                    <MudTd>@context.ChangedDate</MudTd>
+                                </RowTemplate>
+                                <PagerContent>
+                                    <MudTablePager RowsPerPageString="@Localizer["Rows per page:"]"
+                                                   InfoFormat="@("{first_item}-{last_item} " + Localizer["of"] + " {all_items}")" />
+                                </PagerContent>
+                            </MudTable>
+                        </MudStack>
+                    </DatahubAuthView>
 
 @code {
 
@@ -262,7 +269,7 @@
     {
         Start = 0,
         Topics = 1,
-        Submit = 2 
+        Submit = 2
     }
 
     /**
@@ -309,31 +316,35 @@
 
     /**
     * Performs an action after the component has been rendered.
-     * This method is called after the first render and can be used to perform tasks that require access to the rendered DOM elements.
-     * It imports a JavaScript module and retrieves user agent, resolution, and timezone information using JavaScript interop.
-     * This occurs in this method because it requires the component to be rendered first, otherwise an error will be visible briefly to the user.
+     * This method is called after the first render and can be used to perform tasks that require access to the rendered DOM
+elements.
+     * It imports a JavaScript module and retrieves user agent, resolution, and timezone information using JavaScript
+interop.
+     * This occurs in this method because it requires the component to be rendered first, otherwise an error will be visible
+briefly to the user.
      *
      * @param firstRender - A boolean value indicating whether this is the first render of the component.
      * @returns A Task representing the asynchronous operation.
      */
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-    if (firstRender)
-    {
-        try
+        if (firstRender)
         {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Help/HelpPage.razor.js");
+            try
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Help/HelpPage.razor.js");
+            }
+            catch (Exception e)
+            {
+                _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+    "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
+            }
         }
-        catch (Exception e)
+        if (_currentStep == Steps.Topics && _landingFieldRef != null && !_isCursorSet)
         {
-            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Datahub.Portal/Pages/Help/HelpPage.razor.js");
+            _isCursorSet = true;
+            await _landingFieldRef.FocusAsync();
         }
-    }
-    if (_currentStep == Steps.Topics && _landingFieldRef != null && !_isCursorSet)
-    {
-        _isCursorSet = true;
-        await _landingFieldRef.FocusAsync();
-    }
     }
 
     /**
@@ -388,8 +399,9 @@
         }
 
         var url = _navigationManager.Uri; // Retrieve the active URL
-        var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent + resolution
-        var resolution = await _module.InvokeAsync<string>("retrieveResolution");
+        var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent +
+        resolution
+                var resolution = await _module.InvokeAsync<string>("retrieveResolution");
         var timezone = await _module.InvokeAsync<string>("retrieveTimeZone");
         var preferredLanguage = (_ticketPreferredLanguage == 1) ? "en" : "fr";
 
@@ -436,17 +448,19 @@
         );
 
         await _sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
-        await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"], yesText: "OK");
+        await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"],
+yesText: "OK");
         _currentStep = Steps.Start; // Reset the form
         StateHasChanged();
     }
 
     /**
      * Given a project acronym, grants support access to the project for a period of 3 days.
-     * 
+     *
      * @param acronym - The project acronym for which to grant support access.
      */
-    private async Task GiveAccessToProject(string acronym){
+    private async Task GiveAccessToProject(string acronym)
+    {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
 
         var project = dbContext.Projects
@@ -465,7 +479,8 @@
      * If the email address is not in the expected format, the organization name is set to "unknown".
      *
      * @param email - The email address from which to extract the organization name.
-     * @returns The organization name extracted from the email address, or "unknown" if the email address is not in the expected format.
+     * @returns The organization name extracted from the email address, or "unknown" if the email address is not in the
+expected format.
      */
     private string GetOrg(string email)
     {
