@@ -101,7 +101,7 @@ else if (_gccfEnabled)
           </MudTd>
           <MudTd>
             <MudStack Row AlignItems="AlignItems.Center">
-              <MudText>@(rowContext.PortalUser.LastLoginDateTime?.ToString("yyyy-MM-dd") ?? "-")</MudText>
+              <MudText>@(rowContext.PortalUser.LastLoginDateTime?.ToString("yyyy-MM-dd") ?? rowContext.ExternalUser.LastLoginDateTime?.ToString("yyyy-MM-dd") ?? "-")</MudText>
             </MudStack>
           </MudTd>
           <MudTd>
