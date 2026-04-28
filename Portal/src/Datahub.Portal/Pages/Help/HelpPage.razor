@@ -399,9 +399,8 @@ briefly to the user.
         }
 
         var url = _navigationManager.Uri; // Retrieve the active URL
-        var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent +
-        resolution
-                var resolution = await _module.InvokeAsync<string>("retrieveResolution");
+        var useragent = await _module.InvokeAsync<string>("retrieveUserAgent"); // Call our JS functions for user agent / resolution
+        var resolution = await _module.InvokeAsync<string>("retrieveResolution");
         var timezone = await _module.InvokeAsync<string>("retrieveTimeZone");
         var preferredLanguage = (_ticketPreferredLanguage == 1) ? "en" : "fr";
 
