@@ -1,3 +1,4 @@
+@using Datahub.Core.Model.Achievements
 @using Datahub.Markdown
 @using System.Net.Http
 @using System.Net.Http.Json
@@ -7,6 +8,7 @@
 
 @inject ILogger<TermsAndConditionsDate> _logger
 @inject IHttpClientFactory _httpClientFactory
+@inject IUserSettingsService _userSettingsService
 
 @attribute [Route(PageRoutes.TermsAndConditionsExternal)]
 
@@ -20,7 +22,7 @@
                      Required
                      RequiredError=@Localizer["Agreement with the terms and conditions is required"]>
             <MudText Typo="Typo.body1">
-                @Localizer["I agree to the external user terms and conditions of the FSDH"]
+                @Localizer["I agree to the terms and conditions of the FSDH"]
             </MudText>
         </MudCheckBox>
     </div>
@@ -36,6 +38,7 @@
     private string _termsAndConditionsURL = "https://raw.githubusercontent.com/ssc-sp/fsdh-pfds-docs/refs/heads/main/docs/en/Terms-And-Conditions.md";
     private string _termsAndConditionsFormatted;
     private bool acceptTC = false;
+    private bool _isUserValid = false;
 
 
     protected override async Task OnInitializedAsync()
@@ -49,7 +52,7 @@
         var client = _httpClientFactory.CreateClient();
         try
         {
-            var output = await client.GetStringAsync(_termsAndConditionsURL);
+            var output = await client.GetStringAsync(Localizer[_termsAndConditionsURL]);
             return MarkdownHelper.RemoveFrontMatter(output);
         }
         catch (Exception ex)
