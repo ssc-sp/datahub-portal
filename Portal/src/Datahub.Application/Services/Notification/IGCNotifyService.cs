@@ -18,6 +18,8 @@ public interface IGCNotifyService
     Task SendBugReportNotification(string id, string title, string body, string email = "datasolutions-solutiondedonnees@ssc-spc.gc.ca");
     Task SendInfectedFileNotification(string email, string fileName, string workspace, string date);
     Task SendStorageScanSuccessEmailAsync(StorageScanNotificationHelper.StorageScanSuccessEventPayload payload, string? recipientEmail = null, CancellationToken cancellationToken = default);
+    Task SendExternalUserInactivityWarningNotification(string workspaceLeadEmail, string workspaceLeadName, string externalUserName, string workspaceAcronym, int daysInactive, string lastLoginDate);
+    Task SendExternalUserDeactivationNotification(string workspaceLeadEmail, string workspaceLeadName, string externalUserName, string workspaceAcronym, int daysInactive, DateTime deactivationDate);
     string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration);
     string GetTemplateId(string templateName, string mappingsJson);
     Task<bool> CheckHealthAsync();

@@ -336,6 +336,56 @@ public class GCNotifyService : IGCNotifyService
             payload.WorkspaceAcronym);
     }
 
+    public async Task SendExternalUserInactivityWarningNotification(string workspaceLeadEmail, string workspaceLeadName, string externalUserName, string workspaceAcronym, int daysInactive, string lastLoginDate)
+    {
+        using var _ = _logger.BeginScope("ExternalUserInactivityWarning {Email}", MaskEmail(workspaceLeadEmail));
+        _logger.LogInformation("Composing external user inactivity warning. externalUserName={ExternalUserName}, workspaceAcronym={WorkspaceAcronym}, daysInactive={DaysInactive}", externalUserName, workspaceAcronym, daysInactive);
+
+        var templateId = GetTemplateId("external-user-inactivity-warning", _mappingsJson);
+        var postData = new
+        {
+            email_address = workspaceLeadEmail,
+            template_id = templateId,
+            personalisation = new
+            {
+                workspace_lead_name = workspaceLeadName,
+                external_user_name = externalUserName,
+                workspace_acronym = workspaceAcronym,
+                days_inactive = daysInactive.ToString(),
+                last_login_date = lastLoginDate
+            }
+        };
+
+        _logger.LogDebug("Dispatching external user inactivity warning with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
+    public async Task SendExternalUserDeactivationNotification(string workspaceLeadEmail, string workspaceLeadName, string externalUserName, string workspaceAcronym, int daysInactive, DateTime deactivationDate)
+    {
+        using var _ = _logger.BeginScope("ExternalUserDeactivation {Email}", MaskEmail(workspaceLeadEmail));
+        _logger.LogInformation("Composing external user deactivation notice. externalUserName={ExternalUserName}, workspaceAcronym={WorkspaceAcronym}, daysInactive={DaysInactive}, deactivationDate={DeactivationDate}", externalUserName, workspaceAcronym, daysInactive, deactivationDate);
+
+        var templateId = GetTemplateId("external-user-deactivation-notice", _mappingsJson);
+        var postData = new
+        {
+            email_address = workspaceLeadEmail,
+            template_id = templateId,
+            personalisation = new
+            {
+                workspace_lead_name = workspaceLeadName,
+                external_user_name = externalUserName,
+                workspace_acronym = workspaceAcronym,
+                days_inactive = daysInactive.ToString(),
+                deactivation_date = deactivationDate.ToString("yyyy-MM-dd")
+            }
+        };
+
+        _logger.LogDebug("Dispatching external user deactivation notice with template {TemplateId}", templateId);
+        string postDataJson = JsonSerializer.Serialize(postData);
+        await SendNotification(postDataJson);
+    }
+
     public string GetTemplateId(string templateName, string mappingsJson)
     {
         _logger.LogDebug("Resolving template id for templateName={TemplateName}", templateName);
