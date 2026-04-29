@@ -12,7 +12,7 @@
 
 <MudStack>
     <MudText>
-        @((MarkupString)mxmx)
+        @((MarkupString)_termsAndConditionsFormatted)
     </MudText>
     <div class="form-group">
         <MudCheckBox T="bool"
@@ -24,7 +24,7 @@
             </MudText>
         </MudCheckBox>
     </div>
-    <DHButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!acceptTC">
+    <DHButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!acceptTC" Href="@Localizer[PageRoutes.Home]">
         <MudText>
             @Localizer["Log in"]
         </MudText>
@@ -34,16 +34,14 @@
 
 @code {
     private string _termsAndConditionsURL = "https://raw.githubusercontent.com/ssc-sp/fsdh-pfds-docs/refs/heads/main/docs/en/Terms-And-Conditions.md";
-    private string _termsAndConditionsMarkdown;
-    private string mxmx;
+    private string _termsAndConditionsFormatted;
     private bool acceptTC = false;
 
 
     protected override async Task OnInitializedAsync()
     {
-        _termsAndConditionsMarkdown = await GetLastUpdatedMarkdownContent();
-        // mxmx = Markdig.Markdown.ToHtml(_termsAndConditionsMarkdown);
-        mxmx = Render(_termsAndConditionsMarkdown);
+        var _termsAndConditionsMarkdown = await GetLastUpdatedMarkdownContent();
+        _termsAndConditionsFormatted = Render(_termsAndConditionsMarkdown);
     }
 
     private async Task<string> GetLastUpdatedMarkdownContent()
