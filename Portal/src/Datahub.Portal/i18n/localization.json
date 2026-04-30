@@ -2667,5 +2667,7 @@
   "Link copied": "Link copied",
   "No invitation found": "No invitation found",
   "Unable to copy link": "Unable to copy link",
-  "Unable to resend invitation": "Unable to resend invitation"
+  "Unable to resend invitation": "Unable to resend invitation",
+  "Your {0} file(s) have been uploaded and are being scanned for viruses.": "Your {0} file(s) have been uploaded and are being scanned for viruses.",
+  "External user {0} uploaded {1} file(s) to {2}.": "External user {0} uploaded {1} file(s) to {2}."
 }

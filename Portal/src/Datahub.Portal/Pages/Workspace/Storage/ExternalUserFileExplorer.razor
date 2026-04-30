@@ -7,6 +7,7 @@
 @using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Core.Services.Notification
 
 @inject IUserInformationService _userInformationService
 @inject IJSRuntime _jsRuntime
@@ -17,6 +18,9 @@
 @inject NavigationManager _navManager;
 @inject DatahubPortalConfiguration _config;
 @inject IOpenDataPublishingService _publishingService;
+@inject ISnackbar _snackbar;
+@inject IProjectUserManagementService _projectUserManagementService;
+@inject ISystemNotificationService _systemNotificationService;
 
 @implements IAsyncDisposable
 

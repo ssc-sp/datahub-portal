@@ -3630,5 +3630,7 @@
   "Link copied": "Lien copié",
   "No invitation found": "Aucune invitation trouvée",
   "Unable to copy link": "Impossible de copier le lien",
-  "Unable to resend invitation": "Impossible de renvoyer l'invitation"
+  "Unable to resend invitation": "Impossible de renvoyer l'invitation",
+  "Your {0} file(s) have been uploaded and are being scanned for viruses.": "Vos {0} fichier(s) ont été téléversés et sont en cours d'analyse pour les virus.",
+  "External user {0} uploaded {1} file(s) to {2}.": "L'utilisateur externe {0} a téléversé {1} fichier(s) dans l'espace de travail {2}."
 }
