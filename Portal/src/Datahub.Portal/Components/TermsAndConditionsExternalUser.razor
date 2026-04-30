@@ -35,10 +35,9 @@
 
 
 @code {
-    private string _termsAndConditionsURL = "https://raw.githubusercontent.com/ssc-sp/fsdh-pfds-docs/refs/heads/main/docs/en/Terms-And-Conditions.md";
+    private readonly string _termsAndConditionsURL = "https://raw.githubusercontent.com/ssc-sp/fsdh-pfds-docs/refs/heads/main/docs/en/Terms-And-Conditions.md";
     private string _termsAndConditionsFormatted;
     private bool acceptTC = false;
-    private bool _isUserValid = false;
 
 
     protected override async Task OnInitializedAsync()
