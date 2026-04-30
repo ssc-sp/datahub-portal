@@ -3555,10 +3555,7 @@
   "Scanning": "Analyse en cours",
   "Succeeded": "Réussi",
   "Containers": "Conteneurs",
-<<<<<<< HEAD
   "An error occurred while scanning the file.": "Une erreur est survenue lors de l'analyse du fichier.",
-=======
->>>>>>> vb/12398_Storage_Explorer_for_External
   "File cannot be accessed until scan is successful.": "Le fichier n'est pas accessible tant que l'analyse n'a pas réussi.",
   "Scan Error": "Erreur d'analyse",
   "Scan Result": "Résultat de l'analyse",
