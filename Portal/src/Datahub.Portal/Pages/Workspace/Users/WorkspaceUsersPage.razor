@@ -6,6 +6,9 @@
 @using Datahub.Application.Commands
 @using Datahub.Application.Services.UserManagement
 @using Microsoft.EntityFrameworkCore
+@using Datahub.Core.Data
+@using Datahub.Core.Model.Users
+@using Datahub.Portal.Pages.Tools.LockedUsers
 
 
 @inject IUserInformationService _userInformationService
@@ -329,6 +332,7 @@
   private List<UserRoleLinks> _projectUsers;
   private List<WorkspaceUserInfo> _originalUserInfo = new();
   private Dictionary<int, UserLockStatus> _lockedUsersByPortalUserId = new();
+  private int? _workspaceId;
 
   private int? _currentRoleFilter = default;
 

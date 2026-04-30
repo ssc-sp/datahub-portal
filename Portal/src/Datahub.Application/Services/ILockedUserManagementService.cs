@@ -55,6 +55,13 @@ public interface ILockedUserManagementService
     Task<List<UserLockStatus>> GetAllLockedUsersAsync();
 
     /// <summary>
+    /// Gets all locked users in a specific workspace
+    /// </summary>
+    /// <param name="workspaceId">The workspace to filter by</param>
+    /// <returns>List of currently locked users in the workspace</returns>
+    Task<List<UserLockStatus>> GetLockedUsersInWorkspaceAsync(int workspaceId);
+
+    /// <summary>
     /// Gets the lock history for a specific user
     /// </summary>
     /// <param name="portalUserId">The user</param>

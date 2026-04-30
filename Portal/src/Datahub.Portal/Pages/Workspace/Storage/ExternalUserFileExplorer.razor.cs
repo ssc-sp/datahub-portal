@@ -114,7 +114,6 @@ public partial class ExternalUserFileExplorer
         _files = dfsPage.Files;
         _folders = dfsPage.Folders;
 
-        // Load scan results for all files
         var fileNames = _files
             .Select(f => f.name)
             .Where(name => !string.IsNullOrWhiteSpace(name))

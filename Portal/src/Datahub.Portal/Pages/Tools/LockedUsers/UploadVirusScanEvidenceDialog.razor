@@ -67,10 +67,18 @@
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = null!;
 
     [Parameter] public PortalUser? User { get; set; }
+    [Parameter] public int? WorkspaceId { get; set; }
+    [Parameter] public string? WorkspaceAcronym { get; set; }
 
     private IBrowserFile? _selectedFile;
     private bool _uploading;
     private double _uploadProgress;
+    private bool _isExternalUser = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isExternalUser = await _userInformationService.IsExternalUser();
+    }
 
     private void OnFileSelected(IBrowserFile file)
     {
@@ -98,19 +106,24 @@
                 return;
             }
 
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            if (currentUser == null)
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
+            string containerName;
+            string blobName;
+            if (_isExternalUser)
             {
-                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
-                return;
+                containerName = "external-uploads";
+                var folderName = GetSafeExternalFolderName(User.Email);
+                blobName = $"{folderName}/{Guid.NewGuid()}-{safeFileName}";
+            }
+            else
+            {
+                containerName = "virus-scan-evidence";
+                blobName = $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
             }
 
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient("virus-scan-evidence");
+            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             await containerClient.CreateIfNotExistsAsync();
-
-            var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
-            var blobName = $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
 
             var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
@@ -118,6 +131,13 @@
             var evidenceUrl = blobClient.CanGenerateSasUri
                 ? blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddDays(7)).ToString()
                 : blobClient.Uri.ToString();
+
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+            {
+                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                return;
+            }
 
             await _lockedUserManagementService.RecordEvidenceUploadAsync(
                 User.Id,
@@ -142,18 +162,6 @@
     {
         MudDialog.Cancel();
     }
-
-    private static string GetSafeExternalFolderName(string? email)
-    {
-        var emailPrefix = email?.Split('@')[0] ?? string.Empty;
-        var sanitized = new string(emailPrefix
-            .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
-            .ToArray())
-            .Trim();
-
-        return string.IsNullOrWhiteSpace(sanitized) ? "external-user" : sanitized.ToLowerInvariant();
-    }
-
     private string FormatFileSize(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB" };
@@ -164,7 +172,13 @@
             order++;
             len = len / 1024;
         }
-
         return $"{len:0.##} {sizes[order]}";
+    }
+
+    private static string GetSafeExternalFolderName(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return "unknown";
+        return System.Text.RegularExpressions.Regex.Replace(email.ToLowerInvariant(), @"[^a-z0-9]", "-");
     }
 }

@@ -238,4 +238,9 @@ public class LockedUserManagementService : ILockedUserManagementService
         return exception.Number == 208 &&
                exception.Message.Contains("ExternalUserLockAuditEvents", StringComparison.OrdinalIgnoreCase);
     }
+
+    public async Task<List<UserLockStatus>> GetLockedUsersInWorkspaceAsync(int workspaceId)
+    {
+        return await GetAllLockedUsersAsync();
+    }
 }

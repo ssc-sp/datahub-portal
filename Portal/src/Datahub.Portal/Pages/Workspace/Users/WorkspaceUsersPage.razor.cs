@@ -5,6 +5,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
+using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Utilities;
 using Datahub.Portal.Pages.Tools.LockedUsers;
@@ -30,6 +31,8 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             await base.OnParametersSetAsync();
             await InitializedProjectMembers();
+            await ResolveWorkspaceIdAsync();
+            await LoadLockedUsersForWorkspace();
             _loading = false;
         }
 
@@ -45,11 +48,15 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private async Task LoadLockedUsersForWorkspace()
         {
-            _lockedUsersByPortalUserId = new Dictionary<int, UserLockStatus>();
-            var lockedUsers = await _lockedUserManagementService.GetAllLockedUsersAsync();
+            if (!_workspaceId.HasValue)
+            {
+                return;
+            }
+
+            var lockedUsers = await _lockedUserManagementService.GetLockedUsersInWorkspaceAsync(_workspaceId.Value);
             _lockedUsersByPortalUserId = lockedUsers
-                .Where(u => u.PortalUserId > 0)
-                .ToDictionary(u => u.PortalUserId, u => u);
+                .GroupBy(user => user.PortalUserId)
+                .ToDictionary(group => group.Key, group => group.OrderByDescending(item => item.LockedDate).First());
         }
 
         private bool CombinedFilter(UserRoleLinks projectUser)
@@ -216,11 +223,39 @@ namespace Datahub.Portal.Pages.Workspace.Users
             StateHasChanged();
         }
 
+        private async Task ResolveWorkspaceIdAsync()
+        {
+            if (_workspaceId.HasValue)
+            {
+                return;
+            }
+
+            if (_projectUsers?.Count > 0)
+            {
+                _workspaceId = _projectUsers[0].Project_ID;
+                return;
+            }
+
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            _workspaceId = await context.Projects
+                .Where(project => project.Project_Acronym_CD == WorkspaceAcronym)
+                .Select(project => (int?)project.Project_ID)
+                .FirstOrDefaultAsync();
+        }
+
         private async Task OpenUploadEvidenceDialog(PortalUser user)
         {
+            if (_workspaceId == null)
+            {
+                _snackbar.Add(Localizer["Workspace not found"], Severity.Error);
+                return;
+            }
+
             var parameters = new DialogParameters
             {
-                { "User", user }
+                { "User", user },
+                { "WorkspaceId", _workspaceId.Value },
+                { "WorkspaceAcronym", WorkspaceAcronym }
             };
 
             var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
@@ -232,14 +267,16 @@ namespace Datahub.Portal.Pages.Workspace.Users
             var result = await dialog.Result;
             if (!result.Canceled)
             {
-                await InitializedProjectMembers();
+                await LoadLockedUsersForWorkspace();
+                StateHasChanged();
+                _snackbar.Add(Localizer["Evidence uploaded successfully."], Severity.Success);
             }
         }
 
-        private bool TryGetLockedUser(UserRoleLinks projectUser, out UserLockStatus lockStatus)
+        private bool TryGetLockedUser(UserRoleLinks projectUser, out UserLockStatus? lockStatus)
         {
             lockStatus = null;
-            if (projectUser?.PortalUserId == null)
+            if (projectUser.PortalUserId == null)
             {
                 return false;
             }
