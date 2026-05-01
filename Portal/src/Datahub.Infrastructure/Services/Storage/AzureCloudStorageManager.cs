@@ -1,9 +1,11 @@
-﻿using Azure.Storage;
+﻿extern alias AzIdentity;
+using Azure.Storage;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
-using Azure.Identity;
+using DefaultAzureCredential = AzIdentity::Azure.Identity.DefaultAzureCredential;
+using DefaultAzureCredentialOptions = AzIdentity::Azure.Identity.DefaultAzureCredentialOptions;
 using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;

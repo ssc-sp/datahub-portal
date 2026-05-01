@@ -9,63 +9,55 @@
 @inject IDialogService _dialogService
 @inject IUserInformationService _userInformationService
 
-@if (!_isExternalUser || _canAccessExternalStorage)
-{
-<MudPaper Outlined Class="pa-4">
-    <MudStack>
-        <MudStack Row AlignItems="AlignItems.Center">
-            <DHIcon Icon="fa-light fa-hard-drive" Size="Size.Medium" />
-            <MudText Typo="Typo.h3">@Localizer["Workspace Storage"]</MudText>
-        </MudStack>
-
-        <MudText>
-            @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data."]
-        </MudText>
-        <MudElement HtmlTag="div">
-            @if (ProjectResource.Status == TerraformStatus.Completed)
-            {
-            <MudStack Row>
-                <DHButton
-                    Href="@GetStorageUrl()"
-                    Color="Color.Primary"
-                    Variant="@Variant.Text"
-                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
-                    @Localizer["View storage"]
-                </DHButton>
-                
-                @if (_config.CkanConfiguration.IsFeatureEnabled)
-                {
-                    @if (_isPublishingBlockedForWorkspace)
-                    {
-                        <DHButton 
-                            OnClick="@ShowPublishingBlockedDialog"
-                            Color="Color.Primary"
-                            Variant="@Variant.Text"
-                            EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
-                            @Localizer["Open Publishing Dashboard"]
-                        </DHButton>
-                    }
-                    else
-                    {
-                        <DHButton 
-                            Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
-                            Color="Color.Primary"
-                            Variant="@Variant.Text"
-                            EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
-                            @Localizer["Open Publishing Dashboard"]
-                        </DHButton>
-                    }
-                }
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Storage" ProjectAcronym="@WorkspaceAcronym">
+    <MudPaper Outlined Class="pa-4">
+        <MudStack>
+            <MudStack Row AlignItems="AlignItems.Center">
+                <DHIcon Icon="fa-light fa-hard-drive" Size="Size.Medium" />
+                <MudText Typo="Typo.h3">@Localizer["Workspace Storage"]</MudText>
             </MudStack>
-            }
-            else
-            {
-                <ToolBeingProvisionedButton />
-            }
-        </MudElement>
-    </MudStack>
-</MudPaper>
-}
+
+            <MudText>
+                @Localizer["Access the storage accounts for the workspace to upload, download and share datasets with all workspace members. Datasets in workspace storage may also be published on Open Data."]
+            </MudText>
+            <MudElement HtmlTag="div">
+                @if (ProjectResource.Status == TerraformStatus.Completed)
+                {
+                    <MudStack Row>
+                        <DHButton Href="@GetStorageUrl()" Color="Color.Primary" Variant="@Variant.Text"
+                                  EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                            @Localizer["View storage"]
+                        </DHButton>
+
+                        @if (_config.CkanConfiguration.IsFeatureEnabled)
+                        {
+                            @if (_isPublishingBlockedForWorkspace)
+                            {
+                                <DHButton OnClick="@ShowPublishingBlockedDialog" Color="Color.Primary" Variant="@Variant.Text"
+                                          EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                                    @Localizer["Open Publishing Dashboard"]
+                                </DHButton>
+                            }
+                            else
+                            {
+                                <DHButton
+                                    Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Publishing}")"
+                                    Color="Color.Primary" Variant="@Variant.Text"
+                                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
+                                    @Localizer["Open Publishing Dashboard"]
+                                </DHButton>
+                            }
+                        }
+                    </MudStack>
+                }
+                else
+                {
+                    <ToolBeingProvisionedButton />
+                }
+            </MudElement>
+        </MudStack>
+    </MudPaper>
+</DatahubAuthView>
 
 @code {
 

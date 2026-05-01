@@ -86,8 +86,10 @@ public class GCCFController(IConfiguration configuration) : Controller
         }
 
         var devAuthResult = await HttpContext.AuthenticateAsync(DevAuthHandler.Scheme);
-        if (devAuthResult.Succeeded)
+        if (devAuthResult.Succeeded && devAuthResult.Principal is not null)
         {
+            await HttpContext.SignInAsync(ConfigureAuthenticationServices.GccfCookieScheme, devAuthResult.Principal);
+
             if (Url.IsLocalUrl(returnUrl))
             {
                 return LocalRedirect(returnUrl);
@@ -106,7 +108,7 @@ public class GCCFController(IConfiguration configuration) : Controller
 
     [HttpGet("logout")]
     [HttpGet("deconnexion")]
-    public IActionResult Logout(string? returnUrl = null, string locale = "en-CA")
+    public async Task<IActionResult> Logout(string? returnUrl = null, string locale = "en-CA")
     {
         returnUrl ??= GetDefaultLogoutReturnUrl(locale);
 
@@ -133,6 +135,12 @@ public class GCCFController(IConfiguration configuration) : Controller
         var props = new AuthenticationProperties { RedirectUri = returnUrl };
         // Ensure 'ui_locales' is forwarded to the OIDC end-session request
         props.Parameters["ui_locales"] = locale;
+
+        var devAuthResult = await HttpContext.AuthenticateAsync(DevAuthHandler.Scheme);
+        if (devAuthResult.Succeeded)
+        {
+            return SignOut(props, ConfigureAuthenticationServices.GccfCookieScheme);
+        }
 
         // Sign out both the GCCF cookie and the GCCF OIDC session
         return SignOut(props, ConfigureAuthenticationServices.GccfCookieScheme, ConfigureAuthenticationServices.GccfOidcScheme);
