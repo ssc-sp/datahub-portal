@@ -441,8 +441,7 @@
 
         var logger = (new LoggerFactory()).CreateLogger<KeyVaultCoreService>();
         var keyVaultService = new KeyVaultCoreService(options, logger, _datahubPortalConfiguration);
-        var projectKey = await keyVaultService.GetKey(_datahubPortalConfiguration.KeyVault.ProjectKey);
-        return projectKey.Attributes.Enabled ?? false;
+        return await keyVaultService.IsKeyEnabled(_datahubPortalConfiguration.KeyVault.ProjectKey);
     }
 
     public CloudStorageContainer SelectedContainer
