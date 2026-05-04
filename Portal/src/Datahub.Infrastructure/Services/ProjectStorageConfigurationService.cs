@@ -9,9 +9,9 @@ namespace Datahub.Infrastructure.Services;
 public class ProjectStorageConfigurationService : IProjectStorageConfigurationService
 {
     private readonly DatahubPortalConfiguration _portalConfiguration;
-    private readonly ITokenCredentialService _tokenCredentialService;
+    private readonly ISystemTokenCredentialService _tokenCredentialService;
 
-    public ProjectStorageConfigurationService(DatahubPortalConfiguration portalConfiguration, ITokenCredentialService tokenCredentialService)
+    public ProjectStorageConfigurationService(DatahubPortalConfiguration portalConfiguration, ISystemTokenCredentialService tokenCredentialService)
     {
         _portalConfiguration = portalConfiguration;
         _tokenCredentialService = tokenCredentialService;
@@ -34,7 +34,7 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
         var key = GetProjectStorageKeyName(projectAcronym);
         var keyVaultName = GetProjectKeyVaultName(projectAcronym);
         
-        var secretClient = new SecretClient(new Uri($"https://{keyVaultName}.vault.azure.net/"), _tokenCredentialService.GetTokenCredential());
+        var secretClient = new SecretClient(new Uri($"https://{keyVaultName}.vault.azure.net/"), _tokenCredentialService.GetPortalTokenCredential());
         var keyVaultUrl = $"https://{keyVaultName}.vault.azure.net";
         return await secretClient.GetSecretAsync(keyVaultUrl, key);
     }

@@ -14,12 +14,12 @@ public class KeyVaultCoreService : IKeyVaultService
 {
     private readonly ILogger<KeyVaultCoreService> _logger;
     private readonly IOptions<APITargets> _targets;
-    private readonly ITokenCredentialService _tokenCredentialService;
+    private readonly ISystemTokenCredentialService _tokenCredentialService;
 
     public KeyVaultCoreService(
         IOptions<APITargets> targets,
         ILogger<KeyVaultCoreService> logger,
-        ITokenCredentialService tokenCredentialService)
+        ISystemTokenCredentialService tokenCredentialService)
     {
         _logger = logger;
         _targets = targets;
@@ -77,7 +77,7 @@ public class KeyVaultCoreService : IKeyVaultService
 
         string keyIdentifier = GetApiKeyIdentifier();
         var key = await GetKeyClient().GetKeyAsync(keyIdentifier);
-        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetTokenCredential());
+        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetPortalTokenCredential());
 
         var encryptResult = await cryptoClient.EncryptAsync(
             EncryptionAlgorithm.RsaOaep256,
@@ -92,7 +92,7 @@ public class KeyVaultCoreService : IKeyVaultService
     {
         string keyIdentifier = GetApiKeyIdentifier();
         var key = await GetKeyClient().GetKeyAsync(keyIdentifier);
-        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetTokenCredential());
+        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetPortalTokenCredential());
 
         var decryptResult = await cryptoClient.DecryptAsync(
             EncryptionAlgorithm.RsaOaep256,
@@ -108,6 +108,6 @@ public class KeyVaultCoreService : IKeyVaultService
         return $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
     }
 
-    private SecretClient GetSecretClient() => new SecretClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetTokenCredential());
-    private KeyClient GetKeyClient() => new KeyClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetTokenCredential());
+    private SecretClient GetSecretClient() => new SecretClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetPortalTokenCredential());
+    private KeyClient GetKeyClient() => new KeyClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetPortalTokenCredential());
 }

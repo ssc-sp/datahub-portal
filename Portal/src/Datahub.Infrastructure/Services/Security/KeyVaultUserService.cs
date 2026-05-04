@@ -21,19 +21,22 @@ namespace Datahub.Infrastructure.Services.Security
     {
         private readonly IUserInformationService _userInfoService;
         private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
-        private readonly ITokenCredentialService _tokenCredentialService;
+        private readonly IUserTokenCredentialService _tokenCredentialService;
+        private readonly ISystemTokenCredentialService systemTokenCredentialService;
         private readonly ILogger<KeyVaultUserService> _logger;
         private string? _vaultToken;
         private string? _userToken;
 
         public KeyVaultUserService(IUserInformationService userInfoService,
             DatahubPortalConfiguration datahubPortalConfiguration,
-            ITokenCredentialService tokenCredentialService,
+            IUserTokenCredentialService tokenCredentialService,
+            ISystemTokenCredentialService systemTokenCredentialService,
             ILogger<KeyVaultUserService> logger, MicrosoftIdentityConsentAndConditionalAccessHandler consentHandler)
         {
             _userInfoService = userInfoService;
             _datahubPortalConfiguration = datahubPortalConfiguration;
             _tokenCredentialService = tokenCredentialService;
+            this.systemTokenCredentialService = systemTokenCredentialService;
             _logger = logger;
         }
 
@@ -44,7 +47,7 @@ namespace Datahub.Infrastructure.Services.Security
                     new Uri(GetKeyVaultURL(kvName));
             if (await _userInfoService.IsExternalUser())
             {
-                return new SecretClient(vaultURL, _tokenCredentialService.GetTokenCredential());
+                return new SecretClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
             }
 
             if (_userToken is not null)
@@ -55,7 +58,7 @@ namespace Datahub.Infrastructure.Services.Security
             }
             else
             {
-                return new SecretClient(vaultURL, _tokenCredentialService.GetTokenCredential());
+                return new SecretClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
             }
         }
 

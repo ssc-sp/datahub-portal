@@ -3,9 +3,8 @@ using System.Security.Claims;
 
 namespace Datahub.Application.Services.Security;
 
-public interface ITokenCredentialService
+public interface IUserTokenCredentialService
 {
-    TokenCredential GetTokenCredential();
 
     Task<TokenCredential> GetTokenCredentialForUser(string vaultToken);
 

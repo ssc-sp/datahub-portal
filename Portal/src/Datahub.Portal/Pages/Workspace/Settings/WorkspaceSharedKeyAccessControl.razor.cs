@@ -6,6 +6,7 @@ using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Utils;
@@ -17,23 +18,23 @@ namespace Datahub.Portal.Pages.Workspace.Settings;
 
 public partial class WorkspaceSharedKeyAccessControl : ComponentBase
 {
+
     /// <summary>
     /// Builds and configures an instance of the Azure ResourceManager ArmClient using the given portal configuration.
     /// </summary>
-    /// <param name="portalConfiguration">The configuration settings required to authenticate and initialize the ArmClient.</param>
+    /// <param name="portalConfiguration">The configuration settings required to authenticate and initialize the ArmClient.</param>    
     /// <returns>An initialized instance of the ArmClient ready to interact with Azure ResourceManager.</returns>
-    internal static ArmClient BuildArmClient(DatahubPortalConfiguration portalConfiguration)
+    internal static ArmClient BuildArmClient(DatahubPortalConfiguration portalConfiguration, ISystemTokenCredentialService tokenCredentialService)
     {
-        var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId,
-            portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
         var armOptions = new ArmClientOptions
         {
             Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
         };
-        var armClient = new ArmClient(credential, portalConfiguration.AzureAd.SubscriptionId, armOptions);
+        var armClient = new ArmClient(tokenCredentialService.GetInfraTokenCredential(), portalConfiguration.AzureAd.SubscriptionId, armOptions);
         return armClient;
     }
 
+    [Inject] private ISystemTokenCredentialService _tokenCredentialService { get; set; } = null!;
     /// <summary>
     /// Refreshes the current state of the storage account's AllowSharedKeyAccess setting.
     /// </summary>
@@ -44,7 +45,7 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
         await InvokeAsync(StateHasChanged);
         try
         {
-            var armClient = BuildArmClient(_portalConfiguration);
+            var armClient = BuildArmClient(_portalConfiguration, _tokenCredentialService);
             var resourceId = await BuildStorageResourceIdentifier();
             _accessState = await FetchStorageAllowSharedKeyAccess(armClient, resourceId);
         }
@@ -126,7 +127,6 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
         return result;
     }
 
-
     /// <summary>
     /// Toggles the shared key access setting for a storage account associated with a workspace.
     /// Updates the internal state and notifies the user of the success or failure of the operation.
@@ -140,7 +140,7 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
         _snackbar.Add(Localizer["Updating shared key access..."], Severity.Info);
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleStorageAllowSharedKeyAccess);
 
-        var armClient = BuildArmClient(_portalConfiguration);
+        var armClient = BuildArmClient(_portalConfiguration, _tokenCredentialService);
         var resourceId = await BuildStorageResourceIdentifier();
         var storage = armClient.GetStorageAccountResource(resourceId);
         var response = await storage.UpdateAsync(new StorageAccountPatch()

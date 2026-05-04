@@ -6,6 +6,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
 using Datahub.Shared.Entities;
@@ -24,7 +25,9 @@ namespace Datahub.Portal.Pages.Workspace.Database;
 /// </summary>
 public partial class DatabaseIpWhitelistTable
 {
-    [Inject] private IDialogService _dialogService { get; set; }
+    [Inject] private IDialogService _dialogService { get; set; } = null!;
+
+    [Inject] private ISystemTokenCredentialService _tokenCredentialService { get; set; } = null!;
 
     /// <summary>
     /// Builds a PostgreSqlFlexibleServerResource object for the specified workspace acronym.
@@ -32,11 +35,7 @@ public partial class DatabaseIpWhitelistTable
     /// <returns>A PostgreSqlFlexibleServerResource object.</returns>
     private async Task<PostgreSqlFlexibleServerResource> BuildPostgresSqlFlexibleServerResource()
     {
-        var credential = new ClientSecretCredential(
-            _portalConfiguration.AzureAd.TenantId,
-            _portalConfiguration.AzureAd.InfraClientId,
-            _portalConfiguration.AzureAd.InfraClientSecret);
-        var client = new ArmClient(credential);
+        var client = new ArmClient(_tokenCredentialService.GetInfraTokenCredential());
 
         var resourceGroupName =
             $"{_portalConfiguration.ResourcePrefix}_proj_{WorkspaceAcronym.ToLowerInvariant()}_{_portalConfiguration.Hosting.EnvironmentName}_rg";
