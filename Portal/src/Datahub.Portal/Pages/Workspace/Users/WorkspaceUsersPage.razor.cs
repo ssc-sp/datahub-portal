@@ -38,7 +38,8 @@ namespace Datahub.Portal.Pages.Workspace.Users
 
         private async Task InitializedProjectMembers()
         {
-            _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+            var allProjectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+            _projectUsers = allProjectUsers.Where(x => x.PortalUser.ExternalUserId is null).ToList();
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
         }
