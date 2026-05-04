@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<TargetFramework>net10.0</TargetFramework>
@@ -11,10 +11,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.ResourceManager" Version="1.13.*" />
-		<PackageReference Include="Microsoft.Identity.Client" Version="4.83.*" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="10.0.*" />
-		<PackageReference Include="Yarp.ReverseProxy" Version="2.3.*" />
+		<PackageReference Include="Azure.ResourceManager" />
+		<PackageReference Include="Microsoft.Identity.Client" />
+		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+		<PackageReference Include="Yarp.ReverseProxy" />
 	</ItemGroup>
 
 </Project>

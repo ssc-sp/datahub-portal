@@ -20,10 +20,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.21.*">
+    <PackageReference Include="Azure.Identity">
       <Aliases>AzIdentity</Aliases>
     </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.*" />
+    <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
   <ItemGroup>

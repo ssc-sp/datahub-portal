@@ -7,10 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="LibGit2Sharp" Version="0.31.*" />
-      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.*" />
-      <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.*" />
-      <PackageReference Include="Polly" Version="8.6.*" />
+      <PackageReference Include="LibGit2Sharp" />
+      <PackageReference Include="Microsoft.AspNetCore.Http" />
+      <PackageReference Include="Microsoft.Extensions.Http" />
+      <PackageReference Include="Polly" />
       
     </ItemGroup>
 

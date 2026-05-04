@@ -59,5 +59,10 @@ namespace Datahub.Infrastructure.Offline.Security
         {
             throw new NotImplementedException();
         }
+
+        public Task<bool> IsKeyEnabled(string workspaceAcronym, string keyName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

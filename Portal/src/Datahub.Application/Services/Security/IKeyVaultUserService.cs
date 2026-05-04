@@ -17,5 +17,7 @@ namespace Datahub.Application.Services.Security
         string GetVaultName(string acronym, string environment);
         Task StoreSecret(string acronym, string name, string secretValue, int monthValidity = 12);
         Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12);
+
+        Task<bool> IsKeyEnabled(string workspaceAcronym, string keyName);
     }
 }

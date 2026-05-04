@@ -70,6 +70,12 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
 
         public string GetKeyVaultURL(string vaultName) => $"https://{vaultName}.vault.azure.net/";
 
+        public async Task<bool> IsKeyEnabled(string workspaceAcronym, string keyName)
+        {
+            var secret = await GetKVSecret(workspaceAcronym, keyName);
+            return secret != null && secret.Properties.Enabled.GetValueOrDefault();
+        }
+
         public async Task<string?> GetSecretFromCentralKeyVaultAsync(string keyVaultName, string name)
         {
 

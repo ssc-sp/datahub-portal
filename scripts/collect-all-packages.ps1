@@ -95,6 +95,90 @@ function Remove-PackageVersionFromNode {
 	return $changed
 }
 
+function Compare-PreReleaseIdentifier {
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]$Left,
+
+		[Parameter(Mandatory = $true)]
+		[string]$Right
+	)
+
+	$leftIsNumeric = $Left -match '^\d+$'
+	$rightIsNumeric = $Right -match '^\d+$'
+
+	if ($leftIsNumeric -and $rightIsNumeric) {
+		$leftNumber = [int64]$Left
+		$rightNumber = [int64]$Right
+		if ($leftNumber -gt $rightNumber) { return 1 }
+		if ($leftNumber -lt $rightNumber) { return -1 }
+		return 0
+	}
+
+	if ($leftIsNumeric -and -not $rightIsNumeric) { return -1 }
+	if (-not $leftIsNumeric -and $rightIsNumeric) { return 1 }
+
+	$cmp = [string]::Compare($Left, $Right, [System.StringComparison]::OrdinalIgnoreCase)
+	if ($cmp -gt 0) { return 1 }
+	if ($cmp -lt 0) { return -1 }
+	return 0
+}
+
+function Compare-PackageVersions {
+	param(
+		[Parameter(Mandatory = $true)]
+		[string]$Left,
+
+		[Parameter(Mandatory = $true)]
+		[string]$Right
+	)
+
+	$leftMatch = [regex]::Match($Left, '^(?<core>\d+(?:\.\d+){0,3})(?:-(?<pre>[0-9A-Za-z\.-]+))?(?:\+.*)?$')
+	$rightMatch = [regex]::Match($Right, '^(?<core>\d+(?:\.\d+){0,3})(?:-(?<pre>[0-9A-Za-z\.-]+))?(?:\+.*)?$')
+
+	if (-not $leftMatch.Success -or -not $rightMatch.Success) {
+		$fallback = [string]::Compare($Left, $Right, [System.StringComparison]::OrdinalIgnoreCase)
+		if ($fallback -gt 0) { return 1 }
+		if ($fallback -lt 0) { return -1 }
+		return 0
+	}
+
+	$leftCore = @($leftMatch.Groups['core'].Value.Split('.'))
+	$rightCore = @($rightMatch.Groups['core'].Value.Split('.'))
+
+	for ($i = 0; $i -lt 4; $i++) {
+		$leftPart = if ($i -lt $leftCore.Count) { [int64]$leftCore[$i] } else { 0 }
+		$rightPart = if ($i -lt $rightCore.Count) { [int64]$rightCore[$i] } else { 0 }
+
+		if ($leftPart -gt $rightPart) { return 1 }
+		if ($leftPart -lt $rightPart) { return -1 }
+	}
+
+	$leftPre = $leftMatch.Groups['pre'].Value
+	$rightPre = $rightMatch.Groups['pre'].Value
+
+	$leftHasPre = -not [string]::IsNullOrWhiteSpace($leftPre)
+	$rightHasPre = -not [string]::IsNullOrWhiteSpace($rightPre)
+
+	if (-not $leftHasPre -and -not $rightHasPre) { return 0 }
+	if (-not $leftHasPre -and $rightHasPre) { return 1 }
+	if ($leftHasPre -and -not $rightHasPre) { return -1 }
+
+	$leftIds = @($leftPre.Split('.'))
+	$rightIds = @($rightPre.Split('.'))
+	$maxLength = [Math]::Max($leftIds.Count, $rightIds.Count)
+
+	for ($i = 0; $i -lt $maxLength; $i++) {
+		if ($i -ge $leftIds.Count) { return -1 }
+		if ($i -ge $rightIds.Count) { return 1 }
+
+		$preCmp = Compare-PreReleaseIdentifier -Left $leftIds[$i] -Right $rightIds[$i]
+		if ($preCmp -ne 0) { return $preCmp }
+	}
+
+	return 0
+}
+
 $resolvedRoot = (Resolve-Path -Path $RootPath).Path
 $propsPath = Join-Path -Path $resolvedRoot -ChildPath 'Directory.Packages.props'
 
@@ -131,12 +215,19 @@ foreach ($project in $csprojFiles) {
 		$version = Get-PackageVersionValue -Node $node
 		if (-not [string]::IsNullOrWhiteSpace($version)) {
 			if ($packageMap.ContainsKey($packageName)) {
-				if ($packageMap[$packageName] -ne $version) {
+				$currentVersion = $packageMap[$packageName]
+				if ($currentVersion -ne $version) {
 					if (-not $conflicts.ContainsKey($packageName)) {
-						$conflicts[$packageName] = New-Object System.Collections.Generic.HashSet[string]
-						[void]$conflicts[$packageName].Add($packageMap[$packageName])
+						$conflicts[$packageName] = @($currentVersion, $version)
 					}
-					[void]$conflicts[$packageName].Add($version)
+					elseif (-not ($conflicts[$packageName] -contains $version)) {
+						$conflicts[$packageName] += $version
+					}
+
+					$versionCompare = Compare-PackageVersions -Left $version -Right $currentVersion
+					if ($versionCompare -gt 0) {
+						$packageMap[$packageName] = $version
+					}
 				}
 			}
 			else {
@@ -165,9 +256,9 @@ Write-Host "$changedProjectCount project file(s) will be updated."
 Write-Host "Directory packages file to generate: $propsPath"
 
 if ($conflicts.Count -gt 0) {
-	Write-Warning "Detected package version conflicts. The first encountered version will be written to Directory.Packages.props."
+	Write-Warning "Detected package version conflicts. The highest detected version will be written to Directory.Packages.props."
 	foreach ($pkg in ($conflicts.Keys | Sort-Object)) {
-		$versions = $conflicts[$pkg].ToArray() | Sort-Object
+		$versions = @($conflicts[$pkg]) | Sort-Object -Unique
 		Write-Warning ("  {0}: {1}" -f $pkg, ($versions -join ', '))
 	}
 }

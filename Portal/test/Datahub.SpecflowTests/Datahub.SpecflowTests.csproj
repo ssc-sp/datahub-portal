@@ -12,30 +12,30 @@
   </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Azure.Messaging.ServiceBus" Version="7.20.*" />
-        <PackageReference Include="Azure.ResourceManager.Billing" Version="1.2.*" />
-        <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.*" />
-        <PackageReference Include="Azure.ResourceManager.Resources" Version="1.11.*" />
-        <PackageReference Include="bunit" Version="2.1.*" />
-		<PackageReference Include="bunit.generators" Version="2.1.*" />
-        <PackageReference Include="Deque.AxeCore.Commons" Version="4.10.*" />
-        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.*" />
-        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
-        <PackageReference Include="NSubstitute" Version="5.3.*" />
-        <PackageReference Include="NSubstitute.Analyzers.CSharp" Version="1.0.*">
+        <PackageReference Include="Azure.Messaging.ServiceBus" />
+        <PackageReference Include="Azure.ResourceManager.Billing" />
+        <PackageReference Include="Azure.ResourceManager.Consumption" />
+        <PackageReference Include="Azure.ResourceManager.Resources" />
+        <PackageReference Include="bunit" />
+		<PackageReference Include="bunit.generators" />
+        <PackageReference Include="Deque.AxeCore.Commons" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+        <PackageReference Include="Microsoft.NET.Test.Sdk" />
+        <PackageReference Include="NSubstitute" />
+        <PackageReference Include="NSubstitute.Analyzers.CSharp">
           <PrivateAssets>all</PrivateAssets>
           <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="NUnit.ConsoleRunner" Version="3.20.*" />
-        <PackageReference Include="FluentAssertions" Version="8.8.0" />
-        <PackageReference Include="Reqnroll" Version="3.2.1" />
-        <PackageReference Include="Reqnroll.xUnit.v3" Version="3.2.1" />
-		<PackageReference Include="coverlet.collector" Version="6.0.*">
+        <PackageReference Include="NUnit.ConsoleRunner" />
+        <PackageReference Include="FluentAssertions" />
+        <PackageReference Include="Reqnroll" />
+        <PackageReference Include="Reqnroll.xUnit.v3" />
+		<PackageReference Include="coverlet.collector">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-		<PackageReference Include="xunit.v3" Version="3.2.0" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
+		<PackageReference Include="xunit.v3" />
+		<PackageReference Include="xunit.runner.visualstudio">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
