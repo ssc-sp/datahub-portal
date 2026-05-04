@@ -23,10 +23,8 @@
 	<ItemGroup>
 		
 		
-		<PackageReference Include="Azure.Core" Version="1.52.*" />
-		
-		
-		<PackageReference Include="Azure.Identity" Version="1.20.*" />
+		<PackageReference Include="Azure.Core" Version="1.54.*" />
+		<PackageReference Include="Azure.Identity" Version="1.21.*" />
 		
 		
 		<PackageReference Include="Lucene.Net.QueryParser" Version="4.8.0-beta00016" />
