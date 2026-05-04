@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Datahub.Core.Services;
 using Xunit;
@@ -80,7 +80,7 @@ public class DbTests
             builder.AddConsole();
         });
         serviceCollection.AddScoped<UserLocationManagerService>();
-        serviceCollection.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+        serviceCollection.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
         serviceCollection.AddScoped<UserLocationManagerService>();
         serviceCollection.AddSingleton<CommonAzureServices>();
         serviceCollection.AddScoped<DataLakeClientService>();

@@ -33,7 +33,7 @@ public class MyDataService
     private readonly IHttpClientFactory _httpClient;
     private readonly ILogger _logger;
     private readonly IUserInformationService _userInformationService;
-    private readonly IKeyVaultService _keyVaultService;
+    private readonly IKeyVaultCoreService _keyVaultService;
     private readonly IJSRuntime _jsRuntime;
     private readonly DataRetrievalService dataRetrievalService;
     private CommonAzureServices _commonAzureServices;
@@ -43,7 +43,7 @@ public class MyDataService
     public MyDataService(ILogger<MyDataService> logger,
         IHttpClientFactory clientFactory,
         IUserInformationService userInformationService,
-        IKeyVaultService keyVaultService,
+        IKeyVaultCoreService keyVaultService,
         IOptions<APITargets> targets,
         IJSRuntime jSRuntime,
         DataRetrievalService dataRetrievalService,

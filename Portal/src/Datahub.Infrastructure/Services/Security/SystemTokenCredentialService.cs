@@ -9,19 +9,16 @@ using System.Security.Claims;
 
 namespace Datahub.Infrastructure.Services.Security;
 
-public class TokenCredentialService : ISystemTokenCredentialService
+public class SystemTokenCredentialService : ISystemTokenCredentialService
 {
-    private readonly DatahubPortalConfiguration _portalConfiguration;
-    private readonly ITokenAcquisition _tokenAcquisition;
-    private readonly ILogger<TokenCredentialService> _logger;
+    private readonly DatahubPortalConfiguration _portalConfiguration;    
+    private readonly ILogger<SystemTokenCredentialService> _logger;
 
-    public TokenCredentialService(
+    public SystemTokenCredentialService(
         DatahubPortalConfiguration portalConfiguration,
-        ITokenAcquisition tokenAcquisition,
-        ILogger<TokenCredentialService> logger)
+        ILogger<SystemTokenCredentialService> logger)
     {
         _portalConfiguration = portalConfiguration;
-        this._tokenAcquisition = tokenAcquisition;
         _logger = logger;
     }
 

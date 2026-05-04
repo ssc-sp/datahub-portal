@@ -1,5 +1,6 @@
 using Amazon.Runtime.Internal.Util;
 using Azure;
+using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
@@ -7,8 +8,6 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Services;
 using Datahub.Infrastructure.Services.Storage;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models.Search;
 using Microsoft.Identity.Client;
@@ -24,7 +23,6 @@ namespace Datahub.Infrastructure.Services.Security
         private readonly IUserTokenCredentialService _tokenCredentialService;
         private readonly ISystemTokenCredentialService systemTokenCredentialService;
         private readonly ILogger<KeyVaultUserService> _logger;
-        private string? _vaultToken;
         private string? _userToken;
 
         public KeyVaultUserService(IUserInformationService userInfoService,
@@ -62,7 +60,26 @@ namespace Datahub.Infrastructure.Services.Security
             }
         }
 
+        public async Task<KeyClient> GetKeyClient(string kvName)
+        {
+            var vaultURL = new Uri(GetKeyVaultURL(kvName));
+            if (await _userInfoService.IsExternalUser())
+            {
+                return new KeyClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
+            }
+
+            if (_userToken is not null)
+            {
+                return new KeyClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(_userToken));
+            }
+
+            return new KeyClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
+        }
+
         public async Task<SecretClient> GetWorkspaceSecretClient(string workspace) => await GetSecretClient(GetVaultName(workspace.ToLowerInvariant(),
+_datahubPortalConfiguration.Hosting.EnvironmentName));
+
+        public async Task<KeyClient> GetWorkspaceKeyClient(string workspace) => await GetKeyClient(GetVaultName(workspace.ToLowerInvariant(),
 _datahubPortalConfiguration.Hosting.EnvironmentName));
 
         //    rg_name = f"fsdh_proj_{workspace_definition['Workspace']['Acronym']}_{environment_name}_rg"
@@ -75,8 +92,8 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
 
         public async Task<bool> IsKeyEnabled(string workspaceAcronym, string keyName)
         {
-            var secret = await GetKVSecret(workspaceAcronym, keyName);
-            return secret != null && secret.Properties.Enabled.GetValueOrDefault();
+            var key = await GetKVKey(workspaceAcronym, keyName);
+            return key?.Properties.Enabled ?? false;
         }
 
         public async Task<string?> GetSecretFromCentralKeyVaultAsync(string keyVaultName, string name)
@@ -100,6 +117,8 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
 
         public async Task<string?> GetSecretAsync(string acronym, string name) => (await GetKVSecret(acronym, name))?.Value;
 
+        public async Task<Uri?> GetKeyAsync(string acronym, string name) => (await GetKVKey(acronym, name))?.Id;
+
         private async Task<KeyVaultSecret?> GetKVSecret(string acronym, string name)
         {
             var secretName = CleanName(name);
@@ -116,6 +135,23 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
             }
 
             return secret;
+        }
+
+        private async Task<KeyVaultKey?> GetKVKey(string acronym, string name)
+        {
+            var keyName = CleanName(name);
+            KeyVaultKey? key = null;
+            try
+            {
+                key = await (await GetWorkspaceKeyClient(acronym)).GetKeyAsync(keyName);
+            }
+            catch (RequestFailedException kvex)
+            {
+                _logger.LogError(kvex, $"Error retrieving key {keyName} from key vault {acronym}.");
+                return null;
+            }
+
+            return key;
         }
 
         public async Task<bool?> IsSecretExpired(string acronym, string name)
@@ -239,10 +275,12 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
             catch (MicrosoftIdentityWebChallengeUserException ex)
             {
                 _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context due to user challenge/consent issue. Falling back to app context.");
+                throw;
             }
             catch (MsalUiRequiredException ex)
             {
                 _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context due to identity error. Falling back to app context.");
+                throw;
             }
             catch (Exception ex)
             {

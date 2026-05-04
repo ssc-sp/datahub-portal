@@ -30,6 +30,11 @@ namespace Datahub.Infrastructure.Offline.Security
             throw new NotImplementedException();
         }
 
+        public Task<Uri?> GetKeyAsync(string acronym, string name)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string?> GetSecretFromCentralKeyVaultAsync(string keyVaultName, string secretName)
         {
             throw new NotImplementedException();

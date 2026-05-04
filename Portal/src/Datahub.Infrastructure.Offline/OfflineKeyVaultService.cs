@@ -2,7 +2,7 @@ using Datahub.Application.Services.Security;
 
 namespace Datahub.Infrastructure.Offline;
 
-public class OfflineKeyVaultService : IKeyVaultService
+public class OfflineKeyVaultService : IKeyVaultCoreService
 {
 
     public Task<string> GetSecret(string secretName) => Task.FromResult(string.Empty);

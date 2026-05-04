@@ -6,7 +6,7 @@ namespace Datahub.Application.Services.Security;
 public interface IUserTokenCredentialService
 {
 
-    Task<TokenCredential> GetTokenCredentialForUser(string vaultToken);
+    Task<TokenCredential> GetTokenCredentialForUser(string? vaultToken = null);
 
     Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal);
 }

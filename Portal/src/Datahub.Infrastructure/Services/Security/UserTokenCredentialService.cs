@@ -13,7 +13,9 @@ public class UserTokenCredentialService : IUserTokenCredentialService
 {
     private readonly DatahubPortalConfiguration _portalConfiguration;
     private readonly ITokenAcquisition _tokenAcquisition;
-    private readonly ILogger<UserTokenCredentialService> _logger;  
+    private readonly ILogger<UserTokenCredentialService> _logger;
+    private string? currentUserVaultToken;
+
     public UserTokenCredentialService(
         DatahubPortalConfiguration portalConfiguration,
         ITokenAcquisition tokenAcquisition,
@@ -24,7 +26,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         _logger = logger;
     }
 
-    public async Task<TokenCredential> GetTokenCredentialForUser(string vaultToken)
+    public async Task<TokenCredential> GetTokenCredentialForUser(string? vaultToken = null)
     {
         //var obo = new OnBehalfOfCredential()
         //previous code
@@ -32,14 +34,14 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         var tenantId = _portalConfiguration.AzureAd.TenantId;
         var clientId = _portalConfiguration.AzureAd.ClientId;
         var clientSecret = _portalConfiguration.AzureAd.ClientSecret;
-        return new OnBehalfOfCredential(tenantId, clientId, clientSecret, vaultToken);
+        return new OnBehalfOfCredential(tenantId, clientId, clientSecret, vaultToken ?? this.currentUserVaultToken);
     }
 
     public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal)
     {
         var scopes = new string[] { "https://vault.azure.net/user_impersonation" };
-        var vaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme, user: claimsPrincipal);
+        currentUserVaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(scopes, authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme, user: claimsPrincipal);
         _logger.LogInformation("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-        return vaultToken;
+        return currentUserVaultToken;
     }
 }

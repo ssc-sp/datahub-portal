@@ -78,7 +78,7 @@ if (devopsConfig is not null)
 builder.Services.AddSingleton<AzureConfig>();
 builder.Services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
 builder.Services.AddAzureResourceManager(config);
-builder.Services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+builder.Services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
 builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();

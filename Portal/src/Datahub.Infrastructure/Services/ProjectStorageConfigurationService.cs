@@ -9,12 +9,12 @@ namespace Datahub.Infrastructure.Services;
 public class ProjectStorageConfigurationService : IProjectStorageConfigurationService
 {
     private readonly DatahubPortalConfiguration _portalConfiguration;
-    private readonly ISystemTokenCredentialService _tokenCredentialService;
+    private readonly IKeyVaultUserService _keyVaultService;
 
-    public ProjectStorageConfigurationService(DatahubPortalConfiguration portalConfiguration, ISystemTokenCredentialService tokenCredentialService)
+    public ProjectStorageConfigurationService(DatahubPortalConfiguration portalConfiguration, IKeyVaultUserService keyVaultService)
     {
         _portalConfiguration = portalConfiguration;
-        _tokenCredentialService = tokenCredentialService;
+        _keyVaultService = keyVaultService;
     }
 
     public string GetProjectStorageAccountName(string projectAcronym)
@@ -25,19 +25,9 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
 
     public async Task<string> GetProjectStorageAccountKey(string projectAcronym)
     {
-        var accountKey = await GetProjectStorageAccountKeyAsync(projectAcronym);
-        return accountKey.Value;
+        return (await _keyVaultService.GetKeyAsync(projectAcronym, GetProjectStorageKeyName(projectAcronym)))?.ToString() ?? throw new InvalidOperationException("Project storage account key not found.");
     }
 
-    private async Task<KeyVaultSecret> GetProjectStorageAccountKeyAsync(string projectAcronym)
-    {
-        var key = GetProjectStorageKeyName(projectAcronym);
-        var keyVaultName = GetProjectKeyVaultName(projectAcronym);
-        
-        var secretClient = new SecretClient(new Uri($"https://{keyVaultName}.vault.azure.net/"), _tokenCredentialService.GetPortalTokenCredential());
-        var keyVaultUrl = $"https://{keyVaultName}.vault.azure.net";
-        return await secretClient.GetSecretAsync(keyVaultUrl, key);
-    }
 
     private static string GetEnvironmentName()
     {
@@ -58,12 +48,6 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
         }
 
         return _portalConfiguration.ProjectStorageKeySecretName;
-    }
-
-    private string GetProjectKeyVaultName(string projectAcronym)
-    {
-        var envName = GetEnvironmentName();
-        return $"{_portalConfiguration.ResourcePrefix}-proj-{projectAcronym}-{envName}-kv".ToLower();
     }
 
 }

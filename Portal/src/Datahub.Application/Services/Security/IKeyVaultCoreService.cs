@@ -1,6 +1,6 @@
 namespace Datahub.Application.Services.Security;
 
-public interface IKeyVaultService
+public interface IKeyVaultCoreService
 {
     Task<bool> IsKeyEnabled(string keyName);
     Task<string> GetSecret(string secretName);

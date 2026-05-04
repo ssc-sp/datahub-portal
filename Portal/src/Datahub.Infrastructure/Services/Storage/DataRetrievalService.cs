@@ -23,11 +23,11 @@ public class DataRetrievalService : BaseService
 
     private readonly ILogger<DataRetrievalService> _logger;
     private readonly DataLakeClientService _dataLakeClientService;
-    private readonly IKeyVaultService _keyVaultService;
+    private readonly IKeyVaultCoreService _keyVaultService;
 
 
     public DataRetrievalService(ILogger<DataRetrievalService> logger,
-        IKeyVaultService keyVaultService,
+        IKeyVaultCoreService keyVaultService,
         DataLakeClientService dataLakeClientService,
         NavigationManager navigationManager)
         : base(navigationManager)

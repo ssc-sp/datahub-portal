@@ -10,7 +10,7 @@ using RequestFailedException = Azure.RequestFailedException;
 
 namespace Datahub.Infrastructure.Services.Security;
 
-public class KeyVaultCoreService : IKeyVaultService
+public class KeyVaultCoreService : IKeyVaultCoreService
 {
     private readonly ILogger<KeyVaultCoreService> _logger;
     private readonly IOptions<APITargets> _targets;
