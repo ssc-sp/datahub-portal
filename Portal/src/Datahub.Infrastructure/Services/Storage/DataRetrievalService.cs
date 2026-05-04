@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Azure;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
@@ -100,7 +100,7 @@ public class DataRetrievalService : BaseService
                 ownedby = "system"
             };
             var resultSegment = containerClient
-                .GetBlobsAsync(BlobTraits.Metadata)
+                .GetBlobsAsync(new GetBlobsOptions { Traits = BlobTraits.Metadata })
                 .AsPages(default, 30);
 
             // Enumerate the blobs returned for each page.
@@ -461,42 +461,6 @@ public class DataRetrievalService : BaseService
         return containers;
     }
 
-    [Obsolete("Obsolete")]
-    public async Task<List<FileMetaData>> GetStorageBlobFiles(string projectAcronym, string container, User user)
-    {
-        try
-        {
-            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(container);
-
-            var resultSegment = containerClient
-                .GetBlobsAsync(BlobTraits.Metadata)
-                .AsPages(default, 30);
-
-
-            var result = new List<FileMetaData>();
-
-            // Enumerate the blobs returned for each page.
-            await foreach (var blobPage in resultSegment)
-            {
-                foreach (var blobItem in blobPage.Values)
-                {
-                    var fileId = await VerifyFileIdMetadata(blobItem, containerClient);
-                    var fileMetaData = FileMetadataFromBlobItem(blobItem, fileId);
-                        
-                    result.Add(fileMetaData);
-                }
-            }
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED",
-                projectAcronym, user.DisplayName);
-            throw;
-        }
-    }
         
     [Obsolete("Use ProjectDataRetrievalService.VerifyFileIdMetadata instead")]
     private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem, BlobContainerClient containerClient)
@@ -569,53 +533,6 @@ public class DataRetrievalService : BaseService
             lastmodifiedts = parsedModifiedDate,
             filesize = fileSize
         };
-    }
-
-    [Obsolete("Obsolete")]
-    public async Task<(List<string>, List<FileMetaData>, string)> GetStorageBlobPagesAsync(string projectAcronym, string containerName, User user, string prefix, string continuationToken = default)
-    {
-        try
-        {
-            var folders = new List<string>();
-            var files = new List<FileMetaData>();
-                
-            var connectionString = await GetProjectConnectionString(projectAcronym.ToLower());
-            var blobServiceClient = new BlobServiceClient(connectionString);
-            var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
-
-            var resultSegment = containerClient
-                .GetBlobsByHierarchyAsync(prefix: prefix.TrimStart('/'), traits: BlobTraits.Metadata, delimiter: "/")
-                .AsPages(continuationToken);
-
-            // Enumerate the blobs returned for each page.
-            await foreach (var blobPage in resultSegment)
-            {
-                continuationToken = blobPage.ContinuationToken;
-                foreach (var blobHierarchyItem in blobPage.Values)
-                {
-                    if (blobHierarchyItem.IsPrefix)
-                    {
-                        folders.Add(blobHierarchyItem.Prefix);
-                    }
-                    else
-                    {
-                        var fileId = await VerifyFileIdMetadata(blobHierarchyItem, containerClient);
-                        var fileMetaData = FileMetadataFromBlobItem(blobHierarchyItem, fileId);
-                        files.Add(fileMetaData);
-                    }
-                        
-                }
-                return (folders, files, continuationToken);
-            }
-                
-            return (folders, files, continuationToken);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Get file list for project: {ProjectAcronym} for user: {DisplayName} FAILED",
-                projectAcronym, user.DisplayName);
-            throw;
-        }
     }
 
     public async Task<List<string>> GetProjectContainersAsync(string projectAcronymParam, User user)

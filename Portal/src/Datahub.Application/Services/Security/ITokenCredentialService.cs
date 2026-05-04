@@ -7,5 +7,7 @@ public interface ITokenCredentialService
 {
     TokenCredential GetTokenCredential();
 
-    Task<TokenCredential> GetTokenCredentialForUser(ClaimsPrincipal claimsPrincipal);
+    Task<TokenCredential> GetTokenCredentialForUser(string vaultToken);
+
+    Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal);
 }
