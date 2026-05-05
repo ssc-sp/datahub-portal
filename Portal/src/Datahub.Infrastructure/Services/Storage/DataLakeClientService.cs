@@ -12,7 +12,7 @@ public class DataLakeClientService
 {
     private const string DatahubSecretName = "Datahub-StorageDL-Secret";
     private ILogger<DataLakeClientService> _logger;
-    private IKeyVaultCoreService _keyVaultService;
+    private readonly IKeyVaultCoreService _keyVaultService;
     private IOptions<APITargets> _targets;
     private StorageSharedKeyCredential _sharedKeyCredential;
     private Dictionary<string, DataLakeServiceClient> _projectServiceClients;
