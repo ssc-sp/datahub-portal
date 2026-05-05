@@ -25,7 +25,7 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
 
     public async Task<string> GetProjectStorageAccountKey(string projectAcronym)
     {
-        return (await _keyVaultService.GetKeyAsync(projectAcronym, GetProjectStorageKeyName(projectAcronym)))?.ToString() ?? throw new InvalidOperationException("Project storage account key not found.");
+        return (await _keyVaultService.GetSecretAsync(projectAcronym, GetProjectStorageKeyName(projectAcronym)))?.ToString() ?? throw new InvalidOperationException("Project storage account key not found.");
     }
 
 
