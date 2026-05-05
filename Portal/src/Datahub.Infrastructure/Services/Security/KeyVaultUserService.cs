@@ -159,7 +159,7 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
             var secret = await GetKVSecret(acronym, name);
             if (secret == null)
                 return true; // If the secret doesn't exist, we can consider it as expired or invalid
-            if (secret?.Properties?.ExpiresOn.HasValue == true)
+            if (secret.Properties.ExpiresOn.HasValue)
             {
                 return DateTimeOffset.UtcNow > secret.Properties.ExpiresOn.Value;
             }
