@@ -42,9 +42,9 @@ namespace Datahub.Functions.UnitTests.Functions
             };
 
             Testing._configuration.Bind(datahubConfig);
-            var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
+            var keyVaultUserService = Substitute.For<IKeyVaultUserService>();
 
-            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig, tokenCredentialService);
+            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig, keyVaultUserService);
 
             var dbContextFactory = TestHelper.CreateMockDbContextFactory();
             await TestHelper.SeedDatabase(dbContextFactory);
