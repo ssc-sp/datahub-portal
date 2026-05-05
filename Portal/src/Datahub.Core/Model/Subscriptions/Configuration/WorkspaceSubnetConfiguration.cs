@@ -20,6 +20,6 @@ public class WorkspaceSubnetConfiguration : IEntityTypeConfiguration<WorkspaceSu
         builder.HasOne(e => e.Subnet)
             .WithMany(s => s.WorkspaceSubnets)
             .HasForeignKey(e => e.SubnetId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .OnDelete(DeleteBehavior.NoAction);
     }
 }

@@ -69,7 +69,7 @@
 		<PackageReference Include="Microsoft.Azure.Databricks.Client" />
 		<PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" >
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
@@ -117,7 +117,6 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <Folder Include="Diagnostics\" />
-	  <Folder Include="Migrations\" />
 	</ItemGroup>
 
 	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
