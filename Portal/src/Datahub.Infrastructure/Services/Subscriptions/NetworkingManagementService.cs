@@ -12,8 +12,8 @@ public class NetworkingManagementService(IDbContextFactory<DatahubProjectDBConte
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var query = ctx.VNets.Include(v => v.Subnets).AsNoTracking();
-        if (subscriptionId.HasValue)
-            query = query.Where(v => v.SubscriptionId == subscriptionId.Value);
+        if (subscriptionId is int subId)
+            query = query.Where(v => v.SubscriptionId == subId);
         return await query.ToListAsync();
     }
 
