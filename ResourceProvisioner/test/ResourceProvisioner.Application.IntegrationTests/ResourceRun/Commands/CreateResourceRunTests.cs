@@ -16,7 +16,23 @@ public class CreateResourceRunTests
         var command = new CreateResourceRunCommand()
         {
             RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg"
+            ResourceGroupName = "test-rg",
+            Templates = new List<TerraformTemplate>
+            {
+                new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
+            },
+            Workspace = new TerraformWorkspace
+            {
+                Acronym = "TEST",
+                Name = "Test Project",
+                TerraformOrganization = new TerraformOrganization
+                {
+                    Name = "SBDA Number 42",
+                    Code = "SBDA-42"
+                }
+            },
+            AppData = new WorkspaceAppData()
+
         };
         
         await FluentActions.Invoking(() =>
@@ -46,7 +62,8 @@ public class CreateResourceRunTests
                 }
             },
             RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg"
+            ResourceGroupName = "test-rg",
+            AppData = new WorkspaceAppData()
         };
         
         var id = await SendAsync(command);

@@ -8,10 +8,10 @@ namespace ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun
 
 public class CreateResourceRunCommand : IRequest<PullRequestUpdateMessage>
 {
-    public List<TerraformTemplate> Templates { get; set; }
-    public TerraformWorkspace Workspace { get; set; }
+    public required List<TerraformTemplate> Templates { get; set; }
+    public required TerraformWorkspace Workspace { get; set; }
     
-    public WorkspaceAppData AppData { get; set; }
+    public required WorkspaceAppData AppData { get; set; }
 
     public required string RequestingUserEmail { get; set; }
 

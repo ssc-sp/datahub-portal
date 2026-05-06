@@ -14,7 +14,22 @@ public class CreateResourceRunValidationTests
     {
         var command = new CreateResourceRunCommand() {
             RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg"
+            ResourceGroupName = "test-rg",
+            Templates = new List<TerraformTemplate>()
+            {
+                new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)            
+            },
+            Workspace = new TerraformWorkspace()
+            {
+                Acronym = "abc",
+                Name = "abc",
+                TerraformOrganization = new TerraformOrganization()
+                {
+                    Name = "abc",
+                    Code = "abc"
+                },
+            },
+            AppData = new WorkspaceAppData()
         };
         var validator = new CreateResourceRunCommandValidator();
         validator.Validate(command).Errors.Should().NotBeEmpty();
@@ -41,6 +56,7 @@ public class CreateResourceRunValidationTests
                 new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)            
             },
             RequestingUserEmail = "john.doe@test.gc.ca",
+            AppData = new WorkspaceAppData(),
             ResourceGroupName = anyString
         };
         var validator = new CreateResourceRunCommandValidator();

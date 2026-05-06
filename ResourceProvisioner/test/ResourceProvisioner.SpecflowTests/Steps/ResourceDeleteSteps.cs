@@ -52,7 +52,8 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
             Templates = new List<TerraformTemplate>() { terraformTemplate },
             Workspace = terraformWorkspace,
             RequestingUserEmail = string.Empty,
-            ResourceGroupName = string.Empty
+            ResourceGroupName = string.Empty,
+            AppData = new WorkspaceAppData()
         };
 
 
