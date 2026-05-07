@@ -159,7 +159,7 @@ public class RepositoryServiceTests : TemplateTestCollection
             _resourceProvisionerConfiguration, mockTerraformService);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -193,7 +193,7 @@ public class RepositoryServiceTests : TemplateTestCollection
             _resourceProvisionerConfiguration, mockTerraformService);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -228,7 +228,7 @@ public class RepositoryServiceTests : TemplateTestCollection
             _resourceProvisionerConfiguration, mockTerraformService);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -348,7 +348,7 @@ public class RepositoryServiceTests : TemplateTestCollection
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
                 It.IsAny<string>(),
-                It.IsAny<CreateResourceRunCommand>()))
+                It.IsAny<WorkspaceDefinition>()))
             .Returns(() =>
             {
                 if (doNothing)
@@ -360,7 +360,7 @@ public class RepositoryServiceTests : TemplateTestCollection
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<CreateResourceRunCommand>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<WorkspaceDefinition>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }

@@ -6,34 +6,19 @@ using ResourceProvisioner.Application.Services;
 
 namespace ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 
-public class CreateResourceRunCommand : IRequest<PullRequestUpdateMessage>
+public class WorkspaceDefinitionHandler : IRequestHandler<WorkspaceDefinition, PullRequestUpdateMessage>
 {
-    public required List<TerraformTemplate> Templates { get; set; }
-    public required TerraformWorkspace Workspace { get; set; }
-    
-    public required WorkspaceAppData AppData { get; set; }
-
-    public required string RequestingUserEmail { get; set; }
-
-    public required string ResourceGroupName { get; set; } = string.Empty;
-
-    public bool UpdateWorkspaceVersion { get; set; } = false;
-
-}
-
-public class CreateResourceRunCommandHandler : IRequestHandler<CreateResourceRunCommand, PullRequestUpdateMessage>
-{
-    private readonly ILogger<CreateResourceRunCommandHandler> _logger;
+    private readonly ILogger<WorkspaceDefinitionHandler> _logger;
     private readonly IRepositoryService _repositoryService;
 
-    public CreateResourceRunCommandHandler(ILogger<CreateResourceRunCommandHandler> logger,
+    public WorkspaceDefinitionHandler(ILogger<WorkspaceDefinitionHandler> logger,
         IRepositoryService repositoryService)
     {
         _logger = logger;
         _repositoryService = repositoryService;
     }
 
-    public async Task<PullRequestUpdateMessage> Handle(CreateResourceRunCommand request,
+    public async Task<PullRequestUpdateMessage> Handle(WorkspaceDefinition request,
         CancellationToken cancellationToken)
     {
         var pullRequestMessage = await _repositoryService.HandleResourcing(request);

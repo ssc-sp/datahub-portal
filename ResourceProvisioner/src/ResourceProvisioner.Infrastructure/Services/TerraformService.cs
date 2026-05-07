@@ -27,7 +27,7 @@ public class TerraformService(
 
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
-    public async Task CopyTemplateAsync(string templateName, CreateResourceRunCommand workspaceDefinition)
+    public async Task CopyTemplateAsync(string templateName, WorkspaceDefinition workspaceDefinition)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
@@ -76,7 +76,7 @@ public class TerraformService(
         }
     }
 
-    public async Task ExtractVariables(string templateName, CreateResourceRunCommand command)
+    public async Task ExtractVariables(string templateName, WorkspaceDefinition command)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
@@ -123,7 +123,7 @@ public class TerraformService(
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    public async Task ExtractAllVariables(CreateResourceRunCommand command)
+    public async Task ExtractAllVariables(WorkspaceDefinition command)
     {
         // check if the project directory exists
         var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, command.Workspace.Acronym);

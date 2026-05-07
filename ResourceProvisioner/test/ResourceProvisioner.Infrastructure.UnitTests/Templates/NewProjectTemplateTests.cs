@@ -34,7 +34,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Acronym = workspaceAcronym
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -74,7 +74,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariables";
         
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
                workspaceAcronym, new List<string>()
                {
                        TerraformTemplate.NewProjectTemplate,
@@ -157,7 +157,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
         {
             Acronym = workspaceAcronym
         };
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
                workspaceAcronym, new List<string>()
                {
                        TerraformTemplate.NewProjectTemplate,
@@ -213,7 +213,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Acronym = workspaceAcronym
         };
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,
@@ -273,7 +273,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Version = "latest"
         };
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,
@@ -309,7 +309,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Acronym = workspaceAcronym,
             Version = "latest"
         };
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);

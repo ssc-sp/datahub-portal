@@ -39,7 +39,7 @@ public partial class RepositoryService(
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
     
-    public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
+    public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
     {
         await _semaphore.WaitAsync();
         try
@@ -436,7 +436,7 @@ public partial class RepositoryService(
         await CheckoutInfrastructureBranch(terraformWorkspace.Acronym!);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition command, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
@@ -456,7 +456,7 @@ public partial class RepositoryService(
     }
 
     
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, WorkspaceDefinition command, string username)
     {
         try
         {            
@@ -514,7 +514,7 @@ public partial class RepositoryService(
         }
     }
 
-    private async Task ExtractVariables(TerraformTemplate template, CreateResourceRunCommand command)
+    private async Task ExtractVariables(TerraformTemplate template, WorkspaceDefinition command)
     {
         await terraformService.ExtractVariables(template.Name, command);
         switch (template.Name)

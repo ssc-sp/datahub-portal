@@ -13,7 +13,7 @@ public class CreateResourceRunTests
     [Test]
     public async Task ShouldRequireMinimumFields()
     {
-        var command = new CreateResourceRunCommand()
+        var command = new WorkspaceDefinition()
         {
             RequestingUserEmail = "John@test.gc.ca",
             ResourceGroupName = "test-rg",
@@ -45,7 +45,7 @@ public class CreateResourceRunTests
     {
         await RunAsDefaultUserAsync();
         
-        var command = new CreateResourceRunCommand
+        var command = new WorkspaceDefinition
         {
             Templates = new List<TerraformTemplate>
             {

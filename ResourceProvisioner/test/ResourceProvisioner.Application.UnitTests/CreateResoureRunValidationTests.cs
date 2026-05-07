@@ -12,7 +12,7 @@ public class CreateResourceRunValidationTests
     [Test]
     public void ShouldRequireMinimumFields()
     {
-        var command = new CreateResourceRunCommand() {
+        var command = new WorkspaceDefinition() {
             RequestingUserEmail = "John@test.gc.ca",
             ResourceGroupName = "test-rg",
             Templates = new List<TerraformTemplate>()
@@ -31,7 +31,7 @@ public class CreateResourceRunValidationTests
             },
             AppData = new WorkspaceAppData()
         };
-        var validator = new CreateResourceRunCommandValidator();
+        var validator = new WorkspaceDefinitionValidator();
         validator.Validate(command).Errors.Should().NotBeEmpty();
     }
     
@@ -39,7 +39,7 @@ public class CreateResourceRunValidationTests
     public void ShouldValidateIfMinimumFieldsAreProvided()
     {
         const string anyString = "abc";
-        var command = new CreateResourceRunCommand
+        var command = new WorkspaceDefinition
         {
             Workspace = new TerraformWorkspace()
             {
@@ -59,7 +59,7 @@ public class CreateResourceRunValidationTests
             AppData = new WorkspaceAppData(),
             ResourceGroupName = anyString
         };
-        var validator = new CreateResourceRunCommandValidator();
+        var validator = new WorkspaceDefinitionValidator();
         validator.Validate(command).Errors.Should().BeEmpty();
     }
 }

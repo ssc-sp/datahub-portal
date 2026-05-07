@@ -193,7 +193,7 @@ public class Testing
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         }   
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                        TerraformTemplate.NewProjectTemplate,
@@ -218,9 +218,9 @@ public class Testing
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
     
-    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
+    internal static WorkspaceDefinition GenerateTestWorkspaceDefinition(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
     {
-        return new CreateResourceRunCommand
+        return new WorkspaceDefinition
         {
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested, DateTime.UtcNow))

@@ -48,7 +48,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var terraformTemplate = new TerraformTemplate(templateName, TerraformStatus.DeleteRequested, DateTime.UtcNow);
         var terraformWorkspace = scenarioContext.Get<TerraformWorkspace>("terraformWorkspace");
 
-        var command = new CreateResourceRunCommand() {
+        var command = new WorkspaceDefinition() {
             Templates = new List<TerraformTemplate>() { terraformTemplate },
             Workspace = terraformWorkspace,
             RequestingUserEmail = string.Empty,
@@ -67,7 +67,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         var repositoryService = scenarioContext.Get<RepositoryService>("repositoryService");
         var terraformTemplate = scenarioContext.Get<TerraformTemplate>("terraformTemplate");
-        var command = scenarioContext.Get<CreateResourceRunCommand>("command");
+        var command = scenarioContext.Get<WorkspaceDefinition>("command");
         
         var result = await repositoryService.ExecuteResourceRun(terraformTemplate, command, "test@username");
         scenarioContext.Add("result", result);
@@ -85,7 +85,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     public async Task ThenTheCopyTemplateAsyncMethodShouldNotBeInvoked()
     {
         var terraformService = scenarioContext.Get<ITerraformService>("terraformService");
-        await terraformService.DidNotReceive().CopyTemplateAsync(Arg.Any<string>(), Arg.Any<CreateResourceRunCommand>());
+        await terraformService.DidNotReceive().CopyTemplateAsync(Arg.Any<string>(), Arg.Any<WorkspaceDefinition>());
     }
 
     [Then(@"the result should be a successful RepositoryUpdateEvent")]
