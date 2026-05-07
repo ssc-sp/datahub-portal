@@ -3,6 +3,7 @@ using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
@@ -184,7 +185,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         var terraformService = new TerraformService(
             Substitute.For<ILogger<TerraformService>>(),
-            Substitute.For<ResourceProvisionerConfiguration>(),
+            Substitute.For<IOptionsSnapshot<ResourceProvisionerConfiguration>>(),
             Substitute.For<IConfiguration>()
         );
         

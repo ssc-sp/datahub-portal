@@ -102,7 +102,7 @@ public class Hooks
         var terraformServiceLoggerSubstitute = Substitute.For<ILogger<TerraformService>>();
         var terraformService = new TerraformService(
             terraformServiceLoggerSubstitute,
-            resourceProvisionerConfiguration,
+            resourceProvisionerConfiguration.AsOptionsSnapshot(),
             configuration);
 
         var httpClientFactorySubstitute = Substitute.For<IHttpClientFactory>();
@@ -113,7 +113,7 @@ public class Hooks
         var repositoryService = new RepositoryService(
             httpClientFactorySubstitute,
             repositoryServiceLoggerSubstitute,
-            resourceProvisionerConfiguration,
+            resourceProvisionerConfiguration.AsOptionsSnapshot(),
             terraformService);
 
         // register dependencies

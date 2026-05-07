@@ -1,10 +1,12 @@
-﻿using System.Reflection;
+using System.ComponentModel.DataAnnotations;
+using System.Reflection;
 using FluentValidation;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using ResourceProvisioner.Application.Common.Behaviours;
 using ResourceProvisioner.Application.Config;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ResourceProvisioner.Application;
 
@@ -17,10 +19,16 @@ public static class ConfigureServices
 
 
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
-                
-        var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
-        configuration.Bind(resourceProvisionerConfiguration);
-        services.AddSingleton(resourceProvisionerConfiguration);
+
+
+        services
+            .AddOptions<ResourceProvisionerConfiguration>().ValidateDataAnnotations().ValidateOnStart();
+
+
+        //var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
+        //configuration.Bind(resourceProvisionerConfiguration);
+        //Validator.ValidateObject(resourceProvisionerConfiguration, new ValidationContext(resourceProvisionerConfiguration), validateAllProperties: true);
+        //services.AddSingleton(resourceProvisionerConfiguration);
 
         return services;
     }

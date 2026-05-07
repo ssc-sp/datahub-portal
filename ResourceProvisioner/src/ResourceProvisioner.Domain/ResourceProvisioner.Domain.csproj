@@ -8,12 +8,13 @@
 
   <ItemGroup>
     <PackageReference Include="Azure.Identity" />
-		<PackageReference Include="Microsoft.TeamFoundationServer.Client" />
-      <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" />
-      <PackageReference Include="System.Drawing.Common" />
-      <PackageReference Include="System.Security.Cryptography.Xml" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" />
-    </ItemGroup>
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" />
+    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
+    <PackageReference Include="System.IdentityModel.Tokens.Jwt" />
+    <PackageReference Include="MediatR" />
+  </ItemGroup>
 
 
   <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
