@@ -3,6 +3,7 @@ using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Achievements;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
@@ -63,6 +64,7 @@ public class WorkspaceSettingsSteps(
         Services.AddStub<ICultureService>();
         Services.AddStub<IDatahubAuditingService>();
         Services.AddStub<IUserInformationService>();
+        Services.AddStub<ISystemTokenCredentialService>();
 
         var mockRequestManagementService = Substitute.For<IRequestManagementService>();
         Services.AddSingleton(mockRequestManagementService);

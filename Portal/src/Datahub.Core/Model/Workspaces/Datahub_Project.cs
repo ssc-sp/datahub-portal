@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
@@ -456,4 +456,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
         return VersionUpdateType.None;
     }
+
+    /// <summary>
+    /// Gets or sets the list of subnet mappings associated with this workspace.
+    /// </summary>
+    public List<WorkspaceSubnet> WorkspaceSubnets { get; set; } = new();
 }
