@@ -80,8 +80,10 @@
 		<PackageReference Include="Microsoft.Extensions.Http.Polly" />
 		<PackageReference Include="Microsoft.FeatureManagement" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
-		<PackageReference Include="Microsoft.Graph" />
-		<PackageReference Include="Microsoft.Graph.Auth" />
+    <!-- this one should be a transitive dependency but the current version has a high severity issue so it is here explictely -->
+    <PackageReference Include="Microsoft.Kiota.Abstractions"/>
+
+    <PackageReference Include="Microsoft.Graph" />
 		<PackageReference Include="Microsoft.Identity.Client" />
 
 		<PackageReference Include="Microsoft.Identity.Web.UI" />
