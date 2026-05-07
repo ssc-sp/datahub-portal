@@ -185,7 +185,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         var terraformService = new TerraformService(
             Substitute.For<ILogger<TerraformService>>(),
-            Substitute.For<IOptionsSnapshot<ResourceProvisionerConfiguration>>(),
+            Substitute.For<IOptions<ResourceProvisionerConfiguration>>(),
             Substitute.For<IConfiguration>()
         );
         

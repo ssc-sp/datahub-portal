@@ -17,7 +17,7 @@ namespace ResourceProvisioner.Infrastructure.Services;
 
 public class TerraformService(
     ILogger<TerraformService> logger,
-    IOptionsSnapshot<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
+    IOptions<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
     IConfiguration configuration)
     : ITerraformService
 {

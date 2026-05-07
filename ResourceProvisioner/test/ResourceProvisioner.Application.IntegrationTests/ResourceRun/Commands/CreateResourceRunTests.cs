@@ -21,26 +21,16 @@ public class CreateResourceRunTests
             {
                 new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
             },
-            Workspace = new TerraformWorkspace
-            {
-                Acronym = "TEST",
-                Name = "Test Project",
-                TerraformOrganization = new TerraformOrganization
-                {
-                    Name = "SBDA Number 42",
-                    Code = "SBDA-42"
-                }
-            },
-            AppData = new WorkspaceAppData()
+            Workspace = null!,
+            AppData = null!
 
         };
-        
+
         await FluentActions.Invoking(() =>
             SendAsync(command)).Should().ThrowAsync<ValidationException>();
     }
     
-    [Test]
-    [Ignore("Incomplete functionality")]
+    [Test]    
     public async Task ShouldCreateResourceRun()
     {
         await RunAsDefaultUserAsync();

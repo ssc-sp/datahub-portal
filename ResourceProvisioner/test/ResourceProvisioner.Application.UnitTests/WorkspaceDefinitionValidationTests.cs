@@ -5,7 +5,7 @@ using FluentAssertions;
 
 namespace ResourceProvisioner.Application.UnitTests;
 
-public class CreateResourceRunValidationTests
+public class WorkspaceDefinitionValidationTests
 {
 
 

@@ -17,6 +17,8 @@ internal class CustomWebApiFactory : WebApplicationFactory<Program>
                 .Build();
 
             configurationBuilder.AddConfiguration(integrationConfig);
+            // add secrets to config
+            configurationBuilder.AddUserSecrets<CustomWebApiFactory>();
         });
 
         builder.ConfigureServices((builder, services) =>

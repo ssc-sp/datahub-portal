@@ -21,8 +21,10 @@ public static class ConfigureServices
         services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehaviour<,>));
 
 
-        services
-            .AddOptions<ResourceProvisionerConfiguration>().ValidateDataAnnotations().ValidateOnStart();
+        services.AddOptions<ResourceProvisionerConfiguration>()
+            .Configure(options => configuration.Bind(options))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
 
         //var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();

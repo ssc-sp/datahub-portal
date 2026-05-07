@@ -157,7 +157,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptionsSnapshot(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
@@ -191,7 +191,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptionsSnapshot(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
@@ -226,7 +226,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptionsSnapshot(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
@@ -265,7 +265,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptionsSnapshot(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
 
         await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
@@ -304,7 +304,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
 
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptionsSnapshot(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
 
         var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym);
 

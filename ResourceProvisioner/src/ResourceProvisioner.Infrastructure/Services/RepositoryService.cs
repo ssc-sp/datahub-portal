@@ -25,7 +25,7 @@ namespace ResourceProvisioner.Infrastructure.Services;
 public partial class RepositoryService(
     IHttpClientFactory httpClientFactory,
     ILogger<RepositoryService> logger,
-    IOptionsSnapshot<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
+    IOptions<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
     ITerraformService terraformService)
     : IRepositoryService
 {
