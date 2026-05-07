@@ -61,8 +61,8 @@ public class NewProjectTemplateTests : TemplateTestCollection
         foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
-            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
-            expectedContent = sourceFileContent.Replace(TerraformService.TerraformVersionToken, command.Workspace.Version);
+            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}", StringComparison.InvariantCultureIgnoreCase);
+            expectedContent = expectedContent.Replace(TerraformService.TerraformVersionToken, command.Workspace.Version, StringComparison.InvariantCultureIgnoreCase);
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));

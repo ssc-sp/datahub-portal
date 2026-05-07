@@ -23,6 +23,7 @@
     <PackageReference Include="Azure.Identity">
       <Aliases>AzIdentity</Aliases>
     </PackageReference>
+    <PackageReference Include="Microsoft.Kiota.Abstractions" />
     <PackageReference Include="Newtonsoft.Json" />
   </ItemGroup>
 
