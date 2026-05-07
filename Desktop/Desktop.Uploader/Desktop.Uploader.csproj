@@ -48,12 +48,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Azure.Storage.Blobs" Version="12.25.*" />
-		<PackageReference Include="CommunityToolkit.Maui" Version="12.2.*" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="9.0.*" />
-		<PackageReference Include="SuchByte.SpeedTestSharp" Version="1.0.2" />
-		<PackageReference Update="Microsoft.Maui.Controls" Version="8.0.*" />
-		<PackageReference Update="Microsoft.Maui.Controls.Compatibility" Version="8.0.*" />
+		<PackageReference Include="Azure.Storage.Blobs" />
+		<PackageReference Include="CommunityToolkit.Maui" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" />
+		<PackageReference Include="SuchByte.SpeedTestSharp" />
+		<PackageReference Update="Microsoft.Maui.Controls" />
+		<PackageReference Update="Microsoft.Maui.Controls.Compatibility" />
 	</ItemGroup>
 
 	<ItemGroup>

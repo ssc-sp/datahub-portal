@@ -1,5 +1,6 @@
-﻿using Datahub.Application.Configuration;
+using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -41,8 +42,9 @@ namespace Datahub.Functions.UnitTests.Functions
             };
 
             Testing._configuration.Bind(datahubConfig);
+            var keyVaultUserService = Substitute.For<IKeyVaultUserService>();
 
-            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig);
+            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig, keyVaultUserService);
 
             var dbContextFactory = TestHelper.CreateMockDbContextFactory();
             await TestHelper.SeedDatabase(dbContextFactory);

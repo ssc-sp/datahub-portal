@@ -162,6 +162,8 @@
         public const string VersionControl_FR = "controle-de-version";
         public const string PublishingBlocklist = "publishing-blocklist";
         public const string PublishingBlocklist_FR = "liste-blocage-publication";
+        public const string Networking = "networking";
+        public const string Networking_FR = "reseautage";
     }
 
 
@@ -185,7 +187,8 @@
         SectionViews.HostingServices,
         SectionViews.MetadataDefinitions,
         SectionViews.VersionControl,
-        SectionViews.PublishingBlocklist
+        SectionViews.PublishingBlocklist,
+        SectionViews.Networking
     };
 
 
@@ -238,6 +241,7 @@
             SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
             SectionViews.VersionControl => SidebarIcons.VersionControl,
             SectionViews.PublishingBlocklist => SidebarIcons.Publishing,
+            SectionViews.Networking => SidebarIcons.Networking,
             _ => SidebarIcons.Profile
         };
     }
@@ -262,6 +266,7 @@
             SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
             SectionViews.VersionControl => Localizer["Version Control"],
             SectionViews.PublishingBlocklist => Localizer["Publishing Blocklist"],
+            SectionViews.Networking => Localizer["Networking"],
 
             _ => Localizer["Public Profile"]
         };

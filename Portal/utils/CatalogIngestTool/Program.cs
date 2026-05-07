@@ -1,11 +1,10 @@
-﻿extern alias AzIdentity;
 // See https://aka.ms/new-console-template for more information
 
 using System.Diagnostics;
 using System.Text;
-using AzureAuthorityHosts = AzIdentity::Azure.Identity.AzureAuthorityHosts;
-using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
-using ClientSecretCredentialOptions = AzIdentity::Azure.Identity.ClientSecretCredentialOptions;
+using AzureAuthorityHosts = Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
+using ClientSecretCredentialOptions = Azure.Identity.ClientSecretCredentialOptions;
 using CatalogIngestTool;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;

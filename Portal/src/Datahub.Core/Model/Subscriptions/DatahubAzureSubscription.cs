@@ -37,4 +37,9 @@ public class DatahubAzureSubscription
     /// Gets or sets the list of Datahub workspaces associated with this Azure subscription.
     /// </summary>
     public List<Datahub_Project> Workspaces { get; set; } = new();
+
+    /// <summary>
+    /// Gets or sets the list of VNets belonging to this Azure subscription.
+    /// </summary>
+    public List<VNet> VNets { get; set; } = new();
 }

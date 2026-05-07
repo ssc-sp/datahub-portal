@@ -40,6 +40,7 @@ public static class SidebarIcons
     public const string SupportRequests = "fa-light fa-headset";
     public const string HostingServices = "fa-light fa-globe";
     public const string VersionControl = "fa-light fa-code-fork";
+    public const string Networking = "fa-light fa-network-wired";
 
     // Default Sidebar Icons
     public const string Default = "fa-light fa-table-layout";
