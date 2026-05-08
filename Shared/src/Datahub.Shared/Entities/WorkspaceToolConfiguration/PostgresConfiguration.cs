@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.Json.Nodes;
@@ -7,12 +7,16 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
 {
     public class PostgresConfiguration : IWorkspaceToolConfiguration, IWorkspaceToolWithSuffix
     {
+        public const string PGSQL_JSON_SKU = "postgres_sku";
+        public const string PGSQL_JSON_SUFFIX = "postgres_suffix";
+
         public string PSQL_SKU { get; set; } = PostgresTier.DefaultTier.PSQL_SKU;
         public string? ResourceNameSuffix { get; set; }
 
         public static string GetPropertyLabel(string propertyName) => propertyName switch
         {
             nameof(PSQL_SKU) => "Database tier",
+            nameof(ResourceNameSuffix) => "Resource name suffix",
             _ => propertyName
         };
 
@@ -31,7 +35,8 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
         {
             var postgresJson = new JsonObject
             {
-                ["postgres_sku"] = PSQL_SKU
+                [PGSQL_JSON_SKU] = PSQL_SKU,
+                [PGSQL_JSON_SUFFIX] = ResourceNameSuffix
             };
             return postgresJson.ToString();
         }

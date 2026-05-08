@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -50,7 +50,7 @@ public class VersionAwareWorkspaceToolConfigInfo
     public Type ConfigClass { get; set; } = typeof(IWorkspaceToolConfiguration);
     public Type? ConfigDialogClass { get; set; } = null;
     public bool HasConfigurationDialog => ConfigDialogClass != null;
-    public IWorkspaceToolConfiguration GetConfigurationFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
+    public IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
     {
         var methodName = nameof(IWorkspaceToolConfiguration.ReadFromWorkspaceDefinition);
         var method = ConfigClass.GetMethod(methodName, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static) ??

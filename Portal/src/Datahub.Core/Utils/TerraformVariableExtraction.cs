@@ -165,11 +165,14 @@ public static class TerraformVariableExtraction
     public static PostgresConfiguration ExtractPostgresConfiguration(Project_Resources2? projectResource)
     {
         var postgresSku = ExtractStringVariable(
-            projectResource?.InputJsonContent, "postgres_sku", true);
+            projectResource?.InputJsonContent, PostgresConfiguration.PGSQL_JSON_SKU, true);
+        var postgresSuffix = ExtractStringVariable(
+            projectResource?.InputJsonContent, PostgresConfiguration.PGSQL_JSON_SUFFIX, true);
 
         return new PostgresConfiguration
         {
             PSQL_SKU = postgresSku!,
+            ResourceNameSuffix = postgresSuffix
         };
     }
 
