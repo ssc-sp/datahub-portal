@@ -6,6 +6,8 @@ using Datahub.Shared;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Memory;
+using System.Text.RegularExpressions;
+
 
 
 namespace Datahub.Infrastructure.Services
@@ -34,10 +36,13 @@ namespace Datahub.Infrastructure.Services
                                     .ToListAsync();
 
                 var latest = versionTags
-                     .Select(v => Version.Parse(v.TrimStart('v')))
-                     .OrderByDescending(v => v)
-                     .First();
-                var latestStr = $"v{latest.ToString()}";
+                    .Select(v => {
+                        var match = Regex.Match(v, @"\d+(\.\d+)+");
+                        return match.Success ? Version.Parse(match.Value) : new Version(0, 0);
+                    })
+                    .OrderByDescending(v => v)
+                    .FirstOrDefault();
+                var latestStr = latest.ToString();
 
                 memoryCache.Set(LatestVersionCacheKey, latestStr, LatestVersionCacheDuration);
 
@@ -59,7 +64,11 @@ namespace Datahub.Infrastructure.Services
                     .ToListAsync();
 
                 var orderedVersionTags = versionTags
-                    .OrderByDescending(v => Version.Parse(v.Tag.TrimStart('v')))
+                    .OrderByDescending(v =>  
+                    {
+                        var match = Regex.Match(v.Tag ?? "", @"\d+(\.\d+)+");
+                        return match.Success ? Version.Parse(match.Value) : new Version(0, 0);
+                    })
                     .ToList();
 
                 return orderedVersionTags;
