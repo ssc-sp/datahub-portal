@@ -71,6 +71,7 @@ public static class PageRoutes
     public const string TermsAndConditions_FR = "https://documentation.sds.canada.ca/fr/Conditions-generales.html";
 
     public const string TermsAndConditionsExternal = "/external-terms-and-conditions";
+    public const string TermsAndConditionsExternal_FR = "/conditions-generales-externes";
 
     public const string LanguageSelection_Bilingual = "/language-langue";
 
