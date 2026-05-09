@@ -141,7 +141,7 @@ public partial class RepositoryService(
         catch (Exception e)
         {
             logger.LogError(e, "Error while fetching module repository");
-            throw new Exception("Error while fetching module repository", e);
+            throw;
         }
         finally
         {

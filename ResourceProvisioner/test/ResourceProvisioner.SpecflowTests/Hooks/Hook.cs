@@ -46,7 +46,7 @@ public class Hooks
         var repositoryService = Substitute.ForPartsOf<RepositoryService>(
             httpClientFactorySubstitute,
             Substitute.For<ILogger<RepositoryService>>(),
-            resourceProvisionerConfiguration,
+            resourceProvisionerConfiguration.AsOptions(),
             Substitute.For<ITerraformService>());
 
         repositoryService

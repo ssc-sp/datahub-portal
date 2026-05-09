@@ -10,6 +10,7 @@ using Moq;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Infrastructure.Common;
+using ResourceProvisioner.SpecflowTests;
 
 // Assembly-level attribute to disable parallel execution
 [assembly: NonParallelizable]
@@ -67,7 +68,7 @@ public class Testing
         services.AddSingleton<IRepositoryService, RepositoryService>();
         services.AddSingleton(httpClientFactory.Object);
         services.AddSingleton(_configuration);
-        services.AddSingleton(_resourceProvisionerConfiguration);
+        services.AddSingleton(_resourceProvisionerConfiguration.AsOptions());
         var serviceProvider = services.BuildServiceProvider();
         
         _terraformService = serviceProvider.GetRequiredService<ITerraformService>();

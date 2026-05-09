@@ -29,7 +29,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var repositoryService = Substitute.ForPartsOf<RepositoryService>(
             Substitute.For<IHttpClientFactory>(),
             Substitute.For<ILogger<RepositoryService>>(),
-            Substitute.For<ResourceProvisionerConfiguration>(),
+            Substitute.For<IOptions<ResourceProvisionerConfiguration>>(),
             terraformService
         );
 
@@ -111,7 +111,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
 
         var terraformService = Substitute.ForPartsOf<TerraformService>(
             Substitute.For<ILogger<TerraformService>>(),
-            resourceProvisionerConfiguration,
+            resourceProvisionerConfiguration.AsOptions(),
             configuration
         );
 

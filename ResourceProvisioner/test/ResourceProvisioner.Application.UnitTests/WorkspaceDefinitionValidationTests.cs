@@ -19,17 +19,8 @@ public class WorkspaceDefinitionValidationTests
             {
                 new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)            
             },
-            Workspace = new TerraformWorkspace()
-            {
-                Acronym = "abc",
-                Name = "abc",
-                TerraformOrganization = new TerraformOrganization()
-                {
-                    Name = "abc",
-                    Code = "abc"
-                },
-            },
-            AppData = new WorkspaceAppData()
+            Workspace = null!,
+            AppData = null!
         };
         var validator = new WorkspaceDefinitionValidator();
         validator.Validate(command).Errors.Should().NotBeEmpty();
