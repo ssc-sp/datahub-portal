@@ -9,6 +9,7 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
     {
         public const string PGSQL_JSON_SKU = "postgres_sku";
         public const string PGSQL_JSON_SUFFIX = "postgres_suffix";
+        public const string PGSQL_JSON_SERVER_NAME = "postgres_server_name";
 
         public string PSQL_SKU { get; set; } = PostgresTier.DefaultTier.PSQL_SKU;
         public string? ResourceNameSuffix { get; set; }

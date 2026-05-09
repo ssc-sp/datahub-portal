@@ -154,7 +154,24 @@ public static class TerraformVariableExtraction
         var postgresTemplateName = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzurePostgres);
         var postgresResource = project?.Resources?.FirstOrDefault(r =>
             r.ResourceType == postgresTemplateName);
-        return postgresResource == null ? null : ExtractPostgresConfiguration(postgresResource);
+        if (postgresResource is null) return null;
+        var config = ExtractPostgresConfiguration(postgresResource);
+
+        // check if server name is present and possibly ends with a suffix. this is a workaround to get the suffix
+        var serverName = ExtractStringVariable(
+            postgresResource?.JsonContent, PostgresConfiguration.PGSQL_JSON_SERVER_NAME);
+
+        if (!string.IsNullOrWhiteSpace(serverName) && string.IsNullOrWhiteSpace(config.ResourceNameSuffix))
+        {
+            // Extract suffix from server name (e.g., "fsdh-atf2-psql-dev-001" -> "001")
+            var parts = serverName.Split('-');
+            if (parts.Length > 0 && parts[^1].All(char.IsDigit))
+            {
+                config.ResourceNameSuffix = parts[^1];
+            }
+        }
+
+        return config;
     }
 
     /// <summary>
