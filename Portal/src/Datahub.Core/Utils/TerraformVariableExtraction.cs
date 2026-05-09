@@ -159,7 +159,7 @@ public static class TerraformVariableExtraction
 
         // check if server name is present and possibly ends with a suffix. this is a workaround to get the suffix
         var serverName = ExtractStringVariable(
-            postgresResource?.JsonContent, PostgresConfiguration.PGSQL_JSON_SERVER_NAME);
+            postgresResource.JsonContent, PostgresConfiguration.PGSQL_JSON_SERVER_NAME);
 
         if (!string.IsNullOrWhiteSpace(serverName) && string.IsNullOrWhiteSpace(config.ResourceNameSuffix))
         {
