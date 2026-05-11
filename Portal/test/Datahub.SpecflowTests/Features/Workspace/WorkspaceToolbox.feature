@@ -145,7 +145,7 @@ the correct information in the page.
     Scenario: User sees the appropriate tools in the summary after configuring them
         Given the workspace has the <existing-tool> tool
         And the workspace version is <version>
-        And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
+        And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name>,001 in db)
         And the user is on the workspace toolbox page
         When the user clicks the Configure button for <existing-tool>, if it is <configurable>
         Then <existing-tool> should be in the Summary section as a configured tool
@@ -246,7 +246,7 @@ the correct information in the page.
 
     Scenario: Users see the correct configuration form for configurable tools
         Given the workspace has the <configurable-tool> tool
-        And the <configurable-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
+        And the <configurable-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name>,001 in db)
         And the user is on the workspace toolbox page
         When the user clicks the Configure button for <configurable-tool>, if it is <configurable>
         And the user clicks the Next button
