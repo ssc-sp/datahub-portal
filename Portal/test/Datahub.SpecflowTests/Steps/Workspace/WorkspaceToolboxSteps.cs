@@ -1,4 +1,4 @@
-﻿using AngleSharp.Dom;
+using AngleSharp.Dom;
 using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
@@ -92,7 +92,8 @@ public class WorkspaceToolboxSteps(
 
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var endpointProvider = Substitute.For<ISendEndpointProvider>();
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, workspaceVersionService);
+        var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, workspaceVersionService, mockSubnetPoolService);
         var requestManagementService = new RequestManagementService(
             requestLogger,
             dbContextFactory,
