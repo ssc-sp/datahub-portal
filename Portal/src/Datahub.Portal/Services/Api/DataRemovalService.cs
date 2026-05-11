@@ -1,11 +1,10 @@
-﻿using Azure.Storage.Files.DataLake;
+using Azure.Storage.Blobs;
+using Azure.Storage.Files.DataLake;
 using Datahub.Core.Data;
 using Datahub.Core.Services.Api;
 using Datahub.Core.Services.Storage;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.AspNetCore.Components;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
 
 namespace Datahub.Portal.Services.Api;
 
@@ -165,11 +164,13 @@ public class DataRemovalService : BaseService, IDataRemovalService
         try
         {
             var connectionString = await _dataRetrievalService.GetProjectConnectionString(project.ToLower());
-            return await CloudStorageAccount.Parse(connectionString)
-                .CreateCloudBlobClient()
-                .GetContainerReference(containerName)
-                .GetBlockBlobReference(file.name)
-                .DeleteIfExistsAsync();
+            var blobServiceClient = new BlobServiceClient(connectionString);
+            var blobClient = blobServiceClient
+                .GetBlobContainerClient(containerName)
+                .GetBlobClient(file.name);
+
+            var response = await blobClient.DeleteIfExistsAsync();
+            return response.Value;
         }
         catch (Exception ex)
         {

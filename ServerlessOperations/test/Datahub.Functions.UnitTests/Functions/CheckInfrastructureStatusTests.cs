@@ -21,6 +21,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NSubstitute;
 using NUnit.Framework;
+using Datahub.Application.Services.Security;
 
 namespace Datahub.Functions.UnitTests
 {
@@ -46,8 +47,8 @@ namespace Datahub.Functions.UnitTests
             };
 
             Testing._configuration.Bind(datahubConfig);
-
-            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig);
+            var keyVaultUserService = Substitute.For<IKeyVaultUserService>();
+            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig, keyVaultUserService);
 
             var dbContextFactory = TestHelper.CreateMockDbContextFactory();
             await TestHelper.SeedDatabase(dbContextFactory);

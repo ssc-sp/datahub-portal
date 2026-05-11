@@ -1,8 +1,7 @@
-extern alias AzIdentity;
 using Azure;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
-using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
+using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Context;

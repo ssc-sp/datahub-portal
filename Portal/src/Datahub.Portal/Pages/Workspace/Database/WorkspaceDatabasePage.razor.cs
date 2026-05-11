@@ -1,12 +1,14 @@
-﻿extern alias AzIdentity;
+extern alias AzIdentity;
 using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.PostgreSql.FlexibleServers;
-using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
+using Datahub.Application.Services.Security;
+using Datahub.Core.Extensions;
 using Datahub.Core.Model.Context;
 using Datahub.Portal.Model;
 using Datahub.Shared.Entities;
-using Datahub.Core.Extensions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using Newtonsoft.Json;
@@ -15,17 +17,15 @@ namespace Datahub.Portal.Pages.Workspace.Database
 {
     public partial class WorkspaceDatabasePage
     {
+
+        [Inject] private ISystemTokenCredentialService _tokenCredentialService { get; set; } = null!;
         /// <summary>
         /// Builds a PostgreSqlFlexibleServerResource object for the specified workspace acronym.
         /// </summary>
         /// <returns>A PostgreSqlFlexibleServerResource object.</returns>
         private async Task<PostgreSqlFlexibleServerResource> BuildPostgresSqlFlexibleServerResource()
         {
-            var credential = new ClientSecretCredential(
-                _portalConfiguration.AzureAd.TenantId,
-                _portalConfiguration.AzureAd.InfraClientId,
-                _portalConfiguration.AzureAd.InfraClientSecret);
-            var client = new ArmClient(credential);
+            var client = new ArmClient(_tokenCredentialService.GetInfraTokenCredential());
 
             var resourceGroupName =
                 $"{_portalConfiguration.ResourcePrefix}_proj_{WorkspaceAcronym.ToLowerInvariant()}_{_portalConfiguration.Hosting.EnvironmentName}_rg";
