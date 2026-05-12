@@ -1,0 +1,75 @@
+@using Datahub.Core.Model.Achievements
+@using Datahub.Markdown
+@using System.Net.Http
+@using System.Net.Http.Json
+@using Markdig.Parsers
+@using Microsoft.AspNetCore.Mvc.RazorPages
+@using Markdig
+
+@inject ILogger<TermsAndConditionsDate> _logger
+@inject IHttpClientFactory _httpClientFactory
+@inject IUserSettingsService _userSettingsService
+
+@attribute [Route(PageRoutes.TermsAndConditionsExternal)]
+@attribute [Route(PageRoutes.TermsAndConditionsExternal_FR)]
+
+<MudStack>
+    <MudText>
+        @((MarkupString)_termsAndConditionsFormatted)
+    </MudText>
+    <div class="form-group">
+        <MudCheckBox T="bool"
+                     @bind-Value="acceptTC"
+                     Required
+                     RequiredError=@Localizer["Agreement with the terms and conditions is required"]>
+            <MudText Typo="Typo.body1">
+                @Localizer["I agree to the terms and conditions of the FSDH"]
+            </MudText>
+        </MudCheckBox>
+    </div>
+    <DHButton Class="px-16 my-2" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Disabled="!acceptTC" Href="@Localizer[PageRoutes.Home]">
+        <MudText>
+            @Localizer["Log in"]
+        </MudText>
+    </DHButton>
+</MudStack>
+
+
+@code {
+    private readonly string _termsAndConditionsURL = "https://raw.githubusercontent.com/ssc-sp/fsdh-pfds-docs/refs/heads/main/docs/en/Terms-And-Conditions.md";
+    private string _termsAndConditionsFormatted;
+    private bool acceptTC = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        var _termsAndConditionsMarkdown = await GetLastUpdatedMarkdownContent();
+        _termsAndConditionsFormatted = Render(_termsAndConditionsMarkdown);
+    }
+
+    private async Task<string> GetLastUpdatedMarkdownContent()
+    {
+        var client = _httpClientFactory.CreateClient();
+        try
+        {
+            var output = await client.GetStringAsync(Localizer[_termsAndConditionsURL]);
+            return MarkdownHelper.RemoveFrontMatter(output);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Cannot load date of latest update from documentation website.");
+            return null;
+        }
+    }
+
+    private static string Render(string markdown)
+    {
+        var pipeline = new MarkdownPipelineBuilder()
+        .UseAdvancedExtensions()
+        .Build();
+
+        var document = MarkdownParser.Parse(markdown, pipeline);
+
+        return document.ToHtml(pipeline);
+    }
+}
