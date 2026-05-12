@@ -20,6 +20,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		RunTest.bat = RunTest.bat
 		stylecop.json = stylecop.json
+		testEnvironments.json = testEnvironments.json
 		update-nuget-packages.ps1 = update-nuget-packages.ps1
 	EndProjectSection
 EndProject
@@ -175,6 +176,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Github", "Github", "{3D033E
 		.github\workflows\update-trivy-cache.yml = .github\workflows\update-trivy-cache.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{7DC54F87-A118-4F67-A75A-DE4949F5C854}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Datahub.TestTools", "Datahub.TestTools\Datahub.TestTools.csproj", "{7399BACF-CD75-4F45-8A09-BB56823DC17C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -314,6 +319,10 @@ Global
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7399BACF-CD75-4F45-8A09-BB56823DC17C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7399BACF-CD75-4F45-8A09-BB56823DC17C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7399BACF-CD75-4F45-8A09-BB56823DC17C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7399BACF-CD75-4F45-8A09-BB56823DC17C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -363,6 +372,8 @@ Global
 		{53C2E55C-7BF1-477E-B12A-05A3CAD9B39A} = {12002871-163E-49CD-93DE-FBED9F5573E1}
 		{DB462B58-CFC4-4AEE-920E-AA308F14029C} = {8620F501-1D36-439E-9BF0-3BBEFB84DC56}
 		{3D033E58-9544-4099-AFF1-C820B0C28F7C} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
+		{7DC54F87-A118-4F67-A75A-DE4949F5C854} = {2E97B44B-1A99-41C1-8F25-EED4740A3ED9}
+		{7399BACF-CD75-4F45-8A09-BB56823DC17C} = {7DC54F87-A118-4F67-A75A-DE4949F5C854}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		RESX_ConfirmAddLanguageFile = True

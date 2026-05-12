@@ -28,7 +28,7 @@ public class VariableUpdateTests : TemplateTestCollection
         await SetupNewProjectTemplate(workspaceAcronym);
         var template = GenerateTerraformTemplate(TerraformTemplate.VariableUpdate);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -63,7 +63,7 @@ public class VariableUpdateTests : TemplateTestCollection
         var terraformWorkspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         await SetupNewProjectTemplate(workspaceAcronym);
         var template = GenerateTerraformTemplate(TerraformTemplate.VariableUpdate);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,
@@ -97,7 +97,7 @@ public class VariableUpdateTests : TemplateTestCollection
         var terraformWorkspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         await SetupNewProjectTemplate(workspaceAcronym);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,

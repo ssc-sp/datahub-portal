@@ -5,18 +5,24 @@ using FluentAssertions;
 
 namespace ResourceProvisioner.Application.UnitTests;
 
-public class CreateResourceRunValidationTests
+public class WorkspaceDefinitionValidationTests
 {
 
 
     [Test]
     public void ShouldRequireMinimumFields()
     {
-        var command = new CreateResourceRunCommand() {
+        var command = new WorkspaceDefinition() {
             RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg"
+            ResourceGroupName = "test-rg",
+            Templates = new List<TerraformTemplate>()
+            {
+                new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)            
+            },
+            Workspace = null!,
+            AppData = null!
         };
-        var validator = new CreateResourceRunCommandValidator();
+        var validator = new WorkspaceDefinitionValidator();
         validator.Validate(command).Errors.Should().NotBeEmpty();
     }
     
@@ -24,7 +30,7 @@ public class CreateResourceRunValidationTests
     public void ShouldValidateIfMinimumFieldsAreProvided()
     {
         const string anyString = "abc";
-        var command = new CreateResourceRunCommand
+        var command = new WorkspaceDefinition
         {
             Workspace = new TerraformWorkspace()
             {
@@ -41,9 +47,10 @@ public class CreateResourceRunValidationTests
                 new(TerraformTemplate.NewProjectTemplate, TerraformStatus.CreateRequested, DateTime.UtcNow)            
             },
             RequestingUserEmail = "john.doe@test.gc.ca",
+            AppData = new WorkspaceAppData(),
             ResourceGroupName = anyString
         };
-        var validator = new CreateResourceRunCommandValidator();
+        var validator = new WorkspaceDefinitionValidator();
         validator.Validate(command).Errors.Should().BeEmpty();
     }
 }

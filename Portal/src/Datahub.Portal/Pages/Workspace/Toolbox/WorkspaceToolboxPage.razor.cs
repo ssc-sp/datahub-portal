@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Text.Json;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Toolbox;
@@ -590,7 +590,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 var configInfo = toolInfo.GetApplicableConfigInfo(_workspaceVersion);
                 if (configInfo != null)
                 {
-                    var configuration = configInfo.GetConfigurationFromWorkspaceDefinition(_builtWorkspaceDefinition);
+                    var configuration = configInfo.ReadFromWorkspaceDefinition(_builtWorkspaceDefinition);
                     if (configuration != null)
                     {
                         resource.InputJsonContent = configuration.GenerateResourceInputJson();
@@ -691,9 +691,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                 return null;
             }
 
-            var config = configInfo.GetConfigurationFromWorkspaceDefinition(_workspaceDefinition);
+            var config = configInfo.ReadFromWorkspaceDefinition(_workspaceDefinition);
 
-            if (config is IWorkspaceToolWithSuffix configWithSuffix)
+            if (config is IWorkspaceToolWithSuffix configWithSuffix && string.IsNullOrWhiteSpace(configWithSuffix.ResourceNameSuffix))
             {
                 configWithSuffix.ResourceNameSuffix = GetResourceNameSuffix(tool);
             }
@@ -723,6 +723,7 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
         /// Returns the resource name suffix that will be appended to the resource name for a given template type on the cloud
         /// </summary>
         /// <param name="tool">The tool identifier.</param>
+        /// <param name="existingSuffix">An existing suffix to preserve, if available.</param>
         /// <returns>The resource name suffix for the tool.</returns>
         private string GetResourceNameSuffix(string tool)
         {

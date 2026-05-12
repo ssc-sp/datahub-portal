@@ -18,13 +18,14 @@ using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
 using Version = System.Version;
+using Microsoft.Extensions.Options;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
 public partial class RepositoryService(
     IHttpClientFactory httpClientFactory,
     ILogger<RepositoryService> logger,
-    ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+    IOptions<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
     ITerraformService terraformService)
     : IRepositoryService
 {
@@ -39,7 +40,7 @@ public partial class RepositoryService(
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
     
-    public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
+    public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
     {
         await _semaphore.WaitAsync();
         try
@@ -99,7 +100,7 @@ public partial class RepositoryService(
     private void CreateTemporaryDirectory()
     {
         CleanUpEnvironment();
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration.Value);
         logger.LogInformation("Creating temporary directory {Directory} for resource run", Path.GetFullPath(tempPath));
         Directory.CreateDirectory(tempPath);
     }
@@ -109,12 +110,12 @@ public partial class RepositoryService(
         _moduleSemaphore.Wait();
         try
         {
-            var repositoryUrl = resourceProvisionerConfiguration.ModuleRepository.Url;
-            var localPath = resourceProvisionerConfiguration.ModuleRepository.LocalPath;
-            var branch = resourceProvisionerConfiguration.ModuleRepository.Branch;
+            var repositoryUrl = resourceProvisionerConfiguration.Value.ModuleRepository.Url;
+            var localPath = resourceProvisionerConfiguration.Value.ModuleRepository.LocalPath;
+            var branch = resourceProvisionerConfiguration.Value.ModuleRepository.Branch;
             version = $"{branch}-{version}";
             logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
+            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration.Value);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
             logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
@@ -140,7 +141,7 @@ public partial class RepositoryService(
         catch (Exception e)
         {
             logger.LogError(e, "Error while fetching module repository");
-            throw new Exception("Error while fetching module repository", e);
+            throw;
         }
         finally
         {
@@ -150,14 +151,14 @@ public partial class RepositoryService(
 
     public async Task FetchInfrastructureRepository()
     {
-        var localPath = resourceProvisionerConfiguration.InfrastructureRepository.LocalPath;
-        var repositoryUrl = resourceProvisionerConfiguration.InfrastructureRepository.Url;
+        var localPath = resourceProvisionerConfiguration.Value.InfrastructureRepository.LocalPath;
+        var repositoryUrl = resourceProvisionerConfiguration.Value.InfrastructureRepository.Url;
         logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
         var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
+            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.AccessTokenAsync();
 
         var cloneOptions = new CloneOptions
@@ -166,7 +167,7 @@ public partial class RepositoryService(
             {
                 CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
                 {
-                    Username = resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration
+                    Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
                     Password = accessToken.Token
                 }
@@ -183,7 +184,7 @@ public partial class RepositoryService(
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
@@ -201,7 +202,7 @@ public partial class RepositoryService(
         logger.LogInformation("Checking upstream for any updates in branch");
 
         var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
+            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.AccessTokenAsync();
 
         var pullOptions = new PullOptions()
@@ -210,7 +211,7 @@ public partial class RepositoryService(
             {
                 CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
                 {
-                    Username = resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration
+                    Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
                     Password = accessToken.Token
                 }
@@ -232,7 +233,7 @@ public partial class RepositoryService(
 
     public virtual Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
         logger.LogInformation("Committing changes in {LocalPath}", repositoryPath);
         using var repository = new Repository(repositoryPath);
@@ -260,16 +261,16 @@ public partial class RepositoryService(
 
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
         var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
+            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.AccessTokenAsync();
         var options = new PushOptions
         {
             CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
             {
-                Username = resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+                Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
                 Password = accessToken.Token
             },
         };
@@ -295,7 +296,7 @@ public partial class RepositoryService(
         var postBody = BuildPullRequestPostBody(workspaceAcronym);
 
         var postUrl =
-            $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?api-version={resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+            $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
         logger.LogInformation("Posting infrastructure pull request to {Url}", postUrl);
         var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
@@ -332,7 +333,7 @@ public partial class RepositoryService(
     {
         var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
         var patchUrl =
-            $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+            $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
         const int retryAmount = 5;
         var retryPolicy = Policy
@@ -378,7 +379,7 @@ public partial class RepositoryService(
     {
         logger.LogInformation(
             "Building infrastructure pull request patch body for complete by user {ClientId}",
-            resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
+            resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
         var patchData = new JsonObject
         {
             ["status"] = "completed",
@@ -398,7 +399,7 @@ public partial class RepositoryService(
 
     public virtual string GetBranchLastCommitId(string branchName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[branchName];
 
@@ -413,7 +414,7 @@ public partial class RepositoryService(
 
     private string BuildPullRequestUrl(string pullRequestId)
     {
-        return $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
+        return $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
     }
 
     private StringContent BuildPullRequestPostBody(string workspaceAcronym)
@@ -421,7 +422,7 @@ public partial class RepositoryService(
         var postData = new JsonObject
         {
             ["sourceRefName"] = $"refs/heads/{workspaceAcronym}",
-            ["targetRefName"] = $"refs/heads/{resourceProvisionerConfiguration.InfrastructureRepository.MainBranch}",
+            ["targetRefName"] = $"refs/heads/{resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch}",
             ["title"] = $"[{workspaceAcronym}] Infrastructure changes",
             ["description"] = $"[{workspaceAcronym}] Infrastructure changes",
         };
@@ -436,7 +437,7 @@ public partial class RepositoryService(
         await CheckoutInfrastructureBranch(terraformWorkspace.Acronym!);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition command, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
@@ -456,7 +457,7 @@ public partial class RepositoryService(
     }
 
     
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, WorkspaceDefinition command, string username)
     {
         try
         {            
@@ -514,7 +515,7 @@ public partial class RepositoryService(
         }
     }
 
-    private async Task ExtractVariables(TerraformTemplate template, CreateResourceRunCommand command)
+    private async Task ExtractVariables(TerraformTemplate template, WorkspaceDefinition command)
     {
         await terraformService.ExtractVariables(template.Name, command);
         switch (template.Name)
@@ -532,7 +533,7 @@ public partial class RepositoryService(
     {
         logger.LogInformation("Pull request already exists, fetching pull request id");
         var url =
-            $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+            $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
         using var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
         var response = await httpClient.GetAsync(url);
@@ -553,7 +554,7 @@ public partial class RepositoryService(
         {
             logger.LogInformation("Deleting temporary directory {Directory} for resource run",
                 DirectoryUtils.tempDirectory);
-            var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+            var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration.Value);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);
         }
