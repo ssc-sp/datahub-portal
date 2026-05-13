@@ -15,13 +15,13 @@ namespace Datahub.Infrastructure.Services.Notification;
 public class GCNotifyService : IGCNotifyService
 {
     private const string SuccessfulScanTemplateName = "successful-scan";
-    private readonly IKeyVaultService _keyVaultService;
+    private readonly IKeyVaultCoreService _keyVaultService;
     private readonly ILogger<GCNotifyService> _logger;
     private readonly DatahubPortalConfiguration _portalConfiguration;
     private readonly string _mappingsJson;
 
     public GCNotifyService(
-        IKeyVaultService keyVaultService,
+        IKeyVaultCoreService keyVaultService,
         ILoggerFactory loggerFactory,
         DatahubPortalConfiguration portalConfiguration)
     {

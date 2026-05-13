@@ -1,16 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
+        <TargetFramework>net10.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
     </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="Azure.Core" Version="1.52.*" />
-      <PackageReference Include="Azure.Identity" Version="1.20.*" />
-      <PackageReference Include="Microsoft.Identity.Client" Version="4.83.*" />
-    </ItemGroup>
 
     <ItemGroup>
       <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />

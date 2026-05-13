@@ -35,7 +35,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                         TerraformTemplate.NewProjectTemplate,
@@ -58,7 +58,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
              workspaceAcronym, new List<string>()
              {
                             TerraformTemplate.NewProjectTemplate,
@@ -109,7 +109,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,
@@ -152,7 +152,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var expectedVariables = GenerateExpectedVariables(workspace, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,
@@ -193,7 +193,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,

@@ -1,13 +1,8 @@
 using System.Security.Cryptography;
-using System.Text;
 using Azure.Storage.Blobs;
+using Azure.Storage.Sas;
 using Datahub.Application.Configuration;
-using Datahub.Core.Model.Context;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
-using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Portal.Controllers;
 
@@ -33,49 +28,45 @@ public class MediaController : Controller
     [HttpGet("api/media/{**filePath}")]
     public IActionResult GetMedia(string filePath)
     {
-        if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
-            return Unauthorized("No token available");
-        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
-            .CreateCloudBlobClient()
-            .GetContainerReference("media")
-            .GetBlockBlobReference(filePath);
-
-        var sasToken = blobReference
-            .GetSharedAccessSignature(new SharedAccessBlobPolicy
-            {
-                Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
-                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
-            });
-
-        var sasUrl = blobReference.Uri + sasToken;
-        return Redirect(sasUrl);
+        return RedirectToBlobWithReadSas("media", filePath);
     }
 
     /// <summary>
-    /// Redirect the video mp4 to the azure storage blob and return the video stream.
+    /// Redirect the docs file to the azure storage blob and return the file stream.
     /// </summary>
     /// <returns></returns>
     [HttpGet("api/docs/{**filePath}")]
     public IActionResult GetDocs(string filePath)
     {
-        if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
+        return RedirectToBlobWithReadSas("docs", filePath);
+    }
+
+    private IActionResult RedirectToBlobWithReadSas(string containerName, string filePath)
+    {
+        if (string.IsNullOrWhiteSpace(_datahubPortalConfiguration?.Media?.StorageConnectionString))
             return Unauthorized("No token available");
-        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
-            .CreateCloudBlobClient()
-            .GetContainerReference("docs")
-            .GetBlockBlobReference(filePath);
 
-        var sasToken = blobReference
-            .GetSharedAccessSignature(new SharedAccessBlobPolicy
-            {
-                Permissions = SharedAccessBlobPermissions.Read,
-                SharedAccessStartTime = DateTime.UtcNow.AddMinutes(-5),
-                SharedAccessExpiryTime = DateTime.UtcNow.AddMinutes(5)
-            });
+        var blobServiceClient = new BlobServiceClient(_datahubPortalConfiguration.Media.StorageConnectionString);
+        var blobClient = blobServiceClient
+            .GetBlobContainerClient(containerName)
+            .GetBlobClient(filePath);
 
-        var sasUrl = blobReference.Uri + sasToken;
-        return Redirect(sasUrl);
+        if (!blobClient.CanGenerateSasUri)
+            return StatusCode(StatusCodes.Status500InternalServerError, "Storage client cannot generate SAS URI.");
+
+        var sasBuilder = new BlobSasBuilder
+        {
+            BlobContainerName = containerName,
+            BlobName = filePath,
+            Resource = "b",
+            StartsOn = DateTimeOffset.UtcNow.AddMinutes(-5),
+            ExpiresOn = DateTimeOffset.UtcNow.AddMinutes(5)
+        };
+
+        sasBuilder.SetPermissions(BlobSasPermissions.Read);
+        var sasUri = blobClient.GenerateSasUri(sasBuilder);
+
+        return Redirect(sasUri.ToString());
     }
 
     [HttpPost("api/media/upload")]
@@ -107,7 +98,7 @@ public class MediaController : Controller
             var blobServiceClient = new BlobServiceClient(_datahubPortalConfiguration.Media.StorageConnectionString);
             var containerClient = blobServiceClient.GetBlobContainerClient("media");
             var blobClient = containerClient.GetBlobClient(filePath);
-            await blobClient.UploadAsync(file.OpenReadStream());
+            await blobClient.UploadAsync(file.OpenReadStream(), overwrite: true);
             return Ok("/api/media/" + filePath);
         }
         catch (Exception e)

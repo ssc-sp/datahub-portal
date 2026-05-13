@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Nodes;
 using Datahub.Shared.Configuration;
 
@@ -44,9 +45,12 @@ public class ModuleRepositoryConfiguration
 
 public class ResourceProvisionerConfiguration
 {
-    public ModuleRepositoryConfiguration ModuleRepository { get; set; }
-    public InfrastructureRepositoryConfiguration InfrastructureRepository { get; set; }
-    public TerraformConfiguration Terraform { get; set; }
+    [Required]
+    public ModuleRepositoryConfiguration ModuleRepository { get; set; } = null!;
+    [Required]
+    public InfrastructureRepositoryConfiguration InfrastructureRepository { get; set; } = null!;
+    [Required]
+    public TerraformConfiguration Terraform { get; set; } = null!;
 }
 
 public class TerraformConfiguration

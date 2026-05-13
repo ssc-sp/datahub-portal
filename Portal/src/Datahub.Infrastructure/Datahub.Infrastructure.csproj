@@ -1,51 +1,48 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <TargetFramework>net9.0</TargetFramework>
-        <Nullable>enable</Nullable>
-        <ImplicitUsings>enable</ImplicitUsings>
-    </PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Azure.Core" Version="1.53.*" />
-      <PackageReference Include="Azure.Identity" Version="1.20.*">
-        <Aliases>AzIdentity</Aliases>
-      </PackageReference>
-      <PackageReference Include="Azure.ResourceManager" Version="1.14.*" />
-      <PackageReference Include="Azure.ResourceManager.AppService" Version="1.4.*" />
-      <PackageReference Include="Azure.ResourceManager.Consumption" Version="1.0.*" />
-      <PackageReference Include="Azure.ResourceManager.CostManagement" Version="1.0.*" />
-      <PackageReference Include="Azure.ResourceManager.Monitor" Version="1.3.*" />
-      <PackageReference Include="Azure.ResourceManager.Storage" Version="1.5.*" />
-      <PackageReference Include="Azure.Security.KeyVault.Keys" Version="4.8.*" />
-      <PackageReference Include="Azure.Messaging.EventGrid" Version="4.30.*" />
-      <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.*" />
-      <PackageReference Include="Google.Cloud.Storage.V1" Version="4.13.*" />
-      <PackageReference Include="itext7" Version="9.3.*" />
-      <PackageReference Include="MassTransit" Version="8.5.*" />
-      <PackageReference Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.*" />
-      <PackageReference Include="MediatR" Version="13.0.*" />
-	  <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />-->
-	  <PackageReference Include="Azure.Storage.Common" Version="12.24.*" />
-      <PackageReference Include="Azure.Storage.Queues" Version="12.23.*" />
-      <PackageReference Include="Microsoft.Azure.Databricks.Client" Version="2.9.*" />
-      <PackageReference Include="Microsoft.Extensions.Azure" Version="1.13.*" />
-      <PackageReference Include="Microsoft.Identity.Client" Version="4.83.*" />
-      <PackageReference Include="Polly.Contrib.WaitAndRetry" Version="1.1.*" />
-    <PackageReference Include="AWSSDK.S3" Version="4.0.*" />
-      <PackageReference Include="System.Text.Json" Version="10.0.5" />
-	  <PackageReference Include="Yarp.Telemetry.Consumption" Version="2.3.*" />
-      
-	  <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.*" />-->
-	  
-	  	
-	</ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Azure.ResourceManager" />
+    <PackageReference Include="Azure.ResourceManager.AppService" />
+    <PackageReference Include="Azure.ResourceManager.Consumption" />
+    <PackageReference Include="Azure.ResourceManager.CostManagement" />
+    <PackageReference Include="Azure.ResourceManager.Monitor" />
+    <PackageReference Include="Azure.ResourceManager.Storage" />
+    <PackageReference Include="Azure.Security.KeyVault.Keys" />
+    <PackageReference Include="Azure.Messaging.EventGrid" />
+    <PackageReference Include="DocumentFormat.OpenXml" />
+    <PackageReference Include="Google.Cloud.Storage.V1" />
+    <PackageReference Include="itext" />
+    <PackageReference Include="MassTransit" />
+    <PackageReference Include="MassTransit.Azure.ServiceBus.Core" />
+    <PackageReference Include="MediatR" />
+    <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />-->
+    <PackageReference Include="Azure.Storage.Common" />
+    <PackageReference Include="Azure.Storage.Queues" />
+    <PackageReference Include="Microsoft.Azure.Databricks.Client" />
+    <PackageReference Include="Microsoft.Extensions.Azure" />
+    <PackageReference Include="Microsoft.Identity.Client" />
+    <PackageReference Include="Polly.Contrib.WaitAndRetry" />
+    <PackageReference Include="AWSSDK.S3" />
+    <PackageReference Include="System.Text.Json" />
+    <PackageReference Include="Yarp.Telemetry.Consumption" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
 
-    <ItemGroup>
-      <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
-      <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
-      <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
-    </ItemGroup>
+    <!--<PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="11.1.*" />-->
+
+
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Datahub.Application\Datahub.Application.csproj" />
+    <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
+    <ProjectReference Include="..\Datahub.Core\Datahub.Core.csproj" />
+  </ItemGroup>
 
 </Project>
 

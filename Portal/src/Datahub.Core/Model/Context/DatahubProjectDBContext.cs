@@ -119,6 +119,21 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<DatahubAzureSubscription> AzureSubscriptions { get; set; }
 
     /// <summary>
+    /// Gets or sets the table for storing Azure Virtual Networks
+    /// </summary>
+    public DbSet<VNet> VNets { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing Azure subnets within a VNet
+    /// </summary>
+    public DbSet<Subnet> Subnets { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing workspace-to-subnet mappings
+    /// </summary>
+    public DbSet<WorkspaceSubnet> WorkspaceSubnets { get; set; }
+
+    /// <summary>
     /// Gets or sets table for storing the infrastructure health checks
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }

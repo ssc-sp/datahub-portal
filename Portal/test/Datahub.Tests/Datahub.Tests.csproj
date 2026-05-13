@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<IsPackable>false</IsPackable>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>
@@ -31,25 +31,25 @@
 		</Content>
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="bunit" Version="2.1.*" />
-		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.*" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.*" />
-		<PackageReference Include="Moq" Version="4.20.*" />
-		<PackageReference Include="Neovolve.Logging.Xunit" Version="6.3.*" />
-		<PackageReference Include="NSubstitute" Version="5.3.*" />
-		<PackageReference Include="Xunit.DependencyInjection" Version="11.1.0" />
-		<PackageReference Include="xunit.v3.assert" Version="3.2.*" />
-		<PackageReference Include="xunit.v3.core" Version="3.2.*" />
-		<PackageReference Include="xunit.runner.visualstudio" Version="3.1.*">
+		<PackageReference Include="bunit" />
+		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" />
+		<PackageReference Include="Microsoft.NET.Test.Sdk" />
+		<PackageReference Include="Moq" />
+		<PackageReference Include="Neovolve.Logging.Xunit" />
+		<PackageReference Include="NSubstitute" />
+		<PackageReference Include="Xunit.DependencyInjection" />
+		<PackageReference Include="xunit.v3.assert" />
+		<PackageReference Include="xunit.v3.core" />
+		<PackageReference Include="xunit.runner.visualstudio">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="coverlet.collector" Version="6.0.*">
+		<PackageReference Include="coverlet.collector">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.*" />
+		<PackageReference Include="Microsoft.Data.SqlClient" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />

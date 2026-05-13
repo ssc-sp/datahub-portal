@@ -12,10 +12,13 @@ namespace Datahub.Application.Services.Security
 
         Task DeleteAllSecrets(ProjectCloudStorage projectCloudStorage, string acronym);
         Task<string?> GetSecretAsync(string acronym, string name);
+        Task<Uri?> GetKeyAsync(string acronym, string name);
         Task<string?> GetSecretFromCentralKeyVaultAsync(string keyVaultName, string secretName);
         Task<bool?> IsSecretExpired(string acronym, string name);
         string GetVaultName(string acronym, string environment);
         Task StoreSecret(string acronym, string name, string secretValue, int monthValidity = 12);
         Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12);
+
+        Task<bool> IsKeyEnabled(string workspaceAcronym, string keyName);
     }
 }
