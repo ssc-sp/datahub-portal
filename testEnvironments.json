@@ -4,9 +4,9 @@
     // See https://aka.ms/remotetesting for more details
     // about how to configure remote environments.
     {
-      "name": "WSL Ubuntu",
+      "name": "Ubuntu WSL",
       "type": "wsl",
-      "wslDistribution": "Ubuntu"
+      "wslDistribution": "Ubuntu-24.04"
     },
     {
       "name": "Docker dotnet/sdk",

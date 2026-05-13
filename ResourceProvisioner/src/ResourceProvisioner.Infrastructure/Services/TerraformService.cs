@@ -6,6 +6,7 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Datahub.Shared.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
@@ -16,7 +17,7 @@ namespace ResourceProvisioner.Infrastructure.Services;
 
 public class TerraformService(
     ILogger<TerraformService> logger,
-    ResourceProvisionerConfiguration resourceProvisionerConfiguration,
+    IOptions<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
     IConfiguration configuration)
     : ITerraformService
 {
@@ -27,15 +28,15 @@ public class TerraformService(
 
     internal static readonly List<string> EXCLUDED_FILE_EXTENSIONS = new(new[] { ".md" });
 
-    public async Task CopyTemplateAsync(string templateName, CreateResourceRunCommand workspaceDefinition)
+    public async Task CopyTemplateAsync(string templateName, WorkspaceDefinition workspaceDefinition)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
             return;
         }
 
-        var templateSourcePath = DirectoryUtils.GetTemplatePath(resourceProvisionerConfiguration, templateName);
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, workspaceDefinition.Workspace.Acronym);
+        var templateSourcePath = DirectoryUtils.GetTemplatePath(resourceProvisionerConfiguration.Value, templateName);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, workspaceDefinition.Workspace.Acronym);
 
         logger.LogInformation("Copying template from {ModuleSource} to {ProjectPath}", templateSourcePath,
             projectPath);
@@ -69,14 +70,14 @@ public class TerraformService(
             var fileContent = await File.ReadAllTextAsync(file);
             
             fileContent = fileContent.Replace(TerraformTagToken,
-                $"?ref={resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspaceDefinition.Workspace.Version}");
+                $"?ref={resourceProvisionerConfiguration.Value.ModuleRepository.Branch}-{workspaceDefinition.Workspace.Version}");
             fileContent = fileContent.Replace(TerraformVersionToken, workspaceDefinition.Workspace.Version);
 
             await File.WriteAllTextAsync(destinationFilename, fileContent);
         }
     }
 
-    public async Task ExtractVariables(string templateName, CreateResourceRunCommand command)
+    public async Task ExtractVariables(string templateName, WorkspaceDefinition command)
     {
         if (templateName is TerraformTemplate.VariableUpdate or TerraformTemplate.ContactUs)
         {
@@ -89,7 +90,7 @@ public class TerraformService(
 
     public async Task ExtractBackendConfig(string workspaceAcronym)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, workspaceAcronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, workspaceAcronym);
         var backendConfigFilePath = Path.Join(projectPath, "project.tfbackend");
 
         if (File.Exists(backendConfigFilePath))
@@ -123,10 +124,10 @@ public class TerraformService(
         await File.WriteAllLinesAsync(backendConfigFilePath, backendConfig.Select(x => $"{x.Key} = \"{x.Value}\""));
     }
 
-    public async Task ExtractAllVariables(CreateResourceRunCommand command)
+    public async Task ExtractAllVariables(WorkspaceDefinition command)
     {
         // check if the project directory exists
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, command.Workspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, command.Workspace.Acronym);
         if (!Directory.Exists(projectPath))
         {
             logger.LogInformation(
@@ -158,7 +159,7 @@ public class TerraformService(
 
     public async Task DeleteWorkspaceAsync(TerraformWorkspace terraformWorkspace, string resourcegroup)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, terraformWorkspace.Acronym);
         await RenameTemplateAsDeleted(projectPath, TerraformTemplate.NewProjectTemplateFile, terraformWorkspace);
 
         var workspaceDeletionFilePath = Path.Join(projectPath, $"delete.ps1");
@@ -173,7 +174,7 @@ public class TerraformService(
 
     public async Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, terraformWorkspace.Acronym);
         templateName = templateName == TerraformTemplate.AzurePostgres ? TerraformTemplate.AzurePostgresTemplateFile : templateName;
         await RenameTemplateAsDeleted(projectPath, templateName, terraformWorkspace);
         await WriteDeletedFile(templateName, projectPath);
@@ -243,8 +244,8 @@ public class TerraformService(
     private Dictionary<string, (string, bool)> FindMissingVariables(string templateName,
         TerraformWorkspace terraformWorkspace)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
-        var templatePath = DirectoryUtils.GetTemplatePath(resourceProvisionerConfiguration, templateName);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, terraformWorkspace.Acronym);
+        var templatePath = DirectoryUtils.GetTemplatePath(resourceProvisionerConfiguration.Value, templateName);
 
         var existingVariables = FindExistingVariables(projectPath);
         var requiredTemplateVariables = GetRequiredTemplateVariables(templatePath);
@@ -282,7 +283,7 @@ public class TerraformService(
     private async Task WriteVariablesFile(string templateName, TerraformWorkspace terraformWorkspace,
         Dictionary<string, (string Value, bool isRequired)> missingVariables, WorkspaceAppData workspaceAppData)
     {
-        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration, terraformWorkspace.Acronym);
+        var projectPath = DirectoryUtils.GetProjectPath(resourceProvisionerConfiguration.Value, terraformWorkspace.Acronym);
         var variablesFilePath = Path.Join(projectPath, $"{templateName}.auto.tfvars.json");
 
         if (File.Exists(variablesFilePath))
@@ -401,16 +402,16 @@ public class TerraformService(
     {
         return variableName switch
         {
-            TerraformVariables.BackendResourceGroupName => resourceProvisionerConfiguration.Terraform.Backend
+            TerraformVariables.BackendResourceGroupName => resourceProvisionerConfiguration.Value.Terraform.Backend
                 .ResourceGroupName,
             TerraformVariables.BackendStorageAccountName =>
-                $"{resourceProvisionerConfiguration.Terraform.Variables.resource_prefix_alphanumeric}{resourceProvisionerConfiguration.Terraform.Variables.environment_name}{resourceProvisionerConfiguration.Terraform.Variables.storage_suffix}",
+                $"{resourceProvisionerConfiguration.Value.Terraform.Variables.resource_prefix_alphanumeric}{resourceProvisionerConfiguration.Value.Terraform.Variables.environment_name}{resourceProvisionerConfiguration.Value.Terraform.Variables.storage_suffix}",
             TerraformVariables.BackendContainerName =>
-                $"{resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-project-states",
+                $"{resourceProvisionerConfiguration.Value.Terraform.Variables.resource_prefix}-project-states",
             TerraformVariables.BackendKeyName =>
-                $"{resourceProvisionerConfiguration.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
+                $"{resourceProvisionerConfiguration.Value.Terraform.Variables.resource_prefix}-{workspaceName}.tfstate",
             TerraformVariables.BackendSubscriptionIdName =>
-                $"{resourceProvisionerConfiguration.Terraform.Backend.SubscriptionId}",
+                $"{resourceProvisionerConfiguration.Value.Terraform.Backend.SubscriptionId}",
             _ => throw new MissingTerraformVariableException(
                 $"Missing variable {variableName}:<string> in configuration")
         };

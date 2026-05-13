@@ -15,6 +15,7 @@
 		<PackageReference Include="Microsoft.Identity.Client" />
 		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
 		<PackageReference Include="Yarp.ReverseProxy" />
+    <PackageReference Include="System.Security.Cryptography.Xml" />
 	</ItemGroup>
 
 </Project>

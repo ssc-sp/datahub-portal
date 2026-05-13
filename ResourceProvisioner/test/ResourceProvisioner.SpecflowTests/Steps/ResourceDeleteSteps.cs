@@ -3,6 +3,7 @@ using Datahub.Shared.Entities;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
@@ -28,7 +29,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var repositoryService = Substitute.ForPartsOf<RepositoryService>(
             Substitute.For<IHttpClientFactory>(),
             Substitute.For<ILogger<RepositoryService>>(),
-            Substitute.For<ResourceProvisionerConfiguration>(),
+            Substitute.For<IOptions<ResourceProvisionerConfiguration>>(),
             terraformService
         );
 
@@ -48,11 +49,12 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
         var terraformTemplate = new TerraformTemplate(templateName, TerraformStatus.DeleteRequested, DateTime.UtcNow);
         var terraformWorkspace = scenarioContext.Get<TerraformWorkspace>("terraformWorkspace");
 
-        var command = new CreateResourceRunCommand() {
+        var command = new WorkspaceDefinition() {
             Templates = new List<TerraformTemplate>() { terraformTemplate },
             Workspace = terraformWorkspace,
             RequestingUserEmail = string.Empty,
-            ResourceGroupName = string.Empty
+            ResourceGroupName = string.Empty,
+            AppData = new WorkspaceAppData()
         };
 
 
@@ -66,7 +68,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         var repositoryService = scenarioContext.Get<RepositoryService>("repositoryService");
         var terraformTemplate = scenarioContext.Get<TerraformTemplate>("terraformTemplate");
-        var command = scenarioContext.Get<CreateResourceRunCommand>("command");
+        var command = scenarioContext.Get<WorkspaceDefinition>("command");
         
         var result = await repositoryService.ExecuteResourceRun(terraformTemplate, command, "test@username");
         scenarioContext.Add("result", result);
@@ -84,7 +86,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     public async Task ThenTheCopyTemplateAsyncMethodShouldNotBeInvoked()
     {
         var terraformService = scenarioContext.Get<ITerraformService>("terraformService");
-        await terraformService.DidNotReceive().CopyTemplateAsync(Arg.Any<string>(), Arg.Any<CreateResourceRunCommand>());
+        await terraformService.DidNotReceive().CopyTemplateAsync(Arg.Any<string>(), Arg.Any<WorkspaceDefinition>());
     }
 
     [Then(@"the result should be a successful RepositoryUpdateEvent")]
@@ -109,7 +111,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
 
         var terraformService = Substitute.ForPartsOf<TerraformService>(
             Substitute.For<ILogger<TerraformService>>(),
-            resourceProvisionerConfiguration,
+            resourceProvisionerConfiguration.AsOptions(),
             configuration
         );
 
@@ -183,7 +185,7 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     {
         var terraformService = new TerraformService(
             Substitute.For<ILogger<TerraformService>>(),
-            Substitute.For<ResourceProvisionerConfiguration>(),
+            Substitute.For<IOptions<ResourceProvisionerConfiguration>>(),
             Substitute.For<IConfiguration>()
         );
         

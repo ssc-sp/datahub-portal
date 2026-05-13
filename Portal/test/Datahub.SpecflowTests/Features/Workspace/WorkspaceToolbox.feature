@@ -1,4 +1,4 @@
-﻿@toolbox
+@toolbox
 @IWebHostEnvironment
 Feature: WorkspaceToolbox
 The workspace toolbox page should allow adding, configuring and removing tools properly while displaying
@@ -145,7 +145,7 @@ the correct information in the page.
     Scenario: User sees the appropriate tools in the summary after configuring them
         Given the workspace has the <existing-tool> tool
         And the workspace version is <version>
-        And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
+        And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name>,001 in db)
         And the user is on the workspace toolbox page
         When the user clicks the Configure button for <existing-tool>, if it is <configurable>
         Then <existing-tool> should be in the Summary section as a configured tool
@@ -246,7 +246,7 @@ the correct information in the page.
 
     Scenario: Users see the correct configuration form for configurable tools
         Given the workspace has the <configurable-tool> tool
-        And the <configurable-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name> in db)
+        And the <configurable-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name>,001 in db)
         And the user is on the workspace toolbox page
         When the user clicks the Configure button for <configurable-tool>, if it is <configurable>
         And the user clicks the Next button
@@ -282,6 +282,32 @@ the correct information in the page.
 	    | azure-databricks  | v5.2.1  | databricks-ml-default | true         | databricks-configuration-form | databricks-enable-ml-checkbox | true           | false         | enable_ml_cluster       |
 
       # SUBMISSION
+
+    Scenario: Users see the correct submission process information in the UI, the appropriate changes are applied to the database and the request is correctly sent to the RP after updating an existing configurable tool
+        Given the workspace has the <existing-tool> tool
+        And the <existing-tool> has an <existing-configuration> value for <configuration-parameter> (<db-name>,<suffix> in db)
+        And the user is on the workspace toolbox page
+        When the user clicks the Configure button for <existing-tool>, if it is <configurable>
+        Then there should be an underlying Configure transaction for <existing-tool>
+        And the underlying Configure transaction for <existing-tool> should use cloned configuration data
+        When the user clicks the Next button
+        Then the user should see the configuration form for <existing-tool> with <form-id>
+        When the user sets <example-form-input> in the form to <new-configuration>
+        Then the underlying Configure transaction should show the correct <existing-configuration> and <new-configuration> values for <configuration-parameter>
+        When the user clicks the Next button
+        Then the generated updated workspace definition should be correct for <existing-tool> with the <new-configuration> value
+        When the user clicks the Complete button
+        Then the user should see the request submission steps
+        When the user waits for  2 sec
+        Then the user should see the completed submission steps
+        And the database should contain the updated corresponding changes for <existing-tool> with the <new-configuration> value
+        And the database should contain the updated corresponding changes for <existing-tool> with the <suffix> value
+        And the request should have been properly sent to the resource provisioner
+        And the user should be redirected to the workspace dashboard
+
+    Examples:
+      | existing-tool   | configurable | existing-configuration | new-configuration | configuration-parameter | db-name     | suffix    | form-id                     | example-form-input  |
+      | azure-postgres  | true         | B_Standard_B1ms        | B_Standard_B2s    | PSQL_SKU                | postgres_sku| 001       | postgres-configuration-form | postgres-sku-select |
 
     Scenario: Users see the correct submission process information in the UI, the appropriate changes are applied to the database and the request is correctly sent to the RP
         Given the workspace does not have <catalog-tool>

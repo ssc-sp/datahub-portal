@@ -5,10 +5,10 @@ namespace ResourceProvisioner.Application.Services;
 
 public interface ITerraformService
 {
-    Task CopyTemplateAsync(string templateName, CreateResourceRunCommand workspaceDefinition);
-    Task ExtractVariables(string templateName, CreateResourceRunCommand command);
+    Task CopyTemplateAsync(string templateName, WorkspaceDefinition workspaceDefinition);
+    Task ExtractVariables(string templateName, WorkspaceDefinition command);
     Task ExtractBackendConfig(string workspaceAcronym);
-    Task ExtractAllVariables(CreateResourceRunCommand command);
+    Task ExtractAllVariables(WorkspaceDefinition command);
     Task DeleteTemplateAsync(string templateName, TerraformWorkspace terraformWorkspace);
     Task DeleteWorkspaceAsync(TerraformWorkspace terraformWorkspace, string resourcegroup);
 }

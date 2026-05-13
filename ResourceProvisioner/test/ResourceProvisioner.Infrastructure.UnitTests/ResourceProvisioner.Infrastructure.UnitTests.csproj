@@ -30,6 +30,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\..\Datahub.TestTools\Datahub.TestTools.csproj" />
       <ProjectReference Include="..\..\src\ResourceProvisioner.Infrastructure\ResourceProvisioner.Infrastructure.csproj" />
     </ItemGroup>
 

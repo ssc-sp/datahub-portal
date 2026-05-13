@@ -16,6 +16,7 @@ using Datahub.Portal.Pages.Workspace.Toolbox;
 using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Datahub.SpecflowTests.Utils;
 using FluentAssertions;
 using MassTransit;
@@ -432,7 +433,7 @@ public class WorkspaceToolboxSteps(
         switch (dependencyCount)
         {
             case >= 2
-                : // If there are more than 1 dependencies to a tool, the first would be removed and the tool itself would be removed as well, but there would still be remaining dependencies
+                : // If there are more than 1 dependencies to a tool, the first would be removed and the tool itself would be removed, but there would still be remaining dependencies
                 var summaryAdd = workspaceToolbox!.Find($"#{WorkspaceToolboxPage.SummaryAddId}");
                 summaryAdd.Children.Should().HaveCount(dependencyCount - 1);
                 break;
@@ -769,14 +770,14 @@ public class WorkspaceToolboxSteps(
         }
     }
 
-    [Given(@"the (.*) has an (.*) value for (.*) \((.*) in db\)")]
-    public void GivenTheHasAnValueFor(string tool, string configValue, string configParam, string dbParam)
+    [Given(@"the (.*) has an (.*) value for (.*) \((.*)\,(.*) in db\)")]
+    public void GivenTheHasAnValueFor(string tool, string configValue, string configParam, string dbParam, string suffix)
     {
         var dbContext = dbContextFactory.CreateDbContext();
         var project = dbContext.Projects.First(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
         var resource = dbContext.Project_Resources2.First(p =>
             p.ProjectId == project.Project_ID && p.ResourceType == TerraformTemplate.GetTerraformServiceType(tool));
-        var jsonObject = new JsonObject { { dbParam, configValue } };
+        var jsonObject = new JsonObject { { dbParam, configValue }, { PostgresConfiguration.PGSQL_JSON_SUFFIX, suffix } };
         resource.InputJsonContent = jsonObject.ToJsonString();
         dbContext.SaveChanges();
     }
@@ -1102,39 +1103,23 @@ public class WorkspaceToolboxSteps(
             scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
         var workspaceToolbox = workspaceToolboxContainer!.FindComponent<WorkspaceToolboxPage>();
         var tool = scenarioContext["tool"] as string;
-        var configurable = scenarioContext.Get<bool>("configurable");
         workspaceToolbox!.Render();
         Testing.GetPrivateField(workspaceToolbox!, "_transactions", out var transactions);
         Testing.GetPrivateField(workspaceToolbox!, "_workspaceDefinition", out var workspaceDefinition);
         var toolboxService = Services.GetRequiredService<IToolboxService>();
-        var generatedDefinition = toolboxService.ApplyTransaction(workspaceDefinition as WorkspaceDefinition,
-            transactions as List<ToolboxTransaction>);
-        var dependencies = TerraformTemplate.GetDependenciesToCreate(tool) ?? [];
+        var generatedDefinition = toolboxService.ApplyTransaction(workspaceDefinition! as WorkspaceDefinition,
+            transactions! as List<ToolboxTransaction>);
 
         generatedDefinition.Should().NotBeNull();
-        generatedDefinition.Templates.Should().HaveCount(dependencies.Count + 1);
-        generatedDefinition.Templates.All(t =>
-            dependencies.Select(d => d.Name).Contains(t.Name) ||
-            t.Name == tool).Should().BeTrue();
-        generatedDefinition.Templates.All(r => r.Status == TerraformStatus.CreateRequested).Should().BeTrue();
 
-        if (configurable)
+        if (tool == TerraformTemplate.AzurePostgres)
         {
-            switch (tool)
-            {
-                case TerraformTemplate.AzurePostgres:
-                    generatedDefinition.AppData.PostgresConfiguration.Should().NotBeNull();
-                    generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().NotBeNull();
-                    generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().Be(configVal);
-                    break;
-                case TerraformTemplate.AzureDatabricks:
-                    generatedDefinition.AppData.DatabricksConfiguration.Should().NotBeNull();
-                    generatedDefinition.AppData.DatabricksConfiguration.GeneralPurposeTierSku.Should().NotBeNull();
-                    generatedDefinition.AppData.DatabricksConfiguration.GeneralPurposeTierSku.Should().Be(configVal);
-                    break;
-            }
+            generatedDefinition.AppData.PostgresConfiguration.Should().NotBeNull();
+            generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().Be(configVal);
+            generatedDefinition.AppData.PostgresConfiguration.ResourceNameSuffix.Should().NotBeNull();
         }
 
+        scenarioContext["tool"] = tool;
         scenarioContext["configVal"] = configVal;
     }
 
@@ -1236,6 +1221,64 @@ public class WorkspaceToolboxSteps(
     [Then(@"the user should be redirected to the workspace dashboard")]
     public void ThenTheUserShouldBeRedirectedToTheWorkspaceDashboard()
     {
+    }
+
+    [Then(@"the underlying Configure transaction for (.*) should use cloned configuration data")]
+    public void ThenTheUnderlyingConfigureTransactionForShouldUseClonedConfigurationData(string tool)
+    {
+        var workspaceToolboxContainer =
+            scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var workspaceToolbox = workspaceToolboxContainer!.FindComponent<WorkspaceToolboxPage>();
+        Testing.GetPrivateField(workspaceToolbox!, "_transactions", out var transactions);
+        var transaction = (transactions as List<ToolboxTransaction>)!
+            .FirstOrDefault(t => t.Tool == tool && t.Type == ToolboxTransactionType.Update);
+
+        transaction.Should().NotBeNull();
+        transaction!.OriginalData.Should().NotBeSameAs(transaction.UpdatedData);
+        transaction.OriginalData.Should().BeOfType<PostgresConfiguration>();
+        transaction.UpdatedData.Should().BeOfType<PostgresConfiguration>();
+        ((PostgresConfiguration)transaction.OriginalData!).PSQL_SKU
+            .Should().Be(((PostgresConfiguration)transaction.UpdatedData!).PSQL_SKU);
+    }
+
+    [Then(@"the generated updated workspace definition should be correct for (.*) with the (.*) value")]
+    public void ThenTheGeneratedUpdatedWorkspaceDefinitionShouldBeCorrectForWithTheValue(string tool, string configVal)
+    {
+        var workspaceToolboxContainer =
+            scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+        var workspaceToolbox = workspaceToolboxContainer!.FindComponent<WorkspaceToolboxPage>();
+        workspaceToolbox!.Render();
+        Testing.GetPrivateField(workspaceToolbox!, "_transactions", out var transactions);
+        Testing.GetPrivateField(workspaceToolbox!, "_workspaceDefinition", out var workspaceDefinition);
+        var toolboxService = Services.GetRequiredService<IToolboxService>();
+        var generatedDefinition = toolboxService.ApplyTransaction(workspaceDefinition as WorkspaceDefinition,
+            transactions as List<ToolboxTransaction>);
+
+        generatedDefinition.Should().NotBeNull();
+        generatedDefinition.Templates.Should().ContainSingle(t =>
+            t.Name == tool && t.Status == TerraformStatus.Completed);
+
+        if (tool == TerraformTemplate.AzurePostgres)
+        {
+            generatedDefinition.AppData.PostgresConfiguration.Should().NotBeNull();
+            generatedDefinition.AppData.PostgresConfiguration.PSQL_SKU.Should().Be(configVal);
+        }
+
+        scenarioContext["tool"] = tool;
+        scenarioContext["configVal"] = configVal;
+    }
+
+    [Then(@"the database should contain the updated corresponding changes for (.*) with the (.*) value")]
+    public async Task ThenTheDatabaseShouldContainTheUpdatedCorrespondingChangesForWithTheValue(string tool, string configValue)
+    {
+        using var ctx = await dbContextFactory.CreateDbContextAsync();
+        var resource = ctx.Project_Resources2.FirstOrDefault(r =>
+            r.ResourceType == TerraformTemplate.GetTerraformServiceType(tool));
+
+        resource.Should().NotBeNull();
+        resource!.Status.Should().Be(TerraformStatus.Completed);
+        resource.InputJsonContent.Should().NotBeNull();
+        resource.InputJsonContent.ToString().Should().Contain(configValue);
     }
 }
 
