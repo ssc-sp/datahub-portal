@@ -473,7 +473,7 @@ public class DataRetrievalService : BaseService
             var containerClient = blobServiceClient.GetBlobContainerClient(container);
 
             var resultSegment = containerClient
-                .GetBlobsAsync(BlobTraits.Metadata)
+                .GetBlobsAsync(new GetBlobsOptions { Traits = BlobTraits.Metadata })
                 .AsPages(default, 30);
 
 
@@ -586,7 +586,7 @@ public class DataRetrievalService : BaseService
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
 
             var resultSegment = containerClient
-                .GetBlobsByHierarchyAsync(prefix: prefix.TrimStart('/'), traits: BlobTraits.Metadata, delimiter: "/")
+                .GetBlobsByHierarchyAsync(new GetBlobsByHierarchyOptions { Prefix = prefix.TrimStart('/'), Traits = BlobTraits.Metadata, Delimiter = "/" })
                 .AsPages(continuationToken);
 
             // Enumerate the blobs returned for each page.
