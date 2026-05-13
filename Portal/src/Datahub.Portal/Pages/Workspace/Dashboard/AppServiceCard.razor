@@ -3,54 +3,55 @@
 @using Datahub.Shared
 @inject IReverseProxyConfigService _reverseProxyConfigService
 
-<MudPaper Outlined Class="pa-4">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WebApp" ProjectAcronym="@WorkspaceAcronym">
+  <MudPaper Outlined Class="pa-4">
     <MudStack>
-        <MudStack Row AlignItems="AlignItems.Center">
-            <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium" />
-            <MudText Typo="Typo.h3">@Localizer["Web Application"]</MudText>
-            <MudSpacer />
+      <MudStack Row AlignItems="AlignItems.Center">
+        <DHIcon Icon="@SidebarIcons.WebApp" Size="Size.Medium" />
+        <MudText Typo="Typo.h3">@Localizer["Web Application"]</MudText>
+        <MudSpacer />
 
-        </MudStack>
-        <MudText>
-            @Localizer["Navigate to the Azure App Service to view your web application, where you can serve interactive and user-friendly dashboards."]
-        </MudText>
-        <MudElement HtmlTag="div">
-            @if (ProjectResource.Status == TerraformStatus.Completed)
-            {
-                <MudStack Row>
-                    <DHButton Href="@GetWebAppUrl()" Color="Color.Primary" Variant="@Variant.Text"
-                              EndIcon="@SidebarIcons.External" Underline>
-                        @Localizer["Navigate to Web App"]
-                    </DHButton>
-                    <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin"
-                                     ProjectAcronym="@WorkspaceAcronym">
-                        <DHButton
-                            Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
-                            Color="Color.Primary" Variant="@Variant.Text"
-                            EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight" Underline>
-                            @Localizer["View Web App configuration"]
-                        </DHButton>
-                    </DatahubAuthView>
-                </MudStack>
-            }
-            else
-            {
-                <ToolBeingProvisionedButton />
-            }
-        </MudElement>
+      </MudStack>
+      <MudText>
+        @Localizer["Navigate to the Azure App Service to view your web application, where you can serve interactive and user-friendly dashboards."]
+      </MudText>
+      <MudElement HtmlTag="div">
+        @if (ProjectResource.Status == TerraformStatus.Completed)
+        {
+          <MudStack Row>
+            <DHButton Href="@GetWebAppUrl()" Color="Color.Primary" Variant="@Variant.Text"
+                      EndIcon="@SidebarIcons.External" Underline>
+              @Localizer["Navigate to Web App"]
+            </DHButton>
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym">
+              <DHButton
+                Href=@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{_reverseProxyConfigService.WebAppPrefix}")
+                Color="Color.Primary" Variant="@Variant.Text" EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+                Underline>
+                @Localizer["View Web App configuration"]
+              </DHButton>
+            </DatahubAuthView>
+          </MudStack>
+        }
+        else
+        {
+          <ToolBeingProvisionedButton />
+        }
+      </MudElement>
     </MudStack>
-</MudPaper>
+  </MudPaper>
+</DatahubAuthView>
 
 @code {
 
-    [Parameter][EditorRequired] public Project_Resources2 ProjectResource { get; set; }
+  [Parameter][EditorRequired] public Project_Resources2 ProjectResource { get; set; }
 
-    [Parameter][EditorRequired] public string WorkspaceAcronym { get; set; }
+  [Parameter][EditorRequired] public string WorkspaceAcronym { get; set; }
 
-    private string GetWebAppUrl()
-    {
-        var url = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
-        return url;
-    }
+  private string GetWebAppUrl()
+  {
+    var url = PageRoutes.WorkspaceWebAppShare.Replace("{WorkspaceAcronymParam}", WorkspaceAcronym);
+    return url;
+  }
 
 }

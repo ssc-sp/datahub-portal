@@ -1,5 +1,6 @@
-﻿using Azure.Storage.Files.DataLake;
+using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using Azure.Storage.Files.DataLake;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Core.Services;
@@ -78,12 +79,13 @@ public class DataUpdatingService : BaseService
 
         await target.StartCopyFromUriAsync(source.Uri);
 
-        BlobProperties properties = (await target.GetPropertiesAsync()).Value;
-        while (properties.CopyStatus == CopyStatus.Pending)
+        BlobProperties properties;
+        do
         {
             await Task.Delay(100);
             properties = (await target.GetPropertiesAsync()).Value;
         }
+        while (properties.CopyStatus == CopyStatus.Pending);
 
         if (properties.CopyStatus != CopyStatus.Success)
             throw new Exception("Rename failed: " + properties.CopyStatus);

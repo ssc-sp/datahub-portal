@@ -39,9 +39,9 @@ jobs:
     lfs: true
     fetchTags: false
   - task: UseDotNet@2
-    displayName: Use .NET Core sdk 9.0.x
+    displayName: Use .NET Core sdk 10.0.x
     inputs:
-      version: 9.0.x
+      version: 10.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
   - task: UseNode@1
@@ -99,9 +99,9 @@ jobs:
     lfs: true
     fetchTags: false
   - task: UseDotNet@2
-    displayName: Use .NET Core sdk 9.0.x
+    displayName: Use .NET Core sdk 10.0.x
     inputs:
-      version: 9.0.x
+      version: 10.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
   - task: PowerShell@2
@@ -143,9 +143,9 @@ jobs:
     lfs: true
     fetchTags: false
   - task: UseDotNet@2
-    displayName: Use .NET Core sdk 9.0.x
+    displayName: Use .NET Core sdk 10.0.x
     inputs:
-      version: 9.0.x
+      version: 10.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
   - task: DotNetCoreCLI@2
@@ -181,9 +181,9 @@ jobs:
     lfs: true
     fetchTags: false
   - task: UseDotNet@2
-    displayName: Use .NET Core sdk 9.0.x
+    displayName: Use .NET Core sdk 10.0.x
     inputs:
-      version: 9.0.x
+      version: 10.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
   - task: DotNetCoreCLI@2
@@ -218,9 +218,9 @@ jobs:
     lfs: true
     fetchTags: false
   - task: UseDotNet@2
-    displayName: Use .NET Core sdk 9.0.x
+    displayName: Use .NET Core sdk 10.0.x
     inputs:
-      version: 9.0.x
+      version: 10.0.x
       includePreviewVersions: true
       performMultiLevelLookup: true
   - task: DotNetCoreCLI@2

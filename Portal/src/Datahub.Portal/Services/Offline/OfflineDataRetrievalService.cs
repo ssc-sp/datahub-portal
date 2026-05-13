@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Configuration;
+using Datahub.Application.Configuration;
 using Microsoft.AspNetCore.Components;
 using Datahub.Infrastructure.Services.Storage;
 

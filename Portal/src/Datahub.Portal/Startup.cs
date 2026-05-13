@@ -402,7 +402,7 @@ public class Startup
         // configure online/offline services
         if (!Offline)
         {
-            services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+            services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
             services.AddScoped<DataLakeClientService>();
@@ -431,7 +431,7 @@ public class Startup
         }
         else
         {
-            services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+            services.AddSingleton<IKeyVaultCoreService, OfflineKeyVaultService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
             //services.AddScoped<DataLakeClientService>();

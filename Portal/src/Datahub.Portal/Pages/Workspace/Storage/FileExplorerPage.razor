@@ -22,11 +22,10 @@
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
-@inject IKeyVaultUserService keyVaultUserService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject DataLakeClientService _dataLakeClientService
 @inject NavigationManager NavigationManager
-
+@inject IKeyVaultUserService _keyVaultUserService
 
 <!--suppress CssUnresolvedCustomProperty -->
 <PageTitle>@_title</PageTitle>
@@ -234,7 +233,7 @@
             if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
             if (_isEntraUser)
             {
-                await keyVaultUserService.AuthenticateWithUserContext();
+                await _keyVaultUserService.AuthenticateWithUserContext();
             }
             else
             {
@@ -348,7 +347,7 @@
                 ctx.ProjectCloudStorages.Add(storageSettings);
 
                 await ctx.SaveChangesAsync();
-                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
+                await _keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
             }
@@ -376,7 +375,7 @@
         {
             if (result.Data is (ProjectCloudStorage storageSettings, IDictionary<string, string> ConnectionData))
             {
-                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
+                await _keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
@@ -416,7 +415,7 @@
             var confirmDelete = result.Data as bool?;
             if (confirmDelete.HasValue && confirmDelete.Value)
             {
-                await keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
+                await _keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
 
                 ctx.ProjectCloudStorages.Remove(cloudProvider);
                 await ctx.SaveChangesAsync();
@@ -428,21 +427,7 @@
 
     private async Task<bool> IsProjectKeyEnabled()
     {
-        // A small problem we have is that we have two different keyvault services:
-        // - one for using portal credentials to query portal KV
-        // - one for using user credentials to query workspace KV
-        // but we don't exactly have a good way to use portal credentials to query workspace KV, which is needed to check project key
-        // so I am doing a workaround here to force the core KV service to target the workspace KV
-        var apiTarget = new APITargets
-        {
-            KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
-        };
-        var options = Options.Create<APITargets>(apiTarget);
-
-        var logger = (new LoggerFactory()).CreateLogger<KeyVaultCoreService>();
-        var keyVaultService = new KeyVaultCoreService(options, logger, _datahubPortalConfiguration);
-        var projectKey = await keyVaultService.GetKey(_datahubPortalConfiguration.KeyVault.ProjectKey);
-        return projectKey.Attributes.Enabled ?? false;
+        return await _keyVaultUserService.IsKeyEnabled(WorkspaceAcronym, _datahubPortalConfiguration.KeyVault.ProjectKey);
     }
 
     public CloudStorageContainer SelectedContainer

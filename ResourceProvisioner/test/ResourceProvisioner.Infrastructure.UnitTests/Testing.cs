@@ -10,6 +10,7 @@ using Moq;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Infrastructure.Common;
+using ResourceProvisioner.SpecflowTests;
 
 // Assembly-level attribute to disable parallel execution
 [assembly: NonParallelizable]
@@ -67,7 +68,7 @@ public class Testing
         services.AddSingleton<IRepositoryService, RepositoryService>();
         services.AddSingleton(httpClientFactory.Object);
         services.AddSingleton(_configuration);
-        services.AddSingleton(_resourceProvisionerConfiguration);
+        services.AddSingleton(_resourceProvisionerConfiguration.AsOptions());
         var serviceProvider = services.BuildServiceProvider();
         
         _terraformService = serviceProvider.GetRequiredService<ITerraformService>();
@@ -193,7 +194,7 @@ public class Testing
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         }   
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                        TerraformTemplate.NewProjectTemplate,
@@ -218,9 +219,9 @@ public class Testing
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
     
-    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
+    internal static WorkspaceDefinition GenerateTestWorkspaceDefinition(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
     {
-        return new CreateResourceRunCommand
+        return new WorkspaceDefinition
         {
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested, DateTime.UtcNow))

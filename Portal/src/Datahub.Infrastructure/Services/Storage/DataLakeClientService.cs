@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Azure.Storage.Blobs;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;

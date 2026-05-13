@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -79,7 +79,7 @@ public class DataRetrievalService : BaseService
                 ownedby = "system"
             };
             var resultSegment = containerClient
-                .GetBlobsAsync(BlobTraits.Metadata)
+                .GetBlobsAsync(new GetBlobsOptions { Traits = BlobTraits.Metadata })
                 .AsPages(default, 30);
 
             // Enumerate the blobs returned for each page.
@@ -500,6 +500,7 @@ public class DataRetrievalService : BaseService
         }
     }
         
+        
     [Obsolete("Use ProjectDataRetrievalService.VerifyFileIdMetadata instead")]
     private static async Task<string> VerifyFileIdMetadata(BlobHierarchyItem blobItem, BlobContainerClient containerClient)
     {
@@ -619,6 +620,7 @@ public class DataRetrievalService : BaseService
         }
     }
 
+    
     public async Task<List<string>> GetProjectContainersAsync(string projectAcronymParam, User user)
     {
         return await ListContainers(projectAcronymParam, user);

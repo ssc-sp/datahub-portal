@@ -1,4 +1,3 @@
-extern alias AzIdentity;
 using Azure.Core;
 using Azure.Storage;
 using Azure.Storage.Blobs;
@@ -6,8 +5,8 @@ using Azure.Storage.Blobs.Models;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Azure.Storage.Sas;
-using DefaultAzureCredential = AzIdentity::Azure.Identity.DefaultAzureCredential;
-using DefaultAzureCredentialOptions = AzIdentity::Azure.Identity.DefaultAzureCredentialOptions;
+using DefaultAzureCredential = Azure.Identity.DefaultAzureCredential;
+using DefaultAzureCredentialOptions = Azure.Identity.DefaultAzureCredentialOptions;
 using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
@@ -227,7 +226,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     private async Task TraverseFolderTreeAsync(BlobContainerClient containerClient, string prefix, Dictionary<string, int> result)
     {
-        var blobs = containerClient.GetBlobsByHierarchyAsync(prefix: prefix, delimiter: "/");
+        var blobs = containerClient.GetBlobsByHierarchyAsync(new GetBlobsByHierarchyOptions { Prefix = prefix, Traits = BlobTraits.Metadata, Delimiter = "/" });
 
         int fileCount = 0;
         var subFolders = new List<string>();

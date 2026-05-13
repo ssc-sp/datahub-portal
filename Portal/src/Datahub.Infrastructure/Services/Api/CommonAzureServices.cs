@@ -12,10 +12,10 @@ public class CommonAzureServices
 {    
     private IOptions<APITargets> _targets;
     private readonly ILogger _logger;
-    private readonly IKeyVaultService _keyVaultService;
+    private readonly IKeyVaultCoreService _keyVaultService;
 
     public CommonAzureServices(ILogger<CommonAzureServices> logger,
-        IKeyVaultService keyVaultService,
+        IKeyVaultCoreService keyVaultService,
         IOptions<APITargets> targets)
     {
         _logger = logger;
