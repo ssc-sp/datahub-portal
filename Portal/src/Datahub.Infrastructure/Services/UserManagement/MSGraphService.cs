@@ -1,11 +1,10 @@
-extern alias AzIdentity;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Infrastructure.Services.Azure;
-using AzureAuthorityHosts = AzIdentity::Azure.Identity.AzureAuthorityHosts;
-using ClientSecretCredential = AzIdentity::Azure.Identity.ClientSecretCredential;
-using ClientSecretCredentialOptions = AzIdentity::Azure.Identity.ClientSecretCredentialOptions;
+using AzureAuthorityHosts = Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
+using ClientSecretCredentialOptions = Azure.Identity.ClientSecretCredentialOptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;

@@ -25,7 +25,7 @@ public class ContactUsTemplateTests : TemplateTestCollection
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -50,7 +50,7 @@ public class ContactUsTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,

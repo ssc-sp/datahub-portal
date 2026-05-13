@@ -34,7 +34,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                         TerraformTemplate.NewProjectTemplate,
@@ -54,7 +54,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
               workspaceAcronym, new List<string>()
               {
                         TerraformTemplate.NewProjectTemplate,
@@ -102,7 +102,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -145,7 +145,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,

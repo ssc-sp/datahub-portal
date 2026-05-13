@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Options;
 using Reqnroll;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Domain.Exceptions;

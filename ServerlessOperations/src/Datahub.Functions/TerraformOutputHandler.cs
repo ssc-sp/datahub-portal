@@ -9,6 +9,7 @@ using Datahub.Infrastructure.Services;
 using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -404,7 +405,7 @@ public class TerraformOutputHandler(
                 ["postgres_db_name"] = postgresDbName.Value,
                 ["postgres_secret_name_admin"] = postgresSecretNameAdmin.Value,
                 ["postgres_secret_name_password"] = postgresSecretNamePassword.Value,
-                ["postgres_server_name"] = postgresServerName.Value
+                [PostgresConfiguration.PGSQL_JSON_SERVER_NAME] = postgresServerName.Value
             };
 
             projectResource.CreatedAt ??= DateTime.UtcNow;
