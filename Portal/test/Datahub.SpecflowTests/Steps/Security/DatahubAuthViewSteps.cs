@@ -79,6 +79,20 @@ public sealed class DatahubAuthViewSteps(
         scenarioContext[ElevatedWorkspaceAccessEnabledKey] = elevatedWorkspaceAccessEnabled;
     }
 
+    [Given("a DatahubAuthView with AuthLevel (.*)")]
+    public void GivenADatahubAuthViewWithAuthLevel(string authLevel)
+    {
+        // Parse the auth level enum value
+        if (!Enum.TryParse<DatahubAuthView.AuthLevels>(authLevel, out var parsedAuthLevel))
+        {
+            throw new InvalidOperationException($"Invalid AuthLevel: {authLevel}");
+        }
+
+        // Store the configuration for the component
+        scenarioContext[AuthLevelKey] = parsedAuthLevel;
+        scenarioContext[ProjectAcronymKey] = null; // No workspace context for this scenario
+    }
+
     public void CreateWorkspaceLeadForWorkspace(string workspaceAcronym)
     {
         // Set up the logged-in user as a workspace lead for the specified workspace
@@ -220,16 +234,28 @@ public sealed class DatahubAuthViewSteps(
     {
         var workspaceAcronym = (string)scenarioContext[ProjectAcronymKey];
         var authLevel = (DatahubAuthView.AuthLevels)scenarioContext[AuthLevelKey];
-        var elevatedWorkspaceAccessEnabled = (bool)scenarioContext[ElevatedWorkspaceAccessEnabledKey];
 
         // Render the DatahubAuthView component with the specified authorization level
-        var component = Render<DatahubAuthView>(options => options
-            .Add(p => p.AuthLevel, authLevel)
-            .Add(p => p.ProjectAcronym, workspaceAcronym)
-            .Add(p => p.ElevatedWorkspaceAccessEnabled, elevatedWorkspaceAccessEnabled)
-            .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
-            .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
-        );
+        var component = default(IRenderedComponent<DatahubAuthView>);
+
+        if (!string.IsNullOrEmpty(workspaceAcronym))
+        {
+            var elevatedWorkspaceAccessEnabled = scenarioContext[ElevatedWorkspaceAccessEnabledKey] ?? false;
+            component = Render<DatahubAuthView>(options => options
+                .Add(p => p.AuthLevel, authLevel)
+                .Add(p => p.ProjectAcronym, workspaceAcronym)
+                .Add(p => p.ElevatedWorkspaceAccessEnabled, (bool) elevatedWorkspaceAccessEnabled)
+                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
+                .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
+            );
+        }
+        else {
+            component = Render<DatahubAuthView>(options => options
+                .Add(p => p.AuthLevel, authLevel)
+                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
+                .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
+            );
+        }
 
         // Store the rendered component for verification
         scenarioContext[ComponentKey] = component;

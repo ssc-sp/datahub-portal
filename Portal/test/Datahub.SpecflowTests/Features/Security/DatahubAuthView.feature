@@ -161,3 +161,43 @@ Feature: DatahubAuthView
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | true |
             | DatahubSupportAsGuest | DHPGLIST | false |
+
+    Scenario: A DatahubSupport DatahubAuthView should allow administrator access
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with AuthLevel DatahubSupport
+        When the user views the component
+        Then they should be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | DatahubSupport | DHPGLIST | false |
+
+    Scenario: A DatahubSupport DatahubAuthView should block non-administrator access
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with AuthLevel DatahubSupport
+        When the user views the component
+        Then they should not be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupportAsGuest | DHPGLIST | false |
+
+    Scenario: An Authenticated DatahubAuthView should allow anyone to access
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with AuthLevel Authenticated
+        When the user views the component
+        Then they should be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | DatahubSupport | DHPGLIST | false |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupportAsGuest | DHPGLIST | false |
