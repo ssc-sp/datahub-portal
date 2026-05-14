@@ -11,6 +11,7 @@ using Bunit;
 using Datahub.Core.Components.AuthViews;
 using FluentAssertions;
 using System.Security.Claims;
+using Bunit.TestDoubles;
 
 namespace Datahub.SpecflowTests.Steps.Security;
 
@@ -24,6 +25,7 @@ public sealed class DatahubAuthViewSteps(
     private const string AuthLevelKey = "AuthLevel";
     private const string ComponentKey = "Component";
     private const string UserTypeKey = "UserType";
+    private const string ElevatedWorkspaceAccessEnabledKey = "ElevatedWorkspaceAccessEnabled";
 
     [Given("a (.*) user for workspace (.*)")]
      public void GivenAUserForWorkspace(string role, string workspaceAcronym)
@@ -48,13 +50,22 @@ public sealed class DatahubAuthViewSteps(
             case "ExternalUserStorage":
                 CreateExternalUserStorageForWorkspace(workspaceAcronym);
                 break;
+            case "DatahubSupport":
+                CreateDatahubSupportUser();
+                break;
+            case "DatahubSupportAsGuest":
+                CreateDatahubSupportAsGuestUser();
+                break;
             default:
                 throw new InvalidOperationException($"Unknown user type: {role}");
         }
+        
+        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
+        scenarioContext[UserTypeKey] = role;
     }
     
-    [Given("a DatahubAuthView for workspace (.*) and AuthLevel (.*)")]
-    public void GivenADatahubAuthViewForWorkspaceAndAuthLevel(string workspaceAcronym, string authLevel)
+    [Given("a DatahubAuthView for workspace (.*) and AuthLevel (.*) and ElevatedWorkspaceAccessEnabled (.*)")]
+    public void GivenADatahubAuthViewForWorkspaceAndAuthLevel(string workspaceAcronym, string authLevel, bool elevatedWorkspaceAccessEnabled)
     {
         // Parse the auth level enum value
         if (!Enum.TryParse<DatahubAuthView.AuthLevels>(authLevel, out var parsedAuthLevel))
@@ -65,6 +76,7 @@ public sealed class DatahubAuthViewSteps(
         // Store the configuration for the component
         scenarioContext[ProjectAcronymKey] = workspaceAcronym;
         scenarioContext[AuthLevelKey] = parsedAuthLevel;
+        scenarioContext[ElevatedWorkspaceAccessEnabledKey] = elevatedWorkspaceAccessEnabled;
     }
 
     public void CreateWorkspaceLeadForWorkspace(string workspaceAcronym)
@@ -76,10 +88,6 @@ public sealed class DatahubAuthViewSteps(
             isCbrOwner: true,
             isDhAdmin: true
         );
-
-        // Store workspace acronym and user type for use in subsequent steps
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[UserTypeKey] = "WorkspaceLead";
     }
 
     public void CreateWorkspaceAdminForWorkspace(string workspaceAcronym)
@@ -96,17 +104,7 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetAuthorized("TEST ADMIN");
         authContext.SetRoles([..roleNames]);
 
-        // Provide minimal required claims for Entra scenarios
-        var oid = Guid.NewGuid().ToString();
-        var email = "admin@ssc-spc.gc.ca";
-        authContext.SetClaims(
-            new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
-        );
-
-        // Store workspace acronym and user type for use in subsequent steps
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[UserTypeKey] = "WorkspaceAdmin";
+        CreateUser(authContext);
     }
 
     public void CreateWorkspaceCollaboratorForWorkspace(string workspaceAcronym)
@@ -123,17 +121,7 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetAuthorized("TEST CONTRIBUTOR");
         authContext.SetRoles([..roleNames]);
 
-        // Provide minimal required claims for Entra scenarios
-        var oid = Guid.NewGuid().ToString();
-        var email = "contributor@ssc-spc.gc.ca";
-        authContext.SetClaims(
-            new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
-        );
-
-        // Store workspace acronym and user type for use in subsequent steps
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[UserTypeKey] = "WorkspaceCollaborator";
+        CreateUser(authContext);
     }
 
     public void CreateWorkspaceGuestForWorkspace(string workspaceAcronym)
@@ -150,17 +138,7 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetAuthorized("TEST GUEST");
         authContext.SetRoles([..roleNames]);
 
-        // Provide minimal required claims for Entra scenarios
-        var oid = Guid.NewGuid().ToString();
-        var email = "guest@ssc-spc.gc.ca";
-        authContext.SetClaims(
-            new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
-        );
-
-        // Store workspace acronym and user type for use in subsequent steps
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[UserTypeKey] = "WorkspaceGuest";
+        CreateUser(authContext);
     }
 
     public void CreateExternalUserWebAppForWorkspace(string workspaceAcronym)
@@ -177,17 +155,47 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetAuthorized("TEST EXTERNAL USER");
         authContext.SetRoles([.. roleNames]);
 
+        CreateUser(authContext);
+    }
+
+    public void CreateDatahubSupportUser()
+    {
+        // Set up the logged-in user as a Datahub support user
+        var roleNames = new List<string>
+        {
+            RoleConstants.DATAHUB_ROLE_ADMIN
+        };
+
+        var authContext = this.AddAuthorization();
+        authContext.SetAuthorized("TEST DATAHUB SUPPORT");
+        authContext.SetRoles([.. roleNames]);
+
+        CreateUser(authContext);
+    }
+
+    private void CreateUser(BunitAuthorizationContext authContext){
         // Provide minimal required claims for Entra scenarios
         var oid = Guid.NewGuid().ToString();
-        var email = "contributor@example.com";
+        var email = "user@ssc-spc.gc.ca";
         authContext.SetClaims(
             new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
             new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
         );
+    }
 
-        // Store workspace acronym and user type for use in subsequent steps
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[UserTypeKey] = "External User";
+    public void CreateDatahubSupportAsGuestUser()
+    {
+        // Set up the logged-in user as a Datahub support user
+        var roleNames = new List<string>
+        {
+            RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST
+        };
+
+        var authContext = this.AddAuthorization();
+        authContext.SetAuthorized("TEST DATAHUB SUPPORT AS GUEST");
+        authContext.SetRoles([.. roleNames]);
+
+        CreateUser(authContext);
     }
 
     public void CreateExternalUserStorageForWorkspace(string workspaceAcronym)
@@ -204,17 +212,7 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetAuthorized("TEST EXTERNAL USER");
         authContext.SetRoles([.. roleNames]);
 
-        // Provide minimal required claims for Entra scenarios
-        var oid = Guid.NewGuid().ToString();
-        var email = "contributor@example.com";
-        authContext.SetClaims(
-            new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
-        );
-
-        // Store workspace acronym and user type for use in subsequent steps
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[UserTypeKey] = "External User";
+        CreateUser(authContext);
     }
 
     [When("the user views the component")]
@@ -222,11 +220,13 @@ public sealed class DatahubAuthViewSteps(
     {
         var workspaceAcronym = (string)scenarioContext[ProjectAcronymKey];
         var authLevel = (DatahubAuthView.AuthLevels)scenarioContext[AuthLevelKey];
+        var elevatedWorkspaceAccessEnabled = (bool)scenarioContext[ElevatedWorkspaceAccessEnabledKey];
 
         // Render the DatahubAuthView component with the specified authorization level
         var component = Render<DatahubAuthView>(options => options
             .Add(p => p.AuthLevel, authLevel)
             .Add(p => p.ProjectAcronym, workspaceAcronym)
+            .Add(p => p.ElevatedWorkspaceAccessEnabled, elevatedWorkspaceAccessEnabled)
             .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
             .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
         );

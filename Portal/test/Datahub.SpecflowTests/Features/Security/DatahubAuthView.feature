@@ -4,140 +4,160 @@ Feature: DatahubAuthView
 
     Scenario: A Workspace Lead DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceLead
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceLead and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should be able to view it
         Examples:
-            | role | acronym |
-            | WorkspaceLead | ABC |
+            | role | acronym | supportaccess |
+            | WorkspaceLead | ABC | false |
+            | DatahubSupport | DHPGLIST | true |
 
     Scenario: A Workspace Lead DatahubAuthView should not allow an unauthorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceLead
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceLead and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should not be able to view it
         Examples: 
-            | role    | acronym   |
-            | WorkspaceLead  | XYZ |
-            | WorkspaceAdmin | ABC |
-            | WorkspaceAdmin | XYZ |
-            | WorkspaceCollaborator | ABC |
-            | WorkspaceCollaborator | XYZ |
-            | WorkspaceGuest | ABC |
-            | WorkspaceGuest | XYZ |
-            | ExternalUserWebApp | ABC |
-            | ExternalUserWebApp | XYZ |
-            | ExternalUserStorage | ABC |
-            | ExternalUserStorage | XYZ |
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | ABC | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | ABC | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | ABC | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | ABC | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | ABC | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | true |
+            | DatahubSupportAsGuest | DHPGLIST | false |
 
     Scenario: A Workspace Admin DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceAdmin
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceAdmin and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should be able to view it
         Examples:
-            | role | acronym |
-            | WorkspaceLead | ABC |
-            | WorkspaceAdmin | ABC |
+            | role | acronym | supportaccess |
+            | WorkspaceLead | ABC | false |
+            | WorkspaceAdmin | ABC | false |
+            | DatahubSupport | DHPGLIST | true |
 
     Scenario: A Workspace Admin DatahubAuthView should not allow an unauthorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceAdmin
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceAdmin and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should not be able to view it
         Examples: 
-            | role    | acronym   |
-            | WorkspaceLead  | XYZ |
-            | WorkspaceAdmin | XYZ |
-            | WorkspaceCollaborator | ABC |
-            | WorkspaceCollaborator | XYZ |
-            | WorkspaceGuest | ABC |
-            | WorkspaceGuest | XYZ |
-            | ExternalUserWebApp | ABC |
-            | ExternalUserWebApp | XYZ |
-            | ExternalUserStorage | ABC |
-            | ExternalUserStorage | XYZ |
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | ABC | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | ABC | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | ABC | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | ABC | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | true |
+            | DatahubSupportAsGuest | DHPGLIST | false |
 
     Scenario: A Workspace Collaborator DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceCollaborator
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceCollaborator and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should be able to view it
         Examples:
-            | role | acronym |
-            | WorkspaceLead | ABC |
-            | WorkspaceAdmin | ABC |
-            | WorkspaceCollaborator | ABC |
+            | role | acronym | supportaccess |
+            | WorkspaceLead | ABC | false |
+            | WorkspaceAdmin | ABC | false |
+            | WorkspaceCollaborator | ABC | false |
+            | DatahubSupport | DHPGLIST | true |
 
     Scenario: A Workspace Collaborator DatahubAuthView should not allow an unauthorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceCollaborator
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceCollaborator and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should not be able to view it
         Examples: 
-            | role    | acronym   |
-            | WorkspaceLead  | XYZ |
-            | WorkspaceAdmin | XYZ |
-            | WorkspaceCollaborator | XYZ |
-            | WorkspaceGuest | ABC |
-            | WorkspaceGuest | XYZ |
-            | ExternalUserWebApp | ABC |
-            | ExternalUserWebApp | XYZ |
-            | ExternalUserStorage | ABC |
-            | ExternalUserStorage | XYZ |
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | ABC | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | ABC | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | ABC | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | true |
+            | DatahubSupportAsGuest | DHPGLIST | false |
 
     Scenario: A Workspace Guest DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceGuest
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceGuest and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should be able to view it
         Examples:
-            | role | acronym |
-            | WorkspaceLead | ABC |
-            | WorkspaceAdmin | ABC |
-            | WorkspaceCollaborator | ABC |
-            | WorkspaceGuest | ABC |
+            | role | acronym | supportaccess |
+            | WorkspaceLead | ABC | false |
+            | WorkspaceAdmin | ABC | false |
+            | WorkspaceCollaborator | ABC | false |
+            | WorkspaceGuest | ABC | false |
+            | DatahubSupport | DHPGLIST | true |
 
     Scenario: A Workspace Guest DatahubAuthView should not allow an unauthorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceGuest
+        And a DatahubAuthView for workspace ABC and AuthLevel WorkspaceGuest and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should not be able to view it
         Examples: 
-            | role    | acronym   |
-            | WorkspaceLead  | XYZ |
-            | WorkspaceAdmin | XYZ |
-            | WorkspaceCollaborator | XYZ |
-            | WorkspaceGuest | XYZ |
-            | ExternalUserWebApp | ABC |
-            | ExternalUserWebApp | XYZ |
-            | ExternalUserStorage | ABC |
-            | ExternalUserStorage | XYZ |
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | ABC | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | ABC | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | true |
+            | DatahubSupportAsGuest | DHPGLIST | false |
             
     Scenario: An AllWorkspaceUsers DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel AllWorkspaceUsers
+        And a DatahubAuthView for workspace ABC and AuthLevel AllWorkspaceUsers and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should be able to view it
         Examples:
-            | role | acronym |
-            | WorkspaceLead | ABC |
-            | WorkspaceAdmin | ABC |
-            | WorkspaceCollaborator | ABC |
-            | WorkspaceGuest | ABC |
-            | ExternalUserWebApp | ABC |
-            | ExternalUserStorage | ABC |
+            | role | acronym | supportaccess |
+            | WorkspaceLead | ABC | false |
+            | WorkspaceAdmin | ABC | false |
+            | WorkspaceCollaborator | ABC | false |
+            | WorkspaceGuest | ABC | false |
+            | ExternalUserWebApp | ABC | false |
+            | ExternalUserStorage | ABC | false |
+            | DatahubSupport | DHPGLIST | true |
 
     Scenario: An AllWorkspaceUsers DatahubAuthView should not allow an unauthorized user to access the content
         Given a <role> user for workspace <acronym>
-        And a DatahubAuthView for workspace ABC and AuthLevel AllWorkspaceUsers
+        And a DatahubAuthView for workspace ABC and AuthLevel AllWorkspaceUsers and ElevatedWorkspaceAccessEnabled <supportaccess>
         When the user views the component
         Then they should not be able to view it
         Examples: 
-            | role    | acronym   |
-            | WorkspaceLead  | XYZ |
-            | WorkspaceAdmin | XYZ |
-            | WorkspaceCollaborator | XYZ |
-            | WorkspaceGuest | XYZ |
-            | ExternalUserWebApp | XYZ |
-            | ExternalUserStorage | XYZ |
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | true |
+            | DatahubSupportAsGuest | DHPGLIST | false |
