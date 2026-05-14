@@ -42,8 +42,8 @@ namespace Datahub.Infrastructure.Services.Storage
 
         private GoogleCredential GetCredential()
         {
-            var creds = GoogleCredential.FromJson(_jsonCredentials);
-            return creds;
+            using var stream = new System.IO.MemoryStream(System.Text.Encoding.UTF8.GetBytes(_jsonCredentials));
+            return ServiceAccountCredential.FromServiceAccountData(stream).ToGoogleCredential();
         }
 
         private async Task<StorageClient> CreateStorageClientAsync()
@@ -220,7 +220,7 @@ namespace Datahub.Infrastructure.Services.Storage
                                 name = GetObjectName(obj),
                                 folderpath = folderPath,
                                 filesize = obj.Size?.ToString(),
-                                lastmodifiedts = obj.Updated ?? default,
+                                lastmodifiedts = obj.UpdatedDateTimeOffset?.DateTime ?? default,
                             });
                         }
                     }

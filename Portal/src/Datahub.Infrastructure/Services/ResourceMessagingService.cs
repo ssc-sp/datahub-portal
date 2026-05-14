@@ -19,7 +19,8 @@ namespace Datahub.Infrastructure.Services;
 public class ResourceMessagingService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
-    IWorkspaceVersionService workspaceVersionService)
+    IWorkspaceVersionService workspaceVersionService,
+    ISubnetPoolService subnetPoolService)
     : IResourceMessagingService
 {
     public async Task SendToTerraformQueue(WorkspaceDefinition workspaceDefinition)
@@ -73,17 +74,31 @@ public class ResourceMessagingService(
 
         workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersionAsync() : workspace.Version;
 
+        var appData = new WorkspaceAppData
+        {
+            DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null),
+            AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project),
+            PostgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project),
+            DatabricksConfiguration = TerraformVariableExtraction.ExtractDatabricksConfiguration(project)
+        };
+
+        // For Protected B workspaces that include an App Service, assign (or retrieve the
+        // already-assigned) subnet from the VNet pool and inject it into the app configuration.
+        if (workspace.IsProtectedB
+            && templates.Any(t => t.Name == TerraformTemplate.AzureAppService)
+            && appData.AppServiceConfiguration is not null)
+        {
+            appData.AppServiceConfiguration.SubnetId =
+                await subnetPoolService.ClaimOrGetAppServiceSubnetIdAsync(
+                    project.Project_ID,
+                    workspace.SubscriptionId);
+        }
+
         return new WorkspaceDefinition
         {
             Workspace = workspace,
             Templates = templates,
-            AppData = new WorkspaceAppData
-            {
-                DatabricksHostUrl = TerraformVariableExtraction.ExtractDatabricksUrl(project, null),
-                AppServiceConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(project),
-                PostgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project),
-                DatabricksConfiguration = TerraformVariableExtraction.ExtractDatabricksConfiguration(project)
-            },
+            AppData = appData,
             RequestingUserEmail = requestingUserEmail,
             ResourceGroupName = project.GetResourceGroupName(),
             CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty

@@ -81,8 +81,8 @@
 		<PackageReference Include="Microsoft.FeatureManagement" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
 		<PackageReference Include="Microsoft.Graph" />
-    <PackageReference Include="Microsoft.Kiota.Abstractions" />
 		<PackageReference Include="Microsoft.Identity.Client" />
+		<PackageReference Include="Microsoft.Kiota.Abstractions" />
 
 		<PackageReference Include="Microsoft.Identity.Web.UI" />
 
