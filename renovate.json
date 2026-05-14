@@ -1,10 +1,6 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    "group:monorepos",
-    "group:recommended"
-  ],
+  "extends": ["config:best-practices", "group:monorepos", "group:recommended"],
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "semanticCommitType": "fix",
@@ -13,10 +9,7 @@
   "packageRules": [
     {
       "description": "Group all un-categorized minor & patch updates into one PR",
-      "matchUpdateTypes": [
-        "minor",
-        "patch"
-      ],
+      "matchUpdateTypes": ["minor", "patch"],
       "groupName": "Miscellaneous Dependencies",
       "semanticCommitType": "fix"
     },
@@ -42,9 +35,7 @@
     {
       "description": "Group MudBlazor ecosystem updates",
       "groupName": "MudBlazor Ecosystem",
-      "matchPackageNames": [
-        "MudBlazor**"
-      ]
+      "matchPackageNames": ["MudBlazor**"]
     },
     {
       "description": "Group Blazor related third-party components",
@@ -60,17 +51,12 @@
     {
       "description": "Group MassTransit packages",
       "groupName": "MassTransit Ecosystem",
-      "matchPackageNames": [
-        "MassTransit**"
-      ]
+      "matchPackageNames": ["MassTransit**"]
     },
     {
       "description": "Group Microsoft Identity packages",
       "groupName": "Microsoft Identity",
-      "matchPackageNames": [
-        "Microsoft.Identity**",
-        "System.IdentityModel**"
-      ]
+      "matchPackageNames": ["Microsoft.Identity**", "System.IdentityModel**"]
     },
     {
       "description": "Automatically catch any future Build Tools, Analyzers, or Generators (Chores)",
@@ -107,19 +93,13 @@
     },
     {
       "description": "Force specific individual dependencies to be chores so they do not trigger Release Please",
-      "matchPackageNames": [
-        "CsvHelper"
-      ],
+      "matchPackageNames": ["CsvHelper"],
       "semanticCommitType": "chore"
     },
     {
       "description": "Handle global.json .NET SDK updates separately (Chore)",
-      "matchManagers": [
-        "dotnet"
-      ],
-      "matchFileNames": [
-        "global.json"
-      ],
+      "matchManagers": ["dotnet"],
+      "matchFileNames": ["global.json"],
       "groupName": ".NET SDK",
       "semanticCommitType": "chore"
     }
