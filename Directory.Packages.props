@@ -143,6 +143,7 @@
     <PackageVersion Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.14.1" />
     <PackageVersion Include="Microsoft.Identity.Web.UI" Version="3.14.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.15.0" />
+
     <PackageVersion Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.6.0" />

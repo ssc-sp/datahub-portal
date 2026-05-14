@@ -180,7 +180,7 @@ public partial class DatabaseIpWhitelistTable
     private async Task AddNewIpOrRange()
     {
         var parameters = new DialogParameters();
-        var dialog = _dialogService.Show<IpAddressDialog>("Add IP Address or Range", parameters);
+        var dialog = await _dialogService.ShowAsync<IpAddressDialog>("Add IP Address or Range", parameters);
 
         var result = await dialog.Result;
 

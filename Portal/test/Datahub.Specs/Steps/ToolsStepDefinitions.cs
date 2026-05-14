@@ -45,7 +45,7 @@ public class ToolsStepDefinitions
     {
         var page = _toolsPageObject.Page;
         await page.ClickAsync("div.d-flex.flex-column.align-start.gap-0");
-        await page.GetByLabel("Admin Access Enabled").UncheckAsync(new LocatorUncheckOptions() { NoWaitAfter = true });
+        await page.GetByLabel("Admin Access Enabled").UncheckAsync();
     }
 
     [Then(@"a set of tools are not available")]

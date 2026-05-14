@@ -67,6 +67,12 @@ public static class TerraformVariables
     // App service related variables
     public const string AppServiceNameSuffix = "app_service_name_suffix";
 
+    /// <summary>
+    /// Azure resource ID of the subnet used for App Service VNet integration.
+    /// Only injected for Protected B workspaces.
+    /// </summary>
+    public const string AppServiceSubnetId = "vnet_subnet_id";
+
     // Azure Databricks related variables
     public const string EnableMlCluster = "enable_ml_cluster";
     public const string EnableMlGpuCluster = "enable_ml_gpu_cluster";
