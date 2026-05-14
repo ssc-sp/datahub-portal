@@ -100,7 +100,7 @@ public sealed class DatahubAuthViewSteps(
             this,
             workspaceAcronym,
             isCbrOwner: true,
-            isDhAdmin: true
+            isDhAdmin: false
         );
     }
 
@@ -177,7 +177,8 @@ public sealed class DatahubAuthViewSteps(
         // Set up the logged-in user as a Datahub support user
         var roleNames = new List<string>
         {
-            RoleConstants.DATAHUB_ROLE_ADMIN
+            RoleConstants.DATAHUB_ROLE_ADMIN,
+            $"DHPGLIST{RoleConstants.ADMIN_SUFFIX}"
         };
 
         var authContext = this.AddAuthorization();
@@ -202,7 +203,8 @@ public sealed class DatahubAuthViewSteps(
         // Set up the logged-in user as a Datahub support user
         var roleNames = new List<string>
         {
-            RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST
+            RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST,
+            $"DHPGLIST{RoleConstants.ADMIN_SUFFIX}"
         };
 
         var authContext = this.AddAuthorization();

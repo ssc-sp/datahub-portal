@@ -193,11 +193,9 @@ Feature: DatahubAuthView
         Then they should be able to view it
         Examples:
             | role    | acronym   | supportaccess |
-            | DatahubSupport | DHPGLIST | false |
             | WorkspaceLead  | XYZ | false |
             | WorkspaceAdmin | XYZ | false |
             | WorkspaceCollaborator | XYZ | false |
             | WorkspaceGuest | XYZ | false |
             | ExternalUserWebApp | XYZ | false |
             | ExternalUserStorage | XYZ | false |
-            | DatahubSupportAsGuest | DHPGLIST | false |
