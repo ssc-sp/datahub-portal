@@ -1,0 +1,118 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:best-practices",
+    "group:monorepos",
+    "group:recommended",
+    "github-actions"
+  ],
+  "semanticCommits": "enabled",
+  "semanticCommitScope": "deps",
+  "semanticCommitType": "fix",
+  "prConcurrentLimit": 10,
+  "prHourlyLimit": 2,
+  "packageRules": [
+    {
+      "description": "Group all GitHub Actions updates together as chores",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "Group all un-categorized minor & patch updates into one PR",
+      "matchUpdateTypes": ["minor", "patch"],
+      "groupName": "Miscellaneous Dependencies",
+      "semanticCommitType": "fix"
+    },
+    {
+      "description": "Group all .NET Core, ASP.NET Core, and EF Core packages together",
+      "groupName": ".NET Core & Extensions",
+      "matchPackageNames": [
+        "Microsoft.AspNetCore.**",
+        "Microsoft.Extensions.**",
+        "Microsoft.EntityFrameworkCore.**",
+        "System.**"
+      ]
+    },
+    {
+      "description": "Group all Azure SDKs and Functions packages together",
+      "groupName": "Azure SDKs",
+      "matchPackageNames": [
+        "Azure.**",
+        "Microsoft.Azure.**",
+        "Foundatio.AzureStorage**"
+      ]
+    },
+    {
+      "description": "Group MudBlazor ecosystem updates",
+      "groupName": "MudBlazor Ecosystem",
+      "matchPackageNames": ["MudBlazor**"]
+    },
+    {
+      "description": "Group Blazor related third-party components",
+      "groupName": "Blazor Components",
+      "matchPackageNames": [
+        "Blazor**",
+        "Tewr.Blazor**",
+        "PSC.Blazor**",
+        "Toolbelt.Blazor**",
+        "BytexDigital.Blazor**"
+      ]
+    },
+    {
+      "description": "Group MassTransit packages",
+      "groupName": "MassTransit Ecosystem",
+      "matchPackageNames": ["MassTransit**"]
+    },
+    {
+      "description": "Group Microsoft Identity packages",
+      "groupName": "Microsoft Identity",
+      "matchPackageNames": ["Microsoft.Identity**", "System.IdentityModel**"]
+    },
+    {
+      "description": "Automatically catch any future Build Tools, Analyzers, or Generators (Chores)",
+      "groupName": "Build & Analysis Tools",
+      "semanticCommitType": "chore",
+      "matchPackageNames": [
+        "StyleCop**",
+        "ReportGenerator**",
+        "BuildBundlerMinifier**",
+        "NetEscapades.EnumGenerators**",
+        "/analyzer/i",
+        "/generator/i",
+        "/codeanalysis/i"
+      ]
+    },
+    {
+      "description": "Automatically catch any future Testing frameworks via keywords (Chores, Automerge)",
+      "groupName": "Testing Frameworks",
+      "semanticCommitType": "chore",
+      "automerge": true,
+      "matchPackageNames": [
+        "bunit**",
+        "coverlet.**",
+        "Neovolve.Logging.Xunit**",
+        "Reqnroll**",
+        "AutoFixture**",
+        "/test/i",
+        "/mock/i",
+        "/assert/i",
+        "/playwright/i",
+        "/xunit/i",
+        "/nunit/i"
+      ]
+    },
+    {
+      "description": "Force specific individual dependencies to be chores so they do not trigger Release Please",
+      "matchPackageNames": ["CsvHelper"],
+      "semanticCommitType": "chore"
+    },
+    {
+      "description": "Handle global.json .NET SDK updates separately (Chore)",
+      "matchManagers": ["dotnet"],
+      "matchFileNames": ["global.json"],
+      "groupName": ".NET SDK",
+      "semanticCommitType": "chore"
+    }
+  ]
+}
