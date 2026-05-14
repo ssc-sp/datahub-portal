@@ -12,15 +12,21 @@ using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
 using Microsoft.VisualStudio.Services.Common;
 using Datahub.Infrastructure.Services.Helpers;
 using Azure.Storage.Blobs.Models;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.UserManagement;
+using System.Security.Claims;
+using Azure.Core;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
 public class AzureCloudStorageManager : ICloudStorageManager
 {
     private readonly string _accountName;
+    private readonly TokenCredential? _tokenCredential;
     private readonly string _accountKey;
     private readonly bool _inboxAccount;
     private readonly string _connectionString;
+    private readonly Uri _blobServiceUri;
     private readonly string _displayName;
     private readonly string? _sasToken;
 
@@ -33,6 +39,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
         _connectionString = @$"DefaultEndpointsProtocol=https;AccountName={accountName};AccountKey={accountKey};EndpointSuffix=core.windows.net";
+        _blobServiceUri = new Uri($"https://{accountName}.blob.core.windows.net");
     }
 
     /// <summary>
@@ -48,15 +55,40 @@ public class AzureCloudStorageManager : ICloudStorageManager
         _sasToken = sasToken;
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
+        _blobServiceUri = new Uri($"https://{accountName}.blob.core.windows.net");
         
         // SAS token connection string format
         var sasTokenParam = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
-        _connectionString = @$"BlobEndpoint=https://{accountName}.blob.core.windows.net/;SharedAccessSignature={sasTokenParam}";
+        _connectionString = @$"BlobEndpoint={_blobServiceUri}/;SharedAccessSignature={sasTokenParam}";
+    }
+
+    /// <summary>
+    /// Constructor for user authentication
+    /// </summary>
+    public AzureCloudStorageManager(string accountName, TokenCredential tokenCredential, string? displayName = default)
+    {
+
+        _accountName = accountName;
+        _tokenCredential = tokenCredential;
+        _accountKey = string.Empty;
+        _inboxAccount = displayName == default;
+        _displayName = displayName ?? _accountName;
+        _blobServiceUri = new Uri($"https://{accountName}.blob.core.windows.net");
+        _connectionString = string.Empty;
     }
 
     public async Task<List<string>> GetContainersAsync()
     {
-        var dlClient = new DataLakeServiceClient(_connectionString);
+
+        DataLakeServiceClient dlClient;
+        if (_tokenCredential is null)
+        {
+            dlClient = new DataLakeServiceClient(_connectionString);
+        }
+        else
+        {
+            dlClient = new DataLakeServiceClient(_blobServiceUri, _tokenCredential);
+        }
 
         var pages = dlClient.GetFileSystemsAsync().AsPages();
 
@@ -84,17 +116,17 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return new DfsPage(folders, files, continuationToken!);
     }
 
-    public Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
+    public async Task<Uri> GenerateSasTokenAsync(string container, TimeSpan timeSpan)
     {
         ValidateContainerName(container);
 
-        var containerClient = GetBlobContainerClient(container);
+        var containerClient = await GetBlobContainerClient(container);
         if (!string.IsNullOrWhiteSpace(_sasToken))
         {
-            return Task.FromResult(AppendSasToken(containerClient.Uri));
+            return AppendSasToken(containerClient.Uri);
         }
 
-        return GenerateContainerSasUriAsync(containerClient, timeSpan);
+        return await GenerateContainerSasUriAsync(containerClient, timeSpan);
     }
 
     public Task<bool> FileExistsAsync(string container, string filePath)
@@ -106,7 +138,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<Uri> DownloadFileAsync(string container, string filePath)
     {
-        var containerClient = GetBlobContainerClient(container);
+        var containerClient = await GetBlobContainerClient(container);
 
         var blobClient = containerClient.GetBlobClient(filePath);
         if (!string.IsNullOrWhiteSpace(_sasToken))
@@ -189,7 +221,16 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<StorageMetadata> GetStorageMetadataAsync(string container)
     {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
+        BlobServiceClient blobServiceClient;
+        if (_tokenCredential is null)
+        {
+            blobServiceClient = new BlobServiceClient(_connectionString);
+        }
+        else
+        {
+            blobServiceClient = new BlobServiceClient(_blobServiceUri, _tokenCredential);
+        }
+
         var containerClient = blobServiceClient.GetBlobContainerClient(container);
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
 
@@ -215,7 +256,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
     {
         ValidateContainerName(container);
 
-        var containerClient = GetBlobContainerClient(container);
+        var containerClient = await GetBlobContainerClient(container);
         var result = new Dictionary<string, int>();
 
         await TraverseFolderTreeAsync(containerClient, prefix, result);
@@ -337,7 +378,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
         return new()
         {
-            id = GetMetadata(metadata, METADATA_FILE_ID, Guid.NewGuid().ToString()),
+            id = GetMetadata(metadata, METADATA_FILE_ID, Guid.NewGuid().ToString())?? throw new InvalidOperationException("File ID is missing"),
             name = fileName,
             ownedby = GetMetadata(metadata, FileMetaData.OwnedBy),
             createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
@@ -356,13 +397,30 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     private DataLakeFileSystemClient GetFileSystemClient(string containerName)
     {
-        var client = new DataLakeServiceClient(_connectionString);
-        return client.GetFileSystemClient(containerName);
+        if (_tokenCredential is null)
+        {
+            var client = new DataLakeServiceClient(_connectionString);
+            return client.GetFileSystemClient(containerName);
+        }
+        else
+        {
+            var client = new DataLakeServiceClient(_blobServiceUri, _tokenCredential);
+            return client.GetFileSystemClient(containerName);
+        }
     }
 
-    private BlobContainerClient GetBlobContainerClient(string containerName)
+    private async Task<BlobContainerClient> GetBlobContainerClient(string containerName)
     {
-        var blobServiceClient = new BlobServiceClient(_connectionString);
+        BlobServiceClient blobServiceClient;
+        if (_tokenCredential is null)
+        {
+            blobServiceClient = new BlobServiceClient(_connectionString);
+        }
+        else
+        {
+            blobServiceClient = new BlobServiceClient(_blobServiceUri, _tokenCredential);
+        }    
+
         return blobServiceClient.GetBlobContainerClient(containerName);
     }
 
@@ -524,7 +582,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     private async Task<bool> FileContentContainsTermAsync(string container, string filePath, string searchTerm)
     {
-        var blobClient = GetBlobContainerClient(container).GetBlobClient(filePath);
+        var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(filePath);
 
         // Download the file content
         using var memoryStream = new MemoryStream();

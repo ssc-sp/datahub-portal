@@ -2,7 +2,9 @@ using Azure.Core;
 using Datahub.Application.Services.Security;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
 using Microsoft.Identity.Web;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
@@ -14,6 +16,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
     private readonly ITokenAcquisition _tokenAcquisition;
     private readonly ILogger<UserTokenCredentialService> _logger;
     private string? _currentUserVaultToken;
+    private Dictionary<string, string> tokenCache = new();
 
     public UserTokenCredentialService(
         ITokenAcquisition tokenAcquisition,
@@ -23,23 +26,50 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         _logger = logger;
     }
 
-    public Task<TokenCredential> GetTokenCredentialForUser(string? vaultToken = null)
+    public Task<TokenCredential> GetTokenCredentialForUser(string service, string? token = null)
     {
-        var token = vaultToken ?? _currentUserVaultToken;
+        if (tokenCache.TryGetValue(service, out token))
+        {
+            _logger.LogInformation("Using cached token for service {Service}", service);
+        }
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
         return Task.FromResult<TokenCredential>(new StaticAccessTokenCredential(token, _logger));
     }
 
-    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal)
-    {
-        var scopes = new[] { "https://vault.azure.net/user_impersonation" };
-        _currentUserVaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(
-            scopes,
-            authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
-            user: claimsPrincipal);
+    private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        _logger.LogInformation("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-        return _currentUserVaultToken;
+    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, string service)
+    {
+        try
+        {
+            await _semaphore.WaitAsync();
+            if (tokenCache.TryGetValue(service, out var cachedToken))
+            {
+                _logger.LogInformation("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
+                return cachedToken;
+            }
+            string[] scopes;
+            if (service != IUserTokenCredentialService.KEYVAULT_SERVICE && service != IUserTokenCredentialService.STORAGE_SERVICE)
+            {
+                throw new ArgumentException($"Unsupported service: {service}", nameof(service));
+            }
+            if (service == IUserTokenCredentialService.STORAGE_SERVICE)
+            {
+                scopes = [$"https://storage.azure.com/user_impersonation"];
+            }
+            else
+            {
+                scopes = [$"https://vault.azure.net/user_impersonation"];
+            }
+
+            var token = await _tokenAcquisition.GetAccessTokenForUserAsync(
+                scopes,
+                authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
+                user: claimsPrincipal);
+            tokenCache.Add(service, token);
+            _logger.LogInformation("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            return token;
+        } finally { _semaphore.Release(); }
     }
 
     private sealed class StaticAccessTokenCredential : TokenCredential
