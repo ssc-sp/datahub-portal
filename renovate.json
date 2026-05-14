@@ -1,12 +1,23 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": ["config:best-practices", "group:monorepos", "group:recommended"],
+  "extends": [
+    "config:best-practices",
+    "group:monorepos",
+    "group:recommended",
+    "github-actions"
+  ],
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "semanticCommitType": "fix",
   "prConcurrentLimit": 10,
   "prHourlyLimit": 2,
   "packageRules": [
+    {
+      "description": "Group all GitHub Actions updates together as chores",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "semanticCommitType": "chore"
+    },
     {
       "description": "Group all un-categorized minor & patch updates into one PR",
       "matchUpdateTypes": ["minor", "patch"],
