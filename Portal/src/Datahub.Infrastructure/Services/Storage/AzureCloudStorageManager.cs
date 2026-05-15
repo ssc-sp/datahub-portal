@@ -119,11 +119,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return Task.FromResult<bool>(fileClient.Exists());
     }
 
-    public async Task<Uri> DownloadFileAsync(string container, string filePath, IFileTokenService? fileTokenService = null)
+    public async Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
     {
         if (fileTokenService is not null)
         {
-            var token = fileTokenService.CreateToken(this, _accountName, container, filePath, DefaultTokenExpiry);
+            var token = fileTokenService.CreateToken(this, _accountName, container, filePath, userName, DefaultTokenExpiry);
             return new Uri($"/{ControllerRoute}?token={token}", UriKind.Relative);
         }
 

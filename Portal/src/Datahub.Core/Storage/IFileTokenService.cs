@@ -14,9 +14,10 @@ public interface IFileTokenService
     /// <param name="storageAccountName">Azure storage account name.</param>
     /// <param name="container">Blob/ADLS container name.</param>
     /// <param name="filePath">Path to the file within the container.</param>
+    /// <param name="userName">User name associated with token creation for auditing.</param>
     /// <param name="expiry">How long the token should remain valid.</param>
     /// <returns>A GUID token string.</returns>
-    string CreateToken(ICloudStorageManager manager, string storageAccountName, string container, string filePath, TimeSpan expiry);
+    string CreateToken(ICloudStorageManager manager, string storageAccountName, string container, string filePath, string userName, TimeSpan expiry);
 
     /// <summary>
     /// Resolves a token to its storage location. Returns <c>null</c> if the token is
@@ -35,4 +36,5 @@ public record FileTokenEntry(
     string StorageAccountName,
     string Container,
     string FilePath,
+    string UserName,
     DateTimeOffset ExpiresAt);

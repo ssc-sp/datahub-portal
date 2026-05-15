@@ -12,7 +12,7 @@ public interface ICloudStorageManager
 
     Task<bool> FileExistsAsync(string container, string filePath);
 
-    Task<Uri> DownloadFileAsync(string container, string filePath, IFileTokenService? fileTokenService = null);
+    Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null);
     Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess);
 
     Task<bool> DeleteFileAsync(string container, string filePath);

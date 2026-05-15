@@ -102,7 +102,7 @@ namespace Datahub.Infrastructure.Services.Storage
             return await DeleteObjectAsync(container, NormalizeFolderPath(folderPath));
         }
 
-        public async Task<Uri> DownloadFileAsync(string container, string filePath, IFileTokenService? fileTokenService = null)
+        public async Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
         {
             var signer = CreateUrlSigner();
             var urlValidTime = TimeSpan.FromDays(1);

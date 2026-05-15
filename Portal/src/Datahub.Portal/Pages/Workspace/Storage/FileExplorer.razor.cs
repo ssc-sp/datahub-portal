@@ -284,7 +284,7 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {
-        var uri = await StorageManager!.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename), FileTokenService);
+        var uri = await StorageManager!.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename), PortalUser.Email, FileTokenService);
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
 

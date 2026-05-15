@@ -43,7 +43,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<Uri> DownloadFileAsync(string container, string filePath, IFileTokenService? fileTokenService = null)
+        public Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
         {
             throw new NotImplementedException();
         }

@@ -42,7 +42,7 @@ public class AzFileDownloadController : Controller
         //extract name from filePath
         var name = Path.GetFileName(entry.FilePath);
         var download = await blob.DownloadStreamingAsync();
-
+        _logger.LogInformation("Serving file download for token {Token}, blob {BlobPath}, user {User}", token, entry.FilePath, entry.UserName);
         return File(
             download.Value.Content,
             contentType: "application/octet-stream",

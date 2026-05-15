@@ -11,12 +11,12 @@ public sealed class FileTokenService : IFileTokenService
 {
     private readonly ConcurrentDictionary<string, FileTokenEntry> _tokens = new(StringComparer.Ordinal);
 
-    public string CreateToken(ICloudStorageManager manager, string storageAccountName, string container, string filePath, TimeSpan expiry)
+    public string CreateToken(ICloudStorageManager manager, string storageAccountName, string container, string filePath, string userName, TimeSpan expiry)
     {
         PurgeExpired();
 
         var token = Guid.NewGuid().ToString("N");
-        var entry = new FileTokenEntry(manager, storageAccountName, container, filePath, DateTimeOffset.UtcNow.Add(expiry));
+        var entry = new FileTokenEntry(manager, storageAccountName, container, filePath, userName, DateTimeOffset.UtcNow.Add(expiry));
         _tokens[token] = entry;
         return token;
     }

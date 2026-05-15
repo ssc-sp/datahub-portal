@@ -130,7 +130,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		return DeleteObjectAsync(ToAWSFolder(folderPath));
 	}
 
-	public Task<Uri> DownloadFileAsync(string container, string filePath, IFileTokenService? fileTokenService = null)
+	public Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
 	{
 		using var s3Client = GetClient();
 
