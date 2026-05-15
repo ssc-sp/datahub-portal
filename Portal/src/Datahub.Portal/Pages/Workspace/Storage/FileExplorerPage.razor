@@ -58,6 +58,7 @@
                                 <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
                                 <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
                                                           CloudContainers=_cloudContainers
+                                                          AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
                                                           OnAddProviderClicked=@AddCloudStorageAccount
                                                           OnEditProviderClicked=@EditCloudStorageAccount
                                                           OnRemoveProviderClicked=@RemoveCloudStorageAccount />
