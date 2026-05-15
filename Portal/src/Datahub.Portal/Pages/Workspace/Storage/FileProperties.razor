@@ -55,10 +55,10 @@
 @code {
 
     [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronym { get; set; }
+    public string ProjectAcronym { get; set; } = null!;
 
     [CascadingParameter(Name = "StorageAccountMetadata")]
-    public AzureStorageMetadata StorageAccountMetadata { get; set; }
+    public AzureStorageMetadata StorageAccountMetadata { get; set; } = null!;
 
     [Parameter]
     public int? ProjectId { get; set; }

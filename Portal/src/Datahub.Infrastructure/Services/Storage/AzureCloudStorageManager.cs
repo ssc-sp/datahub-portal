@@ -47,26 +47,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
     }
 
     /// <summary>
-    /// Constructor for SAS token authentication
-    /// </summary>
-    public AzureCloudStorageManager(string accountName, string sasToken, bool useSasToken, string? displayName = default)
-    {
-        if (!useSasToken)
-            throw new ArgumentException("Use the other constructor for account key authentication");
-
-        _accountName = accountName;
-        _accountKey = string.Empty;
-        _sasToken = sasToken;
-        _inboxAccount = displayName == default;
-        _displayName = displayName ?? _accountName;
-        _blobServiceUri = new Uri($"https://{accountName}.blob.core.windows.net");
-
-        // SAS token connection string format
-        var sasTokenParam = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
-        _connectionString = @$"BlobEndpoint={_blobServiceUri}/;SharedAccessSignature={sasTokenParam}";
-    }
-
-    /// <summary>
     /// Constructor for user authentication
     /// </summary>
     public AzureCloudStorageManager(string accountName, TokenCredential tokenCredential, string? displayName = default)
@@ -249,7 +229,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
             Url = containerClient.Uri.ToString(),
             Versioning = "True",
             GeoRedundancy = accountInfo.SkuName.ToString(),
-            StorageAccountType = accountInfo.AccountKind.ToString()
+            StorageAccountType = accountInfo.AccountKind.ToString(),            
         };
 
         return storageMetadata;
@@ -520,7 +500,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         }
     }
 
-    public async Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false, CancellationToken cancellationToken = default)
+    public async Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
     {
         ValidateContainerName(container);
 
@@ -563,7 +543,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return matchingFiles;
     }
 
-    private async Task<bool> FileContentContainsTermAsync(string container, string filePath, string searchTerm, CancellationToken cancellationToken = default)
+    private async Task<bool> FileContentContainsTermAsync(string container, string filePath, string searchTerm, CancellationToken cancellationToken)
     {
         var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(filePath);
 

@@ -8,14 +8,17 @@
 @using Datahub.Core.Data
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 @using Datahub.Portal.Pages.Workspace.Storage.ResourcePages
 @using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
 @using Microsoft.Graph.Models;
 @using Microsoft.Identity.Client
 @using Microsoft.Identity.Web;
 @using System.Security.Claims
+@using System.Threading
 
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -28,6 +31,7 @@
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject NavigationManager NavigationManager
 @inject IKeyVaultUserService _keyVaultUserService
+@inject IFeatureManagerSnapshot featureManager
 
 <!--suppress CssUnresolvedCustomProperty -->
 <PageTitle>@_title</PageTitle>
@@ -109,7 +113,7 @@
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator"
                                              ProjectAcronym="@WorkspaceAcronym">
-                                @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                                @if (SelectedContainer is not null && SelectedContainer.StorageManager.AzCopyEnabled && _classification != ClassificationType.ProtectedB)
                                 {
                                     <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
@@ -119,7 +123,7 @@
                                         </MudStack>
                                     </MudTabPanel>
                                 }
-                                @if (SelectedContainer is null || SelectedContainer.StorageManager.DatabrickEnabled)
+                                @if (SelectedContainer is not null && SelectedContainer.StorageManager.DatabrickEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
@@ -127,7 +131,7 @@
                                         </MudStack>
                                     </MudTabPanel>
                                 }
-                                @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                                @if (SelectedContainer is not null && SelectedContainer.StorageManager.AzCopyEnabled && _uploaderEnabled && _classification != ClassificationType.ProtectedB)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
@@ -193,13 +197,16 @@
     private bool _isUserProjectAdmin = false;
     private bool _isExternalUser = false;
     private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
+    private ClassificationType? _classification;
 
     private string _searchQuery = string.Empty;
     private List<FileSearchResult> _searchResults = new();
     private bool _searchPerformed = false;
     private bool IsLoading { get; set; } = false;
     private bool _isEntraUser = false;
+    private bool _uploaderEnabled = false;
     private TokenCredential? _credential;
+    private CancellationTokenSource? _searchCancellationTokenSource;
 
     protected override async Task OnInitializedAsync()
     {
@@ -235,6 +242,8 @@
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
             .FirstOrDefaultAsync();
+        _classification = _project?.Data_Sensitivity;
+        _uploaderEnabled = await featureManager.IsEnabledAsync(Features.Storage_Uploader_Feature);
 
         var acronym = _project?.Project_Acronym_CD;
         _title = $"{acronym} - {Localizer["Storage"]}";
@@ -481,6 +490,10 @@
             return;
         }
 
+        // Cancel any previous search operation
+        _searchCancellationTokenSource?.Cancel();
+        _searchCancellationTokenSource = new CancellationTokenSource();
+
         IsLoading = true;
         try
         {
@@ -488,6 +501,7 @@
                 SelectedContainer.ContainerName,
                 "",
                 _searchQuery,
+                _searchCancellationTokenSource.Token,
                 false
             );
 
@@ -511,5 +525,4 @@
             await InvokeAsync(StateHasChanged);
         }
     }
-
 }

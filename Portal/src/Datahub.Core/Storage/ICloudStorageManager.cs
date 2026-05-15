@@ -28,7 +28,7 @@ public interface ICloudStorageManager
 
     Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "");
 
-    Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false, CancellationToken cancellationToken = default);
+    Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false);
 
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
