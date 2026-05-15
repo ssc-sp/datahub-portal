@@ -63,15 +63,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
     public async Task<List<string>> GetContainersAsync()
     {
 
-        DataLakeServiceClient dlClient;
-        if (_tokenCredential is null)
-        {
-            dlClient = new DataLakeServiceClient(_connectionString);
-        }
-        else
-        {
-            dlClient = new DataLakeServiceClient(_blobServiceUri, _tokenCredential);
-        }
+        var dlClient = _tokenCredential is null
+            ? new DataLakeServiceClient(_connectionString)
+            : new DataLakeServiceClient(_blobServiceUri, _tokenCredential);
 
         var pages = dlClient.GetFileSystemsAsync().AsPages();
 
