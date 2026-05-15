@@ -43,18 +43,10 @@ public class UserAccessNotificationService : IUserAccessNotificationService
             return;
         }
 
-        var recipientEmails = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            userEmail
-        };
-
-        foreach (var email in recipientEmails)
-        {
-            await _gcNotifyService.SendUserAccessRegrantedNotification(
-                email,
-                lockStatus.UserName ?? userEmail,
-                "all workspaces",
-                unlockedByDisplay);
-        }
+        await _gcNotifyService.SendUserAccessRegrantedNotification(
+            userEmail,
+            lockStatus.UserName ?? userEmail,
+            "all workspaces",
+            unlockedByDisplay);
     }
 }
