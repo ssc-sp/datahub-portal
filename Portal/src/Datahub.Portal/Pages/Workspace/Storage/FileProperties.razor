@@ -1,5 +1,6 @@
 @*FileProperties.razor*@
 @using Datahub.Core.Components.Code
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Api;
 @using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model
@@ -39,10 +40,13 @@
                 }
             }
 
-            <MudText class="label">@Localizer["Power BI URL"]</MudText>
-            <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
-            <MudText class="label">@Localizer["File URL"]</MudText>
-            <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
+            @if (_classification != ClassificationType.ProtectedB)
+            {
+                <MudText class="label">@Localizer["Power BI URL"]</MudText>
+                <InlineCodeWithCopy>@_powerBiPasteText</InlineCodeWithCopy>
+                <MudText class="label">@Localizer["File URL"]</MudText>
+                <InlineCodeWithCopy>@_fileLinkUrl</InlineCodeWithCopy>
+            }            
 
             <MudText class="label">@Localizer["Access from Databricks"]</MudText>
             <InlineCodeWithCopy>@_databricksPasteText</InlineCodeWithCopy>
@@ -58,7 +62,10 @@
     public string ProjectAcronym { get; set; } = null!;
 
     [CascadingParameter(Name = "StorageAccountMetadata")]
-    public AzureStorageMetadata StorageAccountMetadata { get; set; } = null!;
+    public StorageMetadata StorageAccountMetadata { get; set; } = null!;
+
+    [CascadingParameter(Name = "Project")]
+    public required Datahub_Project Project { get; set; }
 
     [Parameter]
     public int? ProjectId { get; set; }
@@ -82,6 +89,8 @@
     private string _powerBiPasteText;
     private string _fileLinkUrl;
     private string _databricksPasteText;
+    private ClassificationType _classification;
+
 
     protected override async Task OnParametersSetAsync()
     {
@@ -99,16 +108,17 @@
             .ToList();
 
         var fullFilePath = $"{File.folderpath}/{File.filename}".Replace("//","/").TrimStart('/');
-        if (!string.IsNullOrEmpty(StorageAccountMetadata?.Url))
+        if (StorageAccountMetadata is AzureStorageMetadata azureStorageMetadata && !string.IsNullOrEmpty(azureStorageMetadata.Url))
         {
-            var accountName = StorageAccountMetadata.Url.Split('.')[0].Replace("https://", "");
-            _fileLinkUrl = $"{StorageAccountMetadata.Url}/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
+            var accountName = azureStorageMetadata.Url.Split('.')[0].Replace("https://", "");
+            _fileLinkUrl = $"{azureStorageMetadata.Url}/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
             _powerBiPasteText = $"abfs://{_commonAzureServices.FileSystemName}@{accountName}.dfs.core.windows.net/{effectiveFolderPath}/{File.filename}".Replace("//", "/");
         }
         if (!string.IsNullOrEmpty(fullFilePath))
         {
             _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
+        _classification = Project.Data_Sensitivity;
     }
 
     private string GenerateEffectiveFolderPath()
