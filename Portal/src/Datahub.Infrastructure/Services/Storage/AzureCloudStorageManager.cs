@@ -388,15 +388,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<BlobContainerClient> GetBlobContainerClient(string containerName)
     {
-        BlobServiceClient blobServiceClient;
-        if (_tokenCredential is null)
-        {
-            blobServiceClient = new BlobServiceClient(_connectionString);
-        }
-        else
-        {
-            blobServiceClient = new BlobServiceClient(_blobServiceUri, _tokenCredential);
-        }    
+        var blobServiceClient = _tokenCredential is null
+            ? new BlobServiceClient(_connectionString)
+            : new BlobServiceClient(_blobServiceUri, _tokenCredential);
 
         return blobServiceClient.GetBlobContainerClient(containerName);
     }
