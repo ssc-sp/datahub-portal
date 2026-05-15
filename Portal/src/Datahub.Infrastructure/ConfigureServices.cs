@@ -10,6 +10,7 @@ using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.ReverseProxy;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Application.Services.UserManagement;
@@ -23,6 +24,7 @@ using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.ReverseProxy;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.Toolbox;
@@ -62,6 +64,7 @@ public static class ConfigureServices
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
+        services.AddScoped<ISystemTokenCredentialService, SystemTokenCredentialService>();
 
 
         services.AddAzureResourceManager(configuration);
