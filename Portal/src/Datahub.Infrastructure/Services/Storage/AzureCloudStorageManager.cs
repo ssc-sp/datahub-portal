@@ -63,15 +63,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
     public async Task<List<string>> GetContainersAsync()
     {
 
-        DataLakeServiceClient dlClient;
-        if (_tokenCredential is null)
-        {
-            dlClient = new DataLakeServiceClient(_connectionString);
-        }
-        else
-        {
-            dlClient = new DataLakeServiceClient(_blobServiceUri, _tokenCredential);
-        }
+        var dlClient = _tokenCredential is null
+            ? new DataLakeServiceClient(_connectionString)
+            : new DataLakeServiceClient(_blobServiceUri, _tokenCredential);
 
         var pages = dlClient.GetFileSystemsAsync().AsPages();
 
@@ -210,15 +204,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<StorageMetadata> GetStorageMetadataAsync(string container)
     {
-        BlobServiceClient blobServiceClient;
-        if (_tokenCredential is null)
-        {
-            blobServiceClient = new BlobServiceClient(_connectionString);
-        }
-        else
-        {
-            blobServiceClient = new BlobServiceClient(_blobServiceUri, _tokenCredential);
-        }
+        BlobServiceClient blobServiceClient = _tokenCredential is null
+            ? new BlobServiceClient(_connectionString)
+            : new BlobServiceClient(_blobServiceUri, _tokenCredential);
 
         var containerClient = blobServiceClient.GetBlobContainerClient(container);
         var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
@@ -400,15 +388,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     public async Task<BlobContainerClient> GetBlobContainerClient(string containerName)
     {
-        BlobServiceClient blobServiceClient;
-        if (_tokenCredential is null)
-        {
-            blobServiceClient = new BlobServiceClient(_connectionString);
-        }
-        else
-        {
-            blobServiceClient = new BlobServiceClient(_blobServiceUri, _tokenCredential);
-        }    
+        var blobServiceClient = _tokenCredential is null
+            ? new BlobServiceClient(_connectionString)
+            : new BlobServiceClient(_blobServiceUri, _tokenCredential);
 
         return blobServiceClient.GetBlobContainerClient(containerName);
     }
