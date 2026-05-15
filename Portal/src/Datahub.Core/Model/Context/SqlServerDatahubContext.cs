@@ -1,5 +1,4 @@
-﻿using System;
-using Datahub.Core.Model.Datahub;
+﻿using Datahub.Core.Model.Datahub;
 using Microsoft.EntityFrameworkCore;
 
 namespace Datahub.Core.Model.Context
@@ -16,8 +15,7 @@ namespace Datahub.Core.Model.Context
         {
         }
 #if MIGRATION
-    protected override void OnConfiguring(DbContextOptionsBuilder options)
-    {
+    protected override void OnConfiguring(DbContextOptionsBuilder options) {
         options.UseSqlServer("Server=(LocalDB);Integrated Security=True;MultipleActiveResultSets=True");
     }
 

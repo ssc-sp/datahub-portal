@@ -428,20 +428,20 @@ public partial class ExternalUserFileExplorer
 
         var uploadBatchId = GenerateUploadBatchId();
         var allFiles = e.GetMultipleFiles().ToList();
-        var blockedBefore = new HashSet<string>(_blockedFiles);
+        var acceptedFileNames = new List<string>();
 
         foreach (var browserFile in allFiles)
         {
+            if (!CheckAcceptedFileExtension(browserFile))
+            {
+                _blockedFiles.Add(browserFile.Name);
+                continue;
+            }
+            acceptedFileNames.Add(browserFile.Name);
             await UploadFile(browserFile, folderName, uploadBatchId);
         }
 
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
-
-        var newlyBlocked = new HashSet<string>(_blockedFiles.Except(blockedBefore));
-        var acceptedFileNames = allFiles
-            .Select(f => f.Name)
-            .Where(n => !newlyBlocked.Contains(n))
-            .ToList();
 
         if (acceptedFileNames.Count > 0)
         {

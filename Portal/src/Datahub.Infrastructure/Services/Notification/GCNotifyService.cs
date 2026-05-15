@@ -161,7 +161,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendWorkspaceCostNotification(string email, string perc, string acro)
     {
-        using var _ = _logger.BeginScope("WorkspaceCostNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("WorkspaceCostNotification {Email}", email);
         _logger.LogInformation("Composing workspace cost notification. perc={Perc}, acro={Acro}", perc, acro);
 
         var templateId = GetTemplateId("cost-alert", _mappingsJson);
@@ -179,7 +179,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendWorkspaceInactiveNotification(string email, string daysSinceLastLogin)
     {
-        using var _ = _logger.BeginScope("WorkspaceInactiveNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("WorkspaceInactiveNotification {Email}", email);
         _logger.LogInformation("Composing workspace inactive notification. daysSinceLastLogin={daysSinceLastLogin}", daysSinceLastLogin);
         var templateId = GetTemplateId("workspace-inactive", _mappingsJson);
         var postData = new
@@ -281,7 +281,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendInfectedFileNotification(string email, string fileName, string workspace, string date)
     {
-        using var _ = _logger.BeginScope("InfectedFileNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("InfectedFileNotification {Email}", email);
         _logger.LogInformation("Composing infected file notification. fileName={FileName}, workspace={Workspace}, date={Date}", fileName, workspace, date);
         var templateId = GetTemplateId("virus-upload-detected", _mappingsJson);
         var postData = new
@@ -297,7 +297,7 @@ public class GCNotifyService : IGCNotifyService
 
     public async Task SendUserAccessRegrantedNotification(string email, string userName, string workspace, string unlockedBy)
     {
-        using var _ = _logger.BeginScope("UserAccessRegrantedNotification {Email}", MaskEmail(email));
+        using var _ = _logger.BeginScope("UserAccessRegrantedNotification {Email}", email);
         _logger.LogInformation("Composing user access regranted notification. workspace={Workspace}, unlockedBy={UnlockedBy}", workspace, unlockedBy);
         var templateId = GetTemplateId("user-access-regranted", _mappingsJson);
         var postData = new

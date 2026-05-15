@@ -25,7 +25,6 @@
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
 @inject ISessionStorageService _sessionStorage
-@inject IConfiguration _configuration
 
 <CommonMudProviders>
 
@@ -80,13 +79,10 @@
   private IJSObjectReference _module;
   private ErrorBoundary _errorBoundary;
   private Exception _lastException;
-  private string? _projectDbName;
 
   protected override void OnParametersSet()
   {
     _errorBoundary?.Recover();
-
-    _projectDbName = GetProjectDatabaseName();
 
     var currentUrl = new Uri(_navigationManager.Uri).GetComponents(
                 UriComponents.PathAndQuery,
@@ -107,32 +103,6 @@
       .AddStyle("border-style", "none none solid none")
       .AddStyle("padding-top", padding)
       .Build();
-  }
-
-  private string? GetProjectDatabaseName()
-  {
-    var connectionString = _configuration.GetConnectionString("datahub_mssql_project");
-    if (string.IsNullOrWhiteSpace(connectionString))
-    {
-      return null;
-    }
-
-    var builder = new System.Data.Common.DbConnectionStringBuilder
-    {
-      ConnectionString = connectionString
-    };
-
-    if (builder.TryGetValue("Initial Catalog", out var initialCatalog))
-    {
-      return initialCatalog?.ToString();
-    }
-
-    if (builder.TryGetValue("Database", out var database))
-    {
-      return database?.ToString();
-    }
-
-    return null;
   }
 
   protected override async Task OnAfterRenderAsync(bool firstRender)

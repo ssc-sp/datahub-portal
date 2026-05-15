@@ -41,8 +41,6 @@ namespace Datahub.Portal.Pages.Workspace.Users
             var allProjectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
             _projectUsers = allProjectUsers.Where(x => x.PortalUser.ExternalUserId is null).ToList();
 
-            await LoadLockedUsersForWorkspace();
-
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
         }
