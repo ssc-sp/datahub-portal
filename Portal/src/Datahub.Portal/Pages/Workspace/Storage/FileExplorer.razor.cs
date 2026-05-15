@@ -3,8 +3,10 @@ using Datahub.Application.Services.Publishing;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
+using Datahub.Core.Storage;
 using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Publishing;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -13,6 +15,7 @@ namespace Datahub.Portal.Pages.Workspace.Storage;
 
 public partial class FileExplorer
 {
+    [Inject] private IFileTokenService FileTokenService { get; set; } = null!;
     private async Task RefreshStoragePageAsync()
     {
         _lastContainer = Container;
@@ -281,7 +284,7 @@ public partial class FileExplorer
 
     private async Task HandleFileDownload(string filename)
     {
-        var uri = await StorageManager.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename));
+        var uri = await StorageManager!.DownloadFileAsync(ContainerName, JoinPath(_currentFolder, filename), FileTokenService);
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
 

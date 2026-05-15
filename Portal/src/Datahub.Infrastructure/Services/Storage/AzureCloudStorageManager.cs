@@ -21,6 +21,8 @@ namespace Datahub.Infrastructure.Services.Storage;
 
 public class AzureCloudStorageManager : ICloudStorageManager
 {
+    public const string ControllerRoute = "download-azfile";
+
     private readonly string _accountName;
     private readonly TokenCredential? _tokenCredential;
     private readonly string _accountKey;
@@ -29,6 +31,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private readonly Uri _blobServiceUri;
     private readonly string _displayName;
     private readonly string? _sasToken;
+
+    private static readonly TimeSpan DefaultTokenExpiry = TimeSpan.FromHours(1);
 
     public bool IsInboxAccount => _inboxAccount;
 
@@ -49,14 +53,14 @@ public class AzureCloudStorageManager : ICloudStorageManager
     {
         if (!useSasToken)
             throw new ArgumentException("Use the other constructor for account key authentication");
-            
+
         _accountName = accountName;
         _accountKey = string.Empty;
         _sasToken = sasToken;
         _inboxAccount = displayName == default;
         _displayName = displayName ?? _accountName;
         _blobServiceUri = new Uri($"https://{accountName}.blob.core.windows.net");
-        
+
         // SAS token connection string format
         var sasTokenParam = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
         _connectionString = @$"BlobEndpoint={_blobServiceUri}/;SharedAccessSignature={sasTokenParam}";
@@ -67,7 +71,6 @@ public class AzureCloudStorageManager : ICloudStorageManager
     /// </summary>
     public AzureCloudStorageManager(string accountName, TokenCredential tokenCredential, string? displayName = default)
     {
-
         _accountName = accountName;
         _tokenCredential = tokenCredential;
         _accountKey = string.Empty;
@@ -136,8 +139,14 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return Task.FromResult<bool>(fileClient.Exists());
     }
 
-    public async Task<Uri> DownloadFileAsync(string container, string filePath)
+    public async Task<Uri> DownloadFileAsync(string container, string filePath, IFileTokenService? fileTokenService = null)
     {
+        if (fileTokenService is not null)
+        {
+            var token = fileTokenService.CreateToken(this, _accountName, container, filePath, DefaultTokenExpiry);
+            return new Uri($"/{ControllerRoute}?token={token}", UriKind.Relative);
+        }
+
         var containerClient = await GetBlobContainerClient(container);
 
         var blobClient = containerClient.GetBlobClient(filePath);
@@ -409,7 +418,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         }
     }
 
-    private async Task<BlobContainerClient> GetBlobContainerClient(string containerName)
+    public async Task<BlobContainerClient> GetBlobContainerClient(string containerName)
     {
         BlobServiceClient blobServiceClient;
         if (_tokenCredential is null)
@@ -459,34 +468,8 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
     private async Task<BlobSasQueryParameters> GetSasQueryParametersAsync(BlobSasBuilder sasBuilder)
     {
-        var userDelegationKey = await TryGetUserDelegationKeyAsync(sasBuilder.StartsOn, sasBuilder.ExpiresOn);
-        if (userDelegationKey is not null)
-        {
-            return sasBuilder.ToSasQueryParameters(userDelegationKey, _accountName);
-        }
-
         var sharedKeyCred = GetSharedKeyCredentialAsync();
         return sasBuilder.ToSasQueryParameters(sharedKeyCred);
-    }
-
-    private async Task<global::Azure.Storage.Blobs.Models.UserDelegationKey?> TryGetUserDelegationKeyAsync(DateTimeOffset startsOn, DateTimeOffset expiresOn)
-    {
-        try
-        {
-            var serviceUri = new Uri($"https://{_accountName}.blob.core.windows.net");
-            var credential = new DefaultAzureCredential(new DefaultAzureCredentialOptions
-            {
-                ExcludeInteractiveBrowserCredential = true
-            });
-
-            var blobServiceClient = new BlobServiceClient(serviceUri, credential);
-            var response = await blobServiceClient.GetUserDelegationKeyAsync(startsOn, expiresOn);
-            return response.Value;
-        }
-        catch
-        {
-            return null;
-        }
     }
 
     private Uri AppendSasToken(Uri resourceUri)
@@ -537,7 +520,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         }
     }
 
-    public async Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+    public async Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false, CancellationToken cancellationToken = default)
     {
         ValidateContainerName(container);
 
@@ -545,7 +528,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         var matchingFiles = new List<FileMetaData>();
 
         // Recursively iterate through all paths (files and folders) in the directory
-        await foreach (var path in dirClient.GetPathsAsync(recursive: true))
+        await foreach (var path in dirClient.GetPathsAsync(recursive: true).WithCancellation(cancellationToken))
         {
             // Skip directories
             if (path.IsDirectory.HasValue && path.IsDirectory.Value)
@@ -571,7 +554,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
             }
 
             // If content search is enabled, check the file content
-            if (searchInContent && await FileContentContainsTermAsync(container, fullPath, searchTerm))
+            if (searchInContent && await FileContentContainsTermAsync(container, fullPath, searchTerm, cancellationToken))
             {
                 matchingFiles.Add(fileMetadata);
             }
@@ -580,13 +563,13 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return matchingFiles;
     }
 
-    private async Task<bool> FileContentContainsTermAsync(string container, string filePath, string searchTerm)
+    private async Task<bool> FileContentContainsTermAsync(string container, string filePath, string searchTerm, CancellationToken cancellationToken = default)
     {
         var blobClient = (await GetBlobContainerClient(container)).GetBlobClient(filePath);
 
         // Download the file content
         using var memoryStream = new MemoryStream();
-        await blobClient.DownloadToAsync(memoryStream);
+        await blobClient.DownloadToAsync(memoryStream, cancellationToken);
         memoryStream.Position = 0;
 
         // Determine file type and search content

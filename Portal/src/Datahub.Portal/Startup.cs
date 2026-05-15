@@ -48,9 +48,7 @@ using Datahub.Metadata.Model;
 using Datahub.Portal.Controllers;
 using Datahub.Portal.Pages;
 using Datahub.Portal.Services;
-using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
-using Datahub.Portal.Services.Offline;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
@@ -411,11 +409,6 @@ public class Startup
             services.AddScoped<IUserSettingsService, UserSettingsService>();
             services.AddSingleton<IMSGraphService, MSGraphService>();
 
-            services.AddScoped<IDataSharingService, DataSharingService>();
-            services.AddScoped<IDataCreatorService, DataCreatorService>();
-            services.AddScoped<DataRetrievalService>();
-            services.AddScoped<IDataRemovalService, DataRemovalService>();
-
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
             services.AddScoped<UpdateProjectMonthlyCostService>();
@@ -434,17 +427,12 @@ public class Startup
             services.AddSingleton<IKeyVaultCoreService, OfflineKeyVaultService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
-            //services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<AuthenticationStateProvider, FakeAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
             services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-            services.AddScoped<IDataSharingService, OfflineDataSharingService>();
-            services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
-            services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
-            services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
 
             services.AddScoped<IWorkspaceCostManagementService, OfflineWorkspaceCostManagementService>();
