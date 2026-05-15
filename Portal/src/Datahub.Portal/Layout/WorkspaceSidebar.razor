@@ -152,7 +152,7 @@
                         </MudText>
                         <MudNavMenu Color="Color.Primary">
                             <ul>
-                                @foreach (var toolSection in _workspaceAdministration)
+                                @foreach (var toolSection in _workspaceAdministration.Where(ShouldAdminToolBeShown))
                                 {
                                     <li>
                                         <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym"
@@ -477,6 +477,20 @@ DatahubAuthView.AuthLevels.Unauthorized,
         };
     }
 
+    private bool ShouldAdminToolBeShown(string toolSection)
+    {
+        if (_project is null)
+            return false;
+
+
+        if (toolSection == SectionViews.ExternalUsers)
+        {
+            // Only show External Users section if workspace is not Protected B and GCCF is enabled
+            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
+        }
+        return true;
+    }
+
     private bool ShouldToolBeShown(string toolSection)
     {
         if (_project is null)
@@ -487,12 +501,6 @@ DatahubAuthView.AuthLevels.Unauthorized,
             return toolSection == SectionViews.Dashboard;
         }
 
-
-        if (toolSection == SectionViews.ExternalUsers)
-        {
-            // Only show External Users section if workspace is not Protected B and GCCF is enabled
-            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
-        }
 
         return toolSection switch
         {
