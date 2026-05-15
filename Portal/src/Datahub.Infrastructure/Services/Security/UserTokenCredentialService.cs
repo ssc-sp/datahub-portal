@@ -16,7 +16,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
     private readonly ITokenAcquisition _tokenAcquisition;
     private readonly ILogger<UserTokenCredentialService> _logger;
     private string? _currentUserVaultToken;
-    private Dictionary<string, string> tokenCache = new();
+    private readonly Dictionary<string, string> tokenCache = new();
 
     public UserTokenCredentialService(
         ITokenAcquisition tokenAcquisition,
@@ -36,7 +36,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         return Task.FromResult<TokenCredential>(new StaticAccessTokenCredential(token, _logger));
     }
 
-    private SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
     public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, string service)
     {

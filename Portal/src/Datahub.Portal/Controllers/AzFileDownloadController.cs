@@ -25,13 +25,13 @@ public class AzFileDownloadController : Controller
         var entry = _fileTokenService.ResolveToken(token);
         if (entry is null)
         {
-            _logger.LogWarning("File download token not found or expired: {Token}", token);
+            _logger.LogWarning("File download token not found or expired");
             return NotFound("Token is invalid or has expired.");
         }
         var azStorageManager = entry.Manager as AzureCloudStorageManager;
         if (azStorageManager is null)
         {
-            _logger.LogWarning("Invalid Storage Manager: {Token}", token);
+            _logger.LogWarning("Invalid Storage Manager");
             return NotFound("Invalid Storage Manager.");
         }
         var client = await azStorageManager.GetBlobContainerClient(entry.Container);
