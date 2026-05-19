@@ -1,4 +1,3 @@
-
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -15,6 +14,7 @@ using Datahub.Application.Services.Toolbox;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
@@ -47,6 +47,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddSingleton<IFileTokenService, FileTokenService>();
         services.AddScoped<CloudStorageManagerFactory>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<ISubnetPoolService, SubnetPoolService>();

@@ -85,6 +85,7 @@ namespace Datahub.Tests
             _ctx.Services.AddSingleton<IDialogService>(new Mock<IDialogService>().Object);
             _ctx.Services.AddSingleton<IOpenDataPublishingService>(new Mock<IOpenDataPublishingService>().Object);
             _ctx.Services.AddSingleton<ILogger<FileExplorer>>(new Mock<ILogger<FileExplorer>>().Object);
+            _ctx.Services.AddSingleton<IFileTokenService>(new Mock<IFileTokenService>().Object);
 
             // Provide a DatahubPortalConfiguration with default blocked extensions and register localization
             var config = new DatahubPortalConfiguration();
@@ -192,12 +193,13 @@ namespace Datahub.Tests
             var container = new CloudStorageContainer(mockStorageManager.Object, TestContainerName);
 
             var portalUser = new PortalUser { Email = "test@test.com", EntraUser = new EntraUser { PortalUser = null!, GraphGuid = Guid.NewGuid().ToString() } };
-
+            var project = new Datahub_Project { Project_ID =1, Project_Acronym_CD = TestProjectAcronym, Data_Sensitivity = Datahub.Metadata.Model.ClassificationType.Unclassified };
             var comp = _ctx.Render<FileExplorer>(parameters => parameters
                 .Add(p => p.ProjectId,1)
                 .Add(p => p.Container, container)
                 .AddCascadingValue(nameof(FileExplorer.ProjectAcronym), TestProjectAcronym)
                 .AddCascadingValue(nameof(FileExplorer.PortalUser), portalUser)
+                .AddCascadingValue(nameof(FileExplorer.Project), project)
             );
 
             uploadedFiles = localUploadedFiles;
