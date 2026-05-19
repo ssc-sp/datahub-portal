@@ -1,5 +1,4 @@
 using Azure.Core;
-using System.Security.Claims;
 
 namespace Datahub.Application.Services.Security;
 

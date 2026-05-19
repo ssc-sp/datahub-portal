@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\ComputeTier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\DatabricksConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\DatabricksTier.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Services\ISystemTokenCredentialService.cs" />
     <Compile Include="..\..\..\Shared\src\Datahub.Shared\Entities\WorkspaceToolConfiguration\IWorkspaceToolWithSuffix.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\IWorkspaceToolConfiguration.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\PostgresConfiguration.cs" />

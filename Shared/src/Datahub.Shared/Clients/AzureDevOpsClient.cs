@@ -1,6 +1,7 @@
 using System.Net.Http.Headers;
 using Azure.Core;
 using Azure.Identity;
+using Datahub.Application.Services.Security;
 using Datahub.Shared.Configuration;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi;
 using Microsoft.VisualStudio.Services.Client;
@@ -9,7 +10,7 @@ using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Datahub.Shared.Clients;
 
-public class AzureDevOpsClient(AzureDevOpsConfiguration config)
+public class AzureDevOpsClient(AzureDevOpsConfiguration config, ISystemTokenCredentialService tokenCredentialService)
 {
     /// <summary>
     /// Represents the Azure DevOps scope used for authentication and authorization.
@@ -50,8 +51,7 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
     }
     public async Task<AccessToken> AccessTokenAsync(bool includeAzureManagement = false)
     {
-        var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
-            config.ClientSecret);
+        var tokenCredential = tokenCredentialService.GetPortalTokenCredential() ?? throw new InvalidOperationException("Portal token credential is not available.");
         var scopes = new List<string>
         {
             AzureDevOpsScopeDefault
@@ -63,29 +63,22 @@ public class AzureDevOpsClient(AzureDevOpsConfiguration config)
                 AzureManagementApiScopeDefault
             };
         }
-        // scopes.Add(AzureManagementApiScopeDefault);
         var accessToken =
-            await credentials.GetTokenAsync(new TokenRequestContext(scopes.ToArray()));
+            await tokenCredential.GetTokenAsync(new TokenRequestContext(scopes.ToArray()), CancellationToken.None);
         return accessToken;
     }
     public AccessToken AccessToken()
     {
-        var credentials = new ClientSecretCredential(config.TenantId, config.ClientId,
-            config.ClientSecret);
+        var tokenCredential = tokenCredentialService.GetPortalTokenCredential() ?? throw new InvalidOperationException("Portal token credential is not available.");
         var accessToken =
-            credentials.GetToken(new TokenRequestContext([
-                AzureDevOpsScopeDefault
-            ]));
+            tokenCredential.GetToken(new TokenRequestContext([AzureDevOpsScopeDefault]), CancellationToken.None);
         return accessToken;
     }
-    public async Task<AccessToken> AccessTokenWithCustomScopeAsync(AzureDevOpsConfiguration customConfig, string customScope)
+    public async Task<AccessToken> AccessTokenWithCustomScopeAsync(string customScope)
     {
-        var credentials = new ClientSecretCredential(customConfig.TenantId, customConfig.ClientId,
-            customConfig.ClientSecret);
+        var tokenCredential = tokenCredentialService.GetPortalTokenCredential();
         var accessToken =
-            await credentials.GetTokenAsync(new TokenRequestContext([
-                customScope
-            ]));
+            await tokenCredential.GetTokenAsync(new TokenRequestContext([customScope]), CancellationToken.None);
         return accessToken;
     }
 }
