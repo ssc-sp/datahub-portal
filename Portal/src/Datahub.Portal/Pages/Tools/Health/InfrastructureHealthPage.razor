@@ -233,7 +233,7 @@ else
 
     private List<InfrastructureHealthStatus> statusList = new();
     private InfrastructureHealthResourceType? selectedType;
-    private IEnumerable<InfrastructureHealthStatus> statusFilter = new HashSet<InfrastructureHealthStatus>();
+    private IReadOnlyCollection<InfrastructureHealthStatus> statusFilter = new HashSet<InfrastructureHealthStatus>();
     private string searchString = string.Empty;
 
     protected override async Task OnInitializedAsync()
@@ -342,7 +342,7 @@ else
     {
         if (group == "all")
         {
-            bool? result = await DialogService.ShowMessageBox(
+            bool? result = await DialogService.ShowMessageBoxAsync(
                 Localizer["Warning"],
                 Localizer["You are re-running all health checks. This may take a while."],
                 yesText: Localizer["Run all checks"], cancelText: Localizer["Cancel"]);
@@ -366,11 +366,11 @@ else
         }
         catch (Exception ex)
         {
-            await DialogService.ShowMessageBox("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
+            await DialogService.ShowMessageBoxAsync("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
         }
     }
 
-    private async Task SelectedStatusesChanged(IEnumerable<InfrastructureHealthStatus> statuses)
+    private async Task SelectedStatusesChanged(IReadOnlyCollection<InfrastructureHealthStatus> statuses)
     {
         statusFilter = statuses;
         await ReloadWorkspaceHealthCheckTableAsync();

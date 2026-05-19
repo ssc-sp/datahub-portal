@@ -291,7 +291,7 @@
         }
         catch (Exception ex)
         {
-            await DialogService.ShowMessageBox(
+            await DialogService.ShowMessageBoxAsync(
                 Localizer["Health Check"],
                 string.Format(
                     Localizer["HealthCheckFailed"],
