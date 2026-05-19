@@ -6,7 +6,10 @@ namespace Datahub.Application.Services.Security;
 public interface IUserTokenCredentialService
 {
 
-    Task<TokenCredential> GetTokenCredentialForUser(string? vaultToken = null);
+    public const string KEYVAULT_SERVICE = "vault";
+    public const string STORAGE_SERVICE = "storage";
 
-    Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal);
+    Task<TokenCredential> GetTokenCredentialForUser(string service, string? token = null);
+
+    Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, string service);
 }

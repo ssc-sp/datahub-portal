@@ -15,7 +15,6 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
-using Datahub.Portal.Services.Api;
 
 namespace Datahub.Tests;
 
@@ -31,7 +30,6 @@ public class Startup
         services.AddScoped<IJSRuntime, FakeJSRuntime>();
         //services.AddScoped<DataUpdatingService>();
         //services.AddScoped<DataSharingService>();
-        services.AddScoped<DataCreatorService>();
         //services.AddScoped<DataRetrievalService>();
         //services.AddScoped<DataRemovalService>();
         services.AddSingleton<DatahubTools>();
