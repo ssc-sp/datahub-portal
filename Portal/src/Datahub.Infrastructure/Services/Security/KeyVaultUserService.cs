@@ -270,16 +270,15 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
         {
             try
             {
-                _userToken = await _tokenCredentialService.GetUserToken(await _userInfoService.GetAuthenticatedUser());
+                _userToken = await _tokenCredentialService.GetUserToken(await _userInfoService.GetAuthenticatedUser(), IUserTokenCredentialService.KEYVAULT_SERVICE);
             }
             catch (MicrosoftIdentityWebChallengeUserException ex)
             {
                 _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context due to user challenge/consent issue. Falling back to app context.");
                 throw;
             }
-            catch (MsalUiRequiredException ex)
+            catch (MsalUiRequiredException)
             {
-                _logger.LogWarning(ex, "Failed to authenticate Key Vault with user context due to identity error. Falling back to app context.");
                 throw;
             }
             catch (Exception ex)

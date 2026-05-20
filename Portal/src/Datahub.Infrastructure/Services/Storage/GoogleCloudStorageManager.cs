@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Data;
+using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
@@ -102,7 +102,7 @@ namespace Datahub.Infrastructure.Services.Storage
             return await DeleteObjectAsync(container, NormalizeFolderPath(folderPath));
         }
 
-        public async Task<Uri> DownloadFileAsync(string container, string filePath)
+        public async Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
         {
             var signer = CreateUrlSigner();
             var urlValidTime = TimeSpan.FromDays(1);
@@ -251,7 +251,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
         {
             throw new NotImplementedException();
         }
