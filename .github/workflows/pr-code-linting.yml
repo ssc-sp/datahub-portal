@@ -14,7 +14,9 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
+      contents: read
       pull-requests: write
+      issues: write
 
     steps:
       - name: Checkout code
@@ -22,6 +24,41 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Remove previous Super-linter PR comments
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          echo "Looking for previous Super-linter comments on PR #${PR_NUMBER}"
+
+          comment_ids="$(
+            gh api \
+              "repos/${REPO}/issues/${PR_NUMBER}/comments" \
+              --paginate \
+              --jq '.[] 
+                | select(.user.type == "Bot")
+                | select(.body | contains("Powered by [Super-linter]"))
+                | .id'
+          )"
+
+          if [ -z "${comment_ids}" ]; then
+            echo "No previous Super-linter comments found."
+            exit 0
+          fi
+
+          echo "${comment_ids}" | while read -r comment_id; do
+            [ -z "${comment_id}" ] && continue
+
+            echo "Deleting Super-linter comment ${comment_id}"
+
+            gh api \
+              --method DELETE \
+              "repos/${REPO}/issues/comments/${comment_id}"
+          done
 
       - name: Super-linter
         uses: super-linter/super-linter/slim@9e863354e3ff62e0727d37183162c4a88873df41 # v8.6.0
@@ -38,4 +75,3 @@ jobs:
           DISABLE_ERRORS: true
           SAVE_SUPER_LINTER_SUMMARY: true
           FAIL_ON_INVALID_GITHUB_ACTIONS_EVENT_CONFIGURATION: true
-
