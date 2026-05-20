@@ -82,9 +82,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST LEAD");
-        authContext.SetRoles([.. roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateWorkspaceAdminForWorkspace(string workspaceAcronym)
@@ -99,9 +98,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST ADMIN");
-        authContext.SetRoles([..roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateWorkspaceCollaboratorForWorkspace(string workspaceAcronym)
@@ -116,9 +114,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST CONTRIBUTOR");
-        authContext.SetRoles([..roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateWorkspaceGuestForWorkspace(string workspaceAcronym)
@@ -133,9 +130,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST GUEST");
-        authContext.SetRoles([..roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateExternalUserWebAppForWorkspace(string workspaceAcronym)
@@ -150,9 +146,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST EXTERNAL USER");
-        authContext.SetRoles([.. roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateDatahubSupportUser()
@@ -167,9 +162,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST DATAHUB SUPPORT");
-        authContext.SetRoles([.. roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateDatahubSupportAsGuestUser()
@@ -183,9 +177,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST DATAHUB SUPPORT AS GUEST");
-        authContext.SetRoles([.. roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateExternalUserStorageForWorkspace(string workspaceAcronym)
@@ -200,9 +193,8 @@ public sealed class DatahubAuthViewSteps(
 
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST EXTERNAL USER");
-        authContext.SetRoles([.. roleNames]);
 
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
     public void CreateDatahubApproverUser()
@@ -215,15 +207,16 @@ public sealed class DatahubAuthViewSteps(
         };
         var authContext = this.AddAuthorization();
         authContext.SetAuthorized("TEST DATAHUB APPROVER");
-        authContext.SetRoles([.. roleNames]);
-        CreateUser(authContext);
+        CreateUser(authContext, roleNames);
     }
 
-    private void CreateUser(BunitAuthorizationContext authContext)
+    private void CreateUser(BunitAuthorizationContext authContext, List<string> roleNames)
     {
         // Provide minimal required claims for Entra scenarios
         var oid = Guid.NewGuid().ToString();
         var email = "user@ssc-spc.gc.ca";
+        roleNames.Add(oid); // Add the object id as a role claim since that's how AuthView identifies Entra users with UserUID auth level
+        authContext.SetRoles([.. roleNames]);
         authContext.SetClaims(
             new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
             new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
@@ -293,24 +286,24 @@ public sealed class DatahubAuthViewSteps(
                 .Add(p => p.AuthLevel, authLevel)
                 .Add(p => p.ProjectAcronym, workspaceAcronym)
                 .Add(p => p.ElevatedWorkspaceAccessEnabled, (bool) elevatedWorkspaceAccessEnabled)
-                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
+                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Authorized Content</div>"))
                 .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
             );
         }
         else if (authLevel == DatahubAuthView.AuthLevels.UserUID)
         {
-            var userUID = (string)scenarioContext[UserUIDKey];
+            var authUID = (string)scenarioContext[AuthviewUIDKey];
             component = Render<DatahubAuthView>(options => options
                 .Add(p => p.AuthLevel, authLevel)
-                .Add(p => p.UserUID, userUID)
-                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">UserUID Authorized Content</div>"))
+                .Add(p => p.UserUID, authUID)
+                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Authorized Content</div>"))
                 .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
             );
         }
         else {
             component = Render<DatahubAuthView>(options => options
                 .Add(p => p.AuthLevel, authLevel)
-                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
+                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Authorized Content</div>"))
                 .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
             );
         }
@@ -326,8 +319,8 @@ public sealed class DatahubAuthViewSteps(
 
         // Verify that the authorized content is visible
         var authorizedContent = component.Find(".authorized-content");
-        authorizedContent.Should().NotBeNull("the authorized content should be rendered for the workspace lead");
-        authorizedContent.TextContent.Should().Contain("Workspace Lead Content");
+        authorizedContent.Should().NotBeNull("the authorized content should be rendered with appropriate access");
+        authorizedContent.TextContent.Should().Contain("Authorized Content");
     }
 
     [Then("they should not be able to view it")]

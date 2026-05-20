@@ -66,6 +66,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             {
 
                 var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == ClaimConstants.ObjectId)?.Value ?? throw new InvalidOperationException("User Entra ID not found");
+                AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, userEntraId.ToString()));
                 authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
 
                 var userEmail = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
