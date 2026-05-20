@@ -39,7 +39,7 @@ jobs:
             gh api \
               "repos/${REPO}/issues/${PR_NUMBER}/comments" \
               --paginate \
-              --jq '.[] 
+              --jq '.[]
                 | select(.user.type == "Bot")
                 | select(.body | contains("Powered by [Super-linter]"))
                 | .id'
