@@ -188,23 +188,12 @@ public sealed class DatahubAuthViewSteps(
         CreateUser(authContext);
     }
 
-    private void CreateUser(BunitAuthorizationContext authContext){
-        // Provide minimal required claims for Entra scenarios
-        var oid = Guid.NewGuid().ToString();
-        var email = "user@ssc-spc.gc.ca";
-        authContext.SetClaims(
-            new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
-            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
-        );
-    }
-
     public void CreateDatahubSupportAsGuestUser()
     {
         // Set up the logged-in user as a Datahub support user
         var roleNames = new List<string>
         {
-            RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST,
-            $"DHPGLIST{RoleConstants.ADMIN_SUFFIX}"
+            RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST
         };
 
         var authContext = this.AddAuthorization();
@@ -229,6 +218,17 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetRoles([.. roleNames]);
 
         CreateUser(authContext);
+    }
+
+    private void CreateUser(BunitAuthorizationContext authContext)
+    {
+        // Provide minimal required claims for Entra scenarios
+        var oid = Guid.NewGuid().ToString();
+        var email = "user@ssc-spc.gc.ca";
+        authContext.SetClaims(
+            new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
+            new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
+        );
     }
 
     [When("the user views the component")]
