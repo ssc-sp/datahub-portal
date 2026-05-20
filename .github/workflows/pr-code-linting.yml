@@ -9,14 +9,11 @@ on:
 permissions: read-all
 
 jobs:
-  build:
+  lint:
     name: Lint
     runs-on: ubuntu-latest
 
     permissions:
-      contents: read
-      packages: read
-      statuses: write
       pull-requests: write
 
     steps:
