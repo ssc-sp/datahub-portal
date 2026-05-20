@@ -33,6 +33,7 @@ Feature: DatahubAuthView
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | true |
             | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
 
     Scenario: A Workspace Admin DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
@@ -65,6 +66,7 @@ Feature: DatahubAuthView
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | true |
             | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
 
     Scenario: A Workspace Collaborator DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
@@ -97,6 +99,7 @@ Feature: DatahubAuthView
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | true |
             | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
 
     Scenario: A Workspace Guest DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
@@ -129,6 +132,7 @@ Feature: DatahubAuthView
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | true |
             | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
             
     Scenario: An AllWorkspaceUsers DatahubAuthView should allow an authorized user to access the content
         Given a <role> user for workspace <acronym>
@@ -161,6 +165,7 @@ Feature: DatahubAuthView
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | true |
             | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
 
     Scenario: A DatahubSupport DatahubAuthView should allow administrator access
         Given a <role> user for workspace <acronym>
@@ -185,6 +190,7 @@ Feature: DatahubAuthView
             | ExternalUserWebApp | XYZ | false |
             | ExternalUserStorage | XYZ | false |
             | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
 
     Scenario: An Authenticated DatahubAuthView should allow anyone to access
         Given a <role> user for workspace <acronym>
@@ -199,3 +205,31 @@ Feature: DatahubAuthView
             | WorkspaceGuest | XYZ | false |
             | ExternalUserWebApp | XYZ | false |
             | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
+
+    Scenario: A DatahubApprover role DatahubAuthView should allow approver access
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with AuthLevel DatahubApprover
+        When the user views the component
+        Then they should be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | DatahubApprover  | DHAPPRV | false |
+
+    Scenario: A DatahubApprover DatahubAuthView should block non-approver access
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with AuthLevel DatahubApprover
+        When the user views the component
+        Then they should not be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | WorkspaceCollaborator | XYZ | false |
+            | WorkspaceGuest | XYZ | false |
+            | ExternalUserWebApp | XYZ | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | false |

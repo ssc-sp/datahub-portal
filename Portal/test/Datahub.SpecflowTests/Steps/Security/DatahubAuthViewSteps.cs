@@ -56,6 +56,9 @@ public sealed class DatahubAuthViewSteps(
             case "DatahubSupportAsGuest":
                 CreateDatahubSupportAsGuestUser();
                 break;
+            case "DatahubApprover":
+                CreateDatahubApproverUser();
+                break;
             default:
                 throw new InvalidOperationException($"Unknown user type: {role}");
         }
@@ -177,6 +180,7 @@ public sealed class DatahubAuthViewSteps(
         // Set up the logged-in user as a Datahub support user
         var roleNames = new List<string>
         {
+            RoleConstants.TRUSTED_ENTRA_LOGIN,
             RoleConstants.DATAHUB_ROLE_ADMIN,
             $"DHPGLIST{RoleConstants.ADMIN_SUFFIX}"
         };
@@ -193,6 +197,7 @@ public sealed class DatahubAuthViewSteps(
         // Set up the logged-in user as a Datahub support user
         var roleNames = new List<string>
         {
+            RoleConstants.TRUSTED_ENTRA_LOGIN,
             RoleConstants.DATAHUB_ROLE_ADMIN_AS_GUEST
         };
 
@@ -217,6 +222,20 @@ public sealed class DatahubAuthViewSteps(
         authContext.SetAuthorized("TEST EXTERNAL USER");
         authContext.SetRoles([.. roleNames]);
 
+        CreateUser(authContext);
+    }
+
+    public void CreateDatahubApproverUser()
+    {
+        // Set up the logged-in user as a Datahub approver user
+        var roleNames = new List<string>
+        {
+            RoleConstants.TRUSTED_ENTRA_LOGIN,
+            RoleConstants.DATAHUB_APPROVER_ROLE
+        };
+        var authContext = this.AddAuthorization();
+        authContext.SetAuthorized("TEST DATAHUB APPROVER");
+        authContext.SetRoles([.. roleNames]);
         CreateUser(authContext);
     }
 
