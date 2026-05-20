@@ -26,6 +26,8 @@ public sealed class DatahubAuthViewSteps(
     private const string ComponentKey = "Component";
     private const string UserTypeKey = "UserType";
     private const string ElevatedWorkspaceAccessEnabledKey = "ElevatedWorkspaceAccessEnabled";
+    private const string UserUIDKey = "UserUID";
+    private const string AuthviewUIDKey = "AuthviewUID";
 
     [Given("a (.*) user for workspace (.*)")]
      public void GivenAUserForWorkspace(string role, string workspaceAcronym)
@@ -66,45 +68,23 @@ public sealed class DatahubAuthViewSteps(
         scenarioContext[ProjectAcronymKey] = workspaceAcronym;
         scenarioContext[UserTypeKey] = role;
     }
-    
-    [Given("a DatahubAuthView for workspace (.*) and AuthLevel (.*) and ElevatedWorkspaceAccessEnabled (.*)")]
-    public void GivenADatahubAuthViewForWorkspaceAndAuthLevel(string workspaceAcronym, string authLevel, bool elevatedWorkspaceAccessEnabled)
-    {
-        // Parse the auth level enum value
-        if (!Enum.TryParse<DatahubAuthView.AuthLevels>(authLevel, out var parsedAuthLevel))
-        {
-            throw new InvalidOperationException($"Invalid AuthLevel: {authLevel}");
-        }
-
-        // Store the configuration for the component
-        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
-        scenarioContext[AuthLevelKey] = parsedAuthLevel;
-        scenarioContext[ElevatedWorkspaceAccessEnabledKey] = elevatedWorkspaceAccessEnabled;
-    }
-
-    [Given("a DatahubAuthView with AuthLevel (.*)")]
-    public void GivenADatahubAuthViewWithAuthLevel(string authLevel)
-    {
-        // Parse the auth level enum value
-        if (!Enum.TryParse<DatahubAuthView.AuthLevels>(authLevel, out var parsedAuthLevel))
-        {
-            throw new InvalidOperationException($"Invalid AuthLevel: {authLevel}");
-        }
-
-        // Store the configuration for the component
-        scenarioContext[AuthLevelKey] = parsedAuthLevel;
-        scenarioContext[ProjectAcronymKey] = null; // No workspace context for this scenario
-    }
 
     public void CreateWorkspaceLeadForWorkspace(string workspaceAcronym)
     {
         // Set up the logged-in user as a workspace lead for the specified workspace
-        CommonCbrTestUtils.AddLoggedInUserAuthorization(
-            this,
-            workspaceAcronym,
-            isCbrOwner: true,
-            isDhAdmin: false
-        );
+        var roleNames = new List<string>
+        {
+            RoleConstants.TRUSTED_ENTRA_LOGIN,
+            $"{workspaceAcronym}{RoleConstants.WORKSPACE_LEAD_SUFFIX}",
+            $"{workspaceAcronym}{RoleConstants.CBR_OWNER_SUFFIX}",
+            RoleConstants.CBR_OWNER_ROLE
+        };
+
+        var authContext = this.AddAuthorization();
+        authContext.SetAuthorized("TEST LEAD");
+        authContext.SetRoles([.. roleNames]);
+
+        CreateUser(authContext);
     }
 
     public void CreateWorkspaceAdminForWorkspace(string workspaceAcronym)
@@ -248,6 +228,53 @@ public sealed class DatahubAuthViewSteps(
             new System.Security.Claims.Claim(Microsoft.Identity.Web.ClaimConstants.ObjectId, oid),
             new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.Email, email)
         );
+
+        scenarioContext[UserUIDKey] = oid;
+    }
+
+    [Given("a DatahubAuthView for workspace (.*) and AuthLevel (.*) and ElevatedWorkspaceAccessEnabled (.*)")]
+    public void GivenADatahubAuthViewForWorkspaceAndAuthLevel(string workspaceAcronym, string authLevel, bool elevatedWorkspaceAccessEnabled)
+    {
+        // Parse the auth level enum value
+        if (!Enum.TryParse<DatahubAuthView.AuthLevels>(authLevel, out var parsedAuthLevel))
+        {
+            throw new InvalidOperationException($"Invalid AuthLevel: {authLevel}");
+        }
+
+        // Store the configuration for the component
+        scenarioContext[ProjectAcronymKey] = workspaceAcronym;
+        scenarioContext[AuthLevelKey] = parsedAuthLevel;
+        scenarioContext[ElevatedWorkspaceAccessEnabledKey] = elevatedWorkspaceAccessEnabled;
+    }
+
+    [Given("a DatahubAuthView with AuthLevel (.*)")]
+    public void GivenADatahubAuthViewWithAuthLevel(string authLevel)
+    {
+        // Parse the auth level enum value
+        if (!Enum.TryParse<DatahubAuthView.AuthLevels>(authLevel, out var parsedAuthLevel))
+        {
+            throw new InvalidOperationException($"Invalid AuthLevel: {authLevel}");
+        }
+
+        // Store the configuration for the component
+        scenarioContext[AuthLevelKey] = parsedAuthLevel;
+        scenarioContext[ProjectAcronymKey] = null; // No workspace context for this scenario
+    }
+
+    [Given("a DatahubAuthView with the matching UserUID")]
+    public void GivenADatahubAuthViewWithAuthLevelAndTheMatchingUserUID()
+    {
+        scenarioContext[AuthviewUIDKey] = scenarioContext[UserUIDKey]; // Use the same UserUID as the logged-in user
+        scenarioContext[AuthLevelKey] = DatahubAuthView.AuthLevels.UserUID;
+        scenarioContext[ProjectAcronymKey] = null; // No workspace context for this scenario
+    }
+
+    [Given("a DatahubAuthView with a different UserUID")]
+    public void GivenADatahubAuthViewWithAuthLevelAndDifferentUserUID()
+    {
+        scenarioContext[AuthviewUIDKey] = Guid.NewGuid().ToString();
+        scenarioContext[AuthLevelKey] = DatahubAuthView.AuthLevels.UserUID;
+        scenarioContext[ProjectAcronymKey] = null; // No workspace context for this scenario
     }
 
     [When("the user views the component")]
@@ -267,6 +294,16 @@ public sealed class DatahubAuthViewSteps(
                 .Add(p => p.ProjectAcronym, workspaceAcronym)
                 .Add(p => p.ElevatedWorkspaceAccessEnabled, (bool) elevatedWorkspaceAccessEnabled)
                 .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">Workspace Lead Content</div>"))
+                .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
+            );
+        }
+        else if (authLevel == DatahubAuthView.AuthLevels.UserUID)
+        {
+            var userUID = (string)scenarioContext[UserUIDKey];
+            component = Render<DatahubAuthView>(options => options
+                .Add(p => p.AuthLevel, authLevel)
+                .Add(p => p.UserUID, userUID)
+                .Add(p => p.ChildContent, builder => builder.AddMarkupContent(0, "<div class=\"authorized-content\">UserUID Authorized Content</div>"))
                 .Add(p => p.NotAuthorized, builder => builder.AddMarkupContent(0, "<div class=\"not-authorized-content\">Access Denied</div>"))
             );
         }

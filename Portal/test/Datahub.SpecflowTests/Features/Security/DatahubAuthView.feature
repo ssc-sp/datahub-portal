@@ -233,3 +233,30 @@ Feature: DatahubAuthView
             | ExternalUserStorage | XYZ | false |
             | DatahubSupport | DHPGLIST | false |
             | DatahubSupportAsGuest | DHPGLIST | false |
+
+    Scenario: A UserUID DatahubAuthView should allow that user to view it
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with the matching UserUID
+        When the user views the component
+        Then they should be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupport | DHPGLIST | false |
+            | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
+
+    Scenario: A UserUID DatahubAuthView should block other users from viewing it
+        Given a <role> user for workspace <acronym>
+        And a DatahubAuthView with a different UserUID
+        When the user views the component
+        Then they should not be able to view it
+        Examples:
+            | role    | acronym   | supportaccess |
+            | WorkspaceLead  | XYZ | false |
+            | WorkspaceAdmin | XYZ | false |
+            | ExternalUserStorage | XYZ | false |
+            | DatahubSupportAsGuest | DHPGLIST | false |
+            | DatahubApprover  | DHAPPRV | false |
