@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using Azure.Core;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Shared.Clients;
 using Reqnroll;
 using ResourceProvisioner.Application.Config;
@@ -34,8 +35,9 @@ namespace ResourceProvisioner.SpecflowTests.Steps
         [When(@"it requests an access token")]
         public async Task WhenItRequestsAnAccessToken()
         {
-            var azureDevOpsClient = new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-            var accessToken = await azureDevOpsClient.AccessTokenAsync();
+            var infraTokenCredentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
+            var tokenManager = new AzAccessTokenManager(infraTokenCredentialService);
+            var accessToken = await tokenManager.AccessDevopsTokenAsync();
             
             scenarioContext["accessToken"] = accessToken;
         }
@@ -69,7 +71,7 @@ namespace ResourceProvisioner.SpecflowTests.Steps
                 Assert.Equal("https://sts.windows.net/" + resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.TenantId + "/", token.Issuer);
                 
                 // Check if the token is for the correct audience
-                Assert.Equal(AzureDevOpsClient.AzureDevopsScope, token.Audiences.First());
+                Assert.Equal(AzAccessTokenManager.AzureDevopsScope, token.Audiences.First());
             }
             else
             {

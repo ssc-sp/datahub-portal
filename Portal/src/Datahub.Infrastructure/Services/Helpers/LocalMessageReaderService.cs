@@ -16,6 +16,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Datahub.Shared.Clients;
 
 namespace Datahub.Infrastructure.Services;
 
@@ -91,14 +92,15 @@ public class LocalMessageReaderService : BackgroundService
             var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
             var sendEndpointProvider = scope.ServiceProvider.GetRequiredService<ISendEndpointProvider>();
             var httpContextAccessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
+            var azAccessTokenService = scope.ServiceProvider.GetRequiredService<AzAccessTokenManager>();
 
             // TODO: refactor this to make it more concise, and/or autowire it
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppManagementService, configuration, 
-                httpClientFactory, _loggerFactory, sendEndpointProvider, resourceMessagingService, portalConfiguration, httpContextAccessor, gcNotifyService);
+                httpClientFactory, _loggerFactory, azAccessTokenService, sendEndpointProvider, resourceMessagingService, portalConfiguration, httpContextAccessor, gcNotifyService);
 
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
-            InfrastructureHealthCheckMessage message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);
-            InfrastructureHealthCheckResultMessage checkResult = JsonSerializer.Deserialize<InfrastructureHealthCheckResultMessage>(fileContents);
+            var message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);
+            var checkResult = JsonSerializer.Deserialize<InfrastructureHealthCheckResultMessage>(fileContents);
 
             if (!IsEmptyMessage(message))
             {

@@ -8,6 +8,7 @@ using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Shared;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
@@ -55,9 +56,9 @@ namespace Datahub.Functions.UnitTests.Functions
             var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
             var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService, mockSubnetPoolService);
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
-
+            var tokenManager = Substitute.For<AzAccessTokenManager>();
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor, null);
+                Testing._configuration, _httpClientFactory, _loggerFactory, tokenManager, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor, null);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }

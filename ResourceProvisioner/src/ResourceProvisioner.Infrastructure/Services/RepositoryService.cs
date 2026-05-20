@@ -19,6 +19,8 @@ using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
 using Version = System.Version;
 using Microsoft.Extensions.Options;
+using Datahub.Infrastructure.Services.Security;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
@@ -156,10 +158,9 @@ public partial class RepositoryService(
         logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
-
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var cloneOptions = new CloneOptions
         {
@@ -201,9 +202,9 @@ public partial class RepositoryService(
 
         logger.LogInformation("Checking upstream for any updates in branch");
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var pullOptions = new PullOptions()
         {
@@ -263,9 +264,10 @@ public partial class RepositoryService(
     {
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
+
         var options = new PushOptions
         {
             CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()

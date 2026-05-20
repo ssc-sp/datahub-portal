@@ -15,15 +15,16 @@ public static class ConfigureServices
 {
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
+        services.AddKeyedSingleton<ISystemTokenCredentialService, InfraTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
         services.AddSingleton<IRepositoryService, RepositoryService>();
-        services.AddHttpClient("InfrastructureHttpClient", client =>
+        services.AddHttpClient("InfrastructureHttpClient", async client =>
         {
-            // client.BaseAddress = new Uri(configuration["InfrastructureRepository:PullRequestUrl"]);
             var azureDevOpsConfiguration = configuration.GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
-                .Get<AzureDevOpsConfiguration>();
-            var tokenProvider = new InfraSystemTokenCredentialService(azureDevOpsConfiguration!, new NullLogger<InfraSystemTokenCredentialService>());
-            var azureDevOpsClient = new AzureDevOpsClient(azureDevOpsConfiguration!, tokenProvider);
-            var accessToken = azureDevOpsClient.AccessToken();
+                .Get<AzureDevOpsConfiguration>() ?? throw new ArgumentNullException("AzureDevOpsConfiguration section is missing");
+            var credentialService = new InfraTokenCredentialService(azureDevOpsConfiguration);            
+            var tokenManager = new AzAccessTokenManager(credentialService);
+            var clientProvider = new AzureDevOpsClient(azureDevOpsConfiguration, tokenManager);
+            var accessToken = await tokenManager.AccessDevopsTokenAsync();
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.Token}");
         });
         

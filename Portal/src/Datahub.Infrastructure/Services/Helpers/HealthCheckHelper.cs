@@ -1,4 +1,3 @@
-
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -62,6 +61,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
+        AzAccessTokenManager tokenManager,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
@@ -454,8 +454,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     {
                         try
                         {
-                            var azureDevOpsClient = new AzureDevOpsClient(BuildDevopsConfig());
-                            var accessToken = await azureDevOpsClient.AccessTokenAsync();
+                            var accessToken = await tokenManager.AccessDatabricksTokenAsync();
 
                             var databricksClient = new DatabricksClientUtils(databricksUrl, accessToken.Token);
 

@@ -4,10 +4,10 @@ namespace Datahub.Application.Services.Security;
 
 public interface ISystemTokenCredentialService
 {
-    //portal
-    //infra
-    TokenCredential GetPortalTokenCredential();
+    TokenCredential GetTokenCredential();
+}
 
-    TokenCredential GetInfraTokenCredential();
-
+public static class SystemTokenCredentialServiceKeys
+{
+    public const string Infra = "infra";
 }

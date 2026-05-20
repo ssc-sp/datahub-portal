@@ -9,6 +9,7 @@
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
 @inject ISendEndpointProvider _sendEndpointProvider
+@inject AzureDevOpsClient _azureDevOpsClient
 
 @using System;
 @using System.Net.Http;
@@ -519,9 +520,7 @@ expected format.
         config.OrganizationName = _portalConfiguration.AdoOrg.OrgName;
         config.ProjectName = _portalConfiguration.AdoOrg.ProjectName;
 
-        var clientProvider = new AzureDevOpsClient(config);
-
-        var client2 = await clientProvider.WorkItemClientAsync();
+        var client2 = await _azureDevOpsClient.WorkItemClientAsync();
         var res = await client2.QueryByWiqlAsync(wiql).ConfigureAwait(false);
         var ids = res.WorkItems.Select(item => item.Id).ToArray();
 

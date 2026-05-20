@@ -9,6 +9,7 @@ public static class ConfigureSecurityServices
     {
         services.AddScoped<IKeyVaultUserService, KeyVaultUserService>();
         services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
+        services.AddKeyedSingleton<ISystemTokenCredentialService, InfraTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
         services.AddScoped<IUserTokenCredentialService, UserTokenCredentialService>();
         services.AddSingleton<IServiceAuthManager, ServiceAuthManager>();
         return services;
