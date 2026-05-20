@@ -53,6 +53,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             if (!isEntra)
             {
                 var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("No GCCF ID available");
+                AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, externalId.ToString()));
                 authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
                 foreach (var (role, project) in authorizedProjects)
                 {
