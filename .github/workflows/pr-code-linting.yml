@@ -75,3 +75,6 @@ jobs:
           DISABLE_ERRORS: true
           SAVE_SUPER_LINTER_SUMMARY: true
           FAIL_ON_INVALID_GITHUB_ACTIONS_EVENT_CONFIGURATION: true
+          NO_COLOR: "1"
+          FORCE_COLOR: "0"
+          TERM: dumb
