@@ -44,6 +44,7 @@
 		<PackageReference Include="Microsoft.Identity.Web" />
 		<PackageReference Include="Microsoft.Identity.Web.MicrosoftGraph" />
 		<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
+		<PackageReference Include="Microsoft.Kiota.Abstractions" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" />
 		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" />

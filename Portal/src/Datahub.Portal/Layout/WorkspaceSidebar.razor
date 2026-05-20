@@ -152,12 +152,8 @@
                         </MudText>
                         <MudNavMenu Color="Color.Primary">
                             <ul>
-                                @foreach (var toolSection in _workspaceAdministration)
+                                @foreach (var toolSection in _workspaceAdministration.Where(ShouldAdminToolBeShown))
                                 {
-                                    if (toolSection == SectionViews.ExternalUsers && _externalProjectUsersCount != 0)
-                                    {
-                                        continue;
-                                    }
                                     <li>
                                         <DatahubAuthView AuthLevel="@GetAuthLevel(toolSection)" ProjectAcronym="@WorkspaceAcronym"
                                                          ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
@@ -353,7 +349,7 @@ gccfUserId);
             SectionViews.DeleteWorkspace => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Toolbox => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Users => DatahubAuthView.AuthLevels.WorkspaceCollaborator,
-            SectionViews.ExternalUsers => _GCCFEnabled ? DatahubAuthView.AuthLevels.WorkspaceLead :
+            SectionViews.ExternalUsers => _GCCFEnabled ? DatahubAuthView.AuthLevels.WorkspaceAdmin :
 DatahubAuthView.AuthLevels.Unauthorized,
             SectionViews.Metadata => DatahubAuthView.AuthLevels.WorkspaceAdmin,
             SectionViews.Reports => DatahubAuthView.AuthLevels.WorkspaceAdmin,
@@ -481,6 +477,20 @@ DatahubAuthView.AuthLevels.Unauthorized,
         };
     }
 
+    private bool ShouldAdminToolBeShown(string toolSection)
+    {
+        if (_project is null)
+            return false;
+
+
+        if (toolSection == SectionViews.ExternalUsers)
+        {
+            // Only show External Users section if workspace is not Protected B and GCCF is enabled
+            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
+        }
+        return true;
+    }
+
     private bool ShouldToolBeShown(string toolSection)
     {
         if (_project is null)
@@ -491,12 +501,6 @@ DatahubAuthView.AuthLevels.Unauthorized,
             return toolSection == SectionViews.Dashboard;
         }
 
-
-        if (toolSection == SectionViews.ExternalUsers)
-        {
-            // Only show External Users section if workspace is not Protected B and GCCF is enabled
-            return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
-        }
 
         return toolSection switch
         {

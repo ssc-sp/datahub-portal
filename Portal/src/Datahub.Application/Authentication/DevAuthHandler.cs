@@ -12,7 +12,7 @@ namespace Datahub.Application.Authentication;
 public class DevAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
     private readonly IConfiguration _configuration;
-    public const string Scheme = "DevAuth";
+    public new const string Scheme = "DevAuth";
 
     public DevAuthHandler(
     IOptionsMonitor<AuthenticationSchemeOptions> options,

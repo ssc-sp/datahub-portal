@@ -14,6 +14,13 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
         public string? HostName { get; set; }
         public string? ResourceNameSuffix { get; set; }
 
+        /// <summary>
+        /// Gets or sets the full Azure resource ID of the subnet used for VNet integration.
+        /// Populated by <c>ISubnetPoolService</c> for Protected B workspaces only.
+        /// Example: /subscriptions/{subId}/resourceGroups/{rg}/providers/Microsoft.Network/virtualNetworks/{vnet}/subnets/{name}
+        /// </summary>
+        public string? SubnetId { get; set; }
+
         public IWorkspaceToolConfiguration Clone()
         {
             return new AppServiceConfiguration
@@ -26,7 +33,8 @@ namespace Datahub.Shared.Entities.WorkspaceToolConfiguration
                 ComposePath = ComposePath,
                 Id = Id,
                 HostName = HostName,
-                ResourceNameSuffix = ResourceNameSuffix
+                ResourceNameSuffix = ResourceNameSuffix,
+                SubnetId = SubnetId
             };
         }
 

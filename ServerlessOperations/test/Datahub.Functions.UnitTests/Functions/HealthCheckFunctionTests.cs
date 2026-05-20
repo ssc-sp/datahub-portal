@@ -50,9 +50,10 @@ namespace Datahub.Functions.UnitTests.Functions
             await TestHelper.SeedDatabase(dbContextFactory);
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
-            var webAppService = TestHelper.CreateMockWebAppManagementService(); 
-            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
-            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
+            var webAppService = TestHelper.CreateMockWebAppManagementService();
+            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
+            var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
+            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService, mockSubnetPoolService);
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,

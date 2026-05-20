@@ -343,30 +343,38 @@ namespace Datahub.Infrastructure.Services.Helpers
                     else
                     {
                         string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                        string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
+                        var accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
 
-                        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
-
-                        if (projectStorageManager is null)
+                        if (accountKey is null)
                         {
-                            status = InfrastructureHealthStatus.Unhealthy;
-                            errors.Add("Unable to find the data container.");
+                            status = InfrastructureHealthStatus.Undefined;
+                            errors.Add("System cannot access storage account (expected in Protected B)");
                         }
                         else
                         {
-                            var containers = await projectStorageManager.GetContainersAsync();
-                            if (containers is null || containers.Count < 1)
+                            var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+
+                            if (projectStorageManager is null)
                             {
-                                errors.Add("Storage account appears to have no containers.");
-                                status = InfrastructureHealthStatus.Degraded;
+                                status = InfrastructureHealthStatus.Unhealthy;
+                                errors.Add("Unable to find the data container.");
                             }
                             else
                             {
-                                var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
-                                if (metadata is null)
+                                var containers = await projectStorageManager.GetContainersAsync();
+                                if (containers is null || containers.Count < 1)
                                 {
-                                    errors.Add("Unable to get container metadata. There may be something wrong with the container.");
+                                    errors.Add("Storage account appears to have no containers.");
                                     status = InfrastructureHealthStatus.Degraded;
+                                }
+                                else
+                                {
+                                    var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
+                                    if (metadata is null)
+                                    {
+                                        errors.Add("Unable to get container metadata. There may be something wrong with the container.");
+                                        status = InfrastructureHealthStatus.Degraded;
+                                    }
                                 }
                             }
                         }

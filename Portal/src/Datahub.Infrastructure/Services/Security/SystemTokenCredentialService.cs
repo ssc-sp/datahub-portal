@@ -27,7 +27,7 @@ public class SystemTokenCredentialService : ISystemTokenCredentialService
         if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogInformation("Using managed identity token credential");
-            return new ManagedIdentityCredential();
+            return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
         }
 
         var tenantId = _portalConfiguration.AzureAd.TenantId;
