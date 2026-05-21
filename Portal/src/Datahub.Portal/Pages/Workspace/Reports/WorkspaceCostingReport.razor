@@ -23,6 +23,7 @@
 @inject ILogger<WorkspaceCostingReport> _logger
 @inject IJSRuntime _jsRuntime
 @inject ILocalTimeZone LocalTimeZone
+@implements IAsyncDisposable
 
 @if (_loading)
 {
@@ -451,5 +452,22 @@
     }
 
     record SpendingEstimation(double Storage, double ComputeSmall, double ComputeMedium, double ComputeLarge);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+    }
 
 }

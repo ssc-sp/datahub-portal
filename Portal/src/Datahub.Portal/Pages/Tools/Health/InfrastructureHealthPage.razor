@@ -16,6 +16,7 @@
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IMemoryCache Cache
 @inject ITokenAcquisition _tokenAcquisition
+@implements IDisposable
 
 @if (isLoading)
     {
@@ -455,6 +456,11 @@ else
             .ToList();
 
         return await Task.FromResult(new TableData<InfrastructureHealthCheck> { TotalItems = totalItems, Items = pagedData });
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
     }
 
 }

@@ -7,6 +7,7 @@
 @using Datahub.Core.Storage;
 @inject IJSRuntime _jsRuntime
 @inject NavigationManager NavigationManager
+@implements IAsyncDisposable
 
 <DHButton Variant="Variant.Filled" Color="Color.Primary" OnClick="HandleSasButtonClick">
     <MudText>
@@ -48,8 +49,11 @@
     {
         await base.OnAfterRenderAsync(firstRender);
 
-        _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
-            "./Pages/Workspace/Storage/FileExplorerPage.razor.js");
+        if (firstRender)
+        {
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./Pages/Workspace/Storage/FileExplorerPage.razor.js");
+        }
     }
 
     private string GetButtonText()
@@ -100,6 +104,23 @@
             await Task.Delay(1000);
             _showingCopiedForSasButton = false;
             StateHasChanged();
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (Exception)
+        {
+            // ignored
         }
     }
 }

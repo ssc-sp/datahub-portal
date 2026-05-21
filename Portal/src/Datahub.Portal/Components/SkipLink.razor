@@ -1,5 +1,6 @@
 ﻿@inject IJSRuntime _jsRuntime
 @inject NavigationManager _navigationManager
+@implements IAsyncDisposable
 
 @if (Anchor)
 {
@@ -47,6 +48,23 @@ else
         var queryParameters = new Dictionary<string, object?>();
         var uriWithQuery = _navigationManager.GetUriWithQueryParameters(queryParameters);
         return uriWithQuery.Split("#")[0];
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
     }
 
     

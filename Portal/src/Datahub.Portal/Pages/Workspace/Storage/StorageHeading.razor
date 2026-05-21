@@ -19,6 +19,7 @@
 @inject IOpenDataPublishingService _openDataPublishingService
 @inject DatahubPortalConfiguration _config
 @inject IDialogService _dialogService
+@implements IAsyncDisposable
 
     
 <div class="heading">
@@ -231,4 +232,23 @@
     }
 
     private const string JobStatusComplete = "Completed";
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetHelper?.Dispose();
+
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+    }
 }

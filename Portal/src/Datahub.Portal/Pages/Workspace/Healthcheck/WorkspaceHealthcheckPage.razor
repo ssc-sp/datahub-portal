@@ -49,6 +49,7 @@
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager 
 @inject ILocalTimeZone LocalTimeZone
+@implements IDisposable
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -101,6 +102,7 @@
 
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
+    private Timer _reloadTimer;
     public string _userToken;
     public string _userID;
 
@@ -132,7 +134,7 @@
 
         if (needReload)
         {
-            var reloadTimer = new System.Threading.Timer(_ =>
+            _reloadTimer = new System.Threading.Timer(_ =>
             {
                 InvokeAsync(() =>
                 {
@@ -140,6 +142,13 @@
                 });
             }, null, TimeSpan.FromSeconds(3), Timeout.InfiniteTimeSpan);
         }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+        _reloadTimer?.Dispose();
+        _projectDbContext?.Dispose();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

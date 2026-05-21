@@ -37,6 +37,7 @@
 @using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 @using MudBlazor
 @using MudBlazor.Utilities
+@implements IAsyncDisposable
 
 @attribute [Route(PageRoutes.Help)]
 @attribute [Route(PageRoutes.Help_FR)]
@@ -540,6 +541,23 @@ expected format.
         // Reverse the issues list so that the most recent issues are displayed first
         _issuesList.Reverse();
         return _issuesList;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
     }
 
     /**
