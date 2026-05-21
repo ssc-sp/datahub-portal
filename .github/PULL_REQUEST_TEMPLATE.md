@@ -10,7 +10,7 @@
 
 ## Changes
 
-<!-- List the key changes in this PR. Provide technical details. -->
+<!-- List the key changes in this PR. Provide technical details. Include screenshots, logs, or other evidence that demonstrates the changes work as expected. -->
 
 - Change 1
 - Change 2
@@ -18,10 +18,11 @@
 
 ## Testing
 
-<!-- Identify the testing that was done and necessary steps for verification. -->
+<!-- Identify the testing that was done and necessary steps for verification. Include screenshots, logs, or other evidence that demonstrates the changes work as expected. -->
 
 - [ ] I ran the portal locally and verified the changes in the PR
 - [ ] I added unit tests and they are passing
+- [ ] I included screenshots, logs, or other evidence showing the fix or feature works as expected in the "Changes" section above
 - [ ] Some changes cannot be tested locally. 
     - [ ] I have added follow-up work items to test these changes in the appropriate environment, including documentation of the testing steps and expected results.
 
@@ -41,6 +42,7 @@ I have...
 - [ ] Added a high-level description of the changes in the PR
 - [ ] Linked any related work items or tickets
 - [ ] Listed the key changes in the PR with technical details
+- [ ] Added screenshots, logs, or other evidence that demonstrates the changes work as expected
 - [ ] Identified the testing that was done and necessary steps for verification
 - [ ] Ensured that my code follows coding standards
 
@@ -55,6 +57,7 @@ I have...
 - [ ] reviewed the high-level description of the changes in the PR and confirmed it is clear and accurate
 - [ ] reviewed the linked work items or tickets and confirmed they are relevant and appropriately linked
 - [ ] reviewed the key changes in the PR and confirmed they are clear and technically sound
+- [ ] reviewed the provided screenshots, logs, or other evidence and confirmed they demonstrate the changes work as expected
 - [ ] reviewed the identified testing and confirmed it is sufficient for verification
 - [ ] reviewed the code and confirmed it follows coding standards
 - [ ] approved the PR if all items are addressed, or requested changes if any item has not been addressed or if I have any concerns
