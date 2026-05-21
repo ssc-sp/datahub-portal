@@ -17,7 +17,6 @@ using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure;
-using Datahub.Infrastructure.Offline.Security;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Cost;
@@ -102,7 +101,7 @@ builder.Services.AddScoped<IDateProvider, DateProvider>();
 builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
-builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
+//builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
 
 // in-memory cache for health result
 builder.Services.AddMemoryCache();

@@ -110,57 +110,23 @@ public class ApplicationInsights
     public string InstrumentationKey { get; set; } = null!;
 }
 
+/// <summary>
+/// This class contains the credentials for Azure services
+/// </summary>
 public class AzureAd
 {
-    public string Instance { get; set; } = "https://login.microsoftonline.com/";
-    public string Domain { get; set; } = null!;
     public string TenantId { get; set; } = null!;
     public string SubscriptionId { get; set; } = null!;
-    public string ClientId { get; set; } = null!;
-    public string ClientSecret { get; set; } = null!;
-    public string CallbackPath { get; set; } = "/signin-oidc";
-
-    [JsonProperty("SignedOutCallbackPath ")]
-    public string SignedOutCallbackPath { get; set; } = "/signout-callback-oidc";
-
-    public string AppIDURL { get; set; } = null!;
-
-    public string InfraClientId { get; set; } = null!;
-    public string InfraClientSecret { get; set; } = null!;
-}
-
-public class AdoServiceUser
-{
-    public string OidSecretName { get; set; } = "ado-service-user-oid";
-    public string PatSecretName { get; set; } = "ado-service-user-pat";
+    public string ClientId { internal get; set; } = null!;
+    public string ClientSecret { internal get; set; } = null!;
+    public string InfraClientId { internal get; set; } = null!;
+    public string InfraClientSecret { internal get; set; } = null!;
 }
 
 public class AdoOrg
 {
     public string OrgName { get; set; } = "DataSolutionsDonnees";
     public string ProjectName { get; set; } = "FSDH SSC";
-}
-
-public class ConnectionStrings
-{
-    [JsonProperty("datahub_mssql_project")]
-    public string? DatahubMsSqlProject { get; set; }
-
-    [JsonProperty("datahub_mssql_pip")] public string? DatahubMsSqlPip { get; set; }
-
-    [JsonProperty("datahub_mssql_etldb")] public string? DatahubMsSqlEtldb { get; set; }
-
-    [JsonProperty("datahub_mssql_finance")]
-    public string? DatahubMsSqlFinance { get; set; }
-
-    [JsonProperty("datahub_mssql_webAnalytics")]
-    public string? DatahubMsSqlWebAnalytics { get; set; }
-
-    [JsonProperty("datahub_mssql_metadata")]
-    public string? DatahubMsSqlMetadata { get; set; }
-
-    // [JsonProperty("DATAHUB_MSSQL_LANGUAGETRAINING")]
-    // public string? DatahubMsSqlLanguageTraining { get; set; }
 }
 
 public class Hosting

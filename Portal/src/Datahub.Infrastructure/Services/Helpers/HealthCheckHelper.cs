@@ -1,16 +1,18 @@
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
-using Azure.Identity;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Application.Services.WebApp;
-using Datahub.Core.Model.Context;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.WebApp;
+using Datahub.Core.Configuration;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
@@ -23,11 +25,11 @@ using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using MudBlazor;
 using Microsoft.TeamFoundation.Common;
-using Datahub.Core.Configuration;
+using MudBlazor;
 
 namespace Datahub.Infrastructure.Services.Helpers
 {
@@ -69,19 +71,13 @@ namespace Datahub.Infrastructure.Services.Helpers
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
+        [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService,
         IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
         IGCNotifyService? gcNotifyService = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
         private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
         private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
-
-        private AzureDevOpsConfiguration BuildDevopsConfig() => new()
-        {
-            ClientId = portalConfiguration.AzureAd.InfraClientId,
-            ClientSecret = portalConfiguration.AzureAd.InfraClientSecret,
-            TenantId = portalConfiguration.AzureAd.TenantId
-        };
 
         public static List<InfrastructureHealthResourceType> CoreHealthChecks { get; } =
         [
@@ -198,7 +194,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             try
             {
                 var kvUrl = GetAzureKeyVaultUrl(request);
-                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId, portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
+                var credential = infraTokenCredentialService.GetTokenCredential();
 
                 var secretClient = new SecretClient(kvUrl, credential);
                 var keyClient = new KeyClient(kvUrl, credential);
@@ -506,7 +502,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             try
             {
-                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId, portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
+                var credential = infraTokenCredentialService.GetTokenCredential();
 
                 var armClient = new ArmClient(credential);
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 

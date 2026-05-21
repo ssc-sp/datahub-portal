@@ -84,8 +84,9 @@ public class WorkspaceSubscriptionHook
         var userInformationService = Substitute.For<IUserInformationService>();
         userInformationService.GetCurrentPortalUserAsync().Returns(currentUser);
 
+        var tokenCredential = Substitute.For<ISystemTokenCredentialService>();
         var datahubAzureSubscriptionService =
-            new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
+            new DatahubAzureSubscriptionService(dbContextFactory, tokenCredential, datahubPortalConfiguration);
 
         var projectCreationService = new WorkspaceCreationService(
             datahubPortalConfiguration,

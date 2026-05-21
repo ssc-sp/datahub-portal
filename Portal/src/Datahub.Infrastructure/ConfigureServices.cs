@@ -16,6 +16,7 @@ using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Cost;
@@ -51,6 +52,7 @@ public static class ConfigureServices
         services.AddSingleton<IFileTokenService, FileTokenService>();
         services.AddScoped<CloudStorageManagerFactory>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+        services.AddScoped<HealthCheckHelper>();
         services.AddScoped<ISubnetPoolService, SubnetPoolService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddSingleton<IAnnouncementService, AnnouncementService>();

@@ -75,29 +75,10 @@ public class LocalMessageReaderService : BackgroundService
 
         // Create a new scope to retrieve scoped services
         using (var scope = _serviceProvider.CreateScope())
-        { 
-            var projectStorageConfigurationService = scope.ServiceProvider.GetRequiredService<ProjectStorageConfigurationService>();
-            var webAppManagementService = scope.ServiceProvider.GetRequiredService<IWorkspaceWebAppManagementService>();
-            var projectDBContext = scope.ServiceProvider.GetRequiredService<DatahubProjectDBContext>(); 
-            var portalConfiguration = scope.ServiceProvider.GetRequiredService<DatahubPortalConfiguration>();
-            var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>(); 
-            var httpClientFactory = scope.ServiceProvider.GetRequiredService<IHttpClientFactory>(); 
-            var resourceMessagingService = scope.ServiceProvider.GetRequiredService<IResourceMessagingService>();
-            var devopsConfig = configuration
-                .GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
-                .Get<AzureDevOpsConfiguration>();
-            var gcNotifyService = scope.ServiceProvider.GetRequiredService<IGCNotifyService>();
+        {
+            var healthCheckHelper = scope.ServiceProvider.GetRequiredService<HealthCheckHelper>();
+
             string fileContents = File.ReadAllText(e.FullPath);
-
-            var dbContextFactory = scope.ServiceProvider.GetRequiredService<IDbContextFactory<DatahubProjectDBContext>>();
-            var sendEndpointProvider = scope.ServiceProvider.GetRequiredService<ISendEndpointProvider>();
-            var httpContextAccessor = scope.ServiceProvider.GetRequiredService<IHttpContextAccessor>();
-            var azAccessTokenService = scope.ServiceProvider.GetRequiredService<AzAccessTokenManager>();
-
-            // TODO: refactor this to make it more concise, and/or autowire it
-            var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppManagementService, configuration, 
-                httpClientFactory, _loggerFactory, azAccessTokenService, sendEndpointProvider, resourceMessagingService, portalConfiguration, httpContextAccessor, gcNotifyService);
-
             // Deserialize the file contents into an InfrastructureHealthCheckMessage object
             var message = JsonSerializer.Deserialize<InfrastructureHealthCheckMessage>(fileContents);
             var checkResult = JsonSerializer.Deserialize<InfrastructureHealthCheckResultMessage>(fileContents);

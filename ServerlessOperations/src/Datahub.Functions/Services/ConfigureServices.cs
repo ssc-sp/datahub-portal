@@ -22,44 +22,25 @@ public static class ConfigureServices
         var datahubConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubConfiguration);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.TenantId))
-        {
-            datahubConfiguration.AzureAd.TenantId = configuration[TENANT_ID_KEY]
-                                                    ?? throw new ArgumentNullException(TENANT_ID_KEY);
-        }
+        datahubConfiguration.AzureAd.TenantId = configuration[TENANT_ID_KEY]
+                                                ?? throw new ArgumentNullException(TENANT_ID_KEY);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.ClientId))
-        {
-            datahubConfiguration.AzureAd.ClientId = configuration[PORTAL_CLIENT_ID_KEY]
-                                                    ?? throw new ArgumentNullException(PORTAL_CLIENT_ID_KEY);
-        }
+        datahubConfiguration.AzureAd.ClientId = configuration[PORTAL_CLIENT_ID_KEY]
+                                                ?? throw new ArgumentNullException(PORTAL_CLIENT_ID_KEY);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.ClientSecret))
-        {
-            datahubConfiguration.AzureAd.ClientSecret = configuration[PORTAL_CLIENT_SECRET_KEY]
-                                                        ?? throw new ArgumentNullException(PORTAL_CLIENT_SECRET_KEY);
-        }
+        datahubConfiguration.AzureAd.ClientSecret = configuration[PORTAL_CLIENT_SECRET_KEY]
+                                                    ?? throw new ArgumentNullException(PORTAL_CLIENT_SECRET_KEY);
+        datahubConfiguration.AzureAd.InfraClientId = configuration[DEVOPS_CLIENT_ID_KEY]
+            ?? throw new ArgumentNullException(DEVOPS_CLIENT_ID_KEY);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.InfraClientId))
-        {
-            datahubConfiguration.AzureAd.InfraClientId = configuration[DEVOPS_CLIENT_ID_KEY]
-                ?? throw new ArgumentNullException(DEVOPS_CLIENT_ID_KEY);
-        }
+        datahubConfiguration.AzureAd.InfraClientSecret = configuration[DEVOPS_CLIENT_SECRET_KEY]
+            ?? throw new ArgumentNullException(DEVOPS_CLIENT_SECRET_KEY);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.AzureAd.InfraClientSecret))
-        {
-            datahubConfiguration.AzureAd.InfraClientSecret = configuration[DEVOPS_CLIENT_SECRET_KEY]
-                ?? throw new ArgumentNullException(DEVOPS_CLIENT_SECRET_KEY);
-        }
+        datahubConfiguration.DatahubServiceBus.ConnectionString =
+            configuration[DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY]
+            ?? throw new ArgumentNullException(DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
 
-        if (string.IsNullOrEmpty(datahubConfiguration.DatahubServiceBus.ConnectionString))
-        {
-            datahubConfiguration.DatahubServiceBus.ConnectionString =
-                configuration[DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY]
-                ?? throw new ArgumentNullException(DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
-        }
-
-        services.AddSingleton(datahubConfiguration);
+        //services.AddSingleton(datahubConfiguration);
         
         services.AddMassTransitForAzureFunctions(x =>
         {

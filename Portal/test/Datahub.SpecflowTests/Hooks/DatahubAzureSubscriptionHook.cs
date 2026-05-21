@@ -1,4 +1,5 @@
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Subscriptions;
@@ -60,9 +61,10 @@ public class DatahubAzureSubscriptionHook
             .Configure()
             .FetchSubscriptionResource(Arg.Is<string>("invalid-subscription-id"))!
             .ThrowsAsync(new InvalidOperationException("Subscription not found. Please check the subscription id and access permissions."));
-        
-        
-        var unstubbedDatahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
+
+        var tokenCredential = Substitute.For<ISystemTokenCredentialService>();
+
+        var unstubbedDatahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, tokenCredential, datahubPortalConfiguration);
         
         scenarioContext["unstubbedDatahubAzureSubscriptionService"] = unstubbedDatahubAzureSubscriptionService;
         
