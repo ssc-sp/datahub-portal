@@ -26,6 +26,8 @@
 		<PackageReference Include="Azure.Identity">
 			<Aliases>AzIdentity</Aliases>
 		</PackageReference>
+		<PackageReference Include="Azure.ResourceManager" />
+		<PackageReference Include="Azure.ResourceManager.Authorization" />
 		<PackageReference Include="Azure.ResourceManager.PostgreSql" />
 		<PackageReference Include="Blazor-ApexCharts" />
 		<PackageReference Include="DocumentFormat.OpenXml" />

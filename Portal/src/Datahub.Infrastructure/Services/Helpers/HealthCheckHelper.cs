@@ -52,6 +52,10 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string DatahubServiceBusConnectionStringConfigKey = "DatahubServiceBus:ConnectionString";
 
         public const string BugReportUsername = "Datahub Portal";
+
+        // Built-in Azure RBAC role: Contributor
+        // Reference: https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#contributor
+        public const string AZURE_RBAC_CONTRIBUTOR_ROLE_DEFINITION_GUID = "b24988ac-6180-42a0-ab88-20f7382dd24c";
     }
 
     public class HealthCheckHelper(

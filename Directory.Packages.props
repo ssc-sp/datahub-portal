@@ -16,6 +16,7 @@
     <PackageVersion Include="Azure.Monitor.Query" Version="1.7.1" />
     <PackageVersion Include="Azure.ResourceManager" Version="1.14.0" />
     <PackageVersion Include="Azure.ResourceManager.AppService" Version="1.4.1" />
+    <PackageVersion Include="Azure.ResourceManager.Authorization" Version="1.1.0" />
     <PackageVersion Include="Azure.ResourceManager.Billing" Version="1.2.2" />
     <PackageVersion Include="Azure.ResourceManager.Consumption" Version="1.1.0" />
     <PackageVersion Include="Azure.ResourceManager.CostManagement" Version="1.0.3" />
