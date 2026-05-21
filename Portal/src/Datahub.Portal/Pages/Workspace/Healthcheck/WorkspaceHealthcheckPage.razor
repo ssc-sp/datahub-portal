@@ -16,6 +16,7 @@
 @using Datahub.Infrastructure.Services.Azure;
 @using Datahub.Portal.Services;
 @using Datahub.Shared;
+@using Datahub.Shared.Clients
 @using Datahub.Shared.Configuration;
 @using Datahub.Shared.Entities;
 @using Microsoft.Azure.Management.Fluent
@@ -49,6 +50,7 @@
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager 
 @inject ILocalTimeZone LocalTimeZone
+@inject ISystemTokenCredentialService _systemTokenCredentialService
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -150,30 +152,6 @@
         }
     }
 
-    private async Task<string> GetSystemAccessTokenAsync()
-    {
-        var config = new AzureDevOpsConfiguration
-            {
-                TenantId = _portalConfiguration.AzureAd.TenantId,
-                ClientId = _portalConfiguration.AzureAd.InfraClientId,
-                ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret
-            };
-
-        var cancellationToken = CancellationToken.None;
-        var audience = "https://management.azure.com/";
-        var url = $"https://login.microsoftonline.com/{config.TenantId}/oauth2/token";
-        var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                { "grant_type", "client_credentials" },
-                { "client_id", config.ClientId },
-                { "client_secret", config.ClientSecret },
-                { "scope", $"{audience}.default" },
-                { "resource", audience }
-            });
-        using var _httpClient = _httpClientFactory.CreateClient();
-        var tokenResponse = await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
-        return tokenResponse?.access_token;
-    }
     private async Task<bool> CheckRoleToResource()
     {
         try
@@ -236,10 +214,15 @@
 
     private async Task AssignRole(string tenantId, string subscriptionId, string resourceGroup, string webAppName, string oidClaim, string roleDefinitionId)
     {
-        var accessToken = await GetSystemAccessTokenAsync();
-        var credentials = new TokenCredentials(accessToken);
+        var credential = _systemTokenCredentialService.GetTokenCredential();
+        
+        var adapter = new TokenCredentialAdapter(
+            credential,
+            new[] { "https://management.azure.com/.default" }
+        );
+
         var azure = Azure.Configure()
-               .Authenticate(new AzureCredentials(credentials, credentials, tenantId, AzureEnvironment.AzureGlobalCloud))
+               .Authenticate(new AzureCredentials(adapter, adapter, tenantId, AzureEnvironment.AzureGlobalCloud))
                .WithDefaultSubscription();
         var roleAssignment = azure.AccessManagement.RoleAssignments
                                 .Define(Guid.NewGuid().ToString())

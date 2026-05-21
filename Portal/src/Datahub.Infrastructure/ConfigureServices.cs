@@ -27,6 +27,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Shared.Clients;
 using MassTransit;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -63,7 +64,6 @@ public static class ConfigureServices
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
-
 
         services.AddAzureResourceManager(configuration);
         services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
