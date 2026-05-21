@@ -9,12 +9,12 @@ namespace Datahub.Functions.Services;
 
 public static class ConfigureServices
 {
-    private const string TENANT_ID_KEY = "TENANT_ID";
-    private const string PORTAL_CLIENT_ID_KEY = "FUNC_SP_CLIENT_ID";
-    private const string PORTAL_CLIENT_SECRET_KEY = "FUNC_SP_CLIENT_SECRET";
-    private const string DEVOPS_CLIENT_ID_KEY = "AzureDevOpsConfiguration:ClientId";
-    private const string DEVOPS_CLIENT_SECRET_KEY = "AzureDevOpsConfiguration:ClientSecret";
-    private const string DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY = "DatahubServiceBus:ConnectionString";
+    internal const string TENANT_ID_KEY = "TENANT_ID";
+    internal const string PORTAL_CLIENT_ID_KEY = "FUNC_SP_CLIENT_ID";
+    internal const string PORTAL_CLIENT_SECRET_KEY = "FUNC_SP_CLIENT_SECRET";
+    internal const string DEVOPS_CLIENT_ID_KEY = "AzureDevOpsConfiguration:ClientId";
+    internal const string DEVOPS_CLIENT_SECRET_KEY = "AzureDevOpsConfiguration:ClientSecret";
+    internal const string DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY = "DatahubServiceBus:ConnectionString";
 
     public static IServiceCollection AddDatahubConfigurationFromFunctionFormat(this IServiceCollection services,
         IConfiguration configuration)

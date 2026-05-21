@@ -29,12 +29,13 @@ namespace Datahub.Functions.UnitTests.Functions
         private readonly IHttpClientFactory _httpClientFactory = Substitute.For<IHttpClientFactory>();
 
         private CheckInfrastructureStatus _checkInfrastructureStatusFunction;
+        private DatahubPortalConfiguration _datahubConfig;
 
         [SetUp]
         public async Task Setup()
         {
-            var datahubConfig = new DatahubPortalConfiguration();
-            datahubConfig.AzureAd = new AzureAd
+            _datahubConfig = new DatahubPortalConfiguration();
+            _datahubConfig.AzureAd = new AzureAd
             {
                 SubscriptionId = Guid.NewGuid().ToString(),
                 TenantId = Guid.NewGuid().ToString(),
@@ -42,10 +43,10 @@ namespace Datahub.Functions.UnitTests.Functions
                 InfraClientSecret = Guid.NewGuid().ToString()
             };
 
-            Testing._configuration.Bind(datahubConfig);
+            Testing._configuration.Bind(_datahubConfig);
             var keyVaultUserService = Substitute.For<IKeyVaultUserService>();
 
-            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig, keyVaultUserService);
+            var projectStorageConfigurationService = new ProjectStorageConfigurationService(_datahubConfig, keyVaultUserService);
 
             var dbContextFactory = TestHelper.CreateMockDbContextFactory();
             await TestHelper.SeedDatabase(dbContextFactory);
@@ -61,7 +62,7 @@ namespace Datahub.Functions.UnitTests.Functions
             var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, tokenManager, sendProvider, resourceMessagingService, datahubConfig, tokenCredentialService, httpContextAccessor, null);
+                Testing._configuration, _httpClientFactory, _loggerFactory, tokenManager, sendProvider, resourceMessagingService, _datahubConfig, tokenCredentialService, httpContextAccessor, null);
 
             _checkInfrastructureStatusFunction = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }
@@ -99,7 +100,7 @@ namespace Datahub.Functions.UnitTests.Functions
 
             var results = GetHealthCheckResults(response);
             var firstResult = results.FirstOrDefault();
-            var expectedError = "Error while checking Azure Function health: ClientSecretCredential authentication failed";
+            var expectedError = $"The subscription '{_datahubConfig.AzureAd.SubscriptionId}' could not be found";
             VerifyUnhealthyResult(firstResult, expectedError);
         }
 

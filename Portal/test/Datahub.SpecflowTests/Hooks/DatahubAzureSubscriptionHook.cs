@@ -48,9 +48,11 @@ public class DatahubAzureSubscriptionHook
             TenantId = Testing.WorkspaceTenantGuid,
             SubscriptionId = Testing.WorkspaceSubscriptionGuid,
             SubscriptionName = Testing.SubscriptionName
-        });        
-        
-        var datahubAzureSubscriptionService = Substitute.ForPartsOf<DatahubAzureSubscriptionService>(dbContextFactory, datahubPortalConfiguration);
+        });
+
+        var tokenCredential = Substitute.For<ISystemTokenCredentialService>();
+
+        var datahubAzureSubscriptionService = Substitute.ForPartsOf<DatahubAzureSubscriptionService>(dbContextFactory, tokenCredential, datahubPortalConfiguration);
         
         datahubAzureSubscriptionService
             .Configure()
@@ -62,7 +64,6 @@ public class DatahubAzureSubscriptionHook
             .FetchSubscriptionResource(Arg.Is<string>("invalid-subscription-id"))!
             .ThrowsAsync(new InvalidOperationException("Subscription not found. Please check the subscription id and access permissions."));
 
-        var tokenCredential = Substitute.For<ISystemTokenCredentialService>();
 
         var unstubbedDatahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, tokenCredential, datahubPortalConfiguration);
         
