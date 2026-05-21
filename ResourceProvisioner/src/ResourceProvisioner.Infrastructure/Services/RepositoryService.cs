@@ -159,7 +159,7 @@ public partial class RepositoryService(
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
         var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var tokenManager = new AzAccessTokenManager(credentialService);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
         var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var cloneOptions = new CloneOptions
@@ -203,7 +203,7 @@ public partial class RepositoryService(
         logger.LogInformation("Checking upstream for any updates in branch");
 
         var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var tokenManager = new AzAccessTokenManager(credentialService);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
         var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var pullOptions = new PullOptions()
@@ -265,7 +265,7 @@ public partial class RepositoryService(
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
         var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var tokenManager = new AzAccessTokenManager(credentialService);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
         var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var options = new PushOptions

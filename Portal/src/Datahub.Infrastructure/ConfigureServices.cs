@@ -64,7 +64,7 @@ public static class ConfigureServices
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
-
+        services.AddSingleton<AzureDevOpsClient>();
         services.AddAzureResourceManager(configuration);
         services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddTransient<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();

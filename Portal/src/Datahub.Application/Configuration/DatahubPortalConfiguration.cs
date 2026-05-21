@@ -1,17 +1,12 @@
+using Datahub.Shared.Clients;
 using Newtonsoft.Json;
 
 namespace Datahub.Application.Configuration;
 
-public class DatahubPortalConfiguration
+public class DatahubPortalConfiguration : IAzureDevopsConfiguration
 {
     public CultureSettings CultureSettings { get; set; } = new();
-    public string LandingBgFolder { get; set; } = "ssc";
-    public int LandingBgImgCount { get; set; } = 2;
     public bool ShowLoginPage { get; set; } = true;
-    public string Title { get; set; } = "Federal Science DataHub default title";
-    public string DataHubModules { get; set; } = null!;
-    public DataProjects DataProjects { get; set; } = new();
-    public Achievements Achievements { get; set; } = new();
     public Media Media { get; set; } = new();
     public string ProjectUrlSegment { get; set; } = "w";
     public string ProfileUrlSegment { get; set; } = "profile";
@@ -20,8 +15,6 @@ public class DatahubPortalConfiguration
     public AdoOrg AdoOrg { get; set; } = new();
     public KeyVault KeyVault { get; set; } = new();
     public Hosting Hosting { get; set; } = new();
-    public EmailNotification EmailNotification { get; set; } = new();
-    public PublicFileSharing PublicFileSharing { get; set; } = new();
     public string PortalRunAsManagedIdentity { get; set; } = "disabled";
     public string ResourcePrefix { get; set; } = "fsdh";
     public bool CentralizedProjectSecrets { get; set; } = false;
@@ -30,13 +23,10 @@ public class DatahubPortalConfiguration
     [JsonProperty("Azure:SignalR:StickyServerMode")]
     public string AzureSignalRStickyServerMode { get; set; } = "Required";
 
-    public string AllowedHosts { get; set; } = null!;
     public string[] AllowedUserEmailDomains { get; set; } = [".gc.ca"];
     public string DatahubGraphInviteFunctionUrl { get; set; } = null!;
     public string DatahubAddUserToGroupFunctionUrl { get; set; } = null!;
     public string DatahubGraphUsersStatusFunctionUrl { get; set; } = null!;
-    public TermsAndConditionsUrl TermsAndConditionsUrl { get; set; } = new();
-    public PreRegistrationDocumentationUrl PreRegistrationDocumentationUrl { get; set; } = new();
 
     public string SupportFormUrl { get; set; } =
         "https://forms.office.com/pages/responsepage.aspx?id=lMFb0L-U1kquLh2w8uOPXhksOXzZ73RCp9fVTz4vTU5UNTc1U00yNVUxWVg4SkJGMFVHN1RCTTdQRS4u";
@@ -51,6 +41,8 @@ public class DatahubPortalConfiguration
     public ToolboxConfig ToolboxConfig { get; set; } = new();
     public StorageConfiguration StorageConfiguration { get; set; } = new();
     public StorageScanNotificationSettings StorageScanNotifications { get; set; } = new();
+
+    public string OrganizationUrl => $"https://dev.azure.com/{AdoOrg.OrgName}";
 }
 
 public class Achievements
@@ -171,23 +163,6 @@ public class ConnectionStrings
     // public string? DatahubMsSqlLanguageTraining { get; set; }
 }
 
-public class EmailNotification
-{
-    public string SmtpHost { get; set; } = null!;
-    public int SmtpPort { get; set; } = 587;
-    public string SmtpUsername { get; set; } = "Placeholder Username";
-    public string SmtpPassword { get; set; } = "Placeholder Password";
-    public string SenderName { get; set; } = "Placeholder Name";
-    public string SenderAddress { get; set; } = "Placeholder@address.com";
-    public bool DevTestMode { get; set; } = false;
-}
-
-public class Graph
-{
-    public string BaseUrl { get; set; } = "https://graph.microsoft.com/v1.0";
-    public string Scopes { get; set; } = "user.read";
-}
-
 public class Hosting
 {
     public string Profile { get; set; } = "ssc";
@@ -207,13 +182,6 @@ public class KeyVault
 public class DatahubServiceBus
 {
     public string ConnectionString { get; set; } = null!;
-}
-
-public class PublicFileSharing
-{
-    public string OpenDataApprovalPdfBaseUrl { get; set; } = null!;
-    public string OpenDataApprovalPdfFormIdParam { get; set; } = null!;
-    public string PublicFileSharingDomain { get; set; } = null!;
 }
 
 public class ReverseProxy

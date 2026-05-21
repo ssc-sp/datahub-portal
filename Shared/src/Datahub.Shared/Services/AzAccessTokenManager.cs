@@ -1,9 +1,10 @@
 using Azure.Core;
 using Datahub.Application.Services.Security;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Datahub.Shared.Clients;
 
-public class AzAccessTokenManager(ISystemTokenCredentialService tokenCredentialService)
+public class AzAccessTokenManager(ISystemTokenCredentialService tokenCredentialService, [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService)
 {
     public const string AzureManagementApiScopeDefault = "https://management.azure.com/.default";
     public const string AzureDevopsScope = "499b84ac-1321-427f-aa17-267ca6975798";
@@ -13,14 +14,14 @@ public class AzAccessTokenManager(ISystemTokenCredentialService tokenCredentialS
 
     public async Task<AccessToken> AccessAzureManagementTokenAsync()
     {
-        var tokenCredential = tokenCredentialService.GetTokenCredential();
+        var tokenCredential = infraTokenCredentialService.GetTokenCredential();
         var accessToken = await tokenCredential.GetTokenAsync(new TokenRequestContext([AzureManagementApiScopeDefault]), CancellationToken.None);
         return accessToken;
     }
 
     public async Task<AccessToken> AccessDevopsTokenAsync()
     {
-        var tokenCredential = tokenCredentialService.GetTokenCredential();
+        var tokenCredential = infraTokenCredentialService.GetTokenCredential();
         return await tokenCredential.GetTokenAsync(new TokenRequestContext([AzureDevOpsScopeDefault]), CancellationToken.None);
     }
 

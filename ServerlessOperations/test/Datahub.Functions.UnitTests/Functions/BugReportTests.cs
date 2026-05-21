@@ -1,6 +1,7 @@
 using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Functions.Entities;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
@@ -69,7 +70,10 @@ public class BugReportTests
         var gcNotifyService = Substitute.For<IGCNotifyService>();
  
         _alertRecordService = Substitute.For<IAlertRecordService>();
-        _azClient = Substitute.For<AzureDevOpsClient>();
+        var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
+        var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
+        var config = Substitute.For<IAzureDevopsConfiguration>();
+        _azClient = Substitute.For<AzureDevOpsClient>(config, tokenManager);
         _bugReport = new BugReport(_logger, _azureConfig, gcNotifyService, _azClient, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",

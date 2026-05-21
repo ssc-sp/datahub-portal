@@ -512,14 +512,6 @@ expected format.
             Query = query
         };
 
-        // Configure the Azure DevOps client
-        var config = new AzureDevOpsConfiguration();
-        config.TenantId = _portalConfiguration.AzureAd.TenantId;
-        config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
-        config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
-        config.OrganizationName = _portalConfiguration.AdoOrg.OrgName;
-        config.ProjectName = _portalConfiguration.AdoOrg.ProjectName;
-
         var client2 = await _azureDevOpsClient.WorkItemClientAsync();
         var res = await client2.QueryByWiqlAsync(wiql).ConfigureAwait(false);
         var ids = res.WorkItems.Select(item => item.Id).ToArray();

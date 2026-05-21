@@ -36,7 +36,7 @@ namespace ResourceProvisioner.SpecflowTests.Steps
         public async Task WhenItRequestsAnAccessToken()
         {
             var infraTokenCredentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-            var tokenManager = new AzAccessTokenManager(infraTokenCredentialService);
+            var tokenManager = new AzAccessTokenManager(infraTokenCredentialService, infraTokenCredentialService);
             var accessToken = await tokenManager.AccessDevopsTokenAsync();
             
             scenarioContext["accessToken"] = accessToken;
