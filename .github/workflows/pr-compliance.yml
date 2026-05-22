@@ -52,8 +52,15 @@ jobs:
       - name: Check PR Body for AB# Link
         env:
           PR_BODY: ${{ github.event.pull_request.body }}
+          ACTOR: ${{ github.actor }}
         run: |
           echo "Checking PR description for Azure Boards work item link (AB#)..."
+
+          if [[ "$ACTOR" == *"[bot]" ]]; then
+            echo "🤖 Bot automtaion detected ($ACTOR). Skipping AB# requirement."
+            exit 0
+          fi
+
           if echo "$PR_BODY" | grep -qE 'AB#[0-9]+'; then
             echo "✅ Found Azure Boards work item link."
             exit 0
