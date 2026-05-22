@@ -12,6 +12,7 @@ trigger:
       - 'Portal/**'
       - 'ServerlessOperations/**'
       - 'ResourceProvisioner/**'
+      - 'Directory.Packages.props'
 
 pr:
   branches:
@@ -23,7 +24,7 @@ pr:
       - 'Portal/**'
       - 'ServerlessOperations/**'
       - 'ResourceProvisioner/**'
-
+      - 'Directory.Packages.props'
 resources:
   repositories:
   - repository: self
