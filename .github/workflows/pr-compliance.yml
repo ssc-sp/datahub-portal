@@ -1,0 +1,66 @@
+name: PR Compliance Checks
+
+on:
+  pull_request:
+    types: [opened, reopened, edited, synchronize]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  validate-title:
+    name: Validate Title (Conventional Commits)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          echo "Checking PR title for Conventional Commits format..."
+
+          # Regex breakdown:
+          # ^(feat|fix|docs|test|ci|refactor|perf|chore|revert) - Allowed types
+          # (\([a-zA-Z0-9_ -]+\))?                              - Optional scope in parentheses
+          # !?                                                  - Optional breaking change indicator (!)
+          # :                                                   - Colon and a space
+          # .+$                                                 - Description (at least one character)
+          REGEX="^(feat|fix|docs|test|ci|refactor|perf|chore|revert)(\([a-zA-Z0-9_ -]+\))?!?: .+$"
+
+          if [[ "$PR_TITLE" =~ $REGEX ]]; then
+            echo "✅ PR title meets Conventional Commit standards."
+            exit 0
+          else
+            echo "❌ ERROR: PR title does not match Conventional Commits format."
+            echo ""
+            echo "Your title: '$PR_TITLE'"
+            echo ""
+            echo "Expected format: <type>[optional scope]: <description>"
+            echo "Allowed types: feat, fix, docs, test, ci, refactor, perf, chore, revert"
+            echo ""
+            echo "Examples:"
+            echo "  feat: add new login page"
+            echo "  fix(auth): resolve token expiration issue"
+            echo "  feat!: breaking change to API"
+            exit 1
+          fi
+
+  validate-body:
+    name: Validate Body (Azure Boards Link)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR Body for AB# Link
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "Checking PR description for Azure Boards work item link (AB#)..."
+          if echo "$PR_BODY" | grep -qE 'AB#[0-9]+'; then
+            echo "✅ Found Azure Boards work item link."
+            exit 0
+          else
+            echo "❌ ERROR: PR description must include an Azure Boards work item link."
+            echo ""
+            echo "Please add AB#<work-item-id> to your PR description."
+            echo "Example: 'AB#1234 - Implements the new login flow'"
+            exit 1
+          fi
