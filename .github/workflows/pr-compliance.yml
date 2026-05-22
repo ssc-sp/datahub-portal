@@ -18,7 +18,7 @@ jobs:
           PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
           echo "Checking PR title for Conventional Commits format..."
-          
+
           # Regex breakdown:
           # ^(feat|fix|docs|test|ci|refactor|perf|chore|revert) - Allowed types
           # (\([a-zA-Z0-9_ -]+\))?                              - Optional scope in parentheses
@@ -26,7 +26,7 @@ jobs:
           # :                                                   - Colon and a space
           # .+$                                                 - Description (at least one character)
           REGEX="^(feat|fix|docs|test|ci|refactor|perf|chore|revert)(\([a-zA-Z0-9_ -]+\))?!?: .+$"
-          
+
           if [[ "$PR_TITLE" =~ $REGEX ]]; then
             echo "✅ PR title meets Conventional Commit standards."
             exit 0
