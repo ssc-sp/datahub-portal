@@ -117,10 +117,10 @@ public class AzureAd
 {
     public string TenantId { get; set; } = null!;
     public string SubscriptionId { get; set; } = null!;
-    public string ClientId { internal get; set; } = null!;
-    public string ClientSecret { internal get; set; } = null!;
-    public string InfraClientId { internal get; set; } = null!;
-    public string InfraClientSecret { internal get; set; } = null!;
+    public string ClientId { get; set; } = null!;
+    public string ClientSecret { get; set; } = null!;
+    public string InfraClientId { get; set; } = null!;
+    public string InfraClientSecret { get; set; } = null!;
 }
 
 public class AdoOrg

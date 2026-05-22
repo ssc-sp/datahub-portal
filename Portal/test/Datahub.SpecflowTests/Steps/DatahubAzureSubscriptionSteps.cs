@@ -371,8 +371,7 @@ public sealed class DatahubAzureSubscriptionSteps(
     {
         try
         {
-            var unstubbed = scenarioContext["unstubbedDatahubAzureSubscriptionService"] as IDatahubAzureSubscriptionService;
-            var subscription = await unstubbed!.SubscriptionExistsAsync(p0);
+            var subscription = await datahubAzureSubscriptionService.SubscriptionExistsAsync(p0);
             scenarioContext["subscription"] = subscription;
         }
         catch (Exception e)
