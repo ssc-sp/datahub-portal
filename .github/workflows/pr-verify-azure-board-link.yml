@@ -9,8 +9,8 @@ permissions:
   pull-requests: read
 
 jobs:
-  check-ab-link:
-    name: Check for AB# Work Item Link
+  verify-ab-link:
+    name: Verify PR contains link to AB# Work Item
     runs-on: ubuntu-latest
     steps:
       - name: Verify PR description contains AB# link
