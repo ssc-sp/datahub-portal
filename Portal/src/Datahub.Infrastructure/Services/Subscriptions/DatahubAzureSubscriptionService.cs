@@ -36,7 +36,7 @@ public class DatahubAzureSubscriptionService(
     /// </summary>
     /// <param name="subscriptionId">The subscription ID to check.</param>
     /// <returns>Returns true if the subscription exists, otherwise false.</returns>
-    public async Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId) => await FetchSubscriptionResource(subscriptionId);
+    public Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId) => FetchSubscriptionResource(subscriptionId);
 
 
     /// <summary>
