@@ -9,9 +9,10 @@ trigger:
       - proof-of-concept
   paths:
     include:
-      - 'Portal/**'
-      - 'ServerlessOperations/**'
-      - 'ResourceProvisioner/**'
+      - "Portal/**"
+      - "ServerlessOperations/**"
+      - "ResourceProvisioner/**"
+      - "Directory.Packages.props"
 
 pr:
   branches:
@@ -20,310 +21,308 @@ pr:
       - proof-of-concept
   paths:
     include:
-      - 'Portal/**'
-      - 'ServerlessOperations/**'
-      - 'ResourceProvisioner/**'
-
+      - "Portal/**"
+      - "ServerlessOperations/**"
+      - "ResourceProvisioner/**"
+      - "Directory.Packages.props"
 resources:
   repositories:
-  - repository: self
-    type: git
-    ref: refs/heads/develop
+    - repository: self
+      type: git
+      ref: refs/heads/develop
 jobs:
-- job: Job_1
-  displayName: 'Agent job: prepare'
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-  - task: UseDotNet@2
-    displayName: Use .NET Core sdk 10.0.x
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
-  - task: UseNode@1
-    displayName: Use Node 16.x
-    inputs:
-      version: 16.x
-
-  - task: PowerShell@2
-    displayName: 'Init version vars + set build number from version.txt (v prefix)'
-    inputs:
-      targetType: inline
-      script: |
-        $versionFile = Join-Path "$(Build.SourcesDirectory)" "version.txt"
-        if (-not (Test-Path $versionFile)) {
-          Write-Error "version.txt not found at $versionFile"
-          exit 1
-        }
-
-        $version = (Get-Content -Path $versionFile -Raw).Trim()
-        if ([string]::IsNullOrWhiteSpace($version)) {
-          Write-Error "version.txt is empty."
-          exit 1
-        }
-
-        if ($version -notmatch '^\d+\.\d+\.\d+$') {
-          Write-Error "version.txt does not contain a valid semantic version (major.minor.patch). Found: '$version'"
-          exit 1
-        }
-
-        # Initialize variables used elsewhere
-        $parts = $version.Split('.')
-        $majorMinor = "$($parts[0]).$($parts[1])"
-        $revision = $parts[2]
-        $dateCode = Get-Date -Format 'yyyyMMdd_HHmmssfff'
-        Write-Host "##vso[task.setvariable variable=version.MajorMinor]$majorMinor"
-        Write-Host "##vso[task.setvariable variable=version.Revision]$revision"
-        Write-Host "##vso[task.setvariable variable=version.Build]$dateCode"
-
-        # Set build number with v prefix and date code
-        $buildName = "v${version}-${dateCode}"
-
-        Write-Host "Setting the name of the build to '$buildName'."
-        Write-Host "##vso[build.updatebuildnumber]$buildName"
-
-
-
-- job: Job_2
-  displayName: Agent job - build portal app
-  dependsOn: Job_1
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-  - task: UseDotNet@2
-    displayName: Use .NET Core sdk 10.0.x
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
-  - task: PowerShell@2
-    displayName: PowerShell Script - copy appsettings
-    inputs:
-      targetType: inline
-      script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
-  - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    enabled: False
-    inputs:
-      command: restore
-      projects: Portal/src/Datahub.Portal/*.csproj
-  - task: DotNetCoreCLI@2
-    displayName: dotnet build
-    inputs:
-      projects: Portal/src/Datahub.Portal/*.csproj
-      arguments: --configuration $(BuildConfiguration)
-  - task: DotNetCoreCLI@2
-    displayName: dotnet publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: Portal/src/Datahub.Portal/*.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: datahub-portal'
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
-      ArtifactName: datahub-portal
-- job: Job_3
-  displayName: Agent job - build function app
-  dependsOn: Job_1
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-  - task: UseDotNet@2
-    displayName: Use .NET Core sdk 10.0.x
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
-  - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    inputs:
-      command: restore
-      projects: ServerlessOperations/src/Datahub.Functions/*.csproj
-  - task: DotNetCoreCLI@2
-    displayName: dotnet build
-    inputs:
-      projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
-      arguments: --configuration $(BuildConfiguration)
-  - task: DotNetCoreCLI@2
-    displayName: dotnet publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r $(target_os) --self-contained true
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: datahub-function'
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/serverless
-      ArtifactName: datahub-function
-- job: Job_5
-  displayName: Agent job - build resource provisioner function app
-  dependsOn: Job_1
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-  - task: UseDotNet@2
-    displayName: Use .NET Core sdk 10.0.x
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
-  - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    inputs:
-      command: restore
-      projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-  - task: DotNetCoreCLI@2
-    displayName: dotnet build
-    inputs:
-      projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-      arguments: --configuration $(BuildConfiguration)
-  - task: DotNetCoreCLI@2
-    displayName: dotnet publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r $(target_os) --self-contained true
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: resource-provisioner-function'
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/resourceprovisioner
-      ArtifactName: resource-provisioner-function
-- job: Job_6
-  displayName: Agent job - package maintenance pages
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-  - task: UseDotNet@2
-    displayName: Use .NET Core sdk 10.0.x
-    inputs:
-      version: 10.0.x
-      includePreviewVersions: true
-      performMultiLevelLookup: true
-  - task: DotNetCoreCLI@2
-    displayName: dotnet restore
-    inputs:
-      command: restore
-      projects: Portal/src/Datahub.Maintenance/*.csproj
-  - task: DotNetCoreCLI@2
-    displayName: dotnet build
-    inputs:
-      projects: Portal/src/Datahub.Maintenance/*.csproj
-      arguments: --configuration $(BuildConfiguration)
-  - task: DotNetCoreCLI@2
-    displayName: dotnet publish
-    inputs:
-      command: publish
-      publishWebProjects: false
-      projects: Portal/src/Datahub.Maintenance/*.csproj
-      arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r $(target_os) --self-contained true
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: maintenance page'
-    inputs:
-      PathtoPublish: $(Build.ArtifactStagingDirectory)/output/maintenancepage
-      ArtifactName: maintenance-page
-- job: Job_7
-  displayName: Agent job - build python user provisioner function
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-  - task: UsePythonVersion@0
-    displayName: Use Python 3.11
-    inputs:
-      versionSpec: 3.11
-  - task: Bash@3
-    displayName: Bash Script - pip Install application dependencies
-    inputs:
-      targetType: inline
-      script: >
-        # Write your commands here
-
-
-        echo 'building python'
-
-        # pip install --target="./.python_packages/lib/site-packages" -r ./requirements.txt
-
-
-        pip install -r ./requirements.txt
-      workingDirectory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
-  - task: ArchiveFiles@2
-    displayName: Archive
-    enabled: False
-    inputs:
-      rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
-      archiveFile: $(Build.ArtifactStagingDirectory)/output/rpuser/rpuser.zip
-  - task: PublishBuildArtifacts@1
-    displayName: 'Publish Artifact: user provisioner python function app'
-    inputs:
-      PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
-      ArtifactName: user-provisioner
-- job: Job_4
-  displayName: Agent job - post-build
-  dependsOn:
-  - Job_1
-  - Job_2
-  - Job_3
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - checkout: self
-    clean: true
-    lfs: true
-    fetchTags: false
-    persistCredentials: True
-  - task: PowerShell@2
-    displayName: 'Tag repository with v<semver>'
-    inputs:
-      targetType: inline
-      script: |
-        #git config user.name "AzureDevOps Agent"
-        #git config user.email "ado-agent@example"
-        #$versionNumber = "v$(version.MajorMinor).$(version.Revision)-$(version.Build)"
-
-        #Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
-        #git tag "$versionNumber" --force
-        #git push origin "$versionNumber" --force
-
-- job: Portal_Testing_job
-  displayName: Agent job - Portal Testing
-  dependsOn: Job_2
-  pool:
-    vmImage: ubuntu-latest
-  steps:
-  - template: fsdh-portal-tests.yml
-    
-- job: ResourceProvisioner_Testing_job
-  displayName: Agent job - Resource Provisioner Testing
-  dependsOn: Job_2
-  pool:
+  - job: Job_1
+    displayName: "Agent job: prepare"
+    pool:
       vmImage: ubuntu-latest
-  steps:
-    - template: fsdh-resource-provisioner-tests.yml
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+      - task: UseDotNet@2
+        displayName: Use .NET Core sdk 10.0.x
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
+      - task: UseNode@1
+        displayName: Use Node 16.x
+        inputs:
+          version: 16.x
+
+      - task: PowerShell@2
+        displayName: "Init version vars + set build number from version.txt (v prefix)"
+        inputs:
+          targetType: inline
+          script: |
+            $versionFile = Join-Path "$(Build.SourcesDirectory)" "version.txt"
+            if (-not (Test-Path $versionFile)) {
+              Write-Error "version.txt not found at $versionFile"
+              exit 1
+            }
+
+            $version = (Get-Content -Path $versionFile -Raw).Trim()
+            if ([string]::IsNullOrWhiteSpace($version)) {
+              Write-Error "version.txt is empty."
+              exit 1
+            }
+
+            if ($version -notmatch '^\d+\.\d+\.\d+$') {
+              Write-Error "version.txt does not contain a valid semantic version (major.minor.patch). Found: '$version'"
+              exit 1
+            }
+
+            # Initialize variables used elsewhere
+            $parts = $version.Split('.')
+            $majorMinor = "$($parts[0]).$($parts[1])"
+            $revision = $parts[2]
+            $dateCode = Get-Date -Format 'yyyyMMdd_HHmmssfff'
+            Write-Host "##vso[task.setvariable variable=version.MajorMinor]$majorMinor"
+            Write-Host "##vso[task.setvariable variable=version.Revision]$revision"
+            Write-Host "##vso[task.setvariable variable=version.Build]$dateCode"
+
+            # Set build number with v prefix and date code
+            $buildName = "v${version}-${dateCode}"
+
+            Write-Host "Setting the name of the build to '$buildName'."
+            Write-Host "##vso[build.updatebuildnumber]$buildName"
+
+  - job: Job_2
+    displayName: Agent job - build portal app
+    dependsOn: Job_1
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+      - task: UseDotNet@2
+        displayName: Use .NET Core sdk 10.0.x
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
+      - task: PowerShell@2
+        displayName: PowerShell Script - copy appsettings
+        inputs:
+          targetType: inline
+          script: "cd Portal/src\n      $files=Get-Childitem -Path Datahub.Portal -Include appsettings*json-tmpl,launch*json-tmpl -File -Recurse -ErrorAction SilentlyContinue  | Where {$_.FullName -notlike \"*\\Debug\\*\"}\n      foreach ($file in $files){\n        $fileRendered=$file.FullName.trim(\"-tmpl\")\n        Write-Host \"Processing file: ${file} > $fileRendered\"\n        Copy-Item $file.FullName -Force -Destination $fileRendered\n      }\n      cd Datahub.Portal; mv appsettings.Development.json appsettings.dev.json; Move-Item -Force appsettings.json-tmpl-spdatahub appsettings.json\n    "
+      - task: DotNetCoreCLI@2
+        displayName: dotnet restore
+        enabled: False
+        inputs:
+          command: restore
+          projects: Portal/src/Datahub.Portal/*.csproj
+      - task: DotNetCoreCLI@2
+        displayName: dotnet build
+        inputs:
+          projects: Portal/src/Datahub.Portal/*.csproj
+          arguments: --configuration $(BuildConfiguration)
+      - task: DotNetCoreCLI@2
+        displayName: dotnet publish
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: Portal/src/Datahub.Portal/*.csproj
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/portal -r $(target_os) --self-contained true
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact: datahub-portal"
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)/output/portal
+          ArtifactName: datahub-portal
+  - job: Job_3
+    displayName: Agent job - build function app
+    dependsOn: Job_1
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+      - task: UseDotNet@2
+        displayName: Use .NET Core sdk 10.0.x
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
+      - task: DotNetCoreCLI@2
+        displayName: dotnet restore
+        inputs:
+          command: restore
+          projects: ServerlessOperations/src/Datahub.Functions/*.csproj
+      - task: DotNetCoreCLI@2
+        displayName: dotnet build
+        inputs:
+          projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
+          arguments: --configuration $(BuildConfiguration)
+      - task: DotNetCoreCLI@2
+        displayName: dotnet publish
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: ServerlessOperations/src/Datahub.Functions/Datahub.Functions.csproj
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/serverless -r $(target_os) --self-contained true
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact: datahub-function"
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)/output/serverless
+          ArtifactName: datahub-function
+  - job: Job_5
+    displayName: Agent job - build resource provisioner function app
+    dependsOn: Job_1
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+      - task: UseDotNet@2
+        displayName: Use .NET Core sdk 10.0.x
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
+      - task: DotNetCoreCLI@2
+        displayName: dotnet restore
+        inputs:
+          command: restore
+          projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
+      - task: DotNetCoreCLI@2
+        displayName: dotnet build
+        inputs:
+          projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
+          arguments: --configuration $(BuildConfiguration)
+      - task: DotNetCoreCLI@2
+        displayName: dotnet publish
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: ResourceProvisioner/src/ResourceProvisioner.Functions/*.csproj
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/resourceprovisioner -r $(target_os) --self-contained true
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact: resource-provisioner-function"
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)/output/resourceprovisioner
+          ArtifactName: resource-provisioner-function
+  - job: Job_6
+    displayName: Agent job - package maintenance pages
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+      - task: UseDotNet@2
+        displayName: Use .NET Core sdk 10.0.x
+        inputs:
+          version: 10.0.x
+          includePreviewVersions: true
+          performMultiLevelLookup: true
+      - task: DotNetCoreCLI@2
+        displayName: dotnet restore
+        inputs:
+          command: restore
+          projects: Portal/src/Datahub.Maintenance/*.csproj
+      - task: DotNetCoreCLI@2
+        displayName: dotnet build
+        inputs:
+          projects: Portal/src/Datahub.Maintenance/*.csproj
+          arguments: --configuration $(BuildConfiguration)
+      - task: DotNetCoreCLI@2
+        displayName: dotnet publish
+        inputs:
+          command: publish
+          publishWebProjects: false
+          projects: Portal/src/Datahub.Maintenance/*.csproj
+          arguments: -o $(Build.ArtifactStagingDirectory)/output/maintenancepage -r $(target_os) --self-contained true
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact: maintenance page"
+        inputs:
+          PathtoPublish: $(Build.ArtifactStagingDirectory)/output/maintenancepage
+          ArtifactName: maintenance-page
+  - job: Job_7
+    displayName: Agent job - build python user provisioner function
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+      - task: UsePythonVersion@0
+        displayName: Use Python 3.11
+        inputs:
+          versionSpec: 3.11
+      - task: Bash@3
+        displayName: Bash Script - pip Install application dependencies
+        inputs:
+          targetType: inline
+          script: >
+            # Write your commands here
+
+
+            echo 'building python'
+
+            # pip install --target="./.python_packages/lib/site-packages" -r ./requirements.txt
+
+
+            pip install -r ./requirements.txt
+          workingDirectory: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+      - task: ArchiveFiles@2
+        displayName: Archive
+        enabled: False
+        inputs:
+          rootFolderOrFile: ResourceProvisioner/src/ResourceProvisioner.Functions.Python
+          archiveFile: $(Build.ArtifactStagingDirectory)/output/rpuser/rpuser.zip
+      - task: PublishBuildArtifacts@1
+        displayName: "Publish Artifact: user provisioner python function app"
+        inputs:
+          PathtoPublish: ResourceProvisioner/src/ResourceProvisioner_PyFunctions
+          ArtifactName: user-provisioner
+  - job: Job_4
+    displayName: Agent job - post-build
+    dependsOn:
+      - Job_1
+      - Job_2
+      - Job_3
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - checkout: self
+        clean: true
+        lfs: true
+        fetchTags: false
+        persistCredentials: True
+      - task: PowerShell@2
+        displayName: "Tag repository with v<semver>"
+        inputs:
+          targetType: inline
+          script: |
+            #git config user.name "AzureDevOps Agent"
+            #git config user.email "ado-agent@example"
+            #$versionNumber = "v$(version.MajorMinor).$(version.Revision)-$(version.Build)"
+
+            #Write-Output "Tagging $(Build.Repository.Name) with $versionNumber"
+            #git tag "$versionNumber" --force
+            #git push origin "$versionNumber" --force
+
+  - job: Portal_Testing_job
+    displayName: Agent job - Portal Testing
+    dependsOn: Job_2
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - template: fsdh-portal-tests.yml
+
+  - job: ResourceProvisioner_Testing_job
+    displayName: Agent job - Resource Provisioner Testing
+    dependsOn: Job_2
+    pool:
+      vmImage: ubuntu-latest
+    steps:
+      - template: fsdh-resource-provisioner-tests.yml
