@@ -186,18 +186,18 @@ public static class QueueConstants
     public const string WorkspaceAppServiceConfigurationQueueName = "workspace-app-service-configuration";
 
     /// <summary>
-    /// Queue: <c>virus-scan-notification</c><br/>
+    /// Queue: <c>clamav-scan-result</c><br/>
     /// Message: <c>VirusScanNotificationMessage</c><br/>
     /// Publishers:
     /// <list type="bullet">
-    ///   <item><description>Virus scan pipeline / storage event handler – after a scan completes</description></item>
+    ///   <item><description>ClamAV completion pipeline – after a workspace file scan completes</description></item>
     /// </list>
     /// Consumers:
     /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – creates an in-app system notification for the file owner</description></item>
+    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – coordinates post-scan notifications and downstream user-status processing</description></item>
     /// </list>
     /// </summary>
-    public const string VirusScanNotificationQueueName = "virus-scan-notification";
+    public const string VirusScanNotificationQueueName = "clamav-scan-result";
 
     /// <summary>
     /// Queue: <c>virus-scan-user-status</c><br/>
