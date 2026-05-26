@@ -2,6 +2,7 @@ using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.FeatureManagement;
 using ResourceProvisioner.Application;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Functions;
@@ -20,6 +21,7 @@ var host = new HostBuilder()
     {
         services.AddApplicationServices(hostContext.Configuration);
         services.AddInfrastructureServices(hostContext.Configuration);
+        services.AddFeatureManagement();
         
 services.AddMassTransitForAzureFunctions(x =>
        {

@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.FeatureManagement;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -14,11 +17,11 @@ using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Polly;
 using ResourceProvisioner.Application.Config;
-using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
-using Version = System.Version;
 using Microsoft.Extensions.Options;
+using Datahub.Core.Configuration;
+using LibGit2Sharp.Handlers;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
@@ -26,7 +29,9 @@ public partial class RepositoryService(
     IHttpClientFactory httpClientFactory,
     ILogger<RepositoryService> logger,
     IOptions<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
-    ITerraformService terraformService)
+    ITerraformService terraformService,
+    IFeatureManager featureManager,
+    IConfiguration configuration)
     : IRepositoryService
 {
     /// <summary>
@@ -40,6 +45,75 @@ public partial class RepositoryService(
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
     
+    private async Task<string?> GetIssuerSslValidationNameAsync()
+    {
+        var isEnabled = await featureManager.IsEnabledAsync(Features.LibGit2SharpIssuerSslValidation);
+        if (!isEnabled)
+        {
+            return null;
+        }
+        var configuredIssuer = configuration[$"FeatureManagement:{Features.LibGit2SharpIssuerName}"]?.Trim();
+        return string.IsNullOrWhiteSpace(configuredIssuer) ? null : configuredIssuer;
+    }
+
+    private FetchOptions CreateFetchOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null)
+    {
+        var options = new FetchOptions();
+        options.Depth = 1;
+
+        if (credentialsProvider is not null)
+        {
+            options.CredentialsProvider = credentialsProvider;
+        }
+
+        if (!string.IsNullOrWhiteSpace(issuerValidationName))
+        {
+            options.CertificateCheck =
+                (certificate, valid, host) => ValidateCertificateIssuer(certificate, valid, host, issuerValidationName);
+        }
+
+        return options;
+    }
+
+    private CloneOptions CreateCloneOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null) => new CloneOptions(CreateFetchOptions(issuerValidationName, credentialsProvider));
+
+
+    private PullOptions CreatePullOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null) => new PullOptions
+        {
+            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider)
+        };
+
+    private PushOptions CreatePushOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null)
+    {
+        var options = new PushOptions();
+        if (credentialsProvider is not null)
+        {
+            options.CredentialsProvider = credentialsProvider;
+        }
+
+        if (!string.IsNullOrWhiteSpace(issuerValidationName))
+        {
+            options.CertificateCheck =
+                (certificate, valid, host) => ValidateCertificateIssuer(certificate, valid, host, issuerValidationName);
+        }
+
+        return options;
+    }
+
+    private bool ValidateCertificateIssuer(Certificate certificate, bool valid, string host, string issuerValidationName)
+    {
+        var x509 = certificate as CertificateX509;
+        if (x509 is null) return false;
+        var issuer = x509?.Certificate.Issuer;
+        var isValidIssuer = !string.IsNullOrWhiteSpace(issuer) &&
+                            issuer.Contains(issuerValidationName, StringComparison.OrdinalIgnoreCase);
+        return isValidIssuer;
+    }
+
     public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
     {
         await _semaphore.WaitAsync();
@@ -110,6 +184,8 @@ public partial class RepositoryService(
         _moduleSemaphore.Wait();
         try
         {
+            var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
             var repositoryUrl = resourceProvisionerConfiguration.Value.ModuleRepository.Url;
             var localPath = resourceProvisionerConfiguration.Value.ModuleRepository.LocalPath;
             var branch = resourceProvisionerConfiguration.Value.ModuleRepository.Branch;
@@ -119,7 +195,8 @@ public partial class RepositoryService(
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
             logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-            Repository.Clone(repositoryUrl, repositoryPath);
+            var cloneOptions = CreateCloneOptions(issuerValidationName);
+            Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
 
             using var repo = new Repository(repositoryPath);
             var repoTag = string.IsNullOrWhiteSpace(version) ? null : repo.Tags[version];
@@ -151,6 +228,8 @@ public partial class RepositoryService(
 
     public async Task FetchInfrastructureRepository()
     {
+        var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
         var localPath = resourceProvisionerConfiguration.Value.InfrastructureRepository.LocalPath;
         var repositoryUrl = resourceProvisionerConfiguration.Value.InfrastructureRepository.Url;
         logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
@@ -161,18 +240,12 @@ public partial class RepositoryService(
             new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.AccessTokenAsync();
 
-        var cloneOptions = new CloneOptions
+        var cloneOptions = CreateCloneOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
-            FetchOptions =
-            {
-                CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-                {
-                    Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
-                    Password = accessToken.Token
-                }
-            }
-        };
+            Password = accessToken.Token
+        });
 
         logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl,
             Path.GetFullPath(repositoryPath));
@@ -184,6 +257,8 @@ public partial class RepositoryService(
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
     {
+        var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
@@ -205,18 +280,12 @@ public partial class RepositoryService(
             new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.AccessTokenAsync();
 
-        var pullOptions = new PullOptions()
+        var pullOptions = CreatePullOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
-            FetchOptions = new FetchOptions
-            {
-                CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-                {
-                    Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
-                    Password = accessToken.Token
-                }
-            }
-        };
+            Password = accessToken.Token
+        });
 
         var signature = new Signature(new Identity("Auto-merge", "Auto-merge"), DateTimeOffset.Now);
         try
@@ -261,19 +330,19 @@ public partial class RepositoryService(
 
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
+        var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
         var azureDevOpsClient =
             new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
         var accessToken = await azureDevOpsClient.AccessTokenAsync();
-        var options = new PushOptions
+
+        var options = CreatePushOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
-            CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-            {
-                Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
-                Password = accessToken.Token
-            },
-        };
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+            Password = accessToken.Token
+        });
 
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceAcronym];

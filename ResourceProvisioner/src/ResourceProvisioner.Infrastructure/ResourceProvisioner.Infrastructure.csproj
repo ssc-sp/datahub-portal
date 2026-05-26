@@ -7,9 +7,10 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="LibGit2Sharp" />
+      <PackageReference Include="LibGit2SharpFork" />
       <PackageReference Include="Microsoft.AspNetCore.Http" />
       <PackageReference Include="Microsoft.Extensions.Http" />
+      <PackageReference Include="Microsoft.FeatureManagement" />
       <PackageReference Include="Polly" />
       
     </ItemGroup>
@@ -24,6 +25,9 @@
       <ProjectReference Include="..\ResourceProvisioner.Application\ResourceProvisioner.Application.csproj" />
     </ItemGroup>
 </Project>
+
+
+
 
 
 

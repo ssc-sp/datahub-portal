@@ -10,6 +10,7 @@ using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -156,8 +157,11 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
@@ -190,8 +194,11 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
@@ -225,8 +232,11 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var command = GenerateTestWorkspaceDefinition(
@@ -264,8 +274,12 @@ public class RepositoryServiceTests : TemplateTestCollection
         var mockTerraformService = SetupMockTerraformService();
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
+
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
@@ -303,8 +317,11 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym);
 
