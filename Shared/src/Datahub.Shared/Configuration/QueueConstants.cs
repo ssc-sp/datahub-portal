@@ -204,7 +204,7 @@ public static class QueueConstants
     /// Message: <c>VirusScanUserStatusMessage</c><br/>
     /// Publishers:
     /// <list type="bullet">
-    ///   <item><description>Virus scan pipeline / storage event handler – after ACLs are applied to a scanned file</description></item>
+    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – downstream fan-out after processing ClamAV completion messages</description></item>
     /// </list>
     /// Consumers:
     /// <list type="bullet">

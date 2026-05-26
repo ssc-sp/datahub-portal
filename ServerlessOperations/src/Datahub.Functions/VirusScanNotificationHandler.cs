@@ -1,28 +1,25 @@
-using System.Text.Json;
-using Azure.Storage.Queues;
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Users;
 using Datahub.Functions.Extensions;
+using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using MassTransit;
 
 namespace Datahub.Functions;
 
 /// <summary>
-/// Azure Function that processes ClamAV completion messages, creates the in-app system notification,
-/// and then hands the result to the user-status processing pipeline.
 /// Azure Function that processes ClamAV completion messages and fans out the resulting
-/// email and user-status work onto downstream Storage Queues.
+/// email and user-status work onto downstream queues.
 /// </summary>
 public class VirusScanNotificationHandler(
     ILogger<VirusScanNotificationHandler> logger,
-    IConfiguration configuration,
+    ISendEndpointProvider sendEndpointProvider,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     IUserInformationService userInformationService,
     ILockedUserManagementService lockedUserManagementService)
@@ -123,7 +120,7 @@ public class VirusScanNotificationHandler(
             return;
         }
 
-        await EnqueueAsync(QueueConstants.EmailNotificationQueueName, emailRequest);
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.EmailNotificationQueueName, emailRequest);
     }
 
     private async Task<PortalUser?> ResolveUploaderAsync(string? userObjectId)
@@ -189,19 +186,6 @@ public class VirusScanNotificationHandler(
 
     private async Task QueueUserStatusAsync(VirusScanUserStatusMessage userStatusMessage)
     {
-        await EnqueueAsync(QueueConstants.VirusScanUserStatusQueueName, userStatusMessage);
-    }
-
-    private async Task EnqueueAsync<T>(string queueName, T payload)
-    {
-        var connectionString = configuration["DatahubStorageQueue:ConnectionString"];
-        if (string.IsNullOrWhiteSpace(connectionString))
-        {
-            throw new InvalidOperationException("DatahubStorageQueue:ConnectionString is missing.");
-        }
-
-        var queueClient = new QueueClient(connectionString, queueName);
-        await queueClient.CreateIfNotExistsAsync();
-        await queueClient.SendMessageAsync(JsonSerializer.Serialize(payload));
+        await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.VirusScanUserStatusQueueName, userStatusMessage);
     }
 }

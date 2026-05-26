@@ -4,13 +4,14 @@ Please provision the Storage Queue resources needed by the ClamAV scan completio
 
 ## Queue names
 
-- `clamav-scan-result` - completion message consumed by `VirusScanNotificationHandler`
-- `virus-scan-user-status` - downstream user-status processing queue
-- `email-notification` - email delivery queue consumed by `EmailNotificationHandler`
+- `clamav-scan-result` - Storage Queue completion message consumed by `VirusScanNotificationHandler`
+- `virus-scan-user-status` - Service Bus queue for downstream user-status processing
+- `email-notification` - Service Bus queue consumed by `EmailNotificationHandler`
 
 ## Connection string key
 
 - `DatahubStorageQueue:ConnectionString`
+- `DatahubServiceBus:ConnectionString`
 
 ## Message shape
 
@@ -77,7 +78,8 @@ The queue message may be either a direct JSON payload or wrapped in a `message` 
 ## Done criteria
 
 1. Queue `clamav-scan-result` exists in the target storage account.
-2. Queue `email-notification` exists in the target storage account.
-3. Queue `virus-scan-user-status` exists in the target storage account.
+2. Service Bus queue `email-notification` exists in the target namespace.
+3. Service Bus queue `virus-scan-user-status` exists in the target namespace.
 4. Datahub function app has `DatahubStorageQueue:ConnectionString` configured.
-5. A test message in `clamav-scan-result` is consumed successfully by `VirusScanNotificationHandler`.
+5. Datahub function app has `DatahubServiceBus:ConnectionString` configured.
+6. A test message in `clamav-scan-result` is consumed successfully by `VirusScanNotificationHandler`.

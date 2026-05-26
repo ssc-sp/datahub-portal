@@ -36,7 +36,11 @@ func host start
 | `CheckInfrastructureScheduled` | `CheckInfrastructureStatus` | `%ProjectUsageCRON%` | Runs all infrastructure health checks on a schedule |
 | `DocumentationRankUpdate` | `DocumentationRankUpdate` | `%DocumentationRankUpdateCRON%` | Recalculates documentation page hit rankings in the database |
 
-### Storage Queue-triggered
+### Queue-triggered
+
+For the virus-scan flow specifically:
+- `clamav-scan-result` is consumed via Storage Queue.
+- `virus-scan-user-status` and `email-notification` are consumed via Service Bus.
 
 | Function | Class | Queue consumed | Message type |
 |---|---|---|---|
@@ -74,6 +78,14 @@ func host start
 | **Connection string key** | `DatahubStorageQueue:ConnectionString` |
 
 All storage queue-triggered functions use the same connection string key.
+
+## Service Bus
+
+| Setting | Value |
+|---|---|
+| **Connection string key** | `DatahubServiceBus:ConnectionString` |
+
+`email-notification` and `virus-scan-user-status` are consumed from Service Bus in the virus-scan flow.
 
 ### Queues consumed
 

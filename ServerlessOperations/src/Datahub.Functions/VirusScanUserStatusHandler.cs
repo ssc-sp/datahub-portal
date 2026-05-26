@@ -1,3 +1,4 @@
+using Azure.Messaging.ServiceBus;
 using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Configuration;
@@ -14,9 +15,9 @@ public class VirusScanUserStatusHandler(ILogger<VirusScanUserStatusHandler> logg
 {
     [Function("VirusScanUserStatusHandler")]
     public async Task RunAsync(
-        [QueueTrigger(QueueConstants.VirusScanUserStatusQueueName,
-            Connection = "DatahubStorageQueue:ConnectionString")]
-        string message)
+        [ServiceBusTrigger(QueueConstants.VirusScanUserStatusQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage message)
     {
         logger.LogInformation("Processing virus scan user status update");
         try

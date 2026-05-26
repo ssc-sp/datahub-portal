@@ -4,6 +4,7 @@ using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using MimeKit;
+using Azure.Messaging.ServiceBus;
 using Datahub.Functions.Extensions;
 using Datahub.Shared.Configuration;
 using Datahub.Functions.Services;
@@ -29,11 +30,11 @@ public class EmailNotificationHandler
 
     [Function("EmailNotificationHandler")]
     public async Task Run(
-        [QueueTrigger(QueueConstants.EmailNotificationQueueName,
-            Connection = "DatahubStorageQueue:ConnectionString")]
-        string message)
+        [ServiceBusTrigger(QueueConstants.EmailNotificationQueueName,
+            Connection = "DatahubServiceBus:ConnectionString")]
+        ServiceBusReceivedMessage serviceBusReceivedMessage)
     {
-        var emailRequest = await message.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
+        var emailRequest = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
         await ProcessEmailRequestAsync(emailRequest);
     }
 
