@@ -7,23 +7,23 @@ namespace ResourceProvisioner.Application.IntegrationTests;
 
 internal class CustomWebApiFactory : WebApplicationFactory<Program>
 {
-    protected override IHost CreateHost(IHostBuilder builder)
-    {
-        builder.UseEnvironment("test");
-        builder.ConfigureAppConfiguration((_, configurationBuilder) =>
-        {
-            configurationBuilder.SetBasePath(AppContext.BaseDirectory);
-            configurationBuilder.AddJsonFile("appsettings.test.json", optional: false, reloadOnChange: true);
-            configurationBuilder.AddEnvironmentVariables();
-            configurationBuilder.AddUserSecrets<Program>(optional: true);
-        });
-
-        return base.CreateHost(builder);
-    }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseContentRoot(AppContext.BaseDirectory);
+
+        builder.ConfigureAppConfiguration(configurationBuilder =>
+        {
+            var integrationConfig = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.test.json", optional: false, reloadOnChange: true)
+                .AddEnvironmentVariables()
+                .AddUserSecrets<CustomWebApiFactory>(optional: true)
+                .Build();
+
+            configurationBuilder.AddConfiguration(integrationConfig);
+            // add secrets to config
+            configurationBuilder.AddUserSecrets<CustomWebApiFactory>();
+        });
+
 
         builder.ConfigureServices((builder, services) =>
         {
