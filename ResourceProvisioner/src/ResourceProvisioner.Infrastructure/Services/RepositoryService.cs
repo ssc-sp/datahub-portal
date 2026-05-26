@@ -107,7 +107,7 @@ public partial class RepositoryService(
     private bool ValidateCertificateIssuer(Certificate certificate, bool valid, string host, string issuerValidationName)
     {
         var x509 = certificate as CertificateX509;
-        if (x509 is null) return false;
+        if (x509 is null) return valid;
         var issuer = x509?.Certificate.Issuer;
         var isValidIssuer = !string.IsNullOrWhiteSpace(issuer) &&
                             issuer.Contains(issuerValidationName, StringComparison.OrdinalIgnoreCase);
