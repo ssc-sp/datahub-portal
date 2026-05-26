@@ -13,7 +13,7 @@ namespace ResourceProvisioner.Infrastructure;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddResourceProvisionerInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         var azureDevOpsConfiguration = configuration.GetSection("InfrastructureRepository:AzureDevOpsConfiguration")
             .Get<AzureDevOpsConfiguration>() ?? throw new ArgumentNullException("AzureDevOpsConfiguration section is missing");
