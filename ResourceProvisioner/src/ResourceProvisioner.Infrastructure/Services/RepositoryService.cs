@@ -109,11 +109,11 @@ public partial class RepositoryService(
     private bool ValidateCertificateIssuer(Certificate certificate, bool valid, string host, string issuerValidationName)
     {
         var x509 = certificate as CertificateX509;
-        if (x509 is null) return false;
+        if (x509 is null) return valid;
         var issuer = x509?.Certificate.Issuer;
         var isValidIssuer = !string.IsNullOrWhiteSpace(issuer) &&
                             issuer.Contains(issuerValidationName, StringComparison.OrdinalIgnoreCase);
-        return isValidIssuer;
+        return isValidIssuer || valid;
     }
 
     public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
@@ -347,6 +347,15 @@ public partial class RepositoryService(
                 Password = accessToken.Token
             },
         };
+        var azureDevOpsClient =
+            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+
+        var options = CreatePushOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
+        {
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+            Password = accessToken.Token
+        });
 
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceAcronym];
