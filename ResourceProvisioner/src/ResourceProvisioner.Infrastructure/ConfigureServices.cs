@@ -27,7 +27,6 @@ public static class ConfigureServices
         {
             var credentialService = new InfraTokenCredentialService(azureDevOpsConfiguration);            
             var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
-            var clientProvider = new AzureDevOpsClient(azureDevOpsConfiguration, tokenManager);
             var accessToken = await tokenManager.AccessDevopsTokenAsync();
             client.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken.Token}");
         });
