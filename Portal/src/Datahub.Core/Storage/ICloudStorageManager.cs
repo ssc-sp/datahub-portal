@@ -12,7 +12,7 @@ public interface ICloudStorageManager
 
     Task<bool> FileExistsAsync(string container, string filePath);
 
-    Task<Uri> DownloadFileAsync(string container, string filePath);
+    Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null);
     Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess);
 
     Task<bool> DeleteFileAsync(string container, string filePath);
@@ -28,7 +28,7 @@ public interface ICloudStorageManager
 
     Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "");
 
-    Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false);
+    Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false);
 
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }

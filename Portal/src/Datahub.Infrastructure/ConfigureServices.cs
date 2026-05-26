@@ -1,4 +1,3 @@
-
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -10,11 +9,13 @@ using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.ReverseProxy;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
@@ -23,6 +24,7 @@ using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.ReverseProxy;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.Toolbox;
@@ -47,6 +49,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddSingleton<IFileTokenService, FileTokenService>();
         services.AddScoped<CloudStorageManagerFactory>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
         services.AddScoped<ISubnetPoolService, SubnetPoolService>();
@@ -62,6 +65,7 @@ public static class ConfigureServices
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
+        services.AddScoped<ISystemTokenCredentialService, SystemTokenCredentialService>();
 
 
         services.AddAzureResourceManager(configuration);
