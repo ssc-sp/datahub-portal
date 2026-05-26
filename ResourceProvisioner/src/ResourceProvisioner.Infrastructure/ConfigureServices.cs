@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Services;
+using System.Net.Http.Headers;
 
 namespace ResourceProvisioner.Infrastructure;
 
@@ -29,12 +30,25 @@ public static class ConfigureServices
         services.AddSingleton<ISystemTokenCredentialService, InfraTokenCredentialService>();
         services.AddKeyedSingleton<ISystemTokenCredentialService, InfraTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
         services.AddSingleton<IRepositoryService, RepositoryService>();
-        services.AddHttpClient(RepositoryService.HttpClientName, async (sp, client) =>
+        services.AddHttpClient(RepositoryService.HttpClientName, (sp, client) =>
         {
-            var credentialService = sp.GetRequiredService<ISystemTokenCredentialService>();
-            var tokenManager = sp.GetRequiredService<AzAccessTokenManager>();
-            var accessToken = await tokenManager.AccessDevopsTokenAsync();
-            client.DefaultRequestHeaders.Add("Authorization", $"{accessToken.TokenType} {accessToken.Token}");
+            try
+            {
+                var tokenManager = sp.GetRequiredService<AzAccessTokenManager>();
+                var accessToken = tokenManager.AccessDevopsTokenAsync().GetAwaiter().GetResult();
+
+                if (string.IsNullOrWhiteSpace(accessToken.TokenType) || string.IsNullOrWhiteSpace(accessToken.Token))
+                {
+                    throw new InvalidOperationException("Azure DevOps access token is missing token type or token value.");
+                }
+
+                client.DefaultRequestHeaders.Authorization =
+                    new AuthenticationHeaderValue(accessToken.TokenType, accessToken.Token);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Failed to configure Azure DevOps HttpClient authorization header.", ex);
+            }
         });
         services.AddSingleton<AzureDevOpsClient>();
 
