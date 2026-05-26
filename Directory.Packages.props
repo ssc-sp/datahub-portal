@@ -61,7 +61,7 @@
     <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.14.0" />
     <PackageVersion Include="itext" Version="9.6.0" />
     <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
-    <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />
+    <PackageVersion Include="LibGit2SharpFork" Version="1.8.0" />
     <PackageVersion Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageVersion Include="LoxSmoke.DocXml" Version="3.9.0" />
     <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00016" />
@@ -141,7 +141,6 @@
     <PackageVersion Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.14.1" />
     <PackageVersion Include="Microsoft.Identity.Web.UI" Version="3.14.1" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.15.0" />
-
     <PackageVersion Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.6.0" />
