@@ -339,18 +339,6 @@ public partial class RepositoryService(
         var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
         var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
-        var options = new PushOptions
-        {
-            CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-            {
-                Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
-                Password = accessToken.Token
-            },
-        };
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
-
         var options = CreatePushOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
             Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
