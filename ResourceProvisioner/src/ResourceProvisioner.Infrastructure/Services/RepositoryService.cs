@@ -111,7 +111,7 @@ public partial class RepositoryService(
         var issuer = x509?.Certificate.Issuer;
         var isValidIssuer = !string.IsNullOrWhiteSpace(issuer) &&
                             issuer.Contains(issuerValidationName, StringComparison.OrdinalIgnoreCase);
-        return isValidIssuer;
+        return isValidIssuer || valid;
     }
 
     public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
