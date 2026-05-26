@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)Annotations\AnnotationTools.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Entities\WorkspaceToolConfiguration\IWorkspaceToolWithSuffix.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Services\AzAccessTokenManager.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Configuration\Features.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Clients\AzureDevOpsClient.cs" />

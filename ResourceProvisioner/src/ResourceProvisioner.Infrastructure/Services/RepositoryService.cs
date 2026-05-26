@@ -241,7 +241,7 @@ public partial class RepositoryService(
         var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
         var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
-        var cloneOptions = new CloneOptions
+        var cloneOptions = CreateCloneOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
             Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
