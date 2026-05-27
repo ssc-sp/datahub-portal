@@ -451,7 +451,6 @@ public class Startup
 
         services.AddScoped<DataImportingService>();
         services.AddSingleton<DatahubTools>();
-        services.AddSingleton<TranslationService>();
 
         services.AddScoped<NotificationsService>();
 

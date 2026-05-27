@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 18
-VisualStudioVersion = 18.5.11723.231 stable
+VisualStudioVersion = 18.5.11723.231
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B6CC5ED1-A990-4AC7-89C7-B0F62FFEEC26}"
 	ProjectSection(SolutionItems) = preProject
@@ -63,8 +63,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "utils", "utils", "{73AC16BF-F514-4081-8C74-63C6399260E0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CatalogIngestTool", "Portal\utils\CatalogIngestTool\CatalogIngestTool.csproj", "{7CAA042A-AA21-44BD-A0F8-0E89CD651B33}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "JsonTranslator", "Portal\utils\JsonTranslator\JsonTranslator.csproj", "{297AA1C7-6026-46B7-A494-B974E6663F94}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SyncDbUsers", "Portal\utils\SyncDbUsers\SyncDbUsers.csproj", "{346091EA-1E82-4220-9387-C181BF5E1019}"
 EndProject
@@ -226,10 +224,6 @@ Global
 		{7CAA042A-AA21-44BD-A0F8-0E89CD651B33}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{7CAA042A-AA21-44BD-A0F8-0E89CD651B33}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{7CAA042A-AA21-44BD-A0F8-0E89CD651B33}.Release|Any CPU.Build.0 = Release|Any CPU
-		{297AA1C7-6026-46B7-A494-B974E6663F94}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{297AA1C7-6026-46B7-A494-B974E6663F94}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{297AA1C7-6026-46B7-A494-B974E6663F94}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{297AA1C7-6026-46B7-A494-B974E6663F94}.Release|Any CPU.Build.0 = Release|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{346091EA-1E82-4220-9387-C181BF5E1019}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -343,7 +337,6 @@ Global
 		{47D68FB0-47FE-485D-AE94-00C48643721E} = {BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}
 		{73AC16BF-F514-4081-8C74-63C6399260E0} = {BBA6CF1B-6BDA-4363-9641-2E4A4E43D321}
 		{7CAA042A-AA21-44BD-A0F8-0E89CD651B33} = {73AC16BF-F514-4081-8C74-63C6399260E0}
-		{297AA1C7-6026-46B7-A494-B974E6663F94} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{346091EA-1E82-4220-9387-C181BF5E1019} = {73AC16BF-F514-4081-8C74-63C6399260E0}
 		{693C3DC6-CF30-4942-80EA-EEC8ABB87DD3} = {47D68FB0-47FE-485D-AE94-00C48643721E}
 		{213E0A3B-D933-4E81-AFD5-AA2D0B1CC3F8} = {1D47C4BD-D2D8-42C4-83F4-282F0DD38CE5}
@@ -376,9 +369,9 @@ Global
 		{7399BACF-CD75-4F45-8A09-BB56823DC17C} = {7DC54F87-A118-4F67-A75A-DE4949F5C854}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		RESX_ConfirmAddLanguageFile = True
-		RESX_AutoCreateNewLanguageFiles = True
 		SolutionGuid = {9DC4B901-16FF-4FF2-9ED6-B286EA17048E}
+		RESX_AutoCreateNewLanguageFiles = True
+		RESX_ConfirmAddLanguageFile = True
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems*{6c2d8f35-4efa-4474-9973-fe6b2881e59a}*SharedItemsImports = 5

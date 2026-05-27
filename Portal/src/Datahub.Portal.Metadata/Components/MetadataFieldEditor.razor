@@ -1,4 +1,4 @@
-﻿@*MetadataFieldEditor.razor*@
+@*MetadataFieldEditor.razor*@
 @using Datahub.Metadata.Model
 @using Microsoft.AspNetCore.Components
 @using System.Text.RegularExpressions
@@ -52,9 +52,6 @@
                                   Clearable="@(!canTranslate)"
                                   Required="@Required"
                                   Adornment="@(canTranslate ? Adornment.End : Adornment.None)"
-                                  AdornmentIcon=@Icons.Material.Filled.GTranslate
-                                  AdornmentAriaLabel=@(canTranslate ? GetTranslationHint() : Localizer["Reset"])
-                                  OnAdornmentClick=@HandleTranslateField
                                   RequiredError=@RequiredErrorText
                                   Variant="Variant.Outlined"
                                   Validation="@Validate()"
@@ -105,9 +102,6 @@
 </MudStack>
 
 @code {
-
-    [Inject]
-    public TranslationService _translationService { get; set; }
 
     [Parameter]
     public bool Required { get; set; }
@@ -221,41 +215,6 @@
             return false;
 
         return FieldPair?.GetPaired(FieldValue) is not null && string.IsNullOrEmpty(FieldValue.Value_TXT);
-    }
-
-    private bool TranslatePairDisabled()
-    {
-        var otherField = FieldPair?.GetPaired(FieldValue);
-        return string.IsNullOrEmpty(otherField?.Value_TXT);
-    }
-
-    private string GetTranslationHint()
-    {
-        var otherField = FieldPair?.GetPaired(FieldValue);
-        var message = Localizer["Suggest translation for:"];
-        return $"{message} \"{otherField?.Value_TXT}\"";
-    }
-
-    private async void HandleTranslateField()
-    {
-        try
-        {
-            var pairedText = FieldPair?.GetPaired(FieldValue)?.Value_TXT;
-            if (!string.IsNullOrEmpty(pairedText))
-            {
-                var translation = IsEnglishField() 
-                    ? await _translationService.GetEnglishTranslation(pairedText)
-                    : await _translationService.GetFrenchTranslation(pairedText);
-
-                if (!string.IsNullOrEmpty(translation))
-                {
-                    BoundValue = translation;
-                }
-            }
-        }
-        catch (Exception)
-        {
-        }
     }
 
     private string Validate()
