@@ -29,7 +29,6 @@ public static class ConfigureAuthenticationServices
 
     public const string GccfSigninURL = "/gccf/signin-oidc";
     private const string CompositeCookieScheme = "composite-cookie";
-    private const string DevAuthCompositeScheme = "dev-auth-composite";
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
     {
@@ -40,10 +39,9 @@ public static class ConfigureAuthenticationServices
         {
             if (!string.IsNullOrWhiteSpace(devAuthEmail))
             {
-                // Use a composite so a real Azure AD cookie takes priority over DevAuth
-                options.DefaultScheme = DevAuthCompositeScheme;
-                options.DefaultAuthenticateScheme = DevAuthCompositeScheme;
-                options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                options.DefaultScheme = DevAuthHandler.Scheme;
+                options.DefaultAuthenticateScheme = DevAuthHandler.Scheme;
+                options.DefaultSignInScheme = DevAuthHandler.Scheme;
                 options.DefaultChallengeScheme = DevAuthHandler.Scheme;
             }
             else
@@ -62,25 +60,6 @@ public static class ConfigureAuthenticationServices
         // Register dev scheme at the root AuthenticationBuilder level
         services.AddAuthentication()
             .AddScheme<AuthenticationSchemeOptions, DevAuthHandler>(DevAuthHandler.Scheme, _ => { });
-
-        // When DevAuth is active, register a composite policy that defers to the real Azure AD
-        // cookie (.AspNetCore.Cookies) if it is present, so a GC employee can sign in via the
-        // normal OIDC flow even while DevAuth is configured for GCCF external-user simulation.
-        if (!string.IsNullOrWhiteSpace(devAuthEmail))
-        {
-            services.AddAuthentication()
-                .AddPolicyScheme(DevAuthCompositeScheme, DevAuthCompositeScheme, policyOptions =>
-                {
-                    policyOptions.ForwardDefaultSelector = context =>
-                    {
-                        // Prefer a real Azure AD cookie over the DevAuth fake identity
-                        if (context.Request.Cookies.ContainsKey(DefaultCookieName))
-                            return CookieAuthenticationDefaults.AuthenticationScheme;
-                        // Fall back to DevAuth (GCCF external-user simulation)
-                        return DevAuthHandler.Scheme;
-                    };
-                });
-        }
 
         // add the JWT bearer authentication for APIs
         services.AddAuthentication()
@@ -115,10 +94,9 @@ public static class ConfigureAuthenticationServices
             {
                 if (!string.IsNullOrWhiteSpace(devAuthEmail))
                 {
-                    // Same composite as the base block: real Azure AD cookie wins over DevAuth
-                    options.DefaultScheme = DevAuthCompositeScheme;
-                    options.DefaultAuthenticateScheme = DevAuthCompositeScheme;
-                    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+                    options.DefaultScheme = DevAuthHandler.Scheme;
+                    options.DefaultAuthenticateScheme = DevAuthHandler.Scheme;
+                    options.DefaultSignInScheme = DevAuthHandler.Scheme;
                     options.DefaultChallengeScheme = DevAuthHandler.Scheme;
                 }
                 else
