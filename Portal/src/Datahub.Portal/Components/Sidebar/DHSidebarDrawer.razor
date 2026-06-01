@@ -20,17 +20,19 @@
     private const string DrawerOpenKey = "dh-sidebar-open";
 
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
-    public bool Open { get; set; } = false;
+    public bool Open { get; set; } = true;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             var saved = await _localStorage.GetItemAsync<bool?>(DrawerOpenKey);
-            // Default to open only if a preference was previously saved; first-time visitors
-            // get the collapsed (mini) state to avoid the "massive box" snap-in effect.
-            Open = saved ?? false;
-            StateHasChanged();
+            // Only update (and re-render) if the persisted value differs from the default.
+            if (saved.HasValue && saved.Value != Open)
+            {
+                Open = saved.Value;
+                StateHasChanged();
+            }
         }
     }
 
