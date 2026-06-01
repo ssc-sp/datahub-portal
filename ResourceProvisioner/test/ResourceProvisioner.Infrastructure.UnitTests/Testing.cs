@@ -11,6 +11,7 @@ using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.SpecflowTests;
+using Microsoft.FeatureManagement;
 
 // Assembly-level attribute to disable parallel execution
 [assembly: NonParallelizable]
@@ -60,15 +61,18 @@ public class Testing
         
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        
+
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
         
         var services = new ServiceCollection();
         services.AddLogging(configure => configure.AddConsole());
         services.AddSingleton<ITerraformService, TerraformService>();
-        services.AddSingleton<IRepositoryService, RepositoryService>();
+        services.AddScoped<IRepositoryService, RepositoryService>();
         services.AddSingleton(httpClientFactory.Object);
         services.AddSingleton(_configuration);
         services.AddSingleton(_resourceProvisionerConfiguration.AsOptions());
+        services.AddSingleton<IFeatureManager>(featureManager.Object);
         var serviceProvider = services.BuildServiceProvider();
         
         _terraformService = serviceProvider.GetRequiredService<ITerraformService>();

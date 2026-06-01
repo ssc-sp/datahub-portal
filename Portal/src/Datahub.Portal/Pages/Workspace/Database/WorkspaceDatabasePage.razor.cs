@@ -10,6 +10,7 @@ using Datahub.Portal.Model;
 using Datahub.Shared.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 using Newtonsoft.Json;
 
@@ -18,14 +19,16 @@ namespace Datahub.Portal.Pages.Workspace.Database
     public partial class WorkspaceDatabasePage
     {
 
-        [Inject] private ISystemTokenCredentialService _tokenCredentialService { get; set; } = null!;
+        [Inject] private IServiceProvider _serviceProvider { get; set; } = null!;
+        private ISystemTokenCredentialService TokenCredentialService =>
+            _serviceProvider.GetRequiredKeyedService<ISystemTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
         /// <summary>
         /// Builds a PostgreSqlFlexibleServerResource object for the specified workspace acronym.
         /// </summary>
         /// <returns>A PostgreSqlFlexibleServerResource object.</returns>
         private async Task<PostgreSqlFlexibleServerResource> BuildPostgresSqlFlexibleServerResource()
         {
-            var client = new ArmClient(_tokenCredentialService.GetInfraTokenCredential());
+            var client = new ArmClient(TokenCredentialService.GetTokenCredential());
 
             var resourceGroupName =
                 $"{_portalConfiguration.ResourcePrefix}_proj_{WorkspaceAcronym.ToLowerInvariant()}_{_portalConfiguration.Hosting.EnvironmentName}_rg";

@@ -11,6 +11,7 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
+using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Offline;
 using Datahub.Portal.Pages.Account;
 using Datahub.Portal.Pages.Account.PublicProfile;
@@ -185,6 +186,15 @@ public class AccountPageSteps : BunitTestSteps
         var cultureService = Substitute.For<ICultureService>();
         Services.AddSingleton(cultureService);
 
+        var requestManagementService = Substitute.For<IRequestManagementService>();
+        Services.AddSingleton(requestManagementService);
+
+        var resourceMessagingService = Substitute.For<IResourceMessagingService>();
+        Services.AddSingleton(resourceMessagingService);
+
+        var projectUserManagementService = Substitute.For<IProjectUserManagementService>();
+        Services.AddSingleton(projectUserManagementService);
+
         JSInterop.SetupVoid("mudKeyInterceptor.connect", _ => true);
     }
 
@@ -247,6 +257,14 @@ public class AccountPageSteps : BunitTestSteps
     public void ThenTheUserShouldSeeTheirExternalLoginProvider()
     {
         ThenTheUserShouldSeeTheirLoginProvider(false);
+    }
+
+    [Then(@"the user should see their project")]
+    public void ThenTheUserShouldSeeTheirProject()
+    {
+        var render = _scenarioContext["accountPage"] as IRenderedComponent<CascadingAuthenticationState>;
+        var projectTitleComponent = render!.FindAll(".mud-typography").FirstOrDefault(c => c.TextContent.Contains("TEST1"));
+        projectTitleComponent.Should().NotBeNull();
     }
 
     // Helper auth/test classes copied from other test steps
