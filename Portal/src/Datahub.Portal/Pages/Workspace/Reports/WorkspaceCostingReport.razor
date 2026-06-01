@@ -464,7 +464,7 @@
         {
             await _module.DisposeAsync();
         }
-        catch (Exception)
+        catch (JSDisconnectedException)
         {
             // ignored
         }

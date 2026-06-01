@@ -1,10 +1,11 @@
-﻿using Datahub.Infrastructure.Services.Azure;
+using Datahub.Infrastructure.Services.Azure;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
 
-public class AzureConfig : IAzureServicePrincipalConfig
+public class AzureConfig : IAzureServicePrincipalConfig, IAzureDevopsConfiguration
 {
     private readonly IConfiguration _config;
     private readonly EmailNotification _emailConfig;
@@ -72,6 +73,8 @@ public class AzureConfig : IAzureServicePrincipalConfig
     public string InfrastructureAlertDebounceTimeSpan => _config["InfrastructureAlertDebounceTimeSpan"] ?? "1";
 
     public string? BugReportTeamsWebhookUrl => _config["BugReportTeamsWebhookUrl"];
+
+    public string OrganizationUrl => _azureDevOpsConfiguration.OrganizationUrl;
 }
 
 public class EmailNotification

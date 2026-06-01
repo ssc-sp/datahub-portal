@@ -26,15 +26,14 @@
 		<PackageReference Include="Azure.Identity">
 			<Aliases>AzIdentity</Aliases>
 		</PackageReference>
+		<PackageReference Include="Azure.ResourceManager" />
+		<PackageReference Include="Azure.ResourceManager.Authorization" />
 		<PackageReference Include="Azure.ResourceManager.PostgreSql" />
 		<PackageReference Include="Blazor-ApexCharts" />
 		<PackageReference Include="DocumentFormat.OpenXml" />
 		<PackageReference Include="Blazored.SessionStorage" />
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" />
 		<PackageReference Include="Microsoft.Authentication.WebAssembly.Msal" />
-		<PackageReference Include="Microsoft.Azure.Management.Fluent" />
-		<PackageReference Include="Microsoft.Azure.Management.Graph.RBAC.Fluent" />
-		<PackageReference Include="Microsoft.Azure.Management.ResourceManager.Fluent" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

@@ -118,9 +118,13 @@
         {
             await _module.DisposeAsync();
         }
-        catch (Exception)
+        catch (Microsoft.JSInterop.JSDisconnectedException)
         {
-            // ignored
+            // ignored: JS runtime disconnected during component teardown
+        }
+        catch (ObjectDisposedException)
+        {
+            // ignored: runtime/module already disposed
         }
     }
 }
