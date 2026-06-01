@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Security;
 using Datahub.Infrastructure.Services.WebApp;
 using FluentAssertions;
 using MassTransit;
@@ -23,9 +23,10 @@ public class WorkspaceWebAppManagementServiceTests
     {
         _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _keyVaultUserService = Substitute.For<IKeyVaultUserService>();
+        var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
         _logger = Substitute.For<ILogger<WorkspaceWebAppManagementService>>();
         _keyVaultUserService.GetVaultName(Arg.Any<string>(), Arg.Any<string>()).Returns("");
-        _service = new WorkspaceWebAppManagementService(_datahubPortalConfiguration, _dbContextFactory, _sendEndpointProvider, _keyVaultUserService, _logger);
+        _service = new WorkspaceWebAppManagementService(_datahubPortalConfiguration, tokenCredentialService, _dbContextFactory, _sendEndpointProvider, _keyVaultUserService, _logger);
         await _service.Stop(TestWebAppId);
         await Task.Delay(1000);
     }

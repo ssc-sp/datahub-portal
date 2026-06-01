@@ -22,8 +22,7 @@
   <DHLoadingInitializer Message="@Localizer["Getting your workspaces..."]" />
   return;
 }
-
-@if (NewStyle)
+else
 {
   <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
     <MudText Typo="Typo.h2" Style=@SectionTitleStyle>
@@ -70,7 +69,7 @@
               <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
                        @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
                 <DHIcon Icon=@(group.Label.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen :
-                                                                                        Icons.Material.Outlined.Lock) Size="Size.Small" />
+                                                                                                                                        Icons.Material.Outlined.Lock) Size="Size.Small" />
                 @group.Label
               </MudChip>
             }
@@ -100,77 +99,6 @@
     </ul>
   }
 }
-else
-{
-  <MudStack>
-    @if (_adminWorkspaces.Any())
-    {
-      @if (ShowTitle)
-      {
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Admin workspaces"]</MudText>
-      }
-
-      <div role="group">
-        <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-          @foreach (var project in _adminWorkspaces)
-          {
-            <li class="flex-1">
-              <ProjectPreviewCard Project="@project" />
-            </li>
-          }
-        </ul>
-      </div>
-    }
-
-    @if (_collaboratorWorkspaces.Any())
-    {
-      @if (ShowTitle)
-      {
-        @if (_adminWorkspaces.Any())
-        {
-          <MudDivider Class="my-4" />
-        }
-
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Collaborator workspaces"]</MudText>
-      }
-
-      <div role="group">
-        <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-          @foreach (var project in _collaboratorWorkspaces)
-          {
-            <li class="flex-1">
-              <ProjectPreviewCard Project="@project" />
-            </li>
-          }
-        </ul>
-      </div>
-    }
-
-    @if (_guestWorkspaces.Any())
-    {
-      @if (ShowTitle)
-      {
-        @if (_adminWorkspaces.Any() || _collaboratorWorkspaces.Any())
-        {
-          <MudDivider Class="my-4" />
-        }
-
-        <MudText Typo="Typo.h2" Class="mb-4">@Localizer["Guest workspaces"]</MudText>
-      }
-
-      <div role="group">
-        <ul style="display: flex; list-style-type: none; gap: 25px; flex-wrap: wrap">
-          @foreach (var project in _guestWorkspaces)
-          {
-            <li class="flex-1">
-              <ProjectPreviewCard Project="@project" />
-            </li>
-          }
-        </ul>
-      </div>
-    }
-  </MudStack>
-}
 
 @code {
 
@@ -178,7 +106,6 @@ else
   [Parameter] public bool ShowTitle { get; set; } = true;
   [Parameter] public int SmSize { get; set; } = 4;
   [Parameter] public required PortalUser PortalUser { get; set; } = null!;
-  [Parameter] public bool NewStyle { get; set; }
 
   // Display state
   private class WorkspaceDisplayGroup

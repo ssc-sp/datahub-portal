@@ -11,6 +11,11 @@ using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services.Security;
 
+/// <summary>
+/// This class provides a bridge between MSAL and Azure SDK's TokenCredential system, allowing for user impersonation when accessing Azure resources like Key Vault and Storage.
+/// It retrieves access tokens for the currently authenticated user and caches them for subsequent requests to improve performance.
+/// The service ensures that tokens are acquired on behalf of the user, enabling fine-grained access control based on the user's identity and permissions.
+/// </summary>
 public class UserTokenCredentialService : IUserTokenCredentialService
 {
     private readonly ITokenAcquisition _tokenAcquisition;
