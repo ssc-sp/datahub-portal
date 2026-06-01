@@ -8,6 +8,7 @@ using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Services;
 using Datahub.Infrastructure.Services.Storage;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models.Search;
 using Microsoft.Identity.Client;
@@ -21,7 +22,7 @@ namespace Datahub.Infrastructure.Services.Security
         private readonly IUserInformationService _userInfoService;
         private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
         private readonly IUserTokenCredentialService _tokenCredentialService;
-        private readonly ISystemTokenCredentialService systemTokenCredentialService;
+        private readonly ISystemTokenCredentialService _systemTokenCredentialService;
         private readonly ILogger<KeyVaultUserService> _logger;
         private string? _userToken;
 
@@ -34,7 +35,7 @@ namespace Datahub.Infrastructure.Services.Security
             _userInfoService = userInfoService;
             _datahubPortalConfiguration = datahubPortalConfiguration;
             _tokenCredentialService = tokenCredentialService;
-            this.systemTokenCredentialService = systemTokenCredentialService;
+            _systemTokenCredentialService = systemTokenCredentialService;
             _logger = logger;
         }
 
@@ -45,7 +46,7 @@ namespace Datahub.Infrastructure.Services.Security
                     new Uri(GetKeyVaultURL(kvName));
             if (await _userInfoService.IsExternalUser())
             {
-                return new SecretClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
+                return new SecretClient(vaultURL, _systemTokenCredentialService.GetTokenCredential());
             }
 
             if (_userToken is not null)
@@ -56,7 +57,7 @@ namespace Datahub.Infrastructure.Services.Security
             }
             else
             {
-                return new SecretClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
+                return new SecretClient(vaultURL, _systemTokenCredentialService.GetTokenCredential());
             }
         }
 
@@ -65,7 +66,7 @@ namespace Datahub.Infrastructure.Services.Security
             var vaultURL = new Uri(GetKeyVaultURL(kvName));
             if (await _userInfoService.IsExternalUser())
             {
-                return new KeyClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
+                return new KeyClient(vaultURL, _systemTokenCredentialService.GetTokenCredential());
             }
 
             if (_userToken is not null)
@@ -73,7 +74,7 @@ namespace Datahub.Infrastructure.Services.Security
                 return new KeyClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(_userToken));
             }
 
-            return new KeyClient(vaultURL, systemTokenCredentialService.GetPortalTokenCredential());
+            return new KeyClient(vaultURL, _systemTokenCredentialService.GetTokenCredential());
         }
 
         public async Task<SecretClient> GetWorkspaceSecretClient(string workspace) => await GetSecretClient(GetVaultName(workspace.ToLowerInvariant(),

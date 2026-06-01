@@ -12,6 +12,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Utils;
 using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using MudBlazor;
 
 namespace Datahub.Portal.Pages.Workspace.Settings;
@@ -30,11 +31,13 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
         {
             Retry = { MaxRetries = 5, MaxDelay = TimeSpan.FromSeconds(5), Mode = RetryMode.Exponential }
         };
-        var armClient = new ArmClient(tokenCredentialService.GetInfraTokenCredential(), portalConfiguration.AzureAd.SubscriptionId, armOptions);
+        var armClient = new ArmClient(tokenCredentialService.GetTokenCredential(), portalConfiguration.AzureAd.SubscriptionId, armOptions);
         return armClient;
     }
 
-    [Inject] private ISystemTokenCredentialService _tokenCredentialService { get; set; } = null!;
+    [Inject] private IServiceProvider _serviceProvider { get; set; } = null!;
+    private ISystemTokenCredentialService TokenCredentialService =>
+        _serviceProvider.GetRequiredKeyedService<ISystemTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
     /// <summary>
     /// Refreshes the current state of the storage account's AllowSharedKeyAccess setting.
     /// </summary>
@@ -45,7 +48,7 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
         await InvokeAsync(StateHasChanged);
         try
         {
-            var armClient = BuildArmClient(_portalConfiguration, _tokenCredentialService);
+            var armClient = BuildArmClient(_portalConfiguration, TokenCredentialService);
             var resourceId = await BuildStorageResourceIdentifier();
             _accessState = await FetchStorageAllowSharedKeyAccess(armClient, resourceId);
         }
@@ -140,7 +143,7 @@ public partial class WorkspaceSharedKeyAccessControl : ComponentBase
         _snackbar.Add(Localizer["Updating shared key access..."], Severity.Info);
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserToggleStorageAllowSharedKeyAccess);
 
-        var armClient = BuildArmClient(_portalConfiguration, _tokenCredentialService);
+        var armClient = BuildArmClient(_portalConfiguration, TokenCredentialService);
         var resourceId = await BuildStorageResourceIdentifier();
         var storage = armClient.GetStorageAccountResource(resourceId);
         var response = await storage.UpdateAsync(new StorageAccountPatch()
