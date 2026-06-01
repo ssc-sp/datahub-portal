@@ -2,16 +2,13 @@ using Azure.Core;
 using Azure.Identity;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Security;
-using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Web;
-using System.Security.Claims;
 
 namespace Datahub.Infrastructure.Services.Security;
 
 public class SystemTokenCredentialService : ISystemTokenCredentialService
 {
-    private readonly DatahubPortalConfiguration _portalConfiguration;    
+    private readonly DatahubPortalConfiguration _portalConfiguration;
     private readonly ILogger<SystemTokenCredentialService> _logger;
 
     public SystemTokenCredentialService(
@@ -22,7 +19,7 @@ public class SystemTokenCredentialService : ISystemTokenCredentialService
         _logger = logger;
     }
 
-    public TokenCredential GetPortalTokenCredential()
+    public TokenCredential GetTokenCredential()
     {
         if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
         {
@@ -37,23 +34,34 @@ public class SystemTokenCredentialService : ISystemTokenCredentialService
         _logger.LogInformation("Using client secret token credential");
         return new ClientSecretCredential(tenantId, clientId, clientSecret);
     }
+}
 
-    public TokenCredential GetInfraTokenCredential()
+public class InfraTokenCredentialService : ISystemTokenCredentialService
+{
+    private readonly DatahubPortalConfiguration _portalConfiguration;
+    private readonly ILogger<InfraTokenCredentialService> _logger;
+
+    public InfraTokenCredentialService(
+        DatahubPortalConfiguration portalConfiguration,
+        ILogger<InfraTokenCredentialService> logger)
     {
-        //if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
-        //{
-        //    _logger.LogInformation("Using managed identity token credential");
-        //    return new ManagedIdentityCredential();
-        //}
+        _portalConfiguration = portalConfiguration;
+        _logger = logger;
+    }
+
+    public TokenCredential GetTokenCredential()
+    {
+        if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
+        {
+            _logger.LogInformation("Using managed identity token credential");
+            return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+        }
 
         var tenantId = _portalConfiguration.AzureAd.TenantId;
         var clientId = _portalConfiguration.AzureAd.InfraClientId;
         var clientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
 
-
         _logger.LogInformation("Using client secret token credential");
         return new ClientSecretCredential(tenantId, clientId, clientSecret);
     }
-
-
 }

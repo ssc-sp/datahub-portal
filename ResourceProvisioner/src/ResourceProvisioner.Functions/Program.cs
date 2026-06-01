@@ -19,8 +19,8 @@ var host = new HostBuilder()
     })
     .ConfigureServices((hostContext, services) =>
     {
-        services.AddApplicationServices(hostContext.Configuration);
-        services.AddInfrastructureServices(hostContext.Configuration);
+        services.AddResourceProvisionerApplicationServices(hostContext.Configuration);
+        services.AddResourceProvisionerInfrastructureServices(hostContext.Configuration);
         services.AddFeatureManagement();
         
 services.AddMassTransitForAzureFunctions(x =>

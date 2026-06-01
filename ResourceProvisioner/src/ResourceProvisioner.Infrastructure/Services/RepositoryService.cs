@@ -20,6 +20,8 @@ using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
 using Microsoft.Extensions.Options;
+using Datahub.Infrastructure.Services.Security;
+using Microsoft.Extensions.Logging.Abstractions;
 using Datahub.Core.Configuration;
 using LibGit2Sharp.Handlers;
 
@@ -235,10 +237,9 @@ public partial class RepositoryService(
         logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
-
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var cloneOptions = CreateCloneOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
@@ -276,9 +277,9 @@ public partial class RepositoryService(
 
         logger.LogInformation("Checking upstream for any updates in branch");
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var pullOptions = CreatePullOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
@@ -334,9 +335,9 @@ public partial class RepositoryService(
 
         var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
         var options = CreatePushOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
@@ -358,6 +359,8 @@ public partial class RepositoryService(
             branch.CanonicalName);
     }
 
+    public const string HttpClientName = "InfrastructureHttpClient";
+
     public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
     {
         // create a pull request in Azure DevOps
@@ -368,11 +371,12 @@ public partial class RepositoryService(
             $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
         logger.LogInformation("Posting infrastructure pull request to {Url}", postUrl);
-        var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var httpClient = httpClientFactory.CreateClient(HttpClientName);
         var response = await httpClient.PostAsync(postUrl, postBody);
 
         // get the pull request id
         logger.LogInformation("Getting infrastructure pull request url");
+        EnsureJsonResponse(response);
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
@@ -421,7 +425,7 @@ public partial class RepositoryService(
     public async Task SendAutoApprovePatchRequestAsync(string patchUrl, StringContent patchContent)
     {
         logger.LogInformation("Patching auto-approve infrastructure pull request to {Url}", patchUrl);
-        var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var httpClient = httpClientFactory.CreateClient(HttpClientName);
         var response = await httpClient.PatchAsync(patchUrl, patchContent);
 
         if (!response.IsSuccessStatusCode)
@@ -435,6 +439,7 @@ public partial class RepositoryService(
         logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
 
         // Check that the json content of the response has an object "closedBy"
+        EnsureJsonResponse(response);
         var responseContent = await response.Content.ReadAsStringAsync();
         var jsonContent = JsonSerializer.Deserialize<JsonNode>(responseContent);
         if (jsonContent?["closedBy"] is null)
@@ -604,8 +609,9 @@ public partial class RepositoryService(
         var url =
             $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
-        using var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
+        using var httpClient = httpClientFactory.CreateClient(HttpClientName);
         var response = await httpClient.GetAsync(url);
+        EnsureJsonResponse(response);
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
@@ -615,6 +621,16 @@ public partial class RepositoryService(
                    .AsObject()["pullRequestId"]?.ToString() ??
                throw new NullReferenceException(
                    $"Could not get existing pull request id for workspace {workspaceAcronym}");
+    }
+
+    private static void EnsureJsonResponse(HttpResponseMessage response)
+    {
+        var mediaType = response.Content.Headers.ContentType?.MediaType;
+        if (string.IsNullOrWhiteSpace(mediaType) ||
+            !mediaType.Contains("json", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Expected JSON response content type.");
+        }
     }
 
     private void CleanUpEnvironment()
