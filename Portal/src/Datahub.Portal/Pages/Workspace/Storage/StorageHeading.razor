@@ -8,6 +8,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
+@using Microsoft.JSInterop
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
@@ -246,7 +247,7 @@
         {
             await _module.DisposeAsync();
         }
-        catch (Exception)
+        catch (JSDisconnectedException)
         {
             // ignored
         }
