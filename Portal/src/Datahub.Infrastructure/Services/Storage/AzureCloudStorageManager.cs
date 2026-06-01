@@ -16,6 +16,7 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using System.Security.Claims;
 using Azure.Core;
+using System.Threading;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -88,7 +89,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         var dirClient = GetDirectoryClient(container, folderPath);
 
         // iterate the folder
-        await IterateDataLakeDirectoryAsync(dirClient, continuationToken, folders.Add, files.Add, ct => continuationToken = ct);
+        await IterateDataLakeDirectoryAsync(dirClient, continuationToken, folders.Add, files.Add, ct => continuationToken = ct, CancellationToken.None);
 
         return new DfsPage(folders, files, continuationToken!);
     }
@@ -310,11 +311,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
     }
 
     private async Task IterateDataLakeDirectoryAsync(DataLakeDirectoryClient client, string? continuationToken,
-        Action<string> addFolder, Action<FileMetaData> addFile, Action<string?> setContinuationToken)
+        Action<string> addFolder, Action<FileMetaData> addFile, Action<string?> setContinuationToken, CancellationToken cancellationToken)
     {
         var fileMetadataTasks = new List<Task<FileMetaData?>>();
 
-        await foreach (var page in client.GetPathsAsync().AsPages(continuationToken))
+        await foreach (var page in client.GetPathsAsync(recursive: true, userPrincipalName: false, cancellationToken).AsPages(continuationToken).WithCancellation(cancellationToken))
         {
             if (page is null)
                 continue;
@@ -328,7 +329,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
                 }
                 else
                 {
-                    fileMetadataTasks.Add(GetFileMetadataAsync(client, Path.GetFileName(path.Name)));
+                    fileMetadataTasks.Add(GetFileMetadataAsync(client, Path.GetFileName(path.Name), cancellationToken));
                 }
             }
         }
@@ -340,13 +341,13 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
     private const string METADATA_FILE_ID = "fileid";
 
-    private async Task<FileMetaData?> GetFileMetadataAsync(DataLakeDirectoryClient client, string fileName)
+    private async Task<FileMetaData?> GetFileMetadataAsync(DataLakeDirectoryClient client, string fileName, CancellationToken cancellationToken)
     {
         var fileClient = client.GetFileClient(fileName);
         if (fileClient is null)
             return default;
 
-        var propResponse = await fileClient.GetPropertiesAsync();
+        var propResponse = await fileClient.GetPropertiesAsync(cancellationToken: cancellationToken);
         if (propResponse is null)
             return default;
 
@@ -437,7 +438,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private Uri AppendSasToken(Uri resourceUri)
     {
         var sasToken = _sasToken ?? string.Empty;
-        var trimmedToken = sasToken.StartsWith("?") ? sasToken.Substring(1) : sasToken;
+        var trimmedToken = sasToken.StartsWith("?") ? sasToken[1..] : sasToken;
         var separator = string.IsNullOrWhiteSpace(resourceUri.Query) ? "?" : "&";
         return new Uri($"{resourceUri}{separator}{trimmedToken}");
     }
@@ -490,35 +491,38 @@ public class AzureCloudStorageManager : ICloudStorageManager
         var matchingFiles = new List<FileMetaData>();
 
         // Recursively iterate through all paths (files and folders) in the directory
-        await foreach (var path in dirClient.GetPathsAsync(recursive: true).WithCancellation(cancellationToken))
+        await foreach (var page in dirClient.GetPathsAsync(recursive: true, userPrincipalName: false, cancellationToken).AsPages().WithCancellation(cancellationToken))
         {
             // Skip directories
-            if (path.IsDirectory.HasValue && path.IsDirectory.Value)
-                continue;
-
-            // Extract the file name from the full path
-            var fileName = Path.GetFileName(path.Name);
-
-            // Construct the full path of the file
-            string fullPath = path.Name;
-
-            // Retrieve metadata for the file
-            var fileMetadata = await GetFileMetadataAsync(dirClient, fullPath);
-
-            if (fileMetadata == null)
-                continue;
-
-            // Check if the file name contains the search term
-            if (fileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+            foreach (var path in page.Values)
             {
-                matchingFiles.Add(fileMetadata);
-                continue;
-            }
+                if (path.IsDirectory == true)
+                    continue;
 
-            // If content search is enabled, check the file content
-            if (searchInContent && await FileContentContainsTermAsync(container, fullPath, searchTerm, cancellationToken))
-            {
-                matchingFiles.Add(fileMetadata);
+                // Extract the file name from the full path
+                var fileName = Path.GetFileName(path.Name);
+
+                // Construct the full path of the file
+                string fullPath = path.Name;
+
+                // Retrieve metadata for the file
+                var fileMetadata = await GetFileMetadataAsync(dirClient, fullPath, cancellationToken);
+
+                if (fileMetadata == null)
+                    continue;
+
+                // Check if the file name contains the search term
+                if (fileName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                {
+                    matchingFiles.Add(fileMetadata);
+                    continue;
+                }
+
+                // If content search is enabled, check the file content
+                if (searchInContent && await FileContentContainsTermAsync(container, fullPath, searchTerm, cancellationToken))
+                {
+                    matchingFiles.Add(fileMetadata);
+                }
             }
         }
 
@@ -552,5 +556,4 @@ public class AzureCloudStorageManager : ICloudStorageManager
 
         return false;
     }
-
 }
