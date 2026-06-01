@@ -66,7 +66,7 @@
     <PackageVersion Include="LoxSmoke.DocXml" Version="3.9.0" />
     <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00016" />
     <PackageVersion Include="MailKit" Version="4.16.0" />
-    <PackageVersion Include="Markdig" Version="0.42.0" />
+    <PackageVersion Include="Markdig" Version="0.45.0" />
     <PackageVersion Include="MassTransit" Version="8.5.9" />
     <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.9" />
     <PackageVersion Include="MassTransit.WebJobs.ServiceBus" Version="8.5.9" />
