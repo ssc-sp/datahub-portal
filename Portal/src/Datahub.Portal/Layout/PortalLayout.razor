@@ -29,7 +29,7 @@
 
 <DatahubAchievementProvider/>
 
-<MudLayout>
+<MudLayout Style="@_layoutStyle">
     <MudAppBar Elevation="0" Style="@_topBorderStyle">
         <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>
     </MudAppBar>
@@ -77,6 +77,10 @@
   private ErrorBoundary _errorBoundary;
   private Exception _lastException;
 
+  // Separate layout style used to override --mud-appbar-height on workspace pages so that
+  // MudMainContent offsets correctly when the EnvironmentTopBar (25px fixed banner) is present.
+  private string _layoutStyle;
+
   protected override void OnParametersSet()
   {
     _errorBoundary?.Recover();
@@ -85,7 +89,9 @@
                 UriComponents.PathAndQuery,
                 UriFormat.Unescaped);
 
-    if (currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}"))
+    var isWorkspacePage = currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}");
+
+    if (isWorkspacePage)
     {
       padding = "25px";
     }
@@ -93,6 +99,12 @@
     {
       padding = "0px";
     }
+
+    // MudBlazor v9 uses a fixed height on MudAppBar (height: var(--mud-appbar-height)).
+    // Adding padding-top without increasing the CSS variable compresses the button area.
+    // Override --mud-appbar-height on MudLayout (common ancestor of AppBar + MainContent)
+    // so both components account for the extra 25px from the EnvironmentTopBar banner.
+    _layoutStyle = isWorkspacePage ? "--mud-appbar-height: 95px" : null;
 
     _topBorderStyle = new StyleBuilder()
       .AddStyle("border-color", "var(--mud-palette-divider)")

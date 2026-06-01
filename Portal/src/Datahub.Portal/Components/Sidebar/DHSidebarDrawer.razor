@@ -14,12 +14,29 @@
     </MudDrawer>
 </SectionContent>
 
+@inject ILocalStorageService _localStorage
+
 @code {
+    private const string DrawerOpenKey = "dh-sidebar-open";
+
     [Parameter, EditorRequired] public RenderFragment ChildContent { get; set; }
-    public bool Open { get; set; } = true;
-    
-    public void ToggleDrawer()
+    public bool Open { get; set; } = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var saved = await _localStorage.GetItemAsync<bool?>(DrawerOpenKey);
+            // Default to open only if a preference was previously saved; first-time visitors
+            // get the collapsed (mini) state to avoid the "massive box" snap-in effect.
+            Open = saved ?? false;
+            StateHasChanged();
+        }
+    }
+
+    public async Task ToggleDrawer()
     {
         Open = !Open;
+        await _localStorage.SetItemAsync(DrawerOpenKey, Open);
     }
 }
