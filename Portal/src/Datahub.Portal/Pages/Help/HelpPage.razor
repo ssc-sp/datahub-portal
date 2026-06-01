@@ -554,9 +554,9 @@ expected format.
         {
             await _module.DisposeAsync();
         }
-        catch (Exception)
+        catch (JSDisconnectedException)
         {
-            // ignored
+            // ignored: can occur during Blazor circuit teardown
         }
     }
 
