@@ -56,7 +56,7 @@
     private List<DailyServiceCost> _currentServiceCosts { get; set; } = new();
     private List<DailyServiceCost> _yesterdayServiceCosts { get; set; } = new();
 
-    private DonutChartOptions _chartOptions = new DonutChartOptions
+    private readonly DonutChartOptions _chartOptions = new DonutChartOptions
     {
         ShowLegend = false,
         ChartPalette = new[] { DatahubTheme.DefaultTheme.PaletteLight.Primary.ToString(), DatahubTheme.DefaultTheme.PaletteLight.GrayLighter.ToString() },
