@@ -3,6 +3,7 @@ using Azure.Security.KeyVault.Keys.Cryptography;
 using Azure.Security.KeyVault.Secrets;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text;
@@ -77,7 +78,7 @@ public class KeyVaultCoreService : IKeyVaultCoreService
 
         string keyIdentifier = GetApiKeyIdentifier();
         var key = await GetKeyClient().GetKeyAsync(keyIdentifier);
-        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetPortalTokenCredential());
+        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetTokenCredential());
 
         var encryptResult = await cryptoClient.EncryptAsync(
             EncryptionAlgorithm.RsaOaep256,
@@ -92,7 +93,7 @@ public class KeyVaultCoreService : IKeyVaultCoreService
     {
         string keyIdentifier = GetApiKeyIdentifier();
         var key = await GetKeyClient().GetKeyAsync(keyIdentifier);
-        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetPortalTokenCredential());
+        var cryptoClient = new CryptographyClient(key.Value.Id, _tokenCredentialService.GetTokenCredential());
 
         var decryptResult = await cryptoClient.DecryptAsync(
             EncryptionAlgorithm.RsaOaep256,
@@ -108,6 +109,6 @@ public class KeyVaultCoreService : IKeyVaultCoreService
         return $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
     }
 
-    private SecretClient GetSecretClient() => new SecretClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetPortalTokenCredential());
-    private KeyClient GetKeyClient() => new KeyClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetPortalTokenCredential());
+    private SecretClient GetSecretClient() => new SecretClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetTokenCredential());
+    private KeyClient GetKeyClient() => new KeyClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetTokenCredential());
 }

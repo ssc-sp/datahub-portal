@@ -16,6 +16,7 @@
     <PackageVersion Include="Azure.Monitor.Query" Version="1.7.1" />
     <PackageVersion Include="Azure.ResourceManager" Version="1.14.0" />
     <PackageVersion Include="Azure.ResourceManager.AppService" Version="1.4.1" />
+    <PackageVersion Include="Azure.ResourceManager.Authorization" Version="1.1.0" />
     <PackageVersion Include="Azure.ResourceManager.Billing" Version="1.2.2" />
     <PackageVersion Include="Azure.ResourceManager.Consumption" Version="1.1.0" />
     <PackageVersion Include="Azure.ResourceManager.CostManagement" Version="1.0.3" />
@@ -60,7 +61,7 @@
     <PackageVersion Include="Google.Cloud.Storage.V1" Version="4.14.0" />
     <PackageVersion Include="itext" Version="9.6.0" />
     <PackageVersion Include="JunitXml.TestLogger" Version="8.0.0" />
-    <PackageVersion Include="LibGit2Sharp" Version="0.31.0" />
+    <PackageVersion Include="LibGit2SharpFork" Version="1.8.0" />
     <PackageVersion Include="Localization.AspNetCore.TagHelpers" Version="0.6.0" />
     <PackageVersion Include="LoxSmoke.DocXml" Version="3.9.0" />
     <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00016" />
@@ -95,9 +96,6 @@
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Storage.Queues" Version="5.5.4" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Extensions.Timer" Version="4.3.1" />
     <PackageVersion Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" />
-    <PackageVersion Include="Microsoft.Azure.Management.Fluent" Version="1.38.1" />
-    <PackageVersion Include="Microsoft.Azure.Management.Graph.RBAC.Fluent" Version="1.38.1" />
-    <PackageVersion Include="Microsoft.Azure.Management.ResourceManager.Fluent" Version="1.38.1" />
     <PackageVersion Include="Microsoft.Azure.Services.AppAuthentication" Version="1.6.2" />
     <PackageVersion Include="Microsoft.Azure.WebJobs" Version="3.0.45" />
     <PackageVersion Include="Microsoft.Azure.WebJobs.Extensions" Version="5.0.0" />
