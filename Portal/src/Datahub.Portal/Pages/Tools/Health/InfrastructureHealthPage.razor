@@ -367,7 +367,7 @@ else
         }
         catch (Exception ex)
         {
-            await DialogService.ShowMessageBoxAsync("Health Check", "Health check request failed. Type: " + type.ToString() + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
+            await DialogService.ShowMessageBoxAsync("Health Check", "Health check request failed. Type: " + type + " Name: " + name + "Group: " + group + " Error: " + ex.Message);
         }
     }
 
