@@ -168,7 +168,7 @@
 
         var workspaceText = Localizer["all workspaces"];
             
-        var confirmed = await _dialogService.ShowMessageBox(
+        var confirmed = await _dialogService.ShowMessageBoxAsync(
             Localizer["Confirm Unlock"],
             Localizer["Are you sure you want to unlock {0} for {1}?", lockStatus.UserName, workspaceText],
             yesText: Localizer["Unlock"],
