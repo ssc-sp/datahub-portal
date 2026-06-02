@@ -134,7 +134,7 @@ public class VirusScanNotificationHandler(
         {
             return await userInformationService.GetEntraUserAsync(userObjectId);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Failed to resolve uploader {UserObjectId}.", userObjectId);
             return null;
