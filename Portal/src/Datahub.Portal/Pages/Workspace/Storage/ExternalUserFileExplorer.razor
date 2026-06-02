@@ -274,7 +274,7 @@ else
         var scanResult = GetFileScanResult(filename);
         if (scanResult != null && scanResult.Status != FileScanStatus.Succeeded)
         {
-            await _dialogService.ShowMessageBox(
+            await _dialogService.ShowMessageBoxAsync(
                 Localizer["Access Denied"],
                 Localizer["File cannot be accessed until scan is successful."],
                 Localizer["OK"]);

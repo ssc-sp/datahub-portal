@@ -227,8 +227,8 @@ namespace Datahub.Tests
 
             cut.Instance.HandleLogin();
 
-            // verify redirect to locked user page
-            Assert.Equal("http://localhost/locked", navigationManager.Uri);
+            // verify redirect to locked user page (HandleLogin is async void, use WaitForAssertion to avoid CI timing issues)
+            cut.WaitForAssertion(() => Assert.Equal("http://localhost/locked", navigationManager.Uri));
         }
 
 

@@ -163,7 +163,7 @@
     {
         _isConnectionVerified = false;
         ProjectCloudStorage.Enabled = false;
-        await _dialogService.ShowMessageBox(
+        await _dialogService.ShowMessageBoxAsync(
             Localizer["Connection Failed"], 
             Localizer["DataHub was unable to successfully connect to the storage provider. Please verify that your connection credentials " +
             "are correct and all necessary permissions are properly set on the storage account."]);

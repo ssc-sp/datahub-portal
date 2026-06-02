@@ -1160,7 +1160,7 @@
   "Log in as:": "Log in as:",
   "Log in instead": "Log in instead",
   "Logged in to DataHub": "Logged in to DataHub",
-  "Logged in to Datahub": "Logged in to Datahub",
+  "Logged out - Federal Science DataHub": "Logged out - Federal Science DataHub",
   "Logging in...": "Logging in...",
   "Logic_Model": "Logic Model",
   "Login": "Login",
@@ -2383,6 +2383,7 @@
   "You can request workspace tools from the 'Toolbox' tab.": "You can request workspace tools from the 'Toolbox' tab.",
   "You cannot have more than one workspace lead.": "You cannot have more than one workspace lead.",
   "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.": "You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.",
+  "You have logged out.": "You have logged out.",
   "You have no notifications.": "You have no notifications.",
   "You have unsaved changes. Please save them before leaving this page.": "You have unsaved changes. Please save them before leaving this page.",
   "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.": "You must acknowledge and check all <b>Mandatory Release Criteria</b> boxes before submitting.",
@@ -2668,5 +2669,5 @@
   "Unable to resend invitation": "Unable to resend invitation",
   "Your {0} file(s) have been uploaded and are being scanned for viruses.": "Your {0} file(s) have been uploaded and are being scanned for viruses.",
   "External user {0} uploaded {1} file(s) to {2}.": "External user {0} uploaded {1} file(s) to {2}.",
-  "Networking" : "Networking"
+  "Networking": "Networking"
 }

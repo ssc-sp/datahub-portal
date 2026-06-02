@@ -381,7 +381,7 @@ public partial class ExternalUserFileExplorer
     private async Task HandleFileDownload(string filename)
     {
         var containerName = _selectedContainerName ?? ContainerName;
-        var uri = await StorageManager.DownloadFileAsync(containerName, JoinPath(_currentFolder, filename));
+        var uri = await StorageManager.DownloadFileAsync(containerName, JoinPath(_currentFolder, filename), PortalUser.Email);
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
 

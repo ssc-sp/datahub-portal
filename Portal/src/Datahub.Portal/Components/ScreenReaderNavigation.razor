@@ -1,4 +1,5 @@
 ﻿@inject IJSRuntime _jsRuntime
+@implements IAsyncDisposable
 
 @if (_skipLinkIds != null)
 {
@@ -39,6 +40,23 @@
                 // Handle the case where the JS runtime is disconnected
             }
 
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // ignored
         }
     }
 

@@ -3,6 +3,12 @@
 
 @* @page "/w/{ProjectAcronym}/healthcheck" *@
 
+@using Azure
+@using Azure.Core
+@using Azure.ResourceManager
+@using Azure.ResourceManager.AppService
+@using Azure.ResourceManager.Authorization
+@using Azure.ResourceManager.Authorization.Models
 @using Datahub.Application.Services.Metadata;
 @using Datahub.Application.Services.UserManagement;
 @using Datahub.Core.Services.Projects;
@@ -16,13 +22,9 @@
 @using Datahub.Infrastructure.Services.Azure;
 @using Datahub.Portal.Services;
 @using Datahub.Shared;
+@using Datahub.Shared.Clients
 @using Datahub.Shared.Configuration;
 @using Datahub.Shared.Entities;
-@using Microsoft.Azure.Management.Fluent
-@using Microsoft.Azure.Management.ResourceManager.Fluent
-@using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication
-@using Microsoft.Azure.Management.Graph.RBAC.Fluent
-@using Microsoft.Azure.Management.Graph.RBAC.Fluent.Models
 @using Microsoft.Graph;
 @using Microsoft.AspNetCore.Authentication;
 @using Microsoft.AspNetCore.Authorization;
@@ -30,9 +32,7 @@
 @using Microsoft.Identity.Client;
 @using Microsoft.Identity.Web;
 @using Microsoft.Extensions.Caching.Memory;
-@using Microsoft.Rest;
 @using MassTransit;
-@using System.IdentityModel.Tokens.Jwt;
 @using Toolbelt.Blazor.Globalization
  
 @inject IDbContextFactory<DatahubProjectDBContext> DbFactory
@@ -43,12 +43,13 @@
 @inject IUserInformationService _userInformationService
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject ISendEndpointProvider _sendEndpointProvider
-@inject ITokenAcquisition _tokenAcquisition
 @inject IHttpClientFactory _httpClientFactory
 @inject IHttpContextAccessor _httpContextAccessor
 @inject IMemoryCache Cache
 @inject NavigationManager NavigationManager 
 @inject ILocalTimeZone LocalTimeZone
+@implements IDisposable
+@inject ISystemTokenCredentialService _systemTokenCredentialService
 
 <MudPaper Class="py-4 px-6">
     <MudStack>
@@ -101,6 +102,7 @@
 
     private const string cacheKey = "InfrastructureHealthChecks";
     private Timer _timer;
+    private Timer _reloadTimer;
     public string _userToken;
     public string _userID;
 
@@ -132,7 +134,7 @@
 
         if (needReload)
         {
-            var reloadTimer = new System.Threading.Timer(_ =>
+            _reloadTimer = new System.Threading.Timer(_ =>
             {
                 InvokeAsync(() =>
                 {
@@ -140,6 +142,13 @@
                 });
             }, null, TimeSpan.FromSeconds(3), Timeout.InfiniteTimeSpan);
         }
+    }
+
+    public void Dispose()
+    {
+        _timer?.Dispose();
+        _reloadTimer?.Dispose();
+        _projectDbContext?.Dispose();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -150,30 +159,6 @@
         }
     }
 
-    private async Task<string> GetSystemAccessTokenAsync()
-    {
-        var config = new AzureDevOpsConfiguration
-            {
-                TenantId = _portalConfiguration.AzureAd.TenantId,
-                ClientId = _portalConfiguration.AzureAd.InfraClientId,
-                ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret
-            };
-
-        var cancellationToken = CancellationToken.None;
-        var audience = "https://management.azure.com/";
-        var url = $"https://login.microsoftonline.com/{config.TenantId}/oauth2/token";
-        var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                { "grant_type", "client_credentials" },
-                { "client_id", config.ClientId },
-                { "client_secret", config.ClientSecret },
-                { "scope", $"{audience}.default" },
-                { "resource", audience }
-            });
-        using var _httpClient = _httpClientFactory.CreateClient();
-        var tokenResponse = await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
-        return tokenResponse?.access_token;
-    }
     private async Task<bool> CheckRoleToResource()
     {
         try
@@ -183,70 +168,56 @@
             {
                 env = "dev";
             }
-            var tenantId = _portalConfiguration.AzureAd.TenantId;
+
             var subscriptionId = _portalConfiguration.AzureAd.SubscriptionId;
             var resourceGroup = $"fsdh_proj_{WorkspaceAcronym.ToLower()}_{env}_rg";
             var webAppName = $"fsdh-proj-{WorkspaceAcronym.ToLower()}-webapp-{env}";
 
-            var token = await _tokenAcquisition.GetAccessTokenForAppAsync("https://management.azure.com/.default");
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(token);
-            var oidClaim = jwtToken.Claims.FirstOrDefault(c => c.Type == "oid")?.Value;
+            var oidClaim = _httpContextAccessor.HttpContext?.User?.FindFirst("oid")?.Value
+                           ?? _httpContextAccessor.HttpContext?.User?.FindFirst("http://schemas.microsoft.com/identity/claims/objectidentifier")?.Value;
 
-            if (string.IsNullOrEmpty(oidClaim))
+            if (!Guid.TryParse(oidClaim, out var principalId))
             {
-                throw new InvalidOperationException("Could not find oid claim in the token.");
+                throw new InvalidOperationException("Could not find a valid oid claim for the current user.");
             }
 
-            var credentials = new TokenCredentials(token);
-            var azure = Azure.Configure()
-                .Authenticate(new AzureCredentials(credentials, credentials, tenantId, AzureEnvironment.AzureGlobalCloud))
-                .WithDefaultSubscription();
-            var scope = $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/{webAppName}";
+            var armClient = new ArmClient(_systemTokenCredentialService.GetTokenCredential(), subscriptionId);
+            var webAppResourceId = WebSiteResource.CreateResourceIdentifier(subscriptionId, resourceGroup, webAppName);
+            var webApp = armClient.GetWebSiteResource(webAppResourceId);
+            var contributorRoleDefinitionId = new ResourceIdentifier($"/subscriptions/{subscriptionId}/providers/Microsoft.Authorization/roleDefinitions/{InfrastructureHealthCheckConstants.AZURE_RBAC_CONTRIBUTOR_ROLE_DEFINITION_GUID}");
 
-            var roleDefinition = azure.AccessManagement.RoleDefinitions
-                .ListByScope(scope)
-                .FirstOrDefault(r => r.RoleName == "Contributor");
-
-            if (roleDefinition != null)
+            await foreach (var assignment in webApp.GetRoleAssignments().GetAllAsync())
             {
-                // Check if the role assignment already exists
-                var existingAssignments = azure.AccessManagement.RoleAssignments
-                    .ListByScope(scope)
-                    .Where(ra => ra.PrincipalId == oidClaim && ra.RoleDefinitionId == roleDefinition.Id);
-
-                if (!existingAssignments.Any())
-                {
-                    await AssignRole(tenantId, subscriptionId, resourceGroup, webAppName, oidClaim, roleDefinition.Id);
-                    return true;
-                }
-                else
+                if (assignment.Data.PrincipalId == principalId &&
+                    string.Equals(assignment.Data.RoleDefinitionId?.ToString(), contributorRoleDefinitionId.ToString(), StringComparison.OrdinalIgnoreCase))
                 {
                     return false;
                 }
             }
+
+            await AssignRole(subscriptionId, resourceGroup, webAppName, principalId, contributorRoleDefinitionId);
+            return true;
         }
         catch (Exception ex)
         {
-            // Handle exceptions
             Console.WriteLine($"Error assigning role: {ex.Message}");
         }
+
         return false;
     }
 
-    private async Task AssignRole(string tenantId, string subscriptionId, string resourceGroup, string webAppName, string oidClaim, string roleDefinitionId)
+    private async Task AssignRole(string subscriptionId, string resourceGroup, string webAppName, Guid principalId, ResourceIdentifier roleDefinitionId)
     {
-        var accessToken = await GetSystemAccessTokenAsync();
-        var credentials = new TokenCredentials(accessToken);
-        var azure = Azure.Configure()
-               .Authenticate(new AzureCredentials(credentials, credentials, tenantId, AzureEnvironment.AzureGlobalCloud))
-               .WithDefaultSubscription();
-        var roleAssignment = azure.AccessManagement.RoleAssignments
-                                .Define(Guid.NewGuid().ToString())
-                                .ForObjectId(oidClaim)
-                                .WithRoleDefinition(roleDefinitionId)
-                                .WithScope($"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.Web/sites/{webAppName}")
-                                .Create();
+        var armClient = new ArmClient(_systemTokenCredentialService.GetTokenCredential(), subscriptionId);
+        var webAppResourceId = WebSiteResource.CreateResourceIdentifier(subscriptionId, resourceGroup, webAppName);
+        var webApp = armClient.GetWebSiteResource(webAppResourceId);
+
+        var content = new RoleAssignmentCreateOrUpdateContent(roleDefinitionId, principalId)
+        {
+            PrincipalType = RoleManagementPrincipalType.User
+        };
+
+        await webApp.GetRoleAssignments().CreateOrUpdateAsync(WaitUntil.Completed, Guid.NewGuid().ToString(), content);
     }
 
     private bool LoadDataForTables()
@@ -291,7 +262,7 @@
         }
         catch (Exception ex)
         {
-            await DialogService.ShowMessageBox(
+            await DialogService.ShowMessageBoxAsync(
                 Localizer["Health Check"],
                 string.Format(
                     Localizer["HealthCheckFailed"],

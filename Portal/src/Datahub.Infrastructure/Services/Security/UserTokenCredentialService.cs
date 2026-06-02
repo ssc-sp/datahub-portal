@@ -2,18 +2,26 @@ using Azure.Core;
 using Datahub.Application.Services.Security;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
 using Microsoft.Identity.Web;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services.Security;
 
+/// <summary>
+/// This class provides a bridge between MSAL and Azure SDK's TokenCredential system, allowing for user impersonation when accessing Azure resources like Key Vault and Storage.
+/// It retrieves access tokens for the currently authenticated user and caches them for subsequent requests to improve performance.
+/// The service ensures that tokens are acquired on behalf of the user, enabling fine-grained access control based on the user's identity and permissions.
+/// </summary>
 public class UserTokenCredentialService : IUserTokenCredentialService
 {
     private readonly ITokenAcquisition _tokenAcquisition;
     private readonly ILogger<UserTokenCredentialService> _logger;
     private string? _currentUserVaultToken;
+    private readonly Dictionary<UserTokenService, string> tokenCache = new();
 
     public UserTokenCredentialService(
         ITokenAcquisition tokenAcquisition,
@@ -23,23 +31,43 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         _logger = logger;
     }
 
-    public Task<TokenCredential> GetTokenCredentialForUser(string? vaultToken = null)
+    public Task<TokenCredential> GetTokenCredentialForUser(UserTokenService service, string? token = null)
     {
-        var token = vaultToken ?? _currentUserVaultToken;
+        if (tokenCache.TryGetValue(service, out token))
+        {
+            _logger.LogDebug("Using cached token for service {Service}", service);
+        }
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
         return Task.FromResult<TokenCredential>(new StaticAccessTokenCredential(token, _logger));
     }
 
-    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal)
-    {
-        var scopes = new[] { "https://vault.azure.net/user_impersonation" };
-        _currentUserVaultToken = await _tokenAcquisition.GetAccessTokenForUserAsync(
-            scopes,
-            authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
-            user: claimsPrincipal);
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-        _logger.LogInformation("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
-        return _currentUserVaultToken;
+    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, UserTokenService service)
+    {
+        try
+        {
+            await _semaphore.WaitAsync();
+            if (tokenCache.TryGetValue(service, out var cachedToken))
+            {
+                _logger.LogDebug("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
+                return cachedToken;
+            }
+            string[] scopes = service switch
+            {
+                UserTokenService.Storage => ["https://storage.azure.com/user_impersonation"],
+                UserTokenService.KeyVault => ["https://vault.azure.net/user_impersonation"],
+                _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unsupported service")
+            };
+
+            var token = await _tokenAcquisition.GetAccessTokenForUserAsync(
+                scopes,
+                authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
+                user: claimsPrincipal);
+            tokenCache.Add(service, token);
+            _logger.LogDebug("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            return token;
+        } finally { _semaphore.Release(); }
     }
 
     private sealed class StaticAccessTokenCredential : TokenCredential
