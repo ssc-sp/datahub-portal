@@ -1,18 +1,21 @@
 using Azure;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
-using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Subscriptions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
 
 namespace Datahub.Infrastructure.Services.Subscriptions;
 
 public class DatahubAzureSubscriptionService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
+    [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService,
     DatahubPortalConfiguration portalConfiguration)
     : IDatahubAzureSubscriptionService
 {
@@ -33,16 +36,8 @@ public class DatahubAzureSubscriptionService(
     /// </summary>
     /// <param name="subscriptionId">The subscription ID to check.</param>
     /// <returns>Returns true if the subscription exists, otherwise false.</returns>
-    public async Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId)
-    {
-        var subscriptionResource = await FetchSubscriptionResource(subscriptionId);
-        return new DatahubAzureSubscription
-        {
-            TenantId = subscriptionResource?.TenantId,
-            SubscriptionId = subscriptionId,
-            SubscriptionName = subscriptionResource?.SubscriptionName
-        };
-    }
+    public Task<DatahubAzureSubscription> SubscriptionExistsAsync(string subscriptionId) => FetchSubscriptionResource(subscriptionId);
+
 
     /// <summary>
     /// Adds a new Datahub Azure subscription to the database.
@@ -70,20 +65,17 @@ public class DatahubAzureSubscriptionService(
     public virtual async Task<DatahubAzureSubscription> FetchSubscriptionResource(string subscriptionId)
     {
         // verify access
-        var armClient = new ArmClient(new ClientSecretCredential(
-            portalConfiguration.AzureAd.TenantId,
-            portalConfiguration.AzureAd.InfraClientId,
-            portalConfiguration.AzureAd.InfraClientSecret));
+        var armClient = new ArmClient(infraTokenCredentialService.GetTokenCredential());
 
         try
         {
             var subscriptionResource = await armClient
                 .GetSubscriptions()
-                .GetIfExistsAsync(subscriptionId);
+                .GetIfExistsAsync(subscriptionId) ?? throw new InvalidOperationException("Subscription not found.");
             
             return new DatahubAzureSubscription
             {
-                TenantId = subscriptionResource.Value!.Data.TenantId.ToString(),
+                TenantId = subscriptionResource.Value!.Data.TenantId?.ToString() ?? throw new InvalidOperationException("Tenant ID missing"),
                 SubscriptionId = subscriptionId,
                 SubscriptionName = subscriptionResource.Value.Data.DisplayName
             };

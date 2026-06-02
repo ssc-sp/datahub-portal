@@ -237,6 +237,10 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                 [TerraformVariables.DatabricksAdminUsers] = new JsonArray(),
                 [TerraformVariables.DatabricksProjectUsers] = new JsonArray(),
                 [TerraformVariables.DatabricksProjectGuests] = new JsonArray(),
+                [TerraformVariables.AzureDatabricksMLCluster] = false,
+                [TerraformVariables.AzureDatabricksGPUCluster] = false,
+                [TerraformVariables.AzureDatabricksGPUClusterSKU] = "Standard_NC4as_T4_v3",
+                [TerraformVariables.AzureDatabricksMLClusterSKU] = "Standard_D4ds_v5",
                 [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform
                     .Variables
                     .azure_databricks_enterprise_oid,
@@ -287,6 +291,10 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                 })
                 .ToArray<JsonNode>()
             ),
+            [TerraformVariables.AzureDatabricksMLCluster] = false,
+            [TerraformVariables.AzureDatabricksGPUCluster] = false,
+            [TerraformVariables.AzureDatabricksGPUClusterSKU] = "Standard_NC4as_T4_v3",
+            [TerraformVariables.AzureDatabricksMLClusterSKU] = "Standard_D4ds_v5",
             [TerraformVariables.AzureDatabricksEnterpriseOid] =
                 _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid,
             [TerraformVariables.AzureLogWorkspaceId] =

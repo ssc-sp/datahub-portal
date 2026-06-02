@@ -34,13 +34,13 @@
                           Accept=".png,.jpg,.jpeg,.pdf" 
                           FilesChanged="OnFileSelected"
                           MaximumFileCount="1">
-                <ActivatorContent>
+                <CustomContent>
                     <DHButton Variant="Variant.Filled"
                              Color="Color.Primary"
                              StartIcon="@Icons.Material.Filled.CloudUpload">
                         @Localizer["Select File"]
                     </DHButton>
-                </ActivatorContent>
+                </CustomContent>
             </MudFileUpload>
 
             @if (_selectedFile != null)

@@ -17,6 +17,7 @@ using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Cost;
@@ -29,6 +30,7 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Shared.Clients;
 using MassTransit;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -52,6 +54,7 @@ public static class ConfigureServices
         services.AddSingleton<IFileTokenService, FileTokenService>();
         services.AddScoped<CloudStorageManagerFactory>();
         services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+        services.AddScoped<HealthCheckHelper>();
         services.AddScoped<ISubnetPoolService, SubnetPoolService>();
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddSingleton<IAnnouncementService, AnnouncementService>();
@@ -65,9 +68,10 @@ public static class ConfigureServices
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
-        services.AddScoped<ISystemTokenCredentialService, SystemTokenCredentialService>();
+        services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
 
 
+        services.AddSingleton<AzureDevOpsClient>();
         services.AddAzureResourceManager(configuration);
         services.AddTransient<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
         services.AddTransient<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();

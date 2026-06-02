@@ -4,6 +4,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.FeatureManagement;
 using NSubstitute;
 using NSubstitute.Extensions;
 using Reqnroll;
@@ -26,11 +27,16 @@ public class ResourceDeleteSteps(ScenarioContext scenarioContext)
     public void GivenARepositoryServiceWithAStubbedCommitTerraformTemplateMethod()
     {
         var terraformService = Substitute.For<ITerraformService>();
+        var configurationManager = Substitute.For<IConfiguration>();
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(Task.FromResult(true));
         var repositoryService = Substitute.ForPartsOf<RepositoryService>(
             Substitute.For<IHttpClientFactory>(),
             Substitute.For<ILogger<RepositoryService>>(),
             Substitute.For<IOptions<ResourceProvisionerConfiguration>>(),
-            terraformService
+            terraformService,
+            featureManager,
+            configurationManager
         );
 
         repositoryService

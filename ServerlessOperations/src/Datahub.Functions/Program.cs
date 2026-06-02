@@ -1,4 +1,3 @@
-using System.Net;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -18,7 +17,6 @@ using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure;
-using Datahub.Infrastructure.Offline.Security;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Cost;
@@ -28,8 +26,9 @@ using Datahub.Infrastructure.Services.Projects;
 using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
-using Datahub.Infrastructure.Services.WebApp;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +39,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
+using System.Net;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -77,6 +77,7 @@ if (devopsConfig is not null)
 
 builder.Services.AddSingleton<AzureConfig>();
 builder.Services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
+builder.Services.AddSingleton<IAzureDevopsConfiguration, AzureConfig>();
 builder.Services.AddAzureResourceManager(config);
 builder.Services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
 builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
@@ -84,6 +85,8 @@ builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostMana
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
 builder.Services.AddSingleton<IMSGraphService, MSGraphService>();
+builder.Services.AddSingleton<AzureDevOpsClient>();
+builder.Services.AddSingleton<AzAccessTokenManager>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
@@ -98,7 +101,7 @@ builder.Services.AddScoped<IDateProvider, DateProvider>();
 builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
-builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
+//builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
 
 // in-memory cache for health result
 builder.Services.AddMemoryCache();
