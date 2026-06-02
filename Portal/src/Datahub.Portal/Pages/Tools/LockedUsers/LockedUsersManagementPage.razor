@@ -59,7 +59,7 @@
                         @if (context.LockedDate.HasValue)
                         {
                             <MudText Typo="Typo.body2">
-                                @context.LockedDate.Value.ToString("yyyy-MM-dd HH:mm")
+                                @context.LockedDate?.ToString("yyyy-MM-dd HH:mm")
                             </MudText>
                         }
                     </MudTd>
