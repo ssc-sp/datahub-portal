@@ -344,6 +344,7 @@ public class TerraformService(
             TerraformVariables.PsqlSku => workspaceAppData.PostgresConfiguration?.PSQL_SKU ?? "B_Standard_B1ms",
             TerraformVariables.PsqlNameSuffix => workspaceAppData.PostgresConfiguration?.ResourceNameSuffix ?? string.Empty,
             TerraformVariables.AppServiceNameSuffix => workspaceAppData.AppServiceConfiguration?.ResourceNameSuffix ?? string.Empty,
+            TerraformVariables.AppServiceSubnetId => workspaceAppData.AppServiceConfiguration?.SubnetId ?? string.Empty,
             TerraformVariables.EnableMlCluster => workspaceAppData.DatabricksConfiguration?.EnableMachineLearning ?? false,
             TerraformVariables.EnableMlGpuCluster => workspaceAppData.DatabricksConfiguration?.EnableMachineLearningGpu ?? false,
             TerraformVariables.MlCompute => workspaceAppData.DatabricksConfiguration?.MachineLearningTierSku ?? DatabricksTier.DefaultML.DatabricksSKU,

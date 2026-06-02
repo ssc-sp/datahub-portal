@@ -62,9 +62,10 @@ public class WorkspaceSubscriptionHook
         var dbContextFactory = new SpecFlowDbContextFactory(options);
         objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
         var mockISendEndpointProvider = Substitute.For<ISendEndpointProvider>();
-        var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
+        var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
+        var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
 
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, workspaceVersionService);
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, workspaceVersionService, mockSubnetPoolService);
         var resourceMessagingSubstitute = Substitute.For<IResourceMessagingService>();
 
         resourceMessagingSubstitute.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
@@ -83,8 +84,9 @@ public class WorkspaceSubscriptionHook
         var userInformationService = Substitute.For<IUserInformationService>();
         userInformationService.GetCurrentPortalUserAsync().Returns(currentUser);
 
+        var tokenCredential = Substitute.For<ISystemTokenCredentialService>();
         var datahubAzureSubscriptionService =
-            new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
+            new DatahubAzureSubscriptionService(dbContextFactory, tokenCredential, datahubPortalConfiguration);
 
         var projectCreationService = new WorkspaceCreationService(
             datahubPortalConfiguration,

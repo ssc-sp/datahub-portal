@@ -33,7 +33,7 @@ else if (_gccfEnabled)
     <MudStack Row Class="mt-6 mb-4">
       <DHMainContentTitle Title="@Localizer["External Workspace Members"]" />
       <MudSpacer />
-      <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym"
+      <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym"
                        ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
         <DHButton OnClick="OpenInviteUserDialog" Variant="Variant.Outlined" Color="Color.Primary"
                   EndIcon="@Icons.Material.Outlined.PersonAdd">

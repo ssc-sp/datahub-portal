@@ -23,9 +23,11 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
         return $"{_portalConfiguration.ResourcePrefix}proj{projectAcronym.ToLower()}{envName}";
     }
 
-    public async Task<string> GetProjectStorageAccountKey(string projectAcronym)
+    public async Task<string?> GetProjectStorageAccountKey(string projectAcronym)
     {
-        return (await _keyVaultService.GetSecretAsync(projectAcronym, GetProjectStorageKeyName(projectAcronym)))?.ToString() ?? throw new InvalidOperationException("Project storage account key not found.");
+        var secret = await _keyVaultService.GetSecretAsync(projectAcronym, GetProjectStorageKeyName(projectAcronym));
+        if (secret == null) return null;
+        return secret.ToString() ?? throw new InvalidOperationException("Project storage account key not found.");
     }
 
 

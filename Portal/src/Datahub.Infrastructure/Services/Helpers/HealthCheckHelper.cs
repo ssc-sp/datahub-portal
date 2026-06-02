@@ -1,17 +1,18 @@
-
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Azure.Security.KeyVault.Keys;
 using Azure.Security.KeyVault.Secrets;
-using Azure.Identity;
 using Azure.Storage.Queues;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
-using Datahub.Application.Services.WebApp;
-using Datahub.Core.Model.Context;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.WebApp;
+using Datahub.Core.Configuration;
+using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
@@ -24,11 +25,11 @@ using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
-using MudBlazor;
 using Microsoft.TeamFoundation.Common;
-using Datahub.Core.Configuration;
+using MudBlazor;
 
 namespace Datahub.Infrastructure.Services.Helpers
 {
@@ -53,6 +54,10 @@ namespace Datahub.Infrastructure.Services.Helpers
         public const string DatahubServiceBusConnectionStringConfigKey = "DatahubServiceBus:ConnectionString";
 
         public const string BugReportUsername = "Datahub Portal";
+
+        // Built-in Azure RBAC role: Contributor
+        // Reference: https://learn.microsoft.com/azure/role-based-access-control/built-in-roles#contributor
+        public const string AZURE_RBAC_CONTRIBUTOR_ROLE_DEFINITION_GUID = "b24988ac-6180-42a0-ab88-20f7382dd24c";
     }
 
     public class HealthCheckHelper(
@@ -62,22 +67,17 @@ namespace Datahub.Infrastructure.Services.Helpers
         IConfiguration configuration,
         IHttpClientFactory httpClientFactory,
         ILoggerFactory loggerFactory,
+        AzAccessTokenManager tokenManager,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
         DatahubPortalConfiguration portalConfiguration,
+        [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService,
         IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
         IGCNotifyService? gcNotifyService = null)
     {
         private readonly ILogger<HealthCheckHelper> logger = loggerFactory.CreateLogger<HealthCheckHelper>();
         private readonly IHttpContextAccessor? _httpContextAccessor = httpContextAccessor; // nullable now
         private readonly IGCNotifyService? gcNotifyService = gcNotifyService;
-
-        private AzureDevOpsConfiguration BuildDevopsConfig() => new()
-        {
-            ClientId = portalConfiguration.AzureAd.InfraClientId,
-            ClientSecret = portalConfiguration.AzureAd.InfraClientSecret,
-            TenantId = portalConfiguration.AzureAd.TenantId
-        };
 
         public static List<InfrastructureHealthResourceType> CoreHealthChecks { get; } =
         [
@@ -194,7 +194,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             try
             {
                 var kvUrl = GetAzureKeyVaultUrl(request);
-                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId, portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
+                var credential = infraTokenCredentialService.GetTokenCredential();
 
                 var secretClient = new SecretClient(kvUrl, credential);
                 var keyClient = new KeyClient(kvUrl, credential);
@@ -343,30 +343,38 @@ namespace Datahub.Infrastructure.Services.Helpers
                     else
                     {
                         string accountName = projectStorageConfigurationService.GetProjectStorageAccountName(request.Name);
-                        string accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
+                        var accountKey = await projectStorageConfigurationService.GetProjectStorageAccountKey(request.Name);
 
-                        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
-
-                        if (projectStorageManager is null)
+                        if (accountKey is null)
                         {
-                            status = InfrastructureHealthStatus.Unhealthy;
-                            errors.Add("Unable to find the data container.");
+                            status = InfrastructureHealthStatus.Undefined;
+                            errors.Add("System cannot access storage account (expected in Protected B)");
                         }
                         else
                         {
-                            var containers = await projectStorageManager.GetContainersAsync();
-                            if (containers is null || containers.Count < 1)
+                            var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+
+                            if (projectStorageManager is null)
                             {
-                                errors.Add("Storage account appears to have no containers.");
-                                status = InfrastructureHealthStatus.Degraded;
+                                status = InfrastructureHealthStatus.Unhealthy;
+                                errors.Add("Unable to find the data container.");
                             }
                             else
                             {
-                                var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
-                                if (metadata is null)
+                                var containers = await projectStorageManager.GetContainersAsync();
+                                if (containers is null || containers.Count < 1)
                                 {
-                                    errors.Add("Unable to get container metadata. There may be something wrong with the container.");
+                                    errors.Add("Storage account appears to have no containers.");
                                     status = InfrastructureHealthStatus.Degraded;
+                                }
+                                else
+                                {
+                                    var metadata = await projectStorageManager.GetStorageMetadataAsync(containers[0]);
+                                    if (metadata is null)
+                                    {
+                                        errors.Add("Unable to get container metadata. There may be something wrong with the container.");
+                                        status = InfrastructureHealthStatus.Degraded;
+                                    }
                                 }
                             }
                         }
@@ -446,8 +454,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                     {
                         try
                         {
-                            var azureDevOpsClient = new AzureDevOpsClient(BuildDevopsConfig());
-                            var accessToken = await azureDevOpsClient.AccessTokenAsync();
+                            var accessToken = await tokenManager.AccessDatabricksTokenAsync();
 
                             var databricksClient = new DatabricksClientUtils(databricksUrl, accessToken.Token);
 
@@ -495,7 +502,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             try
             {
-                var credential = new ClientSecretCredential(portalConfiguration.AzureAd.TenantId, portalConfiguration.AzureAd.InfraClientId, portalConfiguration.AzureAd.InfraClientSecret);
+                var credential = infraTokenCredentialService.GetTokenCredential();
 
                 var armClient = new ArmClient(credential);
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 

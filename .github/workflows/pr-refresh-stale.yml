@@ -17,10 +17,11 @@ jobs:
           private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
 
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.10.2
+        uses: KingBain/update-pr-branch@master
         with:
           token: ${{ steps.create_token.outputs.token }}
           base: "develop"
+          excluded_labels: "dont-auto-refresh"
           required_approval_count: 0
           require_passed_checks: false
           require_auto_merge_enabled: false

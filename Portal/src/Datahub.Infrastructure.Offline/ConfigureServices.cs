@@ -42,8 +42,7 @@ public static class ConfigureServices
         services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
         services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
         
-        services.AddBlazoredLocalStorage();
-        
+        services.AddBlazoredLocalStorage();        
         
         return services;
     }
