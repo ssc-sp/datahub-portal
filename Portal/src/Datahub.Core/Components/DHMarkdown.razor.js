@@ -29,6 +29,10 @@ export function styleCodeblocks(element) {
 }
 
 export function appendCopyIcon(element) {
+    if (!element || typeof element.appendChild !== 'function' || element.classList?.contains('copy-icon-added')) {
+        return;
+    }
+
     let copyIcon = document.createElement('i');
     let iconClasses = ['fas', 'fa-copy', 'codeblock-copy-icon'];
     let iconAnimatingClasses = ['fa-copy', 'fa-check', 'animating'];
