@@ -15,7 +15,9 @@ public class DatahubPortalConfiguration : IAzureDevopsConfiguration
     public AdoOrg AdoOrg { get; set; } = new();
     public KeyVault KeyVault { get; set; } = new();
     public Hosting Hosting { get; set; } = new();
-    public string PortalRunAsManagedIdentity { get; set; } = "disabled";
+
+    public const string DisableManagedIdentityValue = "disabled";
+    public string PortalRunAsManagedIdentity { get; set; } = DisableManagedIdentityValue;
     public string ResourcePrefix { get; set; } = "fsdh";
     public bool CentralizedProjectSecrets { get; set; } = false;
     public string ProjectStorageKeySecretName { get; set; } = "storage-key";
