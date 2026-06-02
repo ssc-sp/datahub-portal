@@ -122,13 +122,10 @@
     private WhitelistIPAddressData _elementBeforeEdit = default;
     private List<WhitelistIPAddressData> _firewallRules = [];
 
-    private Converter<IPAddress> BuildConverter() =>
-        new()
-        {
-            SetFunc = value => value?.ToString() ?? string.Empty,
-            GetFunc = IPAddress.Parse,
-            SetErrorMessage = (Localizer["Invalid IP address format (e.g. 192.168.2.1)"], Array.Empty<Object>()),
-        };
+    private IConverter<IPAddress, string> BuildConverter() =>
+        new MudBlazor.Utilities.Converter.Chain.ReversibleChain<IPAddress, string>(
+            value => value?.ToString() ?? string.Empty,
+            text => IPAddress.Parse(text));
 
     protected override async Task OnInitializedAsync()
     {

@@ -8,6 +8,7 @@
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
+@using Microsoft.JSInterop
 
 @inject NavigationManager _navigationManager
 @inject IUserInformationService _userInformationService
@@ -19,6 +20,7 @@
 @inject IOpenDataPublishingService _openDataPublishingService
 @inject DatahubPortalConfiguration _config
 @inject IDialogService _dialogService
+@implements IAsyncDisposable
 
     
 <div class="heading">
@@ -223,7 +225,7 @@
 
     private async Task ShowPublishingBlockedDialog()
     {
-        await _dialogService.ShowMessageBox(
+        await _dialogService.ShowMessageBoxAsync(
             Localizer["Publishing Disabled"],
             Localizer["Publishing has been disabled for this workspace by the administrator."],
             yesText: Localizer["OK"]
@@ -231,4 +233,23 @@
     }
 
     private const string JobStatusComplete = "Completed";
+
+    public async ValueTask DisposeAsync()
+    {
+        _dotNetHelper?.Dispose();
+
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // ignored
+        }
+    }
 }

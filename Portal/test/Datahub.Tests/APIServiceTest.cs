@@ -17,6 +17,7 @@ using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
+using System.Threading;
 
 namespace Datahub.Tests;
 
@@ -159,7 +160,7 @@ public class APIServiceTest
         Assert.NotNull(fileSystemClient);
 
         IAsyncEnumerator<PathItem> enumerator =
-            fileSystemClient.GetPathsAsync(string.Empty).GetAsyncEnumerator();
+            fileSystemClient.GetPathsAsync(string.Empty, recursive: true, userPrincipalName: false, cancellationToken: CancellationToken.None).GetAsyncEnumerator();
 
 
         int count = 0;
@@ -228,7 +229,7 @@ public class APIServiceTest
 
         List<PathItem> pathItems = new();
         DataLakeFileSystemClient fileSystemClient = dataLakeServiceClient.GetFileSystemClient(fileSystemName);
-        var directories = fileSystemClient.GetPathsAsync(null, true).AsPages(default, 20);
+        var directories = fileSystemClient.GetPathsAsync(null, true, false, CancellationToken.None).AsPages(default, 20);
 
         await foreach (Azure.Page<PathItem> directoryPage in directories)
         {

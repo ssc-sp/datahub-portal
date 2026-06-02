@@ -21,10 +21,11 @@ public class SystemTokenCredentialService : ISystemTokenCredentialService
 
     public TokenCredential GetTokenCredential()
     {
-        if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
+        var managedIdentity = _portalConfiguration.PortalRunAsManagedIdentity;
+        if (!managedIdentity.Equals(DatahubPortalConfiguration.DisableManagedIdentityValue, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogInformation("Using managed identity token credential");
-            return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+            return new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(managedIdentity));
         }
 
         var tenantId = _portalConfiguration.AzureAd.TenantId;
@@ -51,10 +52,11 @@ public class InfraTokenCredentialService : ISystemTokenCredentialService
 
     public TokenCredential GetTokenCredential()
     {
-        if (_portalConfiguration.PortalRunAsManagedIdentity.Equals("enabled", StringComparison.InvariantCultureIgnoreCase))
+        var managedIdentity = _portalConfiguration.PortalRunAsManagedIdentity;
+        if (!managedIdentity.Equals(DatahubPortalConfiguration.DisableManagedIdentityValue, StringComparison.InvariantCultureIgnoreCase))
         {
             _logger.LogInformation("Using managed identity token credential");
-            return new ManagedIdentityCredential(ManagedIdentityId.SystemAssigned);
+            return new ManagedIdentityCredential(ManagedIdentityId.FromUserAssignedClientId(managedIdentity));
         }
 
         var tenantId = _portalConfiguration.AzureAd.TenantId;
