@@ -57,7 +57,7 @@
                             <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
                                 <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
                                 <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
-                                                          CloudContainers=_cloudContainers
+                                                          CloudContainers="_cloudContainers"
                                                           AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
                                                           OnAddProviderClicked=@AddCloudStorageAccount
                                                           OnEditProviderClicked=@EditCloudStorageAccount
@@ -207,7 +207,7 @@
     private bool _isEntraUser = false;
     private bool _uploaderEnabled = false;
     private TokenCredential? _credential;
-    private CancellationTokenSource? _searchCancellationTokenSource;
+    private readonly CancellationTokenSource _searchCancellationTokenSource = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -255,8 +255,8 @@
             {
                 await _keyVaultUserService.AuthenticateWithUserContext();
                 var user = await _userInformationService.GetAuthenticatedUser();
-                var token = await _userTokenCredentialService.GetUserToken(user, IUserTokenCredentialService.STORAGE_SERVICE);
-                _credential = await _userTokenCredentialService.GetTokenCredentialForUser(IUserTokenCredentialService.STORAGE_SERVICE, token);
+                var token = await _userTokenCredentialService.GetUserToken(user, UserTokenService.Storage);
+                _credential = await _userTokenCredentialService.GetTokenCredentialForUser(UserTokenService.Storage, token);
                 _isProjectKeyEnabled = true; // Entra users will authenticate to storage with their user context, so project key is not required for them.
             }
             else
@@ -491,20 +491,15 @@
             return;
         }
 
-        // Cancel any previous search operation
-        _searchCancellationTokenSource?.Cancel();
-        _searchCancellationTokenSource = new CancellationTokenSource();
-
         IsLoading = true;
         try
         {
             var results = await SelectedContainer.StorageManager.SearchFilesAsync(
                 SelectedContainer.ContainerName,
-                "",
+                string.Empty,
                 _searchQuery,
                 _searchCancellationTokenSource.Token,
-                false
-            );
+                false);
 
             _searchResults = results
                 .Select(file => new FileSearchResult
@@ -513,6 +508,10 @@
                     Path = string.Join("/", file.filename.Split('/').SkipLast(1))
                 })
                 .ToList();
+        }
+        catch (OperationCanceledException) when (_searchCancellationTokenSource.IsCancellationRequested)
+        {
+            return;
         }
         catch (Exception ex)
         {
@@ -525,5 +524,12 @@
             _searchPerformed = true;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        _searchCancellationTokenSource.Cancel();
+        _searchCancellationTokenSource.Dispose();
+        return ValueTask.CompletedTask;
     }
 }
