@@ -101,7 +101,7 @@
 
     private async Task ShowPublishingBlockedDialog()
     {
-        await _dialogService.ShowMessageBox(
+        await _dialogService.ShowMessageBoxAsync(
             Localizer["Publishing Disabled"],
             Localizer["Publishing has been disabled for this workspace by the administrator."],
             yesText: Localizer["OK"]);

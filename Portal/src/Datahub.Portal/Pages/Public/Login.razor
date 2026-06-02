@@ -124,7 +124,9 @@
         await base.OnInitializedAsync();
 
         var user = await _userInformationService.GetAuthenticatedUser(true);
-        if (user.Identity?.IsAuthenticated == true)
+        // Only redirect if already authenticated as an Entra (GC employee) user.
+        // External/DevAuth users landing here should still be able to trigger the Entra challenge.
+        if (user.Identity?.IsAuthenticated == true && await _userInformationService.IsEntraUser())
         {
             _navigationManager.NavigateTo("/");
         }

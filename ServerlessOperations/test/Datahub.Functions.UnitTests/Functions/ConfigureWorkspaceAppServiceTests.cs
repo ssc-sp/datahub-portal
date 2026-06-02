@@ -1,8 +1,9 @@
-﻿using Datahub.Shared.Entities.WorkspaceToolConfiguration;
+using Datahub.Application.Services.Security;
+using Datahub.Shared.Clients;
+using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
-
 using static Datahub.Functions.UnitTests.Testing;
 
 namespace Datahub.Functions.UnitTests.Functions;
@@ -29,8 +30,12 @@ public class ConfigureWorkspaceAppServiceTests
 
         httpClientFactory.CreateClient(Arg.Any<string>()).Returns(httpClient);
         //_configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _azureConfig, _dbContext);
+        var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
+        var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
+        var config = Substitute.For<IAzureDevopsConfiguration>();
+        var azClient = Substitute.For<AzureDevOpsClient>(config, tokenManager);
 
-        _configureWorkspaceAppService = Substitute.For<ConfigureWorkspaceAppService>(_logger, _azureConfig, _dbContext);
+        _configureWorkspaceAppService = Substitute.For<ConfigureWorkspaceAppService>(_logger, _azureConfig, azClient, _dbContext);
 
         // Stub ConfigureHttpClient method
         _configureWorkspaceAppService.ConfigureHttpClient().Returns(Task.FromResult(httpClient));

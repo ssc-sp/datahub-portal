@@ -4,7 +4,6 @@ using Datahub.Core.Utils;
 using Datahub.Shared.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using Severity = MudBlazor.Severity;
@@ -84,7 +83,7 @@ namespace Datahub.Portal.Components
                     KeyValuePair envVar = new() { Key = key, Value = value };
                     envVars.Add(envVar);
                 }
-                catch (KeyVaultErrorException e)
+                catch (Exception e)
                 {
                     _logger.LogError(e, $"Error getting environment variable {key} from KeyVault.");
                     _snackbar.Add(Localizer["Error getting environment variable {0} from KeyVault.", key],

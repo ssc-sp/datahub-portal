@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -20,8 +19,10 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using MassTransit;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.Services.Common;
+using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services.WebApp
 {
@@ -35,6 +36,7 @@ namespace Datahub.Infrastructure.Services.WebApp
         private readonly ILogger<WorkspaceWebAppManagementService> _logger;
 
         public WorkspaceWebAppManagementService(DatahubPortalConfiguration portalConfiguration,
+            [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ISendEndpointProvider sendEndpointProvider,
             IKeyVaultUserService keyVaultUserService, ILogger<WorkspaceWebAppManagementService> logger)
         {
@@ -43,9 +45,7 @@ namespace Datahub.Infrastructure.Services.WebApp
             _sendEndpointProvider = sendEndpointProvider;
             _keyVaultUserService = keyVaultUserService;
             _logger = logger;
-            var credential = new ClientSecretCredential(_portalConfiguration.AzureAd.TenantId,
-                _portalConfiguration.AzureAd.InfraClientId, _portalConfiguration.AzureAd.InfraClientSecret);
-            _armClient = new ArmClient(credential);
+            _armClient = new ArmClient(infraTokenCredentialService.GetTokenCredential());
         }
 
         public async Task<bool> Start(string webAppId, string workspaceAcronym)

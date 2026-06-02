@@ -1,6 +1,8 @@
+using Datahub.Shared.Clients;
+
 namespace Datahub.Shared.Configuration;
 
-public class AzureDevOpsConfiguration
+public class AzureDevOpsConfiguration : IAzureDevopsConfiguration
 {
     public string TenantId { get; set; } = string.Empty;
     public string ClientId { get; set; } = string.Empty;

@@ -1,7 +1,6 @@
 @using Datahub.Application.Services.Notebooks
 @using Datahub.Core.Data.Databricks
 @using Microsoft.Identity.Web
-@using Microsoft.Rest
 
 @inject IDatabricksApiService _databricksApiService
 @inject ITokenAcquisition _tokenAcquisition
@@ -82,10 +81,10 @@
     // token's expired, or consent is needed
             _consentHandler.HandleException(e);
         }
-        catch (HttpOperationException)
+        catch (UnauthorizedAccessException)
         {
     // something else went wrong
-            throw new UnauthorizedAccessException();
+            throw;
         }
     }
 

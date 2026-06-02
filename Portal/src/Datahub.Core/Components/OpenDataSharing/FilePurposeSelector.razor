@@ -42,9 +42,9 @@
 
     private OpenDataPublishFile? _selectedValue;
 
-    private IEnumerable<OpenDataPublishFile> _selectedValues = new HashSet<OpenDataPublishFile>();
+    private IReadOnlyCollection<OpenDataPublishFile> _selectedValues = new HashSet<OpenDataPublishFile>();
 
-    private IEnumerable<OpenDataPublishFile> SelectedValues
+    private IReadOnlyCollection<OpenDataPublishFile> SelectedValues
     {
         get => _selectedValues;
         set
