@@ -55,6 +55,11 @@ public static class TerraformVariables
     public const string BudgetAmount = "budget_amount";
     public const string StorageSizeLimitInTb = "storage_size_limit_tb";
     public const string AzureDatabricksEnterpriseOid = "azure_databricks_enterprise_oid";
+    public const string AzureDatabricksMLCluster = "enable_ml_cluster";
+    public const string AzureDatabricksGPUCluster = "enable_ml_gpu_cluster";
+    public const string AzureDatabricksMLClusterSKU = "ml_compute";
+    public const string AzureDatabricksGPUClusterSKU = "ml_gpu_compute";
+
     public const string AzureLogWorkspaceId = "log_workspace_id";
     public const string SSCCBRID = "ssc_cbrid";
     public const string PipelineRunId = "pipeline_run_id";

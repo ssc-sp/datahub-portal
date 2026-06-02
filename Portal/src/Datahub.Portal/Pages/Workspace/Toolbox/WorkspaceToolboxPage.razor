@@ -88,7 +88,7 @@
                 <MudStepper Style="@(_activeIndex == 2 ? "width: 100%" : "width: 75%")"
                             @bind-ActiveIndex="@_activeIndex">
                     <ActionContent Context="stepper">
-                        @if (stepper.ActiveIndex != 0)
+                        @if (_activeIndex != 0)
                         {
                             <DHButton Variant="Variant.Filled"
                                         Class="ml-4 mb-3 mt-2"
@@ -100,7 +100,7 @@
                             </DHButton>
                         }
                         <MudSpacer/>
-                        @if (stepper.ActiveIndex != stepper.Steps.Count - 1)
+                        @if (_activeIndex != stepper.Steps.Count - 1)
                         {
                             <DHButton Variant="Variant.Filled" Color="Color.Primary"
                                         Class="mr-4 mb-3 mt-2"

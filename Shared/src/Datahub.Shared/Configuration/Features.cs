@@ -12,5 +12,7 @@ namespace Datahub.Core.Configuration
         public const string Trace_Claims = "Trace_Claims";
         public const string PB_Feature = "PB";
         public const string Storage_Uploader_Feature = "Storage_Uploader";
+        public const string LibGit2SharpIssuerSslValidation = "LibGit2SharpIssuerSslValidation";
+        public const string LibGit2SharpIssuerName = "LibGit2SharpIssuerName";
     }
 }

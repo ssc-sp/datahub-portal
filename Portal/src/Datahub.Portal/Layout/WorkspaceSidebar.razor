@@ -290,7 +290,7 @@ System.Net.HttpStatusCode.NotFound);
 
     private async Task ShowPublishingBlockedDialog()
     {
-        await _dialogService.ShowMessageBox(
+        await _dialogService.ShowMessageBoxAsync(
             Localizer["Publishing Disabled"],
             Localizer["Publishing has been disabled for this workspace by the administrator."],
             yesText: Localizer["OK"]);
@@ -489,7 +489,8 @@ DatahubAuthView.AuthLevels.Unauthorized,
             return _project.Data_Sensitivity != ClassificationType.ProtectedB && _GCCFEnabled;
         }
         return true;
-    }
+
+    }
 
     private bool ShouldToolBeShown(string toolSection)
     {

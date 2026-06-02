@@ -11,12 +11,17 @@ using System.Text.Json;
 
 namespace Datahub.Infrastructure.Services.Security;
 
+/// <summary>
+/// This class provides a bridge between MSAL and Azure SDK's TokenCredential system, allowing for user impersonation when accessing Azure resources like Key Vault and Storage.
+/// It retrieves access tokens for the currently authenticated user and caches them for subsequent requests to improve performance.
+/// The service ensures that tokens are acquired on behalf of the user, enabling fine-grained access control based on the user's identity and permissions.
+/// </summary>
 public class UserTokenCredentialService : IUserTokenCredentialService
 {
     private readonly ITokenAcquisition _tokenAcquisition;
     private readonly ILogger<UserTokenCredentialService> _logger;
     private string? _currentUserVaultToken;
-    private readonly Dictionary<string, string> tokenCache = new();
+    private readonly Dictionary<UserTokenService, string> tokenCache = new();
 
     public UserTokenCredentialService(
         ITokenAcquisition tokenAcquisition,
@@ -26,11 +31,11 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         _logger = logger;
     }
 
-    public Task<TokenCredential> GetTokenCredentialForUser(string service, string? token = null)
+    public Task<TokenCredential> GetTokenCredentialForUser(UserTokenService service, string? token = null)
     {
         if (tokenCache.TryGetValue(service, out token))
         {
-            _logger.LogInformation("Using cached token for service {Service}", service);
+            _logger.LogDebug("Using cached token for service {Service}", service);
         }
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
         return Task.FromResult<TokenCredential>(new StaticAccessTokenCredential(token, _logger));
@@ -38,36 +43,29 @@ public class UserTokenCredentialService : IUserTokenCredentialService
 
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, string service)
+    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, UserTokenService service)
     {
         try
         {
             await _semaphore.WaitAsync();
             if (tokenCache.TryGetValue(service, out var cachedToken))
             {
-                _logger.LogInformation("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
+                _logger.LogDebug("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
                 return cachedToken;
             }
-            string[] scopes;
-            if (service != IUserTokenCredentialService.KEYVAULT_SERVICE && service != IUserTokenCredentialService.STORAGE_SERVICE)
+            string[] scopes = service switch
             {
-                throw new ArgumentException($"Unsupported service: {service}", nameof(service));
-            }
-            if (service == IUserTokenCredentialService.STORAGE_SERVICE)
-            {
-                scopes = [$"https://storage.azure.com/user_impersonation"];
-            }
-            else
-            {
-                scopes = [$"https://vault.azure.net/user_impersonation"];
-            }
+                UserTokenService.Storage => ["https://storage.azure.com/user_impersonation"],
+                UserTokenService.KeyVault => ["https://vault.azure.net/user_impersonation"],
+                _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unsupported service")
+            };
 
             var token = await _tokenAcquisition.GetAccessTokenForUserAsync(
                 scopes,
                 authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
                 user: claimsPrincipal);
             tokenCache.Add(service, token);
-            _logger.LogInformation("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            _logger.LogDebug("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             return token;
         } finally { _semaphore.Release(); }
     }

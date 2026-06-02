@@ -3,13 +3,16 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
 using ResourceProvisioner.Application;
 using Microsoft.OpenApi;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
+
 const string schemeId = "Bearer";
 
 // Add services to the container.
-builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddResourceProvisionerApplicationServices(builder.Configuration);
+builder.Services.AddResourceProvisionerInfrastructureServices(builder.Configuration);
+builder.Services.AddFeatureManagement();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));

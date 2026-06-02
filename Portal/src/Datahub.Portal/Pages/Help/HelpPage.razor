@@ -9,6 +9,7 @@
 @inject IJSRuntime _jsRuntime
 @inject ILocalStorageService _localStorage
 @inject ISendEndpointProvider _sendEndpointProvider
+@inject AzureDevOpsClient _azureDevOpsClient
 
 @using System;
 @using System.Net.Http;
@@ -37,6 +38,7 @@
 @using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 @using MudBlazor
 @using MudBlazor.Utilities
+@implements IAsyncDisposable
 
 @attribute [Route(PageRoutes.Help)]
 @attribute [Route(PageRoutes.Help_FR)]
@@ -256,8 +258,8 @@
     };
 
     // This List is used to track selected checkboxes in the help request multi select
-    private IEnumerable<string> _selectedTopics = new List<string>();
-    private IEnumerable<string> _selectedWorkspaces = new List<string>();
+    private IReadOnlyCollection<string> _selectedTopics = new List<string>();
+    private IReadOnlyCollection<string> _selectedWorkspaces = new List<string>();
 
     // This dictionary is used to generate Workspace checkboxes in the help request
     Dictionary<string, bool> _ticketWorkspaces = new Dictionary<string, bool> { };
@@ -447,7 +449,7 @@ briefly to the user.
         );
 
         await _sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.BugReportQueueName, bugReport);
-        await DialogService.ShowMessageBox(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"],
+        await DialogService.ShowMessageBoxAsync(Localizer["Success"], Localizer["Your support ticket has been created. Thank you!"],
 yesText: "OK");
         _currentStep = Steps.Start; // Reset the form
         StateHasChanged();
@@ -511,17 +513,7 @@ expected format.
             Query = query
         };
 
-        // Configure the Azure DevOps client
-        var config = new AzureDevOpsConfiguration();
-        config.TenantId = _portalConfiguration.AzureAd.TenantId;
-        config.ClientId = _portalConfiguration.AzureAd.InfraClientId;
-        config.ClientSecret = _portalConfiguration.AzureAd.InfraClientSecret;
-        config.OrganizationName = _portalConfiguration.AdoOrg.OrgName;
-        config.ProjectName = _portalConfiguration.AdoOrg.ProjectName;
-
-        var clientProvider = new AzureDevOpsClient(config);
-
-        var client2 = await clientProvider.WorkItemClientAsync();
+        var client2 = await _azureDevOpsClient.WorkItemClientAsync();
         var res = await client2.QueryByWiqlAsync(wiql).ConfigureAwait(false);
         var ids = res.WorkItems.Select(item => item.Id).ToArray();
 
@@ -540,6 +532,23 @@ expected format.
         // Reverse the issues list so that the most recent issues are displayed first
         _issuesList.Reverse();
         return _issuesList;
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_module is null)
+        {
+            return;
+        }
+
+        try
+        {
+            await _module.DisposeAsync();
+        }
+        catch (JSDisconnectedException)
+        {
+            // ignored: can occur during Blazor circuit teardown
+        }
     }
 
     /**
