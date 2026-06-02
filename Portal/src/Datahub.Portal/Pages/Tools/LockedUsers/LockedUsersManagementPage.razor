@@ -81,7 +81,7 @@
                             @if (context.LatestEvidenceDate.HasValue)
                             {
                                 <br/>
-                                <MudText Typo="Typo.caption">@context.LatestEvidenceDate.Value.ToString("yyyy-MM-dd")</MudText>
+                                <MudText Typo="Typo.caption">@context.LatestEvidenceDate?.ToString("yyyy-MM-dd")</MudText>
                             }
                         }
                         else
