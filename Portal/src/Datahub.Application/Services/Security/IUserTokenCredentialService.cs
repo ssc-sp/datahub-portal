@@ -3,13 +3,15 @@ using System.Security.Claims;
 
 namespace Datahub.Application.Services.Security;
 
+public enum UserTokenService
+{
+    KeyVault,
+    Storage
+}
+
 public interface IUserTokenCredentialService
 {
+    Task<TokenCredential> GetTokenCredentialForUser(UserTokenService service, string? token = null);
 
-    public const string KEYVAULT_SERVICE = "vault";
-    public const string STORAGE_SERVICE = "storage";
-
-    Task<TokenCredential> GetTokenCredentialForUser(string service, string? token = null);
-
-    Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, string service);
+    Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, UserTokenService service);
 }
