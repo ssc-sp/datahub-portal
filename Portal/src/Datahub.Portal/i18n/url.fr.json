@@ -10,6 +10,7 @@
   "/compte/-lt": "/account",
   "/conditions-generales-lt": "/terms-and-conditions",
   "/conditions-generales-externes-lt": "/external-terms-and-conditions",
+  "/confirmation-de-deconnexion-lt": "/logout-confirmation",
   "/connexion-lt": "/login",
   "/create-workspace": "/creer-espace-de-travail",
   "/explore": "/explorer",
