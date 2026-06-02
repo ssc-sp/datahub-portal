@@ -332,6 +332,7 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapStaticAssets();
             endpoints.MapControllers();
 
             var provider = services.GetService<IProxyConfigProvider>();
