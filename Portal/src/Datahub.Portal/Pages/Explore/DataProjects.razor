@@ -126,6 +126,8 @@
             )
             .Include(p => p.UserRoles)
             .Include(p => p.Repositories)
+            .Include(p => p.ParentGCHostingBudget)
+            .AsSplitQuery()
             .ToListAsync();
 
         _allProjects = _allProjects.Where(p => !p.IsDeleted).ToList();
@@ -154,9 +156,25 @@
     private async Task LoadMetadata()
     {
         var values = await _metadataBrokerService.ListObjectFieldValues("organization_name");
-        foreach (var v in values)
+        await using var context = await _dbFactory.CreateDbContextAsync();
+
+        foreach (var project in _allProjects)
         {
-            _departments[v.Name.ToLower()] = v.Value;
+            var dept = "";
+
+            // All production workspaces should have a CBR defined with the dept name
+            if (project.ParentGCHostingBudget != null)
+            {
+                dept = Localizer[project.ParentGCHostingBudget.DepartmentName];
+            }
+
+            // Fallback for POC workspaces that have defined metadata
+            if (string.IsNullOrEmpty(dept))
+            {
+                dept = values.FirstOrDefault(v => v.Name.Equals(project.Project_Acronym_CD, StringComparison.OrdinalIgnoreCase))?.Value;
+            }
+
+            _departments[project.Project_Acronym_CD.ToLower()] = dept;
         }
     }
 
