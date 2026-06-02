@@ -315,7 +315,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
     {
         var fileMetadataTasks = new List<Task<FileMetaData?>>();
 
-        await foreach (var page in client.GetPathsAsync(recursive: true, userPrincipalName: false, cancellationToken).AsPages(continuationToken).WithCancellation(cancellationToken))
+        await foreach (var page in client.GetPathsAsync(recursive: false, userPrincipalName: false, cancellationToken).AsPages(continuationToken).WithCancellation(cancellationToken))
         {
             if (page is null)
                 continue;

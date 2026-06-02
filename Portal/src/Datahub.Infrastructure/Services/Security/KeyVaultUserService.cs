@@ -131,7 +131,8 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
             }
             catch (RequestFailedException kvex)
             {
-                _logger.LogError(kvex, $"Error retrieving secret {secretName} from key vault {acronym}.");
+                _logger.LogDebug(kvex, $"Error retrieving secret {secretName} from key vault {acronym}.");
+                _logger.LogError($"Error retrieving secret {secretName} from key vault {acronym}.");
                 return null;
             }
 
@@ -271,6 +272,7 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
         {
             try
             {
+                if (_userToken != null) return;
                 _userToken = await _tokenCredentialService.GetUserToken(await _userInfoService.GetAuthenticatedUser(), UserTokenService.KeyVault);
             }
             catch (MicrosoftIdentityWebChallengeUserException ex)

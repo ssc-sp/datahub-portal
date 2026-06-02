@@ -35,7 +35,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
     {
         if (tokenCache.TryGetValue(service, out token))
         {
-            _logger.LogInformation("Using cached token for service {Service}", service);
+            _logger.LogDebug("Using cached token for service {Service}", service);
         }
         ArgumentException.ThrowIfNullOrWhiteSpace(token);
         return Task.FromResult<TokenCredential>(new StaticAccessTokenCredential(token, _logger));
@@ -50,7 +50,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
             await _semaphore.WaitAsync();
             if (tokenCache.TryGetValue(service, out var cachedToken))
             {
-                _logger.LogInformation("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
+                _logger.LogDebug("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
                 return cachedToken;
             }
             string[] scopes = service switch
@@ -65,7 +65,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
                 authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
                 user: claimsPrincipal);
             tokenCache.Add(service, token);
-            _logger.LogInformation("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            _logger.LogDebug("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
             return token;
         } finally { _semaphore.Release(); }
     }
