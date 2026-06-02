@@ -52,7 +52,7 @@ namespace Datahub.Infrastructure.Services.Security
             if (_userToken is not null)
             {
                 var user = await _userInfoService.GetAuthenticatedUser();
-                return new SecretClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(_userToken));
+                return new SecretClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(UserTokenService.KeyVault, _userToken));
 
             }
             else
@@ -71,7 +71,7 @@ namespace Datahub.Infrastructure.Services.Security
 
             if (_userToken is not null)
             {
-                return new KeyClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(_userToken));
+                return new KeyClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(UserTokenService.KeyVault, _userToken));
             }
 
             return new KeyClient(vaultURL, _systemTokenCredentialService.GetTokenCredential());
@@ -271,7 +271,7 @@ _datahubPortalConfiguration.Hosting.EnvironmentName));
         {
             try
             {
-                _userToken = await _tokenCredentialService.GetUserToken(await _userInfoService.GetAuthenticatedUser(), IUserTokenCredentialService.KEYVAULT_SERVICE);
+                _userToken = await _tokenCredentialService.GetUserToken(await _userInfoService.GetAuthenticatedUser(), UserTokenService.KeyVault);
             }
             catch (MicrosoftIdentityWebChallengeUserException ex)
             {

@@ -21,7 +21,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
     private readonly ITokenAcquisition _tokenAcquisition;
     private readonly ILogger<UserTokenCredentialService> _logger;
     private string? _currentUserVaultToken;
-    private readonly Dictionary<string, string> tokenCache = new();
+    private readonly Dictionary<UserTokenService, string> tokenCache = new();
 
     public UserTokenCredentialService(
         ITokenAcquisition tokenAcquisition,
@@ -31,7 +31,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         _logger = logger;
     }
 
-    public Task<TokenCredential> GetTokenCredentialForUser(string service, string? token = null)
+    public Task<TokenCredential> GetTokenCredentialForUser(UserTokenService service, string? token = null)
     {
         if (tokenCache.TryGetValue(service, out token))
         {
@@ -43,7 +43,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
 
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
 
-    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, string service)
+    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, UserTokenService service)
     {
         try
         {
@@ -53,19 +53,12 @@ public class UserTokenCredentialService : IUserTokenCredentialService
                 _logger.LogInformation("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
                 return cachedToken;
             }
-            string[] scopes;
-            if (service != IUserTokenCredentialService.KEYVAULT_SERVICE && service != IUserTokenCredentialService.STORAGE_SERVICE)
+            string[] scopes = service switch
             {
-                throw new ArgumentException($"Unsupported service: {service}", nameof(service));
-            }
-            if (service == IUserTokenCredentialService.STORAGE_SERVICE)
-            {
-                scopes = [$"https://storage.azure.com/user_impersonation"];
-            }
-            else
-            {
-                scopes = [$"https://vault.azure.net/user_impersonation"];
-            }
+                UserTokenService.Storage => ["https://storage.azure.com/user_impersonation"],
+                UserTokenService.KeyVault => ["https://vault.azure.net/user_impersonation"],
+                _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unsupported service")
+            };
 
             var token = await _tokenAcquisition.GetAccessTokenForUserAsync(
                 scopes,
