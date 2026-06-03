@@ -16,7 +16,7 @@ public class ExternalUserInvitationService : IExternalUserInvitationService
     private const int InvitationCodeLength = 12;
     private const int InvitationCodeSegmentLength = 4;
     private const int MaxInvitationCodeAttempts = 10;
-    public const int InvitationDurationDays = 7;
+    public const int InvitationDurationDays = 1;
 
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
     private readonly IGCNotifyService _gcNotifyService;
