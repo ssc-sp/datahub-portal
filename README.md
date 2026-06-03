@@ -4,7 +4,7 @@
 
 ![The Federal Science DataHub](./docs/images/fsdh-2.jpg)
 
-![MIT Licence](https://img.shields.io/badge/licence-mit-blue) ![GitHub contributors](https://img.shields.io/github/contributors/ssc-sp/datahub-portal) ![GitHub Repo stars](https://img.shields.io/github/stars/ssc-sp/datahub-portal) ![GitHub Release](https://img.shields.io/github/v/release/ssc-sp/datahub-portal) ![GitHub branch status](https://img.shields.io/github/checks-status/ssc-sp/datahub-portal/develop?label=build)
+![MIT Licence](https://img.shields.io/badge/licence-mit-blue) ![GitHub contributors](https://img.shields.io/github/contributors/ssc-sp/datahub-portal) ![GitHub Repo stars](https://img.shields.io/github/stars/ssc-sp/datahub-portal) ![GitHub Release](https://img.shields.io/github/v/release/ssc-sp/datahub-portal) ![GitHub branch check runs](https://img.shields.io/github/check-runs/ssc-sp/datahub-portal/develop)
 
 [Documentation](https://github.com/ssc-sp/datahub-docs) | [Developer Guidelines](developer-guidelines.md) | [Contributing](CONTRIBUTING.md) | [Security](SECURITY.md)
 
@@ -81,7 +81,7 @@ For general information about the Federal Science DataHub, visit the [Canada.ca 
 
 ![La Plateforme fédérale de données scientifiques](./docs/images/fsdh-fr.png)
 
-![Licence MIT](https://img.shields.io/badge/licence-mit-blue) ![GitHub contributors](https://img.shields.io/github/contributors/ssc-sp/datahub-portal?label=contributeurs) ![GitHub Repo stars](https://img.shields.io/github/stars/ssc-sp/datahub-portal?label=%C3%89toiles) ![GitHub Release](https://img.shields.io/github/v/release/ssc-sp/datahub-portal?label=version) ![GitHub branch status](https://img.shields.io/github/checks-status/ssc-sp/datahub-portal/develop?label=compilation)
+![Licence MIT](https://img.shields.io/badge/licence-mit-blue) ![GitHub contributors](https://img.shields.io/github/contributors/ssc-sp/datahub-portal?label=contributeurs) ![GitHub Repo stars](https://img.shields.io/github/stars/ssc-sp/datahub-portal?label=%C3%89toiles) ![GitHub Release](https://img.shields.io/github/v/release/ssc-sp/datahub-portal?label=version) ![GitHub branch check runs](https://img.shields.io/github/check-runs/ssc-sp/datahub-portal/develop?label=compilation)
 
 [Documentation](https://github.com/ssc-sp/datahub-docs) | [Consignes pour les développeurs](developer-guidelines.md) | [Contribution](CONTRIBUTING.md) | [Sécurité](SECURITY.md)
 

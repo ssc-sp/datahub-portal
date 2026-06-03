@@ -52,42 +52,40 @@
     @* see https://fontawesome.com/docs/web/setup/host-yourself/webfonts *@
 
     @* <link href="/_content/Datahub.Core/css/fontawesome/all.min.css" rel="stylesheet" /> *@
-    <link href="/css/fontawesome/fontawesome.min.css" rel="stylesheet" />
-    <link href="/css/fontawesome/solid.min.css" rel="stylesheet" />
-    <link href="/css/fontawesome/light.min.css" rel="stylesheet" />
-    <link href="/css/fontawesome/duotone.min.css" rel="stylesheet" />
+    <link href="@Assets["css/fontawesome/fontawesome.min.css"]" rel="stylesheet" />
+    <link href="@Assets["css/fontawesome/solid.min.css"]" rel="stylesheet" />
+    <link href="@Assets["css/fontawesome/light.min.css"]" rel="stylesheet" />
+    <link href="@Assets["css/fontawesome/duotone.min.css"]" rel="stylesheet" />
 
-    @* Added timestamp to css to force reload *@
-    <link href="/css/site.min.css?t=20250909" rel="stylesheet" />
+    <link href="@Assets["css/site.min.css"]" rel="stylesheet" />
 
 
     <link href="@Assets["_content/MudBlazor/MudBlazor.min.css"]" rel="stylesheet" />
-    <link href="_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css" rel="stylesheet" />
-    @* dotnet 9 <link href="@Assets["{ASSEMBLY NAME}.styles.css"]" rel="stylesheet" /> *@
-    <link href="@($"{typeof(App).Assembly.GetName().Name}.styles.css")" rel="stylesheet" />
-    <link rel="stylesheet" href="_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css" />
+    <link href="@Assets["_content/MudBlazor.Markdown/MudBlazor.Markdown.min.css"]" rel="stylesheet" />
+    <link href="@Assets[$"{typeof(App).Assembly.GetName().Name}.styles.css"]" rel="stylesheet" />
+    <link rel="stylesheet" href="@Assets["_content/PSC.Blazor.Components.MarkdownEditor/css/easymde.min.css"]" />
 
     <ImportMap />
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs=" crossorigin="anonymous"></script>
 
-    <script src="/js/markdown-editor.js" type="module"></script>
+    <script src="@Assets["js/markdown-editor.js"]" type="module"></script>
 
-    <script src="/js/BlazorInterop.js"></script>
-    <script defer src="/_content/Datahub.Core/js/inputfile.js"></script>
-    <script defer src="/_content/Datahub.Core/js/filegrid.js"></script>
-    <script defer src="/_content/Datahub.Core/js/anchorLink.js"></script>
-    <script defer src="/_content/Datahub.Core/js/clipboard-interop.js"></script>
-    <script defer src="/_content/Datahub.Core/js/iframe.js"></script>
-    <script defer src="/js/custom-navigation.js"></script>
-    <script defer src="/js/DownloadFileFromStream.js"></script>
+    <script src="@Assets["js/BlazorInterop.js"]"></script>
+    <script defer src="@Assets["_content/Datahub.Core/js/inputfile.js"]"></script>
+    <script defer src="@Assets["_content/Datahub.Core/js/filegrid.js"]"></script>
+    <script defer src="@Assets["_content/Datahub.Core/js/anchorLink.js"]"></script>
+    <script defer src="@Assets["_content/Datahub.Core/js/clipboard-interop.js"]"></script>
+    <script defer src="@Assets["_content/Datahub.Core/js/iframe.js"]"></script>
+    <script defer src="@Assets["js/custom-navigation.js"]"></script>
+    <script defer src="@Assets["js/DownloadFileFromStream.js"]"></script>
 
-    <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/easymde.min.js"></script>
-    <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/markdownEditor.js"></script>
-    <script src="/_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"></script>
+    <script src="@Assets["_content/PSC.Blazor.Components.MarkdownEditor/js/easymde.min.js"]"></script>
+    <script src="@Assets["_content/PSC.Blazor.Components.MarkdownEditor/js/markdownEditor.js"]"></script>
+    <script src="@Assets["_content/PSC.Blazor.Components.MarkdownEditor/js/mermaid.min.js"]"></script>
 
     @* https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/ *@
-    <script src="/_content/Toolbelt.Blazor.LocalTimeText/initialize-local-timezone.min.js"></script>
+    <script src="@Assets["_content/Toolbelt.Blazor.LocalTimeText/initialize-local-timezone.min.js"]"></script>
 
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-87JM90X2QF"></script>
