@@ -162,11 +162,18 @@ public class LockedUserManagementService : ILockedUserManagementService
             var lockEvent = events.FirstOrDefault(e => e.EventType == ExternalUserLockEventType.Locked);
             var latestEvidence = events.FirstOrDefault(e => !string.IsNullOrEmpty(e.EvidenceUrl));
 
+            if (latestEvent.User is null)
+            {
+                throw new InvalidOperationException(
+                    $"PortalUser with ID {portalUserId} not found when building lock status. " +
+                    "The audit event has an orphaned FK — this indicates data corruption.");
+            }
+
             return new UserLockStatus
             {
                 PortalUserId = portalUserId,
-                UserName = latestEvent.User?.DisplayName,
-                UserEmail = latestEvent.User?.Email,
+                UserName = latestEvent.User.DisplayName,
+                UserEmail = latestEvent.User.Email,
                 IsLocked = true,
                 LockedDate = lockEvent?.EventDate,
                 LockReason = lockEvent?.Reason,

@@ -40,7 +40,9 @@ public class UserAccessNotificationService : IUserAccessNotificationService
 
         if (string.IsNullOrWhiteSpace(userEmail))
         {
-            return;
+            throw new InvalidOperationException(
+                $"Cannot send unlock notification: no email address found for portal user ID {lockStatus.PortalUserId}. " +
+                "This indicates data corruption — the PortalUser row may be missing or orphaned.");
         }
 
         await _gcNotifyService.SendUserAccessRegrantedNotification(
