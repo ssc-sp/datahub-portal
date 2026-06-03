@@ -65,6 +65,13 @@ Feature: External User Invitation Service
         Then the invitation should be marked as accepted
         And the external user should have the requested role in the project
 
+    Scenario: Completing an invitation invalidates the token
+        Given a valid workspace invitation exists for the external user
+        When the invitation is completed with the correct code and a new external subject
+        And the invitation token validity is checked
+        Then the invitation should be marked as accepted
+        And the token should not be valid
+
     Scenario: Completing an invitation with an incorrect code returns false
         Given a valid workspace invitation exists for the external user
         When the invitation is completed with an incorrect code
