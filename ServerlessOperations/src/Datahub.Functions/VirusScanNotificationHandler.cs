@@ -14,7 +14,7 @@ using MassTransit;
 namespace Datahub.Functions;
 
 /// <summary>
-/// Azure Function that processes ClamAV completion messages and fans out the resulting
+/// Azure Function that processes enriched virus scan notification messages and fans out
 /// email and user-status work onto downstream queues.
 /// </summary>
 public class VirusScanNotificationHandler(
@@ -27,7 +27,7 @@ public class VirusScanNotificationHandler(
     [Function("VirusScanNotificationHandler")]
     public async Task RunAsync(
         [QueueTrigger(QueueConstants.VirusScanNotificationQueueName,
-            Connection = "DatahubStorageQueue:ConnectionString")]
+            Connection = "DatahubServiceBus:ConnectionString")]
         string message)
     {
         logger.LogInformation("Processing virus scan notification message");

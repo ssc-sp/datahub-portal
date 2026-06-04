@@ -187,17 +187,31 @@ public static class QueueConstants
 
     /// <summary>
     /// Queue: <c>clamav-scan-result</c><br/>
-    /// Message: <c>VirusScanNotificationMessage</c><br/>
+    /// Message: <c>ClamAvScanResultMessage</c> (minimal format: ScanStartTime, ScanEndTime, ScanError, ScannedFile)<br/>
     /// Publishers:
     /// <list type="bullet">
-    ///   <item><description>ClamAV completion pipeline – after a workspace file scan completes</description></item>
+    ///   <item><description>ClamAV container – writes minimal scan completion message</description></item>
+    /// </list>
+    /// Consumers:
+    /// <list type="bullet">
+    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – enriches with workspace/user context and forwards to virus-scan-notification</description></item>
+    /// </list>
+    /// </summary>
+    public const string ClamAvScanResultQueueName = "clamav-scan-result";
+
+    /// <summary>
+    /// Queue: <c>virus-scan-notification</c><br/>
+    /// Message: <c>VirusScanNotificationMessage</c> (enriched format with workspace, user, scan status)<br/>
+    /// Publishers:
+    /// <list type="bullet">
+    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – after enriching minimal ClamAV messages</description></item>
     /// </list>
     /// Consumers:
     /// <list type="bullet">
     ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – coordinates post-scan notifications and downstream user-status processing</description></item>
     /// </list>
     /// </summary>
-    public const string VirusScanNotificationQueueName = "clamav-scan-result";
+    public const string VirusScanNotificationQueueName = "virus-scan-notification";
 
     /// <summary>
     /// Queue: <c>virus-scan-user-status</c><br/>
