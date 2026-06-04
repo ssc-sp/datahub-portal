@@ -28,6 +28,7 @@ public static class ConfigureAuthenticationServices
     public const string DefaultCookieName = ".AspNetCore.Cookies"; // Default cookie name used by Microsoft Identity
 
     public const string GccfSigninURL = "/gccf/signin-oidc";
+    public const string GccfSignoutURL = "/gccf/signout-oidc";
     private const string CompositeCookieScheme = "composite-cookie";
 
     public static void AddAuthenticationServices(this IServiceCollection services, IConfiguration configuration)
@@ -154,6 +155,7 @@ public static class ConfigureAuthenticationServices
                     options.ResponseType = OpenIdConnectResponseType.Code;
                     options.CallbackPath = GccfSigninURL;
                     options.SignedOutRedirectUri = "/home";
+                    options.SignedOutCallbackPath = GccfSignoutURL;
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
                     options.Scope.Add("profile");
