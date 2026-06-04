@@ -1,0 +1,15 @@
+@attribute [Route(PageRoutes.ExternalLogoutConfirmation)]
+@attribute [Route(PageRoutes.ExternalLogoutConfirmation_FR)]
+
+@layout HeaderPublicLayout
+
+<PageTitle>@Localizer["Logged out - Federal Science DataHub"]</PageTitle>
+
+<MudStack AlignItems="AlignItems.Center" Class="mt-4" Style="width: 100%">
+  <MudText Typo="Typo.h4" Class="text-center">
+    @Localizer["You have logged out."]
+  </MudText>
+    <DHButton Class="px-16 my-2" Variant="Variant.Filled" Color="Color.Primary" Href="@PageRoutes.Login">
+        @Localizer["Return to Login"]
+    </DHButton>
+</MudStack>

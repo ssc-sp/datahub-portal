@@ -91,4 +91,7 @@ public static class PageRoutes
 
     public const string ExternalInvitationSetup_FR = "/configuration-compte";
     public const string ExternalInvitationSetupWithToken_FR = $"{ExternalInvitationSetup_FR}/{{InvitationToken:guid}}";
+
+    public const string ExternalLogoutConfirmation = "/logout-confirmation";
+    public const string ExternalLogoutConfirmation_FR = "/confirmation-de-deconnexion";
 }
