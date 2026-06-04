@@ -72,7 +72,7 @@
 @code {
     [Parameter][SupplyParameterFromQuery] public string redirectUri { get; set; }
 
-    internal LoginModel loginModel = new LoginModel();
+    internal readonly LoginModel loginModel = new LoginModel();
     private bool _loggingIn;
 
     internal async void HandleLogin()
