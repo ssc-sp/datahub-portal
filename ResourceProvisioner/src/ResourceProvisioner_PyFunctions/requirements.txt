@@ -8,8 +8,8 @@ azure-keyvault-keys==4.*
 azure-keyvault-secrets==4.*
 azure-servicebus==7.*
 azure-mgmt-authorization==4.*
-azure-mgmt-keyvault==10.*
-azure-mgmt-storage==21.*
+azure-mgmt-keyvault==14.*
+azure-mgmt-storage==25.*
 msgraph-sdk==1.*
 databricks-sdk
 websocket-client==1.*
