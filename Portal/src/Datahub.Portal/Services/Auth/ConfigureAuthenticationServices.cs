@@ -17,6 +17,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
 using Datahub.Application.Authentication;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Portal.Pages;
 
 namespace Datahub.Portal.Services.Auth;
 
@@ -154,7 +155,7 @@ public static class ConfigureAuthenticationServices
                     options.ClientSecret = configuration["GccfOidc:ClientSecret"] ?? throw new ArgumentNullException("GCCF ClientSecret");
                     options.ResponseType = OpenIdConnectResponseType.Code;
                     options.CallbackPath = GccfSigninURL;
-                    options.SignedOutRedirectUri = "/home";
+                    options.SignedOutRedirectUri = PageRoutes.ExternalLogoutConfirmation;
                     options.SignedOutCallbackPath = GccfSignoutURL;
                     options.SaveTokens = true;
                     options.Scope.Add("openid");
