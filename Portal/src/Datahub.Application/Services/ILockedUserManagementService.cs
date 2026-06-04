@@ -75,8 +75,8 @@ public interface ILockedUserManagementService
 public class UserLockStatus
 {
     public int PortalUserId { get; set; }
-    public string? UserName { get; set; }
-    public string? UserEmail { get; set; }
+    public required string UserName { get; set; }
+    public required string UserEmail { get; set; }
     public bool IsLocked { get; set; }
     public DateTime? LockedDate { get; set; }
     public string? LockReason { get; set; }

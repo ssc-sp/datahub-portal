@@ -172,7 +172,7 @@ public class LockedUserManagementService : ILockedUserManagementService
             return new UserLockStatus
             {
                 PortalUserId = portalUserId,
-                UserName = latestEvent.User.DisplayName,
+                UserName = latestEvent.User.DisplayName ?? latestEvent.User.Email,
                 UserEmail = latestEvent.User.Email,
                 IsLocked = true,
                 LockedDate = lockEvent?.EventDate,
