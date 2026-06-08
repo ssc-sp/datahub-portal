@@ -25,25 +25,27 @@ public class LockedUserManagementService : ILockedUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         var externalUser = await context.ExternalUsers
+            .Include(e => e.PortalUser)
             .FirstOrDefaultAsync(e => e.PortalUserId == portalUserId);
 
-        DateTimeOffset? previousExpiryDate = null;
-        DateTimeOffset? appliedExpiryDate = null;
-
-        if (externalUser != null)
+        if (externalUser == null)
         {
-            previousExpiryDate = externalUser.UserExpiryDate;
-            appliedExpiryDate = DateTimeOffset.UtcNow.Subtract(LockOffset);
-            externalUser.UserExpiryDate = appliedExpiryDate.Value;
+            throw new InvalidOperationException($"External user not found for PortalUserId {portalUserId}.");
         }
+
+        var previousExpiryDate = externalUser.UserExpiryDate;
+        var appliedExpiryDate = DateTimeOffset.UtcNow.Subtract(LockOffset);
+        externalUser.UserExpiryDate = appliedExpiryDate;
 
         var lockEvent = new ExternalUserLockAuditEvent
         {
-            PortalUserId = portalUserId,
+            PortalUserId = externalUser.PortalUserId,
+            User = externalUser.PortalUser,
             EventType = ExternalUserLockEventType.Locked,
             EventDate = DateTime.UtcNow,
             Reason = reason,
             EvidenceUrl = evidenceUrl,
+            Notes = BuildExternalUserReferenceNote(externalUser, null),
             PreviousExpiryDate = previousExpiryDate,
             AppliedExpiryDate = appliedExpiryDate,
             PerformedByUserId = performedByUserId
@@ -60,34 +62,35 @@ public class LockedUserManagementService : ILockedUserManagementService
         await using var context = await _contextFactory.CreateDbContextAsync();
 
         var externalUser = await context.ExternalUsers
+            .Include(e => e.PortalUser)
             .FirstOrDefaultAsync(e => e.PortalUserId == portalUserId);
 
-        DateTimeOffset? previousExpiryDate = null;
-        DateTimeOffset? appliedExpiryDate = null;
-
-        if (externalUser != null)
+        if (externalUser == null)
         {
-            previousExpiryDate = externalUser.UserExpiryDate;
-
-            var latestLockEvent = await context.ExternalUserLockAuditEvents
-                .Where(l => l.PortalUserId == portalUserId && l.EventType == ExternalUserLockEventType.Locked)
-                .OrderByDescending(l => l.EventDate)
-                .FirstOrDefaultAsync();
-
-            var restoredExpiry = latestLockEvent?.PreviousExpiryDate;
-            appliedExpiryDate = restoredExpiry.HasValue && restoredExpiry.Value > DateTimeOffset.UtcNow
-                ? restoredExpiry.Value
-                : DateTimeOffset.UtcNow.Add(DefaultUnlockDuration);
-
-            externalUser.UserExpiryDate = appliedExpiryDate.Value;
+            throw new InvalidOperationException($"External user not found for PortalUserId {portalUserId}.");
         }
+
+        var previousExpiryDate = externalUser.UserExpiryDate;
+
+        var latestLockEvent = await context.ExternalUserLockAuditEvents
+            .Where(l => l.PortalUserId == externalUser.PortalUserId && l.EventType == ExternalUserLockEventType.Locked)
+            .OrderByDescending(l => l.EventDate)
+            .FirstOrDefaultAsync();
+
+        var restoredExpiry = latestLockEvent?.PreviousExpiryDate;
+        var appliedExpiryDate = restoredExpiry.HasValue && restoredExpiry.Value > DateTimeOffset.UtcNow
+            ? restoredExpiry.Value
+            : DateTimeOffset.UtcNow.Add(DefaultUnlockDuration);
+
+        externalUser.UserExpiryDate = appliedExpiryDate;
 
         var unlockEvent = new ExternalUserLockAuditEvent
         {
-            PortalUserId = portalUserId,
+            PortalUserId = externalUser.PortalUserId,
+            User = externalUser.PortalUser,
             EventType = ExternalUserLockEventType.Unlocked,
             EventDate = DateTime.UtcNow,
-            Notes = notes,
+            Notes = BuildExternalUserReferenceNote(externalUser, notes),
             PreviousExpiryDate = previousExpiryDate,
             AppliedExpiryDate = appliedExpiryDate,
             PerformedByUserId = performedByUserId
@@ -244,6 +247,14 @@ public class LockedUserManagementService : ILockedUserManagementService
     {
         return exception.Number == 208 &&
                exception.Message.Contains("ExternalUserLockAuditEvents", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string BuildExternalUserReferenceNote(ExternalUser externalUser, string? existingNotes)
+    {
+        var referenceText = $"ExternalUserId={externalUser.Id}; ExternalUserEmail={externalUser.PortalUser.Email}";
+        return string.IsNullOrWhiteSpace(existingNotes)
+            ? referenceText
+            : $"{existingNotes} | {referenceText}";
     }
 
     public async Task<List<UserLockStatus>> GetLockedUsersInWorkspaceAsync(int workspaceId)
