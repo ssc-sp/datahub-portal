@@ -45,12 +45,13 @@ public class UserAccessNotificationServiceTests
             .Setup(n => n.SendUserAccessRegrantedNotification(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns(Task.CompletedTask);
 
-        var service = new UserAccessNotificationService(mockFactory.Object, notifyMock.Object);
+        var service = new UserAccessNotificationService(notifyMock.Object);
 
         await service.NotifyAccessRegrantedAsync(new UserLockStatus
         {
             PortalUserId = user.Id,
-            UserName = user.DisplayName,
+            UserName = user.DisplayName ?? string.Empty,
+            UserEmail = user.Email ?? string.Empty,
         }, "Admin User");
 
         notifyMock.Verify(n => n.SendUserAccessRegrantedNotification("user@test.gc.ca", "Test User", "all workspaces", "Admin User"), Times.Once);
