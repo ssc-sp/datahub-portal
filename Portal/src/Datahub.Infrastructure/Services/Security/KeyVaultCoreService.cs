@@ -55,13 +55,18 @@ public class KeyVaultCoreService : IKeyVaultCoreService
         return keyVaultName;
     }
 
+    private Uri GetKeyVaultUri()
+    {
+        return new Uri($"https://{GetKeyVaultName()}.vault.azure.net");
+    }
+
     public async Task<string> GetSecret(string secretName)
     {
         try
         {
             string keyVaultName = GetKeyVaultName();
 
-            var keyValueSecret = await GetSecretClient().GetSecretAsync("https://" + keyVaultName + ".vault.azure.net/", secretName);
+            var keyValueSecret = await GetSecretClient().GetSecretAsync(secretName);
             return keyValueSecret.Value.Value;
         }
         catch (Exception e)
@@ -109,6 +114,6 @@ public class KeyVaultCoreService : IKeyVaultCoreService
         return $"https://{keyVaultName}.vault.azure.net/keys/{keyPath}";
     }
 
-    private SecretClient GetSecretClient() => new SecretClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetTokenCredential());
-    private KeyClient GetKeyClient() => new KeyClient(new Uri(GetKeyVaultName()), _tokenCredentialService.GetTokenCredential());
+    private SecretClient GetSecretClient() => new SecretClient(GetKeyVaultUri(), _tokenCredentialService.GetTokenCredential());
+    private KeyClient GetKeyClient() => new KeyClient(GetKeyVaultUri(), _tokenCredentialService.GetTokenCredential());
 }

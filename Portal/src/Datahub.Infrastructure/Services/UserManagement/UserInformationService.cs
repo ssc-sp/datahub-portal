@@ -2,9 +2,6 @@ using Datahub.Application.Authentication;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
-using AzureAuthorityHosts = Azure.Identity.AzureAuthorityHosts;
-using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
-using ClientSecretCredentialOptions = Azure.Identity.ClientSecretCredentialOptions;
 using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
@@ -38,7 +35,8 @@ public class UserInformationService(
     IDatahubCatalogSearch datahubCatalogSearch,
     IFeatureManagerSnapshot featureManager,
     IUserEnrollmentService userEnrollmentService,
-    IDbContextFactory<DatahubProjectDBContext> datahubContextFactory)
+    IDbContextFactory<DatahubProjectDBContext> datahubContextFactory,
+    ISystemTokenCredentialService systemTokenCredentialService)
     : IUserInformationService
 {
     private GraphServiceClient graphServiceClient = null!;
@@ -256,17 +254,7 @@ public class UserInformationService(
         if (graphServiceClient != null) return;
         try
         {
-            //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
-            // using Azure.Identity;
-            var options = new ClientSecretCredentialOptions
-            {
-                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
-            };
-            var clientCertCredential = new ClientSecretCredential(
-                configureOptions.GetSection("AzureAd").GetValue<string>("TenantId"),
-                configureOptions.GetSection("AzureAd").GetValue<string>("ClientId"),
-                configureOptions.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
-            graphServiceClient = new(clientCertCredential);
+            graphServiceClient = new(systemTokenCredentialService.GetTokenCredential());
         }
         catch (Exception e)
         {

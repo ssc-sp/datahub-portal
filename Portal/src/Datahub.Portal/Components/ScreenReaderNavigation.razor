@@ -1,22 +1,21 @@
-﻿@inject IJSRuntime _jsRuntime
+@inject IJSRuntime _jsRuntime
 @implements IAsyncDisposable
 
 @if (_skipLinkIds != null)
 {
     <nav role="navigation">
-        
+
         <h2 class="sr-only">@Localizer["Navigation menu"]</h2>
         <ul>
             @foreach (var skipLinkId in _skipLinkIds)
             {
                 <li class="skip-link">
-                    <SkipLink Type="@SkipLink.GetSkipLinkType(skipLinkId)"/>
+                    <SkipLink Type="@SkipLink.GetSkipLinkType(skipLinkId)" />
                 </li>
             }
         </ul>
     </nav>
 }
-
 
 @code {
     private List<string> _skipLinkIds;
@@ -39,7 +38,10 @@
             {
                 // Handle the case where the JS runtime is disconnected
             }
-
+            catch (ObjectDisposedException)
+            {
+                // Handle the case where the component is disposed before JS interop completes
+            }
         }
     }
 
@@ -59,5 +61,4 @@
             // ignored
         }
     }
-
 }

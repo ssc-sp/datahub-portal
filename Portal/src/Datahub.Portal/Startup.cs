@@ -200,7 +200,6 @@ public class Startup
 
         services.AddScoped<ICultureService, UserCultureService>();
 
-        services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddScoped<ProjectStorageConfigurationService>();
 
         //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
@@ -332,6 +331,7 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapStaticAssets();
             endpoints.MapControllers();
 
             var provider = services.GetService<IProxyConfigProvider>();

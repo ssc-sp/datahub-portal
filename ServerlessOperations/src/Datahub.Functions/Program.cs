@@ -76,7 +76,6 @@ if (devopsConfig is not null)
 }
 
 builder.Services.AddSingleton<AzureConfig>();
-builder.Services.AddSingleton<IAzureServicePrincipalConfig, AzureConfig>();
 builder.Services.AddSingleton<IAzureDevopsConfiguration, AzureConfig>();
 builder.Services.AddAzureResourceManager(config);
 builder.Services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
