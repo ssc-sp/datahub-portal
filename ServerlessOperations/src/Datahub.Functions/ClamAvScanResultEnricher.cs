@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using MassTransit;
+using System.Data.Common;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -131,7 +132,12 @@ public class ClamAvScanResultEnricher(
 
             return project?.Project_Acronym_CD;
         }
-        catch (Exception ex)
+        catch (DbException ex)
+        {
+            logger.LogWarning(ex, "Failed to resolve workspace for storage account {StorageAccount}", storageAccountName);
+            return null;
+        }
+        catch (InvalidOperationException ex)
         {
             logger.LogWarning(ex, "Failed to resolve workspace for storage account {StorageAccount}", storageAccountName);
             return null;
