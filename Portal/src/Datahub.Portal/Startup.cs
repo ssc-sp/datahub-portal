@@ -456,6 +456,7 @@ public class Startup
         services.AddScoped<NotificationsService>();
 
         services.AddScoped<IGCNotifyService, GCNotifyService>();
+        services.AddScoped<IUserAccessNotificationService, UserAccessNotificationService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, NotificationPropagationService>();
 
