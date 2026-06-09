@@ -1,7 +1,5 @@
 @using Datahub.Application.Services
 @using Datahub.Core.Model.Users
-@using Datahub.Application.Services.Notification
-@using Datahub.Core.Data
 @using Azure.Storage.Blobs
 @using Azure.Storage.Sas
 @using Microsoft.AspNetCore.Components.Forms
@@ -10,9 +8,6 @@
 @inject IConfiguration _configuration
 @inject IUserInformationService _userInformationService
 @inject ILockedUserManagementService _lockedUserManagementService
-@inject IProjectUserManagementService _projectUserManagementService
-@inject IGCNotifyService _gcNotifyService
-@inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject ISnackbar _snackbar
 
 <MudDialog>
@@ -30,8 +25,8 @@
                 <strong>@Localizer["Email"]:</strong> @User?.Email
             </MudText>
 
-            <MudFileUpload T="IBrowserFile" 
-                          Accept=".png,.jpg,.jpeg,.pdf" 
+            <MudFileUpload T="IBrowserFile"
+                          Accept=".png,.jpg,.jpeg,.pdf"
                           FilesChanged="OnFileSelected"
                           MaximumFileCount="1">
                 <CustomContent>
@@ -52,16 +47,16 @@
 
             @if (_uploadProgress > 0)
             {
-                <MudProgressLinear Value="_uploadProgress" Color="Color.Primary" Size="Size.Medium"/>
+                <MudProgressLinear Value="_uploadProgress" Color="Color.Primary" Size="Size.Medium" />
                 <MudText Typo="Typo.caption">@Localizer["Uploading... {0}%", _uploadProgress.ToString("F0")]</MudText>
             }
         </MudStack>
     </DialogContent>
     <DialogActions>
         <DHButton OnClick="Cancel" Variant="Variant.Text">@Localizer["Cancel"]</DHButton>
-        <DHButton OnClick="Upload" 
-                 Variant="Variant.Filled" 
-                 Color="Color.Primary" 
+        <DHButton OnClick="Upload"
+                 Variant="Variant.Filled"
+                 Color="Color.Primary"
                  Disabled="@(_selectedFile == null || _uploading)">
             @Localizer["Upload"]
         </DHButton>
@@ -93,8 +88,10 @@
 
     private async Task Upload()
     {
-        if (_selectedFile == null || User == null || WorkspaceId == null)
+        if (_selectedFile == null || User == null)
+        {
             return;
+        }
 
         _uploading = true;
         _uploadProgress = 0;
@@ -109,23 +106,21 @@
                 return;
             }
 
-            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-            if (currentUser == null)
-            {
-                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
-                return;
-            }
-
             var blobServiceClient = new BlobServiceClient(connectionString);
-            
-            // Determine container and path based on user type
-            string containerName = _isExternalUser ? "external-uploads" : "virus-scan-evidence";
-            string safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
-
-            var externalFolder = GetSafeExternalFolderName(currentUser.Email ?? User.Email);
-            string blobName = _isExternalUser
-                ? $"{externalFolder}/{Guid.NewGuid()}-{safeFileName}"
-                : $"{WorkspaceId}/{User.Id}/{Guid.NewGuid()}-{safeFileName}";
+            var safeFileName = System.IO.Path.GetFileName(_selectedFile.Name);
+            string containerName;
+            string blobName;
+            if (_isExternalUser)
+            {
+                containerName = "external-uploads";
+                var folderName = GetSafeExternalFolderName(User.Email);
+                blobName = $"{folderName}/{Guid.NewGuid()}-{safeFileName}";
+            }
+            else
+            {
+                containerName = "virus-scan-evidence";
+                blobName = $"{User.Id}/{Guid.NewGuid()}-{safeFileName}";
+            }
 
             var containerClient = blobServiceClient.GetBlobContainerClient(containerName);
             await containerClient.CreateIfNotExistsAsync();
@@ -133,33 +128,28 @@
             var blobClient = containerClient.GetBlobClient(blobName);
             await blobClient.UploadAsync(_selectedFile.OpenReadStream(_selectedFile.Size));
 
-            // Generate SAS with appropriate permissions
-            var sasPermissions = _isExternalUser 
-                ? BlobSasPermissions.Write  // Write-only for external users
-                : BlobSasPermissions.Read;   // Read for internal (admin review)
-            
             var evidenceUrl = blobClient.CanGenerateSasUri
-                ? blobClient.GenerateSasUri(sasPermissions, DateTimeOffset.UtcNow.AddDays(7)).ToString()
+                ? blobClient.GenerateSasUri(BlobSasPermissions.Read, DateTimeOffset.UtcNow.AddDays(7)).ToString()
                 : blobClient.Uri.ToString();
 
-            // Record evidence upload
+            var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (currentUser == null)
+            {
+                _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                return;
+            }
+
             await _lockedUserManagementService.RecordEvidenceUploadAsync(
                 User.Id,
-                WorkspaceId.Value,
-                evidenceUrl);
-
-            // Notify workspace lead if this is an evidence upload (not external user)
-            if (!_isExternalUser && !string.IsNullOrWhiteSpace(WorkspaceAcronym))
-            {
-                await NotifyWorkspaceLeadOfEvidenceUpload(WorkspaceAcronym, User, safeFileName);
-            }
+                evidenceUrl,
+                currentUser.Id);
 
             _snackbar.Add(Localizer["Virus scan evidence uploaded successfully."], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)
         {
-            _snackbar.Add(Localizer["Failed to upload evidence: {0}", ex.Message], Severity.Error);
+            _snackbar.Add(Localizer["Failed to upload evidence while processing the file."], Severity.Error);
         }
         finally
         {
@@ -168,48 +158,10 @@
         }
     }
 
-    private async Task NotifyWorkspaceLeadOfEvidenceUpload(string projectAcronym, PortalUser user, string fileName)
-    {
-        try
-        {
-            var projectLead = await _projectUserManagementService.GetProjectLeadAsync(projectAcronym);
-            if (projectLead?.PortalUser?.Email == null)
-            {
-                return; // No project lead or email
-            }
-
-            // Send notification to workspace lead about evidence upload
-            var subject = $"Evidence Uploaded - User {user.DisplayName} - {projectAcronym}";
-            var message = $"User {user.DisplayName} ({user.Email}) has uploaded virus scan evidence ({fileName}) " +
-                         $"for the workspace {projectAcronym}. Please review and unlock when appropriate.";
-
-            // You could use IGCNotifyService or send email directly
-            // For now, we'll log it and could extend with actual email sending
-            System.Diagnostics.Debug.WriteLine($"NotifyWorkspaceLeadOfEvidenceUpload: {subject} - {message}");
-        }
-        catch (Exception ex)
-        {
-            // Log error but don't fail the upload
-            System.Diagnostics.Debug.WriteLine($"Failed to notify workspace lead: {ex.Message}");
-        }
-    }
-
     private void Cancel()
     {
         MudDialog.Cancel();
     }
-
-    private static string GetSafeExternalFolderName(string? email)
-    {
-        var emailPrefix = email?.Split('@')[0] ?? string.Empty;
-        var sanitized = new string(emailPrefix
-            .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
-            .ToArray())
-            .Trim();
-
-        return string.IsNullOrWhiteSpace(sanitized) ? "external-user" : sanitized.ToLowerInvariant();
-    }
-
     private string FormatFileSize(long bytes)
     {
         string[] sizes = { "B", "KB", "MB", "GB" };
@@ -221,5 +173,12 @@
             len = len / 1024;
         }
         return $"{len:0.##} {sizes[order]}";
+    }
+
+    private static string GetSafeExternalFolderName(string? email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            return "unknown";
+        return System.Text.RegularExpressions.Regex.Replace(email.ToLowerInvariant(), @"[^a-z0-9]", "-");
     }
 }

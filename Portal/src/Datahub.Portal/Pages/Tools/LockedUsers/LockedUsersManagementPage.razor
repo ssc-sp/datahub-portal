@@ -1,0 +1,210 @@
+@using Datahub.Core.Model.Users
+@using Datahub.Core.Model.Projects
+@using Datahub.Application.Services.Notification
+@using Datahub.Application.Services.UserManagement
+@using Datahub.Application.Services
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.Extensions.Logging
+@using MudBlazor
+
+@inject IUserInformationService _userInformationService
+@inject ILockedUserManagementService _lockedUserService
+@inject IUserAccessNotificationService _userAccessNotificationService
+@inject ISnackbar _snackbar
+@inject IDialogService _dialogService
+@inject ILogger<LockedUsersManagementPage> _logger
+@inject NavigationManager _navigationManager
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h3" Class="mb-4">@Localizer["Locked Users Management"]</MudText>
+    <MudText Typo="Typo.body1" Class="mb-6">
+        @Localizer["Manage users who have been locked out due to uploading infected files. Upload virus scan evidence and unlock users."]
+    </MudText>
+
+    @if (_loading)
+    {
+        <DHLoadingInitializer Message="@Localizer["Loading locked users..."]"/>
+    }
+    else
+    {
+        <MudTable Items="@_lockedUsers" Striped Hover Dense MultiSelection="false">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">@Localizer["Locked Users"]</MudText>
+                <MudSpacer/>
+                <MudTextField @bind-Value="_searchString" 
+                             Placeholder=@Localizer["Search by name or email"]
+                             Adornment="Adornment.Start" 
+                             AdornmentIcon="@Icons.Material.Filled.Search" 
+                             IconSize="Size.Medium"
+                             Class="mt-0"/>
+            </ToolBarContent>
+            <HeaderContent>
+                <MudTh>@Localizer["User"]</MudTh>
+                <MudTh>@Localizer["Email"]</MudTh>
+                <MudTh>@Localizer["Locked Since"]</MudTh>
+                <MudTh>@Localizer["Status"]</MudTh>
+                <MudTh>@Localizer["Evidence"]</MudTh>
+                <MudTh>@Localizer["Actions"]</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                @if (FilterUser(context))
+                {
+                    <MudTd DataLabel="User">
+                        <MudText Typo="Typo.body1">@context.UserName</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Email">
+                        <MudText Typo="Typo.body2">@context.UserEmail</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Locked Since">
+                        @if (context.LockedDate.HasValue)
+                        {
+                            <MudText Typo="Typo.body2">
+                                @context.LockedDate?.ToString("yyyy-MM-dd HH:mm")
+                            </MudText>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Warning">
+                            @Localizer["Locked"]
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="Evidence">
+                        @if (!string.IsNullOrEmpty(context.LatestEvidenceUrl))
+                        {
+                            <MudLink Typo="Typo.body2" 
+                                     Color="Color.Primary" 
+                                     Href="@context.LatestEvidenceUrl"
+                                     Target="_blank"
+                                     Style="cursor: pointer;">
+                                @Localizer["View Evidence"]
+                            </MudLink>
+                            @if (context.LatestEvidenceDate.HasValue)
+                            {
+                                <br/>
+                                <MudText Typo="Typo.caption">@context.LatestEvidenceDate?.ToString("yyyy-MM-dd")</MudText>
+                            }
+                        }
+                        else
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                                @Localizer["Pending"]
+                            </MudChip>
+                        }
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        @if (string.IsNullOrEmpty(context.LatestEvidenceUrl))
+                        {
+                            <MudText Typo="Typo.body2" Color="Color.Default">
+                                @Localizer["Awaiting Evidence"]
+                            </MudText>
+                        }
+                        else
+                        {
+                            <DHButton Size="Size.Small"
+                                     Variant="Variant.Filled"
+                                     Color="Color.Success"
+                                     StartIcon="@Icons.Material.Filled.LockOpen"
+                                     OnClick="@(() => UnlockUser(context))">
+                                @Localizer["Unlock"]
+                            </DHButton>
+                        }
+                    </MudTd>
+                }
+            </RowTemplate>
+            <NoRecordsContent>
+                <MudText Typo="Typo.body1">@Localizer["No locked users found."]</MudText>
+            </NoRecordsContent>
+        </MudTable>
+    }
+</MudContainer>
+
+@code {
+    private List<UserLockStatus> _lockedUsers = new();
+    private string _searchString = "";
+    private bool _loading = true;
+    private PortalUser? _currentUser;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _currentUser = await _userInformationService.GetCurrentPortalUserAsync();
+        await LoadLockedUsers();
+    }
+
+    private async Task LoadLockedUsers()
+    {
+        _loading = true;
+        StateHasChanged();
+
+        try
+        {
+            _lockedUsers = await _lockedUserService.GetAllLockedUsersAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error loading locked users list.");
+            _snackbar.Add(Localizer["Unable to load locked users."], Severity.Error);
+        }
+
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private bool FilterUser(UserLockStatus user)
+    {
+        if (string.IsNullOrWhiteSpace(_searchString))
+            return true;
+
+        return user.UserName?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true ||
+             user.UserEmail?.Contains(_searchString, StringComparison.OrdinalIgnoreCase) == true;
+    }
+
+    private async Task UnlockUser(UserLockStatus lockStatus)
+    {
+        if (string.IsNullOrEmpty(lockStatus.LatestEvidenceUrl))
+        {
+            _snackbar.Add(Localizer["Cannot unlock user. Virus scan evidence must be uploaded first."], Severity.Warning);
+            return;
+        }
+
+        var workspaceText = Localizer["all workspaces"];
+            
+        var confirmed = await _dialogService.ShowMessageBoxAsync(
+            Localizer["Confirm Unlock"],
+            Localizer["Are you sure you want to unlock {0} for {1}?", lockStatus.UserName, workspaceText],
+            yesText: Localizer["Unlock"],
+            cancelText: Localizer["Cancel"]);
+
+        if (confirmed is true)
+        {
+            try
+            {
+                if (_currentUser == null)
+                {
+                    _snackbar.Add(Localizer["Current user not found"], Severity.Error);
+                    return;
+                }
+
+                await _lockedUserService.UnlockUserAsync(
+                    lockStatus.PortalUserId,
+                    $"Unlocked by {_currentUser.DisplayName ?? _currentUser.Email} after reviewing evidence",
+                    _currentUser.Id
+                );
+
+                await _userAccessNotificationService.NotifyAccessRegrantedAsync(lockStatus, _currentUser.DisplayName ?? _currentUser.Email);
+
+                _snackbar.Add(
+                    Localizer["User successfully unlocked for {0}", workspaceText], 
+                    Severity.Success
+                );
+
+                // Reload the list
+                await LoadLockedUsers();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error unlocking user for PortalUserId {PortalUserId}", lockStatus.PortalUserId);
+                _snackbar.Add(Localizer["Error unlocking user."], Severity.Error);
+            }
+        }
+    }
+}

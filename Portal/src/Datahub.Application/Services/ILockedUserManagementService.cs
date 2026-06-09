@@ -1,3 +1,4 @@
+using Datahub.Core.Model.Users;
 namespace Datahub.Application.Services;
 
 /// <summary>
@@ -6,34 +7,66 @@ namespace Datahub.Application.Services;
 public interface ILockedUserManagementService
 {
     /// <summary>
-    /// Locks a user in a specific workspace or globally
+    /// Locks a user globally
     /// </summary>
-    Task LockUserAsync(int portalUserId, int? workspaceId, string reason, string? evidenceUrl, int performedByUserId);
+    /// <param name="portalUserId">The user to lock</param>
+    /// <param name="reason">Reason for locking</param>
+    /// <param name="evidenceUrl">URL to virus scan evidence</param>
+    /// <param name="performedByUserId">Admin user performing the action</param>
+    /// <returns>The created lock event</returns>
+    Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId);
 
     /// <summary>
-    /// Unlock a user globally or in a specific workspace
+    /// Unlocks a user globally
     /// </summary>
-    Task UnlockUserAsync(int portalUserId, int? workspaceId, int performedByUserId);
+    /// <param name="portalUserId">The user to unlock</param>
+    /// <param name="notes">Notes about why user was unlocked</param>
+    /// <param name="performedByUserId">Admin user performing the action</param>
+    /// <returns>The created unlock event</returns>
+    Task<ExternalUserLockAuditEvent> UnlockUserAsync(int portalUserId, string? notes, int performedByUserId);
 
     /// <summary>
-    /// Record evidence upload for a locked user
+    /// Records evidence upload for a locked user
     /// </summary>
-    Task RecordEvidenceUploadAsync(int portalUserId, int workspaceId, string evidenceUrl);
+    /// <param name="portalUserId">The locked user</param>
+    /// <param name="evidenceUrl">URL to the uploaded evidence</param>
+    /// <param name="uploadedByUserId">Admin user who uploaded evidence</param>
+    /// <returns>The created evidence upload event</returns>
+    Task<ExternalUserLockAuditEvent> RecordEvidenceUploadAsync(int portalUserId, string evidenceUrl, int uploadedByUserId);
 
     /// <summary>
-    /// Check if a user is locked in a workspace or globally
+    /// Checks if a user is currently locked
     /// </summary>
-    Task<bool> IsUserLockedAsync(int portalUserId, int? workspaceId = null);
+    /// <param name="portalUserId">The user to check</param>
+    /// <returns>True if user is locked</returns>
+    Task<bool> IsUserLockedAsync(int portalUserId);
 
     /// <summary>
-    /// Get the lock status of a user
+    /// Gets the lock status for a user
     /// </summary>
-    Task<UserLockStatus?> GetUserLockStatusAsync(int portalUserId, int? workspaceId = null);
+    /// <param name="portalUserId">The user</param>
+    /// <returns>Lock details if locked, null if not locked</returns>
+    Task<UserLockStatus?> GetUserLockStatusAsync(int portalUserId);
 
     /// <summary>
-    /// Get all locked users in a workspace
+    /// Gets all locked users across all workspaces
     /// </summary>
+    /// <returns>List of currently locked users with their lock details</returns>
+    Task<List<UserLockStatus>> GetAllLockedUsersAsync();
+
+    /// <summary>
+    /// Gets all locked users in a specific workspace
+    /// </summary>
+    /// <param name="workspaceId">The workspace to filter by</param>
+    /// <returns>List of currently locked users in the workspace</returns>
     Task<List<UserLockStatus>> GetLockedUsersInWorkspaceAsync(int workspaceId);
+
+    /// <summary>
+    /// Gets the lock history for a specific user
+    /// </summary>
+    /// <param name="portalUserId">The user</param>
+    /// <returns>Complete lock/unlock history</returns>
+    Task<List<ExternalUserLockAuditEvent>> GetUserLockHistoryAsync(int portalUserId);
 }
 
 /// <summary>
@@ -42,10 +75,8 @@ public interface ILockedUserManagementService
 public class UserLockStatus
 {
     public int PortalUserId { get; set; }
-    public string? UserName { get; set; }
-    public string? UserEmail { get; set; }
-    public int? WorkspaceId { get; set; }
-    public string? WorkspaceAcronym { get; set; }
+    public required string UserName { get; set; }
+    public required string UserEmail { get; set; }
     public bool IsLocked { get; set; }
     public DateTime? LockedDate { get; set; }
     public string? LockReason { get; set; }
