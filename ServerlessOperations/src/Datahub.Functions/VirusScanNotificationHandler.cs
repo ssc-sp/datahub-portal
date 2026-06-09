@@ -172,11 +172,6 @@ public class VirusScanNotificationHandler(
             return;
         }
 
-        await using var ctx = await dbContextFactory.CreateDbContextAsync();
-        var workspace = await ctx.Projects
-            .AsNoTracking()
-            .FirstOrDefaultAsync(p => p.Project_Acronym_CD == notification.WorkspaceAcronym);
-
         await lockedUserManagementService.LockUserAsync(
             portalUserId.Value,
             $"ClamAV scan result: {notification.ScanStatus}",
