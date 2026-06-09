@@ -2,9 +2,6 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
 using Datahub.Infrastructure.Services.Azure;
-using AzureAuthorityHosts = Azure.Identity.AzureAuthorityHosts;
-using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
-using ClientSecretCredentialOptions = Azure.Identity.ClientSecretCredentialOptions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -13,11 +10,11 @@ using Microsoft.Graph.Models;
 namespace Datahub.Infrastructure.Services.UserManagement;
 
 public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory clientFactory,
-    IAzureServicePrincipalConfig azureServicePrincipalConfig) : IMSGraphService
+    ISystemTokenCredentialService systemTokenCredentialService) : IMSGraphService
 {
     private readonly ILogger<MSGraphService> _logger = logger;
     private readonly IHttpClientFactory _httpClientFactory = clientFactory;
-    private readonly IAzureServicePrincipalConfig _azureServicePrincipalConfig = azureServicePrincipalConfig;
+    private readonly ISystemTokenCredentialService _systemTokenCredentialService = systemTokenCredentialService;
     private GraphServiceClient _graphServiceClient = null!;
 
     public async Task<GraphUser> GetUserAsync(string userId, CancellationToken token)
@@ -89,17 +86,7 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
         {
             try
             {
-                //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
-                // using Azure.Identity;
-                var options = new ClientSecretCredentialOptions
-                {
-                    AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
-                };
-                var clientCertCredential = new ClientSecretCredential(
-                    _azureServicePrincipalConfig.TenantId,                    
-                    _azureServicePrincipalConfig.ClientId,
-                    _azureServicePrincipalConfig.ClientSecret, options);
-                _graphServiceClient = new(clientCertCredential);
+                _graphServiceClient = new(_systemTokenCredentialService.GetTokenCredential());
             }
             catch (Exception e)
             {

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
 
-public class AzureConfig : IAzureServicePrincipalConfig, IAzureDevopsConfiguration
+public class AzureConfig : IAzureDevopsConfiguration
 {
     private readonly IConfiguration _config;
     private readonly EmailNotification _emailConfig;
