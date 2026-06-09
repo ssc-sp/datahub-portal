@@ -1,6 +1,7 @@
 using Datahub.Application.Services;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
 using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Extensions;
@@ -152,7 +153,7 @@ public class VirusScanNotificationHandler(
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
 
         var leadEmail = project?.UserRoles
-            .Where(role => role.RoleId == (int)Datahub.Shared.Entities.Project_Role.RoleNames.WorkspaceLead)
+            .Where(role => role.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
             .Select(role => role.PortalUser.Email)
             .FirstOrDefault();
 
@@ -178,7 +179,6 @@ public class VirusScanNotificationHandler(
 
         await lockedUserManagementService.LockUserAsync(
             portalUserId.Value,
-            workspace?.Project_ID,
             $"ClamAV scan result: {notification.ScanStatus}",
             null,
             portalUserId.Value);

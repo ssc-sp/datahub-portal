@@ -70,7 +70,11 @@ public class ClamAvScanResultEnricher(
             var metadata = properties.Value.Metadata;
 
             var scanStatus = DetermineScanStatus(scanResult.ScanError, metadata);
-            var userObjectId = ExtractUserFromPath(scanResult.ScannedFile) ?? metadata.GetValueOrDefault("uploader_id");
+            var userObjectId = ExtractUserFromPath(scanResult.ScannedFile);
+            if (userObjectId is null && metadata.TryGetValue("uploader_id", out var uploaderId))
+            {
+                userObjectId = uploaderId;
+            }
 
             // Build enriched message
             var enrichedMessage = new VirusScanNotificationMessage
@@ -88,9 +92,7 @@ public class ClamAvScanResultEnricher(
             };
 
             // Send enriched message to downstream queue
-            await sendEndpointProvider.SendDatahubServiceBusMessage(
-                QueueConstants.VirusScanNotificationQueueName,
-                enrichedMessage);
+            await SendQueueMessageAsync(QueueConstants.VirusScanNotificationQueueName, enrichedMessage);
 
             logger.LogInformation(
                 "Enriched scan result for {Workspace}/{FileName} with status {Status}",
@@ -124,8 +126,8 @@ public class ClamAvScanResultEnricher(
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Resources.Any(r =>
                     r.ResourceType == "StorageAccount" &&
-                    r.JsonDetails != null &&
-                    r.JsonDetails.Contains(storageAccountName)));
+                    r.JsonContent != null &&
+                    r.JsonContent.Contains(storageAccountName, StringComparison.OrdinalIgnoreCase)));
 
             return project?.Project_Acronym_CD;
         }
@@ -161,6 +163,12 @@ public class ClamAvScanResultEnricher(
 
         // Default to Failed if no metadata found
         return "Failed";
+    }
+
+    private async Task SendQueueMessageAsync(string queueName, object message)
+    {
+        var endpoint = await sendEndpointProvider.GetSendEndpoint(new Uri($"queue:{queueName}"));
+        await endpoint.Send(message);
     }
 
     /// <summary>
