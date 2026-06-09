@@ -160,6 +160,8 @@
         public const string MetadataDefinitions = "metadata/definitions";
         public const string VersionControl = "version-control";
         public const string VersionControl_FR = "controle-de-version";
+        public const string LockedUsers = "locked-users";
+        public const string LockedUsers_FR = "utilisateurs-verrouilles";
         public const string PublishingBlocklist = "publishing-blocklist";
         public const string PublishingBlocklist_FR = "liste-blocage-publication";
         public const string Networking = "networking";
@@ -180,6 +182,7 @@
     {
         SectionViews.Diagnostics,
         SectionViews.SupportRequests,
+        SectionViews.LockedUsers,
         SectionViews.Statistics,
         SectionViews.HealthCheck,
         SectionViews.Email,
@@ -240,6 +243,7 @@
             SectionViews.HostingServices => SidebarIcons.HostingServices,
             SectionViews.MetadataDefinitions => SidebarIcons.Metadata,
             SectionViews.VersionControl => SidebarIcons.VersionControl,
+            SectionViews.LockedUsers => Icons.Material.Filled.Lock,
             SectionViews.PublishingBlocklist => SidebarIcons.Publishing,
             SectionViews.Networking => SidebarIcons.Networking,
             _ => SidebarIcons.Profile
@@ -265,6 +269,7 @@
             SectionViews.HostingServices => Localizer["Hosting Services"],
             SectionViews.MetadataDefinitions => Localizer["Metadata Definitions"],
             SectionViews.VersionControl => Localizer["Version Control"],
+            SectionViews.LockedUsers => Localizer["Locked Users"],
             SectionViews.PublishingBlocklist => Localizer["Publishing Blocklist"],
             SectionViews.Networking => Localizer["Networking"],
 

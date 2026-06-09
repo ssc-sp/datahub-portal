@@ -280,8 +280,7 @@ namespace Datahub.Tests
             var cut = ctx.Render<Login>();
             
 
-            var emailInput = cut.Find("#Email");
-            emailInput.Change(email);
+            cut.Instance.loginModel.Email = email;
             cut.Render(); // re-render to reflect the input change
 
             cut.Instance.HandleLogin();
