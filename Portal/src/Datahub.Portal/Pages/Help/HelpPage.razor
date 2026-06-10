@@ -356,7 +356,7 @@ briefly to the user.
      */
     private async Task NextStep()
     {
-        form.Validate();
+        await form.ValidateAsync();
         if (form.IsValid)
         {
             _isCursorSet = false;
@@ -457,25 +457,6 @@ yesText: "OK");
     }
 
     /**
-     * Given a project acronym, grants support access to the project for a period of 3 days.
-     *
-     * @param acronym - The project acronym for which to grant support access.
-     */
-    private async Task GiveAccessToProject(string acronym)
-    {
-        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-
-        var project = dbContext.Projects
-                    .AsNoTracking()
-                    .Include(p => p.Resources)
-                    .FirstOrDefault(p => p.Project_Acronym_CD == acronym);
-
-        dbContext.Projects.Update(WorkspaceGrantSupportAccessControl.ExtendAdminAccess(project));
-
-        await dbContext.SaveChangesAsync();
-    }
-
-    /**
      * Retrieves the organization name from the given email address.
      * If the email address is in the format "user@organization.gc.ca", then organization is extracted from it.
      * If the email address is not in the expected format, the organization name is set to "unknown".
@@ -493,7 +474,7 @@ expected format.
         }
         catch
         {
-            org = "unknown";
+            org = "external";
         }
 
         return org;
