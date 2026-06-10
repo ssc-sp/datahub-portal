@@ -477,15 +477,10 @@ expected format.
         var org = "";
         try
         {
-            if (email.Split("@")[1] == email.Split("@")[1].Split(".gc.ca")[0])
-            {
-                // Indicates .gc.ca was not found so the user is external
-                org = "external";
-            }
-            else
-            {
-                org = email.Split("@")[1].Split(".gc.ca")[0];
-            }
+            // Indicates .gc.ca was not found so the user is external
+            org = email.Split("@")[1] == email.Split("@")[1].Split(".gc.ca")[0]
+                ? "external"
+                : email.Split("@")[1].Split(".gc.ca")[0];
         }
         catch
         {
