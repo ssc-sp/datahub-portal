@@ -114,7 +114,6 @@ public partial class ExternalUserFileExplorer
         _files = dfsPage.Files;
         _folders = dfsPage.Folders;
 
-        // Load scan results for all files
         var fileNames = _files
             .Select(f => f.name)
             .Where(name => !string.IsNullOrWhiteSpace(name))
@@ -428,16 +427,69 @@ public partial class ExternalUserFileExplorer
         }
 
         var uploadBatchId = GenerateUploadBatchId();
+        var allFiles = e.GetMultipleFiles().ToList();
+        var acceptedFileNames = new List<string>();
 
-        foreach (var browserFile in e.GetMultipleFiles())
+        foreach (var browserFile in allFiles)
         {
+            if (!CheckAcceptedFileExtension(browserFile))
+            {
+                _blockedFiles.Add(browserFile.Name);
+                continue;
+            }
+            acceptedFileNames.Add(browserFile.Name);
             await UploadFile(browserFile, folderName, uploadBatchId);
         }
 
         await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserUploadFile);
 
+        if (acceptedFileNames.Count > 0)
+        {
+            _snackbar.Add(
+                Localizer["Your {0} file(s) have been uploaded and are being scanned for viruses.", acceptedFileNames.Count],
+                MudBlazor.Severity.Info);
+
+            await NotifyWorkspaceLeadOfUploadAsync(PortalUser?.Email ?? string.Empty, acceptedFileNames);
+        }
+
         // refresh ui
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task NotifyWorkspaceLeadOfUploadAsync(string uploaderEmail, IList<string> fileNames)
+    {
+        if (string.IsNullOrWhiteSpace(ProjectAcronym) || fileNames.Count == 0)
+            return;
+
+        try
+        {
+            var lead = await _projectUserManagementService.GetProjectLeadAsync(ProjectAcronym);
+            var leadObjectId = lead?.PortalUser?.EntraUser?.GraphGuid;
+            if (string.IsNullOrWhiteSpace(leadObjectId))
+            {
+                _logger.LogDebug(
+                    "No workspace lead with Entra ID found for workspace {WorkspaceAcronym}; skipping upload notification.",
+                    ProjectAcronym);
+                return;
+            }
+
+            var storageLink = $"/w/{ProjectAcronym}/s-ext";
+            await _systemNotificationService.CreateSystemNotificationsWithLink(
+                new[] { leadObjectId },
+                storageLink,
+                "VIEW_FILES",
+                "External user {0} uploaded {1} file(s) to {2}.",
+                uploaderEmail,
+                fileNames.Count.ToString(),
+                ProjectAcronym);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(
+                ex,
+                "Failed to notify workspace lead of external upload in workspace {WorkspaceAcronym}",
+                ProjectAcronym);
+        }
     }
 
     private void HandleFileSelectionClick(string filename)

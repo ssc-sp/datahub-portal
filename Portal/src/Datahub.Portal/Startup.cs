@@ -200,7 +200,6 @@ public class Startup
 
         services.AddScoped<ICultureService, UserCultureService>();
 
-        services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddScoped<ProjectStorageConfigurationService>();
 
         //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
@@ -457,6 +456,7 @@ public class Startup
         services.AddScoped<NotificationsService>();
 
         services.AddScoped<IGCNotifyService, GCNotifyService>();
+        services.AddScoped<IUserAccessNotificationService, UserAccessNotificationService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, NotificationPropagationService>();
 
