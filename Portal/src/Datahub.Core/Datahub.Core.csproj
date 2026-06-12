@@ -64,7 +64,6 @@
 
 		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
 
-		<PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" />
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" />
 		<PackageReference Include="Microsoft.Azure.Databricks.Client" />
 		<PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
