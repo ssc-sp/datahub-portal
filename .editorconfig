@@ -1,7 +1,6 @@
 # Top-most EditorConfig file
 root = true
 
-
 # Global Settings
 [*]
 charset = utf-8
@@ -11,8 +10,38 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 
+# C# Settings
 
-# C# Settings (Your existing config)
+[*.{json,yml,yaml,md}]
+indent_size = 2
+end_of_line = lf
+
+[*.{sh,in}]
+end_of_line = lf
+
+[*.{sln,csproj,vbproj,projitems,shproj,feature,tt,ttinclude}]
+indent_size = 2
+end_of_line = crlf
+
+[*.{cshtml,razor}]
+indent_size = 4
+end_of_line = crlf
+
+[*.{cs,vb}]
+tab_width = 4
+indent_size = 4
+end_of_line = crlf
+
+# General .NET Code Style
+dotnet_style_operator_placement_when_wrapping = beginning_of_line
+dotnet_style_coalesce_expression = true:suggestion
+dotnet_style_null_propagation = true:suggestion
+dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
+dotnet_style_prefer_auto_properties = true:silent
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
+
+
 [*.cs]
 dotnet_diagnostic.CS8981.severity = warning
 csharp_indent_labels = one_less_than_current
@@ -31,18 +60,6 @@ csharp_style_expression_bodied_accessors = true:silent
 csharp_style_expression_bodied_lambdas = true:silent
 csharp_style_expression_bodied_local_functions = false:silent
 
-[*.{cs,vb}]
-dotnet_style_operator_placement_when_wrapping = beginning_of_line
-tab_width = 4
-indent_size = 4
-end_of_line = crlf
-dotnet_style_coalesce_expression = true:suggestion
-dotnet_style_null_propagation = true:suggestion
-dotnet_style_prefer_is_null_check_over_reference_equality_method = true:suggestion
-dotnet_style_prefer_auto_properties = true:silent
-dotnet_style_object_initializer = true:suggestion
-dotnet_style_collection_initializer = true:suggestion
-
 # Naming rules
 
 dotnet_naming_rule.interface_should_be_begins_with_i.severity = suggestion
@@ -58,7 +75,6 @@ dotnet_naming_rule.non_field_members_should_be_pascal_case.symbols = non_field_m
 dotnet_naming_rule.non_field_members_should_be_pascal_case.style = pascal_case
 
 # Symbol specifications
-
 dotnet_naming_symbols.interface.applicable_kinds = interface
 dotnet_naming_symbols.interface.applicable_accessibilities = public, internal, private, protected, protected_internal, private_protected
 dotnet_naming_symbols.interface.required_modifiers =
@@ -72,7 +88,6 @@ dotnet_naming_symbols.non_field_members.applicable_accessibilities = public, int
 dotnet_naming_symbols.non_field_members.required_modifiers =
 
 # Naming styles
-
 dotnet_naming_style.begins_with_i.required_prefix = I
 dotnet_naming_style.begins_with_i.required_suffix =
 dotnet_naming_style.begins_with_i.word_separator =
