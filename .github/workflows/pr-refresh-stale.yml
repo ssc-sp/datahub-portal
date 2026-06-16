@@ -1,5 +1,5 @@
 ---
-name: Pull request auto update
+name: PR Refresh
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
           private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
 
       - name: Automatically update PR
-        uses: KingBain/update-pr-branch@master
+        uses: KingBain/update-pr-branch@master-update
         with:
           token: ${{ steps.create_token.outputs.token }}
           base: "develop"
