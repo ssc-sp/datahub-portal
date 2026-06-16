@@ -13,7 +13,7 @@ public abstract class DatahubTheme
         .AddStyle("border-width", "1px")
         .AddStyle("border-style", "none solid none none")
         .Build();
-    
+
     public static readonly MudTheme DefaultTheme = new()
     {
         LayoutProperties =
@@ -25,9 +25,9 @@ public abstract class DatahubTheme
             Default =
             {
                 FontFamily = new[] { "Open Sans", "sans-serif" },
-                FontSize = "0.9rem",        
+                FontSize = "0.9rem",
                 LineHeight = "1.75",
-            }, 
+            },
             H1 = new H1Typography()
             {
                 LineHeight = "1.25",
