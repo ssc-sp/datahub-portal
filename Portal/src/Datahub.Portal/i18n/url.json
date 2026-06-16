@@ -16,6 +16,8 @@
   "/locked-lt": "/verrouille",
   "/login": "/login",
   "/login-lt": "/connexion",
+  "/logout-confirmation": "/logout-confirmation",
+  "/logout-confirmation-lt": "/confirmation-de-deconnexion",
   "/register": "/register",
   "/register-lt": "/inscription",
   "/resources": "/resources",

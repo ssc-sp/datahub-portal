@@ -18,11 +18,14 @@ public class CoreDbMigrationTests : IAsyncLifetime
  private readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(b => b.AddConsole());
  private string _coreDbName = string.Empty;
  private DbContextOptions<SqlServerDatahubContext> _options = null!;
+ private bool _skip;
 
  public ValueTask InitializeAsync()
  {
- if (!OperatingSystem.IsWindows()) return ValueTask.CompletedTask; // LocalDB only on Windows
- _coreDbName = LocalDbUtils.CreateUniqueLocalDbDatabase("CoreDb");
+ if (!OperatingSystem.IsWindows()) { _skip = true; return ValueTask.CompletedTask; }
+ if (!LocalDbUtils.IsLocalDbAvailable()) { _skip = true; return ValueTask.CompletedTask; }
+ _coreDbName = LocalDbUtils.TryCreateUniqueLocalDbDatabase("CoreDb") ?? string.Empty;
+ if (string.IsNullOrWhiteSpace(_coreDbName)) { _skip = true; return ValueTask.CompletedTask; }
  _options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
  .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_coreDbName};Integrated Security=true;TrustServerCertificate=true;")
  .UseLoggerFactory(_loggerFactory)
@@ -42,7 +45,7 @@ public class CoreDbMigrationTests : IAsyncLifetime
  [Fact]
  public async Task CoreDb_Migrate_From_First_With_EF_Seed_To_Latest()
  {
- if (!OperatingSystem.IsWindows()) return; // skip on non-Windows
+ if (_skip) return;
 
  //1) migrate to first migration
  await using (var ctx = new SqlServerDatahubContext(_options))

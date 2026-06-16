@@ -307,11 +307,15 @@ public class ServiceAuthManager : IServiceAuthManager
             .Include(a => a.PortalUser)
             .ThenInclude(p => p.ExternalUser)
             .Include(a => a.Role)
-            .Where(u => u.PortalUser != null && u.PortalUser.ExternalUser != null)
+            .Where(u => u.PortalUser != null
+                && u.PortalUser.ExternalUser != null
+                && !string.IsNullOrEmpty(u.PortalUser.ExternalUser.ExternalSubject)
+                && u.PortalUser.ExternalUser.UserDeactivatedAt == null
+                && u.PortalUser.ExternalUser.UserExpiryDate > DateTimeOffset.UtcNow)
             .ToListAsync();
 
         var newExternalAuthorization = externalUserRoles
-            .GroupBy(u => u.PortalUser!.ExternalUser!.ExternalSubject)
+            .GroupBy(u => u.PortalUser!.ExternalUser!.ExternalSubject!)
             .ToDictionary(g => g.Key, g =>
                 g.Select(a => (Role: a.Role!, Project: a.Project!))
                 .Where(rp => rp.Role != null && rp.Role.IsExternalRole)

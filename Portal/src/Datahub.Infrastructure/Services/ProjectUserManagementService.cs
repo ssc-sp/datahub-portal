@@ -93,7 +93,11 @@ public class ProjectUserManagementService : IProjectUserManagementService
                 .Include(u => u.Project)
                 .ThenInclude(p => p.Credits) // Include the Credits table
                 .Include(u => u.PortalUser)
-                .Where(u => u.PortalUser != null && u.PortalUser.ExternalUser != null && u.PortalUser.ExternalUser.ExternalSubject == gccfUserId)
+                .Where(u => u.PortalUser != null
+                    && u.PortalUser.ExternalUser != null
+                    && u.PortalUser.ExternalUser.ExternalSubject == gccfUserId
+                    && u.PortalUser.ExternalUser.UserDeactivatedAt == null
+                    && u.PortalUser.ExternalUser.UserExpiryDate > DateTimeOffset.UtcNow)
                 .ToListAsync();
             return userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
         }
@@ -274,7 +278,9 @@ public class ProjectUserManagementService : IProjectUserManagementService
             .AsNoTracking()
             .Include(u => u.Project)
             .Include(u => u.PortalUser)
-            .ThenInclude(pu => pu.EntraUser)
+                .ThenInclude(p => p.UserSettings)
+            .Include(u => u.PortalUser)
+                .ThenInclude(pu => pu.EntraUser)
             .Include(u => u.Role)
             .Where(u => u.Project.Project_Acronym_CD == projectAcronym)
             .Where(u => u.PortalUser != null)

@@ -4,11 +4,11 @@ using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
 using Datahub.Core.Model.Users;
-using Datahub.Portal.Pages.Tools.LockedUsers;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Utilities;
+using Datahub.Portal.Pages.Tools.LockedUsers;
 
 namespace Datahub.Portal.Pages.Workspace.Users
 {
@@ -40,8 +40,22 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             var allProjectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
             _projectUsers = allProjectUsers.Where(x => x.PortalUser.ExternalUserId is null).ToList();
+
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
+        }
+
+        private async Task LoadLockedUsersForWorkspace()
+        {
+            if (!_workspaceId.HasValue)
+            {
+                return;
+            }
+
+            var lockedUsers = await _lockedUserManagementService.GetLockedUsersInWorkspaceAsync(_workspaceId.Value);
+            _lockedUsersByPortalUserId = lockedUsers
+                .GroupBy(user => user.PortalUserId)
+                .ToDictionary(group => group.Key, group => group.OrderByDescending(item => item.LockedDate).First());
         }
 
         private bool CombinedFilter(UserRoleLinks projectUser)
@@ -226,19 +240,6 @@ namespace Datahub.Portal.Pages.Workspace.Users
                 .Where(project => project.Project_Acronym_CD == WorkspaceAcronym)
                 .Select(project => (int?)project.Project_ID)
                 .FirstOrDefaultAsync();
-        }
-
-        private async Task LoadLockedUsersForWorkspace()
-        {
-            if (!_workspaceId.HasValue)
-            {
-                return;
-            }
-
-            var lockedUsers = await _lockedUserManagementService.GetLockedUsersInWorkspaceAsync(_workspaceId.Value);
-            _lockedUsersByPortalUserId = lockedUsers
-                .GroupBy(user => user.PortalUserId)
-                .ToDictionary(group => group.Key, group => group.OrderByDescending(item => item.LockedDate).First());
         }
 
         private async Task OpenUploadEvidenceDialog(PortalUser user)
