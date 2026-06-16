@@ -135,7 +135,9 @@ public abstract class DatahubTheme
             ErrorLighten = "#FBDDDA",
 
             AppbarBackground = "#27272F",
-            Background = "#27272F"
+            Background = "#27272F",
+
+            DrawerText = Colors.Shades.White
         },
     };
 }
