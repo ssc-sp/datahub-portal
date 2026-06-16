@@ -11,19 +11,78 @@ permissions:
   pull-requests: write
 
 jobs:
-  release-please:
+  generate-release:
     runs-on: ubuntu-latest
+    outputs:
+      prs_created: ${{ steps.release.outputs.prs_created }}
+      pr_number: ${{ steps.prnum.outputs.pr_number }}
     steps:
       - name: Convert App token
-        id: create_token 
+        id: create_token
         uses: getsentry/action-github-app-token@v3.0.0
         with:
           app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
           private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
-    
-      - uses: googleapis/release-please-action@v4
+
+      - name: Run Release Please
+        id: release
+        uses: googleapis/release-please-action@v4
         with:
           target-branch: develop
-          release-type: simple
           config-file: .release-please-config.json
           token: ${{ steps.create_token.outputs.token }}
+
+      - name: Extract Release Please PR number
+        id: prnum
+        if: ${{ steps.release.outputs.prs_created == 'true' }}
+        run: |
+          pr_number=$(echo '${{ steps.release.outputs.prs }}' | jq -r '.[0].number')
+          echo "Release PR: #$pr_number"
+          echo "pr_number=$pr_number" >> "$GITHUB_OUTPUT"
+
+  generate-checklist:
+    needs: generate-release
+    if: ${{ needs.generate-release.outputs.prs_created == 'true' }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Convert App token
+        id: create_token
+        uses: getsentry/action-github-app-token@v3.0.0
+        with:
+          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+
+      - name: Find existing checklist comment
+        id: find_checklist
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: find-comments
+          show-thanks: "false"
+          token: ${{ steps.create_token.outputs.token }}
+          issue-number: ${{ needs.generate-release.outputs.pr_number }}
+          body-includes: '<!-- checklist-end -->'
+          direction: desc
+
+      - name: Checkout checklist
+        if: ${{ steps.find_checklist.outputs.comments == '[]' }}
+        uses: actions/checkout@v4
+
+      - name: Load checklist markdown into output
+        id: checklist_body
+        if: ${{ steps.find_checklist.outputs.comments == '[]' }}
+        run: |
+          {
+            echo "body<<'EOF'"
+            cat .github/checklists/poc-release.md
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Create checklist comment (only if missing)
+        if: ${{ steps.find_checklist.outputs.comments == '[]' }}
+        uses: actions-cool/issues-helper@v3
+        with:
+          actions: create-comment
+          show-thanks: "false"
+          token: ${{ steps.create_token.outputs.token }}
+          issue-number: ${{ needs.generate-release.outputs.pr_number }}
+          body: ${{ steps.checklist_body.outputs.body }}
