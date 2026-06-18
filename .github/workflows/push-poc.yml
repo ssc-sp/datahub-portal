@@ -5,12 +5,16 @@ on:
   release:
     types: [released]
 
-permissions: read-all
+permissions: {}
+
+concurrency:
+  group: release-manager-poc-${{ github.ref }}
+  cancel-in-progress: false
 
 jobs:
-  sync:
+  push-to-poc:
+    environment: datahub-portal-releases
     runs-on: ubuntu-latest
-
     steps:
       - name: Convert App token
         id: create_token

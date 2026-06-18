@@ -10,8 +10,13 @@ permissions:
   contents: write
   pull-requests: write
 
+concurrency:
+  group: release-manager-create-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   release-please:
+    environment: datahub-portal-releases
     runs-on: ubuntu-latest
     steps:
       - name: Convert App token
