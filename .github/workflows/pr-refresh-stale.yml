@@ -5,6 +5,9 @@ on:
   push:
     branches:
       - "develop"
+
+permissions: {}
+
 jobs:
   refresh_stale_prs:
     runs-on: ubuntu-latest
