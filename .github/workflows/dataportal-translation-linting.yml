@@ -83,7 +83,7 @@ jobs:
 
           # Iterate over the files with Localizer patterns
           for file in "${matching_files[@]}"; do
-            relative_file="${file#${target_path}/}"
+            relative_file="${file#"$target_path"/}"
 
             # Extract Localizer keys from the file (line-delimited)
             keys=$(grep -Po '(?<=Localizer\["|@Localizer\[").+?(?="\]|",)' "$file" | sort | uniq || true)
