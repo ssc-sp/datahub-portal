@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
 
       - name: Install jq (for JSON processing)
         run: sudo apt-get install -y jq
@@ -150,7 +150,7 @@ jobs:
 
       - name: Upload missing translation report
         if: steps.translation_check.outputs.missing_found == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: missing-translations-report
           path: ${{ steps.translation_check.outputs.report_path }}
@@ -158,7 +158,7 @@ jobs:
       - name: Comment missing translations on pull request
         if: github.event_name == 'pull_request' && steps.translation_check.outputs.missing_found == 'true'
         continue-on-error: true
-        uses: actions/github-script@v7
+        uses: actions/github-script@f28e40c7f34bde8b3046d885e986cb6290c5673b # v7
         env:
           REPORT_PATH: ${{ steps.translation_check.outputs.report_path }}
           MISSING_COUNT: ${{ steps.translation_check.outputs.missing_count }}
