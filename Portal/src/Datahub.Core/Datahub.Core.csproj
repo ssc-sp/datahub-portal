@@ -1,185 +1,127 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
-	<PropertyGroup>
-		<TargetFramework>net10.0</TargetFramework>
-		<Nullable>enable</Nullable>
-		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<GenerateDocumentationFile>true</GenerateDocumentationFile>
-		<CodeAnalysisRuleSet>..\..\..\Analyzers.ruleset</CodeAnalysisRuleSet>
-	</PropertyGroup>
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <CodeAnalysisRuleSet>..\..\..\Analyzers.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<TreatWarningsAsErrors>True</TreatWarningsAsErrors>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)' == 'MIGRATION'">
-		<DefineConstants>MIGRATION</DefineConstants>
-	</PropertyGroup>
-	<ItemGroup>
-	  <Compile Remove="Model\GCCF\**" />
-	  <Content Remove="Model\GCCF\**" />
-	  <EmbeddedResource Remove="Model\GCCF\**" />
-	  <None Remove="Model\GCCF\**" />
-	</ItemGroup>
-
-
-	<ItemGroup>
-		<AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
-	</ItemGroup>
-	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
-	<ItemGroup>
-		<None Include="compilerconfig.json" />
-		<None Include="package.json">
-			<CopyToOutputDirectory>Never</CopyToOutputDirectory>
-		</None>
-		<None Include="Components\DialogModalFrame.razor" />
-	</ItemGroup>
-	<ItemGroup>
-		<PackageReference Include="Ae.MudBlazor.Forms" />
-		<PackageReference Include="Azure.Core" />
-
-		<PackageReference Include="Azure.Identity" />
-		<PackageReference Include="AspNetCore.Localizer.Json" />
-
-		<PackageReference Include="Azure.Monitor.Query" />
-		<PackageReference Include="Azure.Search.Documents" />
-		<PackageReference Include="Azure.Storage.Blobs" />
-		<PackageReference Include="Azure.Storage.Files.DataLake" />
-		<PackageReference Include="BlazorDownloadFile" />
-		<PackageReference Include="Blazored.LocalStorage" />
-		<PackageReference Include="BlazorInputFile" />
-		<PackageReference Include="BlazorTemplater" />
-		<PackageReference Include="ByteSize" />
-		<PackageReference Include="DeepL.net" />
-
-		<PackageReference Include="Foundatio.AzureStorage" />
-		<PackageReference Include="Localization.AspNetCore.TagHelpers" />
-		<PackageReference Include="MailKit" />
-		<PackageReference Include="Markdig" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'MIGRATION'">
+    <DefineConstants>MIGRATION</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Model\GCCF\**" />
+    <Content Remove="Model\GCCF\**" />
+    <EmbeddedResource Remove="Model\GCCF\**" />
+    <None Remove="Model\GCCF\**" />
+  </ItemGroup>
 
 
-		<PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+  <ItemGroup>
+    <AdditionalFiles Include="..\..\..\stylecop.json" Link="stylecop.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="compilerconfig.json" />
+    <None Include="package.json">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+    <None Include="Components\DialogModalFrame.razor" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Ae.MudBlazor.Forms" />
+    <PackageReference Include="Azure.Core" />
 
-		<PackageReference Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" />
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" />
-		<PackageReference Include="Microsoft.Azure.Databricks.Client" />
-		<PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="AspNetCore.Localizer.Json" />
+
+    <PackageReference Include="Azure.Monitor.Query" />
+    <PackageReference Include="Azure.Search.Documents" />
+    <PackageReference Include="Azure.Storage.Blobs" />
+    <PackageReference Include="Azure.Storage.Files.DataLake" />
+    <PackageReference Include="BlazorDownloadFile" />
+    <PackageReference Include="Blazored.LocalStorage" />
+    <PackageReference Include="BlazorInputFile" />
+    <PackageReference Include="BlazorTemplater" />
+    <PackageReference Include="ByteSize" />
+    <PackageReference Include="DeepL.net" />
+
+    <PackageReference Include="Foundatio.AzureStorage" />
+    <PackageReference Include="Localization.AspNetCore.TagHelpers" />
+    <PackageReference Include="MailKit" />
+    <PackageReference Include="Markdig" />
+
+
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" />
+
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" />
+    <PackageReference Include="Microsoft.Azure.Databricks.Client" />
+    <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-		<PackageReference Include="Microsoft.Extensions.Http.Polly" />
-		<PackageReference Include="Microsoft.FeatureManagement" />
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" />
+    <PackageReference Include="Microsoft.FeatureManagement" />
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" />
-		<PackageReference Include="Microsoft.Graph" />
-		<PackageReference Include="Microsoft.Identity.Client" />
-		<PackageReference Include="Microsoft.Kiota.Abstractions" />
+    <PackageReference Include="Microsoft.Graph" />
+    <PackageReference Include="Microsoft.Identity.Client" />
+    <PackageReference Include="Microsoft.Kiota.Abstractions" />
 
-		<PackageReference Include="Microsoft.Identity.Web.UI" />
+    <PackageReference Include="Microsoft.Identity.Web.UI" />
 
-		<PackageReference Include="Microsoft.TeamFoundationServer.Client" />
-		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
-		<PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" />
+    <PackageReference Include="Microsoft.TeamFoundationServer.Client" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" />
+    <PackageReference Include="Microsoft.VisualStudio.Services.InteractiveClient" />
 
-		<PackageReference Include="Polly.Contrib.WaitAndRetry" />
+    <PackageReference Include="Polly.Contrib.WaitAndRetry" />
 
-		<PackageReference Include="RulesEngine" />
-		<PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" />
-		<PackageReference Include="MudBlazor" />
-		<PackageReference Include="MudBlazor.Markdown" />
-		<PackageReference Include="System.Drawing.Common" />
-		<PackageReference Include="System.Linq.Async" />
-		<PackageReference Include="System.Runtime.Caching" />
-		<PackageReference Include="Tewr.Blazor.FileReader" />
+    <PackageReference Include="RulesEngine" />
+    <PackageReference Include="Microsoft.Extensions.Logging.AzureAppServices" />
+    <PackageReference Include="MudBlazor" />
+    <PackageReference Include="MudBlazor.Markdown" />
+    <PackageReference Include="System.Drawing.Common" />
+    <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Runtime.Caching" />
+    <PackageReference Include="Tewr.Blazor.FileReader" />
 
-		<PackageReference Include="StyleCop.Analyzers">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-		</PackageReference>
-	</ItemGroup>
-	<ItemGroup>		
-		<Content Include="Components\DHMarkdown.razor.js" />
-		<Content Include="Components\FileUpload\DropZone.razor.js" />
-	</ItemGroup>
-	<ItemGroup>
-		<ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
-		<ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
-		<ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
-	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Diagnostics\" />
-	</ItemGroup>
+    <PackageReference Include="StyleCop.Analyzers">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Components\DHMarkdown.razor.js" />
+    <Content Include="Components\FileUpload\DropZone.razor.js" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Shared\src\Datahub.Markdown\Datahub.Markdown.csproj" />
+    <ProjectReference Include="..\Datahub.CatalogSearch\Datahub.CatalogSearch.csproj" />
+    <ProjectReference Include="..\Datahub.Metadata\Datahub.Metadata.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Diagnostics\" />
+  </ItemGroup>
 
-	<Target Name="CopyCustomContent" AfterTargets="AfterBuild">
-		<Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
-	</Target>
+  <Target Name="CopyCustomContent" AfterTargets="AfterBuild">
+    <Copy SourceFiles="@(GitHookFiles)" DestinationFolder="../.git/hooks/" SkipUnchangedFiles="true" />
+  </Target>
 
-	<Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
-	<Import Project="..\..\..\Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
+  <Import Project="..\..\..\Shared\src\Datahub.Shared\Datahub.Shared.projitems" Label="Shared" />
+  <Import Project="..\..\..\Desktop\Desktop.SharedCode\Desktop.SharedCode.projitems" Label="Shared" />
 </Project>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
