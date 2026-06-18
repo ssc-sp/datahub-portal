@@ -8,9 +8,15 @@ on:
 
 permissions: {}
 
+concurrency:
+  group: pr-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   refresh_stale_prs:
     runs-on: ubuntu-latest
+    environment: datahub-portal-pr-refresh
+
     steps:
       - name: Create App token
         id: create_token
