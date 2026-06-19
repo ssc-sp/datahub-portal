@@ -158,7 +158,7 @@
     <PackageVersion Include="MiniProfiler.AspNetCore.Mvc" Version="4.5.4" />
     <PackageVersion Include="MiniProfiler.EntityFrameworkCore" Version="4.5.4" />
     <PackageVersion Include="Moq" Version="4.20.72" />
-    <PackageVersion Include="MudBlazor" Version="9.4.0" />
+    <PackageVersion Include="MudBlazor" Version="9.5.0" />
     <PackageVersion Include="MudBlazor.JSCompiler" Version="1.0.17" />
     <PackageVersion Include="MudBlazor.Markdown" Version="9.0.0" />
     <PackageVersion Include="MudBlazor.SassCompiler" Version="2.0.7" />
