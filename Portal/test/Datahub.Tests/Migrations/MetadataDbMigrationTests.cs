@@ -18,11 +18,14 @@ public class MetadataDbMigrationTests : IAsyncLifetime
     private readonly ILoggerFactory _loggerFactory = LoggerFactory.Create(b => b.AddConsole());
     private string _metaDbName = string.Empty;
     private DbContextOptions<SqlServerMetadataDbContext> _options = null!;
+    private bool _skip;
 
     public ValueTask InitializeAsync()
     {
-        if (!OperatingSystem.IsWindows()) return ValueTask.CompletedTask; // LocalDB only on Windows
-        _metaDbName = LocalDbUtils.CreateUniqueLocalDbDatabase("MetaDb");
+        if (!OperatingSystem.IsWindows()) { _skip = true; return ValueTask.CompletedTask; }
+        if (!LocalDbUtils.IsLocalDbAvailable()) { _skip = true; return ValueTask.CompletedTask; }
+        _metaDbName = LocalDbUtils.TryCreateUniqueLocalDbDatabase("MetaDb") ?? string.Empty;
+        if (string.IsNullOrWhiteSpace(_metaDbName)) { _skip = true; return ValueTask.CompletedTask; }
         _options = new DbContextOptionsBuilder<SqlServerMetadataDbContext>()
                         .UseSqlServer($"Server=(localdb)\\MSSQLLocalDB;Database={_metaDbName};Integrated Security=true;TrustServerCertificate=true;")
                         .UseLoggerFactory(_loggerFactory)
@@ -42,7 +45,7 @@ public class MetadataDbMigrationTests : IAsyncLifetime
     [Fact]
     public async Task MetadataDb_Migrate_From_Compatible_With_EF_Seed_To_Latest()
     {
-        if (!OperatingSystem.IsWindows()) return; // skip on non-Windows
+        if (_skip) return;
 
         //1) migrate to a migration compatible with current model for FieldDefinitions/MetadataVersions
         await using (var ctx = new SqlServerMetadataDbContext(_options))
