@@ -420,7 +420,7 @@
                 _envVarTable.needsRestart = false;
                 break;
             default:
-                action.Invoke(webAppId);
+                await action.Invoke(webAppId);
                 break;
         }
 

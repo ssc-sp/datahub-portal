@@ -19,7 +19,7 @@ public interface IMSGraphService
     /// Gets an authenticated <see cref="GraphServiceClient"/> for making Microsoft Graph API calls.
     /// </summary>
     /// <returns>An authenticated <see cref="GraphServiceClient"/> instance.</returns>
-    GraphServiceClient GetAuthenticatedClient();
+    Task<GraphServiceClient> GetAuthenticatedClient();
 
     /// <summary>
     /// Retrieves a user from Microsoft Graph by their object id (user id).

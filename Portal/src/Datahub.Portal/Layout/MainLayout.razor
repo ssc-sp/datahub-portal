@@ -93,29 +93,21 @@ else
 			_isUserValid = await _userSettingsService.HasUserAcceptedTAC();
 			_isSessionEnabled = await _userCircuitCounterService.IsSessionEnabled();
 			await _auditingService.TrackEvent("Login");
-		}
-		catch (Exception ex)
-		{
-			var exceptionSrc = ExceptionDispatchInfo.Capture(ex);
-			try
-			{
-				_consentHandler.HandleException(ex);
-			}
-			catch (Exception)
-			{
-				// rethrow the original exception if consent handling fails
-				exceptionSrc.Throw();
-			}
-		}
 
-		// register and or update authenticated portal user
-		if (await _userInformationService.IsEntraUser())
-		{
-			await _userInformationService.RegisterAuthenticatedEntraUser();
-		}
-		await _userSettingsService.RegisterUserSettingsAsync();
+            // register and or update authenticated portal user
+            if (await _userInformationService.IsEntraUser())
+            {
+                await _userInformationService.RegisterAuthenticatedEntraUser();
+            }
+            await _userSettingsService.RegisterUserSettingsAsync();
 
-		_isLoaded = true;
+            _isLoaded = true;
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
+
 	}
 
 	protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -178,13 +178,10 @@
   {
     var authState = await AuthenticationStateTask;
     _user = authState.User;
-    await base.OnInitializedAsync();
   }
 
   protected override void OnParametersSet()
   {
-    base.OnParametersSet();
-
     ProjectAcronym = ProjectAcronym?.ToUpperInvariant();
 
     if (ChildContent != null && Authorized != null)

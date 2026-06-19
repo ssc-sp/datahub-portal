@@ -181,7 +181,7 @@ public class UserInformationServiceTests
 
         var authStateProviderMock = new Mock<AuthenticationStateProvider>();
         var serviceAuthManagerMock = new Mock<IServiceAuthManager>();
-        var systemTokenCredentialServiceMock = new Mock<ISystemTokenCredentialService>();
+        var userTokenCredentialServiceMock = new Mock<IUserTokenCredentialService>();
 
         var sut = new UserInformationService(
             Mock.Of<ILogger<UserInformationService>>(),
@@ -192,7 +192,7 @@ public class UserInformationServiceTests
             featureManagerMock.Object,
             _userEnrollmentServiceMock.Object,
             _dbFactoryMock.Object,
-            systemTokenCredentialServiceMock.Object);
+            userTokenCredentialServiceMock.Object);
 
         var graphField = typeof(UserInformationService)
             .GetField("graphServiceClient", BindingFlags.Instance | BindingFlags.NonPublic);
