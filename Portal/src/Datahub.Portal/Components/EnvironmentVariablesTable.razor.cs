@@ -117,7 +117,7 @@ namespace Datahub.Portal.Components
             {
                 await CreateOrUpdateEnvironmentVariable(_currentRow);
                 _snackbar.Add(Localizer["Environment variable has been updated."], Severity.Success);
-                _logger.LogInformation($"Item has been committed: {_currentRow?.Key}");
+                _logger.LogInformation($"Item has been committed: {_currentRow.Key}");
             }
             else
             {
