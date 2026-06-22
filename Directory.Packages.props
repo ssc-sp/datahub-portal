@@ -7,7 +7,7 @@
     <PackageVersion Include="AspNetCore.Localizer.Json" Version="1.0.4" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
     <PackageVersion Include="AwesomeAssertions" Version="9.4.0" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.0.24" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.0.24.1" />
     <PackageVersion Include="Azure.Core" Version="1.57.0" />
     <PackageVersion Include="Azure.Data.Tables" Version="12.11.0" />
     <PackageVersion Include="Azure.Identity" Version="1.21.0" />
@@ -67,10 +67,10 @@
     <PackageVersion Include="Lucene.Net.QueryParser" Version="4.8.0-beta00017" />
     <PackageVersion Include="MailKit" Version="4.17.0" />
     <PackageVersion Include="Markdig" Version="0.45.0" />
-    <PackageVersion Include="MassTransit" Version="8.5.9" />
-    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.9" />
-    <PackageVersion Include="MassTransit.WebJobs.ServiceBus" Version="8.5.9" />
-    <PackageVersion Include="MediatR" Version="13.1.0" />
+    <PackageVersion Include="MassTransit" Version="8.5.10" />
+    <PackageVersion Include="MassTransit.Azure.ServiceBus.Core" Version="8.5.10" />
+    <PackageVersion Include="MassTransit.WebJobs.ServiceBus" Version="8.5.10" />
+    <PackageVersion Include="MediatR" Version="14.1.0" />
     <PackageVersion Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.23.0" />
     <PackageVersion Include="Microsoft.AspNetCore.ApplicationInsights.HostingStartup" Version="2.3.11" />
     <PackageVersion Include="Microsoft.AspNetCore.Authentication.AzureAD.UI" Version="6.0.36" />
@@ -158,7 +158,7 @@
     <PackageVersion Include="MiniProfiler.AspNetCore.Mvc" Version="4.5.4" />
     <PackageVersion Include="MiniProfiler.EntityFrameworkCore" Version="4.5.4" />
     <PackageVersion Include="Moq" Version="4.20.72" />
-    <PackageVersion Include="MudBlazor" Version="9.4.0" />
+    <PackageVersion Include="MudBlazor" Version="9.5.0" />
     <PackageVersion Include="MudBlazor.JSCompiler" Version="1.0.17" />
     <PackageVersion Include="MudBlazor.Markdown" Version="9.0.0" />
     <PackageVersion Include="MudBlazor.SassCompiler" Version="2.0.7" />
@@ -189,7 +189,7 @@
     <PackageVersion Include="System.Drawing.Common" Version="10.0.9" />
     <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
     <PackageVersion Include="System.Linq.Async" Version="7.0.1" />
-    <PackageVersion Include="System.Net.Http.Json" Version="9.0.17" />
+    <PackageVersion Include="System.Net.Http.Json" Version="10.0.8" />
     <PackageVersion Include="System.Runtime.Caching" Version="10.0.9" />
     <PackageVersion Include="System.Security.Cryptography.Xml" Version="10.0.9" />
     <PackageVersion Include="System.Text.Json" Version="10.0.9" />
