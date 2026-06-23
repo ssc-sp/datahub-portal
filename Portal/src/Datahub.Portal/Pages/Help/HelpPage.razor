@@ -131,12 +131,18 @@
                                             <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
                                                       StartIcon="@Icons.Material.Filled.ArrowForward" OnClick="@NextStep">@Localizer["Get Started"]</DHButton>
                                         }
+                                        else if (_currentStep == Steps.Topics)
+                                        {
+                                            <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
+                                                      StartIcon="@Icons.Material.Filled.Close" OnClick="@PreviousStep">
+                                                @Localizer["Close"]</DHButton>
+                                        }
                                         else
                                         {
                                             <DHButton HtmlTag="button" Variant="Variant.Filled" Color="Color.Primary"
                                                       StartIcon="@Icons.Material.Filled.ArrowBack" OnClick="@PreviousStep">
                                                 @Localizer["Previous"]</DHButton>
-                                            }
+                                         }
                                         </MudItem>
                                         <MudItem xs="6" align="@Align.End" Class="pb-2">
                                             @if (_currentStep == Steps.Submit)
