@@ -20,7 +20,7 @@ jobs:
     steps:
       - name: Create App token
         id: create_token
-        uses: ssc-sp/.github/.github/actions/create-app-token@a912acb05649c75f3f811b59044200a09de10b83 # main
+        uses: ssc-sp/.github/.github/actions/create-app-token@44cdcb8f93599c841001cc8f0b80f107ab986ae1 # main
         with:
           app-id: ${{ vars.DATAHUB_PORTAL_PR_APP_ID }}
           private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
