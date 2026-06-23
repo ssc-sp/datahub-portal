@@ -407,7 +407,7 @@ public class Startup
 
             services.AddScoped<IUserInformationService, UserInformationService>();
             services.AddScoped<IUserSettingsService, UserSettingsService>();
-            services.AddSingleton<IMSGraphService, MSGraphService>();
+            services.AddScoped<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 

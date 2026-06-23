@@ -77,7 +77,7 @@ public class OfflineMSGraphService : IMSGraphService
         return Task.FromResult((GraphUser)null);
     }
 
-    public GraphServiceClient GetAuthenticatedClient()
+    public Task<GraphServiceClient> GetAuthenticatedClient()
     {
         throw new NotImplementedException();
     }

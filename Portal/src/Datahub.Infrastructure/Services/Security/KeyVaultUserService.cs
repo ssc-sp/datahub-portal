@@ -52,7 +52,7 @@ namespace Datahub.Infrastructure.Services.Security
             if (_userToken is not null)
             {
                 var user = await _userInfoService.GetAuthenticatedUser();
-                return new SecretClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(UserTokenService.KeyVault, _userToken));
+                return new SecretClient(vaultURL, _tokenCredentialService.GetTokenCredentialForUser(UserTokenService.KeyVault, _userToken));
 
             }
             else
@@ -71,7 +71,7 @@ namespace Datahub.Infrastructure.Services.Security
 
             if (_userToken is not null)
             {
-                return new KeyClient(vaultURL, await _tokenCredentialService.GetTokenCredentialForUser(UserTokenService.KeyVault, _userToken));
+                return new KeyClient(vaultURL, _tokenCredentialService.GetTokenCredentialForUser(UserTokenService.KeyVault, _userToken));
             }
 
             return new KeyClient(vaultURL, _systemTokenCredentialService.GetTokenCredential());

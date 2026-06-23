@@ -355,7 +355,7 @@ briefly to the user.
      */
     private async Task NextStep()
     {
-        form.Validate();
+        await form.ValidateAsync();
         if (form.IsValid)
         {
             _isCursorSet = false;

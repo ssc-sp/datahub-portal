@@ -77,7 +77,7 @@ public class CreateGraphUser(
         try
         {
             ValidateAddUserRequest(data);
-            var graphClient = graphService.GetAuthenticatedClient();
+            var graphClient = await graphService.GetAuthenticatedClient();
             var groupId = configuration.ServicePrincipalGroupID;
 
             await AddToGroup(data.userId, groupId!, graphClient, _logger);
@@ -122,7 +122,7 @@ public class CreateGraphUser(
     private async Task<IActionResult> InviteUser(ILogger log, string userEmail, string inviter)
     {
         log.LogInformation("Creating graph service client");
-        var graphClient = graphService.GetAuthenticatedClient();
+        var graphClient = await graphService.GetAuthenticatedClient();
 
         log.LogInformation("Sending invitation to {UserEmail}", userEmail);
 
