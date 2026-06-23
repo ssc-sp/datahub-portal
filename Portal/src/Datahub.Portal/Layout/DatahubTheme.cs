@@ -78,7 +78,7 @@ public abstract class DatahubTheme
         },
         PaletteLight =
         {
-            //The primary accent colour (becomes close to white in dark mode)
+            //The primary accent colour
             Primary = "#2460FF",
             PrimaryDarken = "#26374A",
 
@@ -110,7 +110,9 @@ public abstract class DatahubTheme
         },
         PaletteDark =
         {
+            //The primary accent colour (PrimaryContrastText used for text within filled buttons)
             Primary = "#C8C4F3",
+            PrimaryContrastText = "#27272F",
 
             //Used for Unclassified data labels (same colour as Primary but does not change in dark mode)
             Info = "#2460FF",
