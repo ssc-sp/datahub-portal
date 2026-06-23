@@ -295,7 +295,9 @@ public class UserInformationService(
 
     public async Task<bool> IsAdminModeEnabled()
     {
-        var userId = (await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id");
+        if (await IsExternalUser())
+            return false;
+        var userId = (await GetCurrentGraphUserAsync())?.Id ?? throw new InvalidOperationException("Cannot access graph user Id");
         return serviceAuthManager.IsAdminModeEnabled(userId);
     }
 

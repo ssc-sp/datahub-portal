@@ -11,6 +11,7 @@
 @inject IPortalUserTelemetryService _telemetryService;
 @inject IJSRuntime _jsRuntime;
 @inject ILocalTimeZone _localTz;
+@inject NavigationManager _navigationManager;
 @implements IDisposable
 
 @if (_viewedUser is null)
@@ -86,9 +87,17 @@
     DateTime? lastLoginDt = null;
     if ((lastLoginDt ??= await _telemetryService.GetUserLastLoginAsync()) is not null)
     {
-      var localTz = await _localTz.GetLocalTimeZoneAsync(null);
-      _timezone = LocalizeTimeZone(GetTimeZoneShortCode(localTz));
-      _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
+      try
+      {
+        var localTz = await _localTz.GetLocalTimeZoneAsync(null);
+        _timezone = LocalizeTimeZone(GetTimeZoneShortCode(localTz));
+        _lastLogin = TimeZoneInfo.ConvertTime(lastLoginDt.Value, localTz);
+      }
+      catch (Microsoft.JSInterop.JSDisconnectedException)
+      {
+        // Circuit has disconnected, reload the page
+        _navigationManager.NavigateTo(_navigationManager.Uri, forceLoad: true);
+      }
     }
   }
 
