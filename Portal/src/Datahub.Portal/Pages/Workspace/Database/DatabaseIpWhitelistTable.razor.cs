@@ -26,6 +26,8 @@ namespace Datahub.Portal.Pages.Workspace.Database;
 /// </summary>
 public partial class DatabaseIpWhitelistTable
 {
+    private WhitelistIPAddressData? _currentRow;
+
     [Inject] private IDialogService _dialogService { get; set; } = null!;
 
     [Inject] private IServiceProvider _serviceProvider { get; set; } = null!;
@@ -76,9 +78,24 @@ public partial class DatabaseIpWhitelistTable
     /// Handles the event when the commit edit button is clicked.
     /// </summary>
     /// <param name="args">The MouseEventArgs containing information about the event.</param>
-    private void HandleCommitEditClicked(MouseEventArgs args)
+    private async Task HandleCommitEditClicked(MouseEventArgs args)
     {
         _logger.LogInformation("Commit edit button clicked.");
+
+        await CreateOrUpdateIpAddress(_currentRow!);
+
+        // if it's only the name that has changed
+        if (Equals(_currentRow?.StartIPAddress, _elementBeforeEdit?.StartIPAddress)
+            && Equals(_currentRow?.EndIPAddress, _elementBeforeEdit?.EndIPAddress))
+        {
+            // clean up the old firewall rule
+            await DeleteIpAddress(_elementBeforeEdit);
+        }
+
+        _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
+
+        _logger.LogInformation($"Item has been committed: {_currentRow?.Name}");
+
         _snackbar.Add(Localizer["Sending IP address updated"], Severity.Info);
     }
 
@@ -89,21 +106,7 @@ public partial class DatabaseIpWhitelistTable
     /// <param name="element">The edited element.</param>
     private void HandleRowEditCommit(object element)
     {
-        var item = element as WhitelistIPAddressData;
-
-        CreateOrUpdateIpAddress(item);
-
-        // if it's only the name that has changed
-        if (Equals(item?.StartIPAddress, _elementBeforeEdit?.StartIPAddress)
-            && Equals(item?.EndIPAddress, _elementBeforeEdit?.EndIPAddress))
-        {
-            // clean up the old firewall rule
-            DeleteIpAddress(_elementBeforeEdit);
-        }
-
-        _snackbar.Add(Localizer["IP address has been updated."], Severity.Success);
-
-        _logger.LogInformation($"Item has been committed: {item?.Name}");
+        _currentRow = element as WhitelistIPAddressData;
     }
 
     /// <summary>
@@ -142,7 +145,7 @@ public partial class DatabaseIpWhitelistTable
             EndIPAddress = endIpAddress
         };
 
-        CreateOrUpdateIpAddress(userWhitelistIpAddress);
+        await CreateOrUpdateIpAddress(userWhitelistIpAddress);
 
         _snackbar.Add(Localizer["Current IP address has been added. Changes may take 15 minutes to apply."],
             Severity.Success);
