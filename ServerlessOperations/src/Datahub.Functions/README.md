@@ -36,7 +36,11 @@ func host start
 | `CheckInfrastructureScheduled` | `CheckInfrastructureStatus` | `%ProjectUsageCRON%` | Runs all infrastructure health checks on a schedule |
 | `DocumentationRankUpdate` | `DocumentationRankUpdate` | `%DocumentationRankUpdateCRON%` | Recalculates documentation page hit rankings in the database |
 
-### Service Bus-triggered
+### Queue-triggered
+
+For the virus-scan flow specifically:
+- `clamav-scan-result` is consumed via Storage Queue.
+- `virus-scan-user-status` and `email-notification` are consumed via Service Bus.
 
 | Function | Class | Queue consumed | Message type |
 |---|---|---|---|
@@ -48,10 +52,9 @@ func host start
 | `ProjectInactivityNotifier` | `ProjectInactivityNotifier` | `project-inactivity-notification` | `ProjectInactivityNotificationMessage` |
 | `ProjectInactiveHandler` | `ProjectInactiveHandler` | `project-inactive` | `ProjectInactiveMessage` |
 | `UserInactivityNotifier` | `UserInactivityNotifier` | `user-inactivity-notification` | `UserInactivityNotificationMessage` |
-| `ConfigureWorkspaceAppService` | `ConfigureWorkspaceAppService` | `workspace-app-service-configuration` | `WorkspaceAppServiceConfigurationMessage` |
 | `CheckInfrastructureStatusQueue` | `CheckInfrastructureStatus` | `infrastructure-health-check` | `InfrastructureHealthCheckMessage` |
 | `RecordInfrastructureStatusQueue` | `RecordInfrastructureStatus` | `infrastructure-health-check-results` | `InfrastructureHealthCheckResultMessage` |
-| `VirusScanNotificationHandler` | `VirusScanNotificationHandler` | `virus-scan-notification` | `VirusScanNotificationMessage` |
+| `VirusScanNotificationHandler` | `VirusScanNotificationHandler` | `clamav-scan-result` | `VirusScanNotificationMessage` |
 | `VirusScanUserStatusHandler` | `VirusScanUserStatusHandler` | `virus-scan-user-status` | `VirusScanUserStatusMessage` |
 
 ### HTTP-triggered
@@ -68,13 +71,21 @@ func host start
 
 ---
 
+## Storage Queue
+
+| Setting | Value |
+|---|---|
+| **Connection string key** | `DatahubStorageQueue:ConnectionString` |
+
+All storage queue-triggered functions use the same connection string key.
+
 ## Service Bus
 
 | Setting | Value |
 |---|---|
 | **Connection string key** | `DatahubServiceBus:ConnectionString` |
 
-All Service Bus-triggered functions use the same connection string key. MassTransit (`AddMassTransit`) is also registered for publishing outbound messages to queues.
+`email-notification` and `virus-scan-user-status` are consumed from Service Bus in the virus-scan flow.
 
 ### Queues consumed
 
@@ -91,7 +102,7 @@ All Service Bus-triggered functions use the same connection string key. MassTran
 | `workspace-app-service-configuration` | `WorkspaceAppServiceConfigurationQueueName` |
 | `infrastructure-health-check` | `InfrastructureHealthCheckQueueName` |
 | `infrastructure-health-check-results` | `InfrastructureHealthCheckResultsQueueName` |
-| `virus-scan-notification` | `VirusScanNotificationQueueName` |
+| `clamav-scan-result` | `VirusScanNotificationQueueName` |
 | `virus-scan-user-status` | `VirusScanUserStatusQueueName` |
 
 ### Queues published
@@ -104,11 +115,13 @@ All Service Bus-triggered functions use the same connection string key. MassTran
 | `user-inactivity-notification` | `InactivityScheduler` |
 | `email-notification` | Various functions (e.g. `ProjectUsageNotifier`, `ProjectInactivityNotifier`) |
 
+All storage queue-triggered functions use the same connection string key.
+
 ---
 
 ## Message format
 
-All inbound Service Bus messages use the same JSON envelope:
+Inbound queue messages may arrive either as a direct JSON payload or wrapped in a `message` envelope:
 
 ```json
 {
@@ -116,7 +129,7 @@ All inbound Service Bus messages use the same JSON envelope:
 }
 ```
 
-The `DeserializeAndUnwrapMessageAsync<T>` extension method handles unwrapping automatically.
+The `QueueMessageExtensions.DeserializeAndUnwrapMessageAsync<T>` extension method handles both shapes automatically.
 
 ### Key message types
 
@@ -191,7 +204,7 @@ The `DeserializeAndUnwrapMessageAsync<T>` extension method handles unwrapping au
 }
 ```
 
-#### `VirusScanNotificationMessage` (`virus-scan-notification`)
+#### `VirusScanNotificationMessage` (`clamav-scan-result`)
 ```json
 {
   "message": {
