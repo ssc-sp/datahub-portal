@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<RuleSet Name="Analyzers Rules" Description="Analyzers Rules" ToolsVersion="17.0">
+<RuleSet Name="Analyzers Rules" Description="Analyzers Rules" ToolsVersion="18.0">
   <IncludeAll Action="Warning" />
   <Rules AnalyzerId="Microsoft.CodeAnalysis.CSharp" RuleNamespace="Microsoft.CodeAnalysis.CSharp">
     <Rule Id="CS1591" Action="None" />
+    <Rule Id="CS4014" Action="Error" />
   </Rules>
   <Rules AnalyzerId="Microsoft.CodeAnalysis.ExternalAccess.FSharp" RuleNamespace="Microsoft.CodeAnalysis.ExternalAccess.FSharp">
     <Rule Id="FS1108" Action="None" />
