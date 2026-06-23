@@ -34,29 +34,29 @@ public class EmailNotificationHandler
             Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage serviceBusReceivedMessage)
     {
-        // test for ping
-        // if (await _pongService.Pong(serviceBusReceivedMessage.Body.ToString()))
-            // return;
+        var emailRequest = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
+        await ProcessEmailRequestAsync(emailRequest);
+    }
 
+    public async Task ProcessEmailRequestAsync(EmailRequestMessage? message)
+    {
         // check mail configuration
         if (!_config.Email.IsValid)
         {
-            _logger.LogError($"Invalid mail configuration!");
+            _logger.LogError("Invalid mail configuration!");
             return;
         }
 
-        // deserialize message
-        var message = await serviceBusReceivedMessage.DeserializeAndUnwrapMessageAsync<EmailRequestMessage>();
         if (message is null || !message.IsValid || message.Body == null)
         {
-            _logger.LogError($"Invalid message received: \n{serviceBusReceivedMessage.Body}");
+            _logger.LogError("Invalid email request received.");
             return;
         }
 
         // setting only used in development
         if (_config.Email.DumpMessages)
         {
-            _logger.LogInformation($"No email sent: Dumping messages!");
+            _logger.LogInformation("No email sent: Dumping messages!");
             return;
         }
 

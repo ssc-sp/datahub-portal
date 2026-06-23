@@ -186,15 +186,29 @@ public static class QueueConstants
     public const string WorkspaceAppServiceConfigurationQueueName = "workspace-app-service-configuration";
 
     /// <summary>
-    /// Queue: <c>virus-scan-notification</c><br/>
-    /// Message: <c>VirusScanNotificationMessage</c><br/>
+    /// Queue: <c>clamav-scan-result</c><br/>
+    /// Message: <c>ClamAvScanResultMessage</c> (minimal format: ScanStartTime, ScanEndTime, ScanError, ScannedFile)<br/>
     /// Publishers:
     /// <list type="bullet">
-    ///   <item><description>Virus scan pipeline / storage event handler – after a scan completes</description></item>
+    ///   <item><description>ClamAV container – writes minimal scan completion message</description></item>
     /// </list>
     /// Consumers:
     /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – creates an in-app system notification for the file owner</description></item>
+    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – enriches with workspace/user context and forwards to virus-scan-notification</description></item>
+    /// </list>
+    /// </summary>
+    public const string ClamAvScanResultQueueName = "clamav-scan-result";
+
+    /// <summary>
+    /// Queue: <c>virus-scan-notification</c><br/>
+    /// Message: <c>VirusScanNotificationMessage</c> (enriched format with workspace, user, scan status)<br/>
+    /// Publishers:
+    /// <list type="bullet">
+    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – after enriching minimal ClamAV messages</description></item>
+    /// </list>
+    /// Consumers:
+    /// <list type="bullet">
+    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – coordinates post-scan notifications and downstream user-status processing</description></item>
     /// </list>
     /// </summary>
     public const string VirusScanNotificationQueueName = "virus-scan-notification";
@@ -204,7 +218,7 @@ public static class QueueConstants
     /// Message: <c>VirusScanUserStatusMessage</c><br/>
     /// Publishers:
     /// <list type="bullet">
-    ///   <item><description>Virus scan pipeline / storage event handler – after ACLs are applied to a scanned file</description></item>
+    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – downstream fan-out after processing ClamAV completion messages</description></item>
     /// </list>
     /// Consumers:
     /// <list type="bullet">
