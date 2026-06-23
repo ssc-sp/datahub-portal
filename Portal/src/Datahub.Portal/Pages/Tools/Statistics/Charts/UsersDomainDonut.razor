@@ -1,4 +1,4 @@
-﻿@using ApexCharts
+@using ApexCharts
 @using Datahub.Core.Model.Achievements
 @using Datahub.Core.Model.Users;
 
@@ -36,7 +36,7 @@
     }
     
     
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
         DefineOptions();
         _domainCounts = Users
@@ -44,7 +44,7 @@
             .Select(g => new DomainCount { Domain = g.Key, Count = g.Count() })
             .ToList();
         _domainCounts.RemoveAll(d => string.IsNullOrEmpty(d.Domain));
-        Refresh();
+        await Refresh();
     }
     
     public async Task Refresh()

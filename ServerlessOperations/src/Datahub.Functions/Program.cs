@@ -1,6 +1,3 @@
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Notification;
@@ -11,14 +8,12 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
 using Datahub.Application.Services.WebApp;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
 using Datahub.Functions;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Services;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Azure;
 using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.Notification;
@@ -32,7 +27,6 @@ using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Caching.Memory; // ADDED
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -101,6 +95,7 @@ builder.Services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppMan
 builder.Services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
 builder.Services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
 builder.Services.AddScoped<IDateProvider, DateProvider>();
+builder.Services.AddScoped<IUserInformationService, FunctionUserInformationService>();
 builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
