@@ -87,14 +87,7 @@
                     UriComponents.PathAndQuery,
                     UriFormat.Unescaped);
 
-        if (currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}"))
-        {
-            padding = "25px";
-        }
-        else
-        {
-            padding = "0px";
-        }
+        padding = currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}") ? "25px" : "0px";
 
         _topBorderStyle = new StyleBuilder()
           .AddStyle("border-color", "var(--mud-palette-divider)")
