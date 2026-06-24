@@ -60,10 +60,10 @@
     </LockedUserGatekeeper>
 </CommonMudProviders>
 @code {
-    [Parameter] public Datahub_Project Workspace { get; set; }
+    [Parameter] public Datahub_Project Workspace { get; set; } = null!;
     private string padding = "0px";
 
-    private string _topBorderStyle;
+    private string _topBorderStyle = null!;
 
     private readonly string _sideBorderStyle = new StyleBuilder()
         .AddStyle("border-color", "var(--mud-palette-divider)")
@@ -236,7 +236,7 @@
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
         var lastHour = DateTime.Now.AddHours(-1);
         var events = dbContext.TelemetryEvents;
-        if (events != null && events.Count() > 0)
+        if (_portalUser is not null && events != null && events.Count() > 0)
         {
             return await events
                 .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour)
