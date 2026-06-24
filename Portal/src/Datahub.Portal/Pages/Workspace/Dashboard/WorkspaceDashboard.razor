@@ -101,7 +101,6 @@
                           <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
                           <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
                         }
-                        <a href="~/Pages/Workspace/Dashboard/WorkspaceDashboard.razor">~/Pages/Workspace/Dashboard/WorkspaceDashboard.razor</a>
                       </MudStack>
                     </DatahubAuthView>
                 </NotAuthorized>
@@ -151,8 +150,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
         await using var context = await _dbContextFactory.CreateDbContextAsync();
         _project = await context.Projects
             .Include(w => w.Resources)

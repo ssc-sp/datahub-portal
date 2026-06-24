@@ -256,7 +256,7 @@
                 await _keyVaultUserService.AuthenticateWithUserContext();
                 var user = await _userInformationService.GetAuthenticatedUser();
                 var token = await _userTokenCredentialService.GetUserToken(user, UserTokenService.Storage);
-                _credential = await _userTokenCredentialService.GetTokenCredentialForUser(UserTokenService.Storage, token);
+                _credential = _userTokenCredentialService.GetTokenCredentialForUser(UserTokenService.Storage, token);
                 _isProjectKeyEnabled = true; // Entra users will authenticate to storage with their user context, so project key is not required for them.
             }
             else

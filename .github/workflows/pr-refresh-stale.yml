@@ -20,17 +20,17 @@ jobs:
     steps:
       - name: Create App token
         id: create_token
-        uses: ssc-sp/.github/.github/actions/create-app-token@a912acb05649c75f3f811b59044200a09de10b83 # main
+        uses: ssc-sp/.github/.github/actions/create-app-token@64e8e6980c485d99ac617a13a749dc8a9a648bb0 # main
         with:
           app-id: ${{ vars.DATAHUB_PORTAL_PR_APP_ID }}
           private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
 
       - name: Automatically update PR
-        uses: KingBain/update-pr-branch@6c54f8bd85ea9082994e08a756df1d7677ad03f2 # master-update
+        uses: adRise/update-pr-branch@e96e796f4ab23ab388016fdaed7092de99bd71cf # v0.11.1
         with:
           token: ${{ steps.create_token.outputs.token }}
           base: "develop"
-          excluded_labels: "dont-auto-refresh"
+          excluded_labels: "renovate"
           required_approval_count: 0
           require_passed_checks: false
           require_auto_merge_enabled: false

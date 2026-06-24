@@ -29,7 +29,7 @@ namespace Datahub.Application.Authentication
 
         private ClaimsIdentity CreateGccfUser()
         {
-            var email = _configuration["GccfOidc:DevAuth:UserEmail"] ?? "dev.user@example.com";
+            var email = _configuration["GccfOidc:DevAuth:UserEmail"];
             var name = _configuration["GccfOidc:DevAuth:UserName"] ?? email;
 
             var identity = new ClaimsIdentity(new[]

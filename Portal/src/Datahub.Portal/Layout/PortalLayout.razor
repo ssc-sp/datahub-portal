@@ -28,227 +28,230 @@
 
 <CommonMudProviders>
 
-<DatahubAchievementProvider/>
+    <DatahubAchievementProvider />
 
-<LockedUserGatekeeper>
-    <MudLayout>
-        <MudAppBar Elevation="0" Style="@_topBorderStyle">
-            <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl"/>
-        </MudAppBar>
-        <SectionOutlet SectionName="@DatahubTheme.SideBarContentName"/>
-        <MudMainContent>
-            <ErrorBoundary @ref="_errorBoundary">
-                <ChildContent>
-                    @Body
-                </ChildContent>
-                <ErrorContent Context="ex">
-                    @if (HandleException(@ex))
-                    {
-                        <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
-                            <Error CorrelationId=@_correlationId Exception=@ex/>
-                        </MudContainer>
-                    }
-                    else
-                    {
+    <LockedUserGatekeeper>
+        <MudLayout>
+            <MudAppBar Elevation="0" Style="@_topBorderStyle">
+                <Topbar SupportFormUrl="@_datahubPortalConfiguration.SupportFormUrl" />
+            </MudAppBar>
+            <SectionOutlet SectionName="@DatahubTheme.SideBarContentName" />
+            <MudMainContent>
+                <ErrorBoundary @ref="_errorBoundary">
+                    <ChildContent>
                         @Body
-                    }
-                </ErrorContent>
-            </ErrorBoundary>
-            <DHFooter/>
-        </MudMainContent>
-    </MudLayout>
-</LockedUserGatekeeper>
+                    </ChildContent>
+                    <ErrorContent Context="ex">
+                        @if (HandleException(@ex))
+                        {
+                            <MudContainer Class="mt-8" MaxWidth="MaxWidth.Large">
+                                <Error CorrelationId=@_correlationId Exception=@ex />
+                            </MudContainer>
+                        }
+                        else
+                        {
+                            @Body
+                        }
+                    </ErrorContent>
+                </ErrorBoundary>
+                <DHFooter />
+            </MudMainContent>
+        </MudLayout>
+    </LockedUserGatekeeper>
 </CommonMudProviders>
 @code {
-  [Parameter] public Datahub_Project Workspace { get; set; }
-  private string hello = "hello";
-  private string padding = "0px";
+    [Parameter] public Datahub_Project Workspace { get; set; } = null!;
+    private string padding = "0px";
 
-  private string _topBorderStyle;
+    private string _topBorderStyle = null!;
 
-  private readonly string _sideBorderStyle = new StyleBuilder()
-      .AddStyle("border-color", "var(--mud-palette-divider)")
-      .AddStyle("border-width", "1px")
-      .AddStyle("border-style", "none solid none none")
-      .Build();
+    private readonly string _sideBorderStyle = new StyleBuilder()
+        .AddStyle("border-color", "var(--mud-palette-divider)")
+        .AddStyle("border-width", "1px")
+        .AddStyle("border-style", "none solid none none")
+        .Build();
 
 
-  private PortalUser _portalUser;
-  private bool _correlationIdInitialized = false;
-  private string _correlationId;
-  private IJSObjectReference _module;
-  private ErrorBoundary _errorBoundary;
-  private Exception _lastException;
+    private PortalUser? _portalUser;
+    private bool _correlationIdInitialized = false;
+    private string? _correlationId;
+    private IJSObjectReference? _module;
+    private ErrorBoundary? _errorBoundary;
+    private Exception? _lastException;
 
-  protected override void OnParametersSet()
-  {
-    _errorBoundary?.Recover();
-
-    var currentUrl = new Uri(_navigationManager.Uri).GetComponents(
-                UriComponents.PathAndQuery,
-                UriFormat.Unescaped);
-
-    if (currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}"))
+    protected override void OnParametersSet()
     {
-      padding = "25px";
-    }
-    else
-    {
-      padding = "0px";
-    }
+        _errorBoundary?.Recover();
 
-    _topBorderStyle = new StyleBuilder()
-      .AddStyle("border-color", "var(--mud-palette-divider)")
-      .AddStyle("border-width", "1px")
-      .AddStyle("border-style", "none none solid none")
-      .AddStyle("padding-top", padding)
-      .Build();
-  }
+        var currentUrl = new Uri(_navigationManager.Uri).GetComponents(
+                    UriComponents.PathAndQuery,
+                    UriFormat.Unescaped);
 
-  protected override async Task OnAfterRenderAsync(bool firstRender)
-  {
-    if (firstRender && !_correlationIdInitialized)
-    {
-      _correlationId = await _sessionStorage.GetItemAsStringAsync("correlationId");
-      if (string.IsNullOrEmpty(_correlationId))
-      {
-        _correlationId = Guid.NewGuid().ToString();
-        await _sessionStorage.SetItemAsStringAsync("correlationId", _correlationId);
-      }
-      _correlationIdInitialized = true;
-      StateHasChanged();
-    }
-  }
-  private bool HandleException(Exception ex)
-  {
-    if (IsIgnoredException(ex))
-      return false;
-    if (ex != _lastException)
-    {
-      _lastException = ex;
-      _ = AuditExceptionAsync(ex);
+        padding = currentUrl.StartsWith($"/{PageRoutes.WorkspacePrefix}") ? "25px" : "0px";
+
+        _topBorderStyle = new StyleBuilder()
+          .AddStyle("border-color", "var(--mud-palette-divider)")
+          .AddStyle("border-width", "1px")
+          .AddStyle("border-style", "none none solid none")
+          .AddStyle("padding-top", padding)
+          .Build();
     }
 
-    return true;
-  }
-
-  private bool IsIgnoredException(Exception ex)
-  {
-    return ex is ObjectDisposedException or MicrosoftIdentityWebChallengeUserException;
-  }
-
-  private async Task AuditExceptionAsync(Exception ex)
-  {
-    try
+    protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-      await _auditingService.TrackException(ex, (nameof(_correlationId), _correlationId));
-      await ReportIssue(ex, _correlationId);
-      await InvokeAsync(StateHasChanged);
+        if (firstRender && !_correlationIdInitialized)
+        {
+            _correlationId = await _sessionStorage.GetItemAsStringAsync("correlationId");
+            if (string.IsNullOrEmpty(_correlationId))
+            {
+                _correlationId = Guid.NewGuid().ToString();
+                await _sessionStorage.SetItemAsStringAsync("correlationId", _correlationId);
+            }
+            _correlationIdInitialized = true;
+            StateHasChanged();
+        }
     }
-    catch (Exception)
-    {
-      // ignored
-    }
-  }
 
-  public async Task ReportIssue(Exception ex, string correlationId)
-  {
-    if (!DevTools.IsDevelopment())
+    private bool HandleException(Exception ex)
     {
-      var exceptionDetail = new Dictionary<string, string>()
+
+        if (ex is HttpRequestException hex && hex.StatusCode is not null && hex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            _navigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+            return true;
+        }
+
+
+        if (IsIgnoredException(ex))
+            return false;
+        if (ex != _lastException)
+        {
+            _lastException = ex;
+            _ = AuditExceptionAsync(ex);
+        }
+
+        return true;
+    }
+
+    private bool IsIgnoredException(Exception ex)
+    {
+        return ex is ObjectDisposedException or MicrosoftIdentityWebChallengeUserException or LocationChangeException;
+    }
+
+    private async Task AuditExceptionAsync(Exception ex)
+    {
+        if (_correlationId is null)
+            return;
+        try
+        {
+            await _auditingService.TrackException(ex, (nameof(_correlationId), _correlationId));
+            await ReportIssue(ex, _correlationId);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception)
+        {
+            // ignored
+        }
+    }
+
+    public async Task ReportIssue(Exception ex, string correlationId)
+    {
+        if (!DevTools.IsDevelopment())
+        {
+            var exceptionDetail = new Dictionary<string, string>()
             {
                 { "Type", ex.GetType().ToString() },
                 { "Message", ex.Message },
                 { "StackTrace", ex.StackTrace },
                 { "CorrelationId", correlationId }
             };
-      var exceptionData = Newtonsoft.Json.JsonConvert.SerializeObject(exceptionDetail);
+            var exceptionData = Newtonsoft.Json.JsonConvert.SerializeObject(exceptionDetail);
 
-      // collect information
-      _portalUser = await _userInformationService.GetCurrentPortalUserAsync();
-      if (_portalUser is null)
-      {
-        _portalUser = new PortalUser
+            // collect information
+            _portalUser = await _userInformationService.GetCurrentPortalUserAsync();
+            if (_portalUser is null)
+            {
+                _portalUser = new PortalUser
+                {
+                    DisplayName = "Unknown User",
+                    Email = "unknown_email",
+                };
+            }
+
+            var userLanguage = await _userSettingsService.GetUserLanguage();
+
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
+
+            var url = _navigationManager.Uri; // Retrieve the active URL
+            var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
+            var timeZone = await _module.InvokeAsync<string>("blazorGetTimezone");
+            var dimensions = await _module.InvokeAsync<string>("blazorGetScreenDimentions");
+
+            // Retrieve all local storage data
+            var allKeys = await _localStorage.KeysAsync();
+            var dataDict = new Dictionary<string, string>();
+            foreach (var key in allKeys)
+            {
+                var value = await _localStorage.GetItemAsStringAsync(key);
+                dataDict.Add(key, value);
+            }
+
+            var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
+
+            var lastHourEvents = await GetTelemetryData();
+            var telemetryData = Newtonsoft.Json.JsonConvert.SerializeObject(lastHourEvents);
+
+            // We create the bug report message and send it to the queue.
+            var bugReport = new BugReportMessage(
+                UserName: _portalUser.DisplayName,
+                UserEmail: _portalUser.Email,
+                UserOrganization: GetOrg(_portalUser.Email),
+                PortalLanguage: userLanguage,
+                PreferredLanguage: "en",
+                Timezone: timeZone,
+                Workspaces: url,
+                Topics: "Exception",
+                URL: url,
+                UserAgent: userAgent,
+                Resolution: dimensions,
+                LocalStorage: localStorageData,
+                BugReportType: BugReportTypes.SupportRequest,
+                Description: $"Automatically recorded exception: {exceptionData}, telemetry: {telemetryData}",
+                CorrelationId: _correlationId
+            );
+
+            await _mediatr.Send(bugReport);
+        }
+    }
+
+    private async Task<List<TelemetryEvent>> GetTelemetryData()
+    {
+        await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
+        var lastHour = DateTime.Now.AddHours(-1);
+        var events = dbContext.TelemetryEvents;
+        if (_portalUser is not null && events != null && events.Count() > 0)
         {
-          DisplayName = "Unknown User",
-          Email = "unknown_email",
-        };
-      }
+            return await events
+                .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour)
+                .ToListAsync();
+        }
 
-      var userLanguage = await _userSettingsService.GetUserLanguage();
-
-      IJSObjectReference _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
-
-      var url = _navigationManager.Uri; // Retrieve the active URL
-      var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
-      var timeZone = await _module.InvokeAsync<string>("blazorGetTimezone");
-      var dimensions = await _module.InvokeAsync<string>("blazorGetScreenDimentions");
-
-      // Retrieve all local storage data
-      var allKeys = await _localStorage.KeysAsync();
-      var dataDict = new Dictionary<string, string>();
-      foreach (var key in allKeys)
-      {
-        var value = await _localStorage.GetItemAsStringAsync(key);
-        dataDict.Add(key, value);
-      }
-
-      var localStorageData = Newtonsoft.Json.JsonConvert.SerializeObject(dataDict);
-
-      var lastHourEvents = await GetTelemetryData();
-      var telemetryData = Newtonsoft.Json.JsonConvert.SerializeObject(lastHourEvents);
-
-      // We create the bug report message and send it to the queue.
-      var bugReport = new BugReportMessage(
-          UserName: _portalUser.DisplayName,
-          UserEmail: _portalUser.Email,
-          UserOrganization: GetOrg(_portalUser.Email),
-          PortalLanguage: userLanguage,
-          PreferredLanguage: "en",
-          Timezone: timeZone,
-          Workspaces: url,
-          Topics: "Exception",
-          URL: url,
-          UserAgent: userAgent,
-          Resolution: dimensions,
-          LocalStorage: localStorageData,
-          BugReportType: BugReportTypes.SupportRequest,
-          Description: $"Automatically recorded exception: {exceptionData}, telemetry: {telemetryData}",
-          CorrelationId: _correlationId
-      );
-
-      await _mediatr.Send(bugReport);
+        return new List<TelemetryEvent>();
     }
-  }
 
-  private async Task<List<TelemetryEvent>> GetTelemetryData()
-  {
-    await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
-    var lastHour = DateTime.Now.AddHours(-1);
-    var events = dbContext.TelemetryEvents;
-    if (events != null && events.Count() > 0)
+    private string GetOrg(string email)
     {
-      return await events
-          .Where(u => u.PortalUser.Id == _portalUser.Id && u.EventDate >= lastHour)
-          .ToListAsync();
-    }
+        var org = "";
+        try
+        {
+            org = email.Split("@")[1].Split('.')[0];
+        }
+        catch
+        {
+            org = "unknown";
+        }
 
-    return new List<TelemetryEvent>();
-  }
-
-  private string GetOrg(string email)
-  {
-    var org = "";
-    try
-    {
-      org = email.Split("@")[1].Split('.')[0];
+        return org;
     }
-    catch
-    {
-      org = "unknown";
-    }
-
-    return org;
-  }
 
 }
