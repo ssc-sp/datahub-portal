@@ -1,4 +1,4 @@
-FROM python:3.12@sha256:d824f747699b6a0f1ebbee9289018c1e484c808e0d928a27be5f3ed7c5f15e4b AS build
+FROM python:3.12@sha256:e0823b6251241a8a42a8a525003af9e8991ff3da0097a57884127c5913f9cb58 AS build
 
 COPY requirements.txt /
 
