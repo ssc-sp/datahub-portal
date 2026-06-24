@@ -147,6 +147,8 @@
 
     private async Task AuditExceptionAsync(Exception ex)
     {
+        if (_correlationId is null)
+            return;
         try
         {
             await _auditingService.TrackException(ex, (nameof(_correlationId), _correlationId));
