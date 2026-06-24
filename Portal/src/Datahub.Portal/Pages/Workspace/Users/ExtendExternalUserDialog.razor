@@ -1,0 +1,63 @@
+@using Datahub.Core.Model.Projects
+@using Datahub.Core.Model.Users
+@inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject ISnackbar _snackbar
+
+<MudDialog Style="min-width: 40vw; max-width: 75vw;">
+    <DialogContent>
+        <MudStack>
+            <MudText>@Localizer["Select a new account expiry date."]</MudText>
+            <MudDatePicker Label="@Localizer["Account Expiry"]"
+                           @bind-Date="_newExpiryDate"
+                           Required="true"
+                           ShowToolbar="false"
+                           IsDateDisabledFunc="@((DateTime dt) => dt.Date < DateTime.Today)" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudGrid>
+            <MudItem xs="6" class="d-flex justify-start">
+                <DHButton Color="Color.Error" OnClick="Cancel" Variant="Variant.Filled">@Localizer["Cancel"]</DHButton>
+            </MudItem>
+            <MudItem xs="6" class="d-flex justify-end">
+                <DHButton Color="Color.Primary" OnClick="SaveUserChanges" Variant="Variant.Filled">@Localizer["Extend"]</DHButton>
+            </MudItem>
+        </MudGrid>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    #nullable enable
+    [CascadingParameter]
+    IMudDialogInstance MudDialog { get; set; } = null!;
+
+    [Parameter]
+    public UserRoleLinks SelectedUser { get; set; } = null!;
+
+    private DateTime? _newExpiryDate;
+
+    protected override void OnInitialized()
+    {
+        _newExpiryDate = SelectedUser.PortalUser.ExternalUser.UserExpiryDate.UtcDateTime.Date;
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task SaveUserChanges()
+    {
+        if (_newExpiryDate is null)
+        {
+            _snackbar.Add(Localizer["Account expiry date is required"], Severity.Error);
+            return;
+        }
+
+        await using var context = await _dbFactory.CreateDbContextAsync();
+
+        SelectedUser.PortalUser.ExternalUser.UserExpiryDate = new DateTimeOffset(DateTime.SpecifyKind(_newExpiryDate.Value.Date, DateTimeKind.Utc));
+
+        context.Update(SelectedUser);
+        await context.SaveChangesAsync();
+
+        MudDialog.Close(DialogResult.Ok(SelectedUser));
+    }
+}

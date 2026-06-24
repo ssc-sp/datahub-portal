@@ -17,6 +17,7 @@ using Datahub.Application.Services.UserManagement;
 using System.Security.Claims;
 using Azure.Core;
 using System.Threading;
+using Azure;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -210,15 +211,22 @@ public class AzureCloudStorageManager : ICloudStorageManager
             : new BlobServiceClient(_blobServiceUri, _tokenCredential);
 
         var containerClient = blobServiceClient.GetBlobContainerClient(container);
-        var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
+        AccountInfo? accountInfo = null;
+        try
+        {
+            accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
+        } catch (RequestFailedException req) 
+        {
+            //ignore error
+        }
 
         AzureStorageMetadata storageMetadata = new()
         {
             Container = container,
             Url = containerClient.Uri.ToString(),
-            Versioning = "True",
-            GeoRedundancy = accountInfo.SkuName.ToString(),
-            StorageAccountType = accountInfo.AccountKind.ToString(),            
+            Versioning = true,
+            GeoRedundancy = accountInfo?.SkuName.ToString(),
+            StorageAccountType = accountInfo?.AccountKind.ToString(),            
         };
 
         return storageMetadata;

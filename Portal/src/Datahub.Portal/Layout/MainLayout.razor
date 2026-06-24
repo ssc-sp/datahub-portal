@@ -87,6 +87,7 @@ else
 
 			if (!await _userInformationService.IsAuthorized())
 			{
+                _logger.LogWarning("User {User} is not authorized to access the portal.", user.Identity?.Name);
 				_navigationManager.NavigateTo(Localizer[PageRoutes.AccessDenied], true);
 				return;
 			}
