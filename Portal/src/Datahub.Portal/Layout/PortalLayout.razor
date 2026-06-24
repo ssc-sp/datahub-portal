@@ -185,7 +185,7 @@
 
             var userLanguage = await _userSettingsService.GetUserLanguage();
 
-            IJSObjectReference _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
+            _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Layout/PortalLayout.razor.js");
 
             var url = _navigationManager.Uri; // Retrieve the active URL
             var userAgent = _httpContextAccessor.HttpContext.Request.Headers["User-Agent"].ToString();
