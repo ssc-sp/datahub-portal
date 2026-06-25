@@ -6,12 +6,13 @@ namespace Datahub.Application.Services.Security;
 public enum UserTokenService
 {
     KeyVault,
-    Storage
+    Storage,
+    Graph
 }
 
 public interface IUserTokenCredentialService
 {
-    Task<TokenCredential> GetTokenCredentialForUser(UserTokenService service, string? token = null);
+    TokenCredential GetTokenCredentialForUser(UserTokenService service, string? token = null);
 
     Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, UserTokenService service);
 }
