@@ -3633,5 +3633,10 @@
   "Unable to resend invitation": "Impossible de renvoyer l'invitation",
   "Your {0} file(s) have been uploaded and are being scanned for viruses.": "Vos {0} fichier(s) ont été envoyés et sont en cours d'analyse pour les virus.",
   "External user {0} uploaded {1} file(s) to {2}.": "L'utilisateur externe {0} a envoyé {1} fichier(s) dans l'espace de travail {2}.",
-  "Networking": "Réseau"
+  "Networking": "Réseau",
+  "Error extending user": "Erreur lors de l'extension de l'utilisateur",
+  "Extend": "Étendre",
+  "Extend user": "Étendre l'utilisateur",
+  "User expiry updated": "Expiration de l'utilisateur mise à jour",
+  "Select a new account expiry date": "Sélectionnez une nouvelle date d'expiration du compte"
 }
