@@ -2671,5 +2671,10 @@
   "Unable to resend invitation": "Unable to resend invitation",
   "Your {0} file(s) have been uploaded and are being scanned for viruses.": "Your {0} file(s) have been uploaded and are being scanned for viruses.",
   "External user {0} uploaded {1} file(s) to {2}.": "External user {0} uploaded {1} file(s) to {2}.",
-  "Networking": "Networking"
+  "Networking": "Networking",
+  "Error extending user": "Error extending user",
+  "Extend": "Extend",
+  "Extend user": "Extend user",
+  "User expiry updated": "User expiry updated",
+  "Select a new account expiry date.": "Select a new account expiry date."
 }

@@ -215,7 +215,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         try
         {
             accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
-        } catch (RequestFailedException req) 
+        } catch (RequestFailedException) 
         {
             //ignore error
         }
