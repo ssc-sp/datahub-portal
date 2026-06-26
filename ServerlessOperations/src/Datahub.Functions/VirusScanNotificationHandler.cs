@@ -87,7 +87,6 @@ public class VirusScanNotificationHandler(
                 ScanCompletedOn = notification.ScanCompletedOn,
                 FileSizeBytes = notification.FileSizeBytes,
                 StorageAccountName = notification.StorageAccountName,
-                ContainerName = notification.ContainerName,
                 ScanEngine = "ClamAV",
                 CorrelationId = notification.CorrelationId,
                 AclsApplied = notification.ScanStatus.Equals("Clean", StringComparison.OrdinalIgnoreCase),

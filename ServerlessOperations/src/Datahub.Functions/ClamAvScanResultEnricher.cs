@@ -11,6 +11,7 @@ using MassTransit;
 using System.Data.Common;
 using System.Text.Json;
 using System.Text.RegularExpressions;
+using Datahub.Application.Services.Storage;
 
 namespace Datahub.Functions;
 
@@ -88,7 +89,6 @@ public class ClamAvScanResultEnricher(
                 ScanCompletedOn = scanResult.ScanEndTime,
                 FileSizeBytes = properties.Value.ContentLength,
                 StorageAccountName = storageAccountName,
-                ContainerName = "datahub",
                 CorrelationId = Guid.NewGuid().ToString()
             };
 

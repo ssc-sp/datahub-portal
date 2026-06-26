@@ -1,7 +1,8 @@
+using Datahub.Application.Configuration;
+using Datahub.Application.Services.Storage;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using Datahub.Application.Configuration;
 
 namespace Datahub.Application.Services.Notification;
 
@@ -34,7 +35,7 @@ public static class StorageScanNotificationHelper
 
         var normalizedPath = NormalizeBlobPath(notification.BlobPath);
         var container = string.IsNullOrWhiteSpace(notification.ContainerName)
-            ? "datahub"
+            ? IWorkspaceStorageManagementService.AzureDefaultContainerName
             : notification.ContainerName.Trim('/');
 
         return new StorageScanSuccessEventPayload
@@ -69,7 +70,7 @@ public static class StorageScanNotificationHelper
             : workspace.Trim().ToUpperInvariant();
 
         var containerSegment = string.IsNullOrWhiteSpace(container)
-            ? "datahub"
+            ? IWorkspaceStorageManagementService.AzureDefaultContainerName
             : container.Trim('/');
 
         var blobSegment = string.IsNullOrWhiteSpace(blobPath) ? "-" : blobPath;

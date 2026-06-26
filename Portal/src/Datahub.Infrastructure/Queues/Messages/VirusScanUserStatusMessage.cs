@@ -62,11 +62,6 @@ public class VirusScanUserStatusMessage
     public string? StorageAccountName { get; init; }
 
     /// <summary>
-    /// Container name
-    /// </summary>
-    public string ContainerName { get; init; } = "datahub";
-
-    /// <summary>
     /// Scanner engine used (e.g., "ClamAV")
     /// </summary>
     public string? ScanEngine { get; init; }

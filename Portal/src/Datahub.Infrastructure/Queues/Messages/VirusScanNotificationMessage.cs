@@ -47,11 +47,6 @@ public class VirusScanNotificationMessage
     public string? StorageAccountName { get; init; }
 
     /// <summary>
-    /// Container name
-    /// </summary>
-    public string ContainerName { get; init; } = "datahub";
-
-    /// <summary>
     /// Event correlation ID for tracking
     /// </summary>
     public string? CorrelationId { get; init; }

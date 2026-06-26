@@ -200,25 +200,7 @@ public class StorageConfiguration
     public string BlockedFileExtensions { get; set; } = ".ace,.ade,.adp,.ani,.app,.apk,.bas,.bat,.chm,.cmd,.com,.cpl,.crt,.docm,.dll,.exe,.hlp,.ht,.hta,.inf,.ins,.isp,.jar,.job,.js,.jse,.lnk,.mda,.mdb,.mde,.mdz,.msc,.msi,.msp,.mst,.pcd,.pif,.reg,.scr,.sct,.shs,.url,.vb,.vbe,.vbs,.wsc,.wsf,.wsh";
     public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .AsReadOnly();
-    public ExternalUsersStorage ExternalUsersStorage { get; set; } = new();
-}
-
-public class ExternalUsersStorage
-{      
-    /// <summary>
-    /// Container name for external users files
-    /// </summary>
-    public string SharedContainerName { get; set; } = "shared";
-
-    public string UploadContainerName { get; set; } = "external-uploads";
-
-
-    /// <summary>
-    /// Optional SAS token for development/testing. If provided, will be used instead of Key Vault account key.
-    /// </summary>
-    public string? SasToken { get; set; }
-       
+        .AsReadOnly();    
 }
 
 public class ToolboxConfig

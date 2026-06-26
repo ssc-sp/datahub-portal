@@ -38,7 +38,7 @@
                             OnFileDownload="HandleFileDownload"
                             OnPublishFiles="HandlePublishFiles"
                             OnFileRename="HandleFileRename"
-                            ShowMntHierarchy=true
+                            ShowMntHierarchy="@(string.Equals(Container?.Name, "datahub", StringComparison.OrdinalIgnoreCase))"
                             OnDeleteFolder="HandleDeleteFolder"
                             CanDeleteFolder="CanDeleteFolder" />
 
