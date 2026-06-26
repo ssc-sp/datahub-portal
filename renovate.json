@@ -1,7 +1,7 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices"],
-  "addLabels": ["dont-auto-refresh"],
+  "addLabels": ["renovate"],
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "semanticCommitType": "fix",
