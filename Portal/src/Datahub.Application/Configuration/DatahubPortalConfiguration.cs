@@ -205,36 +205,20 @@ public class StorageConfiguration
 }
 
 public class ExternalUsersStorage
-{
-    /// <summary>
-    /// Storage account name for external users (shared across all workspaces)
-    /// </summary>
-    public string AccountName { get; set; } = "fsdhstoragedev";
-    
-    /// <summary>
-    /// Key Vault secret name for the external users storage account key
-    /// </summary>
-    public string AccountKeySecretName { get; set; } = "datahub-blob-key-fsdhstoragedev";
-    
+{      
     /// <summary>
     /// Container name for external users files
     /// </summary>
-    public string ContainerName { get; set; } = "external-uploads";
-    
+    public string SharedContainerName { get; set; } = "shared";
+
+    public string UploadContainerName { get; set; } = "external-uploads";
+
+
     /// <summary>
     /// Optional SAS token for development/testing. If provided, will be used instead of Key Vault account key.
     /// </summary>
     public string? SasToken { get; set; }
-    
-    /// <summary>
-    /// Whether to retrieve the storage key from the central Key Vault (true) or workspace Key Vault (false)
-    /// </summary>
-    public bool UseCentralKeyVault { get; set; } = true;
-    
-    /// <summary>
-    /// Name of the central Key Vault where shared secrets are stored
-    /// </summary>
-    public string CentralKeyVaultName { get; set; } = "fsdh-key-dev";
+       
 }
 
 public class ToolboxConfig

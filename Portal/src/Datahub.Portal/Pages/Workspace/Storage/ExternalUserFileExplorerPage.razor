@@ -77,7 +77,7 @@
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!
 ;
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = null!;
 
     private Datahub_Project? _project;
     private int? _projectId;
@@ -136,14 +136,15 @@
     {
         // Get external users storage configuration from appsettings
         var externalStorageConfig = _datahubPortalConfiguration.StorageConfiguration.ExternalUsersStorage;
-        var containerName = externalStorageConfig.ContainerName;
-        var accountName = externalStorageConfig.AccountName;
-
+        var containerName = externalStorageConfig.SharedContainerName;
+        
+        // pick the project storage containers
+        var accountName = _projectStorageConfigService.GetProjectStorageAccountName(WorkspaceAcronym);
+        var token = _systemTokenCredentialService.GetTokenCredential();
+        var projectStorageManager = new AzureCloudStorageManager(accountName, token);
         _logger.LogInformation("Loading external users container.");
 
 
-        var token = _systemTokenCredentialService.GetTokenCredential();
-        var projectStorageManager = new AzureCloudStorageManager(accountName, token);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
         _logger.LogInformation("Retrieved containers from external users storage account.");

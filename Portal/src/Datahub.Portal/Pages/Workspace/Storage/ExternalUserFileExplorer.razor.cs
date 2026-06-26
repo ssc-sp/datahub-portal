@@ -14,6 +14,15 @@ public partial class ExternalUserFileExplorer
     private readonly object _uploadingFilesLock = new();
     private string? _lastContainerName;
 
+    private string UploadContainerName
+    {
+        get
+        {
+            var configuredName = _config.StorageConfiguration.ExternalUsersStorage.UploadContainerName;
+            return string.IsNullOrWhiteSpace(configuredName) ? ContainerName : configuredName;
+        }
+    }
+
     private void InitializeUserRootFolder()
     {
         var userFolder = GetSafeUserFolderName();
@@ -29,7 +38,7 @@ public partial class ExternalUserFileExplorer
 
     private string GetSafeUserFolderName()
     {
-        var emailPrefix = PortalUser?.Email?.Split('@')[0] ?? string.Empty;
+        var emailPrefix = PortalUser.Email.Replace('@', '_');
         var sanitized = new string(emailPrefix
             .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
             .ToArray())
@@ -86,6 +95,12 @@ public partial class ExternalUserFileExplorer
 
             InitializeUserRootFolder();
             await EnsureUserRootFolderAsync(_selectedContainerName);
+
+            if (!string.Equals(_selectedContainerName, UploadContainerName, StringComparison.OrdinalIgnoreCase))
+            {
+                await EnsureUserRootFolderAsync(UploadContainerName);
+            }
+
             // Load metadata and content immediately for the allowed container.
             StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(_selectedContainerName);
             _folderList = await GetFileCountAsync(_currentFolder);
@@ -267,10 +282,10 @@ public partial class ExternalUserFileExplorer
         return Task.CompletedTask;
     }
 
-    private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
+    private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath, string? containerName = null)
     {
-        var containerName = _selectedContainerName ?? ContainerName;
-        if (!await StorageManager.FileExistsAsync(containerName, filePath))
+        var targetContainerName = containerName ?? _selectedContainerName ?? ContainerName;
+        if (!await StorageManager.FileExistsAsync(targetContainerName, filePath))
             return (false, true);
 
         var allowOverride = await _jsRuntime.InvokeAsync<bool>("confirm",
@@ -310,8 +325,9 @@ public partial class ExternalUserFileExplorer
         }
 
         var newFilePath = JoinPath(folder, browserFile.Name);
+        var uploadContainerName = UploadContainerName;
 
-        var (fileExists, allowOverride) = await VerifyOverwrite(newFilePath);
+        var (fileExists, allowOverride) = await VerifyOverwrite(newFilePath, uploadContainerName);
         if (!allowOverride)
             return;
 
@@ -335,10 +351,9 @@ public partial class ExternalUserFileExplorer
             _uploadingFiles.Add(fileMetadata);
         }
 
-        var containerName = _selectedContainerName ?? ContainerName;
         _ = InvokeAsync(async () =>
         {
-            var succeeded = await StorageManager.UploadFileAsync(containerName, fileMetadata, uploadedBytes =>
+            var succeeded = await StorageManager.UploadFileAsync(uploadContainerName, fileMetadata, uploadedBytes =>
             {
                 fileMetadata.uploadedBytes = uploadedBytes;
                 _ = InvokeAsync(StateHasChanged);
@@ -353,25 +368,23 @@ public partial class ExternalUserFileExplorer
                 }
             }
 
-            if (folder == _currentFolder)
+            if (folder == _currentFolder && succeeded
+                && string.Equals(uploadContainerName, _selectedContainerName ?? ContainerName, StringComparison.OrdinalIgnoreCase))
             {
-                if (succeeded)
+                if (fileExists)
                 {
-                    if (fileExists)
-                    {
-                        _files.RemoveAll(f => f.name == fileMetadata.name);
-                    }
-
-                    _files.Add(fileMetadata);
-                    
-                    // Set initial scan status for newly uploaded file
-                    _fileScanResults[fileMetadata.name] = new FileScanResult
-                    {
-                        FileName = fileMetadata.name,
-                        Status = FileScanStatus.ScanInProgress,
-                        ScanDate = DateTime.UtcNow
-                    };
+                    _files.RemoveAll(f => f.name == fileMetadata.name);
                 }
+
+                _files.Add(fileMetadata);
+
+                // Set initial scan status for newly uploaded file
+                _fileScanResults[fileMetadata.name] = new FileScanResult
+                {
+                    FileName = fileMetadata.name,
+                    Status = FileScanStatus.ScanInProgress,
+                    ScanDate = DateTime.UtcNow
+                };
             }
 
             await InvokeAsync(StateHasChanged);
@@ -425,6 +438,8 @@ public partial class ExternalUserFileExplorer
             _logger.LogWarning("Attempt to upload outside user root was blocked. Requested folder: {Folder}", folderName);
             return;
         }
+
+        await EnsureUserRootFolderAsync(UploadContainerName);
 
         var uploadBatchId = GenerateUploadBatchId();
         var allFiles = e.GetMultipleFiles().ToList();

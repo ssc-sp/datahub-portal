@@ -80,7 +80,7 @@
         }
     </div>
 
-    <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
+    <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" ShowMntHierarchy="@ShowMntHierarchy" />
 </div>
 
 @code {
@@ -95,16 +95,16 @@
     public Datahub_Project Project { get; set; } = null!;
 
     [Parameter]
-    public string CurrentFolder { get; set; }
+    public string CurrentFolder { get; set; } = null!;
 
     [Parameter]
-    public HashSet<string> SelectedItems { get; set; }
+    public HashSet<string>? SelectedItems { get; set; }
 
     [Parameter]
     public List<string> Folders { get; set; }
 
     [Parameter]
-    public List<FileMetaData> Files { get; set; }
+    public List<FileMetaData>? Files { get; set; }
 
     [Parameter]
     public Func<string, bool> CanDeleteFolder { get; set; } = _ => true;
@@ -146,11 +146,14 @@
     public bool ShowBackToContainers { get; set; } = false;
 
     [Parameter]
+    public bool ShowMntHierarchy { get; set; } = false;
+
+    [Parameter]
     public EventCallback OnBackToContainers { get; set; }
 
-    private IJSObjectReference _module;
+    private IJSObjectReference _module = null!;
 
-    private List<FileMetaData> _selectedFiles;
+    private List<FileMetaData>? _selectedFiles;
     private bool _ownsSelectedFiles;
     private bool _isUnclassifiedSingleFile;
     private bool _isElectron = true;
@@ -159,8 +162,8 @@
     // private bool _isDatahubAdmin;
     // private bool _isProjectMember;
 
-    private Project_Role _currentUserRole;
-    private DotNetObjectReference<StorageHeading> _dotNetHelper;
+    private Project_Role _currentUserRole = null!;
+    private DotNetObjectReference<StorageHeading> _dotNetHelper = null!;
 
     protected override async Task OnInitializedAsync()
     {
