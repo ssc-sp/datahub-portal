@@ -42,7 +42,8 @@
                 ShowDeleteFolder="false"
                 ShowPublish="false"
                 ShowMntHierarchy="false"
-                ShowBackToContainers="false" />
+                ShowBackToContainers="false"
+                Readonly="@Readonly" />
 
             <div class="file-list">
                 @if (IsWaitingForAntivirusResults)
@@ -184,6 +185,8 @@ else
     [Parameter] public CloudStorageContainer Container { get; set; } = null!;
 
     [Parameter] public CloudStorageContainer UploadContainer { get; set; } = null!;
+
+    [Parameter] public bool Readonly { get; set; } = false;
 
     public StorageMetadata StorageAccountMetadata { get; set; } = null!;
 

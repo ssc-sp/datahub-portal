@@ -149,6 +149,9 @@
     public bool ShowMntHierarchy { get; set; } = false;
 
     [Parameter]
+    public bool Readonly { get; set; } = false;
+
+    [Parameter]
     public EventCallback OnBackToContainers { get; set; }
 
     private IJSObjectReference _module = null!;

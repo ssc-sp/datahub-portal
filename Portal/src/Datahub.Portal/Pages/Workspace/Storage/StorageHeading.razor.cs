@@ -158,6 +158,9 @@ public partial class StorageHeading
         if (_currentUserRole is null)
             return true;
 
+        if (Readonly && buttonAction is ButtonAction.Upload or ButtonAction.Delete or ButtonAction.Rename or ButtonAction.NewFolder or ButtonAction.DeleteFolder)
+            return true;
+
         var hasExternalStorageAccess = _currentUserRole.Id is (int)Project_Role.RoleNames.Storage or (int)Project_Role.RoleNames.WebAppAndStorage;
         var canWriteStorage = _currentUserRole.IsAtLeastCollaborator || hasExternalStorageAccess;
         var canReadStorage = _currentUserRole.IsAtLeastGuest || hasExternalStorageAccess;
