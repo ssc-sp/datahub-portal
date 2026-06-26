@@ -29,7 +29,6 @@
     <PackageReference Include="Microsoft.Identity.Client" />
     <PackageReference Include="Polly.Contrib.WaitAndRetry" />
     <PackageReference Include="AWSSDK.S3" />
-    <PackageReference Include="System.Text.Json" />
     <PackageReference Include="Yarp.Telemetry.Consumption" />
     <PackageReference Include="System.Security.Cryptography.Xml" />
 
