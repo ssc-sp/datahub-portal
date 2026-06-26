@@ -175,7 +175,7 @@ namespace Datahub.Tests
                     null));
 
             mockStorageManager.Setup(m => m.GetStorageMetadataAsync(It.IsAny<string>()))
-                .ReturnsAsync(new AzureStorageMetadata { Container = "test", Url = "https://example.com", GeoRedundancy = "test", StorageAccountType = "test", Versioning = "test" });
+                .ReturnsAsync(new AzureStorageMetadata { Container = "test", Url = "https://example.com", GeoRedundancy = "test", StorageAccountType = "test", Versioning = true });
 
             mockStorageManager.Setup(m => m.ListFoldersAsync(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync(new System.Collections.Generic.Dictionary<string, int>());
