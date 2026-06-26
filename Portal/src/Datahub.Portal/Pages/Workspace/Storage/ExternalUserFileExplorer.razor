@@ -45,6 +45,18 @@
                 ShowBackToContainers="false" />
 
             <div class="file-list">
+                @if (IsWaitingForAntivirusResults)
+                {
+                    <MudPaper Class="antivirus-scan-indicator pa-3 mb-2" Outlined Elevation="0">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudProgressCircular Indeterminate Color="Color.Info" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">
+                                @Localizer["Scanning uploaded file(s) for viruses... {0} file(s) pending.", FilesBeingScannedCount]
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                }
+
                 <div class="file-list-header">
                     <div>
                         <span class="file-selection-icon" @onclick="ToggleSelectAllFiles">
@@ -171,6 +183,8 @@ else
 
     [Parameter] public CloudStorageContainer Container { get; set; } = null!;
 
+    [Parameter] public CloudStorageContainer UploadContainer { get; set; } = null!;
+
     public StorageMetadata StorageAccountMetadata { get; set; } = null!;
 
     private bool _allFilesSelected = false;
@@ -287,6 +301,8 @@ else
 
     public async ValueTask DisposeAsync()
     {
+        StopUploadContainerPolling();
+
         try
         {
             if (_module != null)

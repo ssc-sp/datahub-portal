@@ -62,7 +62,8 @@
                         else
                         {
                             <ExternalUserFileExplorer ProjectId=@_projectId
-                                                      Container="@_selectedContainer" />
+                                                      Container="@_selectedContainer"
+                                                      UploadContainer="@_uploadContainer" />
                         }
                     </MudStack>
                 </MudPaper>
@@ -83,7 +84,8 @@
     private int? _projectId;
     private string _title;
 
-    private CloudStorageContainer _selectedContainer;
+    private CloudStorageContainer? _selectedContainer;
+    private CloudStorageContainer? _uploadContainer;
     private PortalUser _user = null!;
 
     private bool _loading = true;
@@ -136,7 +138,8 @@
     {
         // Get external users storage configuration from appsettings
         var externalStorageConfig = _datahubPortalConfiguration.StorageConfiguration.ExternalUsersStorage;
-        var containerName = externalStorageConfig.SharedContainerName;
+        var sharedContainerName = externalStorageConfig.SharedContainerName;
+        var uploadContainerName = externalStorageConfig.UploadContainerName;
         
         // pick the project storage containers
         var accountName = _projectStorageConfigService.GetProjectStorageAccountName(WorkspaceAcronym);
@@ -149,22 +152,38 @@
 
         _logger.LogInformation("Retrieved containers from external users storage account.");
 
-        // Check if external-uploads container exists
-        var externalUsersContainer = containerNames.FirstOrDefault(c =>
-            c.Equals(containerName, StringComparison.OrdinalIgnoreCase));
+        // Check if shared container exists
+        var sharedContainer = containerNames.FirstOrDefault(c =>
+            c.Equals(sharedContainerName, StringComparison.OrdinalIgnoreCase));
 
-        if (externalUsersContainer != null)
+        if (sharedContainer != null)
         {
-            _logger.LogInformation("External users container found.");
+            _logger.LogInformation("External users shared container found.");
             _selectedContainer = new CloudStorageContainer(
                 accountName,
-                externalUsersContainer,
+                sharedContainer,
+                CloudStorageProviderType.Azure,
+                projectStorageManager);            
+        }
+        var uploadContainer = containerNames.FirstOrDefault(c =>
+            c.Equals(uploadContainerName, StringComparison.OrdinalIgnoreCase));
+
+        if (uploadContainer != null)
+        {
+            _uploadContainer = new CloudStorageContainer(
+                accountName,
+                uploadContainer,
                 CloudStorageProviderType.Azure,
                 projectStorageManager);
         }
         else
         {
-            _logger.LogWarning("External users container not found in shared storage account.");
+            _logger.LogWarning("External users upload container not found in storage account.");
+        }
+
+        if (_uploadContainer == null || _selectedContainer == null)
+        {
+            _logger.LogWarning("External users shared container not found in shared storage account.");
             _failedToLoadContainers = true;
         }
     }

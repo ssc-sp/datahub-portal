@@ -55,7 +55,7 @@
                     {
                         <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
                             <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
-                                <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
+                                <MudText Typo="Typo.h3">@Localizer["Current Container"]</MudText>
                                 <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
                                                           CloudContainers="_cloudContainers"
                                                           AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
