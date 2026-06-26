@@ -67,7 +67,7 @@
                         </MudStack>
                     }
                     <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
-                        <MudTabs Elevation="0">
+                        <MudTabs Elevation="0" ActivePanelIndexChanged="OnActiveTabChanged">
                             <MudTabPanel Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["Workspace Files"])"
                                          ToolTip="@(!MultiContainer ? SelectedContainer?.Name : Localizer["Workspace files connected to the workspace tools and only accessible with departmental accounts"])"
                                          Icon="fas fa-hdd">
@@ -110,7 +110,7 @@
                             {
                                 <MudTabPanel Text="@Localizer["Shared"]" Icon="fas fa-share-alt" ToolTip="Files shared with all external users.">
                                     <MudStack Class="py-6 px-2">
-                                        <FileExplorer ProjectId=@_projectId Container="@UsersContainer" />
+                                        <FileExplorer ProjectId=@_projectId Container="@SharedContainer" />
                                     </MudStack>
                                 </MudTabPanel>
                                 <MudTabPanel Text="@Localizer["Users"]" Icon="fas fa-person" ToolTip="Files shared with external users. Each external user can only access files within their user folder.">
@@ -189,6 +189,7 @@
 
     private List<CloudStorageContainer> _cloudContainers = new();
     private CloudStorageContainer? _selectedContainer;
+    private CloudStorageContainer? _workspaceContainer;
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private PortalUser _user = null!;
@@ -225,7 +226,8 @@
         !_loading &&
         !_failedToLoadContainers &&
         _hasExternalUsersInWorkspace &&
-        UsersContainer is not null;
+        UsersContainer is not null &&
+        SharedContainer is not null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -355,6 +357,7 @@
         _cloudContainers = _cloudContainers.Where(c => c.ContainerName != IWorkspaceStorageManagementService.AzureExternalUploadContainerName).ToList();
 
         _selectedContainer = _cloudContainers.FirstOrDefault(c => c.ContainerName == IWorkspaceStorageManagementService.AzureDefaultContainerName);
+        _workspaceContainer = _selectedContainer;
     }
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
@@ -487,6 +490,22 @@
     {
         get => _selectedContainer ?? throw new InvalidOperationException("No container selected");
         set => _selectedContainer = value;
+    }
+
+    private void OnActiveTabChanged(int index)
+    {
+        // Tab indices: 0 = Workspace Files, 1 = Shared, 2 = Users (when ShouldShowSharedTab is true)
+        if (!ShouldShowSharedTab)
+        {
+            return;
+        }
+
+        _selectedContainer = index switch
+        {
+            1 => SharedContainer ?? _selectedContainer,
+            2 => UsersContainer ?? _selectedContainer,
+            _ => _workspaceContainer ?? _selectedContainer
+        };
     }
 
     private void ClearSearch()

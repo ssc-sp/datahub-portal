@@ -52,21 +52,36 @@
         <CascadingValue Value="@_project" Name="Project">
             <CascadingValue Value="_user" Name="PortalUser">
                 <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
-                    <MudStack>
-                        <MudText Typo="Typo.h2">@Localizer["Workspace Files"]</MudText>
-                        @if (_failedToLoadContainers)
-                        {
-                            <MudAlert Severity="Severity.Error">
-                                <MudText>@Localizer["Failed to load storage containers"]</MudText>
-                            </MudAlert>
-                        }
-                        else
-                        {
-                            <ExternalUserFileExplorer ProjectId=@_projectId
-                                                      Container="@_usersContainer"
-                                                      UploadContainer="@_uploadContainer" />
-                        }
-                    </MudStack>
+                    @if (_failedToLoadContainers)
+                    {
+                        <MudAlert Severity="Severity.Error">
+                            <MudText>@Localizer["Failed to load storage containers"]</MudText>
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudTabs Elevation="0">
+                            <MudTabPanel Text="@Localizer["My Files"]" Icon="fas fa-hdd"
+                                         ToolTip="@Localizer["Your personal workspace files"]">
+                                <MudStack Class="py-6 px-2">
+                                    <ExternalUserFileExplorer ProjectId=@_projectId
+                                                              Container="@_usersContainer"
+                                                              UploadContainer="@_uploadContainer" />
+                                </MudStack>
+                            </MudTabPanel>
+                            @if (_sharedContainer is not null)
+                            {
+                                <MudTabPanel Text="@Localizer["Shared"]" Icon="fas fa-share-alt"
+                                             ToolTip="@Localizer["Files shared with all external users"]">
+                                    <MudStack Class="py-6 px-2">
+                                        <ExternalUserFileExplorer ProjectId=@_projectId
+                                                                  Container="@_sharedContainer"
+                                                                  UploadContainer="@_uploadContainer" />
+                                    </MudStack>
+                                </MudTabPanel>
+                            }
+                        </MudTabs>
+                    }
                 </MudPaper>
             </CascadingValue>
         </CascadingValue>
