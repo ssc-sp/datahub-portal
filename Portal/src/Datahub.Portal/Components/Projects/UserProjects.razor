@@ -226,8 +226,8 @@ else
 
     _userEmail = PortalUser.Email;
 
-    _allWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
-    _filteredWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+    _allWorkspaces = _userRoles.Where(u => u.RoleId != (int)Project_Role.RoleNames.Removed).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
+        _filteredWorkspaces = _userRoles.Where(u => u.RoleId != (int)Project_Role.RoleNames.Removed).Select(u => u.Project).Where(p => !p.IsDeleted).ToList();
     _leadWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead).Select(u =>
 u.Project).Where(p => !p.IsDeleted).ToList();
     _adminWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin).Select(u => u.Project).Where(p
