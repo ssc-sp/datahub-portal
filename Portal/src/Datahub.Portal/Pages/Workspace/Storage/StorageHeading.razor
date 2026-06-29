@@ -25,7 +25,19 @@
     
 <div class="heading">
     <div class="actions">
-        @if (ShowBackToContainers)
+        @foreach(var action in _buttonActions)
+        {
+            if ((action is ButtonAction.BackToContainers && !ShowBackToContainers)
+                || (action is ButtonAction.NewFolder && !ShowNewFolder)
+                || (action is ButtonAction.DeleteFolder && !ShowDeleteFolder)
+                || (action is ButtonAction.Publish && !ShowPublish))
+            { continue; }
+
+            <DHButton @onclick="() => GetButtonActionHandler(action)" StartIcon="@GetButtonActionIcon(action)" Disabled="@IsActionDisabled(action)">
+                @Localizer[ButtonActionToString(action)]
+            </DHButton>
+        }
+@*         @if (ShowBackToContainers)
         {
             <DHButton class="button-tool" @onclick="HandleBackToContainers" StartIcon="fas fa-arrow-left">
                 @Localizer["Back to Containers"]
@@ -77,7 +89,7 @@
             <DHButton class="button-tool" @onclick="HandlePublish" StartIcon="fas fa-bullhorn" Disabled="IsActionDisabled(ButtonAction.Publish)">
                 @Localizer["Publish"]
             </DHButton>
-        }
+        } *@
     </div>
 
     <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
@@ -161,6 +173,18 @@
 
     private Project_Role _currentUserRole;
     private DotNetObjectReference<StorageHeading> _dotNetHelper;
+
+    private List<ButtonAction> _buttonActions = new()
+    {
+        ButtonAction.BackToContainers,
+        ButtonAction.Upload,
+        ButtonAction.Download,
+        ButtonAction.Rename,
+        ButtonAction.Delete,
+        ButtonAction.NewFolder,
+        ButtonAction.DeleteFolder,
+        ButtonAction.Publish
+    };
 
     protected override async Task OnInitializedAsync()
     {
