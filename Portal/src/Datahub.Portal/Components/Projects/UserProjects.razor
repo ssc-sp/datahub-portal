@@ -32,13 +32,13 @@ else
         {
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.CbrOwner">
                 <DHButton Variant="Variant.Outlined" Color="Color.Primary" Underline NoWrap
-                          Href="@Localizer[PageRoutes.CreateWorkspace]" EndIcon="@Icons.Material.Filled.Add">
+                        Href="@Localizer[PageRoutes.CreateWorkspace]" EndIcon="@Icons.Material.Filled.Add">
                     @Localizer["Create new workspace"]
                 </DHButton>
             </DatahubAuthView>
             <DatahubAuthView AllowedUsers="UserType.TrustedEntraOnly">
                 <DHButton Variant="Variant.Outlined" Color="Color.Primary" Underline NoWrap Href="@Localizer[PageRoutes.Explore]"
-                          EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
+                        EndIcon="@Icons.Material.Filled.KeyboardDoubleArrowRight">
                     @Localizer["Explore other workspaces and users"]
                 </DHButton>
             </DatahubAuthView>
@@ -55,7 +55,7 @@ else
                     if (group.Count > 0)
                     {
                         <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
-                                 @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
+                                @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
                             @group.Label
                         </MudChip>
                     }
@@ -67,7 +67,7 @@ else
                         if (group.Count > 0)
                         {
                             <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
-                                     @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
+                                    @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
                                 <DHIcon Icon=@(group.Label.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen :
                                                                                                                                                                                                                         Icons.Material.Outlined.Lock) Size="Size.Small" />
                                 @group.Label
@@ -85,7 +85,7 @@ else
             {
                 <li class="d-flex flex-1">
                     <HomeWorkspaceCard Workspace=@workspace ShowCost="true" LatestVersion="@_latestVersion" UserEmail="@_userEmail"
-                                       IsLead="false" />
+                        IsLead="false" />
                 </li>
             }
         </ul>
