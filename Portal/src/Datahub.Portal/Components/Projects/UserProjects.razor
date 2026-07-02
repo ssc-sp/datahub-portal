@@ -257,24 +257,18 @@ else
         roleFiltered = RoleDisplayGroups.Any(g => g.FilterToggle);
         if (AnyFilter)
         {
-            foreach (var group in SecurityDisplayGroups)
+            foreach (var group in SecurityDisplayGroups.Where(g => Show(g) && g.Workspaces.Any()))
             {
-                if (Show(group) && group.Workspaces.Any())
+                foreach (var workspace in group.Workspaces)
                 {
-                    foreach (var workspace in group.Workspaces)
-                    {
-                        _tempSecurityWorkspaces.Add(workspace);
-                    }
+                    _tempSecurityWorkspaces.Add(workspace);
                 }
             }
-            foreach (var group2 in RoleDisplayGroups)
+            foreach (var group2 in RoleDisplayGroups.Where(g => Show(g) && g.Workspaces.Any()))
             {
-                if (Show(group2) && group2.Workspaces.Any())
+                foreach (var workspace in group2.Workspaces)
                 {
-                    foreach (var workspace in group2.Workspaces)
-                    {
-                        _tempRoleWorkspaces.Add(workspace);
-                    }
+                    _tempRoleWorkspaces.Add(workspace);
                 }
             }
 
