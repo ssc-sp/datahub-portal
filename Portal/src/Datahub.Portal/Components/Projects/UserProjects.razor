@@ -5,6 +5,7 @@
 @using Datahub.Portal.Pages.Explore
 @using Datahub.Portal.Pages.Home
 @using MudBlazor.Utilities
+@using System.Text
 @using Color = MudBlazor.Color
 @using static Datahub.Core.Components.AuthViews.DatahubAuthView
 
@@ -394,7 +395,7 @@ else
             return Localizer["No workspaces match the filter"];
         }
 
-        string label = Localizer["Showing "];// workspaces where you are a "];
+        var label = new StringBuilder(Localizer["Showing "]);// workspaces where you are a "];
         bool anyCondition = false;
         foreach (var group2 in SecurityDisplayGroups)
         {
@@ -402,21 +403,21 @@ else
             {
                 if (anyCondition)
                 {
-                    label += Localizer[", "];
+                    label.Append(Localizer[", "]);
                 }
-                label += group2.Label;
+                label.Append(group2.Label);
                 anyCondition = true;
             }
         }
 
         if (!roleFiltered)// if there are no roles filtered for, cut off the label here
         {
-            label += Localizer[" workspaces"];
-            label += Localizer[" ({0})", FilteredWorkspacesCount];
-            return label;
+            label.Append(Localizer[" workspaces"]);
+            label.Append(Localizer[" ({0})", FilteredWorkspacesCount]);
+            return label.ToString();
         }
 
-        label += Localizer[" workspaces where you are a "];
+        label.Append(Localizer[" workspaces where you are a "]);
 
         anyCondition = false;
         foreach (var group in RoleDisplayGroups)
@@ -425,15 +426,15 @@ else
             {
                 if (anyCondition)
                 {
-                    label += Localizer[", "];
+                    label.Append(Localizer[", "]);
                 }
-                label += group.Label;
+                label.Append(group.Label);
                 // label += Localizer[" ({0})", group.Workspaces.Count];
                 anyCondition = true;
             }
         }
-        label += Localizer[" ({0})", FilteredWorkspacesCount];
-        return label;
+        label.Append(Localizer[" ({0})", FilteredWorkspacesCount]);
+        return label.ToString();
     }
 
     private bool Show(WorkspaceDisplayGroup group)
