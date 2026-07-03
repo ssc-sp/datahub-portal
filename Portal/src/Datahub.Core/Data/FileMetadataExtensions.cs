@@ -6,6 +6,15 @@ namespace Datahub.Core.Data;
 
 public static class FileMetaDataExtensions
 {
+    private static readonly Type FileType = typeof(FileMetaData);
+    private static readonly HashSet<string> JsonMetadataProperties =
+    [
+        FileMetaData.CustomFields,
+        FileMetaData.SharedWith,
+        FileMetaData.Tags,
+        BaseMetadata.Activities
+    ];
+
     public static void ParseDictionary(this FileMetaData fileMetadata, IDictionary<string, string> metadata)
     {
         if (metadata?.Count > 0)
@@ -14,7 +23,7 @@ public static class FileMetaDataExtensions
             {
                 if (metadata.ContainsKey(propertyName))
                 {
-                    PropertyInfo? info = fileType.GetProperty(propertyName);
+                    PropertyInfo? info = FileType.GetProperty(propertyName);
                     if (info != null)
                     {
                         var value = metadata[propertyName];
@@ -28,19 +37,19 @@ public static class FileMetaDataExtensions
                                     info.SetValue(fileMetadata, dt);
                                 }
                             }
-                            else if (propertyName == "customfields")
+                            else if (propertyName == FileMetaData.CustomFields)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<Customfield>>(value));
                             }
-                            else if (propertyName == "sharedwith")
+                            else if (propertyName == FileMetaData.SharedWith)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<Sharedwith>>(value));
                             }
-                            else if (propertyName == "tags")
+                            else if (propertyName == FileMetaData.Tags)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<string>>(value));
                             }
-                            else if (propertyName == "activities")
+                            else if (propertyName == BaseMetadata.Activities)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<Activity>>(value));
                             }
@@ -73,17 +82,15 @@ public static class FileMetaDataExtensions
         return total;
     }
 
-    private static Type fileType = typeof(FileMetaData);
-
     public static string GetMetadataPropertyValue(this FileMetaData fileMetadata, string propertyName)
     {
-        PropertyInfo? info = fileType.GetProperty(propertyName);
+        PropertyInfo? info = FileType.GetProperty(propertyName);
         if (info != null)
         {
             var value = info.GetValue(fileMetadata);
             if (value != null)
             {
-                if (propertyName == "customfields" || propertyName == "sharedwith" || propertyName == "tags" || propertyName == "activities")
+                if (JsonMetadataProperties.Contains(propertyName))
                 {
                     return JsonConvert.SerializeObject(value);
                 }
@@ -110,24 +117,24 @@ public static class FileMetaDataExtensions
     {
         return new List<(string Key, bool InSearch, bool IsVisible)>
         {
-            ("activities", true, false),
-            ("fileid", true, false),
-            ("filename", true, true),
-            ("createdby", true, false),
-            ("createdts", true, false),
-            ("lastmodifiedby", true, false),
-            ("lastmodifiedts", true, true),
-            ("securityclass", true, false),
-            ("ownedby", true, true),
-            ("filesize", true, true),
-            ("fileformat", true, true),
-            ("folderpath", true, true),
-            ("sharedwith", false, false),
-            ("description", false, true),
-            ("isdeleted", true, false),
-            ("tags", false, true),
-            ("customfields", false, true),
-            ("uploadeddate", false, true)
+            (BaseMetadata.Activities, true, false),
+            (FileMetaData.FileId, true, false),
+            (FileMetaData.Filename, true, true),
+            (BaseMetadata.CreatedBy, true, false),
+            (BaseMetadata.CreatedTs, true, false),
+            (BaseMetadata.LastModifiedBy, true, false),
+            (BaseMetadata.LastModifiedTs, true, true),
+            (FileMetaData.SecurityClass, true, false),
+            (BaseMetadata.OwnedBy, true, true),
+            (FileMetaData.FileSize, true, true),
+            (FileMetaData.FileFormat, true, true),
+            (FileMetaData.FolderPath, true, true),
+            (FileMetaData.SharedWith, false, false),
+            (FileMetaData.Description, false, true),
+            (FileMetaData.IsDeleted, true, false),
+            (FileMetaData.Tags, false, true),
+            (FileMetaData.CustomFields, false, true),
+            (FileMetaData.UploadedDate, false, true)
         };
     }
 

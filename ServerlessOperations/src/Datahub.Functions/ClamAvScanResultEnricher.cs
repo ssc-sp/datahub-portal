@@ -12,6 +12,7 @@ using System.Data.Common;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.Security;
 
 namespace Datahub.Functions;
 
@@ -23,7 +24,8 @@ public class ClamAvScanResultEnricher(
     ILogger<ClamAvScanResultEnricher> logger,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
-    IConfiguration configuration)
+    IConfiguration configuration,
+    ISystemTokenCredentialService tokenCredentialService)
 {
     [Function("ClamAvScanResultEnricher")]
     public async Task RunAsync(
@@ -67,7 +69,7 @@ public class ClamAvScanResultEnricher(
             }
 
             // Read blob metadata to get scan status and user info
-            var blobClient = new BlobClient(connectionString, "datahub", scanResult.ScannedFile);
+            var blobClient = new BlobClient(new Uri(scanResult.ScannedFile), tokenCredentialService.GetTokenCredential());
             var properties = await blobClient.GetPropertiesAsync();
             var metadata = properties.Value.Metadata;
 

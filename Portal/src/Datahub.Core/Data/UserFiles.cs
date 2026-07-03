@@ -38,6 +38,13 @@ public enum MetadataType
 
 public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
 {
+    public const string Activities = "activities";
+    public const string CreatedBy = "createdby";
+    public const string OwnedBy = "ownedby";
+    public const string CreatedTs = "createdts";
+    public const string LastModifiedBy = "lastmodifiedby";
+    public const string LastModifiedTs = "lastmodifiedts";
+
     [JsonIgnore]
     public MetadataType dataType { get; set; }
 
@@ -267,11 +274,17 @@ public class Activity
 public class FileMetaData : BaseMetadata
 {
     public const string FileId = "fileid";
-    public const string OwnedBy = "ownedby";
-    public const string CreatedBy = "createdby";
-    public const string LastModifiedBy = "lastmodifiedby";
-    public const string LastModified = "lastmodifiedts";
+    public const string Filename = "filename";
+    public const string FolderPath = "folderpath";
+    public const string FileFormat = "fileformat";
+    public const string SecurityClass = "securityclass";
+    public const string Description = "description";
+    public const string Tags = "tags";
+    public const string CustomFields = "customfields";
     public const string FileSize = "filesize";
+    public const string SharedWith = "sharedwith";
+    public const string IsDeleted = "isdeleted";
+    public const string UploadedDate = "uploadeddate";
     public const string UploadBatchId = "uploadBatchId";
 
     public FileMetaData()
