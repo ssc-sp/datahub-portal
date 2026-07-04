@@ -63,17 +63,14 @@ else
                 }
                 @if (pb_enabled)
                 {
-                    foreach (var group in SecurityDisplayGroups)
+                    foreach (var group in SecurityDisplayGroups.Where(group => group.Count > 0))
                     {
-                        if (group.Count > 0)
-                        {
-                            <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
-                                    @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
-                                <DHIcon Icon=@(group.Label.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen :
+                        <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
+                                @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
+                            <DHIcon Icon=@(group.Label.Equals("Unclassified") ? Icons.Material.Outlined.LockOpen :
                                                                                                                                                                                                                         Icons.Material.Outlined.Lock) Size="Size.Small" />
-                                @group.Label
-                            </MudChip>
-                        }
+                            @group.Label
+                        </MudChip>
                     }
                 }
             </MudChipSet>
@@ -239,8 +236,8 @@ else
     u.Project).Where(p => !p.IsDeleted).ToList();
         _guestWorkspaces = _userRoles.Where(u => u.RoleId == (int)Project_Role.RoleNames.Guest).Select(u => u.Project).Where(p
     => !p.IsDeleted).ToList();
-        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => (!(p.Data_Sensitivity ==
-    ClassificationType.ProtectedA) && !(p.Data_Sensitivity == ClassificationType.ProtectedB))).ToList();
+        _unclassifiedWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => (p.Data_Sensitivity !=
+    ClassificationType.ProtectedA && p.Data_Sensitivity != ClassificationType.ProtectedB)).ToList();
         _protectedAWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity ==
     ClassificationType.ProtectedA).ToList();
         _protectedBWorkspaces = _userRoles.Select(u => u.Project).Where(p => !p.IsDeleted).Where(p => p.Data_Sensitivity ==
@@ -391,17 +388,14 @@ else
 
         var label = new StringBuilder(Localizer["Showing "]);// workspaces where you are a "];
         bool anyCondition = false;
-        foreach (var group2 in SecurityDisplayGroups)
+        foreach (var group2 in SecurityDisplayGroups.Where(Show))
         {
-            if (Show(group2))
+            if (anyCondition)
             {
-                if (anyCondition)
-                {
-                    label.Append(Localizer[", "]);
-                }
-                label.Append(group2.Label);
-                anyCondition = true;
+                label.Append(Localizer[", "]);
             }
+            label.Append(group2.Label);
+            anyCondition = true;
         }
 
         if (!roleFiltered)// if there are no roles filtered for, cut off the label here
