@@ -51,15 +51,12 @@ else
         <MudStack Row AlignItems="AlignItems.Center" Wrap="Wrap.Wrap">
             <MudText>@Localizer["Filters"]</MudText>
             <MudChipSet T="string" SelectionMode="SelectionMode.MultiSelection" Ripple="false" CheckMark>
-                @foreach (var group in RoleDisplayGroups)
+                @foreach (var group in RoleDisplayGroups.Where(group => group.Count > 0))
                 {
-                    if (group.Count > 0)
-                    {
-                        <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
-                                @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
-                            @group.Label
-                        </MudChip>
-                    }
+                    <MudChip Class="dh_themed_chip" T="string" title=@group.FilterLabel Text=@group.Label
+                            @bind-Selected=@(group.FilterToggle) @onclick="() => CheckWorkspaceRoleFilter()">
+                        @group.Label
+                    </MudChip>
                 }
                 @if (pb_enabled)
                 {
