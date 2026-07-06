@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1745,6 +1745,53 @@ namespace Datahub.Core.Migrations
                     b.ToTable("ExternalUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserLockAuditEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AppliedExpiryDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EvidenceUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PerformedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("PreviousExpiryDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventType");
+
+                    b.HasIndex("PerformedByUserId");
+
+                    b.HasIndex("PortalUserId", "EventDate");
+
+                    b.ToTable("ExternalUserLockAuditEvents", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.Property<int>("Id")
@@ -1941,47 +1988,6 @@ namespace Datahub.Core.Migrations
                     b.HasKey("PortalUserId");
 
                     b.ToTable("UserSettings", (string)null);
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.UserWorkspaceLock", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("EventDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("EventType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<string>("EvidenceUrl")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Notes")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("PerformedByUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PortalUserId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Reason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("EventType");
-
-                    b.HasIndex("PerformedByUserId");
-
-                    b.HasIndex("PortalUserId", "EventDate");
-
-                    b.ToTable("UserWorkspaceLocks");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.WorkspaceInvitation", b =>
@@ -2506,6 +2512,24 @@ namespace Datahub.Core.Migrations
                     b.Navigation("PortalUser");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserLockAuditEvent", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PerformedByUser")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PerformedByUser");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Users.ExternalUser", "ExternalUser")
@@ -2545,24 +2569,6 @@ namespace Datahub.Core.Migrations
                         .HasForeignKey("Datahub.Core.Model.Users.UserSettings", "PortalUserId")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("Datahub.Core.Model.Users.UserWorkspaceLock", b =>
-                {
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PerformedByUser")
-                        .WithMany()
-                        .HasForeignKey("PerformedByUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
-                        .WithMany()
-                        .HasForeignKey("PortalUserId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("PerformedByUser");
 
                     b.Navigation("User");
                 });

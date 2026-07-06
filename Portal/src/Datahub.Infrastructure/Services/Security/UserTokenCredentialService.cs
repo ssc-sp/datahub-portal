@@ -31,14 +31,15 @@ public class UserTokenCredentialService : IUserTokenCredentialService
         _logger = logger;
     }
 
-    public Task<TokenCredential> GetTokenCredentialForUser(UserTokenService service, string? token = null)
+    public TokenCredential GetTokenCredentialForUser(UserTokenService service, string? token = null)
     {
         if (tokenCache.TryGetValue(service, out token))
         {
             _logger.LogDebug("Using cached token for service {Service}", service);
         }
-        ArgumentException.ThrowIfNullOrWhiteSpace(token);
-        return Task.FromResult<TokenCredential>(new StaticAccessTokenCredential(token, _logger));
+        if (token is null)
+            throw new ArgumentException($"{nameof(GetUserToken)} need to be called before {nameof(GetTokenCredentialForUser)}");
+        return new StaticAccessTokenCredential(token, _logger);
     }
 
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
@@ -57,6 +58,7 @@ public class UserTokenCredentialService : IUserTokenCredentialService
             {
                 UserTokenService.Storage => ["https://storage.azure.com/user_impersonation"],
                 UserTokenService.KeyVault => ["https://vault.azure.net/user_impersonation"],
+                UserTokenService.Graph => ["https://graph.microsoft.com/User.Read"],
                 _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unsupported service")
             };
 

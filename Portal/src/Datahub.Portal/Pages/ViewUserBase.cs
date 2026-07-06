@@ -29,7 +29,10 @@ public class ViewUserBase<T> : ComponentBase
         // If the user id parameter is missing, surface a404
         if (!string.IsNullOrWhiteSpace(UserIdBase64))
         {
-
+            if (await _userInformationService.IsExternalUser())
+            {
+                throw new HttpRequestException("External users cannot view other users' profiles", null, HttpStatusCode.NotFound);
+            }
 
             try
             {
@@ -44,6 +47,10 @@ public class ViewUserBase<T> : ComponentBase
                 _portalUserWithAchievements = await _userInformationService.GetEntraUserWithAchievementsAsync(id);
                 return _portalUserWithAchievements ?? throw new HttpRequestException("User id is required", null, HttpStatusCode.NotFound);
 
+            }
+            catch (HttpRequestException)
+            {
+                throw;
             }
             catch (Exception ex)
             {
@@ -82,6 +89,10 @@ public class ViewUserBase<T> : ComponentBase
 
                 _portalUser = await _userInformationService.GetEntraUserAsync(id);
                 return _portalUser;
+            }
+            catch (HttpRequestException)
+            {
+                throw;
             }
             catch (Exception ex)
             {

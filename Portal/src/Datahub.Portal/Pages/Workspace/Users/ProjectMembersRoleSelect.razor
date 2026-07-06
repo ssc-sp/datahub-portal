@@ -7,10 +7,12 @@
 <!--suppress CssUnresolvedCustomProperty -->
 <MudMenu AnchorOrigin="Origin.BottomLeft" TransformOrigin="Origin.TopLeft">
     <ActivatorContent>
-        <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
-            <MudText Typo="Typo.body1">@Localizer[_currentRole?.Name ?? string.Empty]</MudText>
-            <DHIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
-        </MudStack>
+        <div @onclick="@context.ToggleAsync" style="cursor: pointer">
+            <MudStack Row AlignItems="AlignItems.Center" Style="@_outlineStyle" Class="py-2 px-4">
+                <MudText Typo="Typo.body1">@Localizer[_currentRole?.Name ?? string.Empty]</MudText>
+                <DHIcon Icon="@Icons.Material.Filled.ArrowDropDown"/>
+            </MudStack>
+        </div>
     </ActivatorContent>
     <ChildContent>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubSupport">

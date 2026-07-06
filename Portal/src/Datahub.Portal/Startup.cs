@@ -322,7 +322,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseStatusCodePagesWithReExecute("/404");
+        app.UseStatusCodePagesWithReExecute("/404", createScopeForStatusCodePages: true);
 
         // this needs to be as late as possible in the pipeline to ensure antiforgery tokens are validated for all endpoints, including reverse proxy
         app.UseAntiforgery();
@@ -407,7 +407,7 @@ public class Startup
 
             services.AddScoped<IUserInformationService, UserInformationService>();
             services.AddScoped<IUserSettingsService, UserSettingsService>();
-            services.AddSingleton<IMSGraphService, MSGraphService>();
+            services.AddScoped<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 

@@ -38,16 +38,6 @@
 @{
     var containsKey = !string.IsNullOrWhiteSpace(Section)
                       && _sectionComponents.ContainsKey(Section);
-    var parameters = new Dictionary<string, object>
-    {
-        { "WorkspaceAcronym", WorkspaceAcronymParam },
-        { "ElevatedWorkspaceAccessEnabled", _showToDatahubAdmins}
-    };
-
-    if (!string.IsNullOrEmpty(SubSection))
-    {
-        parameters.Add("SubSection", SubSection);
-    }
 
     if (containsKey)
     {
@@ -56,7 +46,7 @@
                          ProjectAcronym="@WorkspaceAcronymParam"
                          ElevatedWorkspaceAccessEnabled="@_showToDatahubAdmins">
             <Authorized>
-                <DynamicComponent Type=@SwitchDynamicComponentType() Parameters="@parameters"/>
+                <DynamicComponent Type=@SwitchDynamicComponentType() Parameters="@_dynamicParameters"/>
             </Authorized>
             <NotAuthorized>
                 <NotAuthorizedMessage/>
@@ -94,6 +84,12 @@
 
     private bool _showToDatahubAdmins = false;
     public Datahub_Project _project;
+
+    private string? _prevAcronym;
+    private string? _prevSection;
+    private string? _prevSubSection;
+    private bool _needsRender = true;
+    private Dictionary<string, object>? _dynamicParameters;
 
     private readonly Dictionary<string, Type> _sectionComponents = new()
     {
@@ -140,6 +136,13 @@
         };
     }
 
+    protected override bool ShouldRender() => _needsRender;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        _needsRender = false;
+    }
+
     protected override async Task OnInitializedAsync()
     {
         await using var dbContext = await _dbContextFactory.CreateDbContextAsync();
@@ -160,11 +163,35 @@
     {
         await base.OnParametersSetAsync();
 
-        await RecordRecentLink();
+        var newAcronym = WorkspaceAcronymParam.ToUpperInvariant();
+        bool changed = newAcronym != _prevAcronym
+                    || Section != _prevSection
+                    || SubSection != _prevSubSection;
 
-        WorkspaceAcronymParam = WorkspaceAcronymParam.ToUpperInvariant();
-        
+        if (!changed)
+            return;
+
+        _needsRender = true;
+        WorkspaceAcronymParam = newAcronym;
+        _prevAcronym = newAcronym;
+        _prevSection = Section;
+        _prevSubSection = SubSection;
+
         _showToDatahubAdmins = DisplayToSupport(_project);
+        RebuildDynamicParameters();
+        await RecordRecentLink();
+    }
+
+    private void RebuildDynamicParameters()
+    {
+        var dict = new Dictionary<string, object>
+        {
+            { "WorkspaceAcronym", WorkspaceAcronymParam },
+            { "ElevatedWorkspaceAccessEnabled", _showToDatahubAdmins }
+        };
+        if (!string.IsNullOrEmpty(SubSection))
+            dict.Add("SubSection", SubSection);
+        _dynamicParameters = dict;
     }
 
     public static bool DisplayToSupport(Datahub_Project project)

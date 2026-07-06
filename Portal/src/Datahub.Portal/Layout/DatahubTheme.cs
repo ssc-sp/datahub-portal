@@ -13,7 +13,7 @@ public abstract class DatahubTheme
         .AddStyle("border-width", "1px")
         .AddStyle("border-style", "none solid none none")
         .Build();
-    
+
     public static readonly MudTheme DefaultTheme = new()
     {
         LayoutProperties =
@@ -25,9 +25,9 @@ public abstract class DatahubTheme
             Default =
             {
                 FontFamily = new[] { "Open Sans", "sans-serif" },
-                FontSize = "0.9rem",        
+                FontSize = "0.9rem",
                 LineHeight = "1.75",
-            }, 
+            },
             H1 = new H1Typography()
             {
                 LineHeight = "1.25",
@@ -78,7 +78,7 @@ public abstract class DatahubTheme
         },
         PaletteLight =
         {
-            //The primary accent colour (becomes close to white in dark mode)
+            //The primary accent colour
             Primary = "#2460FF",
             PrimaryDarken = "#26374A",
 
@@ -110,7 +110,9 @@ public abstract class DatahubTheme
         },
         PaletteDark =
         {
+            //The primary accent colour (PrimaryContrastText used for text within filled buttons)
             Primary = "#C8C4F3",
+            PrimaryContrastText = "#27272F",
 
             //Used for Unclassified data labels (same colour as Primary but does not change in dark mode)
             Info = "#2460FF",
@@ -135,7 +137,9 @@ public abstract class DatahubTheme
             ErrorLighten = "#FBDDDA",
 
             AppbarBackground = "#27272F",
-            Background = "#27272F"
+            Background = "#27272F",
+
+            DrawerText = Colors.Shades.White
         },
     };
 }

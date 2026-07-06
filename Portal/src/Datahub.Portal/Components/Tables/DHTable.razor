@@ -45,10 +45,10 @@
                                  OnClick=@AddFilter>
                         @Localizer["Add filter"]
                     </MudMenuItem>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.FilterAltOff" OnClick="@(() =>
+                    <MudMenuItem Icon="@Icons.Material.Outlined.FilterAltOff" OnClick="@(async () =>
                                                                                        {
                                                                                            _filters.Clear();
-                                                                                           ReloadServerData();
+                                                                                           await ReloadServerData();
                                                                                        })">
                         @Localizer["Clear all filters"]
                     </MudMenuItem>
@@ -57,13 +57,13 @@
             @if (!HideOptions)
             {
                 <MudMenu Icon="@Icons.Material.Filled.MoreVert" Dense>
-                    <MudMenuItem Icon="@Icons.Material.Outlined.Download" OnClick="@(() => { HandleDownload(false); })">
+                    <MudMenuItem Icon="@Icons.Material.Outlined.Download" OnClick="@(async () => { await HandleDownload(false); })">
                         @Localizer["Download all"]
                     </MudMenuItem>
                     @if (HasFilteredData) 
                     {
                         <MudMenuItem Icon="@Icons.Material.Outlined.SystemUpdateAlt"
-                                     OnClick="@(() => { HandleDownload(true); })">
+                                     OnClick="@(async () => { await HandleDownload(true); })">
                             @Localizer["Download filtered"]
                         </MudMenuItem>
                     }
@@ -74,11 +74,11 @@
                     @if (HasEmailColumn())
                     {
                         <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy"
-                                     OnClick="@(() => { CopyUsersToClipboard(false); })">
+                                     OnClick="@(async () => { await CopyUsersToClipboard(false); })">
                             @Localizer["Copy all emails"]
                         </MudMenuItem>
                         <MudMenuItem Icon="@Icons.Material.Outlined.ContentCopy"
-                                     OnClick="@(() => { CopyUsersToClipboard(true); })">
+                                     OnClick="@(async () => { await CopyUsersToClipboard(true); })">
                             @Localizer["Copy filtered emails"]
                         </MudMenuItem>
                     }
@@ -106,10 +106,10 @@
                         Text="@($"{PropertyLabel(filter.ColumnName)} {filter.FilterType.Label().ToLower()} {filter.Value}")">
                         <MudChip Class="dh_themed_chip" T="string" Color="Color.Primary" Icon="@Icons.Material.Filled.FilterAlt"
                                  Size="Size.Small"
-                                 CloseIcon="@Icons.Material.Filled.Close" OnClose="@(() =>
+                                 CloseIcon="@Icons.Material.Filled.Close" OnClose="@(async () =>
                                                                                    {
                                                                                        _filters.Remove(filter);
-                                                                                       ReloadServerData();
+                                                                                       await ReloadServerData();
                                                                                    })">
                             @Localizer[PropertyLabel(filter.ColumnName)]
                         </MudChip>
