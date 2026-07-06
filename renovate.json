@@ -15,11 +15,10 @@
   "rebaseWhen": "auto",
   "minimumReleaseAge": "14 days",
 
-
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "semanticCommitType": "fix",
-  
+
   "packageRules": [
     {
       "description": "Slow down heavy CI-triggering .NET and NuGet updates to only run on Sundays",
