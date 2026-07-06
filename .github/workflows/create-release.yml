@@ -6,9 +6,7 @@ on:
     branches:
       - develop
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: release-manager-create-${{ github.ref }}
@@ -26,6 +24,8 @@ jobs:
           app-id: ${{ vars.DH_RELEASE_MANAGER_ID }}
           private-key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
           repositories: ${{ github.repository }}
+          permission-contents: write
+          permission-pull-requests: write
 
       - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
