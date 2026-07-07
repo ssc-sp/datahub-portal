@@ -1,14 +1,30 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": ["config:best-practices"],
+
   "addLabels": ["renovate"],
+
+  "timezone": "America/Toronto",
+  "schedule": ["* 18-23,0-6 * * 1-5", "* * * * 0"],
+  "updateNotScheduled": false,
+
+  "commitHourlyLimit": 2,
+  "prConcurrentLimit": 10,
+  "branchConcurrentLimit": 3,
+  "prHourlyLimit": 2,
+  "rebaseWhen": "auto",
+  "minimumReleaseAge": "14 days",
+
   "semanticCommits": "enabled",
   "semanticCommitScope": "deps",
   "semanticCommitType": "fix",
-  "prConcurrentLimit": 10,
-  "prHourlyLimit": 2,
-  "minimumReleaseAge": "14 days",
+
   "packageRules": [
+    {
+      "description": "Slow down heavy CI-triggering .NET and NuGet updates to only run on Sundays",
+      "matchManagers": ["nuget"],
+      "schedule": ["* * * * 0"]
+    },
     {
       "description": "Group all GitHub Actions updates together as chores",
       "matchManagers": ["github-actions"],
@@ -24,6 +40,7 @@
     },
     {
       "description": "Group all .NET Core, ASP.NET Core, and EF Core packages together",
+      "matchManagers": ["nuget"],
       "groupName": ".NET Core & Extensions",
       "matchPackageNames": [
         "Microsoft.AspNetCore.**",
@@ -34,6 +51,7 @@
     },
     {
       "description": "Group all Azure SDKs and Functions packages together",
+      "matchManagers": ["nuget"],
       "groupName": "Azure SDKs",
       "matchPackageNames": [
         "Azure.**",
@@ -43,11 +61,13 @@
     },
     {
       "description": "Group MudBlazor ecosystem updates",
+      "matchManagers": ["nuget"],
       "groupName": "MudBlazor Ecosystem",
       "matchPackageNames": ["MudBlazor**"]
     },
     {
       "description": "Group Blazor related third-party components",
+      "matchManagers": ["nuget"],
       "groupName": "Blazor Components",
       "matchPackageNames": [
         "Blazor**",
@@ -59,16 +79,19 @@
     },
     {
       "description": "Group MassTransit packages",
+      "matchManagers": ["nuget"],
       "groupName": "MassTransit Ecosystem",
       "matchPackageNames": ["MassTransit**"]
     },
     {
       "description": "Group Microsoft Identity packages",
+      "matchManagers": ["nuget"],
       "groupName": "Microsoft Identity",
       "matchPackageNames": ["Microsoft.Identity**", "System.IdentityModel**"]
     },
     {
       "description": "Automatically catch any future Build Tools, Analyzers, or Generators as chores",
+      "matchManagers": ["nuget"],
       "groupName": "Build & Analysis Tools",
       "semanticCommitType": "chore",
       "matchPackageNames": [
@@ -83,6 +106,7 @@
     },
     {
       "description": "Automatically catch any future Testing frameworks via keywords",
+      "matchManagers": ["nuget"],
       "groupName": "Testing Frameworks",
       "semanticCommitType": "chore",
       "automerge": true,
@@ -102,6 +126,7 @@
     },
     {
       "description": "Force specific individual dependencies to be chores so they do not trigger Release Please",
+      "matchManagers": ["nuget"],
       "matchPackageNames": ["CsvHelper"],
       "semanticCommitType": "chore"
     },
