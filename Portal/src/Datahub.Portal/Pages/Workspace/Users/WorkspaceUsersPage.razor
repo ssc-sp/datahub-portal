@@ -188,7 +188,6 @@
           </MudTableSortLabel>
         </MudTh>
         <MudTh>@Localizer["Status"]</MudTh>
-        <MudTh></MudTh>
       </HeaderContent>
 
       <RowTemplate Context="rowContext">
@@ -260,9 +259,6 @@
               @Localizer["Active"]
             </MudText>
           }
-        </MudTd>
-        <MudTd Style="@(IsModified(rowContext) ? _modifiedCellStyle : string.Empty)">
-          <UserViewProfileIconButton ViewedUser="@rowContext.PortalUser" />
         </MudTd>
       </RowTemplate>
 

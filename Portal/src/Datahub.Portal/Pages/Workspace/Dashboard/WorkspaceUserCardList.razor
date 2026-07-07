@@ -32,7 +32,7 @@ else
         @foreach (var lead in _projectLeads)
         {
           <li>
-            <UserCard ViewedUser=@lead.PortalUser Size="Size.Medium" ShowProfileLink />
+            <UserCard ViewedUser=@lead.PortalUser Size="Size.Medium" />
           </li>
         }
       </ul>
@@ -52,7 +52,7 @@ else
         @foreach (var admin in _projectAdmins)
         {
           <li>
-            <UserCard ViewedUser=@admin.PortalUser Size="Size.Medium" ShowProfileLink />
+            <UserCard ViewedUser=@admin.PortalUser Size="Size.Medium" />
           </li>
         }
       </ul>
@@ -72,7 +72,7 @@ else
         @foreach (var member in _projectMembers)
         {
           <li>
-            <UserCard ViewedUser=@member.PortalUser Size="Size.Medium" ShowProfileLink />
+            <UserCard ViewedUser=@member.PortalUser Size="Size.Medium" />
           </li>
         }
       </ul>
