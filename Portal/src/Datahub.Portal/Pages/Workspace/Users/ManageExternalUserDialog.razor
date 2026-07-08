@@ -10,6 +10,7 @@
 @inject IUserEnrollmentService _userEnrollmentService
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactory
+@inject ILogger<ManageExternalUserDialog> _logger
 
 <MudDialog Style="min-width: 40vw; max-width: 75vw;">
     <DialogContent>
@@ -75,9 +76,6 @@
     [Parameter]
     public UserRoleLinks SelectedExternalUser { get; set; } = null!;
 
-    // [Parameter]
-    // public PortalUser SelectedPortalUser { get; set; } = null!;
-
     [Parameter]
     public PortalUser CurrentUser { get; set; } = null!;
 
@@ -93,21 +91,43 @@
 
     protected override void OnInitialized()
     {
-        name = SelectedExternalUser.PortalUser.DisplayName;
+        name = SelectedExternalUser.PortalUser.DisplayName ?? "UNKNOWN";
         email = SelectedExternalUser.PortalUser.Email;
-        organization = SelectedExternalUser.PortalUser.ExternalUser.Organization;
-        accountExpiry = SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate.DateTime;
+
+        if (SelectedExternalUser.PortalUser.ExternalUser != null)
+        {
+            organization = SelectedExternalUser.PortalUser.ExternalUser.Organization;
+            accountExpiry = SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate.DateTime;
+        }
+        else
+        {
+            _logger.LogError("Failed to retrieve an external user's object from PortalUser.");
+        }
     }
 
     private async Task SaveUserChanges()
     {
         await using var context = await _dbFactory.CreateDbContextAsync();
-        SelectedExternalUser.PortalUser.DisplayName = name;
-        // SelectedExternalUser.PortalUser.Email = email;
-        SelectedExternalUser.PortalUser.ExternalUser.Organization = organization;
-        SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate = (accountExpiry.HasValue ? DateTime.SpecifyKind(accountExpiry.Value, DateTimeKind.Utc) : SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate);
 
-        context.Update(SelectedExternalUser);
+        var userRoleLinks = context.UserRolesLinks.Where(p => p.ProjectUser_ID == SelectedExternalUser.ProjectUser_ID).Include(u=>u.PortalUser).ThenInclude(u=>u.ExternalUser).ToList();
+
+        foreach (var userRoleLink in userRoleLinks)
+        {
+            userRoleLink.PortalUser.DisplayName = name;
+
+            if (userRoleLink.PortalUser.ExternalUser != null)
+            {
+                userRoleLink.PortalUser.ExternalUser.Organization = organization;
+                userRoleLink.PortalUser.ExternalUser.UserExpiryDate = (accountExpiry.HasValue ? DateTime.SpecifyKind(accountExpiry.Value, DateTimeKind.Utc) : userRoleLink.PortalUser.ExternalUser.UserExpiryDate);
+            }
+            else
+            {
+                _logger.LogError($"Unable to update org or expiry date for ProjectUser_ID: {userRoleLink.ProjectUser_ID}. ExternalUser was not defined in PortalUser.");
+            }
+
+            context.Update(userRoleLink);
+        }
+
         await context.SaveChangesAsync();
         UpdateProject();
     }
