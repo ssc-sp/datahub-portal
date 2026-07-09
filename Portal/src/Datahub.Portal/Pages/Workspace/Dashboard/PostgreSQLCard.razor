@@ -1,50 +1,49 @@
 @using Datahub.Core.Model.Projects
 @using Datahub.Shared
 
-
-<MudPaper Outlined Class="pa-4">
+<DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator" ProjectAcronym="@WorkspaceAcronym">
+  <MudPaper Outlined Class="pa-4">
     <MudStack>
-        <MudStack Row AlignItems="AlignItems.Center">
-            <DHIcon Icon="@SidebarIcons.SqlDatabase" Size="Size.Medium" />
-            <MudText Typo="Typo.h3">@Localizer["Azure PostgreSQL Database"]</MudText>
-        </MudStack>
+      <MudStack Row AlignItems="AlignItems.Center">
+        <DHIcon Icon="@SidebarIcons.SqlDatabase" Size="Size.Medium" />
+        <MudText Typo="Typo.h3">@Localizer["Azure PostgreSQL Database"]</MudText>
+      </MudStack>
 
-        <MudText>
-            @Localizer["This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below."]
-        </MudText>
-        <MudElement HtmlTag="div">
-            @if (ProjectResource.Status == TerraformStatus.Completed)
-            {
-                
-                <DHButton
-                    Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.SqlDatabase}")"
-                    Color="Color.Primary"
-                    Variant="@Variant.Text"
-                    EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
-                    Underline>
-                @Localizer["View Connection Details"]
-            </DHButton>
-            }
-            else
-            {
-                <ToolBeingProvisionedButton />
-            }
-        </MudElement>
+      <MudText>
+        @Localizer["This is a flexible PostgreSQL database hosted in Azure. It is used to store data for this project. You can view the details of the connection by clicking the button below."]
+      </MudText>
+      <MudElement HtmlTag="div">
+        @if (ProjectResource.Status == TerraformStatus.Completed)
+        {
+
+          <DHButton
+            Href="@($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.SqlDatabase}")"
+            Color="Color.Primary" Variant="@Variant.Text" EndIcon="@Icons.Material.Outlined.KeyboardDoubleArrowRight"
+            Underline>
+            @Localizer["View Connection Details"]
+          </DHButton>
+        }
+        else
+        {
+          <ToolBeingProvisionedButton />
+        }
+      </MudElement>
     </MudStack>
-</MudPaper>
+  </MudPaper>
+</DatahubAuthView>
 
 @code {
 
-    [Parameter]
-    [EditorRequired]
-    public Project_Resources2 ProjectResource { get; set; }
+  [Parameter]
+  [EditorRequired]
+  public Project_Resources2 ProjectResource { get; set; }
 
-    [Parameter]
-    [EditorRequired]
-    public string WorkspaceAcronym { get; set; }
+  [Parameter]
+  [EditorRequired]
+  public string WorkspaceAcronym { get; set; }
 
-    [Parameter]
-    [EditorRequired]
-    public Datahub_Project Project { get; set; }
+  [Parameter]
+  [EditorRequired]
+  public Datahub_Project Project { get; set; }
 
 }

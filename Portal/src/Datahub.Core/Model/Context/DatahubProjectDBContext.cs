@@ -119,6 +119,21 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     public DbSet<DatahubAzureSubscription> AzureSubscriptions { get; set; }
 
     /// <summary>
+    /// Gets or sets the table for storing Azure Virtual Networks
+    /// </summary>
+    public DbSet<VNet> VNets { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing Azure subnets within a VNet
+    /// </summary>
+    public DbSet<Subnet> Subnets { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing workspace-to-subnet mappings
+    /// </summary>
+    public DbSet<WorkspaceSubnet> WorkspaceSubnets { get; set; }
+
+    /// <summary>
     /// Gets or sets table for storing the infrastructure health checks
     /// </summary>
     public DbSet<InfrastructureHealthCheck> InfrastructureHealthChecks { get; set; }
@@ -142,6 +157,11 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
     /// Gets or sets the table for storing Entra user information
     /// </summary>
     public DbSet<EntraUser> EntraUsers { get; set; }
+
+    /// <summary>
+    /// Gets or sets the table for storing external user lock audit events
+    /// </summary>
+    public DbSet<ExternalUserLockAuditEvent> ExternalUserLockAuditEvents { get; set; }
 
     // below are used for migrations
 #if MIGRATION
@@ -330,6 +350,26 @@ public class DatahubProjectDBContext : DbContext //, ISeedable<DatahubProjectDBC
             .WithMany(g => g.WorkspacesInBudget)
             .HasForeignKey(p => p.ParentGCHostingBudgetId)
             .IsRequired(false);
+
+        modelBuilder.Entity<ExternalUserLockAuditEvent>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+
+            entity.ToTable("ExternalUserLockAuditEvents");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.PortalUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.PerformedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.PerformedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasIndex(e => new { e.PortalUserId, e.EventDate });
+            entity.HasIndex(e => e.EventType);
+        });
 
         if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
         {

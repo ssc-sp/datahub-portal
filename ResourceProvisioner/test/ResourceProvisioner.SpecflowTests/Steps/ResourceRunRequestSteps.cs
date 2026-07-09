@@ -24,7 +24,7 @@ public sealed class ResourceRunRequestSteps(
     [Given(@"a workspace definition with every required field")]
     public void GivenAWorkspaceDefinitionWithEveryRequiredField()
     {
-        var createResourceRunCommand = new CreateResourceRunCommand()
+        var WorkspaceDefinition = new WorkspaceDefinition()
         {
             Templates = [
                 new TerraformTemplate("test", TerraformStatus.CreateRequested, DateTime.UtcNow),
@@ -53,21 +53,21 @@ public sealed class ResourceRunRequestSteps(
             ResourceGroupName   = "test-rg"
         };
 
-        scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
+        scenarioContext["WorkspaceDefinition"] = WorkspaceDefinition;
     }
 
     [Given(@"the workspace app configuration is null")]
     public void GivenTheWorkspaceAppConfigurationIsNull()
     {
-        var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
-        createResourceRunCommand!.AppData = null!;
+        var WorkspaceDefinition = scenarioContext["WorkspaceDefinition"] as WorkspaceDefinition;
+        WorkspaceDefinition!.AppData = null!;
     }
 
 
     [Given(@"a workspace definition without every required field")]
     public void GivenAWorkspaceDefinitionWithoutEveryRequiredField()
     {
-        var createResourceRunCommand = new CreateResourceRunCommand()
+        var WorkspaceDefinition = new WorkspaceDefinition()
         {
             Templates = [],
             Workspace = new TerraformWorkspace(),
@@ -76,17 +76,17 @@ public sealed class ResourceRunRequestSteps(
             ResourceGroupName = "test-rg"
         };
 
-        scenarioContext["createResourceRunCommand"] = createResourceRunCommand;
+        scenarioContext["WorkspaceDefinition"] = WorkspaceDefinition;
     }
 
     [When(@"a resource run request processes the workspace definition")]
     public async Task WhenAResourceRunRequestProcessesTheWorkspaceDefinition()
     {
-        var createResourceRunCommand = scenarioContext["createResourceRunCommand"] as CreateResourceRunCommand;
+        var WorkspaceDefinition = scenarioContext["WorkspaceDefinition"] as WorkspaceDefinition;
 
         var messageEnvelope = new JsonObject
         {
-            ["message"] = JsonSerializer.SerializeToNode(createResourceRunCommand)
+            ["message"] = JsonSerializer.SerializeToNode(WorkspaceDefinition)
         };
 
         var bodyBytes = Encoding.UTF8.GetBytes(messageEnvelope.ToJsonString());

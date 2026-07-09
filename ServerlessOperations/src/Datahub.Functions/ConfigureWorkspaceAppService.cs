@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -21,6 +21,7 @@ namespace Datahub.Functions
     public class ConfigureWorkspaceAppService(
         ILogger<ConfigureWorkspaceAppService> logger,
         AzureConfig config,
+        AzureDevOpsClient azureDevOpsClient,
         IDbContextFactory<DatahubProjectDBContext> dbContext)
     {
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContext = dbContext;
@@ -49,8 +50,7 @@ namespace Datahub.Functions
 
         public virtual async Task<HttpClient> ConfigureHttpClient()
         {
-            var adoProvider = new AzureDevOpsClient(config.AzureDevOpsConfiguration);
-            return await adoProvider.PipelineClientAsync();
+            return await azureDevOpsClient.PipelineClientAsync();
         }
 
         // private async Task<AppServiceConfiguration> GetAppServiceConfiguration(string projectAcronym)

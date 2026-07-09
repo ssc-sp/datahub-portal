@@ -1,4 +1,4 @@
-﻿namespace Datahub.Portal.Controllers
+namespace Datahub.Portal.Controllers
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = true, AllowMultiple = false)]
     public class AllowIFrameAttribute : Attribute
@@ -7,6 +7,7 @@
 
     public class IFrameMiddleware
     {
+        private const string XFrameOptionsHeader = "X-Frame-Options";
         private readonly RequestDelegate _next;
         private readonly ILogger<IFrameMiddleware> logger;
 
@@ -18,10 +19,10 @@
 
         public async Task InvokeAsync(HttpContext context)
         {
-            var endpoint = context.GetEndpoint();
-            bool headerConfigured = false;
+            var xFrameOptionsValue = "DENY";
             try
             {
+                var endpoint = context.GetEndpoint();
                 if (endpoint != null)
                 {
                     var controllerActionDescriptor = endpoint.Metadata.GetMetadata<Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor>();
@@ -30,26 +31,29 @@
                         var methodInfo = controllerActionDescriptor.MethodInfo;
                         var allowIFrame = methodInfo.GetCustomAttributes(typeof(AllowIFrameAttribute), true).Any();
 
-                        // Add the header only if the AllowIFrameAttribute is not present
                         if (allowIFrame)
                         {
-                            context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
-                            headerConfigured = true;
+                            xFrameOptionsValue = "SAMEORIGIN";
                         }
                     }
                 }
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 logger.LogWarning(e, "Error while processing IFrameMiddleware");
             }
-            if (!headerConfigured)
+
+            context.Response.OnStarting(() =>
             {
-                context.Response.Headers.Append("X-Frame-Options", "DENY");
-            }
+                if (!context.Response.Headers.ContainsKey(XFrameOptionsHeader))
+                {
+                    context.Response.Headers[XFrameOptionsHeader] = xFrameOptionsValue;
+                }
+
+                return Task.CompletedTask;
+            });
 
             await _next(context);
         }
     }
-
-
 }

@@ -9,7 +9,8 @@ Feature: AccountPage
     And the user is on the account page
     Then the user should see their display name and email
     And the user should see their <which> login provider chip
-    Examples: 
+    And the user should see their project
+    Examples:
         | which    |
         | GOC      |
         | external |

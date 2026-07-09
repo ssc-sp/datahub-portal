@@ -1,4 +1,5 @@
 using Datahub.Core.Configuration;
+using Datahub.Application.Authentication;
 using Datahub.Portal.Services.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
@@ -19,7 +20,20 @@ public class GCCFController() : Controller
 
     [HttpGet("login")]
     public async Task<IActionResult> Login(string returnUrl = "/", string locale = "en-CA")
-    {       
+    {
+        var devAuthResult = await HttpContext.AuthenticateAsync(DevAuthHandler.Scheme);
+        if (devAuthResult.Succeeded && devAuthResult.Principal is not null)
+        {
+            await HttpContext.SignInAsync(ConfigureAuthenticationServices.GccfCookieScheme, devAuthResult.Principal);
+
+            if (Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
+
+            return Redirect("/");
+        }
+
         var props = new AuthenticationProperties { RedirectUri = returnUrl };
         // Pass the current UI culture as 'ui_locales' parameter so OIDC handler forwards it
         props.Parameters["ui_locales"] = locale;
@@ -37,12 +51,18 @@ public class GCCFController() : Controller
         // Ensure 'ui_locales' is forwarded to the OIDC end-session request
         props.Parameters["ui_locales"] = locale;
 
+        var devAuthResult = await HttpContext.AuthenticateAsync(DevAuthHandler.Scheme);
+        if (devAuthResult.Succeeded)
+        {
+            return SignOut(props, ConfigureAuthenticationServices.GccfCookieScheme);
+        }
+
         // Sign out both the GCCF cookie and the GCCF OIDC session
         return SignOut(props, ConfigureAuthenticationServices.GccfCookieScheme, ConfigureAuthenticationServices.GccfOidcScheme);
     }
 
     [HttpGet("sector-identifier.json")]
-    public async Task<IActionResult> SectorIdentifier()
+    public IActionResult SectorIdentifier()
     {
         var host = Request.Host.ToUriComponent();
         var scheme = Request.Scheme;

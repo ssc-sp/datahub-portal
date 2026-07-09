@@ -28,7 +28,7 @@ public class AzureVirtualMachineTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -52,7 +52,7 @@ public class AzureVirtualMachineTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var fileCount = await SetupNewProjectTemplate(workspaceAcronym);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,

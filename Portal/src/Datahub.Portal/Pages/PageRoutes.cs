@@ -23,6 +23,9 @@ public static class PageRoutes
     public const string WorkspaceStoragePrefix = "s";
     public const string WorkspaceStorageDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspaceStoragePrefix}";
 
+    public const string WorkspaceExternalStoragePrefix = "s-ext";
+    public const string WorkspaceExternalStorageDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspaceExternalStoragePrefix}";
+
     public const string WorkspacePostgresPrefix = "db";
     public const string WorkspacePostgresDefault = $"/{WorkspacePrefix}/{{WorkspaceAcronymParam}}/{WorkspacePostgresPrefix}";
 
@@ -66,7 +69,10 @@ public static class PageRoutes
     public const string LoginEntra_FR = "/connexion-entra";
     public const string TermsAndConditions = "https://documentation.sds.canada.ca/en/Terms-And-Conditions.html";
     public const string TermsAndConditions_FR = "https://documentation.sds.canada.ca/fr/Conditions-generales.html";
-    
+
+    public const string TermsAndConditionsExternal = "/external-terms-and-conditions";
+    public const string TermsAndConditionsExternal_FR = "/conditions-generales-externes";
+
     public const string LanguageSelection_Bilingual = "/language-langue";
 
     public const string Help = $"/support";
@@ -85,4 +91,7 @@ public static class PageRoutes
 
     public const string ExternalInvitationSetup_FR = "/configuration-compte";
     public const string ExternalInvitationSetupWithToken_FR = $"{ExternalInvitationSetup_FR}/{{InvitationToken:guid}}";
+
+    public const string ExternalLogoutConfirmation = "/logout-confirmation";
+    public const string ExternalLogoutConfirmation_FR = "/confirmation-de-deconnexion";
 }

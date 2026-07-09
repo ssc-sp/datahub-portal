@@ -53,6 +53,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             if (!isEntra)
             {
                 var externalId = principal.FindFirstValue(ClaimTypes.NameIdentifier) ?? throw new InvalidOperationException("No GCCF ID available");
+                AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, externalId.ToString()));
                 authorizedProjects = await serviceAuthManager.GetExternalUserAuthorizations(externalId);
                 foreach (var (role, project) in authorizedProjects)
                 {
@@ -66,6 +67,7 @@ public class RoleClaimTransformer(IServiceAuthManager serviceAuthManager, Datahu
             {
 
                 var userEntraId = principal.Claims.FirstOrDefault(c => c.Type == ClaimConstants.ObjectId)?.Value ?? throw new InvalidOperationException("User Entra ID not found");
+                AddAndTraceClaim(claims, new Claim(ClaimTypes.Role, userEntraId.ToString()));
                 authorizedProjects = await serviceAuthManager.GetEntraUserAuthorizations(userEntraId);
 
                 var userEmail = principal.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;

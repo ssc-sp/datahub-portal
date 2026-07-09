@@ -1,26 +1,36 @@
 ---
-name: Pull request auto update
+name: PR Refresh
 
 on:
   push:
     branches:
       - "develop"
+
+permissions: {}
+
+concurrency:
+  group: pr-refresh-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   refresh_stale_prs:
     runs-on: ubuntu-latest
+    environment: datahub-portal-pr-refresh
+
     steps:
       - name: Create App token
         id: create_token
-        uses: ssc-sp/.github/.github/actions/create-app-token@main
+        uses: ssc-sp/.github/.github/actions/create-app-token@b39ec090a572a5dfafe1633024f7617e0cf13be5 # main
         with:
           app-id: ${{ vars.DATAHUB_PORTAL_PR_APP_ID }}
           private-key: ${{ secrets.DATAHUB_PORTAL_PR_RW }}
 
       - name: Automatically update PR
-        uses: adRise/update-pr-branch@v0.10.2
+        uses: adRise/update-pr-branch@e96e796f4ab23ab388016fdaed7092de99bd71cf # v0.11.1
         with:
           token: ${{ steps.create_token.outputs.token }}
           base: "develop"
+          excluded_labels: "renovate"
           required_approval_count: 0
           require_passed_checks: false
           require_auto_merge_enabled: false

@@ -1,3 +1,6 @@
+using Microsoft.Extensions.Configuration;
+using Microsoft.FeatureManagement;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
@@ -14,18 +17,23 @@ using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
 using Polly;
 using ResourceProvisioner.Application.Config;
-using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Infrastructure.Common;
-using Version = System.Version;
+using Microsoft.Extensions.Options;
+using Datahub.Infrastructure.Services.Security;
+using Microsoft.Extensions.Logging.Abstractions;
+using Datahub.Core.Configuration;
+using LibGit2Sharp.Handlers;
 
 namespace ResourceProvisioner.Infrastructure.Services;
 
 public partial class RepositoryService(
     IHttpClientFactory httpClientFactory,
     ILogger<RepositoryService> logger,
-    ResourceProvisionerConfiguration resourceProvisionerConfiguration,
-    ITerraformService terraformService)
+    IOptions<ResourceProvisionerConfiguration> resourceProvisionerConfiguration,
+    ITerraformService terraformService,
+    IFeatureManager featureManager,
+    IConfiguration configuration)
     : IRepositoryService
 {
     /// <summary>
@@ -36,10 +44,88 @@ public partial class RepositoryService(
     [GeneratedRegex(@"(/|\\)v\d+\.\d+\.\d+$")]
     private static partial Regex ModuleRegex();
 
+    private static bool IsTransientGitCloneException(LibGit2SharpException exception)
+    {
+        var message = exception.Message;
+
+        return message.Contains("unexpected http status code: 5", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
+               || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
+    }
+
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
     
-    public async Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command)
+    private async Task<string?> GetIssuerSslValidationNameAsync()
+    {
+        var isEnabled = await featureManager.IsEnabledAsync(Features.LibGit2SharpIssuerSslValidation);
+        if (!isEnabled)
+        {
+            return null;
+        }
+        var configuredIssuer = configuration[$"FeatureManagement:{Features.LibGit2SharpIssuerName}"]?.Trim();
+        return string.IsNullOrWhiteSpace(configuredIssuer) ? null : configuredIssuer;
+    }
+
+    private FetchOptions CreateFetchOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null)
+    {
+        var options = new FetchOptions();
+        options.Depth = 1;
+
+        if (credentialsProvider is not null)
+        {
+            options.CredentialsProvider = credentialsProvider;
+        }
+
+        if (!string.IsNullOrWhiteSpace(issuerValidationName))
+        {
+            options.CertificateCheck =
+                (certificate, valid, host) => ValidateCertificateIssuer(certificate, valid, host, issuerValidationName);
+        }
+
+        return options;
+    }
+
+    private CloneOptions CreateCloneOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null) => new CloneOptions(CreateFetchOptions(issuerValidationName, credentialsProvider));
+
+
+    private PullOptions CreatePullOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null) => new PullOptions
+        {
+            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider)
+        };
+
+    private PushOptions CreatePushOptions(string? issuerValidationName,
+        CredentialsHandler? credentialsProvider = null)
+    {
+        var options = new PushOptions();
+        if (credentialsProvider is not null)
+        {
+            options.CredentialsProvider = credentialsProvider;
+        }
+
+        if (!string.IsNullOrWhiteSpace(issuerValidationName))
+        {
+            options.CertificateCheck =
+                (certificate, valid, host) => ValidateCertificateIssuer(certificate, valid, host, issuerValidationName);
+        }
+
+        return options;
+    }
+
+    private bool ValidateCertificateIssuer(Certificate certificate, bool valid, string host, string issuerValidationName)
+    {
+        var x509 = certificate as CertificateX509;
+        if (x509 is null) return valid;
+        var issuer = x509?.Certificate.Issuer;
+        var isValidIssuer = !string.IsNullOrWhiteSpace(issuer) &&
+                            issuer.Contains(issuerValidationName, StringComparison.OrdinalIgnoreCase);
+        return isValidIssuer || valid;
+    }
+
+    public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
     {
         await _semaphore.WaitAsync();
         try
@@ -99,7 +185,7 @@ public partial class RepositoryService(
     private void CreateTemporaryDirectory()
     {
         CleanUpEnvironment();
-        var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+        var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration.Value);
         logger.LogInformation("Creating temporary directory {Directory} for resource run", Path.GetFullPath(tempPath));
         Directory.CreateDirectory(tempPath);
     }
@@ -109,16 +195,36 @@ public partial class RepositoryService(
         _moduleSemaphore.Wait();
         try
         {
-            var repositoryUrl = resourceProvisionerConfiguration.ModuleRepository.Url;
-            var localPath = resourceProvisionerConfiguration.ModuleRepository.LocalPath;
-            var branch = resourceProvisionerConfiguration.ModuleRepository.Branch;
+            var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
+            var repositoryUrl = resourceProvisionerConfiguration.Value.ModuleRepository.Url;
+            var localPath = resourceProvisionerConfiguration.Value.ModuleRepository.LocalPath;
+            var branch = resourceProvisionerConfiguration.Value.ModuleRepository.Branch;
             version = $"{branch}-{version}";
             logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration);
+            var repositoryPath = DirectoryUtils.GetModuleRepositoryPath(resourceProvisionerConfiguration.Value);
             DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
 
             logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl, repositoryPath);
-            Repository.Clone(repositoryUrl, repositoryPath);
+            var cloneOptions = CreateCloneOptions(issuerValidationName);
+            Policy
+                .Handle<LibGit2SharpException>(IsTransientGitCloneException)
+                .Or<IOException>()
+                .WaitAndRetry(
+                    retryCount: 3,
+                    sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)),
+                    onRetry: (exception, delay, retryAttempt, _) =>
+                    {
+                        logger.LogWarning(exception,
+                            "Transient error cloning module repository. Retrying attempt {RetryAttempt} in {DelaySeconds} seconds",
+                            retryAttempt,
+                            delay.TotalSeconds);
+                    })
+                .Execute(() =>
+                {
+                    DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
+                    Repository.Clone(repositoryUrl, repositoryPath, cloneOptions);
+                });
 
             using var repo = new Repository(repositoryPath);
             var repoTag = string.IsNullOrWhiteSpace(version) ? null : repo.Tags[version];
@@ -140,7 +246,7 @@ public partial class RepositoryService(
         catch (Exception e)
         {
             logger.LogError(e, "Error while fetching module repository");
-            throw new Exception("Error while fetching module repository", e);
+            throw;
         }
         finally
         {
@@ -150,28 +256,23 @@ public partial class RepositoryService(
 
     public async Task FetchInfrastructureRepository()
     {
-        var localPath = resourceProvisionerConfiguration.InfrastructureRepository.LocalPath;
-        var repositoryUrl = resourceProvisionerConfiguration.InfrastructureRepository.Url;
+        var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
+        var localPath = resourceProvisionerConfiguration.Value.InfrastructureRepository.LocalPath;
+        var repositoryUrl = resourceProvisionerConfiguration.Value.InfrastructureRepository.Url;
         logger.LogInformation("Fetching repository {RepositoryUrl} to {LocalPath}", repositoryUrl, localPath);
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         DirectoryUtils.VerifyDirectoryDoesNotExist(repositoryPath);
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
-
-        var cloneOptions = new CloneOptions
+        var cloneOptions = CreateCloneOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
-            FetchOptions =
-            {
-                CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-                {
-                    Username = resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
-                    Password = accessToken.Token
-                }
-            }
-        };
+            Password = accessToken.Token
+        });
 
         logger.LogInformation("Cloning repository {RepositoryUrl} to {LocalPath}", repositoryUrl,
             Path.GetFullPath(repositoryPath));
@@ -183,7 +284,9 @@ public partial class RepositoryService(
 
     public async Task CheckoutInfrastructureBranch(string workspaceName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var issuerValidationName = await GetIssuerSslValidationNameAsync();
+
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
@@ -200,22 +303,16 @@ public partial class RepositoryService(
 
         logger.LogInformation("Checking upstream for any updates in branch");
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
 
-        var pullOptions = new PullOptions()
+        var pullOptions = CreatePullOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
-            FetchOptions = new FetchOptions
-            {
-                CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-                {
-                    Username = resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration
                         .ClientId,
-                    Password = accessToken.Token
-                }
-            }
-        };
+            Password = accessToken.Token
+        });
 
         var signature = new Signature(new Identity("Auto-merge", "Auto-merge"), DateTimeOffset.Now);
         try
@@ -232,7 +329,7 @@ public partial class RepositoryService(
 
     public virtual Task CommitTerraformTemplate(TerraformTemplate template, string username)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
 
         logger.LogInformation("Committing changes in {LocalPath}", repositoryPath);
         using var repository = new Repository(repositoryPath);
@@ -260,19 +357,19 @@ public partial class RepositoryService(
 
     public async Task PushInfrastructureRepository(string workspaceAcronym)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var issuerValidationName = await GetIssuerSslValidationNameAsync();
 
-        var azureDevOpsClient =
-            new AzureDevOpsClient(resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration);
-        var accessToken = await azureDevOpsClient.AccessTokenAsync();
-        var options = new PushOptions
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
+
+        var credentialService = new InfraTokenCredentialService(resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration);
+        var tokenManager = new AzAccessTokenManager(credentialService, credentialService);
+        var accessToken = await tokenManager.AccessDevopsTokenAsync();
+
+        var options = CreatePushOptions(issuerValidationName, (_, _, _) => new UsernamePasswordCredentials()
         {
-            CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials()
-            {
-                Username = resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
-                Password = accessToken.Token
-            },
-        };
+            Username = resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId,
+            Password = accessToken.Token
+        });
 
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceAcronym];
@@ -288,6 +385,8 @@ public partial class RepositoryService(
             branch.CanonicalName);
     }
 
+    public const string HttpClientName = "InfrastructureHttpClient";
+
     public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
     {
         // create a pull request in Azure DevOps
@@ -295,14 +394,15 @@ public partial class RepositoryService(
         var postBody = BuildPullRequestPostBody(workspaceAcronym);
 
         var postUrl =
-            $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?api-version={resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+            $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
         logger.LogInformation("Posting infrastructure pull request to {Url}", postUrl);
-        var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var httpClient = httpClientFactory.CreateClient(HttpClientName);
         var response = await httpClient.PostAsync(postUrl, postBody);
 
         // get the pull request id
         logger.LogInformation("Getting infrastructure pull request url");
+        EnsureJsonResponse(response);
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
@@ -332,7 +432,7 @@ public partial class RepositoryService(
     {
         var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
         var patchUrl =
-            $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+            $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
         const int retryAmount = 5;
         var retryPolicy = Policy
@@ -351,7 +451,7 @@ public partial class RepositoryService(
     public async Task SendAutoApprovePatchRequestAsync(string patchUrl, StringContent patchContent)
     {
         logger.LogInformation("Patching auto-approve infrastructure pull request to {Url}", patchUrl);
-        var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
+        var httpClient = httpClientFactory.CreateClient(HttpClientName);
         var response = await httpClient.PatchAsync(patchUrl, patchContent);
 
         if (!response.IsSuccessStatusCode)
@@ -365,6 +465,7 @@ public partial class RepositoryService(
         logger.LogInformation("Infrastructure pull request {PullRequestUrl} auto-approved", patchUrl);
 
         // Check that the json content of the response has an object "closedBy"
+        EnsureJsonResponse(response);
         var responseContent = await response.Content.ReadAsStringAsync();
         var jsonContent = JsonSerializer.Deserialize<JsonNode>(responseContent);
         if (jsonContent?["closedBy"] is null)
@@ -378,7 +479,7 @@ public partial class RepositoryService(
     {
         logger.LogInformation(
             "Building infrastructure pull request patch body for complete by user {ClientId}",
-            resourceProvisionerConfiguration.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
+            resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
         var patchData = new JsonObject
         {
             ["status"] = "completed",
@@ -398,7 +499,7 @@ public partial class RepositoryService(
 
     public virtual string GetBranchLastCommitId(string branchName)
     {
-        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration);
+        var repositoryPath = DirectoryUtils.GetInfrastructureRepositoryPath(resourceProvisionerConfiguration.Value);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[branchName];
 
@@ -413,7 +514,7 @@ public partial class RepositoryService(
 
     private string BuildPullRequestUrl(string pullRequestId)
     {
-        return $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
+        return $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestBrowserUrl}/{pullRequestId}";
     }
 
     private StringContent BuildPullRequestPostBody(string workspaceAcronym)
@@ -421,7 +522,7 @@ public partial class RepositoryService(
         var postData = new JsonObject
         {
             ["sourceRefName"] = $"refs/heads/{workspaceAcronym}",
-            ["targetRefName"] = $"refs/heads/{resourceProvisionerConfiguration.InfrastructureRepository.MainBranch}",
+            ["targetRefName"] = $"refs/heads/{resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch}",
             ["title"] = $"[{workspaceAcronym}] Infrastructure changes",
             ["description"] = $"[{workspaceAcronym}] Infrastructure changes",
         };
@@ -436,7 +537,7 @@ public partial class RepositoryService(
         await CheckoutInfrastructureBranch(terraformWorkspace.Acronym!);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition command, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
@@ -456,7 +557,7 @@ public partial class RepositoryService(
     }
 
     
-    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username)
+    public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, WorkspaceDefinition command, string username)
     {
         try
         {            
@@ -514,7 +615,7 @@ public partial class RepositoryService(
         }
     }
 
-    private async Task ExtractVariables(TerraformTemplate template, CreateResourceRunCommand command)
+    private async Task ExtractVariables(TerraformTemplate template, WorkspaceDefinition command)
     {
         await terraformService.ExtractVariables(template.Name, command);
         switch (template.Name)
@@ -532,10 +633,11 @@ public partial class RepositoryService(
     {
         logger.LogInformation("Pull request already exists, fetching pull request id");
         var url =
-            $"{resourceProvisionerConfiguration.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.InfrastructureRepository.ApiVersion}";
+            $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
-        using var httpClient = httpClientFactory.CreateClient("InfrastructureHttpClient");
+        using var httpClient = httpClientFactory.CreateClient(HttpClientName);
         var response = await httpClient.GetAsync(url);
+        EnsureJsonResponse(response);
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
@@ -547,13 +649,23 @@ public partial class RepositoryService(
                    $"Could not get existing pull request id for workspace {workspaceAcronym}");
     }
 
+    private static void EnsureJsonResponse(HttpResponseMessage response)
+    {
+        var mediaType = response.Content.Headers.ContentType?.MediaType;
+        if (string.IsNullOrWhiteSpace(mediaType) ||
+            !mediaType.Contains("json", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Expected JSON response content type.");
+        }
+    }
+
     private void CleanUpEnvironment()
     {
         try
         {
             logger.LogInformation("Deleting temporary directory {Directory} for resource run",
                 DirectoryUtils.tempDirectory);
-            var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration);
+            var tempPath = DirectoryUtils.GetTempDirectoryPath(resourceProvisionerConfiguration.Value);
             var dir = new DirectoryInfo(tempPath);
             DirectoryUtils.NormalizeAndDelete(dir);
         }

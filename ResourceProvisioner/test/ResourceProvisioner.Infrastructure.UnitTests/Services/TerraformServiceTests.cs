@@ -26,7 +26,7 @@ public class TerraformServiceTests : TemplateTestCollection
     public void ShouldThrowExceptionWhenProjectNotInitialized()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                        TerraformTemplate.NewProjectTemplate,

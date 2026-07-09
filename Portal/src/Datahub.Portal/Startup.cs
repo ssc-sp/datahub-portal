@@ -28,6 +28,7 @@ using Datahub.Core.Services.Offline;
 using Datahub.Core.Services.Projects;
 using Datahub.Core.Services.Search;
 using Datahub.Core.Services.Storage;
+using Datahub.Core.Model;
 using Datahub.Core.Services.UserManagement;
 using Datahub.Infrastructure;
 using Datahub.Infrastructure.Offline;
@@ -47,9 +48,7 @@ using Datahub.Metadata.Model;
 using Datahub.Portal.Controllers;
 using Datahub.Portal.Pages;
 using Datahub.Portal.Services;
-using Datahub.Portal.Services.Api;
 using Datahub.Portal.Services.Auth;
-using Datahub.Portal.Services.Offline;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.HttpLogging;
 using Microsoft.AspNetCore.Localization;
@@ -201,7 +200,6 @@ public class Startup
 
         services.AddScoped<ICultureService, UserCultureService>();
 
-        services.AddSingleton<IAzureServicePrincipalConfig, AzureServicePrincipalConfig>();
         services.AddScoped<ProjectStorageConfigurationService>();
 
         //https://github.com/jsakamoto/Toolbelt.Blazor.LocalTimeText/
@@ -324,7 +322,7 @@ public class Startup
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseStatusCodePagesWithReExecute("/404");
+        app.UseStatusCodePagesWithReExecute("/404", createScopeForStatusCodePages: true);
 
         // this needs to be as late as possible in the pipeline to ensure antiforgery tokens are validated for all endpoints, including reverse proxy
         app.UseAntiforgery();
@@ -333,6 +331,7 @@ public class Startup
 
         app.UseEndpoints(endpoints =>
         {
+            endpoints.MapStaticAssets();
             endpoints.MapControllers();
 
             var provider = services.GetService<IProxyConfigProvider>();
@@ -401,19 +400,14 @@ public class Startup
         // configure online/offline services
         if (!Offline)
         {
-            services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+            services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
             services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<IUserInformationService, UserInformationService>();
             services.AddScoped<IUserSettingsService, UserSettingsService>();
-            services.AddSingleton<IMSGraphService, MSGraphService>();
-
-            services.AddScoped<IDataSharingService, DataSharingService>();
-            services.AddScoped<IDataCreatorService, DataCreatorService>();
-            services.AddScoped<DataRetrievalService>();
-            services.AddScoped<IDataRemovalService, DataRemovalService>();
+            services.AddScoped<IMSGraphService, MSGraphService>();
 
             services.AddScoped<IAzurePriceListService, AzurePriceListService>();
 
@@ -430,20 +424,15 @@ public class Startup
         }
         else
         {
-            services.AddSingleton<IKeyVaultService, OfflineKeyVaultService>();
+            services.AddSingleton<IKeyVaultCoreService, OfflineKeyVaultService>();
             services.AddScoped<UserLocationManagerService>();
             services.AddSingleton<CommonAzureServices>();
-            //services.AddScoped<DataLakeClientService>();
 
             services.AddScoped<AuthenticationStateProvider, FakeAuthStateProvider>();
             services.AddScoped<IUserInformationService, OfflineUserInformationService>();
             services.AddScoped<IUserSettingsService, OfflineUserSettingsService>();
             services.AddSingleton<IMSGraphService, OfflineMSGraphService>();
 
-            services.AddScoped<IDataSharingService, OfflineDataSharingService>();
-            services.AddScoped<IDataCreatorService, OfflineDataCreatorService>();
-            services.AddScoped<DataRetrievalService, OfflineDataRetrievalService>();
-            services.AddScoped<IDataRemovalService, OfflineDataRemovalService>();
             services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
 
             services.AddScoped<IWorkspaceCostManagementService, OfflineWorkspaceCostManagementService>();
@@ -467,6 +456,7 @@ public class Startup
         services.AddScoped<NotificationsService>();
 
         services.AddScoped<IGCNotifyService, GCNotifyService>();
+        services.AddScoped<IUserAccessNotificationService, UserAccessNotificationService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();
         services.AddSingleton<IPropagationService, NotificationPropagationService>();
 
@@ -484,6 +474,8 @@ public class Startup
 
         services.AddScoped<IDownloadService, DownloadService>();
         services.AddScoped<ICsvService, CsvService>();
+        
+        services.AddScoped<IFileScanService, FileScanService>();
 
         services.AddTransient<CorrelationIdHandler>();
         services.AddHttpClient<ExternalSearchService>()

@@ -1,4 +1,4 @@
-﻿using Azure.Storage;
+using Azure.Storage;
 using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Datahub.Application.Services.Security;
@@ -12,13 +12,13 @@ public class DataLakeClientService
 {
     private const string DatahubSecretName = "Datahub-StorageDL-Secret";
     private ILogger<DataLakeClientService> _logger;
-    private IKeyVaultService _keyVaultService;
+    private readonly IKeyVaultCoreService _keyVaultService;
     private IOptions<APITargets> _targets;
     private StorageSharedKeyCredential _sharedKeyCredential;
     private Dictionary<string, DataLakeServiceClient> _projectServiceClients;
 
     public DataLakeClientService(ILogger<DataLakeClientService> logger,
-        IKeyVaultService keyVaultService,
+        IKeyVaultCoreService keyVaultService,
         IOptions<APITargets> targets
     )
     {

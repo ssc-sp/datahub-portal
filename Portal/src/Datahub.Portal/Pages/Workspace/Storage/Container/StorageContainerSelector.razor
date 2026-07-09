@@ -1,4 +1,4 @@
-﻿@* StorageContainerSelector.Razor *@
+@* StorageContainerSelector.Razor *@
 @using Datahub.Core.Storage
 
 @if (SelectedContainer != null)
@@ -68,31 +68,34 @@
                     </MudMenu>
                 </MudMenuItem>
             }
-            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
-                <MudDivider />
-                <MudMenuItem>
-                    <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;" >
-                        <ActivatorContent>
-                            <MudStack Row>
-                                <MudText>@Localizer["Add Account"]</MudText>
-                                <MudSpacer />
-                                <DHIcon Icon=@Icons.Material.Filled.ChevronRight />
-                            </MudStack>
-                        </ActivatorContent>
-                        <ChildContent>
-                            @foreach (var cloudProviderType in Enum.GetValues<CloudStorageProviderType>())
-                            {
-                                <MudMenuItem OnClick=@(() => AddNewProviderAccount(cloudProviderType))>
-                                    <MudStack Row>
-                                        <DHIcon Icon=@GetCloudProviderIconByType(cloudProviderType) ViewBox=@GetCloudProviderIconViewBox(cloudProviderType) />
-                                        <MudText>@Localizer[cloudProviderType.ToString()]</MudText>
-                                    </MudStack>
-                                </MudMenuItem>
-                            }
-                        </ChildContent>
-                    </MudMenu>
-                </MudMenuItem>
-            </DatahubAuthView>
+            @if (AllowBringYourOwn)
+            {
+                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+                    <MudDivider />
+                    <MudMenuItem>
+                        <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;" >
+                            <ActivatorContent>
+                                <MudStack Row>
+                                    <MudText>@Localizer["Add Account"]</MudText>
+                                    <MudSpacer />
+                                    <DHIcon Icon=@Icons.Material.Filled.ChevronRight />
+                                </MudStack>
+                            </ActivatorContent>
+                            <ChildContent>
+                                @foreach (var cloudProviderType in Enum.GetValues<CloudStorageProviderType>())
+                                {
+                                    <MudMenuItem OnClick=@(() => AddNewProviderAccount(cloudProviderType))>
+                                        <MudStack Row>
+                                            <DHIcon Icon=@GetCloudProviderIconByType(cloudProviderType) ViewBox=@GetCloudProviderIconViewBox(cloudProviderType) />
+                                            <MudText>@Localizer[cloudProviderType.ToString()]</MudText>
+                                        </MudStack>
+                                    </MudMenuItem>
+                                }
+                            </ChildContent>
+                        </MudMenu>
+                    </MudMenuItem>
+                </DatahubAuthView>
+            }
         </ChildContent>
     </MudMenu>
 }
@@ -106,13 +109,16 @@
     const string DEFAULT_MUDICON_VIEWBOX = "0 0 24 24";
 
     [CascadingParameter(Name = "ProjectAcronym")]
-    public string ProjectAcronymParam { get; set; }
+    public required string ProjectAcronymParam { get; set; }
 
     [Parameter]
-    public IEnumerable<CloudStorageContainer> CloudContainers { get; set; }
+    public required IEnumerable<CloudStorageContainer> CloudContainers { get; set; }
 
     [Parameter]
-    public CloudStorageContainer SelectedContainer { get; set; }
+    public required CloudStorageContainer SelectedContainer { get; set; }
+
+    [Parameter]
+    public required bool AllowBringYourOwn { get; set; } = false;
 
     [Parameter]
     public EventCallback<CloudStorageContainer> SelectedContainerChanged { get; set; }

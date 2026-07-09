@@ -21,6 +21,8 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NSubstitute;
 using NUnit.Framework;
+using Datahub.Application.Services.Security;
+using Datahub.Shared.Clients;
 
 namespace Datahub.Functions.UnitTests
 {
@@ -46,21 +48,23 @@ namespace Datahub.Functions.UnitTests
             };
 
             Testing._configuration.Bind(datahubConfig);
-
-            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig);
+            var keyVaultUserService = Substitute.For<IKeyVaultUserService>();
+            var projectStorageConfigurationService = new ProjectStorageConfigurationService(datahubConfig, keyVaultUserService);
 
             var dbContextFactory = TestHelper.CreateMockDbContextFactory();
             await TestHelper.SeedDatabase(dbContextFactory);
 
             var sendProvider = Substitute.For<ISendEndpointProvider>();
             var webAppService = TestHelper.CreateMockWebAppManagementService();
-            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>(); 
+            var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
+            var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
-
-            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService);
+            var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
+            var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
+            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService, mockSubnetPoolService);
 
             var healthCheckHelper = new HealthCheckHelper(dbContextFactory, projectStorageConfigurationService, webAppService,
-                Testing._configuration, _httpClientFactory, _loggerFactory, sendProvider, resourceMessagingService, datahubConfig, httpContextAccessor, null);
+                Testing._configuration, _httpClientFactory, _loggerFactory, tokenManager, sendProvider, resourceMessagingService, datahubConfig, tokenCredentialService, httpContextAccessor, null);
 
             _checkInfrastructureStatus = new CheckInfrastructureStatus(_loggerFactory, healthCheckHelper);
         }

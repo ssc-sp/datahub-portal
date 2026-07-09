@@ -1,11 +1,13 @@
 @* FileExplorer.razor *@
 @using Datahub.Application.Services.Publishing
+@using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
 @using Datahub.Core.Storage;
 @using Datahub.Core.Components.FileUpload;
 @using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 
 @inject IUserInformationService _userInformationService
@@ -28,6 +30,7 @@
                             SelectedItems="@_selectedItems"
                             Files="@_files"
                             Folders="@_folders"
+                            ShowPublish="@(_classification != ClassificationType.ProtectedB)"
                             MetadataSignature=@_metadataSignature
                             OnNewFolder="HandleNewFolder"
                             SetCurrentFolder="SetCurrentFolder"
@@ -155,6 +158,9 @@ else
     [CascadingParameter(Name = "PortalUser")]
     public required PortalUser PortalUser { get; set; }
 
+    [CascadingParameter(Name = "Project")]
+    public required Datahub_Project Project { get; set; }
+
     [Parameter] public int? ProjectId { get; set; }
 
     [Parameter] public CloudStorageContainer? Container { get; set; }
@@ -166,6 +172,8 @@ else
     private CloudStorageContainer? _lastContainer = null;
 
     private string ContainerName => Container?.Name ?? "-";
+
+    private ClassificationType _classification;
 
     private ICloudStorageManager? StorageManager => Container?.StorageManager;
 
@@ -187,13 +195,12 @@ else
     private List<FileMetaData> _files = new();
     private string _filterValue = string.Empty;
 
-    private IJSObjectReference _module;
+    private IJSObjectReference _module = null!;
 
-    private Dictionary<string, int> _folderList;
+    private Dictionary<string, int> _folderList = null!;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await base.OnAfterRenderAsync(firstRender);
         if (firstRender)
         {
             _module = await _jsRuntime.InvokeAsync<IJSObjectReference>("import", "./Pages/Workspace/Storage/FileExplorer.razor.js");
@@ -208,16 +215,13 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
-        await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
-
         if (await _userInformationService.IsEntraUser())
             _userId = (await _userInformationService.GetCurrentUserEntraId())!;
         else
             _userId = (await _userInformationService.GetExternalUserNameIdentifier())!;
-    
+
         _uploadingFiles = new List<FileMetaData>();
+        _classification = Project.Data_Sensitivity;
     }
 
     private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);

@@ -3,10 +3,12 @@ using Datahub.Application.Services;
 using Datahub.Core.Components.AuthViews;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Projects;
+using Datahub.Core.Model.Users;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Utilities;
+using Datahub.Portal.Pages.Tools.LockedUsers;
 
 namespace Datahub.Portal.Pages.Workspace.Users
 {
@@ -29,14 +31,31 @@ namespace Datahub.Portal.Pages.Workspace.Users
         {
             await base.OnParametersSetAsync();
             await InitializedProjectMembers();
+            await ResolveWorkspaceIdAsync();
+            await LoadLockedUsersForWorkspace();
             _loading = false;
         }
 
         private async Task InitializedProjectMembers()
         {
-            _projectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+            var allProjectUsers = await _projectUserManagementService.GetProjectUsersAsync(WorkspaceAcronym);
+            _projectUsers = allProjectUsers.Where(x => x.PortalUser.ExternalUserId is null).ToList();
+
             _originalUserInfo = _projectUsers.Select(u => new WorkspaceUserInfo(u.PortalUserId, u.RoleId, u.IsDataSteward)).ToList();
             ProjectMemberRoleFilter(_currentRoleFilter);
+        }
+
+        private async Task LoadLockedUsersForWorkspace()
+        {
+            if (!_workspaceId.HasValue)
+            {
+                return;
+            }
+
+            var lockedUsers = await _lockedUserManagementService.GetLockedUsersInWorkspaceAsync(_workspaceId.Value);
+            _lockedUsersByPortalUserId = lockedUsers
+                .GroupBy(user => user.PortalUserId)
+                .ToDictionary(group => group.Key, group => group.OrderByDescending(item => item.LockedDate).First());
         }
 
         private bool CombinedFilter(UserRoleLinks projectUser)
@@ -201,6 +220,67 @@ namespace Datahub.Portal.Pages.Workspace.Users
             _updateInProgress = false;
             await InitializedProjectMembers();
             StateHasChanged();
+        }
+
+        private async Task ResolveWorkspaceIdAsync()
+        {
+            if (_workspaceId.HasValue)
+            {
+                return;
+            }
+
+            if (_projectUsers?.Count > 0)
+            {
+                _workspaceId = _projectUsers[0].Project_ID;
+                return;
+            }
+
+            await using var context = await _dbContextFactory.CreateDbContextAsync();
+            _workspaceId = await context.Projects
+                .Where(project => project.Project_Acronym_CD == WorkspaceAcronym)
+                .Select(project => (int?)project.Project_ID)
+                .FirstOrDefaultAsync();
+        }
+
+        private async Task OpenUploadEvidenceDialog(PortalUser user)
+        {
+            if (_workspaceId == null)
+            {
+                _snackbar.Add(Localizer["Workspace not found"], Severity.Error);
+                return;
+            }
+
+            var parameters = new DialogParameters
+            {
+                { "User", user },
+                { "WorkspaceId", _workspaceId.Value },
+                { "WorkspaceAcronym", WorkspaceAcronym }
+            };
+
+            var options = new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Medium };
+            var dialog = await _dialogService.ShowAsync<UploadVirusScanEvidenceDialog>(
+                Localizer["Upload Virus Scan Evidence"],
+                parameters,
+                options);
+
+            var result = await dialog.Result;
+            if (!result.Canceled)
+            {
+                await LoadLockedUsersForWorkspace();
+                StateHasChanged();
+                _snackbar.Add(Localizer["Evidence uploaded successfully."], Severity.Success);
+            }
+        }
+
+        private bool TryGetLockedUser(UserRoleLinks projectUser, out UserLockStatus? lockStatus)
+        {
+            lockStatus = null;
+            if (projectUser.PortalUserId == null)
+            {
+                return false;
+            }
+
+            return _lockedUsersByPortalUserId.TryGetValue(projectUser.PortalUserId.Value, out lockStatus);
         }
     }
 }

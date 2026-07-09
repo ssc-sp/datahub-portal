@@ -1,8 +1,10 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 
 using System.Diagnostics;
 using System.Text;
-using Azure.Identity;
+using AzureAuthorityHosts = Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
+using ClientSecretCredentialOptions = Azure.Identity.ClientSecretCredentialOptions;
 using CatalogIngestTool;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;

@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Data;
+using Datahub.Core.Data;
 using Datahub.Core.Storage;
 
 namespace Datahub.Infrastructure.Services.Storage
@@ -43,7 +43,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<Uri> DownloadFileAsync(string container, string filePath)
+        public Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
         {
             throw new NotImplementedException();
         }
@@ -88,7 +88,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
         {
             throw new NotImplementedException();
         }

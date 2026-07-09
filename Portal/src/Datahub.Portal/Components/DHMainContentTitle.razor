@@ -9,14 +9,10 @@
     }
 </SkipLink>
 
-@code {
+    @code {
 
-    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public RenderFragment ChildContent { get; set; } = null!;
 
-    [Parameter] public string Title { get; set; }
+    [Parameter] public string Title { get; set; } = null!;
 
-    protected override void OnParametersSet()
-    {
-        base.OnParametersSet();
-    }
 }

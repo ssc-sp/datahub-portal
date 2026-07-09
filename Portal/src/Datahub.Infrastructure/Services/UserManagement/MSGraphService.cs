@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Data;
@@ -7,15 +6,15 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Models;
+using Microsoft.Identity.Web;
 
 namespace Datahub.Infrastructure.Services.UserManagement;
 
 public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory clientFactory,
-    IAzureServicePrincipalConfig azureServicePrincipalConfig) : IMSGraphService
+    IUserInformationService userInformationService, IUserTokenCredentialService userTokenCredentialService,
+    ISystemTokenCredentialService systemTokenCredentialService) : IMSGraphService
 {
     private readonly ILogger<MSGraphService> _logger = logger;
-    private readonly IHttpClientFactory _httpClientFactory = clientFactory;
-    private readonly IAzureServicePrincipalConfig _azureServicePrincipalConfig = azureServicePrincipalConfig;
     private GraphServiceClient _graphServiceClient = null!;
 
     public async Task<GraphUser> GetUserAsync(string userId, CancellationToken token)
@@ -53,15 +52,15 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
     public async Task<Dictionary<string, GraphUser>> GetUsersListAsync(string filterText, CancellationToken token)
     {
         Dictionary<string, GraphUser> users = new();
-        var client = GetAuthenticatedClient();
+        var client = await GetAuthenticatedClient();
 
         var usersPage = await client.Users.GetAsync(
             requestConfiguration =>
             {
                 requestConfiguration.QueryParameters.Filter = $"startswith(mail,'{filterText}')";
                 requestConfiguration.QueryParameters.Count = true;
-                requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");                
-            },token
+                requestConfiguration.Headers.Add("ConsistencyLevel", "eventual");
+            }, token
             );
 
         var pageIterator = PageIterator<User, UserCollectionResponse>.CreatePageIterator(
@@ -81,24 +80,26 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
         return users;
     }
 
-    public GraphServiceClient GetAuthenticatedClient()
+    public async Task<GraphServiceClient> GetAuthenticatedClient()
     {
         if (_graphServiceClient == null)
         {
             try
             {
-                //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
-                // using Azure.Identity;
-                var options = new ClientSecretCredentialOptions
+                if (await userInformationService.IsEntraUser())
                 {
-                    AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
-                };
-                var clientCertCredential = new ClientSecretCredential(
-                    _azureServicePrincipalConfig.TenantId,                    
-                    _azureServicePrincipalConfig.ClientId,
-                    _azureServicePrincipalConfig.ClientSecret, options);
-                var httpClient = _httpClientFactory.CreateClient(IMSGraphService.HttpClientName);
-                _graphServiceClient = new(httpClient, clientCertCredential);
+                    _ = await userTokenCredentialService.GetUserToken(await userInformationService.GetAuthenticatedUser(), UserTokenService.Graph);
+                    _graphServiceClient = new(userTokenCredentialService.GetTokenCredentialForUser(UserTokenService.Graph));
+                }
+                else
+                {
+                    _graphServiceClient = new(systemTokenCredentialService.GetTokenCredential());
+                }
+            }
+            catch (MicrosoftIdentityWebChallengeUserException ex)
+            {
+                _logger.LogDebug($"User interaction required for authentication: {ex.Message}");
+                throw;
             }
             catch (Exception e)
             {
@@ -111,7 +112,7 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
 
     private async Task<GraphUser> QueryUserAsync(string filter, CancellationToken token)
     {
-        var client = GetAuthenticatedClient();
+        var client = await GetAuthenticatedClient();
         try
         {
             var user = await client.Users.GetAsync(
@@ -120,7 +121,7 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
                     requestConfiguration.QueryParameters.Filter = filter;
                 }, token
             );
-            
+
             if (user is null || user.Value is null || user.Value.Count == 0)
             {
                 throw new InvalidOperationException($"User not found: {filter}");
@@ -131,12 +132,12 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
         {
             _logger.LogError($"Error fetching user: {filter}: {ex.Message}");
             throw;
-        }        
+        }
     }
 
     public async Task<GraphUser> GetUserFromSamAccountNameAsync(string userName, CancellationToken token)
     {
-        var client = GetAuthenticatedClient();
+        var client = await GetAuthenticatedClient();
         try
         {
             var user = await client.Users.GetAsync(
@@ -158,6 +159,6 @@ public class MSGraphService(ILogger<MSGraphService> logger, IHttpClientFactory c
         {
             _logger.LogError($"Error fetching user: {userName}: {ex.Message}");
             throw;
-        }        
+        }
     }
 }

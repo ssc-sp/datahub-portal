@@ -1,4 +1,4 @@
-﻿@using Datahub.Markdown.Model
+@using Datahub.Markdown.Model
 @* StorageConfigurationDialog.razor *@
 @using Datahub.Infrastructure.Services.Storage;
 @using Datahub.Core.Model.CloudStorage
@@ -8,19 +8,20 @@
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
 @inject ILogger<StorageConfigurationDialog> _logger
 @inject IDialogService _dialogService
+@inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 
 <MudDialog>
     <TitleContent>
-        <MudStack Row AlignItems=@AlignItems.Baseline >
+        <MudStack Row AlignItems=@AlignItems.Baseline>
             <MudText Typo=@Typo.h6>@MudDialog.Title</MudText>
             <MudSpacer />
-            <MudIconButton Icon=@Icons.Material.Filled.HelpOutline Disabled=@HideHelpIcon Href=@HelpUrl title=@Localizer["Help"]  />
+            <MudIconButton Icon=@Icons.Material.Filled.HelpOutline Disabled=@HideHelpIcon Href=@HelpUrl title=@Localizer["Help"] />
         </MudStack>
     </TitleContent>
     <DialogContent>
         <MudStack>
             <MudTextField @bind-Value=@ProjectCloudStorage.Name Label=@Localizer["Friendly Name"] Variant=@Variant.Text MaxLength="100" />
-            <MudCheckBox @bind-Value=@ProjectCloudStorage.Enabled >@Localizer["Enabled"]</MudCheckBox>
+            <MudCheckBox @bind-Value=@ProjectCloudStorage.Enabled>@Localizer["Enabled"]</MudCheckBox>
             @if (CloudProvider == CloudStorageProviderType.AWS)
             {
                 <AWSConnectionDataInput ConnectionData=@ConnectionDataInternal OnValidationChanged=@HandleConnectionValidationChange />
@@ -38,7 +39,8 @@
     </DialogContent>
     <DialogActions>
         <MudButton OnClick=@HandleCancel Class="px-4">@Localizer["Cancel"]</MudButton>
-        @if (_isConnectionVerified) {
+        @if (_isConnectionVerified)
+        {
             <MudButton Color=@Color.Success OnClick=@HandleSave Disabled=@SaveDisabled Variant=@Variant.Filled>
                 @Localizer["Save"]
             </MudButton>
@@ -110,7 +112,7 @@
 
     private void HandleSave()
     {
-        MudDialog.Close(DialogResult.Ok((ProjectCloudStorage,ConnectionDataInternal)));
+        MudDialog.Close(DialogResult.Ok((ProjectCloudStorage, ConnectionDataInternal)));
     }
 
     private async Task PopulateHelpUrl()
@@ -163,20 +165,27 @@
     {
         _isConnectionVerified = false;
         ProjectCloudStorage.Enabled = false;
-        await _dialogService.ShowMessageBox(
-            Localizer["Connection Failed"], 
+        await _dialogService.ShowMessageBoxAsync(
+            Localizer["Connection Failed"],
             Localizer["DataHub was unable to successfully connect to the storage provider. Please verify that your connection credentials " +
             "are correct and all necessary permissions are properly set on the storage account."]);
     }
 
     protected override async Task OnInitializedAsync()
     {
-        ConnectionDataInternal = await _cloudStorageManagerFactory.GetConnectionSecrets(ProjectCloudStorage, WorkspaceAcronym);
-        _isUnclassified = ConnectionDataInternal.Any(k => !string.IsNullOrEmpty(k.Value));
-        _isConnectionValid = _isUnclassified;
-        _isConnectionVerified = (ProjectCloudStorage?.Enabled ?? false) && _isUnclassified;
-        _initialConnectionData = new Dictionary<string, string>(ConnectionDataInternal);
-        await PopulateHelpUrl();
+        try
+        {
+            ConnectionDataInternal = await _cloudStorageManagerFactory.GetConnectionSecrets(ProjectCloudStorage, WorkspaceAcronym);
+            _isUnclassified = ConnectionDataInternal.Any(k => !string.IsNullOrEmpty(k.Value));
+            _isConnectionValid = _isUnclassified;
+            _isConnectionVerified = (ProjectCloudStorage?.Enabled ?? false) && _isUnclassified;
+            _initialConnectionData = new Dictionary<string, string>(ConnectionDataInternal);
+            await PopulateHelpUrl();
+        }
+        catch (MicrosoftIdentityWebChallengeUserException e)
+        {
+            _consentHandler.HandleException(e);
+        }
     }
 
 }

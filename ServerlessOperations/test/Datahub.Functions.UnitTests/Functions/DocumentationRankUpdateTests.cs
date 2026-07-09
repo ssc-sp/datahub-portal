@@ -22,7 +22,7 @@ namespace Datahub.Functions.UnitTests.Functions
         {
             var optionsBuilder =
                 new DbContextOptionsBuilder<DatahubProjectDBContext>()
-                   .UseInMemoryDatabase(new Guid().ToString());
+                   .UseInMemoryDatabase(Guid.NewGuid().ToString());
 
             // create a mock factory to return the db context when CreateDbContextAsync is called
             _dbContext = new DatahubProjectDBContext(optionsBuilder.Options);
@@ -37,14 +37,19 @@ namespace Datahub.Functions.UnitTests.Functions
         }
 
         [TearDown]
-        [OneTimeTearDown]
         public void TearDown()
         {
-            if (_dbContext!=null)
+            if (_dbContext != null)
             {
                 _dbContext.Database.EnsureDeleted();
                 _dbContext.Dispose();
+                _dbContext = null!;
             }
+        }
+
+        [OneTimeTearDown]
+        public void OneTimeTearDown()
+        {
             _loggerFactory?.Dispose();
         }
 

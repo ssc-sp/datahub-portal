@@ -1,5 +1,7 @@
 @using Datahub.Application.Services.ReverseProxy
+@using Datahub.Core.Data
 @using Datahub.Portal.Components.Sidebar
+@using Microsoft.AspNetCore.Components.Authorization
 
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
 @inject NavigationManager _navigationManager
@@ -65,7 +67,7 @@
 </MudItem>
 @if (isDisclaimerAccepted)
 {
-  <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceGuest" ProjectAcronym="@WorkspaceAcronymParam">
+  <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WebApp" ProjectAcronym="@WorkspaceAcronymParam">
     <Authorized>
       <MudGrid Class="mt-4">
 
@@ -96,6 +98,9 @@ else if (isAvailable)
 
 @code {
 
+  [CascadingParameter]
+  private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!;
+
   [Parameter] public string WorkspaceAcronymParam { get; set; }
 
   private bool isAvailable = false;
@@ -108,10 +113,27 @@ else if (isAvailable)
 
   protected override async Task OnInitializedAsync()
   {
+    var authState = await AuthenticationStateTask;
+    var user = authState.User;
+    if (user.IsInRole(RoleConstants.EXTERNAL_LOGIN)
+        && (string.IsNullOrWhiteSpace(WorkspaceAcronymParam)
+            || !user.IsInRole($"{WorkspaceAcronymParam}{RoleConstants.WEBAPP_SUFFIX}")))
+    {
+      _navigationManager.NavigateTo(PageRoutes.AccessDenied, forceLoad: true);
+      return;
+    }
+
     await using var ctx = await _dbContextFactory.CreateDbContextAsync();
     var workspace = await ctx.Projects
         .Include(x => x.Resources)
         .FirstOrDefaultAsync(x => x.Project_Acronym_CD == WorkspaceAcronymParam);
+
+    if (workspace is null)
+    {
+      _navigationManager.NavigateTo(PageRoutes.NotFound, forceLoad: true);
+      return;
+    }
+
     var appConfiguration = TerraformVariableExtraction.ExtractAppServiceConfiguration(workspace);
     _dataSensitivity = workspace.Data_Sensitivity;
     isAvailable = workspace is not null && !(string.IsNullOrWhiteSpace(appConfiguration?.Framework) && string.IsNullOrWhiteSpace(appConfiguration?.GitRepo) && string.IsNullOrWhiteSpace(appConfiguration?.ComposePath));

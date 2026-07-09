@@ -1,22 +1,24 @@
-﻿using Azure.Core.Amqp;
+using Azure.Core.Amqp;
 using Azure.Messaging.ServiceBus;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Functions.Entities;
 using Datahub.Functions.Services;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Clients;
 using FluentAssertions;
 using MassTransit;
 using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
-using Moq.Protected;
 using Moq;
+using Moq.Protected;
 using NSubstitute;
 using System.Net;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Datahub.Application.Services.Notification;
 
 namespace Datahub.Functions.UnitTests.Functions;
 
@@ -34,6 +36,7 @@ public class BugReportTests
     private BugReportMessage _bugReportMessage;
     private ISendEndpointProvider _iSendEndpointProvider;
     private IAlertRecordService _alertRecordService;
+    private AzureDevOpsClient _azClient;
 
     [SetUp]
     public void SetUp()
@@ -67,8 +70,11 @@ public class BugReportTests
         var gcNotifyService = Substitute.For<IGCNotifyService>();
  
         _alertRecordService = Substitute.For<IAlertRecordService>();
-
-        _bugReport = new BugReport(_logger, _azureConfig, gcNotifyService, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
+        var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
+        var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
+        var config = Substitute.For<IAzureDevopsConfiguration>();
+        _azClient = Substitute.For<AzureDevOpsClient>(config, tokenManager);
+        _bugReport = new BugReport(_logger, _azureConfig, gcNotifyService, _azClient, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(
             UserName: "Test",
             UserEmail: "example@email.com",

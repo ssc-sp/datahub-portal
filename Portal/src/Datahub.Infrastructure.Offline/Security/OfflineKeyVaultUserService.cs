@@ -30,6 +30,16 @@ namespace Datahub.Infrastructure.Offline.Security
             throw new NotImplementedException();
         }
 
+        public Task<Uri?> GetKeyAsync(string acronym, string name)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string?> GetSecretFromCentralKeyVaultAsync(string keyVaultName, string secretName)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool?> IsSecretExpired(string acronym, string name)
         {
             throw new NotImplementedException();
@@ -51,6 +61,11 @@ namespace Datahub.Infrastructure.Offline.Security
         }
 
         public Task StoreOrUpdateSecret(string acronym, string name, string secretValue, int monthValidity = 12)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> IsKeyEnabled(string workspaceAcronym, string keyName)
         {
             throw new NotImplementedException();
         }

@@ -223,11 +223,10 @@
         return (title.Length > MaxTitleLength ? Localizer["Workspace Title must be {0} characters or less", MaxTitleLength] : null)!;
     }
 
-    private readonly Converter<string> _converter = new()
-        {
-            SetFunc = value => value?.ToUpperInvariant() ?? string.Empty,
-            GetFunc = text => text?.ToUpperInvariant() ?? string.Empty,
-        };
+    private readonly IConverter<string, string> _converter =
+        new MudBlazor.Utilities.Converter.Chain.ReversibleChain<string, string>(
+            value => value?.ToUpperInvariant() ?? string.Empty,
+            text => text?.ToUpperInvariant() ?? string.Empty);
 
     private async Task UpdateProjectAcronym()
     {
@@ -242,7 +241,6 @@
         }
         _projectAcronym = await _projectCreationService.GenerateWorkspaceAcronymAsync(_projectTitle);
         await _acronymField!.ValueChanged.InvokeAsync(_projectAcronym);
-        await InvokeAsync(_acronymField!.ForceUpdate);
         await InvokeAsync(StateHasChanged);
     }
 

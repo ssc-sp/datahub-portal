@@ -33,7 +33,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -55,7 +55,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         // Setup new project template
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -104,7 +104,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -144,7 +144,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var expectedVariables = GenerateExpectedVariables(workspace, false);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -183,7 +183,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);        
         var expectedVariables = GenerateExpectedVariables(workspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,

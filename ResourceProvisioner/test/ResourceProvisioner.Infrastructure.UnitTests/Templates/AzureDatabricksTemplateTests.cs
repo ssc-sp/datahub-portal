@@ -35,7 +35,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                         TerraformTemplate.NewProjectTemplate,
@@ -58,7 +58,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
              workspaceAcronym, new List<string>()
              {
                             TerraformTemplate.NewProjectTemplate,
@@ -109,7 +109,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,
@@ -152,7 +152,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var expectedVariables = GenerateExpectedVariables(workspace, false);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,
@@ -193,7 +193,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
                 TerraformTemplate.NewProjectTemplate,
@@ -237,6 +237,10 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                 [TerraformVariables.DatabricksAdminUsers] = new JsonArray(),
                 [TerraformVariables.DatabricksProjectUsers] = new JsonArray(),
                 [TerraformVariables.DatabricksProjectGuests] = new JsonArray(),
+                [TerraformVariables.AzureDatabricksMLCluster] = false,
+                [TerraformVariables.AzureDatabricksGPUCluster] = false,
+                [TerraformVariables.AzureDatabricksGPUClusterSKU] = "Standard_NC4as_T4_v3",
+                [TerraformVariables.AzureDatabricksMLClusterSKU] = "Standard_D4ds_v5",
                 [TerraformVariables.AzureDatabricksEnterpriseOid] = _resourceProvisionerConfiguration.Terraform
                     .Variables
                     .azure_databricks_enterprise_oid,
@@ -287,6 +291,10 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                 })
                 .ToArray<JsonNode>()
             ),
+            [TerraformVariables.AzureDatabricksMLCluster] = false,
+            [TerraformVariables.AzureDatabricksGPUCluster] = false,
+            [TerraformVariables.AzureDatabricksGPUClusterSKU] = "Standard_NC4as_T4_v3",
+            [TerraformVariables.AzureDatabricksMLClusterSKU] = "Standard_D4ds_v5",
             [TerraformVariables.AzureDatabricksEnterpriseOid] =
                 _resourceProvisionerConfiguration.Terraform.Variables.azure_databricks_enterprise_oid,
             [TerraformVariables.AzureLogWorkspaceId] =

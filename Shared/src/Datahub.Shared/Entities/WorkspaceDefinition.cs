@@ -1,7 +1,7 @@
 namespace Datahub.Shared.Entities;
 
 [Serializable]
-public class WorkspaceDefinition
+public partial class WorkspaceDefinition
 {
     public required List<TerraformTemplate> Templates { get; set; }
     public required TerraformWorkspace Workspace { get; set; }

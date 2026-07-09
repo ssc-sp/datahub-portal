@@ -1,14 +1,18 @@
 using ResourceProvisioner.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.Identity.Web;
-using Microsoft.OpenApi.Models;
 using ResourceProvisioner.Application;
+using Microsoft.OpenApi;
+using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
 
+const string schemeId = "Bearer";
+
 // Add services to the container.
-builder.Services.AddApplicationServices(builder.Configuration);
-builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddResourceProvisionerApplicationServices(builder.Configuration);
+builder.Services.AddResourceProvisionerInfrastructureServices(builder.Configuration);
+builder.Services.AddFeatureManagement();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
@@ -19,28 +23,19 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(opts =>
 {
+
     opts.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Scheme = "Bearer",
+        Scheme = schemeId,
     });
-
-    opts.AddSecurityRequirement(new OpenApiSecurityRequirement
+    // Add security requirement using delegate (Swashbuckle v10+)
+    opts.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
+        [new OpenApiSecuritySchemeReference(schemeId, document)] = []
     });
 });
 

@@ -29,6 +29,14 @@ public static class HttpRequestTools
         if (roles.Contains(RoleConstants.GUEST_SUFFIX))
             return RoleConstants.GUEST_ROLE;
 
+        // External users can be granted dedicated WebApp/Storage role suffixes.
+        // Treat them as valid workspace access for reverse proxy ACL checks.
+        if (roles.Contains(RoleConstants.WEBAPP_SUFFIX))
+            return RoleConstants.GUEST_ROLE;
+
+        if (roles.Contains(RoleConstants.STORAGE_SUFFIX))
+            return RoleConstants.GUEST_ROLE;
+
         return null;
     }
 

@@ -48,3 +48,19 @@ and call the method to extract the variable you want. The method will return eit
         Then I should get the following value
         | Name                       | Value |
         | postgresPasswordSecretName | datahub-psql-password |
+
+    Scenario: Extracting a Postgres Configuration with server name suffix
+        When I call the method to extract the postgres configuration
+        Then the postgres configuration should have the following values
+          | Property            | Value |
+          | ResourceNameSuffix  |       |
+
+    Scenario: Extracting a Postgres Configuration without explicit suffix but with server name pattern
+        Given a datahub project with the following resources
+          | Resource Type                  | Input Json Content                                                                           | Json Content                                                                                                                                                                                                                                                     |
+          | terraform:azure-postgres       | { "postgres_sku": "B_Standard_B1ms" }                                                       | { "postgres_id": "/subscriptions/sub/resourceGroups/rg/providers/Microsoft.DBforPostgreSQL/flexibleServers/fsdh-atf2-psql-dev-001", "postgres_dns": "fsdh-atf2-psql-dev-001.postgres.database.azure.com", "postgres_db_name": "fsdh", "postgres_secret_name_admin": "admin", "postgres_secret_name_password": "password", "postgres_server_name": "fsdh-atf2-psql-dev-001" } |
+        When I call the method to extract the postgres configuration
+        Then the postgres configuration should have the following values
+          | Property            | Value           |
+          | PSQL_SKU            | B_Standard_B1ms |
+          | ResourceNameSuffix  | 001             |

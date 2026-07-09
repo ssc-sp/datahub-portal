@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using System.Collections.Concurrent;
@@ -13,6 +13,7 @@ using Datahub.Infrastructure.Services.Azure;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Graph.Models;
 using Datahub.Shared.Entities;
+using Datahub.Shared.Clients;
 
 namespace Datahub.Portal.Controllers
 {
@@ -24,6 +25,7 @@ namespace Datahub.Portal.Controllers
         private readonly DatahubProjectDBContext _dbProjectContext;
         private readonly IMemoryCache _cache;
         private readonly HttpClient _httpClient;
+        private readonly AzAccessTokenManager _azTokenManager;
         private readonly DatahubPortalConfiguration _portalConfiguration;
 
         private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks =
@@ -33,12 +35,14 @@ namespace Datahub.Portal.Controllers
         public HealthCheckController(DatahubProjectDBContext dbProjectContext,
             IMemoryCache cache,
             DatahubPortalConfiguration portalConfiguration,
+            AzAccessTokenManager azAccessTokenManager,
             HttpClient httpClient)
         {
             _dbProjectContext = dbProjectContext;
             _cache = cache;
             _portalConfiguration = portalConfiguration;
             _httpClient = httpClient;
+            _azTokenManager = azAccessTokenManager;
         }
 
         [HttpGet]
@@ -101,17 +105,11 @@ namespace Datahub.Portal.Controllers
             }
 
             var kuduUrl = $"https://fsdh-proj-{ws.ToLower()}-webapp-{env}.scm.azurewebsites.net/api/logstream";
-            var access_token = await GetAccessTokenAsync();
-            //await HttpContext.GetTokenAsync("access_token");
-
-            if (string.IsNullOrEmpty(access_token))
-            {
-                return Unauthorized("Access token is missing. Le jeton d'accès est manquant.");
-            }
+            var infraToken = await _azTokenManager.AccessAzureManagementTokenAsync();
 
             var request = new HttpRequestMessage(HttpMethod.Get, kuduUrl);
 
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", access_token);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", infraToken.Token);
             try
             {
                 var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
@@ -162,31 +160,6 @@ namespace Datahub.Portal.Controllers
                 .ToListAsync();
 
             return infrastructureHealth;
-        }
-
-        private async Task<string> GetAccessTokenAsync()
-        {
-            var config = new AzureDevOpsConfiguration
-            {
-                TenantId = _portalConfiguration.AzureAd.TenantId,
-                ClientId = _portalConfiguration.AzureAd.ClientId,
-                ClientSecret = _portalConfiguration.AzureAd.ClientSecret
-            };
-
-            var cancellationToken = CancellationToken.None;
-            var audience = AzureManagementUrls.ManagementUrl;
-            var url = $"{AzureManagementUrls.LoginUrl}/{config.TenantId}/oauth2/token";
-            var content = new FormUrlEncodedContent(new Dictionary<string, string>
-            {
-                { "grant_type", "client_credentials" },
-                { "client_id", config.ClientId },
-                { "client_secret", config.ClientSecret },
-                { "scope", $"{audience}.default" },
-                { "resource", audience }
-            });
-            var tokenResponse =
-                await _httpClient.PostAsync<AccessTokenResponse>(url, default, content, cancellationToken);
-            return tokenResponse?.access_token;
         }
     }
 }

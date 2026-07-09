@@ -18,7 +18,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using NSubstitute;
 using NUnit.Framework;
-using Octokit;
 
 namespace Datahub.Functions.UnitTests
 {

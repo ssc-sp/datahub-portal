@@ -11,6 +11,7 @@ using ResourceProvisioner.Application.Services;
 using ResourceProvisioner.Functions;
 using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
+using Microsoft.FeatureManagement;
 
 namespace ResourceProvisioner.SpecflowTests.Hooks;
 
@@ -29,6 +30,9 @@ public class Hooks
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         configuration.Bind(resourceProvisionerConfiguration);
 
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(Task.FromResult(true));
+
         var httpMessageHandler = new TestHttpMessageHandler();
         httpMessageHandler.AddResponse(AdoPullRequestResponseMessage());
         httpMessageHandler.AddResponse(AdoPullRequestResponseMessage());
@@ -46,8 +50,10 @@ public class Hooks
         var repositoryService = Substitute.ForPartsOf<RepositoryService>(
             httpClientFactorySubstitute,
             Substitute.For<ILogger<RepositoryService>>(),
-            resourceProvisionerConfiguration,
-            Substitute.For<ITerraformService>());
+            resourceProvisionerConfiguration.AsOptions(),
+            Substitute.For<ITerraformService>(),
+            featureManager,
+            configuration);
 
         repositoryService
             .GetBranchLastCommitId(Arg.Any<string>())
@@ -99,10 +105,13 @@ public class Hooks
         var resourceProvisionerConfiguration = new ResourceProvisionerConfiguration();
         configuration.Bind(resourceProvisionerConfiguration);
 
+        var featureManager = Substitute.For<IFeatureManagerSnapshot>();
+        featureManager.IsEnabledAsync(Arg.Any<string>()).Returns(Task.FromResult(true));
+
         var terraformServiceLoggerSubstitute = Substitute.For<ILogger<TerraformService>>();
         var terraformService = new TerraformService(
             terraformServiceLoggerSubstitute,
-            resourceProvisionerConfiguration,
+            resourceProvisionerConfiguration.AsOptions(),
             configuration);
 
         var httpClientFactorySubstitute = Substitute.For<IHttpClientFactory>();
@@ -113,8 +122,10 @@ public class Hooks
         var repositoryService = new RepositoryService(
             httpClientFactorySubstitute,
             repositoryServiceLoggerSubstitute,
-            resourceProvisionerConfiguration,
-            terraformService);
+            resourceProvisionerConfiguration.AsOptions(),
+            terraformService,
+            featureManager,
+            configuration);
 
         // register dependencies
         objectContainer.RegisterInstanceAs(resourceProvisionerConfiguration);

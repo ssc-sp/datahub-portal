@@ -17,7 +17,7 @@ namespace Datahub.Core.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.14")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -1557,6 +1557,88 @@ namespace Datahub.Core.Migrations
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.Subnet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AddressPrefix")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<int>("SubnetGroup")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubnetName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("VNetId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VNetId");
+
+                    b.ToTable("Subnets", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.VNet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VNetId")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("VNetName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("VNets", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.WorkspaceSubnet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("SubnetId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubnetId");
+
+                    b.HasIndex("ProjectId", "SubnetId")
+                        .IsUnique();
+
+                    b.ToTable("WorkspaceSubnets", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
                 {
                     b.Property<int>("Id")
@@ -1661,6 +1743,53 @@ namespace Datahub.Core.Migrations
                     b.HasIndex("PortalUserId");
 
                     b.ToTable("ExternalUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserLockAuditEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTimeOffset?>("AppliedExpiryDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EvidenceUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("PerformedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset?>("PreviousExpiryDate")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventType");
+
+                    b.HasIndex("PerformedByUserId");
+
+                    b.HasIndex("PortalUserId", "EventDate");
+
+                    b.ToTable("ExternalUserLockAuditEvents", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
@@ -2314,6 +2443,47 @@ namespace Datahub.Core.Migrations
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.Subnet", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Subscriptions.VNet", "VNet")
+                        .WithMany("Subnets")
+                        .HasForeignKey("VNetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VNet");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.VNet", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", "Subscription")
+                        .WithMany("VNets")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.WorkspaceSubnet", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("WorkspaceSubnets")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Subscriptions.Subnet", "Subnet")
+                        .WithMany("WorkspaceSubnets")
+                        .HasForeignKey("SubnetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Subnet");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
@@ -2340,6 +2510,24 @@ namespace Datahub.Core.Migrations
                     b.Navigation("DeactivatedByUser");
 
                     b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserLockAuditEvent", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PerformedByUser")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PerformedByUser");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
@@ -2475,11 +2663,25 @@ namespace Datahub.Core.Migrations
                     b.Navigation("UserRoles");
 
                     b.Navigation("Whitelist");
+
+                    b.Navigation("WorkspaceSubnets");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
                 {
+                    b.Navigation("VNets");
+
                     b.Navigation("Workspaces");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.Subnet", b =>
+                {
+                    b.Navigation("WorkspaceSubnets");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.VNet", b =>
+                {
+                    b.Navigation("Subnets");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>

@@ -1,9 +1,10 @@
-﻿@using Azure.Core
+@using Azure.Core
 @using Datahub.Portal.Pages.Workspace.Settings
 @using Datahub.Core.Storage;
 
 @inject DatahubPortalConfiguration _portalConfiguration
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject ISystemTokenCredentialService _tokenCredentialService
 
 @if (TermsAcknowledged)
 {
@@ -78,7 +79,7 @@ else
 
         await using var context = await _dbContextFactory.CreateDbContextAsync();
 
-        var armClient = WorkspaceSharedKeyAccessControl.BuildArmClient(_portalConfiguration);
+        var armClient = WorkspaceSharedKeyAccessControl.BuildArmClient(_portalConfiguration, _tokenCredentialService);
         var storageResourceId = await WorkspaceSharedKeyAccessControl.LoadStorageResourceId(context, ProjectAcronym);
         _isSasTokenEnabled = await WorkspaceSharedKeyAccessControl.FetchStorageAllowSharedKeyAccess(armClient, new ResourceIdentifier(storageResourceId)) ?? false;
         _isFinishedLoading = true;

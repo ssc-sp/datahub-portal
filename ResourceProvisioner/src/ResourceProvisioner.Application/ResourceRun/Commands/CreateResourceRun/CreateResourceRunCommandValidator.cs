@@ -1,11 +1,12 @@
+using Datahub.Shared.Entities;
 using FluentValidation;
 using ResourceProvisioner.Application.Common;
 
 namespace ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 
-public class CreateResourceRunCommandValidator : AbstractValidator<CreateResourceRunCommand>
+public class WorkspaceDefinitionValidator : AbstractValidator<WorkspaceDefinition>
 {
-    public CreateResourceRunCommandValidator()
+    public WorkspaceDefinitionValidator()
     {
         RuleFor(x => x.Workspace)
             .NotNull()

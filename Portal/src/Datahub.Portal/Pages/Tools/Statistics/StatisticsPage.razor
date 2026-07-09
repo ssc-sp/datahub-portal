@@ -24,7 +24,7 @@
 <DHMainContentTitle Title="@Localizer["Statistics & reports"]"/>
 @if (!_isLoading)
 {
-    <MudTabs Elevation="0" Outlined ApplyEffectsToContainer Class="mt-4" PanelClass="pa-6" Rounded="true"
+    <MudTabs Elevation="0" Outlined ApplyEffectsToContainer Class="mt-4" TabPanelsClass="pa-6" Rounded="true"
              SliderColor="Color.Primary">
         <CascadingValue Value="Locales">
             <MudTabPanel Text="@Localizer["Summary"]">
@@ -139,7 +139,7 @@
 }
 else
 {
-    <MudTabs Elevation="0" Outlined ApplyEffectsToContainer Class="mt-4" PanelClass="pa-6" Rounded="true"
+    <MudTabs Elevation="0" Outlined ApplyEffectsToContainer Class="mt-4" TabPanelsClass="pa-6" Rounded="true"
              SliderColor="Color.Primary">
         <MudTabPanel>
             <TabContent>

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
@@ -432,7 +432,8 @@ public class Datahub_Project : IComparable<Datahub_Project>
                 Code = "SSC"
             },
             Users = users,
-            SubscriptionId = DatahubAzureSubscription?.SubscriptionId ?? throw new InvalidOperationException("Azure subscription not found.")
+            SubscriptionId = DatahubAzureSubscription?.SubscriptionId ?? throw new InvalidOperationException("Azure subscription not found."),
+            IsProtectedB = Data_Sensitivity == ClassificationType.ProtectedB
         };
     }
 
@@ -456,4 +457,9 @@ public class Datahub_Project : IComparable<Datahub_Project>
 
         return VersionUpdateType.None;
     }
+
+    /// <summary>
+    /// Gets or sets the list of subnet mappings associated with this workspace.
+    /// </summary>
+    public List<WorkspaceSubnet> WorkspaceSubnets { get; set; } = new();
 }

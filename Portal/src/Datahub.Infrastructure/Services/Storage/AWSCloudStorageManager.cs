@@ -1,4 +1,4 @@
-﻿using Amazon;
+using Amazon;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
@@ -130,7 +130,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		return DeleteObjectAsync(ToAWSFolder(folderPath));
 	}
 
-	public Task<Uri> DownloadFileAsync(string container, string filePath)
+	public Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null)
 	{
 		using var s3Client = GetClient();
 
@@ -189,7 +189,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		throw new NotImplementedException();
 	}
 
-	public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, bool searchInContent = false)
+	public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
 	{
 		throw new NotImplementedException();
 	}

@@ -15,8 +15,8 @@ public interface IRepositoryService
     public Task PushInfrastructureRepository(string workspaceAcronym);
     public Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcrynom);
     public Task FetchRepositoriesAndCheckoutProjectBranch(TerraformWorkspace workspace);
-    public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(CreateResourceRunCommand command, string username);
-    public Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, CreateResourceRunCommand command, string username);
+    public Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition command, string username);
+    public Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, WorkspaceDefinition command, string username);
 
-    public Task<PullRequestUpdateMessage> HandleResourcing(CreateResourceRunCommand command);    
+    public Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command);    
 }

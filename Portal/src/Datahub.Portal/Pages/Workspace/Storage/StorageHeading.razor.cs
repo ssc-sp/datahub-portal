@@ -1,4 +1,5 @@
 using Datahub.Core.Model.Achievements;
+using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
 
@@ -8,6 +9,7 @@ public partial class StorageHeading
 {
     private enum ButtonAction
     {
+        BackToContainers,
         Upload,
         Download,
         Share,
@@ -18,6 +20,79 @@ public partial class StorageHeading
         NewFolder,
         Publish
     }
+
+    private string ButtonActionToString(ButtonAction action)
+    {
+        switch (action)
+        {
+            case ButtonAction.BackToContainers:
+                return "Back to Containers";
+            case ButtonAction.DeleteFolder:
+                return "Delete Folder";
+            case ButtonAction.NewFolder:
+                return "New Folder";
+            default:
+                return action.ToString();
+        }
+    }
+
+    private string GetButtonActionIcon(ButtonAction action)
+    {
+        switch (action)
+        {
+            case ButtonAction.BackToContainers:
+                return "fas fa-arrow-left";
+            case ButtonAction.Upload:
+                return "fas fa-upload";
+            case ButtonAction.Download:
+                return "fas fa-download";
+            case ButtonAction.Rename:
+                return "fas fa-edit";
+            case ButtonAction.Delete:
+                return "fas fa-trash-alt";
+            case ButtonAction.NewFolder:
+                return "fas fa-folder-plus";
+            case ButtonAction.DeleteFolder:
+                return "fas fa-folder-minus";
+            case ButtonAction.Publish:
+                return "fas fa-bullhorn";
+            default:
+                return "fas fa-arrow-left";
+        }
+    }
+
+    private async Task GetButtonActionHandler(ButtonAction action)
+    {
+        switch(action)
+        {
+            case ButtonAction.BackToContainers:
+                await HandleBackToContainers();
+                break;
+            case ButtonAction.Upload:
+                await HandleUpload();
+                break;
+            case ButtonAction.Download:
+                await HandleDownload();
+                break;
+            case ButtonAction.Rename:
+                await HandleRename();
+                break;
+            case ButtonAction.Delete:
+                await HandleDelete();
+                break;
+            case ButtonAction.NewFolder:
+                await HandleNewFolder();
+                break;
+            case ButtonAction.DeleteFolder:
+                await HandleDeleteFolder();
+                break;
+            case ButtonAction.Publish:
+                await HandlePublish();
+                break;
+            default:
+                break;
+        }
+    }
     
     private async Task HandleUpload()
     {
@@ -25,6 +100,11 @@ public partial class StorageHeading
             return;
 
         await _module.InvokeVoidAsync("promptForFileUpload");
+    }
+
+    private async Task HandleBackToContainers()
+    {
+        await OnBackToContainers.InvokeAsync();
     }
 
     private async Task HandleDownload()
@@ -54,7 +134,8 @@ public partial class StorageHeading
 
         var publishFiles = SelectedItems
             .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
-            .Where(f => f is not null);
+            .Where(f => f is not null)
+            .Select(f => f!);
 
         await OnPublishFiles.InvokeAsync(publishFiles);
         //TODO telemetry
@@ -109,7 +190,7 @@ public partial class StorageHeading
         if (selectedFile is not null && _ownsSelectedFiles)
         {
             var newName = await _jsRuntime.InvokeAsync<string>("prompt", Localizer["Enter a new name for the file."].ToString(), 
-                FileExplorer.GetFileName(selectedFile.filename));
+                FileExplorer.GetFileName(selectedFile.filename ?? string.Empty));
             newName = newName?.Replace("/", "").Trim();
 
             await OnFileRename.InvokeAsync(newName);
@@ -166,20 +247,27 @@ public partial class StorageHeading
 
     private bool IsActionDisabled(ButtonAction buttonAction)
     {
+        if(buttonAction is ButtonAction.BackToContainers)
+        { return false; }
+
         if (_currentUserRole is null)
             return true;
 
+        var hasExternalStorageAccess = _currentUserRole.Id is (int)Project_Role.RoleNames.Storage or (int)Project_Role.RoleNames.WebAppAndStorage;
+        var canWriteStorage = _currentUserRole.IsAtLeastCollaborator || hasExternalStorageAccess;
+        var canReadStorage = _currentUserRole.IsAtLeastGuest || hasExternalStorageAccess;
+
         return buttonAction switch
         {
-            ButtonAction.Upload => !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Upload => !canWriteStorage,
             ButtonAction.AzSync => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastGuest,
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage,
             ButtonAction.Share => !_isUnclassifiedSingleFile,
-            ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator || SelectedItems.Count > 1,
-            ButtonAction.NewFolder => !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !_currentUserRole.IsAtLeastCollaborator,
-            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !_currentUserRole.IsAtLeastCollaborator,
+            ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
+            ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
+            ButtonAction.NewFolder => !canWriteStorage,
+            ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !canWriteStorage,
+            ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             _ => false
         };
     }

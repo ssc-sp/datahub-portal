@@ -15,7 +15,7 @@ namespace Datahub.Core.Migrations.SqliteDatahub
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "9.0.14");
+            modelBuilder.HasAnnotation("ProductVersion", "10.0.9");
 
             modelBuilder.Entity("Datahub.Core.Model.Achievements.Achievement", b =>
                 {
@@ -1503,6 +1503,82 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.ToTable("AzureSubscriptions", (string)null);
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.Subnet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("AddressPrefix")
+                        .HasMaxLength(50)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("SubnetGroup")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("SubnetName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VNetId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("VNetId");
+
+                    b.ToTable("Subnets", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.VNet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SubscriptionId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("VNetId")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("VNetName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubscriptionId");
+
+                    b.ToTable("VNets", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.WorkspaceSubnet", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProjectId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("SubnetId")
+                        .HasColumnType("INTEGER");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SubnetId");
+
+                    b.HasIndex("ProjectId", "SubnetId")
+                        .IsUnique();
+
+                    b.ToTable("WorkspaceSubnets", (string)null);
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
                 {
                     b.Property<int>("Id")
@@ -1601,6 +1677,51 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.HasIndex("PortalUserId");
 
                     b.ToTable("ExternalUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserLockAuditEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("AppliedExpiryDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("EventDate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EvidenceUrl")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PerformedByUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PortalUserId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<long?>("PreviousExpiryDate")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EventType");
+
+                    b.HasIndex("PerformedByUserId");
+
+                    b.HasIndex("PortalUserId", "EventDate");
+
+                    b.ToTable("ExternalUserLockAuditEvents", (string)null);
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
@@ -2241,6 +2362,47 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("Project");
                 });
 
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.Subnet", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Subscriptions.VNet", "VNet")
+                        .WithMany("Subnets")
+                        .HasForeignKey("VNetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("VNet");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.VNet", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", "Subscription")
+                        .WithMany("VNets")
+                        .HasForeignKey("SubscriptionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.WorkspaceSubnet", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Projects.Datahub_Project", "Project")
+                        .WithMany("WorkspaceSubnets")
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Datahub.Core.Model.Subscriptions.Subnet", "Subnet")
+                        .WithMany("WorkspaceSubnets")
+                        .HasForeignKey("SubnetId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Project");
+
+                    b.Navigation("Subnet");
+                });
+
             modelBuilder.Entity("Datahub.Core.Model.Users.EntraUser", b =>
                 {
                     b.HasOne("Datahub.Core.Model.Users.PortalUser", "PortalUser")
@@ -2267,6 +2429,24 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("DeactivatedByUser");
 
                     b.Navigation("PortalUser");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUserLockAuditEvent", b =>
+                {
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "PerformedByUser")
+                        .WithMany()
+                        .HasForeignKey("PerformedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("Datahub.Core.Model.Users.PortalUser", "User")
+                        .WithMany()
+                        .HasForeignKey("PortalUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("PerformedByUser");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.PortalUser", b =>
@@ -2402,11 +2582,25 @@ namespace Datahub.Core.Migrations.SqliteDatahub
                     b.Navigation("UserRoles");
 
                     b.Navigation("Whitelist");
+
+                    b.Navigation("WorkspaceSubnets");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Subscriptions.DatahubAzureSubscription", b =>
                 {
+                    b.Navigation("VNets");
+
                     b.Navigation("Workspaces");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.Subnet", b =>
+                {
+                    b.Navigation("WorkspaceSubnets");
+                });
+
+            modelBuilder.Entity("Datahub.Core.Model.Subscriptions.VNet", b =>
+                {
+                    b.Navigation("Subnets");
                 });
 
             modelBuilder.Entity("Datahub.Core.Model.Users.ExternalUser", b =>

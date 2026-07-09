@@ -1,36 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Security.Claims;
-using System.Threading.Tasks;
 using Blazored.LocalStorage;
 using Bunit;
+using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
-using Datahub.Application.Services.Achievements;
 using Datahub.Application.Services;
+using Datahub.Application.Services.Achievements;
+using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.UserManagement;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Users;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Services.UserManagement;
+using Datahub.Portal.Pages.Public;
+using Datahub.Tests.Portal;
+using MassTransit;
+using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.DependencyInjection;
-using MediatR;
+using Microsoft.Extensions.Localization;
+using Microsoft.Identity.Web;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor;
-using Xunit;
-using Datahub.Tests.Portal;
-using NSubstitute;
 using MudBlazor.Services;
-using Datahub.Portal.Pages.Public;
-using MassTransit;
-using Datahub.Application.Services.Metadata;
-using Datahub.Core.Model.Users;
-using Bunit.TestDoubles;
+using NSubstitute;
+using System;
+using System.Collections.Generic;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using Xunit;
 
 namespace Datahub.Tests
 {
@@ -56,6 +57,7 @@ namespace Datahub.Tests
         private readonly Mock<ISnackbar> _snackBarMock;
         private readonly Mock<IPortalUserTelemetryService> _portalUserTelemetryServiceMock;
         private readonly Mock<IStringLocalizer> _stringLocalizerMock;
+        private readonly Mock<MicrosoftIdentityConsentAndConditionalAccessHandler> _consentHandler;
         private readonly ISendEndpointProvider _sendEndpointProvider;
         private readonly RegisterPage _component;
         public LoginAndRegistrationTests()
@@ -78,7 +80,8 @@ namespace Datahub.Tests
             _projectUserManagementServiceMock = new Mock<IProjectUserManagementService>();
             _resourceMessagingServiceMock = new Mock<IResourceMessagingService>();
             _stringLocalizerMock = new Mock<IStringLocalizer> { CallBase = false };
-
+            var fakeService = new Mock<IServiceProvider>();
+            _consentHandler = new Mock<MicrosoftIdentityConsentAndConditionalAccessHandler>(fakeService.Object);
             _sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _hostingMock = Substitute.For<IWebHostEnvironment>();
 
@@ -135,6 +138,7 @@ namespace Datahub.Tests
             ctx.Services.AddSingleton(_portalUserTelemetryServiceMock.Object);
             ctx.Services.AddSingleton(_projectUserManagementServiceMock.Object);
             ctx.Services.AddSingleton(_sendEndpointProvider);
+            ctx.Services.AddSingleton(_consentHandler.Object);
 
             ctx.Services.AddMudServices();
 
@@ -227,8 +231,8 @@ namespace Datahub.Tests
 
             cut.Instance.HandleLogin();
 
-            // verify redirect to locked user page
-            Assert.Equal("http://localhost/locked", navigationManager.Uri);
+            // verify redirect to locked user page (HandleLogin is async void, use WaitForAssertion to avoid CI timing issues)
+            cut.WaitForAssertion(() => Assert.Equal("http://localhost/locked", navigationManager.Uri));
         }
 
 
@@ -280,8 +284,7 @@ namespace Datahub.Tests
             var cut = ctx.Render<Login>();
             
 
-            var emailInput = cut.Find("#Email");
-            emailInput.Change(email);
+            cut.Instance.loginModel.Email = email;
             cut.Render(); // re-render to reflect the input change
 
             cut.Instance.HandleLogin();

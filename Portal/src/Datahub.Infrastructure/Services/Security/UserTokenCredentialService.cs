@@ -1,0 +1,123 @@
+using Azure.Core;
+using Datahub.Application.Services.Security;
+using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
+using Microsoft.Identity.Web;
+using Microsoft.TeamFoundation.TestManagement.WebApi;
+using System.Security.Claims;
+using System.Text;
+using System.Text.Json;
+
+namespace Datahub.Infrastructure.Services.Security;
+
+/// <summary>
+/// This class provides a bridge between MSAL and Azure SDK's TokenCredential system, allowing for user impersonation when accessing Azure resources like Key Vault and Storage.
+/// It retrieves access tokens for the currently authenticated user and caches them for subsequent requests to improve performance.
+/// The service ensures that tokens are acquired on behalf of the user, enabling fine-grained access control based on the user's identity and permissions.
+/// </summary>
+public class UserTokenCredentialService : IUserTokenCredentialService
+{
+    private readonly ITokenAcquisition _tokenAcquisition;
+    private readonly ILogger<UserTokenCredentialService> _logger;
+    private string? _currentUserVaultToken;
+    private readonly Dictionary<UserTokenService, string> tokenCache = new();
+
+    public UserTokenCredentialService(
+        ITokenAcquisition tokenAcquisition,
+        ILogger<UserTokenCredentialService> logger)
+    {
+        _tokenAcquisition = tokenAcquisition;
+        _logger = logger;
+    }
+
+    public TokenCredential GetTokenCredentialForUser(UserTokenService service, string? token = null)
+    {
+        if (tokenCache.TryGetValue(service, out token))
+        {
+            _logger.LogDebug("Using cached token for service {Service}", service);
+        }
+        if (token is null)
+            throw new ArgumentException($"{nameof(GetUserToken)} need to be called before {nameof(GetTokenCredentialForUser)}");
+        return new StaticAccessTokenCredential(token, _logger);
+    }
+
+    private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1);
+
+    public async Task<string> GetUserToken(ClaimsPrincipal claimsPrincipal, UserTokenService service)
+    {
+        try
+        {
+            await _semaphore.WaitAsync();
+            if (tokenCache.TryGetValue(service, out var cachedToken))
+            {
+                _logger.LogDebug("Using cached token for user {UserId} and service {Service}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value, service);
+                return cachedToken;
+            }
+            string[] scopes = service switch
+            {
+                UserTokenService.Storage => ["https://storage.azure.com/user_impersonation"],
+                UserTokenService.KeyVault => ["https://vault.azure.net/user_impersonation"],
+                UserTokenService.Graph => ["https://graph.microsoft.com/User.Read"],
+                _ => throw new ArgumentOutOfRangeException(nameof(service), service, "Unsupported service")
+            };
+
+            var token = await _tokenAcquisition.GetAccessTokenForUserAsync(
+                scopes,
+                authenticationScheme: OpenIdConnectDefaults.AuthenticationScheme,
+                user: claimsPrincipal);
+            tokenCache.Add(service, token);
+            _logger.LogDebug("Using on-behalf-of for user {UserId}", claimsPrincipal?.FindFirst(ClaimTypes.NameIdentifier)?.Value);
+            return token;
+        } finally { _semaphore.Release(); }
+    }
+
+    private sealed class StaticAccessTokenCredential : TokenCredential
+    {
+        private readonly AccessToken _accessToken;
+
+        public StaticAccessTokenCredential(string token, ILogger logger)
+        {
+            _accessToken = new AccessToken(token, GetTokenExpiry(token, logger));
+        }
+
+        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            => _accessToken;
+
+        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
+            => ValueTask.FromResult(_accessToken);
+
+        private static DateTimeOffset GetTokenExpiry(string token, ILogger logger)
+        {
+            try
+            {
+                var parts = token.Split('.');
+                if (parts.Length < 2)
+                {
+                    return DateTimeOffset.UtcNow.AddMinutes(5);
+                }
+
+                var payload = parts[1]
+                    .Replace('-', '+')
+                    .Replace('_', '/');
+
+                var padding = payload.Length % 4;
+                if (padding != 0)
+                {
+                    payload = payload.PadRight(payload.Length + (4 - padding), '=');
+                }
+
+                var json = Encoding.UTF8.GetString(Convert.FromBase64String(payload));
+                using var document = JsonDocument.Parse(json);
+                return document.RootElement.TryGetProperty("exp", out var expElement) && expElement.TryGetInt64(out var exp)
+                    ? DateTimeOffset.FromUnixTimeSeconds(exp)
+                    : DateTimeOffset.UtcNow.AddMinutes(5);
+            }
+            catch (Exception ex)
+            {
+                logger.LogDebug(ex, "Unable to parse expiry from user Key Vault access token. Using a fallback expiry.");
+                return DateTimeOffset.UtcNow.AddMinutes(5);
+            }
+        }
+    }
+}

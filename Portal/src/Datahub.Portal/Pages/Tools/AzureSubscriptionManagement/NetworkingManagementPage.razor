@@ -1,0 +1,233 @@
+@using Datahub.Application.Services.Subscriptions
+@using Datahub.Core.Model.Subscriptions
+
+@inject INetworkingManagementService _networkingService
+@inject IDatahubAzureSubscriptionService _subscriptionService
+@inject ISnackbar _snackbar
+@inject ILogger<NetworkingManagementPage> _logger
+
+<MudStack Spacing="4">
+    <MudText Typo="Typo.h2">Networking Management</MudText>
+    <MudText>
+        Manage Azure Virtual Networks (VNets) and their subnets. Each workspace is mapped to 8 subnets sharing the same subnet group number.
+    </MudText>
+
+    @* ── VNet section ── *@
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h3">Virtual Networks</MudText>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
+                  OnClick="@OpenAddVNetDialog">
+            Add VNet
+        </DHButton>
+    </MudStack>
+
+    <MudTable Items="_vnets"
+              T="VNet"
+              Dense="true"
+              Hover="true"
+              Outlined="true"
+              CanCancelEdit="true"
+              SortLabel="@Localizer["Sort by"]"
+              CommitEditTooltip="@Localizer["Commit edit"]"
+              CancelEditTooltip="@Localizer["Cancel edit"]"
+              IsEditRowSwitchingBlocked="true"
+              EditTrigger="TableEditTrigger.EditButton"
+              ApplyButtonPosition="TableApplyButtonPosition.Start"
+              EditButtonPosition="TableEditButtonPosition.Start"
+              RowEditPreview="@BackupVNet"
+              RowEditCancel="@CancelVNetEdit"
+              RowEditCommit="@CommitVNetEdit">
+        <HeaderContent>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<VNet, object>(x => x.Id))">ID</MudTableSortLabel>
+            </MudTh>
+            <MudTh>
+                <MudTableSortLabel SortBy="@(new Func<VNet, object>(x => x.VNetName))">Name</MudTableSortLabel>
+            </MudTh>
+            <MudTh>VNet Resource ID</MudTh>
+            <MudTh>Subscription</MudTh>
+            <MudTh>Subnets</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">@context.VNetName</MudTd>
+            <MudTd DataLabel="VNet Resource ID">
+                <MudText Style="font-family:monospace; font-size:0.8rem; word-break:break-all">@context.VNetId</MudText>
+            </MudTd>
+            <MudTd DataLabel="Subscription">@GetSubscriptionLabel(context.SubscriptionId)</MudTd>
+            <MudTd DataLabel="Subnets">
+                <MudButton Variant="Variant.Text" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Lan"
+                           OnClick="@(() => SelectVNet(context))">
+                    @context.Subnets.Count subnet(s)
+                </MudButton>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@SidebarIcons.Delete" Size="Size.Small" Color="Color.Error"
+                               OnClick="@(() => DeleteVNet(context))"/>
+            </MudTd>
+        </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="ID">@context.Id</MudTd>
+            <MudTd DataLabel="Name">
+                <MudTextField @bind-Value="@context.VNetName" Required/>
+            </MudTd>
+            <MudTd DataLabel="VNet Resource ID">
+                <MudTextField @bind-Value="@context.VNetId" Required/>
+            </MudTd>
+            <MudTd DataLabel="Subscription">@GetSubscriptionLabel(context.SubscriptionId)</MudTd>
+            <MudTd/>
+            <MudTd/>
+        </RowEditingTemplate>
+        <EditButtonContent Context="button">
+            <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0"
+                           OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+        </EditButtonContent>
+    </MudTable>
+
+    @* ── Subnet section ── *@
+    @if (_selectedVNet is not null)
+    {
+        <MudDivider Class="my-2"/>
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.h3">
+                Subnets — <em>@_selectedVNet.VNetName</em>
+            </MudText>
+            <MudStack Row>
+                <DHButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@SidebarIcons.Plus"
+                          OnClick="@OpenAddSubnetDialog">
+                    Add Subnet
+                </DHButton>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" aria-label="Close subnets panel"
+                               OnClick="@(() => _selectedVNet = null)"/>
+            </MudStack>
+        </MudStack>
+
+        <MudTable Items="_subnets"
+                  T="Subnet"
+                  Dense="true"
+                  Hover="true"
+                  Outlined="true"
+                  CanCancelEdit="true"
+                  SortLabel="@Localizer["Sort by"]"
+                  CommitEditTooltip="@Localizer["Commit edit"]"
+                  CancelEditTooltip="@Localizer["Cancel edit"]"
+                  IsEditRowSwitchingBlocked="true"
+                  EditTrigger="TableEditTrigger.EditButton"
+                  ApplyButtonPosition="TableApplyButtonPosition.Start"
+                  EditButtonPosition="TableEditButtonPosition.Start"
+                  RowEditPreview="@BackupSubnet"
+                  RowEditCancel="@CancelSubnetEdit"
+                  RowEditCommit="@CommitSubnetEdit">
+            <HeaderContent>
+                <MudTh>
+                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.Id))">ID</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.SubnetName))">Name</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.AddressPrefix ?? string.Empty))">Address Prefix</MudTableSortLabel>
+                </MudTh>
+                <MudTh>
+                    <MudTableSortLabel SortBy="@(new Func<Subnet, object>(x => x.SubnetGroup))">Subnet Group</MudTableSortLabel>
+                </MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="Name">
+                    <MudText Style="font-family:monospace; font-size:0.85rem">@context.SubnetName</MudText>
+                </MudTd>
+                <MudTd DataLabel="Address Prefix">
+                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Variant="Variant.Outlined">
+                        @(context.AddressPrefix ?? "—")
+                    </MudChip>
+                </MudTd>
+                <MudTd DataLabel="Subnet Group">@context.SubnetGroup</MudTd>
+                <MudTd>
+                    <MudIconButton Icon="@SidebarIcons.Delete" Size="Size.Small" Color="Color.Error"
+                                   OnClick="@(() => DeleteSubnet(context))"/>
+                </MudTd>
+            </RowTemplate>
+            <RowEditingTemplate>
+                <MudTd DataLabel="ID">@context.Id</MudTd>
+                <MudTd DataLabel="Name">
+                    <MudTextField @bind-Value="@context.SubnetName" Required/>
+                </MudTd>
+                <MudTd DataLabel="Address Prefix">
+                    <MudTextField @bind-Value="@context.AddressPrefix" Placeholder="e.g. 10.0.1.64/28"/>
+                </MudTd>
+                <MudTd DataLabel="Subnet Group">
+                    <MudNumericField @bind-Value="@context.SubnetGroup" Min="1"/>
+                </MudTd>
+                <MudTd/>
+            </RowEditingTemplate>
+            <EditButtonContent Context="button">
+                <MudIconButton Size="@Size.Small" Icon="@SidebarIcons.Edit" Class="pa-0"
+                               OnClick="@button.ButtonAction" Disabled="@button.ButtonDisabled"/>
+            </EditButtonContent>
+        </MudTable>
+    }
+</MudStack>
+
+@* ── Add VNet dialog ── *@
+<MudDialog @bind-Visible="_showAddVNet" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Add Virtual Network</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_vnetForm" @bind-IsValid="_vnetFormValid">
+            <MudStack Spacing="3">
+                <MudSelect T="int" Label="Subscription" Required RequiredError="Subscription is required"
+                           @bind-Value="_newVNet.SubscriptionId">
+                    @foreach (var sub in _subscriptions)
+                    {
+                        <MudSelectItem Value="@sub.Id">@sub.Nickname (@sub.SubscriptionName)</MudSelectItem>
+                    }
+                </MudSelect>
+                <MudTextField Label="VNet Name" Required RequiredError="VNet name is required"
+                              @bind-Value="_newVNet.VNetName" Placeholder="e.g. workspace-vnet"/>
+                <MudTextField Label="VNet Resource ID" Required RequiredError="VNet resource ID is required"
+                              @bind-Value="_newVNet.VNetId"
+                              Placeholder="e.g. /subscriptions/.../virtualNetworks/workspace-vnet"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showAddVNet = false)">Cancel</MudButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                  Disabled="@(!_vnetFormValid)" OnClick="@SubmitAddVNet">
+            Add VNet
+        </DHButton>
+    </DialogActions>
+</MudDialog>
+
+@* ── Add Subnet dialog ── *@
+<MudDialog @bind-Visible="_showAddSubnet" Options="@(new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true })">
+    <TitleContent>
+        <MudText Typo="Typo.h6">Add Subnet to @_selectedVNet?.VNetName</MudText>
+    </TitleContent>
+    <DialogContent>
+        <MudForm @ref="_subnetForm" @bind-IsValid="_subnetFormValid">
+            <MudStack Spacing="3">
+                <MudTextField Label="Subnet Name" Required RequiredError="Subnet name is required"
+                              @bind-Value="_newSubnet.SubnetName"
+                              Placeholder="e.g. GcDcCNR-SSC_FSDHWorkspace_PEP-1-snet"/>
+                <MudTextField Label="Address Prefix" @bind-Value="_newSubnet.AddressPrefix"
+                              Placeholder="e.g. 10.0.1.64/28"/>
+                <MudNumericField T="int" Label="Subnet Group" Required RequiredError="Subnet group is required"
+                                 @bind-Value="_newSubnet.SubnetGroup" Min="1"
+                                 HelperText="Set of 8 subnets assigned to one workspace share the same group number"/>
+            </MudStack>
+        </MudForm>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="@(() => _showAddSubnet = false)">Cancel</MudButton>
+        <DHButton Variant="Variant.Filled" Color="Color.Primary"
+                  Disabled="@(!_subnetFormValid)" OnClick="@SubmitAddSubnet">
+            Add Subnet
+        </DHButton>
+    </DialogActions>
+</MudDialog>

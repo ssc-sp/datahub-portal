@@ -1,10 +1,13 @@
 using Datahub.Application.Configuration;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Subscriptions;
+using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging.Abstractions;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
 using NSubstitute.Extensions;
@@ -42,27 +45,30 @@ public class DatahubAzureSubscriptionHook
         
         // var datahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
 
-        var fetchedSubscription = Task.FromResult(new DatahubAzureSubscription
-        {
-            TenantId = Testing.WorkspaceTenantGuid,
-            SubscriptionId = Testing.WorkspaceSubscriptionGuid,
-            SubscriptionName = Testing.SubscriptionName
-        });        
-        
-        var datahubAzureSubscriptionService = Substitute.ForPartsOf<DatahubAzureSubscriptionService>(dbContextFactory, datahubPortalConfiguration);
+        var tokenCredential = Substitute.For<ISystemTokenCredentialService>();
+
+        var datahubAzureSubscriptionService = Substitute.ForPartsOf<DatahubAzureSubscriptionService>(dbContextFactory, tokenCredential, datahubPortalConfiguration);
         
         datahubAzureSubscriptionService
             .Configure()
             .FetchSubscriptionResource(Arg.Is<string>(s => s != "invalid-subscription-id"))!
-            .Returns(fetchedSubscription);
+            .Returns(callInfo => {
+                var subscriptionId = callInfo.Arg<string>();
+                return Task.FromResult(new DatahubAzureSubscription
+                {
+                    TenantId = Testing.WorkspaceTenantGuid,
+                    SubscriptionId = subscriptionId,
+                    SubscriptionName = Testing.SubscriptionName
+                });
+            });
         
         datahubAzureSubscriptionService
             .Configure()
             .FetchSubscriptionResource(Arg.Is<string>("invalid-subscription-id"))!
             .ThrowsAsync(new InvalidOperationException("Subscription not found. Please check the subscription id and access permissions."));
-        
-        
-        var unstubbedDatahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, datahubPortalConfiguration);
+        var infraTokenCredentialService = new InfraTokenCredentialService(datahubPortalConfiguration, new NullLogger<InfraTokenCredentialService>());
+
+        var unstubbedDatahubAzureSubscriptionService = new DatahubAzureSubscriptionService(dbContextFactory, infraTokenCredentialService, datahubPortalConfiguration);
         
         scenarioContext["unstubbedDatahubAzureSubscriptionService"] = unstubbedDatahubAzureSubscriptionService;
         

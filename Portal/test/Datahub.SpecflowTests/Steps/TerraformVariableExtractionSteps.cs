@@ -92,4 +92,34 @@ public sealed class TerraformVariableExtractionSteps
     {
         ScenarioContext.StepIsPending();
     }
+
+    [When(@"I call the method to extract the postgres configuration")]
+    public void WhenICallTheMethodToExtractThePostgresConfiguration()
+    {
+        var project = _scenarioContext["project"] as Datahub_Project;
+        var postgresConfiguration = TerraformVariableExtraction.ExtractPostgresConfiguration(project);
+        _scenarioContext["postgresConfiguration"] = postgresConfiguration;
+    }
+
+    [Then(@"the postgres configuration should have the following values")]
+    public void ThenThePostgresConfigurationShouldHaveTheFollowingValues(Table table)
+    {
+        var postgresConfiguration = _scenarioContext["postgresConfiguration"] as Datahub.Shared.Entities.WorkspaceToolConfiguration.PostgresConfiguration;
+        postgresConfiguration.Should().NotBeNull();
+
+        foreach (var row in table.Rows)
+        {
+            var property = row["Property"];
+            var expectedValue = string.IsNullOrWhiteSpace(row["Value"]) ? null : row["Value"];
+
+            var propertyValue = property switch
+            {
+                "PSQL_SKU" => postgresConfiguration!.PSQL_SKU,
+                "ResourceNameSuffix" => postgresConfiguration!.ResourceNameSuffix,
+                _ => throw new ArgumentException($"Unknown property: {property}")
+            };
+
+            propertyValue.Should().Be(expectedValue);
+        }
+    }
 }

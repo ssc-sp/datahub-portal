@@ -21,7 +21,7 @@
     private string _style => new StyleBuilder()
         .AddStyle(Style)
         .AddStyle("color", "var(--mud-palette-dark) !important")
-        .AddStyle("background-color", "var(--mud-palette-" + Severity.ToDescriptionString() + "-hover) !important")
+        .AddStyle("background-color", "var(--mud-palette-" + Severity.ToString().ToLower() + "-hover) !important")
         .Build();
 
     [Parameter(CaptureUnmatchedValues = true)]

@@ -1,4 +1,4 @@
-﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services.Notification;
 using Datahub.Functions.Entities;
 using Datahub.Functions.Extensions;
@@ -19,6 +19,7 @@ namespace Datahub.Functions
         ILogger<BugReport> logger,
         AzureConfig config,
         IGCNotifyService gcNotifyService,
+        AzureDevOpsClient azureDevOpsClient,
         ISendEndpointProvider sendEndpointProvider,
         IAlertRecordService alertRecordService,
         IHttpClientFactory httpClientFactory)
@@ -222,8 +223,7 @@ namespace Datahub.Functions
                 return default;
             }
 
-            var clientProvider = new AzureDevOpsClient(config.AzureDevOpsConfiguration);
-            var client = await clientProvider.WorkItemClientAsync();
+            var client = await azureDevOpsClient.WorkItemClientAsync();
             var workItem = await client.CreateWorkItemAsync(body, config.AzureDevOpsConfiguration.ProjectName, "Issue");
 
             if (workItem is null)

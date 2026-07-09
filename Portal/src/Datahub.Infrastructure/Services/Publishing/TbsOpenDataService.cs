@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Configuration;
+using Datahub.Application.Configuration;
 using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Metadata;
@@ -142,7 +142,7 @@ public class TbsOpenDataService(IDbContextFactory<DatahubProjectDBContext> dbCon
             var ckanService = await CreateCkanServiceUsingWorkspaceApi(publishFile.Submission.Project.Project_Acronym_CD);
             var cloudStorageManager = await GetCloudStorageManagerAsync(publishFile);
             var fullFilePath = JoinPath(publishFile.FolderPath, publishFile.FileName);
-            var downloadUrl = await cloudStorageManager.DownloadFileAsync(publishFile.ContainerName, fullFilePath);
+            var downloadUrl = await cloudStorageManager.DownloadFileAsync(publishFile.ContainerName, fullFilePath, "tbs-open-data-service");
 
             // fire and forget
             var task = DownloadFileContent(downloadUrl, async stream =>

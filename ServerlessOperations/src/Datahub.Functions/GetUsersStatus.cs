@@ -1,10 +1,12 @@
-﻿using System.Net;
+using System.Net;
 using Microsoft.Graph;
-using Azure.Identity;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph.Models;
+using AzureAuthorityHosts = Azure.Identity.AzureAuthorityHosts;
+using ClientSecretCredential = Azure.Identity.ClientSecretCredential;
+using TokenCredentialOptions = Azure.Identity.TokenCredentialOptions;
 
 namespace Datahub.Functions
 {
@@ -22,8 +24,6 @@ namespace Datahub.Functions
         
         internal virtual GraphServiceClient GetAuthenticatedGraphClient()
         {
-            var scopes = new[] { "https://graph.microsoft.com/.default" };
-
             var options = new TokenCredentialOptions
             {
                 AuthorityHost = AzureAuthorityHosts.AzurePublicCloud
@@ -32,7 +32,7 @@ namespace Datahub.Functions
             var clientSecretCredential = new ClientSecretCredential(
                 _configuration.TenantId, _configuration.ClientId, _configuration.ClientSecret, options);
 
-            return new(clientSecretCredential, scopes);
+            return new(clientSecretCredential);
         }
         
         [Function("GetUsersStatus")]

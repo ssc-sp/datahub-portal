@@ -1,4 +1,3 @@
-using Azure.Identity;
 using Datahub.Application.Authentication;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
@@ -36,7 +35,8 @@ public class UserInformationService(
     IDatahubCatalogSearch datahubCatalogSearch,
     IFeatureManagerSnapshot featureManager,
     IUserEnrollmentService userEnrollmentService,
-    IDbContextFactory<DatahubProjectDBContext> datahubContextFactory)
+    IDbContextFactory<DatahubProjectDBContext> datahubContextFactory,
+    IUserTokenCredentialService userTokenCredentialService)
     : IUserInformationService
 {
     private GraphServiceClient graphServiceClient = null!;
@@ -203,21 +203,16 @@ public class UserInformationService(
                 throw new InvalidOperationException("Cannot resolve user email");
             }
 
-            PrepareAuthenticatedClient();
+            await PrepareAuthenticatedClient();
             currentEntraUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
         }
-        catch (ServiceException e)
+        catch (Exception e)
         {
             if (e.InnerException is MsalUiRequiredException ||
                 e.InnerException is MicrosoftIdentityWebChallengeUserException)
                 throw;
             //_logger.LogError(e, "Error Loading User");
             throw new InvalidOperationException("Cannot retrieve user", e);
-        }
-        catch (Exception e)
-        {
-            //_logger.LogError(e, "Error Loading User"); redundant
-            throw new InvalidOperationException("Cannot retrieve user list", e);
         }
         return currentEntraUser;
     }
@@ -249,22 +244,17 @@ public class UserInformationService(
         return await GetGraphUserAsyncInternal(user);
     }
 
-    private void PrepareAuthenticatedClient()
+    private async Task PrepareAuthenticatedClient()
     {
         if (graphServiceClient != null) return;
         try
         {
-            //see https://learn.microsoft.com/en-us/graph/sdks/choose-authentication-providers?tabs=csharp
-            // using Azure.Identity;
-            var options = new ClientSecretCredentialOptions
-            {
-                AuthorityHost = AzureAuthorityHosts.AzurePublicCloud,
-            };
-            var clientCertCredential = new ClientSecretCredential(
-                configureOptions.GetSection("AzureAd").GetValue<string>("TenantId"),
-                configureOptions.GetSection("AzureAd").GetValue<string>("ClientId"),
-                configureOptions.GetSection("AzureAd").GetValue<string>("ClientSecret"), options);
-            graphServiceClient = new(clientCertCredential);
+            _ = await userTokenCredentialService.GetUserToken(await GetAuthenticatedUser(), UserTokenService.Graph);
+            graphServiceClient = new(userTokenCredentialService.GetTokenCredentialForUser(UserTokenService.Graph));
+        }
+        catch (MicrosoftIdentityWebChallengeUserException)
+        {
+            throw;
         }
         catch (Exception e)
         {
@@ -283,7 +273,7 @@ public class UserInformationService(
     {
         try
         {
-            PrepareAuthenticatedClient();
+            await PrepareAuthenticatedClient();
             currentEntraUser = await graphServiceClient.Users[userId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
 
             return currentEntraUser;
@@ -305,7 +295,9 @@ public class UserInformationService(
 
     public async Task<bool> IsAdminModeEnabled()
     {
-        var userId = (await GetCurrentGraphUserAsync()).Id ?? throw new InvalidOperationException("Cannot access graph user Id");
+        if (await IsExternalUser())
+            return false;
+        var userId = (await GetCurrentGraphUserAsync())?.Id ?? throw new InvalidOperationException("Cannot access graph user Id");
         return serviceAuthManager.IsAdminModeEnabled(userId);
     }
 
@@ -385,7 +377,7 @@ public class UserInformationService(
 
         try
         {
-            PrepareAuthenticatedClient();
+            await PrepareAuthenticatedClient();
             var graphUser = await graphServiceClient.Users[userGraphId].GetAsync() ?? throw new InvalidOperationException("Cannot retrieve user from graph");
             var portalUser = new PortalUser
             {
@@ -468,7 +460,7 @@ public class UserInformationService(
             .ToListAsync();
         List<ExtendedPortalUser> extendedUsers = [];
 
-        PrepareAuthenticatedClient();
+        await PrepareAuthenticatedClient();
 
         // Check the state of each matching user accounts
         foreach (var portalUser in matchingUsers)
@@ -716,7 +708,7 @@ public class UserInformationService(
 
     public async Task<bool> CheckUserInTenant(string email)
     {
-        PrepareAuthenticatedClient();
+        await PrepareAuthenticatedClient();
         var users = await graphServiceClient.Users.GetAsync(
             request => request.QueryParameters.Filter = $"mail eq '{email}'");
         if (users?.Value != null) return users.Value.Count > 0;

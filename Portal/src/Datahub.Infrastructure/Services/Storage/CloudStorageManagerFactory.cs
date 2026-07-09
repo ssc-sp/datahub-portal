@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Security;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Storage;
 using Microsoft.Extensions.Logging;
@@ -84,7 +84,6 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             if (provider == CloudStorageProviderType.Azure.ToString())
             {
-
                 var stAccountName = string.IsNullOrEmpty(name) ? connectionData[AZ_AccountName] : name;
 
                 ICloudStorageManager storageManager = enabled ?

@@ -10,6 +10,7 @@ using ResourceProvisioner.Infrastructure.Common;
 using ResourceProvisioner.Infrastructure.Services;
 using LibGit2Sharp;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 using Moq;
 using Moq.Protected;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -18,6 +19,7 @@ using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using Datahub.Shared;
 using NUnit.Framework.Internal.Execution;
 using ResourceProvisioner.Infrastructure.UnitTests.Collections;
+using ResourceProvisioner.SpecflowTests;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -155,11 +157,14 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration, mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -189,11 +194,14 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration, mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -224,11 +232,14 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration, mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                 TerraformTemplate.NewProjectTemplate,
@@ -263,8 +274,12 @@ public class RepositoryServiceTests : TemplateTestCollection
         var mockTerraformService = SetupMockTerraformService();
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
+
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration, mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
 
@@ -302,8 +317,11 @@ public class RepositoryServiceTests : TemplateTestCollection
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(httpClient);
 
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(false);
+
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration, mockTerraformService);
+            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
         var result = await repositoryService.CreateInfrastructurePullRequest(ProjectAcronym);
 
@@ -348,7 +366,7 @@ public class RepositoryServiceTests : TemplateTestCollection
 
         mockTerraformService.Setup(tf => tf.CopyTemplateAsync(
                 It.IsAny<string>(),
-                It.IsAny<CreateResourceRunCommand>()))
+                It.IsAny<WorkspaceDefinition>()))
             .Returns(() =>
             {
                 if (doNothing)
@@ -360,7 +378,7 @@ public class RepositoryServiceTests : TemplateTestCollection
                 return Task.CompletedTask;
             });
 
-        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<CreateResourceRunCommand>()))
+        mockTerraformService.Setup(tf => tf.ExtractVariables(It.IsAny<string>(), It.IsAny<WorkspaceDefinition>()))
             .Returns(Task.CompletedTask);
         return mockTerraformService.Object;
     }

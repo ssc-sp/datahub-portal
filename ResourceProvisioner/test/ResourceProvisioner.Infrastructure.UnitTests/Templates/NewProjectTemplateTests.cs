@@ -34,7 +34,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Acronym = workspaceAcronym
         };
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                    TerraformTemplate.NewProjectTemplate,
@@ -61,8 +61,8 @@ public class NewProjectTemplateTests : TemplateTestCollection
         foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
-            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
-            expectedContent = sourceFileContent.Replace(TerraformService.TerraformVersionToken, command.Workspace.Version);
+            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}", StringComparison.InvariantCultureIgnoreCase);
+            expectedContent = expectedContent.Replace(TerraformService.TerraformVersionToken, command.Workspace.Version, StringComparison.InvariantCultureIgnoreCase);
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
@@ -74,7 +74,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
     {
         const string workspaceAcronym = "ShouldExtractNewProjectTemplateVariables";
         
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
                workspaceAcronym, new List<string>()
                {
                        TerraformTemplate.NewProjectTemplate,
@@ -157,7 +157,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
         {
             Acronym = workspaceAcronym
         };
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
                workspaceAcronym, new List<string>()
                {
                        TerraformTemplate.NewProjectTemplate,
@@ -213,7 +213,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Acronym = workspaceAcronym
         };
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,
@@ -273,7 +273,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Version = "latest"
         };
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
                TerraformTemplate.NewProjectTemplate,
@@ -309,7 +309,7 @@ public class NewProjectTemplateTests : TemplateTestCollection
             Acronym = workspaceAcronym,
             Version = "latest"
         };
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate }, true);
 
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);

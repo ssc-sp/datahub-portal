@@ -6,6 +6,7 @@ using FluentValidation;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;
 using ResourceProvisioner.Application.Services;
+using Datahub.Shared.Entities;
 
 namespace ResourceProvisioner.Functions;
 
@@ -33,9 +34,9 @@ public class ResourceRunRequest(ILoggerFactory loggerFactory, IRepositoryService
         
         var messageEnvelope = await JsonDocument.ParseAsync(myQueueItem.Body.ToStream());
         messageEnvelope.RootElement.TryGetProperty("message", out var message);
-        var resourceRun = message.Deserialize<CreateResourceRunCommand>(deserializeOptions);
+        var resourceRun = message.Deserialize<WorkspaceDefinition>(deserializeOptions);
         
-        var resourceRunCommandValidator = new CreateResourceRunCommandValidator();
+        var resourceRunCommandValidator = new WorkspaceDefinitionValidator();
         var validationResult = await resourceRunCommandValidator.ValidateAsync(resourceRun!);
         if (!validationResult.IsValid)
         {

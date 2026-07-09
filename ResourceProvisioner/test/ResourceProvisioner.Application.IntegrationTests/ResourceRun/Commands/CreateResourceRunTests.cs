@@ -13,23 +13,29 @@ public class CreateResourceRunTests
     [Test]
     public async Task ShouldRequireMinimumFields()
     {
-        var command = new CreateResourceRunCommand()
+        var command = new WorkspaceDefinition()
         {
             RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg"
+            ResourceGroupName = "test-rg",
+            Templates = new List<TerraformTemplate>
+            {
+                new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
+            },
+            Workspace = null!,
+            AppData = null!
+
         };
-        
+
         await FluentActions.Invoking(() =>
             SendAsync(command)).Should().ThrowAsync<ValidationException>();
     }
     
-    [Test]
-    [Ignore("Incomplete functionality")]
+    [Test]    
     public async Task ShouldCreateResourceRun()
     {
         await RunAsDefaultUserAsync();
         
-        var command = new CreateResourceRunCommand
+        var command = new WorkspaceDefinition
         {
             Templates = new List<TerraformTemplate>
             {
@@ -46,7 +52,8 @@ public class CreateResourceRunTests
                 }
             },
             RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg"
+            ResourceGroupName = "test-rg",
+            AppData = new WorkspaceAppData()
         };
         
         var id = await SendAsync(command);

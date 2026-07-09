@@ -10,6 +10,8 @@ using Moq;
 using ResourceProvisioner.Application.Config;
 using ResourceProvisioner.Application.ResourceRun.Commands.CreateResourceRun;
 using ResourceProvisioner.Infrastructure.Common;
+using ResourceProvisioner.SpecflowTests;
+using Microsoft.FeatureManagement;
 
 // Assembly-level attribute to disable parallel execution
 [assembly: NonParallelizable]
@@ -59,15 +61,18 @@ public class Testing
         
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
-        
+
+        var featureManager = new Mock<IFeatureManagerSnapshot>();
+        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
         
         var services = new ServiceCollection();
         services.AddLogging(configure => configure.AddConsole());
         services.AddSingleton<ITerraformService, TerraformService>();
-        services.AddSingleton<IRepositoryService, RepositoryService>();
+        services.AddScoped<IRepositoryService, RepositoryService>();
         services.AddSingleton(httpClientFactory.Object);
         services.AddSingleton(_configuration);
-        services.AddSingleton(_resourceProvisionerConfiguration);
+        services.AddSingleton(_resourceProvisionerConfiguration.AsOptions());
+        services.AddSingleton<IFeatureManager>(featureManager.Object);
         var serviceProvider = services.BuildServiceProvider();
         
         _terraformService = serviceProvider.GetRequiredService<ITerraformService>();
@@ -193,7 +198,7 @@ public class Testing
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
         }   
 
-        var command = GenerateTestCreateResourceRunCommand(
+        var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
                        TerraformTemplate.NewProjectTemplate,
@@ -218,9 +223,9 @@ public class Testing
         return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
     
-    internal static CreateResourceRunCommand GenerateTestCreateResourceRunCommand(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
+    internal static WorkspaceDefinition GenerateTestWorkspaceDefinition(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
     {
-        return new CreateResourceRunCommand
+        return new WorkspaceDefinition
         {
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested, DateTime.UtcNow))

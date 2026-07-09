@@ -38,12 +38,11 @@ public static class ConfigureServices
         services.AddScoped<IPortalUserTelemetryService, OfflinePortalUserTelemetryService>();
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         services.AddSingleton<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
-        services.AddScoped<IKeyVaultService, OfflineKeyVaultService>();
+        services.AddScoped<IKeyVaultCoreService, OfflineKeyVaultService>();
         services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
         services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
         
-        services.AddBlazoredLocalStorage();
-        
+        services.AddBlazoredLocalStorage();        
         
         return services;
     }

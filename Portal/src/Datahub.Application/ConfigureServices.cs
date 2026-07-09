@@ -1,4 +1,5 @@
-﻿using Datahub.Application.Configuration;
+using Datahub.Application.Configuration;
+using Datahub.Shared.Clients;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -11,6 +12,7 @@ public static class ConfigureServices
         var datahubConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubConfiguration);
         services.AddSingleton(datahubConfiguration);
+        services.AddSingleton<IAzureDevopsConfiguration>(datahubConfiguration);
 
         return services;
     }

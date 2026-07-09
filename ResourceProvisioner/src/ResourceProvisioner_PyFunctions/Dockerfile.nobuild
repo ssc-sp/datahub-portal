@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/azure-functions/python:4-python3.12
+FROM mcr.microsoft.com/azure-functions/python:4-python3.12@sha256:b4162b6bbcdd5724646b48ccd5a400715822faa234067ad2b525b20b8e54752e
 
 ENV AzureWebJobsScriptRoot=/home/site/wwwroot \
     AzureFunctionsJobHost__Logging__Console__IsEnabled=true \

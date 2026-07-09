@@ -1,27 +1,37 @@
+@using Azure.Core
 @using Datahub.Application.Services;
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Core.Model
 @using Datahub.Core.Storage;
+@using Datahub.Core.Data
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
+@using Datahub.Metadata.Model
 @using Datahub.Portal.Components.Dialogs
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 @using Datahub.Portal.Pages.Workspace.Storage.ResourcePages
 @using Microsoft.Extensions.Options
+@using Microsoft.FeatureManagement
 @using Microsoft.Graph.Models;
+@using Microsoft.Identity.Client
 @using Microsoft.Identity.Web;
+@using System.Security.Claims
+@using System.Threading
 
 @inject MicrosoftIdentityConsentAndConditionalAccessHandler _consentHandler
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
+@inject IUserTokenCredentialService _userTokenCredentialService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
 @inject IDialogService _dialogService
 @inject ILogger<FileExplorerPage> _logger
 @inject CloudStorageManagerFactory _cloudStorageManagerFactory
-@inject IKeyVaultUserService keyVaultUserService
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
-
+@inject NavigationManager NavigationManager
+@inject IKeyVaultUserService _keyVaultUserService
+@inject IFeatureManagerSnapshot featureManager
 
 <!--suppress CssUnresolvedCustomProperty -->
 <PageTitle>@_title</PageTitle>
@@ -36,7 +46,7 @@
         <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
     </MudStack>
     <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Storage" />
-    @if (_isProjectKeyEnabled)
+    @if (_isProjectKeyEnabled == true)
     {
         <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
             <CascadingValue Value="@_project" Name="Project">
@@ -47,7 +57,8 @@
                             <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
                                 <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
                                 <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
-                                                          CloudContainers=_cloudContainers
+                                                          CloudContainers="_cloudContainers"
+                                                          AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
                                                           OnAddProviderClicked=@AddCloudStorageAccount
                                                           OnEditProviderClicked=@EditCloudStorageAccount
                                                           OnRemoveProviderClicked=@RemoveCloudStorageAccount />
@@ -88,14 +99,22 @@
                                     }
                                     else
                                     {
-                                        <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                        @if (_isExternalUser)
+                                        {
+                                            <ExternalUserFileExplorer ProjectId=@_projectId
+                                                                      Container="@_selectedContainer" />
+                                        }
+                                        else
+                                        {
+                                            <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
+                                        }
                                     }
 
                                 }
                             </MudTabPanel>
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator"
                                              ProjectAcronym="@WorkspaceAcronym">
-                                @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                                @if (SelectedContainer is not null && SelectedContainer.StorageManager.AzCopyEnabled && _classification != ClassificationType.ProtectedB)
                                 {
                                     <MudTabPanel Text="@Localizer["AzCopy"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
@@ -105,7 +124,7 @@
                                         </MudStack>
                                     </MudTabPanel>
                                 }
-                                @if (SelectedContainer is null || SelectedContainer.StorageManager.DatabrickEnabled)
+                                @if (SelectedContainer is not null && SelectedContainer.StorageManager.DatabrickEnabled)
                                 {
                                     <MudTabPanel Text="@Localizer["Databricks Access"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
@@ -113,7 +132,7 @@
                                         </MudStack>
                                     </MudTabPanel>
                                 }
-                                @if (SelectedContainer is null || SelectedContainer.StorageManager.AzCopyEnabled)
+                                @if (SelectedContainer is not null && SelectedContainer.StorageManager.AzCopyEnabled && _uploaderEnabled && _classification != ClassificationType.ProtectedB)
                                 {
                                     <MudTabPanel Text="@Localizer["DataHub Uploader"]" Icon="fas fa-info-circle">
                                         <MudStack Class="py-6 px-2">
@@ -132,18 +151,30 @@
     }
     else
     {
-        <MudPaper Elevation="0" Outlined Class="pa-4">
-            <MudText>
-                @Localizer["Access to storage was disabled due to workspace being over budget."]
-            </MudText>
-        </MudPaper>
+        if (_isProjectKeyEnabled == false)
+        {
+            <MudPaper Elevation="0" Outlined Class="pa-4">
+                <MudText>
+                    @Localizer["Access to storage was disabled due to workspace being over budget."]
+                </MudText>
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper Elevation="0" Outlined Class="pa-4">
+                <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+            </MudPaper>
+        }
     }
 </MudStack>
 
-@code {
+    @code {
 
     [Parameter] public required string WorkspaceAcronym { get; set; }
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
+
+    [CascadingParameter]
+    public Task<AuthenticationState> AuthenticationStateTask { get; set; } = default!;
 
     private Datahub_Project? _project;
     private int? _projectId;
@@ -154,23 +185,29 @@
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private PortalUser _user = null!;
+    private ClaimsPrincipal? _authenticatedUser;
 
     private bool _tokenTermsAcknowledged = false;
 
     private void AgreeToAccessTokenTerms() => _tokenTermsAcknowledged = true;
 
     private bool _loading = true;
-    private bool _isProjectKeyEnabled = false;
+    private bool? _isProjectKeyEnabled;
     private bool _failedToLoadContainers = false;
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
+    private bool _isExternalUser = false;
     private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
+    private ClassificationType? _classification;
 
     private string _searchQuery = string.Empty;
     private List<FileSearchResult> _searchResults = new();
     private bool _searchPerformed = false;
     private bool IsLoading { get; set; } = false;
     private bool _isEntraUser = false;
+    private bool _uploaderEnabled = false;
+    private TokenCredential? _credential;
+    private readonly CancellationTokenSource _searchCancellationTokenSource = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -178,6 +215,20 @@
         {
             return;
         }
+
+        // Get authenticated user from authentication state
+        var authState = await AuthenticationStateTask;
+        _authenticatedUser = authState.User;
+
+        // Check if user has external login role
+        _isExternalUser = _authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false;
+
+        if (_isExternalUser)
+        {
+            NavigationManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WorkspaceExternalStoragePrefix}", forceLoad: true);
+            return;
+        }
+
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _user = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("User is not authenticated");
@@ -192,23 +243,33 @@
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
             .FirstOrDefaultAsync();
+        _classification = _project?.Data_Sensitivity;
+        _uploaderEnabled = await featureManager.IsEnabledAsync(Features.Storage_Uploader_Feature);
 
         var acronym = _project?.Project_Acronym_CD;
         _title = $"{acronym} - {Localizer["Storage"]}";
         _projectId = _project?.Project_ID;
         try
         {
-            _isProjectKeyEnabled = await IsProjectKeyEnabled();
-            if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
             if (_isEntraUser)
             {
-                await keyVaultUserService.AuthenticateWithUserContext();
+                await _keyVaultUserService.AuthenticateWithUserContext();
+                var user = await _userInformationService.GetAuthenticatedUser();
+                var token = await _userTokenCredentialService.GetUserToken(user, UserTokenService.Storage);
+                _credential = _userTokenCredentialService.GetTokenCredentialForUser(UserTokenService.Storage, token);
+                _isProjectKeyEnabled = true; // Entra users will authenticate to storage with their user context, so project key is not required for them.
             }
             else
             {
+                _isProjectKeyEnabled = await IsProjectKeyEnabled();
+                if (_isProjectKeyEnabled == false) throw new Exception("Project key disabled");
                 //await keyVaultUserService.AuthenticateWithPortalContext();
             }
             await LoadContainersAsync();
+        }
+        catch (MsalUiRequiredException e)
+        {
+            _consentHandler.HandleException(e);
         }
         catch (MicrosoftIdentityWebChallengeUserException e)
         {
@@ -234,9 +295,17 @@
 
         // pick the project storage containers
         var accountName = _projectStorageConfigService.GetProjectStorageAccountName(WorkspaceAcronym);
-        var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(WorkspaceAcronym);
+        AzureCloudStorageManager projectStorageManager;
+        if (!_isEntraUser)
+        {
+            var accountKey = await _projectStorageConfigService.GetProjectStorageAccountKey(WorkspaceAcronym);
+            projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+        }
+        else
+        {
+            projectStorageManager = new AzureCloudStorageManager(accountName, _credential!);
+        }
 
-        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
         var containerNames = await projectStorageManager.GetContainersAsync();
 
         _cloudContainers.AddRange(containerNames.Select(c => new CloudStorageContainer(accountName, c, CloudStorageProviderType.Azure, projectStorageManager)));
@@ -256,7 +325,7 @@
             }
             catch (Exception ex)
             {
-                _logger.LogCritical(ex, $"cannot access containers from {stg.Name} (ID:{stg.Id})");
+                _logger.LogCritical(ex, "Cannot access one or more configured storage containers.");
                 try
                 {
                     await using var ctx = await _dbFactoryProject.CreateDbContextAsync();
@@ -266,7 +335,7 @@
                 }
                 catch (Exception ex2)
                 {
-                    _logger.LogCritical(ex2, $"error disabling containers from {stg.Name} (ID:{stg.Id})");
+                    _logger.LogCritical(ex2, "Error disabling inaccessible storage containers.");
                 }
             }
         }
@@ -317,7 +386,7 @@
                 ctx.ProjectCloudStorages.Add(storageSettings);
 
                 await ctx.SaveChangesAsync();
-                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
+                await _keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
             }
@@ -345,7 +414,7 @@
         {
             if (result.Data is (ProjectCloudStorage storageSettings, IDictionary<string, string> ConnectionData))
             {
-                await keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
+                await _keyVaultUserService.StoreAllSecrets(storageSettings, WorkspaceAcronym, ConnectionData);
                 await ctx.SaveChangesAsync();
                 await LoadContainersAsync();
                 await InvokeAsync(StateHasChanged);
@@ -385,7 +454,7 @@
             var confirmDelete = result.Data as bool?;
             if (confirmDelete.HasValue && confirmDelete.Value)
             {
-                await keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
+                await _keyVaultUserService.DeleteAllSecrets(cloudProvider, WorkspaceAcronym);
 
                 ctx.ProjectCloudStorages.Remove(cloudProvider);
                 await ctx.SaveChangesAsync();
@@ -397,26 +466,12 @@
 
     private async Task<bool> IsProjectKeyEnabled()
     {
-        // A small problem we have is that we have two different keyvault services:
-        // - one for using portal credentials to query portal KV
-        // - one for using user credentials to query workspace KV
-        // but we don't exactly have a good way to use portal credentials to query workspace KV, which is needed to check project key
-        // so I am doing a workaround here to force the core KV service to target the workspace KV
-        var apiTarget = new APITargets
-        {
-            KeyVaultName = keyVaultUserService.GetVaultName(WorkspaceAcronym, _datahubPortalConfiguration.Hosting.EnvironmentName)
-        };
-        var options = Options.Create<APITargets>(apiTarget);
-
-        var logger = (new LoggerFactory()).CreateLogger<KeyVaultCoreService>();
-        var keyVaultService = new KeyVaultCoreService(options, logger, _datahubPortalConfiguration);
-        var projectKey = await keyVaultService.GetKey(_datahubPortalConfiguration.KeyVault.ProjectKey);
-        return projectKey.Attributes.Enabled ?? false;
+        return await _keyVaultUserService.IsKeyEnabled(WorkspaceAcronym, _datahubPortalConfiguration.KeyVault.ProjectKey);
     }
 
     public CloudStorageContainer SelectedContainer
     {
-        get => _selectedContainer;
+        get => _selectedContainer ?? throw new InvalidOperationException("No container selected");
         set => _selectedContainer = value;
     }
 
@@ -441,10 +496,10 @@
         {
             var results = await SelectedContainer.StorageManager.SearchFilesAsync(
                 SelectedContainer.ContainerName,
-                "",
+                string.Empty,
                 _searchQuery,
-                false
-            );
+                _searchCancellationTokenSource.Token,
+                false);
 
             _searchResults = results
                 .Select(file => new FileSearchResult
@@ -453,6 +508,10 @@
                     Path = string.Join("/", file.filename.Split('/').SkipLast(1))
                 })
                 .ToList();
+        }
+        catch (OperationCanceledException) when (_searchCancellationTokenSource.IsCancellationRequested)
+        {
+            return;
         }
         catch (Exception ex)
         {
@@ -467,4 +526,10 @@
         }
     }
 
+    public ValueTask DisposeAsync()
+    {
+        _searchCancellationTokenSource.Cancel();
+        _searchCancellationTokenSource.Dispose();
+        return ValueTask.CompletedTask;
+    }
 }

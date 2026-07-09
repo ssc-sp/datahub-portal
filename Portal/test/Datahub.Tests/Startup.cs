@@ -1,4 +1,4 @@
-﻿using BlazorDownloadFile;
+using BlazorDownloadFile;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
@@ -15,7 +15,6 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
-using Datahub.Portal.Services.Api;
 
 namespace Datahub.Tests;
 
@@ -25,13 +24,12 @@ public class Startup
     {
         services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         services.AddSingleton<IMSGraphService, MSGraphService>();
-        services.AddSingleton<IKeyVaultService, KeyVaultCoreService>();
+        services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
         services.AddScoped<DataLakeClientService>();
         services.AddScoped<IWebHostEnvironment, FakeWebHostEnvironment>();
         services.AddScoped<IJSRuntime, FakeJSRuntime>();
         //services.AddScoped<DataUpdatingService>();
         //services.AddScoped<DataSharingService>();
-        services.AddScoped<DataCreatorService>();
         //services.AddScoped<DataRetrievalService>();
         //services.AddScoped<DataRemovalService>();
         services.AddSingleton<DatahubTools>();

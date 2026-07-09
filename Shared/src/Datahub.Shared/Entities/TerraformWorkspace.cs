@@ -32,6 +32,12 @@ public class TerraformWorkspace
     public IEnumerable<TerraformUser>? Users { get; set; }
     public string SSCCBRID { get; set; } = null!;
 
+    /// <summary>
+    /// Gets or sets a value indicating whether this workspace is classified as Protected B (GoC security classification).
+    /// When true, the resource provisioner will inject subnet configuration for VNet integration.
+    /// </summary>
+    public bool IsProtectedB { get; set; }
+
     public JsonNode ToUserList()
     {
         var users = new JsonArray();

@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using System.Web;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -13,11 +13,10 @@ using MassTransit;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Shared.Configuration;
 using Datahub.Application.Configuration;
-using Microsoft.Azure.Storage;
-using Microsoft.Azure.Storage.Blob;
 using Datahub.Metadata.Model;
 using Datahub.Core.Model.Users;
 using Datahub.Application.Services.Notification;
+using Azure.Storage.Blobs;
 
 
 namespace Datahub.Portal.Controllers;
@@ -169,12 +168,16 @@ public class HostingServicesController : ControllerBase
     {
         if (_datahubPortalConfiguration?.Media?.StorageConnectionString is null)
             return Unauthorized("No token available");
-        var blobReference = CloudStorageAccount.Parse(_datahubPortalConfiguration.Media.StorageConnectionString)
-            .CreateCloudBlobClient()
-            .GetContainerReference("hosting-requests")
-            .GetBlockBlobReference(requestId);
 
-        await blobReference.UploadTextAsync(request);
+        var blobServiceClient = new BlobServiceClient(
+            _datahubPortalConfiguration.Media.StorageConnectionString);
+
+        var containerClient = blobServiceClient.GetBlobContainerClient("hosting-requests");
+
+        var blobClient = containerClient.GetBlobClient(requestId);
+
+
+        await blobClient.UploadAsync(BinaryData.FromString(request), overwrite: true);
         return Ok();
     }
 

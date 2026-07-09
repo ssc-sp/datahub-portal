@@ -4,7 +4,6 @@ using Datahub.Core.Utils;
 using Datahub.Shared.Entities;
 using FluentValidation;
 using Microsoft.AspNetCore.Components.Web;
-using Microsoft.Azure.KeyVault.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.JSInterop;
 using Severity = MudBlazor.Severity;
@@ -41,6 +40,8 @@ namespace Datahub.Portal.Components
 
     public partial class EnvironmentVariablesTable
     {
+        private KeyValuePair? _currentRow;
+
         private bool FilterFunc(KeyValuePair item)
         {
             if (string.IsNullOrWhiteSpace(_filterString))
@@ -84,7 +85,7 @@ namespace Datahub.Portal.Components
                     KeyValuePair envVar = new() { Key = key, Value = value };
                     envVars.Add(envVar);
                 }
-                catch (KeyVaultErrorException e)
+                catch (Exception e)
                 {
                     _logger.LogError(e, $"Error getting environment variable {key} from KeyVault.");
                     _snackbar.Add(Localizer["Error getting environment variable {0} from KeyVault.", key],
@@ -109,25 +110,25 @@ namespace Datahub.Portal.Components
             return key.ToLower().Replace("_", "-");
         }
 
-        private void HandleCommitEditClicked(MouseEventArgs args)
+        private async Task HandleCommitEditClicked(MouseEventArgs args)
         {
             _logger.LogInformation("Commit edit button clicked.");
-        }
-
-        private void HandleRowEditCommit(object element)
-        {
-            var item = element as KeyValuePair;
-            if (item is not null)
+            if (_currentRow is not null)
             {
-                CreateOrUpdateEnvironmentVariable(item);
+                await CreateOrUpdateEnvironmentVariable(_currentRow);
                 _snackbar.Add(Localizer["Environment variable has been updated."], Severity.Success);
-                _logger.LogInformation($"Item has been committed: {item?.Key}");
+                _logger.LogInformation($"Item has been committed: {_currentRow.Key}");
             }
             else
             {
                 _snackbar.Add(Localizer["Error updating environment variable."], Severity.Error);
                 _logger.LogError("Error updating environment variable.");
             }
+        }
+
+        private void HandleRowEditCommit(object element)
+        {
+            _currentRow = element as KeyValuePair;
         }
 
         private async Task AddNewEnvironmentVariable()
