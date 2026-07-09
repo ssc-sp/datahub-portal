@@ -4,7 +4,7 @@ namespace Datahub.Infrastructure.Queues.Messages;
 /// Message sent to service functions to handle user status and file access permissions
 /// based on virus scan results
 /// </summary>
-public class VirusScanUserStatusMessage
+public class VirusScanStatusMessage
 {
     /// <summary>
     /// Workspace acronym that owns the file
@@ -39,7 +39,7 @@ public class VirusScanUserStatusMessage
     /// <summary>
     /// Scan status: "Clean", "Infected", "Failed"
     /// </summary>
-    public required string ScanStatus { get; init; }
+    public required ScanStatusType ScanStatus { get; init; }
 
     /// <summary>
     /// Timestamp when the scan completed
@@ -70,11 +70,6 @@ public class VirusScanUserStatusMessage
     /// Event correlation ID for tracking
     /// </summary>
     public string? CorrelationId { get; init; }
-
-    /// <summary>
-    /// Whether ACLs were successfully applied
-    /// </summary>
-    public bool AclsApplied { get; init; }
 
     /// <summary>
     /// Additional metadata from the scan

@@ -31,6 +31,7 @@ using Datahub.Application.Services.Metadata;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Components.FileUpload;
 using Datahub.Core.Model.Users;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Tests
 {
@@ -160,17 +161,17 @@ namespace Datahub.Tests
         }
 
         private IRenderedComponent<FileExplorer> RenderFileExplorerWithMockStorage(out Mock<ICloudStorageManager> mockStorageManager,
-            out System.Collections.Generic.List<FileMetaData> uploadedFiles,
-            Action<Mock<ICloudStorageManager>, System.Collections.Generic.List<FileMetaData>> configure = null)
+            out System.Collections.Generic.List<FileMetadata> uploadedFiles,
+            Action<Mock<ICloudStorageManager>, System.Collections.Generic.List<FileMetadata>> configure = null)
         {
             mockStorageManager = new Mock<ICloudStorageManager>();
-            var localUploadedFiles = new System.Collections.Generic.List<FileMetaData>();
+            var localUploadedFiles = new System.Collections.Generic.List<FileMetadata>();
 
             // default behaviors used by the file explorer
             mockStorageManager.Setup(m => m.GetDfsPagesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string?>()))
                 .ReturnsAsync(new DfsPage(["/folder1/"],
                     [
-                        new FileMetaData { filename = "existing.txt", filesize = "123", name = "existing.txt", id = "12345" }
+                        new PortalFileMetadata { filename = "existing.txt", filesize = "123", name = "existing.txt", id = "12345" }
                     ],
                     null));
 
@@ -181,8 +182,8 @@ namespace Datahub.Tests
                 .ReturnsAsync(new System.Collections.Generic.Dictionary<string, int>());
 
             // by default, wire UploadFileAsync to add to localUploadedFiles when called
-            mockStorageManager.Setup(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<FileMetaData>(), It.IsAny<Action<long>>()))
-                .ReturnsAsync((string container, FileMetaData file, Action<long> progress) =>
+            mockStorageManager.Setup(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<PortalFileMetadata>(), It.IsAny<Action<long>>()))
+                .ReturnsAsync((string container, FileMetadata file, Action<long> progress) =>
                 {
                     localUploadedFiles.Add(file);
                     return true;
@@ -206,7 +207,7 @@ namespace Datahub.Tests
             return comp;
         }
 
-        private async Task WaitForUploadsAsync(System.Collections.Generic.List<FileMetaData> uploadedFiles, int expectedCount, int timeoutMs =5000)
+        private async Task WaitForUploadsAsync(System.Collections.Generic.List<FileMetadata> uploadedFiles, int expectedCount, int timeoutMs =5000)
         {
             var sw = Stopwatch.StartNew();
             while (sw.ElapsedMilliseconds < timeoutMs)
@@ -218,7 +219,7 @@ namespace Datahub.Tests
             throw new TimeoutException($"Timed out waiting for {expectedCount} uploads (got {uploadedFiles.Count})");
         }
 
-        private async Task WaitForNoUploadsAsync(System.Collections.Generic.List<FileMetaData> uploadedFiles, int timeoutMs =500)
+        private async Task WaitForNoUploadsAsync(System.Collections.Generic.List<FileMetadata> uploadedFiles, int timeoutMs =500)
         {
             var sw = Stopwatch.StartNew();
             while (sw.ElapsedMilliseconds < timeoutMs)
@@ -268,7 +269,7 @@ namespace Datahub.Tests
             await WaitForUploadsAsync(uploadedFiles,1,3000);
 
             // Assert - UploadFileAsync should have been called and uploadedFiles should contain the file
-            mockStorageManager.Verify(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<FileMetaData>(), It.IsAny<Action<long>>()), Times.AtLeastOnce);
+            mockStorageManager.Verify(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<PortalFileMetadata>(), It.IsAny<Action<long>>()), Times.AtLeastOnce);
             Assert.Contains(uploadedFiles, f => f.filename == allowedFile.Name);
         }
 
@@ -294,7 +295,7 @@ namespace Datahub.Tests
             await WaitForUploadsAsync(uploadedFiles,2,5000);
 
             // Assert - only the two allowed files were uploaded
-            mockStorageManager.Verify(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<FileMetaData>(), It.IsAny<Action<long>>()), Times.Exactly(2));
+            mockStorageManager.Verify(m => m.UploadFileAsync(It.IsAny<string>(), It.IsAny<PortalFileMetadata>(), It.IsAny<Action<long>>()), Times.Exactly(2));
             Assert.Contains(uploadedFiles, f => f.filename == allowed1.Name);
             Assert.Contains(uploadedFiles, f => f.filename == allowed2.Name);
             Assert.DoesNotContain(uploadedFiles, f => f.filename == blocked.Name);

@@ -3,6 +3,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Model;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
+using Datahub.Shared.Entities;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -277,7 +278,7 @@ public partial class ExternalUserFileExplorer
         StateHasChanged();
     }
 
-    private Task HandlePublishFiles(IEnumerable<FileMetaData> files)
+    private Task HandlePublishFiles(IEnumerable<PortalFileMetadata> files)
     {
         // External users cannot publish files
         return Task.CompletedTask;
@@ -332,7 +333,7 @@ public partial class ExternalUserFileExplorer
         if (!allowOverride)
             return;
 
-        var fileMetadata = new FileMetaData
+        var fileMetadata = new PortalFileMetadata
         {
             id = Guid.NewGuid().ToString(),
             createdby = PortalUser.Email,

@@ -24,7 +24,6 @@ namespace Datahub.Functions
         AzureConfig config,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IQueuePongService pongService,
-        EmailValidator emailValidator,
         ISendEndpointProvider sendEndpointProvider,
         IGCNotifyService notifyService,
         IResourceMessagingService resourceMessagingService)
@@ -129,7 +128,7 @@ namespace Datahub.Functions
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
-                .Where(emailValidator.IsValidEmail)
+                .Where(EmailValidator.IsValidEmail)
                 .ToList();
 
             string resources;
@@ -258,7 +257,7 @@ namespace Datahub.Functions
                 .Where(u => u.RoleId == (int)Project_Role.RoleNames.Admin ||
                             u.RoleId == (int)Project_Role.RoleNames.WorkspaceLead)
                 .Select(u => u.PortalUser.Email)
-                .Where(emailValidator.IsValidEmail)
+                .Where(EmailValidator.IsValidEmail)
                 .ToList();
 
             var budget = Convert.ToDouble(project.Project_Budget);

@@ -84,10 +84,8 @@ builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
 builder.Services.AddScoped<IQueuePongService, QueuePongService>();
-builder.Services.AddScoped<EmailNotificationHandler>();
 builder.Services.AddScoped<IUserInformationService, UserInformationService>();
 builder.Services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
-builder.Services.AddScoped<VirusScanUserStatusHandler>();
 builder.Services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
 builder.Services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
 builder.Services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
@@ -96,9 +94,12 @@ builder.Services.AddScoped<IUserInactivityNotificationService, UserInactivityNot
 builder.Services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
 builder.Services.AddScoped<IDateProvider, DateProvider>();
 builder.Services.AddScoped<IUserInformationService, FunctionUserInformationService>();
-builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
+
+builder.Services.AddScoped<EmailNotificationHandler>();
+builder.Services.AddScoped<VirusScanNotificationHandler>();
+
 //builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
 
 // in-memory cache for health result

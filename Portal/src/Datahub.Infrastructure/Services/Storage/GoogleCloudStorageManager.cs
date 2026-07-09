@@ -2,6 +2,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
+using Datahub.Shared.Entities;
 using Google;
 using Google.Api.Gax;
 using Google.Apis.Auth.OAuth2;
@@ -182,7 +183,7 @@ namespace Datahub.Infrastructure.Services.Storage
             using var storageClient = await CreateStorageClientAsync();
             var options = new ListObjectsOptions() { PageSize = PAGE_SIZE };
             var folders = new List<string>();
-            var files = new List<FileMetaData>();
+            var files = new List<PortalFileMetadata>();
 
             folderPath = NormalizeFolderPath(folderPath);
 
@@ -251,7 +252,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
+        public Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
         {
             throw new NotImplementedException();
         }
@@ -281,7 +282,7 @@ namespace Datahub.Infrastructure.Services.Storage
             }
         }
 
-        public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
+        public async Task<bool> UploadFileAsync(string container, PortalFileMetadata file, Action<long> progess)
         {
             using var client = await CreateStorageClientAsync();
 

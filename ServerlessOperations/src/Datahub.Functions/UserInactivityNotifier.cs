@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Commands;
 using Datahub.Application.Services;
@@ -27,7 +27,6 @@ namespace Datahub.Functions
         IDateProvider dateProvider,
         AzureConfig config,
         IQueuePongService pongService,
-        EmailValidator emailValidator,
         IUserInactivityNotificationService userInactivityNotificationService,
         ISendEndpointProvider sendEndpointProvider,
         IProjectUserManagementService projectUserManagementService,
@@ -74,7 +73,7 @@ namespace Datahub.Functions
                 "User {UserDisplayName} has been inactive for {DaysSinceLastLogin} days. They will be locked in {DaysUntilLocked} days and deleted in {DaysUntilDeleted} days.",
                 user.DisplayName, daysSinceLastLogin, daysUntilLocked, daysUntilDeleted);
 
-            if (lastLoginDate != null && emailValidator.IsValidEmail(user.Email))
+            if (lastLoginDate != null && EmailValidator.IsValidEmail(user.Email))
             {
                 _logger.LogInformation("Checking if the user needs to be notified at this time...");
                 var email = await CheckIfUserToBeNotified(daysSinceLastLogin, daysUntilLocked, daysUntilDeleted, user.Email);

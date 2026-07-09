@@ -4,7 +4,6 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Core.Storage;
 @using Datahub.Core.Components.FileUpload
-@using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Services.Notification
@@ -198,7 +197,7 @@ else
 
     private bool _loading = true;
     private bool _failed = false;
-    private List<FileMetaData> _uploadingFiles = [];
+    private List<PortalFileMetadata> _uploadingFiles = [];
     private List<string> _blockedFiles = [];
     private string _continuationToken = string.Empty;
 
@@ -209,7 +208,7 @@ else
     private HashSet<string> _selectedItems = new();
 
     private List<string> _folders = new();
-    private List<FileMetaData> _files = new();
+    private List<PortalFileMetadata> _files = new();
     private string _filterValue = string.Empty;
 
     private Dictionary<string, FileScanResult> _fileScanResults = new();
@@ -241,7 +240,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _uploadingFiles = new List<FileMetaData>();
+        _uploadingFiles = new List<PortalFileMetadata>();
     }
 
     private Guid _metadataSignature = Guid.NewGuid();

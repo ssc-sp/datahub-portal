@@ -4,11 +4,11 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Core.Storage;
 @using Datahub.Core.Components.FileUpload;
-@using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Metadata.Model
 @using Datahub.Portal.Pages.Workspace.Storage.Container
+@using Datahub.Shared.Entities
 
 @inject IUserInformationService _userInformationService
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
@@ -182,7 +182,7 @@ else
 
     private bool _loading = true;
     private bool _failed = false;
-    private List<FileMetaData> _uploadingFiles = [];
+    private List<PortalFileMetadata> _uploadingFiles = [];
     private List<string> _blockedFiles = [];
     private string _continuationToken;
 
@@ -193,7 +193,7 @@ else
     private HashSet<string> _selectedItems = new();
 
     private List<string> _folders = new();
-    private List<FileMetaData> _files = new();
+    private List<PortalFileMetadata> _files = new();
     private string _filterValue = string.Empty;
 
     private IJSObjectReference _module = null!;
@@ -221,12 +221,11 @@ else
         else
             _userId = (await _userInformationService.GetExternalUserNameIdentifier())!;
 
-        _uploadingFiles = new List<FileMetaData>();
+        _uploadingFiles = new List<PortalFileMetadata>();
         _classification = Project.Data_Sensitivity;
     }
 
-    private bool OwnsFile(FileMetaData file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
-
+    private bool OwnsFile(PortalFileMetadata file) => (file?.ownedby ?? "").Equals(_userId, StringComparison.InvariantCulture);
     private Guid _metadataSignature = Guid.NewGuid();
 
     private void HandleMetadataChanged()
