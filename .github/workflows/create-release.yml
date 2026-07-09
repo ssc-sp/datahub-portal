@@ -6,27 +6,29 @@ on:
     branches:
       - develop
 
-permissions:
-  contents: write
-  pull-requests: write
+permissions: {}
 
 concurrency:
   group: release-manager-create-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
-  release-please:
+  trigger-release-process:
     environment: datahub-portal-releases
     runs-on: ubuntu-latest
     steps:
-      - name: Convert App token
+      - name: Generate App token
         id: create_token
         uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
-          app_id: ${{ vars.DH_RELEASE_MANAGER_ID }}
-          private_key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+          app-id: ${{ vars.DH_RELEASE_MANAGER_ID }}
+          private-key: ${{ secrets.DH_RELEASE_MANAGER_KEY }}
+          repositories: ${{ github.repository }}
+          permission-contents: write
+          permission-pull-requests: write
 
-      - uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5
+      - name: Trigger Release Process
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
         with:
           target-branch: develop
           release-type: simple
