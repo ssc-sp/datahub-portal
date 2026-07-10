@@ -382,7 +382,7 @@ public partial class RepositoryService(
 
     public const string HttpClientName = "InfrastructureHttpClient";
 
-    public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
+public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
     {
         // create a pull request in Azure DevOps
         logger.LogInformation("Creating infrastructure pull request");
@@ -401,26 +401,26 @@ public partial class RepositoryService(
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
-        var pullRequestId =
-            data?["pullRequestId"]?.ToString();
+        var pullRequestId = data?["pullRequestId"]?.ToString();
+        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString(); // Extract directly from ADO
 
-        var autoCompleteIdentityId =
-            resourceProvisionerConfiguration.Value
-                .InfrastructureRepository
-                .AzureDevOpsConfiguration
-                .IdentityId;
-
-        // TODO: Test this!
         if (string.IsNullOrWhiteSpace(pullRequestId))
         {
             if (data?["typeKey"]?.ToString() == "GitPullRequestExistsException")
             {
-                pullRequestId = await GetExistingPullRequestId(workspaceAcronym);
+                var existingPr = await GetExistingPullRequestDetails(workspaceAcronym);
+                pullRequestId = existingPr.PullRequestId;
+                autoCompleteIdentityId = existingPr.CreatedById;
             }
             else
             {
                 throw new Exception($"Could not get pull request id for {workspaceAcronym}");
             }
+        }
+
+        if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
+        {
+            autoCompleteIdentityId = Guid.NewGuid().ToString(); 
         }
 
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
@@ -643,9 +643,9 @@ public partial class RepositoryService(
         }
     }
 
-    private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
+    private async Task<(string PullRequestId, string CreatedById)> GetExistingPullRequestDetails(string workspaceAcronym)
     {
-        logger.LogInformation("Pull request already exists, fetching pull request id");
+        logger.LogInformation("Pull request already exists, fetching pull request details");
         var url =
             $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
@@ -655,13 +655,21 @@ public partial class RepositoryService(
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
-        return data?["value"]?
+        var prNode = data?["value"]?
             .AsArray()
-            .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}")?
-            .AsObject()["pullRequestId"]?.ToString() ??
-                throw new NullReferenceException(
+            .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}");
+
+        var pullRequestId = prNode?["pullRequestId"]?.ToString();
+        var createdById = prNode?["createdBy"]?["id"]?.ToString();
+
+        if (string.IsNullOrWhiteSpace(pullRequestId))
+        {
+            throw new NullReferenceException(
                 $"Could not get existing pull request id for workspace {workspaceAcronym}");
-}
+        }
+
+        return (pullRequestId, createdById);
+    }
 
     private static void EnsureJsonResponse(HttpResponseMessage response)
     {
