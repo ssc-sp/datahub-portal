@@ -24,7 +24,7 @@
     private string Language => CultureService.IsFrench ? ICultureService.CanadaEnglish : ICultureService.CanadaFrench;
     private string LanguageDisplay => CultureService.IsFrench ? "English" : "Français";
 
-    private static List<string> TranslatedPageRoutes = new() {
+    private static readonly List<string> TranslatedPageRoutes = new() {
         PageRoutes.Home, PageRoutes.Home_FR,
         PageRoutes.News, PageRoutes.News_FR,
         PageRoutes.Explore, PageRoutes.Explore_FR,
