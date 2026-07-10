@@ -98,6 +98,7 @@
         {
             organization = SelectedExternalUser.PortalUser.ExternalUser.Organization;
             accountExpiry = SelectedExternalUser.PortalUser.ExternalUser.UserExpiryDate.DateTime;
+            role = SelectedExternalUser.RoleId ?? 0;
         }
         else
         {
@@ -119,6 +120,7 @@
             {
                 userRoleLink.PortalUser.ExternalUser.Organization = organization;
                 userRoleLink.PortalUser.ExternalUser.UserExpiryDate = (accountExpiry.HasValue ? DateTime.SpecifyKind(accountExpiry.Value, DateTimeKind.Utc) : userRoleLink.PortalUser.ExternalUser.UserExpiryDate);
+                userRoleLink.RoleId = role;
             }
             else
             {
