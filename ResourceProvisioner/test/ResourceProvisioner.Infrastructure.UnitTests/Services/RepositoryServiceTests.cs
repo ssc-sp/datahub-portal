@@ -338,9 +338,16 @@ public class RepositoryServiceTests : TemplateTestCollection
         {
             ["url"] = $"https://dev.azure.com/info/pullRequests/{fakePullRequestId}",
             ["pullRequestId"] = fakePullRequestId,
+            ["createdBy"] = new JsonObject
+            {
+                ["id"] = "00000000-0000-0000-0000-000000000001"
+            }
         };
-        var stringContent = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
-        return stringContent;
+
+        return new StringContent(
+            JsonSerializer.Serialize(data),
+            Encoding.UTF8,
+            "application/json");
     }
 
     private static Repository InitializeTestInfrastructureRepository()
