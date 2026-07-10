@@ -2,7 +2,7 @@ using Datahub.Shared.Clients;
 
 namespace Datahub.Shared.Configuration;
 
-public class AzureDevOpsConfiguration : IAzureDevopsConfiguration
+public class AzureDevOpsConfiguration : IAzureConfiguration
 {
     public string TenantId { get; set; } = string.Empty;
     public string ClientId { get; set; } = string.Empty;
@@ -19,6 +19,10 @@ public class AzureDevOpsConfiguration : IAzureDevopsConfiguration
     public string ListPipelineUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.1-preview.1";
     public string PostPipelineRunUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1";
     public string AppServiceConfigPipeline { get; set; } = "web-app-configuration";
+
+    public string RunAsManagedIdentity { get; set; } = "disabled";
+
+    public string MediaStorageConnectionString { get; set; } = null!;
 
     public string GetEnvironmentName()
     {

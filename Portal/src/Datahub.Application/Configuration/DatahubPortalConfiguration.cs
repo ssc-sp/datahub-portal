@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Datahub.Application.Configuration;
 
-public class DatahubPortalConfiguration : IAzureDevopsConfiguration
+public class DatahubPortalConfiguration : IAzureConfiguration
 {
     public CultureSettings CultureSettings { get; set; } = new();
     public bool ShowLoginPage { get; set; } = true;
@@ -17,7 +17,7 @@ public class DatahubPortalConfiguration : IAzureDevopsConfiguration
     public Hosting Hosting { get; set; } = new();
 
     public const string DisableManagedIdentityValue = "disabled";
-    public string PortalRunAsManagedIdentity { get; set; } = DisableManagedIdentityValue;
+    public string RunAsManagedIdentity { get; set; } = DisableManagedIdentityValue;
     public string ResourcePrefix { get; set; } = "fsdh";
     public bool CentralizedProjectSecrets { get; set; } = false;
     public string ProjectStorageKeySecretName { get; set; } = "storage-key";
@@ -45,6 +45,14 @@ public class DatahubPortalConfiguration : IAzureDevopsConfiguration
     public StorageScanNotificationSettings StorageScanNotifications { get; set; } = new();
 
     public string OrganizationUrl => $"https://dev.azure.com/{AdoOrg.OrgName}";
+
+    public string TenantId => AzureAd.TenantId;
+
+    public string ClientId => AzureAd.ClientId;
+
+    public string ClientSecret => AzureAd.ClientSecret;
+
+    public string MediaStorageConnectionString => Media.StorageConnectionString;
 }
 
 public class Achievements

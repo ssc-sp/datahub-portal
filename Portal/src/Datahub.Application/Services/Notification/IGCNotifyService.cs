@@ -19,7 +19,7 @@ public interface IGCNotifyService
     Task SendBugReportNotification(string id, string title, string body, string email = DEFAULT_MAILBOX);
     Task SendInfectedFileNotification(string email, string fileName, string workspace, string date);
     Task SendUserAccessRegrantedNotification(string email, string userName, string workspace, string unlockedBy);
-    string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration);
+    string GetTemplateMappings();
     string GetTemplateId(string templateName, string mappingsJson);
     Task<bool> CheckHealthAsync();
 }

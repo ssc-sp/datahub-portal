@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
+using Datahub.Shared.Clients;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,33 +18,33 @@ public class GCNotifyService : IGCNotifyService
     private const string SuccessfulScanTemplateName = "successful-scan";
     private readonly IKeyVaultCoreService _keyVaultService;
     private readonly ILogger<GCNotifyService> _logger;
-    private readonly DatahubPortalConfiguration _portalConfiguration;
+    private readonly IAzureConfiguration _configuration;
     private readonly string _mappingsJson;
 
     public GCNotifyService(
         IKeyVaultCoreService keyVaultService,
         ILoggerFactory loggerFactory,
-        DatahubPortalConfiguration portalConfiguration)
+        IAzureConfiguration systemConfiguration)
     {
         _keyVaultService = keyVaultService ?? throw new ArgumentNullException(nameof(keyVaultService));
         _logger = loggerFactory.CreateLogger<GCNotifyService>();
-        _portalConfiguration = portalConfiguration ?? throw new ArgumentNullException(nameof(portalConfiguration));
+        _configuration = systemConfiguration ?? throw new ArgumentNullException(nameof(systemConfiguration));
 
-        if (_portalConfiguration.Media?.StorageConnectionString is null)
+        if (_configuration.MediaStorageConnectionString is null)
         {
             _logger.LogError("Initialization failed: Media.StorageConnectionString is null (no token available).");
             throw new UnauthorizedAccessException("No token available");
         }
 
         _logger.LogInformation("Initializing GCNotifyService and loading template mappings from blob storage.");
-        _mappingsJson = GetTemplateMappings(_portalConfiguration);
+        _mappingsJson = GetTemplateMappings();
         _logger.LogInformation("GCNotifyService initialized successfully. Templates loaded: {TemplateCount}", SafeCountMappings(_mappingsJson));
     }
 
-    public string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration)
+    public string GetTemplateMappings()
     {
         _logger.LogDebug("Retrieving GC Notify template mappings from blob storage.");
-        var blobClient = new BlobServiceClient(portalConfiguration.Media.StorageConnectionString)
+        var blobClient = new BlobServiceClient(_configuration.MediaStorageConnectionString)
             .GetBlobContainerClient("docs")
             .GetBlobClient("gcnotify-mappings.json");
 

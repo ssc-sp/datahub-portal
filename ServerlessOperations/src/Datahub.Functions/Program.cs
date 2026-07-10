@@ -70,16 +70,20 @@ if (devopsConfig is not null)
 }
 
 builder.Services.AddSingleton<AzureConfig>();
-builder.Services.AddSingleton<IAzureDevopsConfiguration, AzureConfig>();
+builder.Services.AddSingleton<IAzureConfiguration, AzureConfig>();
+builder.Services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
 builder.Services.AddAzureResourceManager(config);
 builder.Services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
 builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
-builder.Services.AddSingleton<IMSGraphService, MSGraphService>();
-builder.Services.AddSingleton<AzureDevOpsClient>();
-builder.Services.AddSingleton<AzAccessTokenManager>();
+
+builder.Services.AddScoped<IMSGraphService, MSGraphService>();
+builder.Services.AddScoped<IUserTokenCredentialService, ServerUserTokenProviderService>();
+
+builder.Services.AddScoped<AzureDevOpsClient>();
+builder.Services.AddScoped<AzAccessTokenManager>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();

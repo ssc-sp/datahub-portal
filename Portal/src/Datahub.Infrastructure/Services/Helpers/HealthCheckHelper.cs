@@ -266,8 +266,8 @@ namespace Datahub.Infrastructure.Services.Helpers
 
             try
             {
-                string mappings = gcNotifyService.GetTemplateMappings(portalConfiguration);
-                if (mappings.IsNullOrEmpty())
+                string? mappings = gcNotifyService?.GetTemplateMappings();
+                if (mappings is null || mappings.IsNullOrEmpty())
                 {
                     status = InfrastructureHealthStatus.Unhealthy;
                     errors.Add("Failed to retrieve the GC Notify template file mappings. Verify this is present in the root of the docs container in the static asset storage.");
