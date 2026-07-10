@@ -258,7 +258,7 @@
             .FirstOrDefaultAsync();
         _classification = _project?.Data_Sensitivity;
         _hasExternalUsersInWorkspace = _project?.UserRoles.Any(ur =>
-            ur.PortalUser?.ExternalUser is { UserDeactivatedAt: null } externalUser) == true;
+            ur.PortalUser?.ExternalUser is { UserDeactivatedAt: null }) == true;
         _uploaderEnabled = await featureManager.IsEnabledAsync(Features.Storage_Uploader_Feature);
 
         var acronym = _project?.Project_Acronym_CD;
