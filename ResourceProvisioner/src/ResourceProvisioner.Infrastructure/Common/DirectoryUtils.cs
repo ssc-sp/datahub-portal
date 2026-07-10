@@ -49,6 +49,7 @@ public static class DirectoryUtils
         }
         catch (DirectoryNotFoundException)
         {
+            // Directory is already gone (for example due to concurrent cleanup); treat as successful deletion.
         }
     }
 
