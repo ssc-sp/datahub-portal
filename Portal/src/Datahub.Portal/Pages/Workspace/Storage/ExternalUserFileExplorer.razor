@@ -208,7 +208,7 @@ else
     private HashSet<string> _selectedItems = new();
 
     private List<string> _folders = new();
-    private List<PortalFileMetadata> _files = new();
+    private readonly List<PortalFileMetadata> _files = new();
     private string _filterValue = string.Empty;
 
     private Dictionary<string, FileScanResult> _fileScanResults = new();
