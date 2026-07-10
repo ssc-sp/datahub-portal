@@ -152,11 +152,6 @@ public partial class RepositoryService(
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(command.Workspace.Acronym!);
 
-            logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
-                command.Workspace.Acronym!);
-
-
             var pullRequestMessage = new PullRequestUpdateMessage
             {
                 PullRequestValueObject = pullRequestValueObject,
@@ -409,6 +404,8 @@ public partial class RepositoryService(
         var pullRequestId =
             data?["pullRequestId"]?.ToString();
 
+        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString() ?? throw new Exception( $"Could not get pull request creator identity for {workspaceAcronym}");
+
         // TODO: Test this!
         if (string.IsNullOrWhiteSpace(pullRequestId))
         {
@@ -425,12 +422,14 @@ public partial class RepositoryService(
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
+        await AutoApproveInfrastructurePullRequest(int.Parse(pullRequestId), workspaceAcronym, autoCompleteIdentityId);
+
         return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
-    public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
+    public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym,string autoCompleteIdentityId)
     {
-        var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
+        var patchContent = BuildPullRequestPatchBody(workspaceAcronym, autoCompleteIdentityId);
         var patchUrl =
             $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
@@ -468,33 +467,44 @@ public partial class RepositoryService(
         EnsureJsonResponse(response);
         var responseContent = await response.Content.ReadAsStringAsync();
         var jsonContent = JsonSerializer.Deserialize<JsonNode>(responseContent);
-        if (jsonContent?["closedBy"] is null)
+        if (jsonContent?["autoCompleteSetBy"] is null)
         {
-            logger.LogError("Infrastructure pull request {PullRequestUrl} was not auto-approved", patchUrl);
-            throw new AutoApproveIncompleteException($"Infrastructure pull request {patchUrl} was not auto-approved");
+            logger.LogError(
+                "Auto-complete was not enabled for infrastructure pull request {PullRequestUrl}",
+                patchUrl);
+
+            throw new AutoApproveIncompleteException(
+                $"Auto-complete was not enabled for pull request {patchUrl}");
         }
     }
 
-    private StringContent BuildPullRequestPatchBody(string workspaceAcronym)
+    private StringContent BuildPullRequestPatchBody(
+        string workspaceAcronym,
+        string autoCompleteIdentityId)
     {
         logger.LogInformation(
-            "Building infrastructure pull request patch body for complete by user {ClientId}",
-            resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
+            "Building infrastructure pull request auto-complete body for identity {IdentityId}",
+            autoCompleteIdentityId);
+
         var patchData = new JsonObject
         {
-            ["status"] = "completed",
-            ["lastMergeSourceCommit"] = new JsonObject
+            ["autoCompleteSetBy"] = new JsonObject
             {
-                ["commitId"] = GetBranchLastCommitId(workspaceAcronym)
+                ["id"] = autoCompleteIdentityId
             },
             ["completionOptions"] = new JsonObject
             {
                 ["deleteSourceBranch"] = false,
-                ["mergeCommitMessage"] = $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
+                ["bypassPolicy"] = false,
+                ["mergeCommitMessage"] =
+                    $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
             }
         };
-        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
-        return patchBody;
+
+        return new StringContent(
+            JsonSerializer.Serialize(patchData),
+            Encoding.UTF8,
+            "application/json");
     }
 
     public virtual string GetBranchLastCommitId(string branchName)
