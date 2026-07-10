@@ -70,7 +70,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         AzAccessTokenManager tokenManager,
         ISendEndpointProvider sendEndpointProvider,
         IResourceMessagingService resourceMessagingService,
-        DatahubPortalConfiguration portalConfiguration,
+        IAzureConfiguration portalConfiguration,
         [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService,
         IHttpContextAccessor? httpContextAccessor = null,   // MADE OPTIONAL & NULLABLE
         IGCNotifyService? gcNotifyService = null)
@@ -507,7 +507,7 @@ namespace Datahub.Infrastructure.Services.Helpers
                 var armClient = new ArmClient(credential);
                 // [VB] Datahub SP has different default subscription: we have explicitely select correct one 
                 //var subscription = await armClient.GetDefaultSubscriptionAsync();
-                var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(portalConfiguration.AzureAd.SubscriptionId);
+                var subscriptionResourceId = SubscriptionResource.CreateResourceIdentifier(portalConfiguration.SubscriptionId);
                 var subscription = armClient.GetSubscriptionResource(subscriptionResourceId); 
                 
                 var resourceGroup = await subscription.GetResourceGroupAsync($"fsdh-{configuration.GetCurrentEnvironment()}-rg");

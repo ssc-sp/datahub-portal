@@ -19,7 +19,6 @@ public class DatahubPortalConfiguration : IAzureConfiguration
     public const string DisableManagedIdentityValue = "disabled";
     public string RunAsManagedIdentity { get; set; } = DisableManagedIdentityValue;
     public string ResourcePrefix { get; set; } = "fsdh";
-    public bool CentralizedProjectSecrets { get; set; } = false;
     public string ProjectStorageKeySecretName { get; set; } = "storage-key";
 
     [JsonProperty("Azure:SignalR:StickyServerMode")]
@@ -53,6 +52,10 @@ public class DatahubPortalConfiguration : IAzureConfiguration
     public string ClientSecret => AzureAd.ClientSecret;
 
     public string MediaStorageConnectionString => Media.StorageConnectionString;
+
+    public string SubscriptionId => AzureAd.SubscriptionId;
+
+    public string EnvironmentName => Hosting.EnvironmentName;
 }
 
 public class Achievements

@@ -19,12 +19,14 @@ public class AzureDevOpsConfiguration : IAzureConfiguration
     public string ListPipelineUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines?api-version=7.1-preview.1";
     public string PostPipelineRunUrlTemplate { get; set; } = "https://dev.azure.com/{organization}/{project}/_apis/pipelines/{pipelineId}/runs?api-version=7.1-preview.1";
     public string AppServiceConfigPipeline { get; set; } = "web-app-configuration";
-
     public string RunAsManagedIdentity { get; set; } = "disabled";
-
     public string MediaStorageConnectionString { get; set; } = null!;
+    public string ResourcePrefix => IAzureConfiguration.DefaultResourcePrefix;
+    public string ProjectStorageKeySecretName => IAzureConfiguration.DefaultProjectStorageKeySecretName;
+    public string SubscriptionId { get; set; } = null!;
+    public string EnvironmentName => GetEnvironmentName();
 
-    public string GetEnvironmentName()
+    public static string GetEnvironmentName()
     {
         var envName = (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "dev").ToLower();
 

@@ -17,6 +17,13 @@ public interface IAzureConfiguration
     string ClientId { get; }
     string ClientSecret { get; }
     string MediaStorageConnectionString { get; }
+    string ResourcePrefix { get; }
+    string ProjectStorageKeySecretName { get; }
+    string SubscriptionId { get; }
+    string EnvironmentName { get; }
+
+    const string DefaultResourcePrefix = "fsdh";
+    const string DefaultProjectStorageKeySecretName = "storage-key";
 }
 
 public class AzureDevOpsClient(IAzureConfiguration config, AzAccessTokenManager tokenManager)
