@@ -86,6 +86,8 @@ public static class DirectoryUtils
             }
             catch (FileNotFoundException)
             {
+                // File may have been removed by another process/thread between enumeration and attribute update.
+                // Intentionally ignored to allow best-effort cleanup to continue.
             }
             catch (DirectoryNotFoundException)
             {
