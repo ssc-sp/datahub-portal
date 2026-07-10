@@ -49,13 +49,13 @@ public partial class RepositoryService(
         var message = exception.Message;
 
         return message.Contains("unexpected http status code: 5", StringComparison.OrdinalIgnoreCase)
-               || message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
-               || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
+                || message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
     }
 
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
-    
+
     private async Task<string?> GetIssuerSslValidationNameAsync()
     {
         var isEnabled = await featureManager.IsEnabledAsync(Features.LibGit2SharpIssuerSslValidation);
@@ -134,7 +134,7 @@ public partial class RepositoryService(
             CreateTemporaryDirectory();
 
             var user = command.RequestingUserEmail ??
-                       throw new NullReferenceException("Requesting user's email is null");
+                throw new NullReferenceException("Requesting user's email is null");
             logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
             await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
@@ -566,11 +566,11 @@ public partial class RepositoryService(
         return repositoryUpdateEvents;
     }
 
-    
+
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, WorkspaceDefinition command, string username)
     {
         try
-        {            
+        {
             if (resourceTemplate.Status == TerraformStatus.DeleteRequested)
             {
                 if (resourceTemplate.Name == TerraformTemplate.NewProjectTemplate)
@@ -652,12 +652,12 @@ public partial class RepositoryService(
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
         return data?["value"]?
-                   .AsArray()
-                   .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}")?
-                   .AsObject()["pullRequestId"]?.ToString() ??
-               throw new NullReferenceException(
-                   $"Could not get existing pull request id for workspace {workspaceAcronym}");
-    }
+            .AsArray()
+            .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}")?
+            .AsObject()["pullRequestId"]?.ToString() ??
+                throw new NullReferenceException(
+                $"Could not get existing pull request id for workspace {workspaceAcronym}");
+}
 
     private static void EnsureJsonResponse(HttpResponseMessage response)
     {
