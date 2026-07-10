@@ -174,7 +174,7 @@ public class RepositoryServiceTests : TemplateTestCollection
 
         var result =
             await repositoryService.ExecuteResourceRun(TestTemplate, command, RequestingUser);
-    
+
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
         {

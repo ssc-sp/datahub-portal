@@ -404,7 +404,11 @@ public partial class RepositoryService(
         var pullRequestId =
             data?["pullRequestId"]?.ToString();
 
-        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString() ?? throw new Exception( $"Could not get pull request creator identity for {workspaceAcronym}");
+        var autoCompleteIdentityId =
+            resourceProvisionerConfiguration.Value
+                .InfrastructureRepository
+                .AzureDevOpsConfiguration
+                .IdentityId;
 
         // TODO: Test this!
         if (string.IsNullOrWhiteSpace(pullRequestId))
