@@ -114,14 +114,22 @@
   }
   else
   {
-    <MudStack Row Class="mt-6 mb-4">
-      <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
-      <MudSpacer />
-      <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-        <DHButton Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
-          @Localizer["Invite New User"]
-        </DHButton>
-      </DatahubAuthView>
+    <MudStack Class="mt-6 mb-4">
+        <MudStack Row Class="mt-6 mb-4">
+            <DHMainContentTitle Title="@Localizer["Workspace Members"]" />
+            <MudSpacer />
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                <DHButton Variant="Variant.Outlined" Color="Color.Primary" EndIcon="@Icons.Material.Outlined.PersonAdd" OnClick="OpenDialog">
+                    @Localizer["Invite New User"]
+                </DHButton>
+            </DatahubAuthView>
+        </MudStack>
+        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+        <MudText Typo="Typo.body1">
+            @Localizer["If you are looking for a list of users external to the Government of Canada, see "]
+            <MudLink Href="@Localizer[$"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.ExternalUsers}"]">@Localizer["External Users"].</MudLink>
+        </MudText>
+        </DatahubAuthView>
     </MudStack>
     <MudTable Items="@_projectUsers" Striped Filter="@(new Func<UserRoleLinks, bool>(CombinedFilter))">
       <ToolBarContent>
