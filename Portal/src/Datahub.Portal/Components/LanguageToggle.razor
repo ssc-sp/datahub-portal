@@ -24,7 +24,7 @@
     private string Language => CultureService.IsFrench ? ICultureService.CanadaEnglish : ICultureService.CanadaFrench;
     private string LanguageDisplay => CultureService.IsFrench ? "English" : "Français";
 
-    private static List<string> TranslatedPageRoutes = new() { 
+    private static List<string> TranslatedPageRoutes = new() {
         PageRoutes.Home, PageRoutes.Home_FR,
         PageRoutes.News, PageRoutes.News_FR,
         PageRoutes.Explore, PageRoutes.Explore_FR,
@@ -33,7 +33,7 @@
         PageRoutes.TermsAndConditions, PageRoutes.TermsAndConditions_FR,
         PageRoutes.TermsAndConditionsExternal, PageRoutes.TermsAndConditionsExternal_FR,
         PageRoutes.ExternalLogoutConfirmation, PageRoutes.ExternalLogoutConfirmation_FR,
-        PageRoutes.AccountDefault, PageRoutes.AccountDefault_FR,       
+        PageRoutes.AccountDefault, PageRoutes.AccountDefault_FR,
         "/login", "/connexion", "/register", "/inscription", "/locked", "/verrouille"
     };
     private static List<string> UnauthenticatedPages = new() { "/login", "/register", "/terms-and-conditions", "/external-terms-and-conditions", "/logout-confirmation", "account-setup", "/locked" };
@@ -70,5 +70,5 @@
     public async Task ToggleLanguage()
     {
         await ChangeLanguage(Language);
-	}
+    }
 }
