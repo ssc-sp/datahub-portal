@@ -25,35 +25,34 @@
 
             }
             <MudTextField T="string"
-                          Class="form-control"
-                          @bind-value="name"
-                          Label="@Localizer["Display name"]"
-                          Required="true"
-                          RequiredError="@Localizer["Name is required"]"
-                          Variant="Variant.Outlined" />
+                            Class="form-control"
+                            @bind-value="name"
+                            Label="@Localizer["Display name"]"
+                            Required="true"
+                            RequiredError="@Localizer["Name is required"]"
+                            Variant="Variant.Outlined" />
             <MudTextField T="string"
-                          Class="form-control"
-                          @bind-value="email"
-                          Label="@Localizer["Email"]"
-                          Disabled="true"
-                          Variant="Variant.Outlined" />
+                            Class="form-control"
+                            @bind-value="email"
+                            Label="@Localizer["Email"]"
+                            Disabled="true"
+                            Variant="Variant.Outlined" />
             <MudTextField T="string"
-                          Class="form-control"
-                          @bind-value="organization"
-                          Label="@Localizer["Organization"]"
-                          Required="true"
-                          RequiredError="@Localizer["Name is required"]"
-                          Variant="Variant.Outlined" />
+                            Class="form-control"
+                            @bind-value="organization"
+                            Label="@Localizer["Organization"]"
+                            Required="true"
+                            RequiredError="@Localizer["Name is required"]"
+                            Variant="Variant.Outlined" />
             <MudSelect @bind-Value="role" Label="Select user role" Placeholder="Please Select">
                 <MudSelectItem Value="7">@Localizer["Web App"]</MudSelectItem>
                 <MudSelectItem Value="8">@Localizer["Storage"]</MudSelectItem>
                 <MudSelectItem Value="9">@Localizer["Web App and Storage"]</MudSelectItem>
             </MudSelect>
             <MudDatePicker Label="Account Expiry"
-                           @bind-Date="accountExpiry"
-                           Required="true"
-                           ShowToolbar="false" />
-
+                            @bind-Date="accountExpiry"
+                            Required="true"
+                            ShowToolbar="false" />
         </MudStack>
     </DialogContent>
     <DialogActions>
