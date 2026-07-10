@@ -619,7 +619,7 @@ public partial class ExternalUserFileExplorer
         {
             if (ReferenceEquals(_uploadContainerPollingCts, pollingCts))
             {
-                pollingCts.Dispose();
+                using var _ = pollingCts;
                 _uploadContainerPollingCts = null;
             }
         }
