@@ -22,15 +22,15 @@
 <MudGrid>
     <MudItem xs="12" sm="8">
         <WorkspaceInfo WorkspaceAcronym="@WorkspaceAcronym"
-                       ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled"/>
+                    ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled"/>
         <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.DatahubApprover">
             <ApproverActionsCard WorkspaceAcronym="@WorkspaceAcronym"
-                                 ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled"/>
+                                ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled"/>
         </DatahubAuthView>
         @if (!_isDeleted)
         {
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.AllWorkspaceUsers" ProjectAcronym="@WorkspaceAcronym"
-                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                            ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <Authorized>
                     @if (_resources.Any())
                     {
@@ -55,7 +55,7 @@
                                     <li>
                                         <MudItem>
                                             <DynamicComponent Type="@_cardComponents[resource.ResourceType]"
-                                                              Parameters="@parameters"/>
+                                                                Parameters="@parameters"/>
                                         </MudItem>
                                     </li>
                                 }
@@ -90,21 +90,21 @@
                 </Authorized>
                 <NotAuthorized>
                     <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.Authenticated">
-                      <MudStack>
-                        <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
-                        @if (_projectRepositories != null && _projectRepositories.Any())
-                        {
-                          @foreach (var projectRepository in _projectRepositories)
-                          {
-                            <RepositoryCard ProjectRepository="@projectRepository" />
-                          }
-                        }
-                        else
-                        {
-                          <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
-                          <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
-                        }
-                      </MudStack>
+                        <MudStack>
+                            <MudText Class="mt-2 mb-6" Typo="Typo.h5">@Localizer["Shared Content"]</MudText>
+                            @if (_projectRepositories != null && _projectRepositories.Any())
+                            {
+                                @foreach (var projectRepository in _projectRepositories)
+                                {
+                                    <RepositoryCard ProjectRepository="@projectRepository" />
+                                }
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.body1">@Localizer["No shared content available."]</MudText>
+                                <MudText Typo="Typo.body1">@Localizer["Please contact the workspace administrators for access or to share repositories."]</MudText>
+                            }
+                        </MudStack>
                     </DatahubAuthView>
                 </NotAuthorized>
             </DatahubAuthView>
@@ -115,15 +115,15 @@
         {
 
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym"
-                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+                            ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
             </DatahubAuthView>
             <MudDivider Class="my-4" />
         }
-        <WorkspaceVersionCard ProjectAcronym="@WorkspaceAcronym" 
-                              WorkspaceVersion="@_project.Version" 
-                              LastUpdated="@_project.Last_Updated_DT"
-                              LatestVersion="@_latestWorkspaceVersion"/>
+        <WorkspaceVersionCard ProjectAcronym="@WorkspaceAcronym"
+                            WorkspaceVersion="@_project.Version"
+                            LastUpdated="@_project.Last_Updated_DT"
+                            LatestVersion="@_latestWorkspaceVersion"/>
         <MudDivider Class="my-4" />
         <WorkspaceUserCardList ProjectAcronym="@WorkspaceAcronym"/>
     </MudItem>
@@ -166,7 +166,7 @@
 
         var newTemplateResource = _project.Resources.Where(
                 r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
-                     r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
             .FirstOrDefault();
 
         _isDeleted = _project.IsDeleted;
