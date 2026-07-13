@@ -21,12 +21,6 @@
 
   "packageRules": [
     {
-      "description": "Skip all remaining AspNetCore.Localizer.Json 1.0.x patch releases",
-      "matchManagers": ["nuget"],
-      "matchPackageNames": ["AspNetCore.Localizer.Json"],
-      "allowedVersions": ">=1.1.0"
-    },
-    {
       "description": "Slow down heavy CI-triggering .NET and NuGet updates to only run on Sundays",
       "matchManagers": ["nuget"],
       "schedule": ["* * * * 0"]
