@@ -67,7 +67,7 @@ internal class LocalizerSteps(
             "fr" or "fr-ca" => new CultureInfo("fr-CA"),
             _ => throw new ArgumentException($"Unsupported language: {language}")
         };
-        
+
         scenarioContext["LanguageKey"] = cultureInfo.Name;
         Thread.CurrentThread.CurrentUICulture = cultureInfo;
         Thread.CurrentThread.CurrentCulture = cultureInfo;
@@ -78,8 +78,8 @@ internal class LocalizerSteps(
         scenarioContext["Output"] = localizedString.Value;
     }
 
-    [Then("the user should see (.*)")]
-    public void ThenTheUserShouldSee(string expectedoutput)
+    [Then("the user should see localized text (.*)")]
+    public void ThenTheUserShouldSeeLocalizedText(string expectedoutput)
     {
         var actualOutput = scenarioContext["Output"] as string;
         var file = scenarioContext["File"] ?? string.Empty;

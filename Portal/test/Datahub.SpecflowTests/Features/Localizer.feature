@@ -5,7 +5,7 @@ Feature: Localizer
   Scenario: Strings should be retrieved in the appropriate language
   Given a text field with localized content for <key> from <file>
   When a user views the text in <language>
-  Then the user should see <expectedoutput>
+  Then the user should see localized text <expectedoutput>
   Examples:
     | key | language | expectedoutput | file |
     | MainTitle | en | Federal Science DataHub | localization.json |
