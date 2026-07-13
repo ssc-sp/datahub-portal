@@ -311,13 +311,13 @@ public class RepositoryServiceTests : TemplateTestCollection
             {
                 StatusCode = HttpStatusCode.OK,
                 Content = new StringContent(
-                    System.Text.Json.JsonSerializer.Serialize(new 
-                    { 
+                    System.Text.Json.JsonSerializer.Serialize(new
+                    {
                         pullRequestId = fakePullRequestId,
                         createdBy = new { id = fakeIdentityId },
                         autoCompleteSetBy = new { id = fakeIdentityId }
-                    }), 
-                    System.Text.Encoding.UTF8, 
+                    }),
+                    System.Text.Encoding.UTF8,
                     "application/json")
             });
 

@@ -420,7 +420,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
 
         if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
         {
-            autoCompleteIdentityId = Guid.NewGuid().ToString(); 
+            autoCompleteIdentityId = Guid.NewGuid().ToString();
         }
 
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
