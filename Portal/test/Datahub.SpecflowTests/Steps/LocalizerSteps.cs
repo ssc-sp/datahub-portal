@@ -81,7 +81,9 @@ internal class LocalizerSteps(
     [Then("the user should see localized text (.*)")]
     public void ThenTheUserShouldSeeLocalizedText(string expectedoutput)
     {
-        var actualOutput = scenarioContext["Output"] as string;
+        scenarioContext.TryGetValue("Output", out var outputObj).Should().BeTrue("the scenario should set Output in the When step");
+        outputObj.Should().BeOfType<string>("Output should be stored as a string in the scenario context");
+        var actualOutput = (string)outputObj!;
         var file = scenarioContext["File"] ?? string.Empty;
         actualOutput.Should().Be(expectedoutput, $"that is what is expected in {file}");
     }

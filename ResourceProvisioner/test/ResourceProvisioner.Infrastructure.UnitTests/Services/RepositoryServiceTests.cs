@@ -174,7 +174,7 @@ public class RepositoryServiceTests : TemplateTestCollection
 
         var result =
             await repositoryService.ExecuteResourceRun(TestTemplate, command, RequestingUser);
-    
+
         Assert.That(result, Is.TypeOf<RepositoryUpdateEvent>());
         Assert.Multiple(() =>
         {
@@ -298,7 +298,7 @@ public class RepositoryServiceTests : TemplateTestCollection
     public async Task ShouldCreatePullRequest()
     {
         var fakePullRequestId = new Random().Next(9999999);
-        var expectedPullRequestResponse = ExpectedPullRequestResponse(fakePullRequestId);
+        var fakeIdentityId = Guid.NewGuid().ToString();
 
         var mockTerraformService = SetupMockTerraformService();
 
@@ -310,7 +310,15 @@ public class RepositoryServiceTests : TemplateTestCollection
             .ReturnsAsync(() => new HttpResponseMessage()
             {
                 StatusCode = HttpStatusCode.OK,
-                Content = expectedPullRequestResponse
+                Content = new StringContent(
+                    System.Text.Json.JsonSerializer.Serialize(new
+                    {
+                        pullRequestId = fakePullRequestId,
+                        createdBy = new { id = fakeIdentityId },
+                        autoCompleteSetBy = new { id = fakeIdentityId }
+                    }),
+                    System.Text.Encoding.UTF8,
+                    "application/json")
             });
 
         var httpClient = new HttpClient(mockHandler.Object);
@@ -338,9 +346,16 @@ public class RepositoryServiceTests : TemplateTestCollection
         {
             ["url"] = $"https://dev.azure.com/info/pullRequests/{fakePullRequestId}",
             ["pullRequestId"] = fakePullRequestId,
+            ["createdBy"] = new JsonObject
+            {
+                ["id"] = "00000000-0000-0000-0000-000000000001"
+            }
         };
-        var stringContent = new StringContent(JsonSerializer.Serialize(data), Encoding.UTF8, "application/json");
-        return stringContent;
+
+        return new StringContent(
+            JsonSerializer.Serialize(data),
+            Encoding.UTF8,
+            "application/json");
     }
 
     private static Repository InitializeTestInfrastructureRepository()
