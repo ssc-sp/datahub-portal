@@ -323,7 +323,7 @@ await _userInformationService.GetUserEmail());
 
     var payload = StorageScanNotificationHelper.BuildEventPayload(notification);
 
-    await _gcNotifyService.SendStorageScanSuccessEmailAsync(payload, email);
+    //await _gcNotifyService.SendStorageScanSuccessEmailAsync(payload, email);
   }
 
   enum RecipientType

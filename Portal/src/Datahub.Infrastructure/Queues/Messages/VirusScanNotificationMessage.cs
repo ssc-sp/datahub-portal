@@ -1,9 +1,17 @@
 namespace Datahub.Infrastructure.Queues.Messages;
 
+public enum ScanStatusType
+{
+    Clean,
+    Infected,
+    Failed
+}
+
 /// <summary>
 /// Message sent to create system notifications for users about virus scan completion.
 /// Uses the existing SystemNotificationService (database-backed, polling-based).
 /// </summary>
+
 public class VirusScanNotificationMessage
 {
     /// <summary>
@@ -14,7 +22,7 @@ public class VirusScanNotificationMessage
     /// <summary>
     /// User's object ID (for targeted notifications)
     /// </summary>
-    public string? UserObjectId { get; init; }
+    public required string UserId { get; init; }
 
     /// <summary>
     /// File name that was scanned
@@ -29,7 +37,7 @@ public class VirusScanNotificationMessage
     /// <summary>
     /// Scan status: "Clean", "Infected", "Failed"
     /// </summary>
-    public required string ScanStatus { get; init; }
+    public required ScanStatusType ScanStatus { get; init; }
 
     /// <summary>
     /// Timestamp when the scan completed
@@ -45,11 +53,6 @@ public class VirusScanNotificationMessage
     /// Storage account name
     /// </summary>
     public string? StorageAccountName { get; init; }
-
-    /// <summary>
-    /// Container name
-    /// </summary>
-    public string ContainerName { get; init; } = "datahub";
 
     /// <summary>
     /// Event correlation ID for tracking

@@ -1,4 +1,4 @@
-﻿using Azure.Messaging.ServiceBus;
+using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Projects;
@@ -22,7 +22,6 @@ namespace Datahub.Functions
         IQueuePongService pongService,
         ISendEndpointProvider sendEndpointProvider,
         IProjectInactivityNotificationService projectInactivityNotificationService,
-        EmailValidator emailValidator,
         IDateProvider dateProvider,
         AzureConfig config,
         IGCNotifyService gcNotifyService)
@@ -135,7 +134,7 @@ namespace Datahub.Functions
 
             var contacts = project.UserRoles?
                 .Select(u => u.PortalUser.Email)
-                .Where(emailValidator.IsValidEmail)
+                .Where(EmailValidator.IsValidEmail)
                 .ToList();
 
             return (contacts, project.Project_Acronym_CD);

@@ -2,6 +2,7 @@ using Azure.Storage.Blobs;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Security;
+using Datahub.Shared.Clients;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,33 +18,33 @@ public class GCNotifyService : IGCNotifyService
     private const string SuccessfulScanTemplateName = "successful-scan";
     private readonly IKeyVaultCoreService _keyVaultService;
     private readonly ILogger<GCNotifyService> _logger;
-    private readonly DatahubPortalConfiguration _portalConfiguration;
+    private readonly IAzureConfiguration _configuration;
     private readonly string _mappingsJson;
 
     public GCNotifyService(
         IKeyVaultCoreService keyVaultService,
         ILoggerFactory loggerFactory,
-        DatahubPortalConfiguration portalConfiguration)
+        IAzureConfiguration systemConfiguration)
     {
         _keyVaultService = keyVaultService ?? throw new ArgumentNullException(nameof(keyVaultService));
         _logger = loggerFactory.CreateLogger<GCNotifyService>();
-        _portalConfiguration = portalConfiguration ?? throw new ArgumentNullException(nameof(portalConfiguration));
+        _configuration = systemConfiguration ?? throw new ArgumentNullException(nameof(systemConfiguration));
 
-        if (_portalConfiguration.Media?.StorageConnectionString is null)
+        if (_configuration.MediaStorageConnectionString is null)
         {
             _logger.LogError("Initialization failed: Media.StorageConnectionString is null (no token available).");
             throw new UnauthorizedAccessException("No token available");
         }
 
         _logger.LogInformation("Initializing GCNotifyService and loading template mappings from blob storage.");
-        _mappingsJson = GetTemplateMappings(_portalConfiguration);
+        _mappingsJson = GetTemplateMappings();
         _logger.LogInformation("GCNotifyService initialized successfully. Templates loaded: {TemplateCount}", SafeCountMappings(_mappingsJson));
     }
 
-    public string GetTemplateMappings(DatahubPortalConfiguration portalConfiguration)
+    public string GetTemplateMappings()
     {
         _logger.LogDebug("Retrieving GC Notify template mappings from blob storage.");
-        var blobClient = new BlobServiceClient(portalConfiguration.Media.StorageConnectionString)
+        var blobClient = new BlobServiceClient(_configuration.MediaStorageConnectionString)
             .GetBlobContainerClient("docs")
             .GetBlobClient("gcnotify-mappings.json");
 
@@ -309,47 +310,6 @@ public class GCNotifyService : IGCNotifyService
         _logger.LogDebug("Dispatching user access regranted notification with template {TemplateId}", templateId);
         string postDataJson = JsonSerializer.Serialize(postData);
         await SendNotification(postDataJson);
-    }
-
-    public async Task SendStorageScanSuccessEmailAsync(
-        StorageScanNotificationHelper.StorageScanSuccessEventPayload payload,
-        string? recipientEmail = null,
-        CancellationToken cancellationToken = default)
-    {
-        ArgumentNullException.ThrowIfNull(payload);
-        cancellationToken.ThrowIfCancellationRequested();
-
-        var targetEmail = string.IsNullOrWhiteSpace(recipientEmail)
-            ? payload.UploadedByEmail
-            : recipientEmail;
-
-        if (string.IsNullOrWhiteSpace(targetEmail))
-        {
-            _logger.LogWarning(
-                "Skipping scan success email for workspace {Workspace}: recipient email missing",
-                payload.WorkspaceAcronym);
-            return;
-        }
-
-        var templateId = GetTemplateId(SuccessfulScanTemplateName, _mappingsJson);
-
-        var postData = new
-        {
-            email_address = targetEmail,
-            template_id = templateId,
-            personalisation = new
-            {
-                filename = payload.FileName,
-                ws = payload.WorkspaceAcronym,
-                date = payload.ScanCompletedOn.ToString("yyyy-MM-dd HH:mm 'UTC'")
-            }
-        };
-
-        await SendNotification(JsonSerializer.Serialize(postData)).ConfigureAwait(false);
-
-        _logger.LogInformation(
-            "Sent storage scan success email for workspace {Workspace} via GC Notify template",
-            payload.WorkspaceAcronym);
     }
 
     public string GetTemplateId(string templateName, string mappingsJson)

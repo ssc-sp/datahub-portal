@@ -88,7 +88,7 @@ namespace Datahub.Functions.Services
             throw new NotImplementedException();
         }
 
-        public Task<ExtendedPortalUser?> GetUserByEmailAsync(string email)
+        public Task<ExtendedPortalUser?> GetExtendedEntraUserByEmail(string email)
         {
             throw new NotImplementedException();
         }
@@ -190,6 +190,11 @@ namespace Datahub.Functions.Services
         }
 
         public Task<bool> UpdatePortalUserAsync(PortalUser updatedUser)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<PortalUser?> GetUserByEmailAsync(string email)
         {
             throw new NotImplementedException();
         }

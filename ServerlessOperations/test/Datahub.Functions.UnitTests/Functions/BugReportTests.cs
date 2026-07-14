@@ -72,7 +72,7 @@ public class BugReportTests
         _alertRecordService = Substitute.For<IAlertRecordService>();
         var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
         var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
-        var config = Substitute.For<IAzureDevopsConfiguration>();
+        var config = Substitute.For<IAzureConfiguration>();
         _azClient = Substitute.For<AzureDevOpsClient>(config, tokenManager);
         _bugReport = new BugReport(_logger, _azureConfig, gcNotifyService, _azClient, _iSendEndpointProvider, _alertRecordService, httpClientFactory);
         _bugReportMessage = new BugReportMessage(

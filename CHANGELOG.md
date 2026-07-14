@@ -3,6 +3,17 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [9.0.1](https://github.com/ssc-sp/datahub-portal/compare/v9.0.0...v9.0.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* convert rersource provision to auto merge methodology vs Create, approve and Close. ([#2056](https://github.com/ssc-sp/datahub-portal/issues/2056)) ([bf0943b](https://github.com/ssc-sp/datahub-portal/commit/bf0943bbd4218cb9c4f121230568f32e4ad7a48f))
+* **deps:** update dependency system.net.http.json to 10.0.9 ([#2034](https://github.com/ssc-sp/datahub-portal/issues/2034)) ([a258430](https://github.com/ssc-sp/datahub-portal/commit/a258430af5a73cc6048290b9160413e9ff0afed7))
+* Fixed an issue where non-admins would be prompted to visit the toolbox if a workspace has no tools ([#2055](https://github.com/ssc-sp/datahub-portal/issues/2055)) ([4303fb7](https://github.com/ssc-sp/datahub-portal/commit/4303fb7a2f00b298158a9e8652d5ec2881a8e6a2))
+* Fixing an issue where an external user's role isn't updated from the dialog ([#2054](https://github.com/ssc-sp/datahub-portal/issues/2054)) ([a76f419](https://github.com/ssc-sp/datahub-portal/commit/a76f4196b426d68130baeabd1fe53b3ce9f319f9))
+* Reverting Localizer to 1.0.3 and adding relevant unit tests ([#2058](https://github.com/ssc-sp/datahub-portal/issues/2058)) ([fc3847c](https://github.com/ssc-sp/datahub-portal/commit/fc3847cb792f8e73f3d17236838885ca766385ca))
+
 ## [9.0.0](https://github.com/ssc-sp/datahub-portal/compare/v8.7.1...v9.0.0) (2026-07-09)
 
 

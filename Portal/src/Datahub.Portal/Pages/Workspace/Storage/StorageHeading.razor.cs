@@ -112,8 +112,11 @@ public partial class StorageHeading
         if (IsActionDisabled(ButtonAction.Download))
             return;
 
-        var downloads = SelectedItems
+        var downloads = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+        
+        if (downloads is null)
+            return;
 
         foreach (var download in downloads)
         {
@@ -132,48 +135,27 @@ public partial class StorageHeading
             return;
         }
 
-        var publishFiles = SelectedItems
+        var publishFiles = SelectedItems?
             .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
             .Where(f => f is not null)
             .Select(f => f!);
 
+        if (publishFiles is null)
+            return;
+
         await OnPublishFiles.InvokeAsync(publishFiles);
         //TODO telemetry
     }
-
-    private async Task HandleShare()
-    {
-        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserShareFile);
-
-        var selectedFile = _selectedFiles.FirstOrDefault();
-        if (selectedFile is null)
-            return;
-
-        var sb = new System.Text.StringBuilder();
-        sb.Append("/sharingworkflow/");
-        sb.Append(selectedFile.fileid);
-        sb.Append("?filename=");
-        sb.Append(selectedFile.filename);
-        if (!string.IsNullOrWhiteSpace(ProjectAcronym))
-        {
-            sb.Append("&project=");
-            sb.Append(ProjectAcronym);
-        }
-        else
-        {
-            sb.Append("&folderpath=");
-            sb.Append(selectedFile.folderpath);
-        }
-        _navigationManager.NavigateTo(sb.ToString());
-    }
-
     private async Task HandleDelete()
     {
         if (IsActionDisabled(ButtonAction.Delete))
             return;
 
-        var deletes = SelectedItems
+        var deletes = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+
+        if (deletes is null)
+            return;
 
         foreach (var delete in deletes)
         {
@@ -186,7 +168,7 @@ public partial class StorageHeading
         if (IsActionDisabled(ButtonAction.Rename))
             return;
         
-        var selectedFile = _selectedFiles.FirstOrDefault();
+        var selectedFile = _selectedFiles?.FirstOrDefault();
         if (selectedFile is not null && _ownsSelectedFiles)
         {
             var newName = await _jsRuntime.InvokeAsync<string>("prompt", Localizer["Enter a new name for the file."].ToString(), 
@@ -251,6 +233,9 @@ public partial class StorageHeading
         { return false; }
 
         if (_currentUserRole is null)
+            return true;
+
+        if (Readonly && buttonAction is ButtonAction.Upload or ButtonAction.Delete or ButtonAction.Rename or ButtonAction.NewFolder or ButtonAction.DeleteFolder)
             return true;
 
         var hasExternalStorageAccess = _currentUserRole.Id is (int)Project_Role.RoleNames.Storage or (int)Project_Role.RoleNames.WebAppAndStorage;

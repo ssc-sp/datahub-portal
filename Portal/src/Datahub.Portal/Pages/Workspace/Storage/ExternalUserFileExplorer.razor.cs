@@ -3,6 +3,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Model;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
+using Datahub.Shared.Entities;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
@@ -13,6 +14,13 @@ public partial class ExternalUserFileExplorer
 {
     private readonly object _uploadingFilesLock = new();
     private string? _lastContainerName;
+    private string? _lastUploadContainerName;
+    private HashSet<string> _filesPendingAntivirusScan = new(StringComparer.OrdinalIgnoreCase);
+    private CancellationTokenSource? _uploadContainerPollingCts;
+
+    private string UploadContainerName => UploadContainer.Name;
+    private bool IsWaitingForAntivirusResults => _filesPendingAntivirusScan.Count > 0;
+    private int FilesBeingScannedCount => _filesPendingAntivirusScan.Count;
 
     private void InitializeUserRootFolder()
     {
@@ -29,7 +37,7 @@ public partial class ExternalUserFileExplorer
 
     private string GetSafeUserFolderName()
     {
-        var emailPrefix = PortalUser?.Email?.Split('@')[0] ?? string.Empty;
+        var emailPrefix = PortalUser.Email.Replace('@', '_');
         var sanitized = new string(emailPrefix
             .Where(ch => char.IsLetterOrDigit(ch) || ch == '.' || ch == '_' || ch == '-')
             .ToArray())
@@ -50,7 +58,7 @@ public partial class ExternalUserFileExplorer
             || candidate.StartsWith(rootPrefix + "/", StringComparison.OrdinalIgnoreCase);
     }
 
-    private async Task EnsureUserRootFolderAsync(string containerName)
+    private async Task EnsureUserFolderExistsAsync(string containerName)
     {
         var userFolder = _root.TrimEnd('/');
         if (string.IsNullOrWhiteSpace(userFolder))
@@ -85,11 +93,17 @@ public partial class ExternalUserFileExplorer
             _showingContainers = false;
 
             InitializeUserRootFolder();
-            await EnsureUserRootFolderAsync(_selectedContainerName);
+ 
+            await EnsureUserFolderExistsAsync(UploadContainerName);
+            await EnsureUserFolderExistsAsync(_selectedContainerName);
+
             // Load metadata and content immediately for the allowed container.
             StorageAccountMetadata = await StorageManager.GetStorageMetadataAsync(_selectedContainerName);
             _folderList = await GetFileCountAsync(_currentFolder);
             await RefreshStoragePageAsync();
+
+            await RefreshUploadContainerPendingFilesAsync();
+            EnsureUploadContainerPollingStarted();
         }
         catch (Exception ex)
         {
@@ -104,6 +118,7 @@ public partial class ExternalUserFileExplorer
     private async Task RefreshStoragePageAsync()
     {
         _lastContainerName = ContainerName;
+        _lastUploadContainerName = UploadContainer?.Name;
         _loading = true;
         StateHasChanged();
 
@@ -120,6 +135,7 @@ public partial class ExternalUserFileExplorer
             .Select(name => name!)
             .ToList();
         _fileScanResults = await FileScanService.GetFileScanResultsAsync(fileNames);
+        await RefreshUploadContainerPendingFilesAsync();
 
         _loading = false;
 
@@ -128,7 +144,7 @@ public partial class ExternalUserFileExplorer
 
     protected override async Task OnParametersSetAsync()
     {
-        if (_lastContainerName != Container?.Name)
+        if (_lastContainerName != Container?.Name || _lastUploadContainerName != UploadContainer?.Name)
         {
             try
             {
@@ -171,6 +187,7 @@ public partial class ExternalUserFileExplorer
                 continue;
 
             _files?.RemoveAll(f => f.name.Equals(selectedFile, StringComparison.OrdinalIgnoreCase));
+            _fileScanResults.Remove(selectedFile);
         }
 
         // Clear selected items and reset to the current folder
@@ -261,16 +278,16 @@ public partial class ExternalUserFileExplorer
         StateHasChanged();
     }
 
-    private Task HandlePublishFiles(IEnumerable<FileMetaData> files)
+    private Task HandlePublishFiles(IEnumerable<PortalFileMetadata> files)
     {
         // External users cannot publish files
         return Task.CompletedTask;
     }
 
-    private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath)
+    private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath, string? containerName = null)
     {
-        var containerName = _selectedContainerName ?? ContainerName;
-        if (!await StorageManager.FileExistsAsync(containerName, filePath))
+        var targetContainerName = containerName ?? _selectedContainerName ?? ContainerName;
+        if (!await StorageManager.FileExistsAsync(targetContainerName, filePath))
             return (false, true);
 
         var allowOverride = await _jsRuntime.InvokeAsync<bool>("confirm",
@@ -310,12 +327,13 @@ public partial class ExternalUserFileExplorer
         }
 
         var newFilePath = JoinPath(folder, browserFile.Name);
+        var uploadContainerName = UploadContainerName;
 
-        var (fileExists, allowOverride) = await VerifyOverwrite(newFilePath);
+        var (fileExists, allowOverride) = await VerifyOverwrite(newFilePath, uploadContainerName);
         if (!allowOverride)
             return;
 
-        var fileMetadata = new FileMetaData
+        var fileMetadata = new PortalFileMetadata
         {
             id = Guid.NewGuid().ToString(),
             createdby = PortalUser.Email,
@@ -335,10 +353,9 @@ public partial class ExternalUserFileExplorer
             _uploadingFiles.Add(fileMetadata);
         }
 
-        var containerName = _selectedContainerName ?? ContainerName;
         _ = InvokeAsync(async () =>
         {
-            var succeeded = await StorageManager.UploadFileAsync(containerName, fileMetadata, uploadedBytes =>
+            var succeeded = await StorageManager.UploadFileAsync(uploadContainerName, fileMetadata, uploadedBytes =>
             {
                 fileMetadata.uploadedBytes = uploadedBytes;
                 _ = InvokeAsync(StateHasChanged);
@@ -353,25 +370,23 @@ public partial class ExternalUserFileExplorer
                 }
             }
 
-            if (folder == _currentFolder)
+            if (folder == _currentFolder && succeeded
+                && string.Equals(uploadContainerName, _selectedContainerName ?? ContainerName, StringComparison.OrdinalIgnoreCase))
             {
-                if (succeeded)
+                if (fileExists)
                 {
-                    if (fileExists)
-                    {
-                        _files.RemoveAll(f => f.name == fileMetadata.name);
-                    }
-
-                    _files.Add(fileMetadata);
-                    
-                    // Set initial scan status for newly uploaded file
-                    _fileScanResults[fileMetadata.name] = new FileScanResult
-                    {
-                        FileName = fileMetadata.name,
-                        Status = FileScanStatus.ScanInProgress,
-                        ScanDate = DateTime.UtcNow
-                    };
+                    _files.RemoveAll(f => f.name == fileMetadata.name);
                 }
+
+                _files.Add(fileMetadata);
+
+                // Set initial scan status for newly uploaded file
+                _fileScanResults[fileMetadata.name] = new FileScanResult
+                {
+                    FileName = fileMetadata.name,
+                    Status = FileScanStatus.ScanInProgress,
+                    ScanDate = DateTime.UtcNow
+                };
             }
 
             await InvokeAsync(StateHasChanged);
@@ -426,6 +441,8 @@ public partial class ExternalUserFileExplorer
             return;
         }
 
+        await EnsureUserFolderExistsAsync(UploadContainerName);
+
         var uploadBatchId = GenerateUploadBatchId();
         var allFiles = e.GetMultipleFiles().ToList();
         var acceptedFileNames = new List<string>();
@@ -450,6 +467,8 @@ public partial class ExternalUserFileExplorer
                 MudBlazor.Severity.Info);
 
             await NotifyWorkspaceLeadOfUploadAsync(PortalUser?.Email ?? string.Empty, acceptedFileNames);
+            await RefreshUploadContainerPendingFilesAsync();
+            EnsureUploadContainerPollingStarted();
         }
 
         // refresh ui
@@ -522,6 +541,93 @@ public partial class ExternalUserFileExplorer
         {
             _selectedItems.Clear();
         }
+    }
+
+    private async Task RefreshUploadContainerPendingFilesAsync()
+    {
+        var pendingFiles = await GetAllFilesInFolderAsync(UploadContainerName, _root);
+        _filesPendingAntivirusScan = pendingFiles.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        TrackFilesBeingScannedPlaceholder(_filesPendingAntivirusScan);
+    }
+
+    private async Task<List<string>> GetAllFilesInFolderAsync(string containerName, string folderPath)
+    {
+        var files = new List<string>();
+        var continuationToken = string.Empty;
+        var safetyCounter = 0;
+
+        do
+        {
+            var page = await StorageManager.GetDfsPagesAsync(containerName, folderPath, continuationToken);
+            var pageFiles = page.Files
+                .Select(f => f.name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))
+                .Select(name => name!)
+                .ToList();
+
+            files.AddRange(pageFiles);
+            continuationToken = page.ContinuationToken;
+            safetyCounter++;
+
+            if (safetyCounter > 1000)
+            {
+                _logger.LogWarning("Stopped counting files in container {Container} folder {Folder} due to pagination safety limit.", containerName, folderPath);
+                break;
+            }
+        }
+        while (!string.IsNullOrWhiteSpace(continuationToken));
+
+        return files;
+    }
+
+    private void EnsureUploadContainerPollingStarted()
+    {
+        if (_uploadContainerPollingCts != null)
+            return;
+
+        _uploadContainerPollingCts = new CancellationTokenSource();
+        _ = PollUploadContainerPendingFilesAsync(_uploadContainerPollingCts);
+    }
+
+    private void StopUploadContainerPolling()
+    {
+        _uploadContainerPollingCts?.Cancel();
+        _uploadContainerPollingCts?.Dispose();
+        _uploadContainerPollingCts = null;
+    }
+
+    private async Task PollUploadContainerPendingFilesAsync(CancellationTokenSource pollingCts)
+    {
+        try
+        {
+            while (!pollingCts.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(10), pollingCts.Token);
+                await RefreshUploadContainerPendingFilesAsync();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // ignored
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed while polling upload container for pending antivirus files.");
+        }
+        finally
+        {
+            if (ReferenceEquals(_uploadContainerPollingCts, pollingCts))
+            {
+                using var _ = pollingCts;
+                _uploadContainerPollingCts = null;
+            }
+        }
+    }
+
+    private void TrackFilesBeingScannedPlaceholder(IEnumerable<string> filesBeingScanned)
+    {
+        // Placeholder: hook this into a central tracker/telemetry stream if scan progress must be shared across components.
     }
 
     private bool CanDeleteFolder(string folderName)

@@ -180,8 +180,8 @@ the correct information in the page.
     Examples:
       | catalog-tool       | available | dependency-count | example-dependency   |
       | azure-storage-blob | true      | 1                | new-project-template |
-      | azure-databricks   | true      | 2                | azure-storage-blob   |
-      | azure-app-service  | true      | 2                | azure-storage-blob   |
+      | azure-databricks   | true      | 1                | new-project-template   |
+      | azure-app-service  | true      | 1                | new-project-template   |
       | azure-postgres     | true      | 1                | new-project-template |
 
     Scenario: User cannot proceed if there are no tools being added, removed, or configured

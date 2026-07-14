@@ -32,7 +32,7 @@ public class ConfigureWorkspaceAppServiceTests
         //_configureWorkspaceAppService = new ConfigureWorkspaceAppService(_logger, _azureConfig, _dbContext);
         var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();
         var tokenManager = Substitute.For<AzAccessTokenManager>(tokenCredentialService, tokenCredentialService);
-        var config = Substitute.For<IAzureDevopsConfiguration>();
+        var config = Substitute.For<IAzureConfiguration>();
         var azClient = Substitute.For<AzureDevOpsClient>(config, tokenManager);
 
         _configureWorkspaceAppService = Substitute.For<ConfigureWorkspaceAppService>(_logger, _azureConfig, azClient, _dbContext);

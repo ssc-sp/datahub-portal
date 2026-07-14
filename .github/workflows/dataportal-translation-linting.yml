@@ -43,7 +43,7 @@ jobs:
           target_path="Portal/src/Datahub.Portal"
 
           # Define all translation file names (without extensions)
-          translation_files=("localization" "cbr" "databricks" "gchosting" "url" "workspace_versions")
+          translation_files=("localization" "cbr" "databricks" "gchosting" "urls" "workspace_versions")
 
           # Load all English and French JSON files into associative arrays
           declare -A english_jsons

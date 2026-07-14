@@ -23,7 +23,7 @@ public static class ConfigureServices
         // so the value is resolved lazily after all configuration sources are loaded.
         services.AddSingleton<AzureDevOpsConfiguration>(sp =>
             sp.GetRequiredService<IOptions<AzureDevOpsConfiguration>>().Value);
-        services.AddSingleton<IAzureDevopsConfiguration>(sp =>
+        services.AddSingleton<IAzureConfiguration>(sp =>
             sp.GetRequiredService<AzureDevOpsConfiguration>());
 
         services.AddSingleton<AzAccessTokenManager>();

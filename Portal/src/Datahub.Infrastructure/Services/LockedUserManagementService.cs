@@ -20,7 +20,7 @@ public class LockedUserManagementService : ILockedUserManagementService
         _contextFactory = contextFactory;
     }
 
-    public async Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId)
+    public async Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int? performedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 

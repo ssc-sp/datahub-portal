@@ -49,13 +49,13 @@ public partial class RepositoryService(
         var message = exception.Message;
 
         return message.Contains("unexpected http status code: 5", StringComparison.OrdinalIgnoreCase)
-               || message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
-               || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
+                || message.Contains("timed out", StringComparison.OrdinalIgnoreCase)
+                || message.Contains("connection", StringComparison.OrdinalIgnoreCase);
     }
 
     private static readonly SemaphoreSlim _semaphore = new(1, 1);
     private static readonly SemaphoreSlim _moduleSemaphore = new(1, 1);
-    
+
     private async Task<string?> GetIssuerSslValidationNameAsync()
     {
         var isEnabled = await featureManager.IsEnabledAsync(Features.LibGit2SharpIssuerSslValidation);
@@ -94,8 +94,16 @@ public partial class RepositoryService(
     private PullOptions CreatePullOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null) => new PullOptions
         {
-            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider)
+            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider),
+            MergeOptions = CreateMergeOptions()
         };
+
+    private MergeOptions CreateMergeOptions() => new()
+    {
+        FastForwardStrategy = FastForwardStrategy.NoFastForward,
+        IgnoreWhitespaceChange = true,
+        MergeFileFavor = MergeFileFavor.Union
+    };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null)
@@ -134,7 +142,7 @@ public partial class RepositoryService(
             CreateTemporaryDirectory();
 
             var user = command.RequestingUserEmail ??
-                       throw new NullReferenceException("Requesting user's email is null");
+                throw new NullReferenceException("Requesting user's email is null");
             logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
             await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
@@ -151,11 +159,6 @@ public partial class RepositoryService(
             logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(command.Workspace.Acronym!);
-
-            logger.LogInformation("Completing pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId,
-                command.Workspace.Acronym!);
-
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
@@ -387,7 +390,7 @@ public partial class RepositoryService(
 
     public const string HttpClientName = "InfrastructureHttpClient";
 
-    public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
+public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string workspaceAcronym)
     {
         // create a pull request in Azure DevOps
         logger.LogInformation("Creating infrastructure pull request");
@@ -406,15 +409,16 @@ public partial class RepositoryService(
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
-        var pullRequestId =
-            data?["pullRequestId"]?.ToString();
+        var pullRequestId = data?["pullRequestId"]?.ToString();
+        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString(); // Extract directly from ADO
 
-        // TODO: Test this!
         if (string.IsNullOrWhiteSpace(pullRequestId))
         {
             if (data?["typeKey"]?.ToString() == "GitPullRequestExistsException")
             {
-                pullRequestId = await GetExistingPullRequestId(workspaceAcronym);
+                var existingPr = await GetExistingPullRequestDetails(workspaceAcronym);
+                pullRequestId = existingPr.PullRequestId;
+                autoCompleteIdentityId = existingPr.CreatedById;
             }
             else
             {
@@ -422,15 +426,22 @@ public partial class RepositoryService(
             }
         }
 
+        if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
+        {
+            autoCompleteIdentityId = Guid.NewGuid().ToString();
+        }
+
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
+
+        await AutoApproveInfrastructurePullRequest(int.Parse(pullRequestId), workspaceAcronym, autoCompleteIdentityId);
 
         return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
     }
 
-    public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym)
+    public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym,string autoCompleteIdentityId)
     {
-        var patchContent = BuildPullRequestPatchBody(workspaceAcronym);
+        var patchContent = BuildPullRequestPatchBody(workspaceAcronym, autoCompleteIdentityId);
         var patchUrl =
             $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}/{pullRequestId}?api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
@@ -468,33 +479,44 @@ public partial class RepositoryService(
         EnsureJsonResponse(response);
         var responseContent = await response.Content.ReadAsStringAsync();
         var jsonContent = JsonSerializer.Deserialize<JsonNode>(responseContent);
-        if (jsonContent?["closedBy"] is null)
+        if (jsonContent?["autoCompleteSetBy"] is null)
         {
-            logger.LogError("Infrastructure pull request {PullRequestUrl} was not auto-approved", patchUrl);
-            throw new AutoApproveIncompleteException($"Infrastructure pull request {patchUrl} was not auto-approved");
+            logger.LogError(
+                "Auto-complete was not enabled for infrastructure pull request {PullRequestUrl}",
+                patchUrl);
+
+            throw new AutoApproveIncompleteException(
+                $"Auto-complete was not enabled for pull request {patchUrl}");
         }
     }
 
-    private StringContent BuildPullRequestPatchBody(string workspaceAcronym)
+    private StringContent BuildPullRequestPatchBody(
+        string workspaceAcronym,
+        string autoCompleteIdentityId)
     {
         logger.LogInformation(
-            "Building infrastructure pull request patch body for complete by user {ClientId}",
-            resourceProvisionerConfiguration.Value.InfrastructureRepository.AzureDevOpsConfiguration.ClientId);
+            "Building infrastructure pull request auto-complete body for identity {IdentityId}",
+            autoCompleteIdentityId);
+
         var patchData = new JsonObject
         {
-            ["status"] = "completed",
-            ["lastMergeSourceCommit"] = new JsonObject
+            ["autoCompleteSetBy"] = new JsonObject
             {
-                ["commitId"] = GetBranchLastCommitId(workspaceAcronym)
+                ["id"] = autoCompleteIdentityId
             },
             ["completionOptions"] = new JsonObject
             {
                 ["deleteSourceBranch"] = false,
-                ["mergeCommitMessage"] = $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
+                ["bypassPolicy"] = false,
+                ["mergeCommitMessage"] =
+                    $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
             }
         };
-        var patchBody = new StringContent(JsonSerializer.Serialize(patchData), Encoding.UTF8, "application/json");
-        return patchBody;
+
+        return new StringContent(
+            JsonSerializer.Serialize(patchData),
+            Encoding.UTF8,
+            "application/json");
     }
 
     public virtual string GetBranchLastCommitId(string branchName)
@@ -556,11 +578,11 @@ public partial class RepositoryService(
         return repositoryUpdateEvents;
     }
 
-    
+
     public async Task<RepositoryUpdateEvent> ExecuteResourceRun(TerraformTemplate resourceTemplate, WorkspaceDefinition command, string username)
     {
         try
-        {            
+        {
             if (resourceTemplate.Status == TerraformStatus.DeleteRequested)
             {
                 if (resourceTemplate.Name == TerraformTemplate.NewProjectTemplate)
@@ -629,9 +651,9 @@ public partial class RepositoryService(
         }
     }
 
-    private async Task<string> GetExistingPullRequestId(string workspaceAcronym)
+    private async Task<(string PullRequestId, string CreatedById)> GetExistingPullRequestDetails(string workspaceAcronym)
     {
-        logger.LogInformation("Pull request already exists, fetching pull request id");
+        logger.LogInformation("Pull request already exists, fetching pull request details");
         var url =
             $"{resourceProvisionerConfiguration.Value.InfrastructureRepository.PullRequestUrl}?searchCriteria.status=active&searchCriteria.sourceRefName=refs/heads/{workspaceAcronym}&api-version={resourceProvisionerConfiguration.Value.InfrastructureRepository.ApiVersion}";
 
@@ -641,12 +663,20 @@ public partial class RepositoryService(
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
-        return data?["value"]?
-                   .AsArray()
-                   .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}")?
-                   .AsObject()["pullRequestId"]?.ToString() ??
-               throw new NullReferenceException(
-                   $"Could not get existing pull request id for workspace {workspaceAcronym}");
+        var prNode = data?["value"]?
+            .AsArray()
+            .FirstOrDefault(node => node?["sourceRefName"]?.ToString() == $"refs/heads/{workspaceAcronym}");
+
+        var pullRequestId = prNode?["pullRequestId"]?.ToString();
+        var createdById = prNode?["createdBy"]?["id"]?.ToString();
+
+        if (string.IsNullOrWhiteSpace(pullRequestId))
+        {
+            throw new NullReferenceException(
+                $"Could not get existing pull request id for workspace {workspaceAcronym}");
+        }
+
+        return (pullRequestId, createdById);
     }
 
     private static void EnsureJsonResponse(HttpResponseMessage response)
