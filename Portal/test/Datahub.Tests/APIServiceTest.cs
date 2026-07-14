@@ -18,6 +18,7 @@ using Azure.Search.Documents.Models;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using System.Threading;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Tests;
 
@@ -67,7 +68,7 @@ public class APIServiceTest
     public void GivenVersionJSONresponse_ThenParseCorrectlyToClass()
     {
         string json = @"[{""versionid"":""2020 - 11 - 16T17: 45:43.9741390Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 45:43 + 00:00""},{""versionid"":""2020 - 11 - 16T17: 46:14.6966275Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Protected A"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T17: 46:14 + 00:00""},{""versionid"":""2020 - 11 - 16T20: 16:56.4849377Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 16T20: 16:56 + 00:00""},{""versionid"":""2020 - 11 - 17T18: 51:07.7526279Z"",""metadata"":{ ""folderowner"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""folderid"":""ownedroot - 0403528c - 5abc - 423f - 9201 - 9c945f628595"",""createdby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""lastmodifiedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595"",""filename"":""ResXManager.VSIX.vsix"",""fileformat"":""vsix"",""securityclass"":""Unclassified"",""ownedby"":""0403528c - 5abc - 423f - 9201 - 9c945f628595""},""timestamp"":""2020 - 11 - 17T18: 51:07 + 00:00""}]";
-        var versions = JsonConvert.DeserializeObject<List<Datahub.Core.Data.Version>>(json);
+        var versions = JsonConvert.DeserializeObject<List<FileVersion>>(json);
 
         Assert.True(versions.Count > 0);
     }
@@ -348,7 +349,7 @@ public class APIServiceTest
     public async Task GivenSearchParameters_RetrieveJsonFromCognitiveSearch()
     {
         var indexClient = CreateSearchIndexClient("azureblob-index");
-        SearchResults<FileMetaData> results;
+        SearchResults<FileMetadata> results;
 
         var options = new SearchOptions()
         {
@@ -362,13 +363,12 @@ public class APIServiceTest
         options.Select.Add("filesize");
         options.Select.Add("fileformat");
 
-        results = indexClient.Search<FileMetaData>("*", options);
+        results = indexClient.Search<FileMetadata>("*", options);
 
         Assert.NotNull(results);
 
-        List<FileMetaData> fileMetaDatas = new();
-
-        await foreach (Page<SearchResult<FileMetaData>> searchResults in results.GetResultsAsync().AsPages(default, 20))
+        List<FileMetadata> fileMetaDatas = new();
+        await foreach (Page<SearchResult<FileMetadata>> searchResults in results.GetResultsAsync().AsPages(default, 20))
         {
             foreach (var item in searchResults.Values)
             {
@@ -383,7 +383,7 @@ public class APIServiceTest
     public Task CreateIndex()
     {
         FieldBuilder fieldBuilder = new FieldBuilder();
-        var searchFields = fieldBuilder.Build(typeof(FileMetaData));
+        var searchFields = fieldBuilder.Build(typeof(FileMetadata));
         var azureKeyCreds = new AzureKeyCredential("21D5756DF91AE0E5E65C47D41DDE3ACF");
         var adminClient = new SearchIndexClient(new Uri("https://datahub-search-dev.search.windows.net"), azureKeyCreds);
 

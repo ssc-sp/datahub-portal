@@ -133,8 +133,8 @@ public class TerraformTemplate
         NewProjectTemplate => [],
         VariableUpdate => [],
         AzureStorageBlob => [NewProjectTemplate],
-        AzureDatabricks => [NewProjectTemplate, AzureStorageBlob],
-        AzureAppService => [NewProjectTemplate, AzureStorageBlob],
+        AzureDatabricks => [NewProjectTemplate],
+        AzureAppService => [NewProjectTemplate],
         AzurePostgres => [NewProjectTemplate],
         _ => null
     };
@@ -146,6 +146,22 @@ public class TerraformTemplate
             .Select(t => new TerraformTemplate(t, TerraformStatus.CreateRequested, DateTime.UtcNow))
             .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
     }
+
+#nullable enable
+    public static IEnumerable<string>? GetPreCreatedResourceNames(string toolName) => toolName switch
+    {
+        NewProjectTemplate => [AzureStorageBlob],
+        _ => []
+    };
+#nullable disable
+
+    public static List<TerraformTemplate> GetPreCreatedResources(string name, string status)
+    {
+        return GetPreCreatedResourceNames(name)
+            .Select(t => new TerraformTemplate(t, status, DateTime.UtcNow))
+            .ToList() ?? throw new ArgumentException($"Unknown template name: {name}");
+    }
+
     public static string MapHealthResourceTypeToTemplateConstant(InfrastructureHealthResourceType resourceType)
     {
         return resourceType switch

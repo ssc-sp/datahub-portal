@@ -3,6 +3,7 @@ using Azure.Storage.Files.DataLake;
 using Azure.Storage.Files.DataLake.Models;
 using Datahub.Application.Services.Security;
 using Datahub.Core.Data;
+using Datahub.Shared.Entities;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -72,7 +73,7 @@ public class DataLakeClientService
         return dataLakeFileSystemClient;            
     }
 
-    public async Task<bool> AssignOwnerPermissionsToFile(FileMetaData file, string userId, string permissions)
+    public async Task<bool> AssignOwnerPermissionsToFile(FileMetadata file, string userId, string permissions)
     {
         var accessControlTuple = await GetAccessControlList(file);
         var accessControlList = accessControlTuple.Item1;
@@ -106,7 +107,7 @@ public class DataLakeClientService
         return false;
     }
 
-    public async Task<bool> RemoveSharedUser(FileMetaData file, string user)
+    public async Task<bool> RemoveSharedUser(FileMetadata file, string user)
     {
         var accessControlTuple = await GetAccessControlList(file);
         var accessControlList = accessControlTuple.Item1;
@@ -128,7 +129,7 @@ public class DataLakeClientService
         return response.GetRawResponse().Status == 200;
     }
 
-    public async Task LoadSharedUsers(FileMetaData file)
+    public async Task LoadSharedUsers(FileMetadata file)
     {
         var accessControlTuple = await GetAccessControlList(file);
         var accessControlList = accessControlTuple.Item1;
@@ -146,7 +147,7 @@ public class DataLakeClientService
         }
     }
 
-    private async Task<(List<PathAccessControlItem>, DataLakeFileClient)> GetAccessControlList(FileMetaData fileMetadata)
+    private async Task<(List<PathAccessControlItem>, DataLakeFileClient)> GetAccessControlList(FileMetadata fileMetadata)
     {
         await CheckClients();
 

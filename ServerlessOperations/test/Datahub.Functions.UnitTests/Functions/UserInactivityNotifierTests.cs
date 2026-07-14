@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Commands;
+using Datahub.Application.Commands;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notification;
 using Datahub.Core.Model.Achievements;
@@ -43,7 +43,6 @@ namespace Datahub.Functions.UnitTests.Functions
 
         private AzureConfig _azConfig;
         private IQueuePongService _pongService;
-        private EmailValidator _emailValidator;
         private IGCNotifyService _gcNotifyService;
         private ISendEndpointProvider _iSendEndpointProvider;
 
@@ -54,10 +53,9 @@ namespace Datahub.Functions.UnitTests.Functions
             _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
             _azConfig = new AzureConfig(_config);
             _pongService = new QueuePongService(_iSendEndpointProvider);
-            _emailValidator = new EmailValidator();
             _gcNotifyService = Substitute.For<IGCNotifyService>();
             _sut = new UserInactivityNotifier(_loggerFactory, _dbContextFactory, _dateProvider, _azConfig,
-                _pongService, _emailValidator, _userInactivityNotificationService, _iSendEndpointProvider,
+                _pongService, _userInactivityNotificationService, _iSendEndpointProvider,
                 _projectUserManagementService, _gcNotifyService);
         }
 

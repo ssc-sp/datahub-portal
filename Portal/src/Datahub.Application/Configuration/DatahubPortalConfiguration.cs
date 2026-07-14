@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace Datahub.Application.Configuration;
 
-public class DatahubPortalConfiguration : IAzureDevopsConfiguration
+public class DatahubPortalConfiguration : IAzureConfiguration
 {
     public CultureSettings CultureSettings { get; set; } = new();
     public bool ShowLoginPage { get; set; } = true;
@@ -17,9 +17,8 @@ public class DatahubPortalConfiguration : IAzureDevopsConfiguration
     public Hosting Hosting { get; set; } = new();
 
     public const string DisableManagedIdentityValue = "disabled";
-    public string PortalRunAsManagedIdentity { get; set; } = DisableManagedIdentityValue;
+    public string RunAsManagedIdentity { get; set; } = DisableManagedIdentityValue;
     public string ResourcePrefix { get; set; } = "fsdh";
-    public bool CentralizedProjectSecrets { get; set; } = false;
     public string ProjectStorageKeySecretName { get; set; } = "storage-key";
 
     [JsonProperty("Azure:SignalR:StickyServerMode")]
@@ -45,6 +44,18 @@ public class DatahubPortalConfiguration : IAzureDevopsConfiguration
     public StorageScanNotificationSettings StorageScanNotifications { get; set; } = new();
 
     public string OrganizationUrl => $"https://dev.azure.com/{AdoOrg.OrgName}";
+
+    public string TenantId => AzureAd.TenantId;
+
+    public string ClientId => AzureAd.ClientId;
+
+    public string ClientSecret => AzureAd.ClientSecret;
+
+    public string MediaStorageConnectionString => Media.StorageConnectionString;
+
+    public string SubscriptionId => AzureAd.SubscriptionId;
+
+    public string EnvironmentName => Hosting.EnvironmentName;
 }
 
 public class Achievements
@@ -200,41 +211,7 @@ public class StorageConfiguration
     public string BlockedFileExtensions { get; set; } = ".ace,.ade,.adp,.ani,.app,.apk,.bas,.bat,.chm,.cmd,.com,.cpl,.crt,.docm,.dll,.exe,.hlp,.ht,.hta,.inf,.ins,.isp,.jar,.job,.js,.jse,.lnk,.mda,.mdb,.mde,.mdz,.msc,.msi,.msp,.mst,.pcd,.pif,.reg,.scr,.sct,.shs,.url,.vb,.vbe,.vbs,.wsc,.wsf,.wsh";
     public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .AsReadOnly();
-    public ExternalUsersStorage ExternalUsersStorage { get; set; } = new();
-}
-
-public class ExternalUsersStorage
-{
-    /// <summary>
-    /// Storage account name for external users (shared across all workspaces)
-    /// </summary>
-    public string AccountName { get; set; } = "fsdhstoragedev";
-    
-    /// <summary>
-    /// Key Vault secret name for the external users storage account key
-    /// </summary>
-    public string AccountKeySecretName { get; set; } = "datahub-blob-key-fsdhstoragedev";
-    
-    /// <summary>
-    /// Container name for external users files
-    /// </summary>
-    public string ContainerName { get; set; } = "external-uploads";
-    
-    /// <summary>
-    /// Optional SAS token for development/testing. If provided, will be used instead of Key Vault account key.
-    /// </summary>
-    public string? SasToken { get; set; }
-    
-    /// <summary>
-    /// Whether to retrieve the storage key from the central Key Vault (true) or workspace Key Vault (false)
-    /// </summary>
-    public bool UseCentralKeyVault { get; set; } = true;
-    
-    /// <summary>
-    /// Name of the central Key Vault where shared secrets are stored
-    /// </summary>
-    public string CentralKeyVaultName { get; set; } = "fsdh-key-dev";
+        .AsReadOnly();    
 }
 
 public class ToolboxConfig

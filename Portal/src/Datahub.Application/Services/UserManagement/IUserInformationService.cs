@@ -45,7 +45,14 @@ public interface IUserInformationService
     /// </summary>
     /// <param name="email">The user's email address to search for.</param>
     /// <returns>An <see cref="ExtendedPortalUser"/> or <c>null</c> if no match was found.</returns>
-    Task<ExtendedPortalUser?> GetUserByEmailAsync(string email);
+    Task<ExtendedPortalUser?> GetExtendedEntraUserByEmail(string email);
+
+    /// <summary>
+    /// Retrieves a portal user by their email address. This method will return <c>null</c> if no portal user exists for the given email.
+    /// </summary>
+    /// <param name="email"></param>
+    /// <returns></returns>
+    Task<PortalUser?> GetUserByEmailAsync(string email);
 
     /// <summary>
     /// Returns the external user's name identifier from the authentication claims.

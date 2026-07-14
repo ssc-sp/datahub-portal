@@ -3,9 +3,9 @@
 
 @if (SelectedContainer != null)
 {
-    <MudMenu AnchorOrigin=@Origin.BottomRight TransformOrigin=@Origin.TopRight @ref=@_rootMenu>
+    <MudMenu AnchorOrigin=@Origin.BottomRight TransformOrigin=@Origin.TopRight @ref=@_rootMenu ActivationEvent="@MouseEvent.LeftClick">
         <ActivatorContent>
-            <DHButton HtmlTag="button">
+            <MudButton HtmlTag="button" OnClick="@context.ToggleAsync">
                 <MudStack Row>
                     <DHIcon Icon=@GetCloudProviderIcon(SelectedContainer)
                         ViewBox=@GetCloudProviderIconViewBox(SelectedContainer) 
@@ -13,87 +13,83 @@
                     <MudText Typo=@Typo.h2>@Localizer[SelectedContainer.CloudStorageProvider.ToString()] - @SelectedContainer.AccountName - @SelectedContainer.ContainerName</MudText>
                     <DHIcon Icon=@Icons.Material.Filled.ArrowDropDown Size=@Size.Large />
                 </MudStack>
-            </DHButton>
+            </MudButton>
         </ActivatorContent>
         <ChildContent>
             @foreach(var accountContainer in CloudContainers.DistinctBy(c => c.AccountName))
             {
-                <MudMenuItem>
-                    <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;" >
-                        <ActivatorContent>
-                            <MudStack Row>
-                                <DHIcon Icon=@GetCloudProviderIcon(accountContainer) ViewBox=@GetCloudProviderIconViewBox(accountContainer) />
-                                <MudText>@Localizer[accountContainer.CloudStorageProvider.ToString()] - @accountContainer.AccountName</MudText>
-                                <MudSpacer />
-                                <DHIcon Icon=@Icons.Material.Filled.ChevronRight />
-                            </MudStack>
-                        </ActivatorContent>
-                        <ChildContent>
+                <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;">
+                    <ActivatorContent>
+                        <MudStack Row Style="cursor: pointer; padding: 8px 16px;">
+                            <DHIcon Icon=@GetCloudProviderIcon(accountContainer) ViewBox=@GetCloudProviderIconViewBox(accountContainer) />
+                            <MudText>@Localizer[accountContainer.CloudStorageProvider.ToString()] - @accountContainer.AccountName</MudText>
+                            <MudSpacer />
+                            <DHIcon Icon=@Icons.Material.Filled.ChevronRight />
+                        </MudStack>
+                    </ActivatorContent>
+                    <ChildContent>
 
-                            @foreach (var container in CloudContainers.Where(c => c.AccountName == accountContainer.AccountName))
+                        @foreach (var container in CloudContainers.Where(c => c.AccountName == accountContainer.AccountName))
+                        {
+                            @if (container.Enabled) 
                             {
-                                @if (container.Enabled) 
-                                {
-                                    <MudMenuItem OnClick=@(() => SelectedContainerInternal = container)>
-                                        <MudText>@container.ContainerName</MudText>
-                                    </MudMenuItem>
-                                }
-                                else
-                                {
-                                    <MudMenuItem Disabled>
-                                        <MudText>@container.ContainerName</MudText>
-                                    </MudMenuItem>
-                                }
+                                <MudMenuItem OnClick=@(() => SelectedContainerInternal = container)>
+                                    <MudText>@container.ContainerName</MudText>
+                                </MudMenuItem>
                             }
+                            else
+                            {
+                                <MudMenuItem Disabled>
+                                    <MudText>@container.ContainerName</MudText>
+                                </MudMenuItem>
+                            }
+                        }
 
-                            @if (accountContainer.Id.HasValue)
-                            {
-                                <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
-                                    <MudDivider />
-                                    <MudMenuItem OnClick=@(() => EditProviderAccount(accountContainer))>
-                                        <MudStack Row>
-                                            <DHIcon Icon=@Icons.Material.Filled.Edit />
-                                            <MudText>@Localizer["Edit"]</MudText>
-                                        </MudStack>
-                                    </MudMenuItem>
-                                    <MudMenuItem OnClick=@(() => RemoveProviderAccount(accountContainer))>
-                                        <MudStack Row>
-                                            <DHIcon Icon=@Icons.Material.Filled.Delete Color=@Color.Error />
-                                            <MudText>@Localizer["Remove"]</MudText>
-                                        </MudStack>
-                                    </MudMenuItem>
-                                </DatahubAuthView>
-                            }
-                        </ChildContent>
-                    </MudMenu>
-                </MudMenuItem>
+                        @if (accountContainer.Id.HasValue)
+                        {
+                            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
+                                <MudDivider />
+                                <MudMenuItem OnClick=@(() => EditProviderAccount(accountContainer))>
+                                    <MudStack Row>
+                                        <DHIcon Icon=@Icons.Material.Filled.Edit />
+                                        <MudText>@Localizer["Edit"]</MudText>
+                                    </MudStack>
+                                </MudMenuItem>
+                                <MudMenuItem OnClick=@(() => RemoveProviderAccount(accountContainer))>
+                                    <MudStack Row>
+                                        <DHIcon Icon=@Icons.Material.Filled.Delete Color=@Color.Error />
+                                        <MudText>@Localizer["Remove"]</MudText>
+                                    </MudStack>
+                                </MudMenuItem>
+                            </DatahubAuthView>
+                        }
+                    </ChildContent>
+                </MudMenu>
             }
             @if (AllowBringYourOwn)
             {
                 <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@ProjectAcronymParam">
                     <MudDivider />
-                    <MudMenuItem>
-                        <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;" >
-                            <ActivatorContent>
-                                <MudStack Row>
-                                    <MudText>@Localizer["Add Account"]</MudText>
-                                    <MudSpacer />
-                                    <DHIcon Icon=@Icons.Material.Filled.ChevronRight />
-                                </MudStack>
-                            </ActivatorContent>
-                            <ChildContent>
-                                @foreach (var cloudProviderType in Enum.GetValues<CloudStorageProviderType>())
-                                {
-                                    <MudMenuItem OnClick=@(() => AddNewProviderAccount(cloudProviderType))>
-                                        <MudStack Row>
-                                            <DHIcon Icon=@GetCloudProviderIconByType(cloudProviderType) ViewBox=@GetCloudProviderIconViewBox(cloudProviderType) />
-                                            <MudText>@Localizer[cloudProviderType.ToString()]</MudText>
-                                        </MudStack>
-                                    </MudMenuItem>
-                                }
-                            </ChildContent>
-                        </MudMenu>
-                    </MudMenuItem>
+                    <MudMenu ActivationEvent=@MouseEvent.MouseOver AnchorOrigin=@Origin.TopRight TransformOrigin=@Origin.TopLeft Style="display:block;">
+                        <ActivatorContent>
+                            <MudStack Row Style="cursor: pointer; padding: 8px 16px;">
+                                <MudText>@Localizer["Add Account"]</MudText>
+                                <MudSpacer />
+                                <DHIcon Icon=@Icons.Material.Filled.ChevronRight />
+                            </MudStack>
+                        </ActivatorContent>
+                        <ChildContent>
+                            @foreach (var cloudProviderType in Enum.GetValues<CloudStorageProviderType>())
+                            {
+                                <MudMenuItem OnClick=@(() => AddNewProviderAccount(cloudProviderType))>
+                                    <MudStack Row>
+                                        <DHIcon Icon=@GetCloudProviderIconByType(cloudProviderType) ViewBox=@GetCloudProviderIconViewBox(cloudProviderType) />
+                                        <MudText>@Localizer[cloudProviderType.ToString()]</MudText>
+                                    </MudStack>
+                                </MudMenuItem>
+                            }
+                        </ChildContent>
+                    </MudMenu>
                 </DatahubAuthView>
             }
         </ChildContent>
@@ -142,11 +138,14 @@
             {
                 SelectedContainerChanged.InvokeAsync(value);
             }
-            _rootMenu.CloseMenuAsync();
+            if (_rootMenu is not null)
+            {
+                _ = _rootMenu.CloseMenuAsync();
+            }
         }
     }
 
-    private MudMenu _rootMenu;
+    private MudMenu? _rootMenu;
 
     private string GetCloudProviderIconByType(CloudStorageProviderType cloudProvider) => cloudProvider switch
     {
@@ -172,7 +171,10 @@
         {
             await OnAddProviderClicked.InvokeAsync(cloudStorageProvider);
         }
-        await _rootMenu.CloseMenuAsync();
+        if (_rootMenu is not null)
+        {
+            await _rootMenu.CloseMenuAsync();
+        }
     }
 
     private async Task EditProviderAccount(CloudStorageContainer container)
@@ -181,7 +183,10 @@
         {
             await OnEditProviderClicked.InvokeAsync(container.Id.Value);
         }
-        await _rootMenu.CloseMenuAsync();
+        if (_rootMenu is not null)
+        {
+            await _rootMenu.CloseMenuAsync();
+        }
     }
 
     private async Task RemoveProviderAccount(CloudStorageContainer container)
@@ -190,6 +195,9 @@
         {
             await OnRemoveProviderClicked.InvokeAsync(container.Id.Value);
         }
-        await _rootMenu.CloseMenuAsync();
+        if (_rootMenu is not null)
+        {
+            await _rootMenu.CloseMenuAsync();
+        }
     }
 }

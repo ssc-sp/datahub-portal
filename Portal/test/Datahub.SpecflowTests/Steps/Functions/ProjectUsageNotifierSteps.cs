@@ -78,14 +78,12 @@ public class ProjectUsageNotifierSteps(
         var logger = Substitute.For<ILoggerFactory>();
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
-        var emailValidator = Substitute.For<EmailValidator>();
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
             azureConfig,
             dbContextFactory,
             pongService,
-            emailValidator,
             sendEndpointProvider,
             null,
             resourceMessagingService);
@@ -146,14 +144,12 @@ public class ProjectUsageNotifierSteps(
     {
         var logger = Substitute.For<ILoggerFactory>();        
         var pongService = Substitute.For<QueuePongService>(sendEndpointProvider);
-        var emailValidator = Substitute.For<EmailValidator>();        
 
         var projectNotifier = new ProjectUsageNotifier(
             logger,
             azureConfig,
             dbContextFactory,
             pongService,
-            emailValidator,
             sendEndpointProvider,
             gCNotifyService,
             resourceMessagingService);

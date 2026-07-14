@@ -81,7 +81,7 @@
         try {
             _loggingIn = true;
             var loginHint = loginModel.Email;
-            var existingUser = await _userInformationService.GetUserByEmailAsync(loginHint);
+            var existingUser = await _userInformationService.GetExtendedEntraUserByEmail(loginHint);
 
             // If user is deleted, redirect to register page with deleted flag
             if (existingUser is { IsDeleted: true })

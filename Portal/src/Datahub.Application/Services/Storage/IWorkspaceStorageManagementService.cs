@@ -1,9 +1,14 @@
-﻿using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Context;
 
 namespace Datahub.Application.Services.Storage
 {
     public interface IWorkspaceStorageManagementService
     {
+        public const string AzureDefaultContainerName = "datahub";
+        public const string AzureExternalUploadContainerName = "external-uploads";
+        public const string AzureExternalUsersContainerName = "users";
+        public const string AzureSharedContainerName = "shared";
+
         /// <summary>
         /// Queries the monitoring metrics of a storage account to get the used capacity
         /// </summary>

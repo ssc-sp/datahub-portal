@@ -5,7 +5,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Datahub.Functions;
 
-public class AzureConfig : IAzureDevopsConfiguration
+public class AzureConfig : IAzureConfiguration
 {
     private readonly IConfiguration _config;
     private readonly EmailNotification _emailConfig;
@@ -75,6 +75,25 @@ public class AzureConfig : IAzureDevopsConfiguration
     public string? BugReportTeamsWebhookUrl => _config["BugReportTeamsWebhookUrl"];
 
     public string OrganizationUrl => _azureDevOpsConfiguration.OrganizationUrl;
+
+    public string RunAsManagedIdentity => _azureDevOpsConfiguration.RunAsManagedIdentity;
+
+    public string ResourcePrefix => IAzureConfiguration.DefaultResourcePrefix;
+
+    public string ProjectStorageKeySecretName => IAzureConfiguration.DefaultProjectStorageKeySecretName;
+
+    public string EnvironmentName => GetEnvironmentName();
+
+    public static string GetEnvironmentName()
+    {
+        var envName = (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "dev").ToLower();
+
+        // map developemnt or sandbox to dev
+        if (envName.Equals("development") || envName.Equals("sand"))
+            return "dev";
+
+        return envName;
+    }
 }
 
 public class EmailNotification

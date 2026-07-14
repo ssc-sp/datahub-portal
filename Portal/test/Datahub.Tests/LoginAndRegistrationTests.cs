@@ -165,7 +165,7 @@ namespace Datahub.Tests
             
             var ctx = SetupBunitContext();
             var navigationManager = ctx.Services.GetRequiredService<NavigationManager>();
-            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetExtendedEntraUserByEmail(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
 
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
@@ -214,7 +214,7 @@ namespace Datahub.Tests
             var ctx = SetupBunitContext(includeHttpClientFactory: true);
             var navigationManager = ctx.Services.GetRequiredService<NavigationManager>();
 
-            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetExtendedEntraUserByEmail(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
 
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
@@ -271,7 +271,7 @@ namespace Datahub.Tests
             var conf = ctx.Services.GetRequiredService<DatahubPortalConfiguration>();
             conf.ShowLoginPage = false;
 
-            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetExtendedEntraUserByEmail(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
 
             _userInformationMock.Setup(s => s.GetAuthenticatedUser(It.IsAny<bool>()))
@@ -320,7 +320,7 @@ namespace Datahub.Tests
 
 
             var ctx = SetupBunitContext();
-            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetExtendedEntraUserByEmail(It.IsAny<string>()))
                 .ReturnsAsync(fakePortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(),It.IsAny<string>()))
                 .ReturnsAsync("1");
@@ -353,7 +353,7 @@ namespace Datahub.Tests
             var ctx = SetupBunitContext();
             var navManager = ctx.Services.GetRequiredService<NavigationManager>();
 
-            _userInformationMock.Setup(s => s.GetUserByEmailAsync(It.IsAny<string>()))
+            _userInformationMock.Setup(s => s.GetExtendedEntraUserByEmail(It.IsAny<string>()))
                 .ReturnsAsync(null as ExtendedPortalUser);
             _userEnrollmentServiceMock.Setup(x => x.SendUserDatahubPortalInvite(It.IsAny<string>(), It.IsAny<string>()))
                 .ReturnsAsync("1");

@@ -1,4 +1,5 @@
 using Datahub.Core.Data;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Core.Storage;
 #nullable enable
@@ -13,7 +14,7 @@ public interface ICloudStorageManager
     Task<bool> FileExistsAsync(string container, string filePath);
 
     Task<Uri> DownloadFileAsync(string container, string filePath, string userName, IFileTokenService? fileTokenService = null);
-    Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess);
+    Task<bool> UploadFileAsync(string container, PortalFileMetadata file, Action<long> progess);
 
     Task<bool> DeleteFileAsync(string container, string filePath);
     Task<bool> RenameFileAsync(string container, string oldFilePath, string newFilePath);
@@ -28,7 +29,7 @@ public interface ICloudStorageManager
 
     Task<Dictionary<string, int>> ListFoldersAsync(string container, string prefix = "");
 
-    Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false);
+    Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false);
 
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
@@ -36,7 +37,7 @@ public interface ICloudStorageManager
     string DisplayName { get; }
 }
 
-public record DfsPage(List<string> Folders, List<FileMetaData> Files, string ContinuationToken);
+public record DfsPage(List<string> Folders, List<PortalFileMetadata> Files, string ContinuationToken);
 
 public enum CloudStorageProviderType
 {

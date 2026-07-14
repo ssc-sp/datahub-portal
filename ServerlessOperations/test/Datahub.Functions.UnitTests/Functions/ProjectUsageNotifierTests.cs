@@ -26,7 +26,6 @@ namespace Datahub.Functions.UnitTests
 
         private ProjectUsageNotifier _notifier;
         private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
-        private EmailValidator _emailValidatorMock;
         private ISendEndpointProvider _sendEndpointProviderMock;
         private IGCNotifyService _notifyService;
         private IResourceMessagingService _resourceMessagingServiceMock;
@@ -41,7 +40,6 @@ namespace Datahub.Functions.UnitTests
             _loggerFactory.CreateLogger<ProjectUsageNotifier>().Returns(_logger);
             _pongService = Substitute.For<IQueuePongService>();
 
-            _emailValidatorMock = Substitute.For<EmailValidator>();
             _sendEndpointProviderMock = Substitute.For<ISendEndpointProvider>();
             _notifyService = Substitute.For<IGCNotifyService>();
             _resourceMessagingServiceMock = Substitute.For<IResourceMessagingService>();
@@ -71,7 +69,6 @@ namespace Datahub.Functions.UnitTests
                 _azureConfig,
                 _dbContextFactory,
                 _pongService,
-                _emailValidatorMock,
                 _sendEndpointProviderMock,
                 _notifyService,
                 _resourceMessagingServiceMock
