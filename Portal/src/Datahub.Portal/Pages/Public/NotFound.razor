@@ -1,37 +1,18 @@
 @attribute [Route(PageRoutes.NotFound)]
 @inject IHttpContextAccessor HttpContextAccessor
 
-@layout BarebonesPublicLayout
-
+@layout HeaderPublicLayout
 
 <PageTitle>@Localizer["Not Found - Federal Science DataHub"]</PageTitle>
 
-<MudContainer MaxWidth=@MaxWidth.Medium>
-    <MudPaper Class="pt-12 px-12 mt-12">
-        <MudStack>
-            <MudGrid>
-                <MudItem xs="11">
-                    <MudImage Src=@Localizer["/img/canada-fip.svg"] Class="mb-4" Alt="Government of Canada Wordmark / Symbole de mot du gouvernement du Canada" Style="max-height: 1.5rem" />
-                </MudItem>
-                <MudItem xs="1">
-                    <LanguageToggle />
-                </MudItem>
-            </MudGrid>
-            <DHMainContentTitle Title="@Localizer["MainTitle"]" />
-        </MudStack>
-        <MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
-        <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
-        <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of FSDH."]</MudText>
-        <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
-        <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to FSDH"]</DHButton>
-        <DHFooter />
-    </MudPaper>
-</MudContainer>
+<MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
+<MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
+<MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of FSDH."]</MudText>
+<MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
+<DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to FSDH"]</DHButton>
 
 
-    @code {
-
-
+@code {
     Random random = new Random();
 
     protected override void OnInitialized()
@@ -41,6 +22,5 @@
         {
             ctx.Response.StatusCode = StatusCodes.Status404NotFound;
         }
-
     }
 }
