@@ -9,7 +9,7 @@
 		<CascadingAuthenticationState>
 			@if (routeData?.PageType.Namespace?.StartsWith(PublicPageNamespace) ?? false)
 			{
-				<RouteView RouteData="@routeData" DefaultLayout="typeof(PublicLayout)" />
+                <RouteView RouteData="@routeData" DefaultLayout="typeof(BarebonesPublicLayout)" />
 			}
 			else
 			{
@@ -21,7 +21,7 @@
 		</CascadingAuthenticationState>
 	</Found>
 	<NotFound>
-		<LayoutView Layout="@typeof(PublicLayout)">
+		<LayoutView Layout="@typeof(BarebonesPublicLayout)">
 		  <Datahub.Portal.Pages.Public.NotFound/>
 		</LayoutView>
 	</NotFound>
