@@ -1,6 +1,7 @@
-﻿@* PublishNewDatasetDialog.razor *@
+@* PublishNewDatasetDialog.razor *@
 
 @using Datahub.Application.Services.Publishing;
+@using Datahub.Shared.Entities
 @inject IOpenDataPublishingService _publishingService
 
 <MudDialog>
@@ -71,7 +72,7 @@
     public int? WorkspaceId { get; set; }
 
     [Parameter]
-    public IEnumerable<FileMetaData> Files { get; set; } = new List<FileMetaData>();
+    public IEnumerable<PortalFileMetadata> Files { get; set; } = new List<PortalFileMetadata>();
 
     private bool HasFiles => Files?.Any() ?? false;
     private bool HasWorkspaceId => WorkspaceId.HasValue;

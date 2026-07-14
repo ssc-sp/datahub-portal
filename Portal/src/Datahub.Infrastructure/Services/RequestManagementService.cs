@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Services.Projects;
+using Datahub.Core.Services.Projects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Datahub.Application.Services;
@@ -132,6 +132,13 @@ public class RequestManagementService(
                 if (terraformTemplate.Name != TerraformTemplate.VariableUpdate)
                 {
                     await ProcessRequest(project, requestingUser, terraformTemplate);
+
+                    var preCreatedTemplates = TerraformTemplate.GetPreCreatedResources(terraformTemplate.Name, TerraformStatus.Completed);
+                    foreach (var template in preCreatedTemplates)
+                    {
+                        await ProcessRequest(project, requestingUser, template);
+                    }
+
                     foreach (var template in dependencyTemplates)
                     {
                         await ProcessRequest(project, requestingUser, template);

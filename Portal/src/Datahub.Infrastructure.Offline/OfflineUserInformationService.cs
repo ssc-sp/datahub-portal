@@ -161,7 +161,7 @@ public class OfflineUserInformationService : IUserInformationService
         
         return randomUser!;
     }
-    public async Task<ExtendedPortalUser?> GetUserByEmailAsync(string email)
+    public async Task<ExtendedPortalUser?> GetExtendedEntraUserByEmail(string email)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -283,5 +283,10 @@ public class OfflineUserInformationService : IUserInformationService
     public Task<string?> GetExternalUserNamePreferredLanguage()
     {
         return Task.FromResult<string?>(null);
+    }
+
+    public Task<PortalUser?> GetUserByEmailAsync(string email)
+    {
+        throw new NotImplementedException();
     }
 }

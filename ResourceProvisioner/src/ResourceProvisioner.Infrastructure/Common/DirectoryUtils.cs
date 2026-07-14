@@ -26,22 +26,80 @@ public static class DirectoryUtils
 
     public static void NormalizeAndDelete(DirectoryInfo dir)
     {
+        if (!dir.Exists)
+        {
+            return;
+        }
+
         SetAttributesNormal(dir);
         RetryDelete(dir);
     }
 
     private static void RetryDelete(DirectoryInfo dir)
     {
-        _retryPipeline.Execute(() => dir.Delete(true));
+        try
+        {
+            _retryPipeline.Execute(() =>
+            {
+                if (dir.Exists)
+                {
+                    dir.Delete(true);
+                }
+            });
+        }
+        catch (DirectoryNotFoundException)
+        {
+            // Directory is already gone (for example due to concurrent cleanup); treat as successful deletion.
+        }
     }
 
     private static void SetAttributesNormal(DirectoryInfo dir)
     {
-        foreach (var subDir in dir.GetDirectories())
-            SetAttributesNormal(subDir);
-        foreach (var file in dir.GetFiles())
+        if (!dir.Exists)
         {
-            file.Attributes = FileAttributes.Normal;
+            return;
+        }
+
+        DirectoryInfo[] subDirs;
+        FileInfo[] files;
+
+        try
+        {
+            subDirs = dir.GetDirectories();
+            files = dir.GetFiles();
+        }
+        catch (DirectoryNotFoundException)
+        {
+            return;
+        }
+
+        foreach (var subDir in subDirs)
+        {
+            SetAttributesNormal(subDir);
+        }
+
+        foreach (var file in files)
+        {
+            try
+            {
+                file.Attributes = FileAttributes.Normal;
+            }
+            catch (FileNotFoundException)
+            {
+                // File may have been removed by another process/thread between enumeration and attribute update.
+                // Intentionally ignored to allow best-effort cleanup to continue.
+            }
+            catch (DirectoryNotFoundException)
+            {
+            }
+        }
+
+        try
+        {
+            dir.Attributes = FileAttributes.Normal;
+        }
+        catch (DirectoryNotFoundException)
+        {
         }
     }
 

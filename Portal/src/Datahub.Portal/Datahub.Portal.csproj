@@ -47,7 +47,6 @@
 		<PackageReference Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" />
 		<PackageReference Include="Microsoft.Kiota.Abstractions" />
 		<PackageReference Include="Microsoft.PowerBI.JavaScript" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Core" />
 		<PackageReference Include="MiniProfiler.AspNetCore.Mvc" />
 		<PackageReference Include="MiniProfiler.EntityFrameworkCore" />
 		<PackageReference Include="Octokit" />

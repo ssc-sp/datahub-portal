@@ -2,12 +2,12 @@
 @using Datahub.Core.Components.Code
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Services.Api;
-@using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model
 @using Datahub.Application.Services
 @using Datahub.Infrastructure.Services.Api
 @using Datahub.Infrastructure.Services.Storage
 @using Datahub.Portal.Components.User
+@using Datahub.Shared.Entities
 
 @inject CommonAzureServices _commonAzureServices;
 
@@ -71,7 +71,7 @@
     public int? ProjectId { get; set; }
 
     [Parameter]
-    public FileMetaData File { get; set; }
+    public FileMetadata File { get; set; }
 
     [Parameter]
     public string ContainerName { get; set; } = "datahub";

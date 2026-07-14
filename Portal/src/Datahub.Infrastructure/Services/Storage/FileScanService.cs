@@ -14,7 +14,7 @@ public class FileScanService : IFileScanService
 
     public Task<FileScanResult?> GetFileScanResultAsync(string fileName)
     {
-        _logger.LogInformation("File scan status lookup requested for {FileName}, but no scan provider is configured.", fileName);
+        _logger.LogInformation("File scan status lookup requested for {FileName}.", fileName);
 
         var scanResult = new FileScanResult
         {

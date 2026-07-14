@@ -94,8 +94,16 @@ public partial class RepositoryService(
     private PullOptions CreatePullOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null) => new PullOptions
         {
-            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider)
+            FetchOptions = CreateFetchOptions(issuerValidationName, credentialsProvider),
+            MergeOptions = CreateMergeOptions()
         };
+
+    private MergeOptions CreateMergeOptions() => new()
+    {
+        FastForwardStrategy = FastForwardStrategy.NoFastForward,
+        IgnoreWhitespaceChange = true,
+        MergeFileFavor = MergeFileFavor.Union
+    };
 
     private PushOptions CreatePushOptions(string? issuerValidationName,
         CredentialsHandler? credentialsProvider = null)

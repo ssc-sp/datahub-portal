@@ -1,13 +1,13 @@
 @using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
-@using Datahub.Core.Services.Storage;
 @using Datahub.Metadata.Model;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.Metadata
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Infrastructure.Services.Security
 @using Datahub.Infrastructure.Services.Storage
+@using Datahub.Shared.Entities
 @using Microsoft.JSInterop
 
 @inject NavigationManager _navigationManager
@@ -39,7 +39,7 @@
         }
     </div>
 
-    <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" />
+    <HeadingBreadcrumbs SetCurrentFolder="@SetCurrentFolder" CurrentFolder="@CurrentFolder" ShowMntHierarchy="@ShowMntHierarchy" />
 </div>
 
 @code {
@@ -54,16 +54,16 @@
     public Datahub_Project Project { get; set; } = null!;
 
     [Parameter]
-    public string CurrentFolder { get; set; }
+    public string CurrentFolder { get; set; } = null!;
 
     [Parameter]
-    public HashSet<string> SelectedItems { get; set; }
+    public HashSet<string>? SelectedItems { get; set; }
 
     [Parameter]
     public List<string> Folders { get; set; }
 
     [Parameter]
-    public List<FileMetaData> Files { get; set; }
+    public List<PortalFileMetadata>? Files { get; set; }
 
     [Parameter]
     public Func<string, bool> CanDeleteFolder { get; set; } = _ => true;
@@ -87,7 +87,7 @@
     public EventCallback OnDeleteFolder { get; set; }
 
     [Parameter]
-    public EventCallback<IEnumerable<FileMetaData>> OnPublishFiles { get; set; }
+    public EventCallback<IEnumerable<FileMetadata>> OnPublishFiles { get; set; }
 
     [Parameter]
     public Guid MetadataSignature { get; set; } = Guid.NewGuid();
@@ -105,11 +105,17 @@
     public bool ShowBackToContainers { get; set; } = false;
 
     [Parameter]
+    public bool ShowMntHierarchy { get; set; } = false;
+
+    [Parameter]
+    public bool Readonly { get; set; } = false;
+
+    [Parameter]
     public EventCallback OnBackToContainers { get; set; }
 
-    private IJSObjectReference _module;
+    private IJSObjectReference _module = null!;
 
-    private List<FileMetaData> _selectedFiles;
+    private List<PortalFileMetadata>? _selectedFiles;
     private bool _ownsSelectedFiles;
     private bool _isUnclassifiedSingleFile;
     private bool _isElectron = true;
@@ -118,8 +124,8 @@
     // private bool _isDatahubAdmin;
     // private bool _isProjectMember;
 
-    private Project_Role _currentUserRole;
-    private DotNetObjectReference<StorageHeading> _dotNetHelper;
+    private Project_Role _currentUserRole = null!;
+    private DotNetObjectReference<StorageHeading> _dotNetHelper = null!;
 
     private List<ButtonAction> _buttonActions = new()
     {

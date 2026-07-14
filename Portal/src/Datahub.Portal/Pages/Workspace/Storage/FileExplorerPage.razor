@@ -1,5 +1,6 @@
 @using Azure.Core
 @using Datahub.Application.Services;
+@using Datahub.Application.Services.Storage
 @using Datahub.Core.Model.CloudStorage;
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
@@ -55,7 +56,7 @@
                     {
                         <MudStack Style="border-bottom: 1px solid var(--mud-palette-lines-default);" Class="my-6">
                             <MudStack Row Justify=@Justify.FlexStart AlignItems=@AlignItems.Center>
-                                <MudText Typo="Typo.h2">@Localizer["Current Container"]</MudText>
+                                <MudText Typo="Typo.h3">@Localizer["Current Container"]</MudText>
                                 <StorageContainerSelector @bind-SelectedContainer=@SelectedContainer
                                                           CloudContainers="_cloudContainers"
                                                           AllowBringYourOwn="@(_classification != ClassificationType.ProtectedB)"
@@ -66,8 +67,9 @@
                         </MudStack>
                     }
                     <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
-                        <MudTabs Elevation="0">
-                            <MudTabPanel Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["File Explorer"])"
+                        <MudTabs Elevation="0" ActivePanelIndexChanged="OnActiveTabChanged">
+                            <MudTabPanel Text="@(!MultiContainer ? SelectedContainer?.Name : Localizer["Workspace Files"])"
+                                         ToolTip="@(!MultiContainer ? SelectedContainer?.Name : Localizer["Workspace files connected to the workspace tools and only accessible with departmental accounts"])"
                                          Icon="fas fa-hdd">
                                 @if (_failedToLoadContainers)
                                 {
@@ -99,19 +101,24 @@
                                     }
                                     else
                                     {
-                                        @if (_isExternalUser)
-                                        {
-                                            <ExternalUserFileExplorer ProjectId=@_projectId
-                                                                      Container="@_selectedContainer" />
-                                        }
-                                        else
-                                        {
-                                            <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />
-                                        }
+                                        <FileExplorer ProjectId=@_projectId Container="@_selectedContainer" />                                        
                                     }
 
                                 }
                             </MudTabPanel>
+                            @if (ShouldShowSharedTab)
+                            {
+                                <MudTabPanel Text="@Localizer["Shared"]" Icon="fas fa-share-alt" ToolTip="Files shared with all external users.">
+                                    <MudStack Class="py-6 px-2">
+                                        <FileExplorer ProjectId=@_projectId Container="@SharedContainer" />
+                                    </MudStack>
+                                </MudTabPanel>
+                                <MudTabPanel Text="@Localizer["Users"]" Icon="fas fa-person" ToolTip="Files shared with external users. Each external user can only access files within their user folder.">
+                                    <MudStack Class="py-6 px-2">
+                                        <FileExplorer ProjectId=@_projectId Container="@UsersContainer" />
+                                    </MudStack>
+                                </MudTabPanel>
+                            }
                             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceCollaborator"
                                              ProjectAcronym="@WorkspaceAcronym">
                                 @if (SelectedContainer is not null && SelectedContainer.StorageManager.AzCopyEnabled && _classification != ClassificationType.ProtectedB)
@@ -182,6 +189,7 @@
 
     private List<CloudStorageContainer> _cloudContainers = new();
     private CloudStorageContainer? _selectedContainer;
+    private CloudStorageContainer? _workspaceContainer;
 
     private List<(string Icon, string LabelText, RenderFragment Content)> _tabs = new();
     private PortalUser _user = null!;
@@ -196,7 +204,6 @@
     private bool _failedToLoadContainers = false;
     private bool MultiContainer => _cloudContainers?.Count > 1;
     private bool _isUserProjectAdmin = false;
-    private bool _isExternalUser = false;
     private bool ShouldShowContainerDropdown => !_loading && (MultiContainer || _isUserProjectAdmin);
     private ClassificationType? _classification;
 
@@ -208,6 +215,19 @@
     private bool _uploaderEnabled = false;
     private TokenCredential? _credential;
     private readonly CancellationTokenSource _searchCancellationTokenSource = new();
+    private bool _hasExternalUsersInWorkspace = false;
+
+    private CloudStorageContainer? UsersContainer => _cloudContainers.FirstOrDefault(c =>
+        c.Name.Equals(IWorkspaceStorageManagementService.AzureExternalUsersContainerName, StringComparison.OrdinalIgnoreCase));
+    private CloudStorageContainer? SharedContainer => _cloudContainers.FirstOrDefault(c =>
+        c.Name.Equals(IWorkspaceStorageManagementService.AzureSharedContainerName, StringComparison.OrdinalIgnoreCase));
+
+    private bool ShouldShowSharedTab =>
+        !_loading &&
+        !_failedToLoadContainers &&
+        _hasExternalUsersInWorkspace &&
+        UsersContainer is not null &&
+        SharedContainer is not null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -220,15 +240,6 @@
         var authState = await AuthenticationStateTask;
         _authenticatedUser = authState.User;
 
-        // Check if user has external login role
-        _isExternalUser = _authenticatedUser?.IsInRole(RoleConstants.EXTERNAL_LOGIN) ?? false;
-
-        if (_isExternalUser)
-        {
-            NavigationManager.NavigateTo($"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{PageRoutes.WorkspaceExternalStoragePrefix}", forceLoad: true);
-            return;
-        }
-
         await using var projectContext = await _dbFactoryProject.CreateDbContextAsync();
 
         _user = await _userInformationService.GetCurrentPortalUserAsync() ?? throw new InvalidOperationException("User is not authenticated");
@@ -240,10 +251,14 @@
         }
         _project = await projectContext.Projects
             .Include(p => p.UserRoles)
+            .ThenInclude(ur => ur.PortalUser)
+            .ThenInclude(pu => pu.ExternalUser)
             .AsSingleQuery()
             .Where(p => p.Project_Acronym_CD == WorkspaceAcronym)
             .FirstOrDefaultAsync();
         _classification = _project?.Data_Sensitivity;
+        _hasExternalUsersInWorkspace = _project?.UserRoles.Any(ur =>
+            ur.PortalUser?.ExternalUser is { UserDeactivatedAt: null }) == true;
         _uploaderEnabled = await featureManager.IsEnabledAsync(Features.Storage_Uploader_Feature);
 
         var acronym = _project?.Project_Acronym_CD;
@@ -339,8 +354,10 @@
                 }
             }
         }
+        _cloudContainers = _cloudContainers.Where(c => c.ContainerName != IWorkspaceStorageManagementService.AzureExternalUploadContainerName).ToList();
 
-        _selectedContainer = _cloudContainers.FirstOrDefault();
+        _selectedContainer = _cloudContainers.FirstOrDefault(c => c.ContainerName == IWorkspaceStorageManagementService.AzureDefaultContainerName);
+        _workspaceContainer = _selectedContainer;
     }
 
     private async Task<List<ProjectCloudStorage>> GetCloudStorages()
@@ -473,6 +490,22 @@
     {
         get => _selectedContainer ?? throw new InvalidOperationException("No container selected");
         set => _selectedContainer = value;
+    }
+
+    private void OnActiveTabChanged(int index)
+    {
+        // Tab indices: 0 = Workspace Files, 1 = Shared, 2 = Users (when ShouldShowSharedTab is true)
+        if (!ShouldShowSharedTab)
+        {
+            return;
+        }
+
+        _selectedContainer = index switch
+        {
+            1 => SharedContainer ?? _selectedContainer,
+            2 => UsersContainer ?? _selectedContainer,
+            _ => _workspaceContainer ?? _selectedContainer
+        };
     }
 
     private void ClearSearch()

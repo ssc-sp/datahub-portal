@@ -14,7 +14,7 @@ public interface ILockedUserManagementService
     /// <param name="evidenceUrl">URL to virus scan evidence</param>
     /// <param name="performedByUserId">Admin user performing the action</param>
     /// <returns>The created lock event</returns>
-    Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int performedByUserId);
+    Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int? performedByUserId);
 
     /// <summary>
     /// Unlocks a user globally

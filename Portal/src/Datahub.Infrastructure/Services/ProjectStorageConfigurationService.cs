@@ -2,16 +2,17 @@ using Azure.Security.KeyVault.Secrets;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
+using Datahub.Shared.Clients;
 using Microsoft.Azure.Services.AppAuthentication;
 
 namespace Datahub.Infrastructure.Services;
 
 public class ProjectStorageConfigurationService : IProjectStorageConfigurationService
 {
-    private readonly DatahubPortalConfiguration _portalConfiguration;
+    private readonly IAzureConfiguration _portalConfiguration;
     private readonly IKeyVaultUserService _keyVaultService;
 
-    public ProjectStorageConfigurationService(DatahubPortalConfiguration portalConfiguration, IKeyVaultUserService keyVaultService)
+    public ProjectStorageConfigurationService(IAzureConfiguration portalConfiguration, IKeyVaultUserService keyVaultService)
     {
         _portalConfiguration = portalConfiguration;
         _keyVaultService = keyVaultService;
@@ -25,7 +26,7 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
 
     public async Task<string?> GetProjectStorageAccountKey(string projectAcronym)
     {
-        var secret = await _keyVaultService.GetSecretAsync(projectAcronym, GetProjectStorageKeyName(projectAcronym));
+        var secret = await _keyVaultService.GetSecretAsync(projectAcronym, _portalConfiguration.ProjectStorageKeySecretName);
         if (secret == null) return null;
         return secret.ToString() ?? throw new InvalidOperationException("Project storage account key not found.");
     }
@@ -40,16 +41,6 @@ public class ProjectStorageConfigurationService : IProjectStorageConfigurationSe
             return "dev";
 
         return envName;
-    }
-
-    private string GetProjectStorageKeyName(string projectAcronym)
-    {
-        if (_portalConfiguration.CentralizedProjectSecrets)
-        {
-            return $"datahub-blob-key-{projectAcronym.ToLower()}";
-        }
-
-        return _portalConfiguration.ProjectStorageKeySecretName;
     }
 
 }

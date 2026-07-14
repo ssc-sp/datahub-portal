@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Exceptions;
+using Datahub.Application.Exceptions;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Publishing;
 using Datahub.Application.Services.UserManagement;
@@ -7,6 +7,7 @@ using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Services;
 using Datahub.Core.Utils;
+using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -167,7 +168,7 @@ namespace Datahub.Infrastructure.Services.Publishing
             return await Task.FromResult(submission);
         }
 
-        public async Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName)
+        public async Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetadata> files, int? containerId, string containerName)
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
 

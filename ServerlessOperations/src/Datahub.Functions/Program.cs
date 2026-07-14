@@ -70,24 +70,30 @@ if (devopsConfig is not null)
 }
 
 builder.Services.AddSingleton<AzureConfig>();
-builder.Services.AddSingleton<IAzureDevopsConfiguration, AzureConfig>();
+builder.Services.AddSingleton<IAzureConfiguration, AzureConfig>();
+builder.Services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
+builder.Services.AddKeyedSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
 builder.Services.AddAzureResourceManager(config);
 builder.Services.AddSingleton<IKeyVaultCoreService, KeyVaultCoreService>();
 builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
-builder.Services.AddSingleton<IMSGraphService, MSGraphService>();
-builder.Services.AddSingleton<AzureDevOpsClient>();
-builder.Services.AddSingleton<AzAccessTokenManager>();
+
+builder.Services.AddScoped<IMSGraphService, MSGraphService>();
+builder.Services.AddScoped<IUserTokenCredentialService, ServerUserTokenProviderService>();
+
+builder.Services.AddScoped<AzureDevOpsClient>();
+builder.Services.AddScoped<AzAccessTokenManager>();
 builder.Services.AddSingleton<IEmailService, EmailService>();
 builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
 builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
 builder.Services.AddScoped<IQueuePongService, QueuePongService>();
-builder.Services.AddScoped<EmailNotificationHandler>();
-builder.Services.AddScoped<IUserInformationService, UserInformationService>();
 builder.Services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
-builder.Services.AddScoped<VirusScanUserStatusHandler>();
+
+builder.Services.AddScoped<IKeyVaultUserService, ServerKeyVaultService>();
+
+builder.Services.AddScoped<ISubnetPoolService, SubnetPoolService>();
 builder.Services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
 builder.Services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
 builder.Services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
@@ -96,9 +102,12 @@ builder.Services.AddScoped<IUserInactivityNotificationService, UserInactivityNot
 builder.Services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
 builder.Services.AddScoped<IDateProvider, DateProvider>();
 builder.Services.AddScoped<IUserInformationService, FunctionUserInformationService>();
-builder.Services.AddScoped<EmailValidator>();
 builder.Services.AddScoped<HealthCheckHelper>();
 builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
+
+builder.Services.AddScoped<EmailNotificationHandler>();
+builder.Services.AddScoped<VirusScanNotificationHandler>();
+
 //builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
 
 // in-memory cache for health result

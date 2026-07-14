@@ -1,12 +1,22 @@
 using System.Reflection;
 using System.Text.RegularExpressions;
+using Datahub.Shared.Entities;
 using Newtonsoft.Json;
 
 namespace Datahub.Core.Data;
 
 public static class FileMetaDataExtensions
 {
-    public static void ParseDictionary(this FileMetaData fileMetadata, IDictionary<string, string> metadata)
+    private static readonly Type FileType = typeof(FileMetadata);
+    private static readonly HashSet<string> JsonMetadataProperties =
+    [
+        FileMetadata.CustomFields,
+        FileMetadata.SharedWith,
+        FileMetadata.Tags,
+        BaseMetadata.Activities
+    ];
+
+    public static void ParseDictionary(this FileMetadata fileMetadata, IDictionary<string, string> metadata)
     {
         if (metadata?.Count > 0)
         {
@@ -14,7 +24,7 @@ public static class FileMetaDataExtensions
             {
                 if (metadata.ContainsKey(propertyName))
                 {
-                    PropertyInfo? info = fileType.GetProperty(propertyName);
+                    PropertyInfo? info = FileType.GetProperty(propertyName);
                     if (info != null)
                     {
                         var value = metadata[propertyName];
@@ -28,19 +38,19 @@ public static class FileMetaDataExtensions
                                     info.SetValue(fileMetadata, dt);
                                 }
                             }
-                            else if (propertyName == "customfields")
+                            else if (propertyName == FileMetadata.CustomFields)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<Customfield>>(value));
                             }
-                            else if (propertyName == "sharedwith")
+                            else if (propertyName == FileMetadata.SharedWith)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<Sharedwith>>(value));
                             }
-                            else if (propertyName == "tags")
+                            else if (propertyName == FileMetadata.Tags)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<string>>(value));
                             }
-                            else if (propertyName == "activities")
+                            else if (propertyName == BaseMetadata.Activities)
                             {
                                 info.SetValue(fileMetadata, JsonConvert.DeserializeObject<List<Activity>>(value));
                             }
@@ -55,7 +65,7 @@ public static class FileMetaDataExtensions
         }
     }
 
-    public static long FilesizeBytes(this FileMetaData file)
+    public static long FilesizeBytes(this FileMetadata file)
     {
         long bytes = 0;
         if (!long.TryParse(file.filesize, out bytes))
@@ -73,17 +83,15 @@ public static class FileMetaDataExtensions
         return total;
     }
 
-    private static Type fileType = typeof(FileMetaData);
-
-    public static string GetMetadataPropertyValue(this FileMetaData fileMetadata, string propertyName)
+    public static string GetMetadataPropertyValue(this FileMetadata fileMetadata, string propertyName)
     {
-        PropertyInfo? info = fileType.GetProperty(propertyName);
+        PropertyInfo? info = FileType.GetProperty(propertyName);
         if (info != null)
         {
             var value = info.GetValue(fileMetadata);
             if (value != null)
             {
-                if (propertyName == "customfields" || propertyName == "sharedwith" || propertyName == "tags" || propertyName == "activities")
+                if (JsonMetadataProperties.Contains(propertyName))
                 {
                     return JsonConvert.SerializeObject(value);
                 }
@@ -95,7 +103,7 @@ public static class FileMetaDataExtensions
         return string.Empty;
     }
 
-    public static Dictionary<string, string> GenerateMetadata(this FileMetaData fileMetadata)
+    public static Dictionary<string, string> GenerateMetadata(this FileMetadata fileMetadata)
     {
         Dictionary<string, string> metadata = new Dictionary<string, string>();
         FileMetaDataExtensions.GetMetadataProperties(null).Where(p => !string.IsNullOrWhiteSpace(p.Key)).Select(p => p.Key).ToList().ForEach(propertyName =>
@@ -106,32 +114,32 @@ public static class FileMetaDataExtensions
         return metadata;
     }
 
-    public static List<(string Key, bool InSearch, bool IsVisible)> GetMetadataProperties(this FileMetaData? fileMetadata)
+    public static List<(string Key, bool InSearch, bool IsVisible)> GetMetadataProperties(this FileMetadata? fileMetadata)
     {
         return new List<(string Key, bool InSearch, bool IsVisible)>
         {
-            ("activities", true, false),
-            ("fileid", true, false),
-            ("filename", true, true),
-            ("createdby", true, false),
-            ("createdts", true, false),
-            ("lastmodifiedby", true, false),
-            ("lastmodifiedts", true, true),
-            ("securityclass", true, false),
-            ("ownedby", true, true),
-            ("filesize", true, true),
-            ("fileformat", true, true),
-            ("folderpath", true, true),
-            ("sharedwith", false, false),
-            ("description", false, true),
-            ("isdeleted", true, false),
-            ("tags", false, true),
-            ("customfields", false, true),
-            ("uploadeddate", false, true)
+            (BaseMetadata.Activities, true, false),
+            (FileMetadata.FileId, true, false),
+            (FileMetadata.Filename, true, true),
+            (BaseMetadata.CreatedBy, true, false),
+            (BaseMetadata.CreatedTs, true, false),
+            (BaseMetadata.LastModifiedBy, true, false),
+            (BaseMetadata.LastModifiedTs, true, true),
+            (FileMetadata.SecurityClass, true, false),
+            (BaseMetadata.OwnedBy, true, true),
+            (FileMetadata.FileSize, true, true),
+            (FileMetadata.FileFormat, true, true),
+            (FileMetadata.FolderPath, true, true),
+            (FileMetadata.SharedWith, false, false),
+            (FileMetadata.Description, false, true),
+            (FileMetadata.IsDeleted, true, false),
+            (FileMetadata.Tags, false, true),
+            (FileMetadata.CustomFields, false, true),
+            (FileMetadata.UploadedDate, false, true)
         };
     }
 
-    public static List<(string? Username, string Verb, string? Filename, string Location, string TimeSince)> GetActivity(this FileMetaData fileMetadata)
+    public static List<(string? Username, string Verb, string? Filename, string Location, string TimeSince)> GetActivity(this FileMetadata fileMetadata)
     {
         return new()
         {

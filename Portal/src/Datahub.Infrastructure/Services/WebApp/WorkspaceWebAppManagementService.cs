@@ -13,6 +13,7 @@ using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Entities.WorkspaceToolConfiguration;
@@ -29,18 +30,18 @@ namespace Datahub.Infrastructure.Services.WebApp
     public class WorkspaceWebAppManagementService : IWorkspaceWebAppManagementService
     {
         private readonly ArmClient _armClient;
-        private readonly DatahubPortalConfiguration _portalConfiguration;
+        private readonly IAzureConfiguration _configuration;
         private readonly ISendEndpointProvider _sendEndpointProvider;
         private readonly IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
         private readonly IKeyVaultUserService _keyVaultUserService;
         private readonly ILogger<WorkspaceWebAppManagementService> _logger;
 
-        public WorkspaceWebAppManagementService(DatahubPortalConfiguration portalConfiguration,
+        public WorkspaceWebAppManagementService(IAzureConfiguration portalConfiguration,
             [FromKeyedServices(SystemTokenCredentialServiceKeys.Infra)] ISystemTokenCredentialService infraTokenCredentialService,
             IDbContextFactory<DatahubProjectDBContext> dbContextFactory, ISendEndpointProvider sendEndpointProvider,
             IKeyVaultUserService keyVaultUserService, ILogger<WorkspaceWebAppManagementService> logger)
         {
-            _portalConfiguration = portalConfiguration;
+            _configuration = portalConfiguration;
             _dbContextFactory = dbContextFactory;
             _sendEndpointProvider = sendEndpointProvider;
             _keyVaultUserService = keyVaultUserService;
@@ -231,7 +232,7 @@ namespace Datahub.Infrastructure.Services.WebApp
                 var envVarKeys = TerraformVariableExtraction.ExtractEnvironmentVariableKeys(projectResource);
                 var appSettings = await GetAzureAppSettings(webAppId);
                 var keyVaultName = _keyVaultUserService.GetVaultName(workspaceAcronym,
-                    _portalConfiguration.Hosting.EnvironmentName);
+                    _configuration.EnvironmentName);
 
                 foreach (var key in envVarKeys)
                 {
