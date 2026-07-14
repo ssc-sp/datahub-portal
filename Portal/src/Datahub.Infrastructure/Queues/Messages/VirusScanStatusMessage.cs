@@ -1,5 +1,12 @@
 namespace Datahub.Infrastructure.Queues.Messages;
 
+public enum ScanStatusType
+{
+    Clean,
+    Infected,
+    Failed
+}
+
 /// <summary>
 /// Message sent to service functions to handle user status and file access permissions
 /// based on virus scan results

@@ -1,8 +1,10 @@
-﻿using Azure.Core;
+using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Monitor;
 using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
@@ -114,6 +116,65 @@ namespace Datahub.Infrastructure.Services.Storage
                 .FirstOrDefault(p => p.ProjectId == project.Project_ID && p.Date == date.Date);
             if (projectAverage is null) return true;
             return false;
+        }
+
+        /// <inheritdoc />
+        public async Task<string> MoveBlobToUsersContainerAsync(string scannedFileUri, string? connectionString)
+        {
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new InvalidOperationException("Storage connection string is missing.");
+            }
+
+            if (!Uri.TryCreate(scannedFileUri, UriKind.Absolute, out var sourceUri))
+            {
+                throw new InvalidOperationException($"Invalid scanned file URI: {scannedFileUri}");
+            }
+
+            var path = sourceUri.AbsolutePath.TrimStart('/');
+            var split = path.Split('/', 2, StringSplitOptions.RemoveEmptyEntries);
+
+            if (split.Length < 2)
+            {
+                throw new InvalidOperationException($"Invalid scanned file URI path: {scannedFileUri}");
+            }
+
+            var sourceContainerName = split[0];
+            var blobName = split[1];
+            var targetBlobPath = $"{IWorkspaceStorageManagementService.AzureExternalUsersContainerName}/{blobName}";
+
+            if (sourceContainerName.Equals(IWorkspaceStorageManagementService.AzureExternalUsersContainerName, StringComparison.OrdinalIgnoreCase))
+            {
+                return targetBlobPath;
+            }
+
+            var serviceClient = new BlobServiceClient(connectionString);
+            var sourceContainer = serviceClient.GetBlobContainerClient(sourceContainerName);
+            var destinationContainer = serviceClient.GetBlobContainerClient(IWorkspaceStorageManagementService.AzureExternalUsersContainerName);
+
+            var sourceBlob = sourceContainer.GetBlobClient(blobName);
+            var destinationBlob = destinationContainer.GetBlobClient(blobName);
+
+            await destinationContainer.CreateIfNotExistsAsync();
+            await destinationBlob.DeleteIfExistsAsync();
+
+            var sourceProperties = await sourceBlob.GetPropertiesAsync();
+            var metadata = sourceProperties.Value.Metadata is { Count: > 0 }
+                ? new Dictionary<string, string>(sourceProperties.Value.Metadata, StringComparer.OrdinalIgnoreCase)
+                : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            var copyOperation = await destinationBlob.StartCopyFromUriAsync(sourceBlob.Uri);
+            await copyOperation.WaitForCompletionAsync();
+
+            var destinationProperties = await destinationBlob.GetPropertiesAsync();
+            if (destinationProperties.Value.CopyStatus != CopyStatus.Success)
+            {
+                throw new InvalidOperationException($"Copy to {IWorkspaceStorageManagementService.AzureExternalUsersContainerName} container failed with status {destinationProperties.Value.CopyStatus}.");
+            }
+
+            await destinationBlob.SetMetadataAsync(metadata);
+            await sourceBlob.DeleteIfExistsAsync();
+            return targetBlobPath;
         }
 
         #endregion

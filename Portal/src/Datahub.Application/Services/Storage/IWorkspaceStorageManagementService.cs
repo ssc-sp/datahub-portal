@@ -32,5 +32,13 @@ namespace Datahub.Application.Services.Storage
         /// <param name="ctx">Project db context to use</param>
         /// <returns>True if it is needed, false otherwise</returns>
         public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx);
+
+        /// <summary>
+        /// Copies a blob from its current container into the external users container and preserves metadata.
+        /// </summary>
+        /// <param name="scannedFileUri">The absolute URI of the source blob.</param>
+        /// <param name="connectionString">The Azure Storage connection string.</param>
+        /// <returns>The target blob path in the form "users/{blobName}".</returns>
+        public Task<string> MoveBlobToUsersContainerAsync(string scannedFileUri, string? connectionString);
     }
 }

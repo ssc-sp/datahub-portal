@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 
 namespace Datahub.Infrastructure.Offline
@@ -16,6 +16,11 @@ namespace Datahub.Infrastructure.Offline
         }
 
         public bool CheckUpdateNeeded(string workspaceAcronym, DatahubProjectDBContext ctx)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> MoveBlobToUsersContainerAsync(string scannedFileUri, string? connectionString)
         {
             throw new NotImplementedException();
         }

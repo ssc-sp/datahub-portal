@@ -20,7 +20,7 @@ public class LockedUserManagementService : ILockedUserManagementService
         _contextFactory = contextFactory;
     }
 
-    public async Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, string? evidenceUrl, int? performedByUserId)
+    public async Task<ExternalUserLockAuditEvent> LockUserAsync(int portalUserId, string reason, int? performedByUserId)
     {
         await using var context = await _contextFactory.CreateDbContextAsync();
 
@@ -44,7 +44,6 @@ public class LockedUserManagementService : ILockedUserManagementService
             EventType = ExternalUserLockEventType.Locked,
             EventDate = DateTime.UtcNow,
             Reason = reason,
-            EvidenceUrl = evidenceUrl,
             Notes = BuildExternalUserReferenceNote(externalUser, null),
             PreviousExpiryDate = previousExpiryDate,
             AppliedExpiryDate = appliedExpiryDate,
