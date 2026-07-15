@@ -4,7 +4,6 @@
 @using Datahub.Core.Model.Users
 @using Datahub.Core.Storage;
 @using Datahub.Core.Components.FileUpload
-@using Datahub.Core.Services.Storage;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.UserManagement
 @using Datahub.Core.Services.Notification
@@ -41,9 +40,23 @@
                 ShowNewFolder="false"
                 ShowDeleteFolder="false"
                 ShowPublish="false"
-                ShowBackToContainers="false" />
+                ShowMntHierarchy="false"
+                ShowBackToContainers="false"
+                Readonly="@Readonly" />
 
             <div class="file-list">
+                @if (IsWaitingForAntivirusResults)
+                {
+                    <MudPaper Class="antivirus-scan-indicator pa-3 mb-2" Outlined Elevation="0">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                            <MudProgressCircular Indeterminate Color="Color.Info" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">
+                                @Localizer["Scanning uploaded file(s) for viruses... {0} file(s) pending.", FilesBeingScannedCount]
+                            </MudText>
+                        </MudStack>
+                    </MudPaper>
+                }
+
                 <div class="file-list-header">
                     <div>
                         <span class="file-selection-icon" @onclick="ToggleSelectAllFiles">
@@ -170,6 +183,10 @@ else
 
     [Parameter] public CloudStorageContainer Container { get; set; } = null!;
 
+    [Parameter] public CloudStorageContainer UploadContainer { get; set; } = null!;
+
+    [Parameter] public bool Readonly { get; set; } = false;
+
     public StorageMetadata StorageAccountMetadata { get; set; } = null!;
 
     private bool _allFilesSelected = false;
@@ -180,7 +197,7 @@ else
 
     private bool _loading = true;
     private bool _failed = false;
-    private List<FileMetaData> _uploadingFiles = [];
+    private List<PortalFileMetadata> _uploadingFiles = [];
     private List<string> _blockedFiles = [];
     private string _continuationToken = string.Empty;
 
@@ -191,7 +208,7 @@ else
     private HashSet<string> _selectedItems = new();
 
     private List<string> _folders = new();
-    private List<FileMetaData> _files = new();
+    private List<PortalFileMetadata> _files = new();
     private string _filterValue = string.Empty;
 
     private Dictionary<string, FileScanResult> _fileScanResults = new();
@@ -223,7 +240,7 @@ else
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        _uploadingFiles = new List<FileMetaData>();
+        _uploadingFiles = new List<PortalFileMetadata>();
     }
 
     private Guid _metadataSignature = Guid.NewGuid();
@@ -286,6 +303,8 @@ else
 
     public async ValueTask DisposeAsync()
     {
+        StopUploadContainerPolling();
+
         try
         {
             if (_module != null)

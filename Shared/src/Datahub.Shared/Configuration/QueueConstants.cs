@@ -1,5 +1,22 @@
 namespace Datahub.Shared.Configuration;
 
+public static class StorageQueueConstants
+{
+    /// <summary>
+    /// Queue: <c>clamav-scan-result</c><br/>
+    /// Message: <c>ClamAvScanResultMessage</c> (minimal format: ScanStartTime, ScanEndTime, ScanError, ScannedFile)<br/>
+    /// Publishers:
+    /// <list type="bullet">
+    ///   <item><description>ClamAV container – writes minimal scan completion message</description></item>
+    /// </list>
+    /// Consumers:
+    /// <list type="bullet">
+    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – enriches with workspace/user context and forwards to virus-scan-notification</description></item>
+    /// </list>
+    /// </summary>
+    public const string ClamAvScanResultQueueName = "clamav-scan-result";
+}
+
 public static class QueueConstants
 {
     /// <summary>
@@ -186,46 +203,18 @@ public static class QueueConstants
     public const string WorkspaceAppServiceConfigurationQueueName = "workspace-app-service-configuration";
 
     /// <summary>
-    /// Queue: <c>clamav-scan-result</c><br/>
-    /// Message: <c>ClamAvScanResultMessage</c> (minimal format: ScanStartTime, ScanEndTime, ScanError, ScannedFile)<br/>
+    /// Queue: <c>virus-scan-status</c><br/>
+    /// Message: <c>VirusScanStatusMessage</c><br/>
     /// Publishers:
     /// <list type="bullet">
-    ///   <item><description>ClamAV container – writes minimal scan completion message</description></item>
+    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – when a virus scan status is updated</description></item>
     /// </list>
     /// Consumers:
     /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – enriches with workspace/user context and forwards to virus-scan-notification</description></item>
+    ///   <item><description>Portal – when a virus scan status is updated</description></item>
     /// </list>
     /// </summary>
-    public const string ClamAvScanResultQueueName = "clamav-scan-result";
-
-    /// <summary>
-    /// Queue: <c>virus-scan-notification</c><br/>
-    /// Message: <c>VirusScanNotificationMessage</c> (enriched format with workspace, user, scan status)<br/>
-    /// Publishers:
-    /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.ClamAvScanResultEnricher</c> – after enriching minimal ClamAV messages</description></item>
-    /// </list>
-    /// Consumers:
-    /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – coordinates post-scan notifications and downstream user-status processing</description></item>
-    /// </list>
-    /// </summary>
-    public const string VirusScanNotificationQueueName = "virus-scan-notification";
-
-    /// <summary>
-    /// Queue: <c>virus-scan-user-status</c><br/>
-    /// Message: <c>VirusScanUserStatusMessage</c><br/>
-    /// Publishers:
-    /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.VirusScanNotificationHandler</c> – downstream fan-out after processing ClamAV completion messages</description></item>
-    /// </list>
-    /// Consumers:
-    /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.VirusScanUserStatusHandler</c> – placeholder for user status updates, audit logging, and workspace metrics (not yet fully implemented)</description></item>
-    /// </list>
-    /// </summary>
-    public const string VirusScanUserStatusQueueName = "virus-scan-user-status";
+    public const string VirusScanStatusQueueName = "virus-scan-status";
 
     // -------------------------------------------------------------------------
     // Synchronization output queues

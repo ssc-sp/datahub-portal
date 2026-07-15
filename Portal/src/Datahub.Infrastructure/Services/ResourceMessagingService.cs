@@ -1,8 +1,5 @@
-using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
-using Datahub.Core.Model.Projects;
 using Datahub.Core.Utils;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Shared;
@@ -10,7 +7,6 @@ using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
 using Datahub.Shared.Exceptions;
 using Datahub.Core.Extensions;
-using Foundatio.Queues;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
 

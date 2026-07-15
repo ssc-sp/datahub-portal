@@ -112,7 +112,7 @@
     public StorageMetadata StorageAccountMetadata { get; set; }
 
     private FileSearchResult SelectedFile { get; set; }
-    private List<FileMetaData> _files = new();
+    private List<PortalFileMetadata> _files = new();
 
     private string _continuationToken;
     private bool IsLoading { get; set; } = true; // Default to true to show the loading indicator initially

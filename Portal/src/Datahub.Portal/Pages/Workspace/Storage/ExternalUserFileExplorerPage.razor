@@ -1,6 +1,7 @@
 @page "/w/{WorkspaceAcronym}/s-ext"
 @attribute [ExternalUserPage]
 @using Datahub.Application.Services;
+@using Datahub.Application.Services.Storage
 @using Datahub.Core.Data;
 @using Datahub.Core.Model;
 @using Datahub.Core.Model.CloudStorage;
@@ -21,10 +22,11 @@
 @inject IDbContextFactory<DatahubProjectDBContext> _dbFactoryProject
 @inject IUserInformationService _userInformationService
 @inject IProjectStorageConfigurationService _projectStorageConfigService
+@inject ISystemTokenCredentialService _systemTokenCredentialService
 @inject ILogger<ExternalUserFileExplorerPage> _logger
 @inject DatahubPortalConfiguration _datahubPortalConfiguration
 @inject NavigationManager _navigationManager
-@inject IKeyVaultUserService _keyVaultUserService
+@inject IKeyVaultCoreService _keyVaultCoreService
 
 
 <!--suppress CssUnresolvedCustomProperty -->
@@ -46,40 +48,46 @@
         <DHMainContentTitle Title="@Localizer["{0} Storage Explorer", WorkspaceAcronym]" />
     </MudStack>
     <WorkspaceAlerts WorkspaceAcronym="@WorkspaceAcronym" View="@WorkspaceSidebar.SectionViews.Storage" />
-    @if (_isProjectKeyEnabled)
-    {
-        <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
-            <CascadingValue Value="@_project" Name="Project">
-                <CascadingValue Value="_user" Name="PortalUser">
-                    <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
-                        <MudStack>
-                            <MudText Typo="Typo.h2">@Localizer["File Explorer"]</MudText>
-                            @if (_failedToLoadContainers)
+    <CascadingValue Value="@WorkspaceAcronym" Name="ProjectAcronym">
+        <CascadingValue Value="@_project" Name="Project">
+            <CascadingValue Value="_user" Name="PortalUser">
+                <MudPaper Elevation="0" Class="file-explorer-layout-wrapper py-4 px-6">
+                    @if (_failedToLoadContainers)
+                    {
+                        <MudAlert Severity="Severity.Error">
+                            <MudText>@Localizer["Failed to load storage containers"]</MudText>
+                        </MudAlert>
+                    }
+                    else
+                    {
+                        <MudTabs Elevation="0">
+                            <MudTabPanel Text="@Localizer["My Files"]" Icon="fas fa-hdd"
+                                         ToolTip="@Localizer["Your personal workspace files"]">
+                                <MudStack Class="py-6 px-2">
+                                    <ExternalUserFileExplorer ProjectId=@_projectId
+                                                              Container="@_usersContainer"
+                                                              UploadContainer="@_uploadContainer" />
+                                </MudStack>
+                            </MudTabPanel>
+                            @if (_sharedContainer is not null)
                             {
-                                <MudAlert Severity="Severity.Error">
-                                    <MudText>@Localizer["Failed to load storage containers"]</MudText>
-                                </MudAlert>
+                                <MudTabPanel Text="@Localizer["Shared"]" Icon="fas fa-share-alt"
+                                             ToolTip="@Localizer["Files shared with all external users"]">
+                                    <MudStack Class="py-6 px-2">
+                                        <ExternalUserFileExplorer ProjectId=@_projectId
+                                                                  Container="@_sharedContainer"
+                                                                  UploadContainer="@_uploadContainer"
+                                                                  Readonly="true" />
+                                    </MudStack>
+                                </MudTabPanel>
                             }
-                            else
-                            {
-                                <ExternalUserFileExplorer 
-                                    ProjectId=@_projectId 
-                                    Container="@_selectedContainer" />
-                            }
-                        </MudStack>
-                    </MudPaper>
-                </CascadingValue>
+                        </MudTabs>
+                    }
+                </MudPaper>
             </CascadingValue>
         </CascadingValue>
-    }
-    else
-    {
-        <MudPaper Elevation="0" Outlined Class="pa-4">
-            <MudText>
-                @Localizer["Access to storage was disabled due to workspace being over budget."]
-            </MudText>
-        </MudPaper>
-    }
+    </CascadingValue>
+
 </MudStack>
 
 @code {
@@ -87,17 +95,18 @@
     [CascadingParameter]
     private Task<AuthenticationState> AuthenticationStateTask { get; set; } = null!
 ;
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = null!;
 
     private Datahub_Project? _project;
     private int? _projectId;
     private string _title;
 
-    private CloudStorageContainer _selectedContainer;
+    private CloudStorageContainer? _usersContainer;
+    private CloudStorageContainer? _sharedContainer;
+    private CloudStorageContainer? _uploadContainer;
     private PortalUser _user = null!;
 
     private bool _loading = true;
-    private bool _isProjectKeyEnabled = false;
     private bool _failedToLoadContainers = false;
 
     protected override async Task OnInitializedAsync()
@@ -124,17 +133,10 @@
             _navigationManager.NavigateTo(PageRoutes.AccessDenied, forceLoad: true);
             return;
         }
-        
+
         try
         {
-            _isProjectKeyEnabled = await IsProjectKeyEnabled();
-            if (!_isProjectKeyEnabled) throw new Exception("Project key disabled");
-            await _keyVaultUserService.AuthenticateWithUserContext();
             await LoadExternalUserContainerAsync();
-        }
-        catch (MicrosoftIdentityWebChallengeUserException e)
-        {
-            _consentHandler.HandleException(e);
         }
         catch (Azure.RequestFailedException e)
         {
@@ -152,62 +154,63 @@
 
     private async Task LoadExternalUserContainerAsync()
     {
-        // Get external users storage configuration from appsettings
-        var externalStorageConfig = _datahubPortalConfiguration.StorageConfiguration.ExternalUsersStorage;
-        var containerName = externalStorageConfig.ContainerName;
-        var accountName = externalStorageConfig.AccountName;
         
+        // pick the project storage containers
+        var accountName = _projectStorageConfigService.GetProjectStorageAccountName(WorkspaceAcronym);
+        var token = _systemTokenCredentialService.GetTokenCredential();
+        var projectStorageManager = new AzureCloudStorageManager(accountName, token);
         _logger.LogInformation("Loading external users container.");
 
-        // Get the external users storage key - from central Key Vault if configured, otherwise from workspace Key Vault
-        string? accountKey;
-        if (externalStorageConfig.UseCentralKeyVault)
-        {
-            _logger.LogInformation("Retrieving storage key from central key vault.");
-            accountKey = await _keyVaultUserService.GetSecretFromCentralKeyVaultAsync(
-                externalStorageConfig.CentralKeyVaultName, 
-                externalStorageConfig.AccountKeySecretName);
-        }
-        else
-        {
-            _logger.LogInformation("Retrieving storage key from workspace key vault.");
-            accountKey = await _keyVaultUserService.GetSecretAsync(WorkspaceAcronym, externalStorageConfig.AccountKeySecretName);
-        }
-        
-        if (string.IsNullOrEmpty(accountKey))
-        {
-            _logger.LogError("External users storage key not found in key vault.");
-            _failedToLoadContainers = true;
-            return;
-        }
-        
-        var projectStorageManager = new AzureCloudStorageManager(accountName, accountKey);
+
         var containerNames = await projectStorageManager.GetContainersAsync();
 
         _logger.LogInformation("Retrieved containers from external users storage account.");
 
-        // Check if external-uploads container exists
-        var externalUsersContainer = containerNames.FirstOrDefault(c => 
-            c.Equals(containerName, StringComparison.OrdinalIgnoreCase));
-
-        if (externalUsersContainer != null)
+        var sharedContainer = containerNames.FirstOrDefault(c =>
+            c.Equals(IWorkspaceStorageManagementService.AzureSharedContainerName, StringComparison.OrdinalIgnoreCase));
+        if (sharedContainer != null)
         {
-            _logger.LogInformation("External users container found.");
-            _selectedContainer = new CloudStorageContainer(
-                accountName, 
-                externalUsersContainer, 
-                CloudStorageProviderType.Azure, 
+            _logger.LogInformation("External users shared container found.");
+            _sharedContainer = new CloudStorageContainer(
+                accountName,
+                sharedContainer,
+                CloudStorageProviderType.Azure,
+                projectStorageManager);
+        }
+
+        // Check if shared container exists
+        var usersContainer = containerNames.FirstOrDefault(c =>
+            c.Equals(IWorkspaceStorageManagementService.AzureExternalUsersContainerName, StringComparison.OrdinalIgnoreCase));
+
+        if (usersContainer != null)
+        {
+            _logger.LogInformation("External users shared container found.");
+            _usersContainer = new CloudStorageContainer(
+                accountName,
+                usersContainer,
+                CloudStorageProviderType.Azure,
+                projectStorageManager);            
+        }
+        var uploadContainer = containerNames.FirstOrDefault(c =>
+            c.Equals(IWorkspaceStorageManagementService.AzureExternalUploadContainerName, StringComparison.OrdinalIgnoreCase));
+
+        if (uploadContainer != null)
+        {
+            _uploadContainer = new CloudStorageContainer(
+                accountName,
+                uploadContainer,
+                CloudStorageProviderType.Azure,
                 projectStorageManager);
         }
         else
         {
-            _logger.LogWarning("External users container not found in shared storage account.");
+            _logger.LogWarning("External users upload container not found in storage account.");
+        }
+
+        if (_uploadContainer == null || _usersContainer == null)
+        {
+            _logger.LogWarning("External users shared container not found in shared storage account.");
             _failedToLoadContainers = true;
         }
-    }
-
-    private async Task<bool> IsProjectKeyEnabled()
-    {
-        return await _keyVaultUserService.IsKeyEnabled(WorkspaceAcronym, _datahubPortalConfiguration.KeyVault.ProjectKey);
     }
 }

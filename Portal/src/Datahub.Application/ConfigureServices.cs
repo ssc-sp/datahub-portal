@@ -12,7 +12,7 @@ public static class ConfigureServices
         var datahubConfiguration = new DatahubPortalConfiguration();
         configuration.Bind(datahubConfiguration);
         services.AddSingleton(datahubConfiguration);
-        services.AddSingleton<IAzureDevopsConfiguration>(datahubConfiguration);
+        services.AddSingleton<IAzureConfiguration>(datahubConfiguration);
 
         return services;
     }

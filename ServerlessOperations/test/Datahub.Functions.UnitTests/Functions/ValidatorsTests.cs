@@ -8,13 +8,6 @@ namespace Datahub.Functions.UnitTests.Validators
     [TestFixture]
     public class EmailValidatorTests
     {
-        private EmailValidator _emailValidator;
-
-        [SetUp]
-        public void SetUp()
-        {
-            _emailValidator = new EmailValidator();
-        }
 
         [Test]
         [TestCase("test@example.com", true)]
@@ -37,7 +30,7 @@ namespace Datahub.Functions.UnitTests.Validators
         public void IsValidEmail_ShouldReturnExpectedResult(string email, bool expectedResult)
         {
             // Act
-            var result = _emailValidator.IsValidEmail(email);
+            var result = EmailValidator.IsValidEmail(email);
 
             // Assert
             result.Should().Be(expectedResult);

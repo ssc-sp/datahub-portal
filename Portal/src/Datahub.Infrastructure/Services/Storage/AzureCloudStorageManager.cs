@@ -17,6 +17,8 @@ using Datahub.Application.Services.UserManagement;
 using System.Security.Claims;
 using Azure.Core;
 using System.Threading;
+using Azure;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -84,7 +86,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         ValidateContainerName(container);
 
         List<string> folders = new();
-        List<FileMetaData> files = new();
+        List<PortalFileMetadata> files = new();
 
         var dirClient = GetDirectoryClient(container, folderPath);
 
@@ -140,7 +142,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
         return blobUriBuilder.ToUri();
     }
 
-    public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
+    public async Task<bool> UploadFileAsync(string container, PortalFileMetadata file, Action<long> progess)
     {
         // get the directory client
         var dirClient = GetDirectoryClient(container, file.folderpath);
@@ -155,9 +157,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
         {
             Metadata = new Dictionary<string, string>()
             {
-                { FileMetaData.FileId, file.id },
-                { FileMetaData.CreatedBy, file.createdby },
-                { FileMetaData.UploadBatchId, file.uploadBatchId },
+                { FileMetadata.FileId, file.id },
+                { FileMetadata.CreatedBy, file.createdby },
+                { FileMetadata.UploadBatchId, file.uploadBatchId },
             },
             ProgressHandler = new UploadProgressHandler(progess)
         };
@@ -210,15 +212,22 @@ public class AzureCloudStorageManager : ICloudStorageManager
             : new BlobServiceClient(_blobServiceUri, _tokenCredential);
 
         var containerClient = blobServiceClient.GetBlobContainerClient(container);
-        var accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
+        AccountInfo? accountInfo = null;
+        try
+        {
+            accountInfo = (await blobServiceClient.GetAccountInfoAsync()).Value;
+        } catch (RequestFailedException) 
+        {
+            //ignore error
+        }
 
         AzureStorageMetadata storageMetadata = new()
         {
             Container = container,
             Url = containerClient.Uri.ToString(),
-            Versioning = "True",
-            GeoRedundancy = accountInfo.SkuName.ToString(),
-            StorageAccountType = accountInfo.AccountKind.ToString(),            
+            Versioning = true,
+            GeoRedundancy = accountInfo?.SkuName.ToString(),
+            StorageAccountType = accountInfo?.AccountKind.ToString(),            
         };
 
         return storageMetadata;
@@ -311,9 +320,9 @@ public class AzureCloudStorageManager : ICloudStorageManager
     }
 
     private async Task IterateDataLakeDirectoryAsync(DataLakeDirectoryClient client, string? continuationToken,
-        Action<string> addFolder, Action<FileMetaData> addFile, Action<string?> setContinuationToken, CancellationToken cancellationToken)
+        Action<string> addFolder, Action<PortalFileMetadata> addFile, Action<string?> setContinuationToken, CancellationToken cancellationToken)
     {
-        var fileMetadataTasks = new List<Task<FileMetaData?>>();
+        var fileMetadataTasks = new List<Task<PortalFileMetadata?>>();
 
         await foreach (var page in client.GetPathsAsync(recursive: false, userPrincipalName: false, cancellationToken).AsPages(continuationToken).WithCancellation(cancellationToken))
         {
@@ -341,7 +350,7 @@ public class AzureCloudStorageManager : ICloudStorageManager
     private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
     private const string METADATA_FILE_ID = "fileid";
 
-    private async Task<FileMetaData?> GetFileMetadataAsync(DataLakeDirectoryClient client, string fileName, CancellationToken cancellationToken)
+    private async Task<PortalFileMetadata?> GetFileMetadataAsync(DataLakeDirectoryClient client, string fileName, CancellationToken cancellationToken)
     {
         var fileClient = client.GetFileClient(fileName);
         if (fileClient is null)
@@ -358,11 +367,11 @@ public class AzureCloudStorageManager : ICloudStorageManager
         {
             id = GetMetadata(metadata, METADATA_FILE_ID, Guid.NewGuid().ToString())?? throw new InvalidOperationException("File ID is missing"),
             name = fileName,
-            ownedby = GetMetadata(metadata, FileMetaData.OwnedBy),
-            createdby = GetMetadata(metadata, FileMetaData.CreatedBy),
-            lastmodifiedby = GetMetadata(metadata, FileMetaData.LastModifiedBy),
+            ownedby = GetMetadata(metadata, FileMetadata.OwnedBy),
+            createdby = GetMetadata(metadata, FileMetadata.CreatedBy),
+            lastmodifiedby = GetMetadata(metadata, FileMetadata.LastModifiedBy),
             lastmodifiedts = props.LastModified.DateTime,
-            uploadBatchId = GetMetadata(metadata, FileMetaData.UploadBatchId),
+            uploadBatchId = GetMetadata(metadata, FileMetadata.UploadBatchId),
             filesize = props.ContentLength.ToString(),
             folderpath = client.Path
         };
@@ -483,12 +492,12 @@ public class AzureCloudStorageManager : ICloudStorageManager
         }
     }
 
-    public async Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
+    public async Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
     {
         ValidateContainerName(container);
 
         var dirClient = GetDirectoryClient(container, folderPath);
-        var matchingFiles = new List<FileMetaData>();
+        var matchingFiles = new List<FileMetadata>();
 
         // Recursively iterate through all paths (files and folders) in the directory
         await foreach (var page in dirClient.GetPathsAsync(recursive: true, userPrincipalName: false, cancellationToken).AsPages().WithCancellation(cancellationToken))

@@ -1,4 +1,4 @@
-﻿using Bunit;
+using Bunit;
 using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
@@ -92,7 +92,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
             var azureSubService = Substitute.For<IDatahubAzureSubscriptionService>();
             var catalogSearch = Substitute.For<IDatahubCatalogSearch>();
             var metadataService = Substitute.For<IMetadataBrokerService>();
-
+            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
             azureSubService.NextSubscriptionAsync()
                 .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1, SubscriptionId = "test-subscription-id", TenantId = "test-tenant-id", SubscriptionName = "Test Subscription" });
 
@@ -103,6 +103,7 @@ namespace Datahub.SpecflowTests.Steps.Workspace
                         serviceAuthManager,
                         userInformationService,
                         workspaceVersionService,
+                        resourceMessagingService,
                         auditingService,
                         azureSubService,
                         catalogSearch,

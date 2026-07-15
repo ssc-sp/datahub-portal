@@ -18,6 +18,7 @@ using Microsoft.FeatureManagement;
 using Datahub.Application.Authentication;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Portal.Pages;
+using Microsoft.Extensions.Logging;
 
 namespace Datahub.Portal.Services.Auth;
 
@@ -58,6 +59,11 @@ public static class ConfigureAuthenticationServices
         .EnableTokenAcquisitionToCallDownstreamApi()
         .AddMicrosoftGraph(configuration.GetSection("Graph"))
         .AddInMemoryTokenCaches();
+
+        services.Configure<OpenIdConnectOptions>(OpenIdConnectDefaults.AuthenticationScheme, options =>
+        {
+            AddAuthenticationLogging(options, OpenIdConnectDefaults.AuthenticationScheme);
+        });
 
         // Register dev scheme at the root AuthenticationBuilder level
         services.AddAuthentication()
@@ -199,6 +205,8 @@ public static class ConfigureAuthenticationServices
 
                         return Task.CompletedTask;
                     };
+
+                    AddAuthenticationLogging(options, GccfOidcScheme);
                 });
         }
 
@@ -206,5 +214,58 @@ public static class ConfigureAuthenticationServices
 
         services.AddScoped<IClaimsTransformation, RoleClaimTransformer>();
         services.Configure<SessionsConfig>(configuration.GetSection("Sessions"));
+    }
+
+    private static void AddAuthenticationLogging(OpenIdConnectOptions options, string scheme)
+    {
+        options.Events ??= new OpenIdConnectEvents();
+
+        var onRedirectToIdentityProvider = options.Events.OnRedirectToIdentityProvider;
+        options.Events.OnRedirectToIdentityProvider = async context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Authentication");
+            logger.LogInformation("Login attempt started. Scheme: {Scheme}; TraceId: {TraceId}", scheme, context.HttpContext.TraceIdentifier);
+
+            if (onRedirectToIdentityProvider != null)
+            {
+                await onRedirectToIdentityProvider(context);
+            }
+        };
+
+        var onTokenValidated = options.Events.OnTokenValidated;
+        options.Events.OnTokenValidated = async context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Authentication");
+            logger.LogInformation("Login successful. Scheme: {Scheme}; TraceId: {TraceId}", scheme, context.HttpContext.TraceIdentifier);
+
+            if (onTokenValidated != null)
+            {
+                await onTokenValidated(context);
+            }
+        };
+
+        var onAuthenticationFailed = options.Events.OnAuthenticationFailed;
+        options.Events.OnAuthenticationFailed = async context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Authentication");
+            logger.LogWarning(context.Exception, "Login failed during authentication. Scheme: {Scheme}; TraceId: {TraceId}", scheme, context.HttpContext.TraceIdentifier);
+
+            if (onAuthenticationFailed != null)
+            {
+                await onAuthenticationFailed(context);
+            }
+        };
+
+        var onRemoteFailure = options.Events.OnRemoteFailure;
+        options.Events.OnRemoteFailure = async context =>
+        {
+            var logger = context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger("Authentication");
+            logger.LogWarning(context.Failure, "Login failed during remote authentication. Scheme: {Scheme}; TraceId: {TraceId}", scheme, context.HttpContext.TraceIdentifier);
+
+            if (onRemoteFailure != null)
+            {
+                await onRemoteFailure(context);
+            }
+        };
     }
 }

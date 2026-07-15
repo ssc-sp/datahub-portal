@@ -6,6 +6,7 @@ using Datahub.Core.Model.Datahub;
 using Datahub.Core.Storage;
 using Datahub.Portal.Layout;
 using Datahub.Portal.Pages.Workspace.Publishing;
+using Datahub.Shared.Entities;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
@@ -228,7 +229,7 @@ public partial class FileExplorer
         if (!allowOverride)
             return;
 
-        var fileMetadata = new FileMetaData
+        var fileMetadata = new PortalFileMetadata
         {
             id = Guid.NewGuid().ToString(),
             createdby = PortalUser.Email,
@@ -288,7 +289,7 @@ public partial class FileExplorer
         await _module.InvokeVoidAsync("downloadFile", uri.ToString());
     }
 
-    private async Task HandlePublishFiles(IEnumerable<FileMetaData> files)
+    private async Task HandlePublishFiles(IEnumerable<FileMetadata> files)
     {
         if (!_config.CkanConfiguration.IsFeatureEnabled)
         {

@@ -1,5 +1,6 @@
-﻿using Datahub.Core.Data;
+using Datahub.Core.Data;
 using Datahub.Core.Model.Datahub;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Application.Services.Publishing
 {
@@ -10,7 +11,7 @@ namespace Datahub.Application.Services.Publishing
         Task<List<OpenDataSubmission>> GetAvailableOpenDataSubmissionsForWorkspaceAsync(int workspaceId);
         Task<TbsOpenGovSubmission> UpdateTbsOpenGovSubmission(TbsOpenGovSubmission submission);
         Task<OpenDataSubmission> CreateOpenDataSubmission(OpenDataSubmissionBasicInfo openDataSubmissionBasicInfo);
-        Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetaData> files, int? containerId, string containerName);
+        Task AddFilesToSubmission(OpenDataSubmission openDataSubmission, IEnumerable<FileMetadata> files, int? containerId, string containerName);
         Task<OpenDataPublishFile> UpdateFileUploadStatus(OpenDataPublishFile file, OpenDataPublishFileUploadStatus status, string? uploadMessage = null);
         event Func<OpenDataPublishFile, Task> FileUploadStatusUpdated;
 

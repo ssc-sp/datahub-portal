@@ -6,6 +6,7 @@ using Datahub.Core.Data;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Portal.Pages.Workspace.Storage.ResourcePages;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Infrastructure.Services.Storage;
 
@@ -46,7 +47,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
     public async Task<DfsPage> GetDfsPagesAsync(string container, string folderPath, string? continuationToken = null)
     {
         var folders = new List<string>();
-        var files = new List<FileMetaData>();
+        var files = new List<PortalFileMetadata>();
 
         // Correct folder path
         folderPath = ToAWSFolder(folderPath);
@@ -78,7 +79,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
                 }
 
                 // Validate and populate FileMetaData
-                FileMetaData fileMetaData = new()
+                PortalFileMetadata fileMetaData = new()
                 {
                     id = entry.ETag,
                     name = relativePath,
@@ -189,7 +190,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 		throw new NotImplementedException();
 	}
 
-	public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
+	public Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
 	{
 		throw new NotImplementedException();
 	}
@@ -209,7 +210,7 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
 	private const long MaxFileSize = 10 * 1024 * 1024 * 1024L; // 10GB
 
-	public async Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
+	public async Task<bool> UploadFileAsync(string container, PortalFileMetadata file, Action<long> progess)
 	{
 		using var s3Client = GetClient();
 		try

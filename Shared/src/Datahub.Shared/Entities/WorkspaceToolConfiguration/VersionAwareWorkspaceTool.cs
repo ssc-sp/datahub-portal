@@ -44,12 +44,14 @@ public class VersionAwareWorkspaceToolInfo
             .FirstOrDefault();
     }
 }
+
 public class VersionAwareWorkspaceToolConfigInfo
 {
     public Version MinVersion { get; set; } = VersionAwareWorkspaceToolInfo.ALWAYS;
     public Type ConfigClass { get; set; } = typeof(IWorkspaceToolConfiguration);
     public Type? ConfigDialogClass { get; set; } = null;
     public bool HasConfigurationDialog => ConfigDialogClass != null;
+
     public IWorkspaceToolConfiguration ReadFromWorkspaceDefinition(WorkspaceDefinition workspaceDefinition)
     {
         var methodName = nameof(IWorkspaceToolConfiguration.ReadFromWorkspaceDefinition);
@@ -61,6 +63,7 @@ public class VersionAwareWorkspaceToolConfigInfo
         }
         return config;
     }
+
     public string GetPropertyLabel(string propertyName)
     {
         var methodName = nameof(IWorkspaceToolConfiguration.GetPropertyLabel);

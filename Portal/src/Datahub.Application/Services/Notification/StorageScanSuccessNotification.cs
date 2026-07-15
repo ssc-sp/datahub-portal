@@ -1,3 +1,4 @@
+using Datahub.Application.Services.Storage;
 using System;
 using System.Collections.Generic;
 
@@ -22,7 +23,7 @@ public record StorageScanSuccessNotification
     /// <summary>
     /// Container that stores the blob. Defaults to <c>datahub</c>.
     /// </summary>
-    public string ContainerName { get; init; } = "datahub";
+    public string ContainerName { get; init; } = IWorkspaceStorageManagementService.AzureDefaultContainerName;
 
     /// <summary>
     /// Blob path relative to the container (e.g. upload/ABC123/file.csv). Required.
