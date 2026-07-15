@@ -3,6 +3,82 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [9.0.1](https://github.com/ssc-sp/datahub-portal/compare/v9.0.0...v9.0.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* convert rersource provision to auto merge methodology vs Create, approve and Close. ([#2056](https://github.com/ssc-sp/datahub-portal/issues/2056)) ([bf0943b](https://github.com/ssc-sp/datahub-portal/commit/bf0943bbd4218cb9c4f121230568f32e4ad7a48f))
+* **deps:** update dependency system.net.http.json to 10.0.9 ([#2034](https://github.com/ssc-sp/datahub-portal/issues/2034)) ([a258430](https://github.com/ssc-sp/datahub-portal/commit/a258430af5a73cc6048290b9160413e9ff0afed7))
+* Fixed an issue where non-admins would be prompted to visit the toolbox if a workspace has no tools ([#2055](https://github.com/ssc-sp/datahub-portal/issues/2055)) ([4303fb7](https://github.com/ssc-sp/datahub-portal/commit/4303fb7a2f00b298158a9e8652d5ec2881a8e6a2))
+* Fixing an issue where an external user's role isn't updated from the dialog ([#2054](https://github.com/ssc-sp/datahub-portal/issues/2054)) ([a76f419](https://github.com/ssc-sp/datahub-portal/commit/a76f4196b426d68130baeabd1fe53b3ce9f319f9))
+* Reverting Localizer to 1.0.3 and adding relevant unit tests ([#2058](https://github.com/ssc-sp/datahub-portal/issues/2058)) ([fc3847c](https://github.com/ssc-sp/datahub-portal/commit/fc3847cb792f8e73f3d17236838885ca766385ca))
+
+## [9.0.0](https://github.com/ssc-sp/datahub-portal/compare/v8.7.1...v9.0.0) (2026-07-09)
+
+
+### ⚠ BREAKING CHANGES
+
+* dotnet 10 upgrade, central package management, azure package upgrades, security vulnerabilities fixed and vnet management in portal ([#1934](https://github.com/ssc-sp/datahub-portal/issues/1934))
+
+### Features
+
+* Adding AuthLevel to DatahubAuthView to display content to all users (GC or external) in a workspace ([#1924](https://github.com/ssc-sp/datahub-portal/issues/1924)) ([ee12707](https://github.com/ssc-sp/datahub-portal/commit/ee12707cb2f211469ea759cad91f36d236e53dba))
+* Allowing external users to access their account settings, announcement page, and the support page ([#1991](https://github.com/ssc-sp/datahub-portal/issues/1991)) ([a2fa3f1](https://github.com/ssc-sp/datahub-portal/commit/a2fa3f101af7908797aeec77467fc5495e9ff94a))
+* assign pb subnets ([#1936](https://github.com/ssc-sp/datahub-portal/issues/1936)) ([ea158b7](https://github.com/ssc-sp/datahub-portal/commit/ea158b74d79897e8a96a29cc5592b352d7c85de1))
+* authentication improvements ([#2004](https://github.com/ssc-sp/datahub-portal/issues/2004)) ([272ef7e](https://github.com/ssc-sp/datahub-portal/commit/272ef7ec3d5c57cfe8a943f8d4ded7f2a64ffc27))
+* Change token expiration to 24 hours and unit tests ([#1911](https://github.com/ssc-sp/datahub-portal/issues/1911)) ([13a7e3e](https://github.com/ssc-sp/datahub-portal/commit/13a7e3ed0506fcf3c110adcbb2f78af5a96e1d7c))
+* clam av scan results ([#1965](https://github.com/ssc-sp/datahub-portal/issues/1965)) ([865e651](https://github.com/ssc-sp/datahub-portal/commit/865e651271c9dff5f079efbe74212f62ea017d5f))
+* dotnet 10 upgrade, central package management, azure package upgrades, security vulnerabilities fixed and vnet management in portal ([#1934](https://github.com/ssc-sp/datahub-portal/issues/1934)) ([38cc764](https://github.com/ssc-sp/datahub-portal/commit/38cc764703e7978e8c962ba048407a78df27102b))
+* external logout confirmation page ([#1970](https://github.com/ssc-sp/datahub-portal/issues/1970)) ([29dc9b0](https://github.com/ssc-sp/datahub-portal/commit/29dc9b06d3d27730dbdbbfa04b135739101ddd54))
+* external user file upload  ([#1932](https://github.com/ssc-sp/datahub-portal/issues/1932)) ([aa5f5c4](https://github.com/ssc-sp/datahub-portal/commit/aa5f5c4c3d7804468b9dcfb0187c469f59117b44))
+* External user storage explorer features ([#2028](https://github.com/ssc-sp/datahub-portal/issues/2028)) ([12ced8d](https://github.com/ssc-sp/datahub-portal/commit/12ced8d949eee900e4fa9df367553349ae46aeda))
+* External user terms and conditions page ([#1931](https://github.com/ssc-sp/datahub-portal/issues/1931)) ([1c25601](https://github.com/ssc-sp/datahub-portal/commit/1c25601e97932ab392dcb271085832c92db5f051))
+* mudblazor v9.4 ([#1954](https://github.com/ssc-sp/datahub-portal/issues/1954)) ([ec7d345](https://github.com/ssc-sp/datahub-portal/commit/ec7d345abd72dac5ab5083d1e421686ab9c68cb2))
+* Replace storage key access with user impersonation for azure storage ([#1952](https://github.com/ssc-sp/datahub-portal/issues/1952)) ([6050638](https://github.com/ssc-sp/datahub-portal/commit/6050638fc0db7336185a97e2bb7b8745da6ba19a))
+* UI improvements for external users in a workspace ([#1930](https://github.com/ssc-sp/datahub-portal/issues/1930)) ([7166759](https://github.com/ssc-sp/datahub-portal/commit/716675943f87be28936ab426e94a30e88595fa67))
+* updated managed identity configuration to allow userId ([#1966](https://github.com/ssc-sp/datahub-portal/issues/1966)) ([905d831](https://github.com/ssc-sp/datahub-portal/commit/905d831bff80faacee4b5151ce67100041e677a0))
+
+
+### Bug Fixes
+
+* a11y fix for colours on sidebar in dark theme ([#1996](https://github.com/ssc-sp/datahub-portal/issues/1996)) ([a1c35da](https://github.com/ssc-sp/datahub-portal/commit/a1c35daec0cb05640c04846dd8c1f4f449168408))
+* added signout configuration ([#1983](https://github.com/ssc-sp/datahub-portal/issues/1983)) ([2f54259](https://github.com/ssc-sp/datahub-portal/commit/2f5425906d3721a2105ece127bac4eb7d6597892))
+* added signouturl to show page after GCCF signout ([#1923](https://github.com/ssc-sp/datahub-portal/issues/1923)) ([dd61a4f](https://github.com/ssc-sp/datahub-portal/commit/dd61a4f29f222c42983f870e17414efedf3f0b78))
+* Adding a missing service to Infrastructure ConfigureServices.cs ([#1951](https://github.com/ssc-sp/datahub-portal/issues/1951)) ([fd9a95b](https://github.com/ssc-sp/datahub-portal/commit/fd9a95be0550493a29e1b86217ce9bb5d39c3d54))
+* adding PrimaryContrastText to PaletteDark ([#2023](https://github.com/ssc-sp/datahub-portal/issues/2023)) ([0e68ff1](https://github.com/ssc-sp/datahub-portal/commit/0e68ff1fac1d8a8ae4a21bc0e6a32e45b4405373))
+* cache busting ([#1975](https://github.com/ssc-sp/datahub-portal/issues/1975)) ([91ae707](https://github.com/ssc-sp/datahub-portal/commit/91ae70761376199deaaad1bb818a5a065131f71d))
+* Catching an exception when a component is disposed before JSinterop can occur ([#1982](https://github.com/ssc-sp/datahub-portal/issues/1982)) ([e1fa840](https://github.com/ssc-sp/datahub-portal/commit/e1fa8402580482c8669003ab71d074dc10e608fc))
+* converted graph calls to managed identity ([#1986](https://github.com/ssc-sp/datahub-portal/issues/1986)) ([d34d476](https://github.com/ssc-sp/datahub-portal/commit/d34d4760c006bd0fdd005e8e0d49c936223332cf))
+* **deps:** lock file maintenance ([#1985](https://github.com/ssc-sp/datahub-portal/issues/1985)) ([0ad64cb](https://github.com/ssc-sp/datahub-portal/commit/0ad64cb11df9844d4e8b31057e65931043bbb03b))
+* **deps:** update azure sdks ([#1998](https://github.com/ssc-sp/datahub-portal/issues/1998)) ([4fc4e98](https://github.com/ssc-sp/datahub-portal/commit/4fc4e9869fd5d94317255852f1ac30c5030ebf43))
+* **deps:** update dependency bytexdigital.blazor.components.cookieconsent to 1.3.0 ([#1950](https://github.com/ssc-sp/datahub-portal/issues/1950)) ([2605153](https://github.com/ssc-sp/datahub-portal/commit/2605153c96c73b4d8aa9da420887574c2536382a))
+* **deps:** update masstransit ecosystem to 8.5.10 ([#2003](https://github.com/ssc-sp/datahub-portal/issues/2003)) ([bfd37a4](https://github.com/ssc-sp/datahub-portal/commit/bfd37a47335ce2906eb15d027805b0f360ed3323))
+* **deps:** update microsoft identity ([#2006](https://github.com/ssc-sp/datahub-portal/issues/2006)) ([5eba46f](https://github.com/ssc-sp/datahub-portal/commit/5eba46fb4272753ce8ef8ede0e9f6ff5776f6a9b))
+* **deps:** update miscellaneous dependencies to 4.0.24.1 ([#2009](https://github.com/ssc-sp/datahub-portal/issues/2009)) ([00310e4](https://github.com/ssc-sp/datahub-portal/commit/00310e4e812ebdbebde95c486e17f64d9c8eb997))
+* **deps:** update mudblazor ecosystem to 9.5.0 ([#2007](https://github.com/ssc-sp/datahub-portal/issues/2007)) ([6a4f9ec](https://github.com/ssc-sp/datahub-portal/commit/6a4f9ec40f31d3fc904a35eda4a9690e0f7fbf5c))
+* external user storage fixes ([#1918](https://github.com/ssc-sp/datahub-portal/issues/1918)) ([32e2b0d](https://github.com/ssc-sp/datahub-portal/commit/32e2b0d2449dc1a75d98f0d40e947ac0df897c82))
+* Fixed a bug where projects still appear in UserProjects even if you've been removed ([#2038](https://github.com/ssc-sp/datahub-portal/issues/2038)) ([9456949](https://github.com/ssc-sp/datahub-portal/commit/94569497333cf0c4a421a8ed4c68a37c926cea30))
+* Fixed an issue where you couldn't update an external user's details ([#2048](https://github.com/ssc-sp/datahub-portal/issues/2048)) ([b436732](https://github.com/ssc-sp/datahub-portal/commit/b43673280ec8a328531e301eec13e92ffdff2415))
+* fixed KeyVaultCoreService api calls to kv service ([#1984](https://github.com/ssc-sp/datahub-portal/issues/1984)) ([6dd32d2](https://github.com/ssc-sp/datahub-portal/commit/6dd32d2c63cfcfc27b74758486e094b65e9ac8b3))
+* Fixed the account page failing to show workspaces that you're "Lead" in ([#1964](https://github.com/ssc-sp/datahub-portal/issues/1964)) ([8d5d00d](https://github.com/ssc-sp/datahub-portal/commit/8d5d00df542e7c9dcd4160b38317023fcca92b06))
+* Fixing issue displaying department names in new prod workspaces ([#1937](https://github.com/ssc-sp/datahub-portal/issues/1937)) ([0ba64c4](https://github.com/ssc-sp/datahub-portal/commit/0ba64c4a7f2595c48ab93aa658c5b84bc8ab7fde))
+* Fixing the issue where UUID-type DatahubAuthView components wouldn't display their content ([#1953](https://github.com/ssc-sp/datahub-portal/issues/1953)) ([dc700cc](https://github.com/ssc-sp/datahub-portal/commit/dc700ccf1362b076d01b9d3faae5c3a84f1ea0ef))
+* Hid the settings page for external users ([#2050](https://github.com/ssc-sp/datahub-portal/issues/2050)) ([729a1ec](https://github.com/ssc-sp/datahub-portal/commit/729a1ec43e6680a627207c970381903b90dd2c7c))
+* Keeping external users out of workspace members list ([#1933](https://github.com/ssc-sp/datahub-portal/issues/1933)) ([55f2af2](https://github.com/ssc-sp/datahub-portal/commit/55f2af265d092016fe4f5a88a0233e6facfee692))
+* missing migration for external user access and 404 fixes ([#2024](https://github.com/ssc-sp/datahub-portal/issues/2024)) ([033ea50](https://github.com/ssc-sp/datahub-portal/commit/033ea503862376e2830ad6f007bf9cf0db3329bb))
+* NU1605 restore downgrade ([#1928](https://github.com/ssc-sp/datahub-portal/issues/1928)) ([5497d69](https://github.com/ssc-sp/datahub-portal/commit/5497d6956176002f65d9af60ae426969f618e85d))
+* pipeline issues due to dependencies ([#1920](https://github.com/ssc-sp/datahub-portal/issues/1920)) ([e3439c8](https://github.com/ssc-sp/datahub-portal/commit/e3439c85f2b79e590bd6c44668620ef97c366b1f))
+* refactored MSGraphService to use centralized credential service ([#1987](https://github.com/ssc-sp/datahub-portal/issues/1987)) ([e80aea7](https://github.com/ssc-sp/datahub-portal/commit/e80aea7acdba67be3ed6fe34aa27fc2211963b24))
+* Repos page crash in workspaces ([#1988](https://github.com/ssc-sp/datahub-portal/issues/1988)) ([3b18843](https://github.com/ssc-sp/datahub-portal/commit/3b1884387a8175c1b804c341a1be8a1b7b283e0e))
+* resolve build and vulnerability issue with sqlite ([#2008](https://github.com/ssc-sp/datahub-portal/issues/2008)) ([3a9c4e6](https://github.com/ssc-sp/datahub-portal/commit/3a9c4e6a2375a125f247a3560ce87f684ad9ff18))
+* Setting the resources link on the support page to the docs site ([#1929](https://github.com/ssc-sp/datahub-portal/issues/1929)) ([238402d](https://github.com/ssc-sp/datahub-portal/commit/238402d5ca59508b0bbd0d664a54edf9655e6540))
+* storage button styling and rework ([#2037](https://github.com/ssc-sp/datahub-portal/issues/2037)) ([ca3f033](https://github.com/ssc-sp/datahub-portal/commit/ca3f0331003e1b3bc68f97f2452286d47d342bfd))
+* suffix is lost after reconfiguring workspace ([#1935](https://github.com/ssc-sp/datahub-portal/issues/1935)) ([a924629](https://github.com/ssc-sp/datahub-portal/commit/a92462919e52bed1b8f7c3ea652eb5ad3012027c))
+* Updating external users management page to lead only and putting it behind feature flag ([#1922](https://github.com/ssc-sp/datahub-portal/issues/1922)) ([c1bd4c1](https://github.com/ssc-sp/datahub-portal/commit/c1bd4c15cbdc00a75b9a4ca0886c5b48270716a7))
+* web app access for external user ([#1927](https://github.com/ssc-sp/datahub-portal/issues/1927)) ([3244dd9](https://github.com/ssc-sp/datahub-portal/commit/3244dd945f6f26ba449d22b3481f55afad1eab13))
+* workaround for local testing and cert validation with ssl capture ([#1963](https://github.com/ssc-sp/datahub-portal/issues/1963)) ([1f8fc39](https://github.com/ssc-sp/datahub-portal/commit/1f8fc3955addf35d1758f83e43ce2948da610331))
+
 ## [8.7.1](https://github.com/ssc-sp/datahub-portal/compare/v8.7.0...v8.7.1) (2026-04-07)
 
 

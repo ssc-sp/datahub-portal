@@ -1,5 +1,6 @@
 using Datahub.Core.Data;
 using Datahub.Core.Storage;
+using Datahub.Shared.Entities;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
@@ -73,7 +74,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<bool> UploadFileAsync(string container, FileMetaData file, Action<long> progess)
+        public Task<bool> UploadFileAsync(string container, PortalFileMetadata file, Action<long> progess)
         {
             throw new NotImplementedException();
         }
@@ -88,7 +89,7 @@ namespace Datahub.Infrastructure.Services.Storage
             throw new NotImplementedException();
         }
 
-        public Task<List<FileMetaData>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
+        public Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false)
         {
             throw new NotImplementedException();
         }

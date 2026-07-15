@@ -1,9 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
-using Azure.Search.Documents.Indexes;
-using Microsoft.AspNetCore.Components.Forms;
 
-namespace Datahub.Core.Data;
+namespace Datahub.Shared.Entities;
+
+#pragma warning disable SA1300 // Element should begin with upper-case letter
 
 public class VersionMetadata
 {
@@ -19,7 +19,7 @@ public class VersionMetadata
     public DateTime uploadeddate { get; set; }
 }
 
-public class Version
+public class FileVersion
 {
     public required string versionid { get; set; }
     public required VersionMetadata metadata { get; set; }
@@ -38,6 +38,13 @@ public enum MetadataType
 
 public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
 {
+    public const string Activities = "activities";
+    public const string CreatedBy = "createdby";
+    public const string OwnedBy = "ownedby";
+    public const string CreatedTs = "createdts";
+    public const string LastModifiedBy = "lastmodifiedby";
+    public const string LastModifiedTs = "lastmodifiedts";
+
     [JsonIgnore]
     public MetadataType dataType { get; set; }
 
@@ -53,22 +60,16 @@ public class BaseMetadata : IEquatable<BaseMetadata>, IComparable<BaseMetadata>
     [JsonIgnore]
     public bool isShared { get; set; }
 
-    [SimpleField(IsFilterable = true)]
     public List<Activity> activities { get; set; } = new List<Activity>();
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string? createdby { get; set; }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public virtual string? ownedby { get; set; }
 
-    [SimpleField(IsFilterable = true, IsSortable = true)]
     public DateTime createdts { get; set; }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string? lastmodifiedby { get; set; }
 
-    [SimpleField(IsFilterable = true, IsSortable = true)]
     public DateTime lastmodifiedts { get; set; }
 
     public int CompareTo(BaseMetadata? other)
@@ -127,11 +128,11 @@ public class Folder : BaseMetadata
     }
 
     [JsonIgnore]
-    public List<FileMetaData> AllFiles
+    public List<FileMetadata> AllFiles
     {
         get
         {
-            return children.OfType<FileMetaData>().ToList();
+            return children.OfType<FileMetadata>().ToList();
         }
     }
 
@@ -173,7 +174,7 @@ public class Folder : BaseMetadata
             this.Sort();
         }
     }
-    public virtual void Add(FileMetaData file, bool sort = true)
+    public virtual void Add(FileMetadata file, bool sort = true)
     {
         file.folderpath = this.fullPathFromRoot;
         Add((BaseMetadata)file, sort);
@@ -230,7 +231,7 @@ public class NonHierarchicalFolder : Folder
         }
     }
 
-    public new void Add(FileMetaData file, bool sort = true)
+    public new void Add(FileMetadata file, bool sort = true)
     {
         children.Add(file);
         file.isShared = this.isShared;
@@ -243,17 +244,13 @@ public class NonHierarchicalFolder : Folder
 
 public class Customfield
 {
-    [SearchableField(IsFilterable = true)]
     public required string key { get; set; }
-    [SearchableField(IsFilterable = true)]
     public required string value { get; set; }
 }
 
 public class Sharedwith
 {
-    [SearchableField(IsFilterable = true)]
     public required string userid { get; set; }
-    [SearchableField(IsFilterable = true)]
     public required string role { get; set; }
 }
 
@@ -264,17 +261,24 @@ public class Activity
     public DateTime activityts { get; set; }
 }
 
-public class FileMetaData : BaseMetadata
+public class FileMetadata : BaseMetadata
 {
     public const string FileId = "fileid";
-    public const string OwnedBy = "ownedby";
-    public const string CreatedBy = "createdby";
-    public const string LastModifiedBy = "lastmodifiedby";
-    public const string LastModified = "lastmodifiedts";
+    public const string Filename = "filename";
+    public const string FolderPath = "folderpath";
+    public const string FileFormat = "fileformat";
+    public const string SecurityClass = "securityclass";
+    public const string Description = "description";
+    public const string Tags = "tags";
+    public const string CustomFields = "customfields";
     public const string FileSize = "filesize";
+    public const string SharedWith = "sharedwith";
+    public const string IsDeleted = "isdeleted";
+    public const string UploadedDate = "uploadeddate";
     public const string UploadBatchId = "uploadBatchId";
+    public const string AvScan = "avscan";
 
-    public FileMetaData()
+    public FileMetadata()
     {
         dataType = MetadataType.File;
         folderpath = string.Empty;
@@ -285,12 +289,10 @@ public class FileMetaData : BaseMetadata
         _customKey = string.Empty;
         _customValue = string.Empty;
         _tags = string.Empty;
-        BrowserFile = null!;
     }
 
     public DateTime Modified => lastmodifiedts;
 
-    [SimpleField(IsKey = true, IsFilterable = true)]
     public string fileid
     {
         get
@@ -303,7 +305,6 @@ public class FileMetaData : BaseMetadata
         }
     }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string? filename
     {
         get
@@ -316,10 +317,8 @@ public class FileMetaData : BaseMetadata
         }
     }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string folderpath { get; set; }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string fileformat
     {
         get
@@ -332,14 +331,11 @@ public class FileMetaData : BaseMetadata
         }
     }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     [Required(ErrorMessage = "The Security Classification field is required.")]
     public string securityclass { get; set; }
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string description { get; set; }
 
-    [SimpleField(IsFilterable = true)]
     public List<string> tags
     {
         get
@@ -361,16 +357,12 @@ public class FileMetaData : BaseMetadata
         }
     }
 
-    [SimpleField(IsFilterable = true)]
     public List<Customfield> customfields { get; set; } = new List<Customfield>();
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string filesize { get; set; }
 
-    [SimpleField(IsFilterable = true)]
     public List<Sharedwith> sharedwith { get; set; } = new List<Sharedwith>();
 
-    [SearchableField(IsFilterable = true, IsSortable = true)]
     public string isdeleted { get; set; } = "false";
 
     public string? uploadBatchId { get; set; }
@@ -398,9 +390,6 @@ public class FileMetaData : BaseMetadata
 
     [JsonIgnore]
     public string _tags { get; set; }
-
-    [JsonIgnore]
-    public IBrowserFile BrowserFile { get; set; }
 
     [JsonIgnore]
     public string? fullPathFromRoot
@@ -473,5 +462,18 @@ public class ExpandableItem<T>
 public class UserFiles
 {
     public List<Folder> folders { get; set; } = new List<Folder>();
-    public List<FileMetaData> files { get; set; } = new List<FileMetaData>();
+    public List<FileMetadata> files { get; set; } = new List<FileMetadata>();
 }
+
+public static class FileUploadStatus
+{
+    public const string None = "None";
+    public const string SelectedToUpload = "SelectedToUpload";
+    public const string UploadedToBrowser = "UploadedToBrowser";
+    public const string UploadingToRepository = "UploadingToRepository";
+    public const string FileUploadSuccess = "FileUploadSuccess";
+    public const string FileUploadError = "FileUploadError";
+    public const string FileUploadCanceled = "FileUploadCanceled";
+}
+
+#pragma warning restore SA1300 // Element should begin with upper-case letter

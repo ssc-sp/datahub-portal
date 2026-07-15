@@ -42,7 +42,6 @@ public class ProjectInactivityNotifierTests
 
     private AzureConfig _azConfig;
     private IQueuePongService _pongService;
-    private EmailValidator _emailValidator;
     private IGCNotifyService _gcNotifyService;
     private ISendEndpointProvider _iSendEndpointProvider;
     private IDbContextFactory<DatahubProjectDBContext> _dbContextFactory;
@@ -53,13 +52,12 @@ public class ProjectInactivityNotifierTests
         _iSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         _azConfig = new AzureConfig(_config);
         _pongService = new QueuePongService(_iSendEndpointProvider);
-        _emailValidator = new EmailValidator();
         _gcNotifyService = Substitute.For<IGCNotifyService>();
         _dbContextFactory = TestHelper.CreateMockDbContextFactory();
         await TestHelper.SeedDatabase(_dbContextFactory);
 
         _sut = new ProjectInactivityNotifier(_loggerFactory, _dbContextFactory, _pongService, _iSendEndpointProvider,
-            _projectInactivityNotificationService, _emailValidator, _dateProvider, _azConfig, _gcNotifyService);
+            _projectInactivityNotificationService, _dateProvider, _azConfig, _gcNotifyService);
     }
 
     [Test]

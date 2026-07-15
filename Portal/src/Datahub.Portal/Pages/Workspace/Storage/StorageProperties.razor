@@ -1,7 +1,6 @@
 @* StorageProperties.razor *@
 @using Datahub.Application.Services;
 @using Datahub.Core.Components.Code
-@using Datahub.Core.Services.Storage
 @using Datahub.Portal.Pages.Workspace.Storage.Container
 @using Datahub.Core.Storage
 @using Datahub.Portal.Components.User
@@ -80,7 +79,7 @@ else
                 TryAdd(_properties, Localizer["AccountName"], azureMetadata.AccountName);
                 TryAdd(_properties, Localizer["Account Kind"], azureMetadata.StorageAccountType);
                 TryAdd(_properties, Localizer["Replication"], azureMetadata.GeoRedundancy);
-                TryAdd(_properties, Localizer["Versioning"], azureMetadata.Versioning);
+                TryAdd(_properties, Localizer["Versioning"], azureMetadata.Versioning ? "True" : "False");
                 TryAdd(_properties, Localizer["Url"], (azureMetadata.Url, @<InlineCodeWithCopy>@azureMetadata.Url</InlineCodeWithCopy>));
             }
 
@@ -88,7 +87,7 @@ else
         }
     }
 
-    private void TryAdd(Dictionary<string, (string, RenderFragment)> dict, string prop, string value)
+    private void TryAdd(Dictionary<string, (string, RenderFragment)> dict, string prop, string? value)
     {
         if (!string.IsNullOrEmpty(value))
             TryAdd(dict, prop, (value, null));

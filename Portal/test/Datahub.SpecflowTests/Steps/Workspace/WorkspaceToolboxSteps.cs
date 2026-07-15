@@ -387,11 +387,14 @@ public class WorkspaceToolboxSteps(
     [When(@"the user clicks the Cancel button for an (.*) of (.*)")]
     public void WhenTheUserClicksTheCancelButtonForAnDependencyOf(string exampleDependency, string tool)
     {
-        var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
-        var dependencyCancelButton =
-            workspaceToolbox!.Find(
-                $"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.SummaryAddId, exampleDependency, WorkspaceToolboxPage.CancelButtonId])}");
-        dependencyCancelButton.Click();
+        if (exampleDependency != "-" && !string.IsNullOrWhiteSpace(exampleDependency))
+        {
+            var workspaceToolbox = scenarioContext["workspaceToolbox"] as IRenderedComponent<CascadingAuthenticationState>;
+            var dependencyCancelButton =
+                workspaceToolbox!.Find(
+                    $"#{WorkspaceToolboxPage.ElementId([WorkspaceToolboxPage.SummaryAddId, exampleDependency, WorkspaceToolboxPage.CancelButtonId])}");
+            dependencyCancelButton.Click();
+        }
     }
 
     [Then(@"should instead be back in the Catalog section")]

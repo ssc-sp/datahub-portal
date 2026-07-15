@@ -144,8 +144,9 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
             var auditingService = Substitute.For<IDatahubAuditingService>();
             var azureSubService = Substitute.For<IDatahubAzureSubscriptionService>();
             var catalogSearch = Substitute.For<IDatahubCatalogSearch>();
+            var resourceMessagingService = Substitute.For<IResourceMessagingService>();
 
-            
+
 
             azureSubService.NextSubscriptionAsync()
                 .Returns(new Core.Model.Subscriptions.DatahubAzureSubscription() { Id = 1, SubscriptionId = "test-subscription-id", TenantId = "test-tenant-id", SubscriptionName = "Test Subscription" });
@@ -157,6 +158,7 @@ namespace Datahub.SpecflowTests.Steps.GCHosting
                         serviceAuthManager,
                         userInformationService,
                         workspaceVersionService,
+                        resourceMessagingService,
                         auditingService,
                         azureSubService,
                         catalogSearch,

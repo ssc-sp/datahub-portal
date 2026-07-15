@@ -450,7 +450,7 @@ public class UserInformationService(
         }
     }
 
-    public async Task<ExtendedPortalUser?> GetUserByEmailAsync(string email)
+    public async Task<ExtendedPortalUser?> GetExtendedEntraUserByEmail(string email)
     {
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var matchingUsers = await ctx.PortalUsers
@@ -647,6 +647,21 @@ public class UserInformationService(
         }
 
         throw new InvalidOperationException($"User with External ID: {externalId} does not exist and has not been invited");
+    }
+
+    public async Task<PortalUser?> GetUserByEmailAsync(string email)
+    {
+        if (string.IsNullOrWhiteSpace(email))
+            throw new ArgumentException("Email cannot be null or whitespace", nameof(email));
+        await using var ctx = await datahubContextFactory.CreateDbContextAsync();
+        var portalUser = await ctx.PortalUsers
+            .AsNoTracking()
+            .Include(u => u.UserSettings)
+            .Include(u => u.ExternalUser)
+            .Include(u => u.EntraUser)
+            .FirstOrDefaultAsync(p => string.Equals(p.Email, email.Trim(), StringComparison.OrdinalIgnoreCase));
+
+        return portalUser;
     }
 
     public async Task<bool> IsDailyLogin()

@@ -28,6 +28,7 @@ public class WorkspaceCreationService(
     IServiceAuthManager serviceAuthManager,
     IUserInformationService userInformationService,
     IWorkspaceVersionService workspaceVersionService,
+    IResourceMessagingService resourceMessagingService,
     IDatahubAuditingService auditingService,
     IDatahubAzureSubscriptionService datahubAzureSubscriptionService,
     IDatahubCatalogSearch datahubCatalogSearch,
@@ -127,15 +128,13 @@ public class WorkspaceCreationService(
         acronym ??= await GenerateWorkspaceAcronymAsync(projectName);
 
         await AddProjectToDb(portalUser, projectName, acronym, organization, budget);
-        // DISABLED resource group creation on project creation as this becomes done in the toolbox
-        // as part of their first request.
-        /*
+
             await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
             var workspaceDefinition =
                 await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email, cbrID);
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-        */
+        
     }
 
     public async Task<bool> CreateWorkspaceAsync(string projectName, string? acronym, string organization, int? gcHostingDetailsId = null, decimal? budget = null)
@@ -146,15 +145,12 @@ public class WorkspaceCreationService(
             var currentPortalUser = await userInformationService.GetCurrentPortalUserAsync();
 
             await AddProjectToDb(currentPortalUser, projectName, acronym, organization, budget, gcHostingDetailsId);
-            // DISABLED resource group creation on project creation as this becomes done in the toolbox
-            // as part of their first request.
-            /*
-                await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
-                var workspaceDefinition =
+            await CreateNewTemplateWorkspaceResourceAsync(acronym);
+
+            var workspaceDefinition =
                 await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
-                await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
-             */
+            await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);             
 
             return true;
         }

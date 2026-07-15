@@ -9,6 +9,12 @@ div.file-explorer-layout.external-user-file-explorer .file-list .file-list-heade
     padding: 8px;
 }
 
+/* Antivirus scan spinner banner */
+div.file-explorer-layout.external-user-file-explorer .file-list .antivirus-scan-indicator {
+    border-color: var(--mud-palette-info) !important;
+    background-color: var(--mud-palette-info-hover) !important;
+}
+
 /* File item styles - nested component scope requires ::deep */
 div.file-explorer-layout.external-user-file-explorer .file-list ::deep .file-item {
     display: grid !important;

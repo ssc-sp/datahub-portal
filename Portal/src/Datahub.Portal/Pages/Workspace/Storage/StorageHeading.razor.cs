@@ -9,6 +9,7 @@ public partial class StorageHeading
 {
     private enum ButtonAction
     {
+        BackToContainers,
         Upload,
         Download,
         Share,
@@ -18,6 +19,79 @@ public partial class StorageHeading
         DeleteFolder,
         NewFolder,
         Publish
+    }
+
+    private string ButtonActionToString(ButtonAction action)
+    {
+        switch (action)
+        {
+            case ButtonAction.BackToContainers:
+                return "Back to Containers";
+            case ButtonAction.DeleteFolder:
+                return "Delete Folder";
+            case ButtonAction.NewFolder:
+                return "New Folder";
+            default:
+                return action.ToString();
+        }
+    }
+
+    private string GetButtonActionIcon(ButtonAction action)
+    {
+        switch (action)
+        {
+            case ButtonAction.BackToContainers:
+                return "fas fa-arrow-left";
+            case ButtonAction.Upload:
+                return "fas fa-upload";
+            case ButtonAction.Download:
+                return "fas fa-download";
+            case ButtonAction.Rename:
+                return "fas fa-edit";
+            case ButtonAction.Delete:
+                return "fas fa-trash-alt";
+            case ButtonAction.NewFolder:
+                return "fas fa-folder-plus";
+            case ButtonAction.DeleteFolder:
+                return "fas fa-folder-minus";
+            case ButtonAction.Publish:
+                return "fas fa-bullhorn";
+            default:
+                return "fas fa-arrow-left";
+        }
+    }
+
+    private async Task GetButtonActionHandler(ButtonAction action)
+    {
+        switch(action)
+        {
+            case ButtonAction.BackToContainers:
+                await HandleBackToContainers();
+                break;
+            case ButtonAction.Upload:
+                await HandleUpload();
+                break;
+            case ButtonAction.Download:
+                await HandleDownload();
+                break;
+            case ButtonAction.Rename:
+                await HandleRename();
+                break;
+            case ButtonAction.Delete:
+                await HandleDelete();
+                break;
+            case ButtonAction.NewFolder:
+                await HandleNewFolder();
+                break;
+            case ButtonAction.DeleteFolder:
+                await HandleDeleteFolder();
+                break;
+            case ButtonAction.Publish:
+                await HandlePublish();
+                break;
+            default:
+                break;
+        }
     }
     
     private async Task HandleUpload()
@@ -38,8 +112,11 @@ public partial class StorageHeading
         if (IsActionDisabled(ButtonAction.Download))
             return;
 
-        var downloads = SelectedItems
+        var downloads = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+        
+        if (downloads is null)
+            return;
 
         foreach (var download in downloads)
         {
@@ -58,48 +135,27 @@ public partial class StorageHeading
             return;
         }
 
-        var publishFiles = SelectedItems
+        var publishFiles = SelectedItems?
             .Select(sel => Files?.FirstOrDefault(f => f.name == sel))
             .Where(f => f is not null)
             .Select(f => f!);
 
+        if (publishFiles is null)
+            return;
+
         await OnPublishFiles.InvokeAsync(publishFiles);
         //TODO telemetry
     }
-
-    private async Task HandleShare()
-    {
-        await _telemetryService.LogTelemetryEvent(TelemetryEvents.UserShareFile);
-
-        var selectedFile = _selectedFiles.FirstOrDefault();
-        if (selectedFile is null)
-            return;
-
-        var sb = new System.Text.StringBuilder();
-        sb.Append("/sharingworkflow/");
-        sb.Append(selectedFile.fileid);
-        sb.Append("?filename=");
-        sb.Append(selectedFile.filename);
-        if (!string.IsNullOrWhiteSpace(ProjectAcronym))
-        {
-            sb.Append("&project=");
-            sb.Append(ProjectAcronym);
-        }
-        else
-        {
-            sb.Append("&folderpath=");
-            sb.Append(selectedFile.folderpath);
-        }
-        _navigationManager.NavigateTo(sb.ToString());
-    }
-
     private async Task HandleDelete()
     {
         if (IsActionDisabled(ButtonAction.Delete))
             return;
 
-        var deletes = SelectedItems
+        var deletes = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+
+        if (deletes is null)
+            return;
 
         foreach (var delete in deletes)
         {
@@ -112,7 +168,7 @@ public partial class StorageHeading
         if (IsActionDisabled(ButtonAction.Rename))
             return;
         
-        var selectedFile = _selectedFiles.FirstOrDefault();
+        var selectedFile = _selectedFiles?.FirstOrDefault();
         if (selectedFile is not null && _ownsSelectedFiles)
         {
             var newName = await _jsRuntime.InvokeAsync<string>("prompt", Localizer["Enter a new name for the file."].ToString(), 
@@ -173,7 +229,13 @@ public partial class StorageHeading
 
     private bool IsActionDisabled(ButtonAction buttonAction)
     {
+        if(buttonAction is ButtonAction.BackToContainers)
+        { return false; }
+
         if (_currentUserRole is null)
+            return true;
+
+        if (Readonly && buttonAction is ButtonAction.Upload or ButtonAction.Delete or ButtonAction.Rename or ButtonAction.NewFolder or ButtonAction.DeleteFolder)
             return true;
 
         var hasExternalStorageAccess = _currentUserRole.Id is (int)Project_Role.RoleNames.Storage or (int)Project_Role.RoleNames.WebAppAndStorage;

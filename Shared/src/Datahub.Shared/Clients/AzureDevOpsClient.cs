@@ -9,12 +9,24 @@ using Microsoft.VisualStudio.Services.WebApi;
 
 namespace Datahub.Shared.Clients;
 
-public interface IAzureDevopsConfiguration
+public interface IAzureConfiguration
 {
     string OrganizationUrl { get; }
+    string RunAsManagedIdentity { get; }
+    string TenantId { get; }
+    string ClientId { get; }
+    string ClientSecret { get; }
+    string MediaStorageConnectionString { get; }
+    string ResourcePrefix { get; }
+    string ProjectStorageKeySecretName { get; }
+    string SubscriptionId { get; }
+    string EnvironmentName { get; }
+
+    const string DefaultResourcePrefix = "fsdh";
+    const string DefaultProjectStorageKeySecretName = "storage-key";
 }
 
-public class AzureDevOpsClient(IAzureDevopsConfiguration config, AzAccessTokenManager tokenManager)
+public class AzureDevOpsClient(IAzureConfiguration config, AzAccessTokenManager tokenManager)
 {
     public async Task<WorkItemTrackingHttpClient> WorkItemClientAsync()
     {
