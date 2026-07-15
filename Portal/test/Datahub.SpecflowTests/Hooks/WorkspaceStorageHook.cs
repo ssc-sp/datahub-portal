@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -23,6 +23,7 @@ using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -54,6 +55,7 @@ namespace Datahub.SpecflowTests.Hooks
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             var armClient = Substitute.For<ArmClient>();
             var logger = Substitute.For<ILogger<WorkspaceStorageManagementService>>();
+            var memoryCache = Substitute.For<IMemoryCache>();
 
             MockServiceCalls(armClient, logger, dbContextFactory, datahubPortalConfiguration, objectContainer);
             await MockArmMethods(armClient);
@@ -233,7 +235,7 @@ namespace Datahub.SpecflowTests.Hooks
         {
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
             var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
-                dbContextFactory, workspaceRgManagementService);
+                new MemoryCache(new MemoryCacheOptions()), dbContextFactory, workspaceRgManagementService);
 
 
             workspaceRgManagementService

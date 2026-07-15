@@ -34,6 +34,8 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
+using Datahub.Application.Configuration;
+using Datahub.Core.Services.Projects;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -107,6 +109,11 @@ builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
 
 builder.Services.AddScoped<EmailNotificationHandler>();
 builder.Services.AddScoped<VirusScanNotificationHandler>();
+
+builder.Services.AddScoped<IRequestManagementService, RequestManagementService>();
+builder.Services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
+builder.Services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+builder.Services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
 
 //builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
 

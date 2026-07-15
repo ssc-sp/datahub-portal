@@ -1,6 +1,8 @@
+using Azure.Core;
 using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -30,10 +32,10 @@ public class VirusScanNotificationHandlerTests
         sendEndpointProvider.GetSendEndpoint(Arg.Any<Uri>()).Returns(Task.FromResult(endpoint));
 
         var storageManagementService = Substitute.For<IWorkspaceStorageManagementService>();
-        storageManagementService.MoveBlobToUsersContainerAsync(Arg.Any<string>(), Arg.Any<string?>())
+        storageManagementService.MoveBlobToUsersContainerAsync(Arg.Any<string>(), Arg.Any<TokenCredential>())
             .Returns("users/test-file.txt");
 
-        var sut = CreateSut(
+        var sut = CreateHandler(
             sendEndpointProvider: sendEndpointProvider,
             storageManagementService: storageManagementService);
 
@@ -48,7 +50,7 @@ public class VirusScanNotificationHandlerTests
 
         await storageManagementService.Received(1).MoveBlobToUsersContainerAsync(
             scanMessage.ScannedFile,
-            Arg.Any<string?>());
+            Arg.Any<TokenCredential>());
 
         await sendEndpointProvider.Received(1).GetSendEndpoint(
             Arg.Is<Uri>(uri => uri.Scheme == "queue" && uri.AbsolutePath == QueueConstants.VirusScanStatusQueueName));
@@ -64,7 +66,7 @@ public class VirusScanNotificationHandlerTests
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         sendEndpointProvider.GetSendEndpoint(Arg.Any<Uri>()).Returns(Task.FromResult(Substitute.For<ISendEndpoint>()));
 
-        var sut = CreateSut(
+        var sut = CreateHandler(
             dbContextFactory: dbContextFactory,
             sendEndpointProvider: sendEndpointProvider,
             lockedUserManagementService: lockedUserManagementService,
@@ -105,7 +107,7 @@ public class VirusScanNotificationHandlerTests
         var gcNotifyService = Substitute.For<IGCNotifyService>();
         var lockedUserManagementService = Substitute.For<ILockedUserManagementService>();
 
-        var sut = CreateSut(
+        var sut = CreateHandler(
             dbContextFactory: dbContextFactory,
             lockedUserManagementService: lockedUserManagementService,
             gcNotifyService: gcNotifyService);
@@ -129,11 +131,49 @@ public class VirusScanNotificationHandlerTests
         await lockedUserManagementService.DidNotReceiveWithAnyArgs().LockUserAsync(default, default!, default);
     }
 
-    private static VirusScanNotificationHandler CreateSut(
+    [Test]
+    public async Task RunAsync_WhenOriginalBlobMetadataIsNull_FallsBackToPathExtraction()
+    {
+        var gcNotifyService = Substitute.For<IGCNotifyService>();
+        var lockedUserManagementService = Substitute.For<ILockedUserManagementService>();
+        var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        sendEndpointProvider.GetSendEndpoint(Arg.Any<Uri>()).Returns(Task.FromResult(Substitute.For<ISendEndpoint>()));
+
+        var dbContextFactory = CreateDbContextFactoryForPathExtraction();
+
+        var sut = CreateHandler(
+            dbContextFactory: dbContextFactory,
+            sendEndpointProvider: sendEndpointProvider,
+            lockedUserManagementService: lockedUserManagementService,
+            gcNotifyService: gcNotifyService);
+
+        var scanMessage = new ClamAVMessage
+        {
+            ScanError = "Virus detected",
+            ScanEndTime = DateTime.UtcNow,
+            ScannedFile = $"https://storage.test.blob.core.windows.net/external-uploads/user_example.com/test-file.txt",
+            OriginalBlobMetadata = null
+        };
+
+        await sut.RunAsync(CreateServiceBusMessage(scanMessage));
+
+        await gcNotifyService.Received(1).SendInfectedFileNotification(
+            IGCNotifyService.DEFAULT_MAILBOX,
+            "test-file.txt",
+            "unknown",
+            Arg.Any<string>());
+
+        await lockedUserManagementService.Received(1).LockUserAsync(
+            1,
+            Arg.Is<string>(details => details.Contains("test-file.txt")),
+            null);
+    }
+
+    private static VirusScanNotificationHandler CreateHandler(
         IDbContextFactory<DatahubProjectDBContext>? dbContextFactory = null,
         ISendEndpointProvider? sendEndpointProvider = null,
-        IConfiguration? configuration = null,
         ILockedUserManagementService? lockedUserManagementService = null,
+        ISystemTokenCredentialService? systemTokenCredentialService = null,
         IGCNotifyService? gcNotifyService = null,
         IWorkspaceStorageManagementService? storageManagementService = null)
     {
@@ -141,21 +181,12 @@ public class VirusScanNotificationHandlerTests
             Substitute.For<ILogger<VirusScanNotificationHandler>>(),
             dbContextFactory ?? Substitute.For<IDbContextFactory<DatahubProjectDBContext>>(),
             sendEndpointProvider ?? Substitute.For<ISendEndpointProvider>(),
-            configuration ?? CreateConfiguration(),
             lockedUserManagementService ?? Substitute.For<ILockedUserManagementService>(),
             gcNotifyService ?? Substitute.For<IGCNotifyService>(),
+            systemTokenCredentialService ?? Substitute.For<ISystemTokenCredentialService>(),
             storageManagementService ?? Substitute.For<IWorkspaceStorageManagementService>());
     }
 
-    private static IConfiguration CreateConfiguration()
-    {
-        return new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ConnectionStrings:DatahubStorageQueue:ConnectionString"] = "UseDevelopmentStorage=true"
-            })
-            .Build();
-    }
 
     private static ServiceBusReceivedMessage CreateServiceBusMessage(ClamAVMessage message)
     {
@@ -174,6 +205,21 @@ public class VirusScanNotificationHandlerTests
             .Returns(_ => Task.FromResult<DatahubProjectDBContext>(new SqlServerDatahubContext(options)));
 
         SeedContextAsync(userGuid, options).GetAwaiter().GetResult();
+
+        return contextFactory;
+    }
+
+    private static IDbContextFactory<DatahubProjectDBContext> CreateDbContextFactoryForPathExtraction()
+    {
+        var options = new DbContextOptionsBuilder<SqlServerDatahubContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .Options;
+
+        var contextFactory = Substitute.For<IDbContextFactory<DatahubProjectDBContext>>();
+        contextFactory.CreateDbContextAsync(Arg.Any<CancellationToken>())
+            .Returns(_ => Task.FromResult<DatahubProjectDBContext>(new SqlServerDatahubContext(options)));
+
+        SeedContextForPathExtractionAsync(options).GetAwaiter().GetResult();
 
         return contextFactory;
     }
@@ -201,6 +247,34 @@ public class VirusScanNotificationHandlerTests
         {
             GraphGuid = userGuid,
             PortalUser = new PortalUser { Id = 1, Email = "uploader@example.com" }
+        });
+
+        await context.SaveChangesAsync();
+    }
+
+    private static async Task SeedContextForPathExtractionAsync(DbContextOptions<SqlServerDatahubContext> options)
+    {
+        await using var context = new SqlServerDatahubContext(options);
+
+        context.Projects.Add(new Datahub_Project
+        {
+            Project_Acronym_CD = "unknown",
+            Project_Name = "Test Workspace",
+            Project_Status_Desc = "Active",
+            UserRoles =
+            [
+                new UserRoleLinks
+                {
+                    RoleId = (int)Project_Role.RoleNames.WorkspaceLead,
+                    PortalUser = new PortalUser { Id = 2, Email = "lead@example.com" }
+                }
+            ]
+        });
+
+        context.PortalUsers.Add(new PortalUser
+        {
+            Id = 1,
+            Email = "user@example.com"
         });
 
         await context.SaveChangesAsync();

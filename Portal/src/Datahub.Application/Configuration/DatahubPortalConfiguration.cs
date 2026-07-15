@@ -56,6 +56,12 @@ public class DatahubPortalConfiguration : IAzureConfiguration
     public string SubscriptionId => AzureAd.SubscriptionId;
 
     public string EnvironmentName => Hosting.EnvironmentName;
+
+    IEnumerable<string> IAzureConfiguration.AllowedUserEmailDomains => AllowedUserEmailDomains;
+
+    public string? GraphInviteFunctionUrl => DatahubGraphInviteFunctionUrl;
+
+    public string? AddUserToGroupFunctionUrl => DatahubAddUserToGroupFunctionUrl;
 }
 
 public class Achievements

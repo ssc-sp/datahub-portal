@@ -173,12 +173,16 @@ public class ProjectUsageUpdater(
         var storageTimer = Stopwatch.StartNew();
         var capacityUsed = await workspaceStorageMgmtService.UpdateStorageCapacity(message.ProjectAcronym);
         storageTimer.Stop();
-        _logger.LogInformation("Storage capacity for: \'{MessageProjectAcronym}\' updated in {Time}s",
-            message.ProjectAcronym,
-            storageTimer.Elapsed.TotalSeconds);
-
-        _logger.LogInformation("Used storage capacity for: \'{MessageProjectAcronym}\' is {CapacityUsed}",
-            message.ProjectAcronym, capacityUsed);
+        if (capacityUsed is null)
+        {
+            _logger.LogWarning("Workspace \'{MessageProjectAcronym}\' not found",
+                message.ProjectAcronym);
+        }
+        else
+        {
+            _logger.LogInformation("Used storage capacity for: \'{MessageProjectAcronym}\' is {CapacityUsed} - updated in {Time}s",
+                message.ProjectAcronym, capacityUsed, storageTimer.Elapsed.TotalSeconds);
+        }
     }
 
     internal async Task<List<DailyServiceCost>> FromBlob(string fileName)

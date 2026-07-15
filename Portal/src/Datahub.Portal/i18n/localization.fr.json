@@ -2678,7 +2678,7 @@
   "Scan Error": "Erreur d'analyse",
   "Scan Result": "Résultat de l'analyse",
   "Scanning": "Analyse en cours",
-  "Scanning uploaded file(s) for viruses... {0} file(s) pending.": "Analyse des fichiers téléchargés à la recherche de virus... {0} fichier(s) en attente.",
+  "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.": "Analyse des fichiers téléchargés à la recherche de virus... Cela peut prendre quelques minutes. {0} fichier(s) en attente.",
   "SCD": "DCS",
   "Schedule": "Planifier",
   "Science and Technology": "Science & technologie",

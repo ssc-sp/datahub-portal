@@ -450,8 +450,6 @@ public class Startup
         services.AddSingleton<DatahubTools>();
         services.AddSingleton<TranslationService>();
 
-        services.AddScoped<NotificationsService>();
-
         services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<IUserAccessNotificationService, UserAccessNotificationService>();
         services.AddScoped<ISystemNotificationService, SystemNotificationService>();

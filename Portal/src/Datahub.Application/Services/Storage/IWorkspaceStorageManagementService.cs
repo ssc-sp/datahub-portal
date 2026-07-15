@@ -1,3 +1,4 @@
+using Azure.Core;
 using Datahub.Core.Model.Context;
 
 namespace Datahub.Application.Services.Storage
@@ -23,7 +24,7 @@ namespace Datahub.Application.Services.Storage
         /// <param name="workspaceAcronym">The workspace acronym</param>
         /// <param name="storageAccountId">Optional storage account ids to use. If not provided, will be interpolated</param>
         /// <returns></returns>
-        public Task<double> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountId = null);
+        public Task<double?> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountId = null);
 
         /// <summary>
         /// Checks if a storage update is needed for a workspace
@@ -37,8 +38,8 @@ namespace Datahub.Application.Services.Storage
         /// Copies a blob from its current container into the external users container and preserves metadata.
         /// </summary>
         /// <param name="scannedFileUri">The absolute URI of the source blob.</param>
-        /// <param name="connectionString">The Azure Storage connection string.</param>
-        /// <returns>The target blob path in the form "users/{blobName}".</returns>
-        public Task<string> MoveBlobToUsersContainerAsync(string scannedFileUri, string? connectionString);
+        /// <param name="credential">The Azure credential used to access the storage account.</param>
+        /// <returns>The target blob path in the form "users/{blobName}" and null if the source doesn't exist</returns>
+        public Task<string?> MoveBlobToUsersContainerAsync(string scannedFileUri, TokenCredential credential);
     }
 }

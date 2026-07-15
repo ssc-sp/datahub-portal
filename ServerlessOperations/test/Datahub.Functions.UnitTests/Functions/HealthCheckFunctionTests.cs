@@ -1,23 +1,17 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
-using Datahub.Application.Services.WebApp;
-using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Helpers;
-using Datahub.Shared;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Entities;
 using FluentAssertions;
 using MassTransit;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Moq;
 using NSubstitute;
 
 

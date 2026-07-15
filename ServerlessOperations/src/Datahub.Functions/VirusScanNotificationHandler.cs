@@ -1,6 +1,9 @@
+using Azure.Identity;
 using Azure.Messaging.ServiceBus;
+using Azure.Storage.Blobs;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -8,6 +11,7 @@ using Datahub.Functions.Extensions;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Configuration;
+using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
@@ -15,6 +19,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using System.Text.RegularExpressions;
+using static MudBlazor.FilterOperator;
 
 namespace Datahub.Functions;
 
@@ -22,27 +27,26 @@ public class VirusScanNotificationHandler(
     ILogger<VirusScanNotificationHandler> logger,
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
-    IConfiguration configuration,
     ILockedUserManagementService lockedUserManagementService,
     IGCNotifyService gcNotifyService,
+    ISystemTokenCredentialService systemTokenCredentialService,
     IWorkspaceStorageManagementService workspaceStorageManagementService)
 {
     [Function("ClamAVNotificationHandler")]
     public async Task RunAsync(
-        [ServiceBusTrigger(QueueConstants.TerraformOutputHandlerQueueName,
+        [ServiceBusTrigger(QueueConstants.ClamAVScanResultQueueName,
             Connection = "DatahubServiceBus:ConnectionString")]
         ServiceBusReceivedMessage message)
     {
         logger.LogInformation("Processing ClamAV scan result message");
         try
         {
-            var scanResult = await message.DeserializeAndUnwrapMessageAsync<ClamAVMessage>();
+            var scanResult = await message.DeserializeAndUnwrapRootAsync<ClamAVMessage>();
 
-            var connectionString = configuration.GetConnectionString("DatahubStorageQueue:ConnectionString");
-            var storageAccountName = ExtractStorageAccountName(connectionString);
+            var storageAccountName = ExtractStorageAccountName(scanResult.ScannedFile);
             if (string.IsNullOrWhiteSpace(storageAccountName))
             {
-                logger.LogWarning("Failed to extract storage account name from connection string");
+                logger.LogWarning("Failed to extract storage account name from scanned file URI {ScannedFile}", scanResult.ScannedFile);
             }
 
             var workspaceAcronym = !string.IsNullOrWhiteSpace(storageAccountName)
@@ -51,28 +55,37 @@ public class VirusScanNotificationHandler(
             var scanStatus = DetermineScanStatus(scanResult.ScanError);
             var fileName = Path.GetFileName(scanResult.ScannedFile);
             var blobPath = scanResult.ScannedFile;
-            var uploader = !string.IsNullOrWhiteSpace(scanResult.OriginalBlobMetadata?.CreatedBy)
-                ? scanResult.OriginalBlobMetadata.CreatedBy
+
+            // read metadata either from the scan result or from the original blob if not present
+            var originalBlobMetadata = await ResolveOriginalBlobMetadataAsync(scanResult, scanResult.ScannedFile);
+            var uploader = !string.IsNullOrWhiteSpace(originalBlobMetadata?.CreatedBy)
+                ? originalBlobMetadata.CreatedBy
                 : ExtractUserFromPath(scanResult.ScannedFile);
-            var correlationId = Guid.NewGuid().ToString();
 
-            if (string.IsNullOrWhiteSpace(scanResult.ScanError))
+            if (scanStatus == ScanStatusType.Clean)
             {
-                var targetBlobPath = await workspaceStorageManagementService.MoveBlobToUsersContainerAsync(scanResult.ScannedFile, connectionString);
+                // No virus detected, move the blob to the user's container and queue the status message
+                var targetBlobPath = await workspaceStorageManagementService.MoveBlobToUsersContainerAsync(
+                    scanResult.ScannedFile,
+                    systemTokenCredentialService.GetTokenCredential());
 
-                await QueueUserStatusAsync(new VirusScanStatusMessage
+                if (targetBlobPath != null)
                 {
-                    WorkspaceAcronym = workspaceAcronym,
-                    UploaderObjectId = uploader,
-                    FileName = fileName,
-                    BlobPath = targetBlobPath,
-                    ScanStatus = scanStatus,
-                    ScanCompletedOn = scanResult.ScanEndTime,
-                    FileSizeBytes = null,
-                    StorageAccountName = storageAccountName,
-                    ScanEngine = "ClamAV",
-                    CorrelationId = correlationId,
-                });
+                    await QueueUserStatusAsync(new VirusScanStatusMessage
+                    {
+                        WorkspaceAcronym = workspaceAcronym,
+                        UploaderEmail = uploader,
+                        UploadBatchId = originalBlobMetadata?.UploadBatchId ?? System.Guid.NewGuid(),
+                        FileId = originalBlobMetadata?.FileId ?? System.Guid.NewGuid(),
+                        FileName = fileName,
+                        BlobPath = targetBlobPath,
+                        ScanStatus = scanStatus,
+                        ScanCompletedOn = scanResult.ScanEndTime,
+                        FileSizeBytes = null,
+                        StorageAccountName = storageAccountName,
+                        ScanEngine = "ClamAV"
+                    });
+                }
 
                 logger.LogInformation(
                     "Forwarded virus scan status for {Workspace}/{FileName} to {QueueName}",
@@ -80,8 +93,9 @@ public class VirusScanNotificationHandler(
                     fileName,
                     QueueConstants.VirusScanStatusQueueName);
             }
-            else
+            else if (scanStatus == ScanStatusType.Infected) 
             {
+                // notify the default mailbox and the workspace lead about the infected file
                 var scanCompletedOn = scanResult.ScanEndTime.ToString("g");
                 await gcNotifyService.SendInfectedFileNotification(
                     IGCNotifyService.DEFAULT_MAILBOX,
@@ -117,6 +131,29 @@ public class VirusScanNotificationHandler(
                         workspaceAcronym,
                         fileName);
                 }
+                await QueueUserStatusAsync(new VirusScanStatusMessage
+                {
+                    WorkspaceAcronym = workspaceAcronym,
+                    UploaderEmail = uploader,
+                    UploadBatchId = originalBlobMetadata?.UploadBatchId ?? System.Guid.NewGuid(),
+                    FileId = originalBlobMetadata?.FileId ?? System.Guid.NewGuid(),
+                    FileName = fileName,
+                    BlobPath = scanResult.ScannedFile,
+                    ScanStatus = scanStatus,
+                    ScanCompletedOn = scanResult.ScanEndTime,
+                    FileSizeBytes = null,
+                    StorageAccountName = storageAccountName,
+                    ScanEngine = "ClamAV"
+                });
+            } else
+            {
+                // notify the default mailbox and the workspace lead about the infected file
+                var scanCompletedOn = scanResult.ScanEndTime.ToString("g");
+                await gcNotifyService.SendBugReportNotification(
+                    fileName,
+                    $"Unexpected scan status: {scanStatus}",
+                    $"ClamAV scan result for {fileName} in workspace {workspaceAcronym} returned an unexpected scan status: {scanStatus}. " +
+                    $"Scan completed on {scanCompletedOn}. Scan error: {scanResult.ScanError}");
             }
         }
         catch (Exception ex)
@@ -177,13 +214,21 @@ public class VirusScanNotificationHandler(
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.VirusScanStatusQueueName, userStatusMessage);
     }
 
-    private static string? ExtractStorageAccountName(string? connectionString)
+    private static string? ExtractStorageAccountName(string? blobUri)
     {
-        if (string.IsNullOrEmpty(connectionString))
+        if (string.IsNullOrWhiteSpace(blobUri))
+        {
             return null;
+        }
 
-        var match = Regex.Match(connectionString, @"AccountName=([^;]+)", RegexOptions.IgnoreCase);
-        return match.Success ? match.Groups[1].Value : null;
+        if (!Uri.TryCreate(blobUri, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        var host = uri.Host;
+        var accountName = host.Split('.', 2)[0];
+        return string.IsNullOrWhiteSpace(accountName) ? null : accountName;
     }
 
     private async Task<string?> ResolveWorkspaceAcronymAsync(string storageAccountName)
@@ -192,14 +237,14 @@ public class VirusScanNotificationHandler(
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
 
-            var project = await ctx.Projects
+            var project = await ctx.Project_Resources2.Include(p => p.Project)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Resources.Any(r =>
-                    r.ResourceType == "StorageAccount" &&
+                .FirstOrDefaultAsync(r =>
+                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) &&
                     r.JsonContent != null &&
-                    r.JsonContent.Contains(storageAccountName, StringComparison.OrdinalIgnoreCase)));
+                    r.JsonContent.ToLowerInvariant().Contains(storageAccountName.ToLowerInvariant()));
 
-            return project?.Project_Acronym_CD;
+            return project?.Project?.Project_Acronym_CD;
         }
         catch (DbException ex)
         {
@@ -213,6 +258,12 @@ public class VirusScanNotificationHandler(
         }
     }
 
+    /// <summary>
+    /// Extracts the user identifier from the blob path if the email was not present in the message or metadata
+    /// Any file uploaded from the portal will have the metadata "createdby" set to the user email, this is a safety net in case the metadata is missing
+    /// </summary>
+    /// <param name="blobPath">The path of the blob.</param>
+    /// <returns>The extracted user identifier, or null if it cannot be determined.</returns>
     private static string? ExtractUserFromPath(string blobPath)
     {
         if (string.IsNullOrWhiteSpace(blobPath))
@@ -261,5 +312,63 @@ public class VirusScanNotificationHandler(
         return string.IsNullOrWhiteSpace(scanError)
             ? ScanStatusType.Clean
             : ScanStatusType.Failed;
+    }
+
+    private async Task<ClamAVBlobMetadata?> ResolveOriginalBlobMetadataAsync(ClamAVMessage scanResult, string? blobUri)
+    {
+        if (scanResult.OriginalBlobMetadata is not null)
+        {
+            return scanResult.OriginalBlobMetadata;
+        }
+
+        if (string.IsNullOrWhiteSpace(blobUri))
+        {
+            return null;
+        }
+
+        try
+        {
+            var metadata = await ReadBlobMetadataAsync(blobUri);
+            if (metadata is not null)
+            {
+                logger.LogInformation("Retrieved blob metadata from source blob for {BlobPath}", blobUri);
+                return metadata;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Failed to read blob metadata for {BlobPath}", blobUri);
+        }
+
+        return null;
+    }
+
+    private async Task<ClamAVBlobMetadata?> ReadBlobMetadataAsync(string blobUri)
+    {
+        if (!Uri.TryCreate(blobUri, UriKind.Absolute, out var uri))
+        {
+            return null;
+        }
+
+        var credential = new DefaultAzureCredential();
+        var blobClient = new BlobClient(uri, credential);
+
+        var properties = await blobClient.GetPropertiesAsync();
+        var metadata = new ClamAVBlobMetadata();
+
+        if (properties.Value.Metadata.TryGetValue(ClamAVBlobMetadata.CreatedByTag, out var createdBy))
+        {
+            metadata.CreatedBy = createdBy;
+        }
+        if (properties.Value.Metadata.TryGetValue(ClamAVBlobMetadata.FileIdTag, out var fileId) && System.Guid.TryParse(fileId, out var guid))
+        {
+            metadata.FileId = guid;
+        }
+        if (properties.Value.Metadata.TryGetValue(ClamAVBlobMetadata.UploadBatchIdTag, out var uploadBatch) && System.Guid.TryParse(uploadBatch, out var uploadGuid))
+        {
+            metadata.UploadBatchId = uploadGuid;
+        }
+
+        return metadata;
     }
 }

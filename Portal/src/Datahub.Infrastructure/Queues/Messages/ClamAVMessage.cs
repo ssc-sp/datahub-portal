@@ -5,14 +5,18 @@ namespace Datahub.Infrastructure.Queues.Messages;
 
 public class ClamAVBlobMetadata
 {
-    [JsonPropertyName("createdby")]
+    public const string CreatedByTag = "createdby";
+    public const string FileIdTag = "fileid";
+    public const string UploadBatchIdTag = "uploadBatchId";
+
+    [JsonPropertyName(CreatedByTag)]
     public string CreatedBy { get; set; } = string.Empty;
 
-    [JsonPropertyName("fileid")]
-    public string FileId { get; set; } = string.Empty;
+    [JsonPropertyName(FileIdTag)]
+    public Guid FileId { get; set; } = Guid.NewGuid();
 
-    [JsonPropertyName("uploadBatchId")]
-    public string UploadBatchId { get; set; } = string.Empty;
+    [JsonPropertyName(UploadBatchIdTag)]
+    public Guid UploadBatchId { get; set; } = Guid.NewGuid();
 }
 
 public class ClamAVMessage

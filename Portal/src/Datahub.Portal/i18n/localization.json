@@ -2629,5 +2629,5 @@
   "Your workspaces": "Your workspaces",
   "Workspace Files": "Workspace Files",
   "Workspace files connected to the workspace tools and only accessible with departmental accounts": "Workspace files connected to the workspace tools and only accessible with departmental accounts",
-  "Scanning uploaded file(s) for viruses... {0} file(s) pending.": "Scanning uploaded file(s) for viruses... {0} file(s) pending."
+  "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.": "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending."
 }

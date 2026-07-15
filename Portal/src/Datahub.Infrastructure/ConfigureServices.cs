@@ -17,10 +17,10 @@ using Datahub.Core;
 using Datahub.Core.Services.CatalogSearch;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services;
-using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.Announcements;
 using Datahub.Infrastructure.Services.CatalogSearch;
 using Datahub.Infrastructure.Services.Cost;
+using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
 using Datahub.Infrastructure.Services.ResourceGroups;
@@ -30,7 +30,9 @@ using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.VirusScan;
 using Datahub.Shared.Clients;
+using Datahub.Shared.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
@@ -93,7 +95,7 @@ public static class ConfigureServices
             services.AddScoped<IHealthCheckResultConsumer, HealthCheckResultConsumer>();
             services.AddHostedService<LocalMessageReaderService>();
         }
-
+        services.AddSingleton<IVirusScanStatusConsumer, VirusScanStatusConsumer>();
         services.AddMassTransit(x =>
         {
             if (DevTools.IsDevelopment())
@@ -115,6 +117,7 @@ public static class ConfigureServices
                         hc => hc.TransportType = Azure.Messaging.ServiceBus.ServiceBusTransportType.AmqpWebSockets);
                     cfg.PrefetchCount = 1;
                     cfg.ConfigureEndpoints(context);
+                    cfg.ReceiveEndpoint(QueueConstants.VirusScanStatusQueueName, endpoint => { endpoint.Consumer<VirusScanStatusConsumer>(); });
                 });
             }
         });

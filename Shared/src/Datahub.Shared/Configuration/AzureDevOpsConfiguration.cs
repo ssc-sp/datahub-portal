@@ -26,6 +26,12 @@ public class AzureDevOpsConfiguration : IAzureConfiguration
     public string SubscriptionId { get; set; } = null!;
     public string EnvironmentName => GetEnvironmentName();
 
+    public IEnumerable<string> AllowedUserEmailDomains => throw new NotImplementedException();
+
+    public string? GraphInviteFunctionUrl => throw new NotImplementedException();
+
+    public string? AddUserToGroupFunctionUrl => throw new NotImplementedException();
+
     public static string GetEnvironmentName()
     {
         var envName = (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "dev").ToLower();

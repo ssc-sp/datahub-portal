@@ -44,9 +44,6 @@
   <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestInfectedFileNotification">
     @Localizer["Send Infected File Notification"]
   </MudButton>
-  <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestStorageScanSuccessEmail">
-    @Localizer["Send Storage Scan Success Email"]
-  </MudButton>
   <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="TestExternalInviteEmail">
     @Localizer["Send External User Invite Email"]
   </MudButton>
@@ -304,26 +301,6 @@ await _userInformationService.GetUserEmail());
     var email = await _userInformationService.GetUserEmail();
     await _gcNotifyService.SendExternalUserInviteNotification(email, "external-user-name-test", "workspace-name-test",
         "inviter-test", "https://dev.fsdh-dhsf.science.cloud-nuage.canada.ca/?locale=en","https://dev.fsdh-dhsf.science.cloud-nuage.canada.ca/?locale=fr");
-  }
-
-  private async Task TestStorageScanSuccessEmail()
-  {
-    var email = await _userInformationService.GetUserEmail();
-
-    var notification = new StorageScanSuccessNotification
-    {
-      WorkspaceAcronym = "TEST-WS",
-      ContainerName = "datahub",
-      BlobPath = "uploads/sample-file.csv",
-      ScanCompletedOn = DateTimeOffset.UtcNow,
-      ScanEngine = "ClamAV",
-      UploadedBy = "Datahub Tester",
-      UploadedByEmail = email
-    };
-
-    var payload = StorageScanNotificationHelper.BuildEventPayload(notification);
-
-    //await _gcNotifyService.SendStorageScanSuccessEmailAsync(payload, email);
   }
 
   enum RecipientType

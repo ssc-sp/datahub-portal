@@ -21,6 +21,9 @@ public interface IAzureConfiguration
     string ProjectStorageKeySecretName { get; }
     string SubscriptionId { get; }
     string EnvironmentName { get; }
+    IEnumerable<string> AllowedUserEmailDomains { get; }
+    string? GraphInviteFunctionUrl { get; }
+    string? AddUserToGroupFunctionUrl { get; }
 
     const string DefaultResourcePrefix = "fsdh";
     const string DefaultProjectStorageKeySecretName = "storage-key";
