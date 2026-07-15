@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using MudBlazor.Utilities;
 using Datahub.Portal.Pages.Tools.LockedUsers;
+using Datahub.Core.Configuration;
+
 
 namespace Datahub.Portal.Pages.Workspace.Users
 {
@@ -34,6 +36,11 @@ namespace Datahub.Portal.Pages.Workspace.Users
             await ResolveWorkspaceIdAsync();
             await LoadLockedUsersForWorkspace();
             _loading = false;
+
+            if (await _featureManager.IsEnabledAsync(Features.GCCF_Feature))
+            {
+                _gccfEnabled = true;
+            }
         }
 
         private async Task InitializedProjectMembers()

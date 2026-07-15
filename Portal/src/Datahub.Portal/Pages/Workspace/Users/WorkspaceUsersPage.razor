@@ -17,6 +17,7 @@
 @inject IDialogService _dialogService
 @inject ISnackbar _snackbar
 @inject IDbContextFactory<DatahubProjectDBContext> _dbContextFactory
+@inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 
 @if (_updateInProgress)
 {
@@ -124,12 +125,15 @@
                 </DHButton>
             </DatahubAuthView>
         </MudStack>
-        <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
-        <MudText Typo="Typo.body1">
-            @Localizer["If you are looking for a list of users external to the Government of Canada, see "]
-            <MudLink Href="@Localizer[$"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.ExternalUsers}"]">@Localizer["External Users"].</MudLink>
-        </MudText>
-        </DatahubAuthView>
+        @if (_gccfEnabled)
+        {
+            <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceLead" ProjectAcronym="@WorkspaceAcronym" ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
+            <MudText Typo="Typo.body1">
+                @Localizer["If you are looking for a list of users external to the Government of Canada, see "]
+                <MudLink Href="@Localizer[$"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.ExternalUsers}"]">@Localizer["External Users"].</MudLink>
+            </MudText>
+            </DatahubAuthView>
+        }
     </MudStack>
     <MudTable Items="@_projectUsers" Striped Filter="@(new Func<UserRoleLinks, bool>(CombinedFilter))">
       <ToolBarContent>
@@ -318,5 +322,7 @@
   private string _modifiedCellStyle;
 
   private string? _validationErrorMessage = null;
+
+  private bool _gccfEnabled = false;
 
 }
