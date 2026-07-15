@@ -224,7 +224,10 @@ public class VirusScanNotificationHandler(
         if (!Uri.TryCreate(blobUri, UriKind.Absolute, out var uri))
         {
             return null;
-        }
+
+        var match = Regex.Match(connectionString, @"AccountName=([^;]+)", RegexOptions.IgnoreCase);
+        return match.Success ? match.Groups[1].Value : null;
+    }
 
         var host = uri.Host;
         var accountName = host.Split('.', 2)[0];
