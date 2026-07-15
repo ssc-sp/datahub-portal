@@ -220,7 +220,7 @@ namespace Datahub.Infrastructure.Services.Storage
             var rgIds = await rgMgmtService.GetWorkspaceResourceGroupsIdentifiersAsync(workspaceAcronym);
             if (rgIds is null || rgIds.Count == 0)
             {
-                throw new Exception($"No resource groups found for workspace {workspaceAcronym}");
+                return new();
             }
             var storageIds = new List<string>();
 

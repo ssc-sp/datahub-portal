@@ -289,7 +289,7 @@ public static class QueueConstants
     /// </list>
     /// Consumers:
     /// <list type="bullet">
-    ///   <item><description><c>Datahub.Functions.ClamAVNotificationHandler</c> – enriches with workspace/user context and forwards to virus-scan-notification</description></item>
+    ///   <item><description><c>Datahub.Functions.ClamAVNotificationHandler</c> – enriches with workspace/user context and forwards to virus-scan-status</description></item>
     /// </list>
     /// </summary>
     public const string ClamAVScanResultQueueName = "clamav-scan-result";
