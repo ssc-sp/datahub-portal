@@ -982,6 +982,7 @@
   "Future_Mitigation_Activities_TXT5": "Mitigation strategies 5",
   "G&C Forecast": "G&C Forecast",
   "GC Hosting CBR": "GC Hosting CBR",
+  "GC Hosting CBR is not configured": "GC Hosting CBR is not configured",
   "GC Hosting Services Portal": "GC Hosting Services Portal",
   "GC_Docs_URL": "GC Docs Link",
   "GCdocs_Hyperlink_URL": "GCdocs Hyperlink",
@@ -2629,5 +2630,7 @@
   "Your workspaces": "Your workspaces",
   "Workspace Files": "Workspace Files",
   "Workspace files connected to the workspace tools and only accessible with departmental accounts": "Workspace files connected to the workspace tools and only accessible with departmental accounts",
-  "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.": "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending."
+  "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.": "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.",
+  "No external users in this workspace.": "No external users in this workspace.",
+  "Only the workspace lead can invite external users": "Only the workspace lead can invite external users"
 }

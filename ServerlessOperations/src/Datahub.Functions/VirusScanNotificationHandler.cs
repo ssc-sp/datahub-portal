@@ -224,10 +224,7 @@ public class VirusScanNotificationHandler(
         if (!Uri.TryCreate(blobUri, UriKind.Absolute, out var uri))
         {
             return null;
-
-        var match = Regex.Match(connectionString, @"AccountName=([^;]+)", RegexOptions.IgnoreCase);
-        return match.Success ? match.Groups[1].Value : null;
-    }
+        }
 
         var host = uri.Host;
         var accountName = host.Split('.', 2)[0];
@@ -239,13 +236,14 @@ public class VirusScanNotificationHandler(
         try
         {
             await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
+            var tfType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob)?? throw new InvalidOperationException("Failed to get Terraform service type for AzureStorageBlob");
+            var normalizedAccountName = storageAccountName.ToLower();
             var project = await ctx.Project_Resources2.Include(p => p.Project)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(r =>
-                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.AzureStorageBlob) &&
+                    r.ResourceType == tfType &&
                     r.JsonContent != null &&
-                    r.JsonContent.ToLowerInvariant().Contains(storageAccountName.ToLowerInvariant()));
+                    r.JsonContent.ToLower().Contains(normalizedAccountName));
 
             return project?.Project?.Project_Acronym_CD;
         }

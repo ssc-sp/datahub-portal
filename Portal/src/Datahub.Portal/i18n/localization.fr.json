@@ -1375,6 +1375,7 @@
   "GAD": "AD",
   "Gain rapid insights into your data and demonstrate the art of the possible.": "Obtenez rapidement de l’information sur vos données et montrez l’art du possible.",
   "GC Hosting CBR": "BOI d'hébergement du GC",
+  "GC Hosting CBR is not configured": "Le BOI d'hébergement du GC n'est pas configuré",
   "GC Hosting Services Portal": "Portail des services d'hébergement du GC",
   "GC-SGB": "GC-DAG",
   "GCDOCS": "GCDOCS",
@@ -3592,5 +3593,7 @@
   "Your workspace's daily costs": "Coûts quotidiens de votre espace de travail",
   "Your workspaces": "Vos espaces de travail",
   "YRO": "BRY",
-  "YT": "YN"
+  "YT": "YN",
+  "No external users in this workspace.": "Aucun utilisateur externe dans cet espace de travail.",
+  "Only the workspace lead can invite external users": "Seul le responsable de l'espace de travail peut inviter des utilisateurs externes"
 }

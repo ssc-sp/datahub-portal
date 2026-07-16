@@ -97,7 +97,7 @@ public class ResourceMessagingService(
             AppData = appData,
             RequestingUserEmail = requestingUserEmail,
             ResourceGroupName = project.GetResourceGroupName(),
-            CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty
+            CBRID = project.ParentGCHostingBudget?.CBRID ?? throw new InvalidOperationException($"Project {projectAcronym} is missing a CBRID in its parent GC Hosting Budget."),
         };
     }
 

@@ -161,7 +161,7 @@ namespace Datahub.Infrastructure.Services.Storage
             }
 
             var sourceContainerName = split[0];
-            var blobName = split[1];
+            var blobName = Uri.UnescapeDataString(split[1]);
             var targetBlobPath = $"{IWorkspaceStorageManagementService.AzureExternalUsersContainerName}/{blobName}";
             logger.LogInformation($"Copying {scannedFileUri} to {targetBlobPath}");
             if (sourceContainerName.Equals(IWorkspaceStorageManagementService.AzureExternalUsersContainerName, StringComparison.OrdinalIgnoreCase))

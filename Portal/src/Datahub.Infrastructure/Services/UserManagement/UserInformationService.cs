@@ -420,6 +420,8 @@ public class UserInformationService(
 
     private async Task UpdatePortalUserLastLogin(string userGraphId)
     {
+        if (string.IsNullOrWhiteSpace(userGraphId))
+            throw new ArgumentException("userGraphId cannot be null or whitespace", nameof(userGraphId));
         await using var ctx = await datahubContextFactory.CreateDbContextAsync();
         var entraUser = await ctx.EntraUsers.Include(p => p.PortalUser).FirstOrDefaultAsync(p => p.GraphGuid == userGraphId);
 
