@@ -2245,6 +2245,7 @@
   "This page displays all the support requests submitted by the user.": "This page displays all the support requests submitted by FSDH users.",
   "This page is limited for DataHub administrators": "This page is limited for DataHub administrators",
   "This page is used to test the hosting services endpoint.": "This page is used to test the hosting services endpoint.",
+  "This security measure helps protect the {0} infrastructure and all users' data. We appreciate your cooperation in maintaining a secure environment.": "This security measure helps protect the {0} infrastructure and all users' data. We appreciate your cooperation in maintaining a secure environment.",
   "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.": "This section lets you share inside Datahub your Git repositories that have been linked inside Databricks.",
   "This setting lets the {0} Support Team add and remove users, edit settings, and access your tools.": "This setting lets the {0} Support Team add and remove users, edit settings, and access your tools.",
   "This setting will allow shared key access to the workspace storage account": "This setting will allow shared key access to the workspace storage account",
