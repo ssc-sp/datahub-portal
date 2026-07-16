@@ -35,7 +35,7 @@
 
     private const string InternalPublicPageNamespace = "Datahub.Portal.Pages.InternalPublic";
     private const string PublicPageNamespace = "Datahub.Portal.Pages.Public";
-    Random random = new Random();
+    private readonly Random random = new Random();
 
     protected override void OnInitialized()
     {
