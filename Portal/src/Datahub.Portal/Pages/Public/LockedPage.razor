@@ -1,10 +1,10 @@
-﻿@page "/locked" 
+@page "/locked" 
 @page "/verrouille"
 
 @layout BarebonesPublicLayout
 @using Datahub.Application.Services.UserManagement
 
-<PageTitle>@Localizer["Account Locked - Federal Science DataHub"]</PageTitle>
+<PageTitle>@Localizer["Account Locked - {0}", Localizer["MainTitle"]]</PageTitle>
 
 <MudContainer MaxWidth=@MaxWidth.Medium>
     <MudPaper Class="pt-12 px-12 mt-12">
