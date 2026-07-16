@@ -52,9 +52,9 @@ public class Hooks
         substituteResourceMessageService.SendToTerraformQueue(Arg.Any<WorkspaceDefinition>())
             .Returns(Task.CompletedTask);
 
-        substituteResourceMessageService.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string?>())
+        substituteResourceMessageService.CreateWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string?>())
             .Returns(callInfo =>
-                actualResourceMessageService.GetWorkspaceDefinition((string)callInfo[0]));
+                actualResourceMessageService.CreateWorkspaceDefinition((string)callInfo[0]));
 
         var requestManagementService = new RequestManagementService(
             Substitute.For<ILogger<RequestManagementService>>(),

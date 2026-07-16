@@ -338,6 +338,8 @@ public class TerraformService(
 
         return (variableName switch
         {
+            TerraformVariables.ServiceBusNamespace => terraformWorkspace.ServiceBusNamespace,
+            TerraformVariables.ServiceBusObjectId => terraformWorkspace.ServiceBusObjectId,
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,

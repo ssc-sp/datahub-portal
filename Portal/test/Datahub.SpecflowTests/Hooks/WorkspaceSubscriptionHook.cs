@@ -68,9 +68,9 @@ public class WorkspaceSubscriptionHook
         var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, workspaceVersionService, mockSubnetPoolService);
         var resourceMessagingSubstitute = Substitute.For<IResourceMessagingService>();
 
-        resourceMessagingSubstitute.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
+        resourceMessagingSubstitute.CreateWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
             .Returns(callInfo =>
-                resourceMessagingService.GetWorkspaceDefinition((string)callInfo[0], (string)callInfo[1])); 
+                resourceMessagingService.CreateWorkspaceDefinition((string)callInfo[0], (string)callInfo[1])); 
 
         var currentUser = new PortalUser
         {

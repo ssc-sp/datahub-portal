@@ -43,7 +43,7 @@ namespace Datahub.Infrastructure;
 
 public static class ConfigureServices
 {
-    public static IServiceCollection AddDatahubInfrastructureServices(this IServiceCollection services,
+    public static IServiceCollection AddPortalInfrastructureServices(this IServiceCollection services,
         IConfiguration configuration)
     {
         //services.AddMediatR(typeof(QueueMessageSender<>)); v11 mediatr code

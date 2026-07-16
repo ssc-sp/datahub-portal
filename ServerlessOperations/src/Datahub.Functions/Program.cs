@@ -36,6 +36,7 @@ using Polly.Contrib.WaitAndRetry;
 using System.Net;
 using Datahub.Application.Configuration;
 using Datahub.Core.Services.Projects;
+using Datahub.Core.Configuration;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -81,6 +82,8 @@ builder.Services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudget
 builder.Services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
 builder.Services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
 builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+// IServiceBusConfiguration is only required to create workspace definitions shouldn't be required here
+builder.Services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();
 
 builder.Services.AddScoped<IMSGraphService, MSGraphService>();
 builder.Services.AddScoped<IUserTokenCredentialService, ServerUserTokenProviderService>();

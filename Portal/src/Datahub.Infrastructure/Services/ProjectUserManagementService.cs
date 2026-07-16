@@ -311,7 +311,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
     {
         try
         {
-            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(projectAcronym);
+            var workspaceDefinition = await _resourceMessagingService.CreateWorkspaceDefinition(projectAcronym);
             await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
 
             _logger.LogInformation($"Triggered workspace sync for {projectAcronym}" );

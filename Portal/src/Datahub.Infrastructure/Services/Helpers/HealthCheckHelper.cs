@@ -395,7 +395,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         {
             try
             {
-                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(request.Name);
+                var workspaceDefinition = await resourceMessagingService.CreateWorkspaceDefinition(request.Name);
                 await resourceMessagingService.SendToUserQueue(workspaceDefinition);
 
                 logger.LogInformation("Triggered workspace sync");
