@@ -45,7 +45,7 @@
   {
     <MudStack Row="true">
       <MudText Typo="Typo.h3">
-        @Localizer["Web Application hosted by FSDH"]
+                @Localizer["Web Application hosted by the {0}", Localizer["MainAcronym"]]
       </MudText>
       @if (isDisclaimerAccepted)
       {
@@ -75,7 +75,7 @@
         {
           <MudItem xs="12">
             <iframe src="@_reverseProxyConfigService.BuildWebAppURL(WorkspaceAcronymParam)"
-                    style="height: 70vh; border: none;" title="@Localizer["Web Application hosted by FSDH"]"
+                                style="height: 70vh; border: none;" title="@Localizer["Web Application hosted by the {0}", Localizer["MainAcronym"]]"
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>
           </MudItem>
         }
