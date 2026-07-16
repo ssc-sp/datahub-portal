@@ -2539,7 +2539,7 @@
   "Register here to escape the silos. On the Federal Science DataHub you can:": "Inscrivez-vous ici pour échapper aux silos. Sur le Datahub fédéral scientifique vous pouvez :",
   "Register instead": "Enregistrez-vous plutôt",
   "Registering": "Inscription en cours",
-  "Registration - Federal Science DataHub": "Inscription - Plateforme fédérale de données scientifiques",
+  "Registration - {0}": "Inscription - {0}",
   "Registration and Login": "Inscription et connexion",
   "Registration successful! Please log in to continue": "Inscription réussie ! Veuillez vous connecter pour continuer",
   "Registrations": "Inscriptions",

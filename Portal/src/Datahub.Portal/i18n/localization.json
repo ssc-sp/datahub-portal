@@ -1778,7 +1778,7 @@
   "Register here to escape the silos. On the Federal Science DataHub you can:": "Register here to escape the silos. On the Federal Science DataHub you can:",
   "Register instead": "Register instead",
   "Registering": "Registering",
-  "Registration - Federal Science DataHub": "Registration - Federal Science DataHub",
+  "Registration - {0}": "Registration - {0}",
   "Registration and Login": "Registration and Login",
   "Registration successful! Please log in to continue": "Registration successful! Please log in to continue",
   "Registrations": "Registrations",
