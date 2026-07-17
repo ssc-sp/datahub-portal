@@ -55,7 +55,6 @@ namespace Datahub.SpecflowTests.Hooks
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             var armClient = Substitute.For<ArmClient>();
             var logger = Substitute.For<ILogger<WorkspaceStorageManagementService>>();
-            var memoryCache = Substitute.For<IMemoryCache>();
 
             MockServiceCalls(armClient, logger, dbContextFactory, datahubPortalConfiguration, objectContainer);
             await MockArmMethods(armClient);
@@ -234,8 +233,9 @@ namespace Datahub.SpecflowTests.Hooks
             DatahubPortalConfiguration datahubPortalConfiguration, IObjectContainer objectContainer)
         {
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
+            var memoryCache = new MemoryCache(new MemoryCacheOptions());
             var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
-                new MemoryCache(new MemoryCacheOptions()), dbContextFactory, workspaceRgManagementService);
+                memoryCache, dbContextFactory, workspaceRgManagementService);
 
 
             workspaceRgManagementService
@@ -270,6 +270,7 @@ namespace Datahub.SpecflowTests.Hooks
                 .Returns(new List<ResourceIdentifier>());
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs<IMemoryCache>(memoryCache);
             objectContainer.RegisterInstanceAs(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs<IWorkspaceStorageManagementService>(workspaceStorageManagementService);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
