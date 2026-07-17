@@ -27,7 +27,7 @@
 @attribute [ExternalUserPage]
 
 <PageTitle>
-    @Localizer["{0} - Workspace - Federal Science DataHub", WorkspaceAcronymParam ?? ""]
+    @Localizer["{0} - Workspace - {1}", WorkspaceAcronymParam ?? "", Localizer["MainTitle"]]
 </PageTitle>
 <EnvironmentTopBar SecurityLevel="@_project.Data_Sensitivity"/>
 

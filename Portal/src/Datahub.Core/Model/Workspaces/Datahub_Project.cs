@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.CloudStorage;
 using Datahub.Core.Model.Datahub;
@@ -415,15 +416,18 @@ public class Datahub_Project : IComparable<Datahub_Project>
     /// Converts a Datahub_Project object to a TerraformWorkspace object.
     /// </summary>
     /// <param name="users">The list of TerraformUser objects.</param>
+    /// <param name="messageBusConfiguration">The message bus configuration</param>
     /// <exception cref="InvalidOperationException">Throws an exception when the Datahub Azure Subscription is not included</exception>
     /// <returns>A TerraformWorkspace object populated with values from the Datahub_Project object.</returns>
-    public TerraformWorkspace ToResourceWorkspace(List<TerraformUser> users)
+    public TerraformWorkspace ToResourceWorkspace(List<TerraformUser> users, IServiceBusConfiguration messageBusConfiguration)
     {
         return new TerraformWorkspace()
         {
             Name = Project_Name,
             Acronym = Project_Acronym_CD,
-            SSCCBRID = ParentGCHostingBudget?.CBRID ?? string.Empty,
+            ServiceBusNamespace = messageBusConfiguration.ServiceBusHost,
+            ServiceBusObjectId = messageBusConfiguration.ServiceBusObjectID,
+            SSCCBRID = ParentGCHostingBudget?.CBRID ?? throw new InvalidOperationException($"Project {Project_Acronym_CD} is missing a CBRID in its parent GC Hosting Budget."),
             BudgetAmount = Convert.ToDouble(Project_Budget),
             Version = Version ?? TerraformWorkspace.DefaultVersion,
             TerraformOrganization = new TerraformOrganization()

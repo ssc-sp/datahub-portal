@@ -1,5 +1,12 @@
 namespace Datahub.Infrastructure.Queues.Messages;
 
+public enum ScanStatusType
+{
+    Clean,
+    Infected,
+    Failed
+}
+
 /// <summary>
 /// Message sent to service functions to handle user status and file access permissions
 /// based on virus scan results
@@ -12,19 +19,9 @@ public class VirusScanStatusMessage
     public required string WorkspaceAcronym { get; init; }
 
     /// <summary>
-    /// User's object ID who uploaded the file
-    /// </summary>
-    public string? UploaderObjectId { get; init; }
-
-    /// <summary>
     /// User's email address
     /// </summary>
     public string? UploaderEmail { get; init; }
-
-    /// <summary>
-    /// User's display name
-    /// </summary>
-    public string? UploaderName { get; init; }
 
     /// <summary>
     /// File name that was scanned
@@ -44,7 +41,7 @@ public class VirusScanStatusMessage
     /// <summary>
     /// Timestamp when the scan completed
     /// </summary>
-    public required DateTimeOffset ScanCompletedOn { get; init; }
+    public DateTimeOffset? ScanCompletedOn { get; init; }
 
     /// <summary>
     /// File size in bytes
@@ -67,12 +64,9 @@ public class VirusScanStatusMessage
     public string? ScanEngine { get; init; }
 
     /// <summary>
-    /// Event correlation ID for tracking
-    /// </summary>
-    public string? CorrelationId { get; init; }
-
-    /// <summary>
     /// Additional metadata from the scan
     /// </summary>
     public IReadOnlyDictionary<string, string>? Metadata { get; init; }
+    public Guid UploadBatchId { get; set; }
+    public Guid FileId { get; set; }
 }

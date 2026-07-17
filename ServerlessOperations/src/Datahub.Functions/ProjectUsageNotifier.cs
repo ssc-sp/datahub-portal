@@ -97,7 +97,7 @@ namespace Datahub.Functions
             await ctx.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Project {ProjectId} is over budget, deleting resources", projectAcronym);
-            var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(projectAcronym);
+            var workspaceDefinition = await resourceMessagingService.CreateWorkspaceDefinition(projectAcronym);
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
             _logger.LogInformation("Project {ProjectId} resources have been queued for deletion", projectAcronym);
 

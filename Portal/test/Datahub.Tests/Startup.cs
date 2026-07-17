@@ -15,6 +15,7 @@ using Datahub.Infrastructure.Offline;
 using Datahub.Infrastructure.Services.Security;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.Notification;
 
 namespace Datahub.Tests;
 
@@ -33,7 +34,7 @@ public class Startup
         //services.AddScoped<DataRetrievalService>();
         //services.AddScoped<DataRemovalService>();
         services.AddSingleton<DatahubTools>();
-        services.AddScoped<NotificationsService>();
+        services.AddScoped<SystemNotificationService>();
         services.AddHttpClient();
         services.AddFileReaderService();
         services.AddBlazorDownloadFile();

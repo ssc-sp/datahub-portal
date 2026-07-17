@@ -22,8 +22,8 @@ public class RequestManagementService(
     public async Task HandleUserUpdatesToExternalPermissions(Datahub_Project project, PortalUser currentPortalUser)
     {
         var workspaceDefinition =
-            await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
-        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
+            await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
+        await resourceMessagingService.QueueRBACSync(workspaceDefinition);
     }
 
     /// <summary>
@@ -148,7 +148,7 @@ public class RequestManagementService(
             }
 
             var workspaceDefinition =
-                await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
+                await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD,
                     requestingUser.Email);
 
             
@@ -182,7 +182,7 @@ public class RequestManagementService(
             {
                 foreach (var project in currentVersionProjects)
                 {
-                    var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD, email);
+                    var workspaceDefinition = await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD, email);
                     var parsedProjectVersion = workspaceDefinition.Workspace.Version.TrimStart('v');
 
                     if (Version.Parse(parsedProjectVersion) >= parsedVersion)

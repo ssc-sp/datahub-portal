@@ -158,7 +158,7 @@ public class Startup
         ConfigureLocalization(services);
 
         // add custom app services in this method
-        ConfigureCoreDatahubServices(services);
+        ConfigurePortalServices(services);
 
         services.AddHttpClient();
         services.AddHttpClient<GraphServiceClient>()
@@ -392,7 +392,7 @@ public class Startup
         return (values ?? "").Split('|').Select(c => new CultureInfo($"{c[..2].ToLower()}-CA"));
     }
 
-    private void ConfigureCoreDatahubServices(IServiceCollection services)
+    private void ConfigurePortalServices(IServiceCollection services)
     {
         // configure online/offline services
         if (!Offline)
@@ -415,8 +415,8 @@ public class Startup
 
             services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
             
-            services.AddDatahubApplicationServices(Configuration);
-            services.AddDatahubInfrastructureServices(Configuration);
+            services.AddPortalConfiguration(Configuration);
+            services.AddPortalInfrastructureServices(Configuration);
 
         }
         else
@@ -436,6 +436,8 @@ public class Startup
             
             
         }
+        services.AddSingleton<IServiceBusConfiguration, ServiceBusConfiguration>();
+
         services.AddScoped<IWorkspaceCreationService, WorkspaceCreationService>();
         services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
 
@@ -449,8 +451,6 @@ public class Startup
         services.AddScoped<DataImportingService>();
         services.AddSingleton<DatahubTools>();
         services.AddSingleton<TranslationService>();
-
-        services.AddScoped<NotificationsService>();
 
         services.AddScoped<IGCNotifyService, GCNotifyService>();
         services.AddScoped<IUserAccessNotificationService, UserAccessNotificationService>();

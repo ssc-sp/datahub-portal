@@ -17,7 +17,7 @@ public static class GenerateWorkspaceHelper
         string projectAcronym, 
         string? resourceType = null,
         string? resourceStatus = null,
-        string? cbrid = null,
+        string cbrid = "TESTCBR",
         bool generateResourceGroup = true)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();

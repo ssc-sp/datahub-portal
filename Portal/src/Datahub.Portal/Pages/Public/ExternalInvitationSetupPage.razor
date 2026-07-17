@@ -8,7 +8,7 @@
 @inject NavigationManager _navigationManager
 @inject Microsoft.FeatureManagement.IFeatureManagerSnapshot _featureManager
 
-<PageTitle>@Localizer["Complete Invitation - Federal Science DataHub"]</PageTitle>
+<PageTitle>@Localizer["Complete Invitation - {0}", Localizer["MainTitle"]]</PageTitle>
 
 @if (_loading)
 {

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -23,6 +23,7 @@ using Datahub.Core.Model.Subscriptions;
 using Datahub.Infrastructure.Services.Storage;
 using Datahub.Shared.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -35,6 +36,16 @@ namespace Datahub.SpecflowTests.Hooks
     [Binding]
     public class WorkspaceStorageHook
     {
+        private MemoryCache? _memoryCache;
+
+        [After]
+        public void Cleanup()
+        {
+            _memoryCache?.Dispose();
+            _memoryCache = null;
+        }
+
+
         [BeforeScenario("WorkspaceStorage")]
         public async Task BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
@@ -232,8 +243,10 @@ namespace Datahub.SpecflowTests.Hooks
             DatahubPortalConfiguration datahubPortalConfiguration, IObjectContainer objectContainer)
         {
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
+            _memoryCache?.Dispose();
+            _memoryCache = new MemoryCache(new MemoryCacheOptions());
             var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
-                dbContextFactory, workspaceRgManagementService);
+                _memoryCache, dbContextFactory, workspaceRgManagementService);
 
 
             workspaceRgManagementService
@@ -268,6 +281,7 @@ namespace Datahub.SpecflowTests.Hooks
                 .Returns(new List<ResourceIdentifier>());
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
+            objectContainer.RegisterInstanceAs<IMemoryCache>(_memoryCache);
             objectContainer.RegisterInstanceAs(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs<IWorkspaceStorageManagementService>(workspaceStorageManagementService);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);

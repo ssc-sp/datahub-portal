@@ -132,7 +132,7 @@ public class WorkspaceCreationService(
             await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
             var workspaceDefinition =
-                await resourceMessagingService.GetWorkspaceDefinition(acronym, portalUser.Email, cbrID);
+                await resourceMessagingService.CreateWorkspaceDefinition(acronym, portalUser.Email, cbrID);
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
         
     }
@@ -149,7 +149,7 @@ public class WorkspaceCreationService(
             await CreateNewTemplateWorkspaceResourceAsync(acronym);
 
             var workspaceDefinition =
-                await resourceMessagingService.GetWorkspaceDefinition(acronym, currentPortalUser.Email);
+                await resourceMessagingService.CreateWorkspaceDefinition(acronym, currentPortalUser.Email);
             await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);             
 
             return true;

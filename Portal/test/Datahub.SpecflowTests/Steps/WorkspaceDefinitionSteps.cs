@@ -49,7 +49,7 @@ public class WorkspaceDefinitionSteps(
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == Testing.WorkspaceAcronym);
 
-        var workspaceDefinition =  await resourceMessagingService.GetWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
+        var workspaceDefinition =  await resourceMessagingService.CreateWorkspaceDefinition(workspace!.Project_Acronym_CD, string.Empty);
         scenarioContext["workspaceDefinition"] = workspaceDefinition;
     }
 

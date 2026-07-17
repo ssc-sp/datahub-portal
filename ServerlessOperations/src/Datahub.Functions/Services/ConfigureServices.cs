@@ -1,9 +1,34 @@
 using Datahub.Application.Configuration;
+using Datahub.Application.Services;
+using Datahub.Application.Services.Cost;
+using Datahub.Application.Services.Notification;
+using Datahub.Application.Services.Projects;
+using Datahub.Application.Services.ResourceGroups;
+using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.WebApp;
+using Datahub.Core.Configuration;
+using Datahub.Core.Data;
+using Datahub.Core.Model.Context;
+using Datahub.Core.Services.Projects;
+using Datahub.Functions.Providers;
+using Datahub.Infrastructure;
+using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.Cost;
+using Datahub.Infrastructure.Services.Helpers;
+using Datahub.Infrastructure.Services.Notification;
+using Datahub.Infrastructure.Services.Projects;
+using Datahub.Infrastructure.Services.ResourceGroups;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Infrastructure.Services.Storage;
+using Datahub.Infrastructure.Services.UserManagement;
+using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Shared.Clients;
+using Datahub.Shared.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Datahub.Core.Configuration;
-using Datahub.Core.Data; // added
 
 namespace Datahub.Functions.Services;
 
@@ -15,6 +40,23 @@ public static class ConfigureServices
     internal const string DEVOPS_CLIENT_ID_KEY = "AzureDevOpsConfiguration:ClientId";
     internal const string DEVOPS_CLIENT_SECRET_KEY = "AzureDevOpsConfiguration:ClientSecret";
     internal const string DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY = "DatahubServiceBus:ConnectionString";
+
+    public static IServiceCollection AddFunctionsHostServices(this IServiceCollection services)
+    {
+        services.AddScoped<IMSGraphService, MSGraphService>();
+        services.AddScoped<IUserTokenCredentialService, ServerUserTokenProviderService>();
+        services.AddScoped<IUserInformationService, FunctionUserInformationService>();
+        services.AddScoped<AzureDevOpsClient>();
+        services.AddScoped<AzAccessTokenManager>();
+        services.AddSingleton<IEmailService, EmailService>();
+        services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
+        services.AddScoped<IKeyVaultUserService, ServerKeyVaultService>();
+        services.AddScoped<IDateProvider, DateProvider>();
+        services.AddScoped<EmailNotificationHandler>();
+        services.AddScoped<VirusScanNotificationHandler>();
+
+        return services;
+    }
 
     public static IServiceCollection AddDatahubConfigurationFromFunctionFormat(this IServiceCollection services,
         IConfiguration configuration)
@@ -40,24 +82,19 @@ public static class ConfigureServices
             configuration[DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY]
             ?? throw new ArgumentNullException(DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
 
-        //services.AddSingleton(datahubConfiguration);
-        
         services.AddMassTransitForAzureFunctions(x =>
         {
             x.AddConsumersFromNamespaceContaining<EmailNotificationHandler>();
         }, DATAHUB_SERVICE_BUS_CONNECTION_STRING_KEY);
 
-        // APITargets via Options pattern (replaces manual singleton binding)
         services
             .AddOptions<APITargets>()
             .Bind(configuration.GetSection(nameof(APITargets)))
             .Validate(o => !string.IsNullOrWhiteSpace(o.KeyVaultName), "KeyVaultName is required")
             .ValidateOnStart();
 
-        // Diagnostic dump (redacted)
         ConfigurationHelper.DumpRedactedToConsole("Datahub configuration", datahubConfiguration);
 
-        // Dump bound APITargets once (resolve from provider after options configured)
         services.PostConfigure<APITargets>(apiTargets =>
         {
             ConfigurationHelper.DumpRedactedToConsole("API targets", apiTargets);

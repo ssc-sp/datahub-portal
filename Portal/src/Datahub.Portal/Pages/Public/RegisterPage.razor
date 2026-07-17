@@ -23,7 +23,7 @@
 @page "/register"
 @page "/inscription"
 
-<PageTitle>@Localizer["Registration - Federal Science DataHub"]</PageTitle>
+<PageTitle>@Localizer["Registration - {0}", Localizer["MainTitle"]]</PageTitle>
 
 <MudContainer MaxWidth=@MaxWidth.Medium>
     <MudPaper Class="pt-12 px-12 mt-20">
@@ -40,7 +40,7 @@
         </MudStack>
         <MudAlert Severity="Severity.Error" Dense="true" Class="my-2" Style="color: #0d1117" Variant="Variant.Outlined">
             <MudText Typo="Typo.body1">
-                @Localizer["You do not have an active account on the Federal Science DataHub. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error."]
+                @Localizer["You do not have an active account on the {0}. Visit the links in the footer for more information about the platform. Contact us if you believe this is an error.", Localizer["MainTitle"]]
             </MudText>
         </MudAlert>
         <MudText Typo="Typo.body1">

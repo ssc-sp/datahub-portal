@@ -1,20 +1,33 @@
 {
-    "version": "2.0",
-    "logging": {
-        "applicationInsights": {
-            "samplingSettings": {
-                "isEnabled": true,
-                "excludedTypes": "Request"
-            }
+  "version": "2.0",
+  "logging": {
+    "LogLevel": {
+      "Microsoft": "Warning",
+      "Datahub": "Debug",
+      "Microsoft.Hosting.Lifetime": "Information",
+      "AspNetCore.Localizer": "Debug",
+      "Default": "Warning"
+    },
+    "ApplicationInsights": {
+      "samplingSettings": {
+        "isEnabled": true,
+        "excludedTypes": "Request",
+        "LogLevel": {
+          "Microsoft": "Warning",
+          "Default": "Warning",
+          "Microsoft.Hosting.Lifetime": "Information",
+          "Datahub": "Information"
         }
+      }
     },
     "extensions": {
-        "serviceBus": {
-            "prefetchCount": 32,
-            "autoCompleteMessages": true,
-            "maxConcurrentCalls": 32,
-            "maxAutoLockRenewalDuration": "00:30:00",
-            "transportType": "amqpWebSockets"
-        }
+      "serviceBus": {
+        "prefetchCount": 32,
+        "autoCompleteMessages": true,
+        "maxConcurrentCalls": 32,
+        "maxAutoLockRenewalDuration": "00:30:00",
+        "transportType": "amqpWebSockets"
+      }
     }
+  }
 }

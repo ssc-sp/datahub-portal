@@ -117,7 +117,7 @@
         <MudText Typo="Typo.h2">@Localizer["Quick settings"]</MudText>
         <MudPaper Class="pa-4">
             <SettingsField Label=@Localizer["URL rewriting"]
-                           Description="@Localizer["The FSDH proxy rewrites URL paths which is supported by most web applications who do not configure the base href. However some frameworks (such as python dash) do configure a base url. For these frameworks, the URL rewrite option should be disabled and the proxied URL should be configured inside the application as base url."]">
+                           Description="@Localizer["The {0} proxy rewrites URL paths which is supported by most web applications who do not configure the base href. However some frameworks (such as python dash) do configure a base url. For these frameworks, the URL rewrite option should be disabled and the proxied URL should be configured inside the application as base url.", Localizer["MainAcronym"]]">
                 <MudSwitch
                     T=@bool
                     Value=@_isUrlRewritingEnabled
@@ -195,7 +195,7 @@
                 </strong>
             </MudAlert>
             <MudText Typo="Typo.body1" Class="mt-4">
-                @Localizer["Web applications in FSDH are deployed and hosted using the "]
+                @Localizer["Web applications in {0} are deployed and hosted using the ", Localizer["MainAcronym"]]
                 <MudLink
                     Href="https://azure.microsoft.com/en-ca/products/app-service">@Localizer["Azure App Service. "]</MudLink>
                 @Localizer["For this reason, there are certain limitations you must follow in order to successfully deploy your web application."]

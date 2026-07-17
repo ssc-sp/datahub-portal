@@ -13,7 +13,7 @@
 @attribute [AllowAnonymous]
 
 <PageTitle>
-    @Localizer["Account Locked - Federal Science DataHub"]
+    @Localizer["Account Locked - {0}", Localizer["MainTitle"]]
 </PageTitle>
 
 <MudContainer MaxWidth="MaxWidth.Medium" Class="mt-8">
@@ -72,7 +72,7 @@
 
             <MudAlert Severity="Severity.Info">
                 <MudText Typo="Typo.body2">
-                    @Localizer["This security measure helps protect the Federal Science DataHub infrastructure and all users' data. We appreciate your cooperation in maintaining a secure environment."]
+                    @Localizer["This security measure helps protect the {0} infrastructure and all users' data. We appreciate your cooperation in maintaining a secure environment.", Localizer["MainTitle"]]
                 </MudText>
             </MudAlert>
 

@@ -741,7 +741,7 @@
             .Include(w => w.Resources)
             .Include(w => w.Credits)
             .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
-        _workspaceDefinition = await ResourceMessagingService.GetWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
+        _workspaceDefinition = await ResourceMessagingService.CreateWorkspaceDefinition(_workspace.Project_Acronym_CD, _viewedPortalUser.Email);
         _workspaceCosts.Spent = (decimal)(_workspace.Credits?.Current ?? 0);
         _workspaceCosts.Budget = _workspace.Project_Budget ?? 100;
         _workspaceCosts.Monthly = (decimal)(_workspace.Credits?.YesterdayCredits ?? 0) * 30;

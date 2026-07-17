@@ -4,6 +4,7 @@ using Bunit.TestDoubles;
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Toolbox;
+using Datahub.Core.Configuration;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
@@ -94,7 +95,9 @@ public class WorkspaceToolboxSteps(
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var endpointProvider = Substitute.For<ISendEndpointProvider>();
         var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, workspaceVersionService, mockSubnetPoolService);
+        var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
+
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, endpointProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
         var requestManagementService = new RequestManagementService(
             requestLogger,
             dbContextFactory,
