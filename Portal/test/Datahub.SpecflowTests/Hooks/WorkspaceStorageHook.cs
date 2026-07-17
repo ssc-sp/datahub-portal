@@ -33,13 +33,10 @@ using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks
 {
-    public partial class WorkspaceStorageHook
-    {
-        private MemoryCache? _memoryCache;
-    }
     [Binding]
     public class WorkspaceStorageHook
     {
+        private MemoryCache? _memoryCache;
         [BeforeScenario("WorkspaceStorage")]
         public async Task BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
