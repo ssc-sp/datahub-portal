@@ -262,7 +262,7 @@
         _uploaderEnabled = await featureManager.IsEnabledAsync(Features.Storage_Uploader_Feature);
 
         var acronym = _project?.Project_Acronym_CD;
-        _title = $"{acronym} - {Localizer["Storage"]}";
+        _title = $"{acronym} - {Localizer["Storage"]} - {Localizer["MainTitle"]}";
         _projectId = _project?.Project_ID;
         try
         {
