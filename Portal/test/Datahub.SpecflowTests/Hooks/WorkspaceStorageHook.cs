@@ -33,6 +33,10 @@ using Reqnroll.BoDi;
 
 namespace Datahub.SpecflowTests.Hooks
 {
+    public partial class WorkspaceStorageHook
+    {
+        private MemoryCache? _memoryCache;
+    }
     [Binding]
     public class WorkspaceStorageHook
     {
@@ -226,6 +230,8 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.Project_Storage_Avgs.Add(projectAverage);
             context.SaveChanges();
+            _memoryCache?.Dispose();
+            _memoryCache = null;
         }
 
         public void MockServiceCalls(ArmClient armClient, ILogger<WorkspaceStorageManagementService> logger,
@@ -233,9 +239,10 @@ namespace Datahub.SpecflowTests.Hooks
             DatahubPortalConfiguration datahubPortalConfiguration, IObjectContainer objectContainer)
         {
             var workspaceRgManagementService = Substitute.For<IWorkspaceResourceGroupsManagementService>();
-            var memoryCache = new MemoryCache(new MemoryCacheOptions());
+            _memoryCache?.Dispose();
+            _memoryCache = new MemoryCache(new MemoryCacheOptions());
             var workspaceStorageManagementService = new WorkspaceStorageManagementService(armClient, logger,
-                memoryCache, dbContextFactory, workspaceRgManagementService);
+                _memoryCache, dbContextFactory, workspaceRgManagementService);
 
 
             workspaceRgManagementService
@@ -270,7 +277,7 @@ namespace Datahub.SpecflowTests.Hooks
                 .Returns(new List<ResourceIdentifier>());
 
             objectContainer.RegisterInstanceAs<IDbContextFactory<DatahubProjectDBContext>>(dbContextFactory);
-            objectContainer.RegisterInstanceAs<IMemoryCache>(memoryCache);
+            objectContainer.RegisterInstanceAs<IMemoryCache>(_memoryCache);
             objectContainer.RegisterInstanceAs(workspaceRgManagementService);
             objectContainer.RegisterInstanceAs<IWorkspaceStorageManagementService>(workspaceStorageManagementService);
             objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
