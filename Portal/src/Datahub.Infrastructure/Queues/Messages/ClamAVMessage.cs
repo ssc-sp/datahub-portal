@@ -33,6 +33,6 @@ public class ClamAVMessage
     [JsonPropertyName("ScannedFile")]
     public string ScannedFile { get; set; } = string.Empty;
 
-    [JsonPropertyName("OriginalBlobMetadata")]
-    public ClamAVBlobMetadata OriginalBlobMetadata { get; set; } = new();
+    [JsonPropertyName("UpdatedBlobMetadata")]
+    public ClamAVBlobMetadata UpdatedBlobMetadata { get; set; } = new();
 }

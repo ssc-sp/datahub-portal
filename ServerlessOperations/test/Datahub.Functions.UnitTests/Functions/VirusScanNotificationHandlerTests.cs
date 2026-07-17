@@ -82,7 +82,7 @@ public class VirusScanNotificationHandlerTests
             ScanError = "Virus detected",
             ScanEndTime = DateTime.UtcNow,
             ScannedFile = "https://storage.test.blob.core.windows.net/external-uploads/test-file.txt",
-            OriginalBlobMetadata = new ClamAVBlobMetadata { CreatedBy = userGuid }
+            UpdatedBlobMetadata = new ClamAVBlobMetadata { CreatedBy = userGuid }
         };
 
         await sut.RunAsync(CreateServiceBusMessage(scanMessage));
@@ -122,7 +122,7 @@ public class VirusScanNotificationHandlerTests
             ScanError = "Virus detected",
             ScanEndTime = DateTime.UtcNow,
             ScannedFile = "https://storage.test.blob.core.windows.net/just-a-file.txt",
-            OriginalBlobMetadata = new ClamAVBlobMetadata { CreatedBy = string.Empty }
+            UpdatedBlobMetadata = new ClamAVBlobMetadata { CreatedBy = string.Empty }
         };
 
         await sut.RunAsync(CreateServiceBusMessage(scanMessage));
@@ -157,7 +157,7 @@ public class VirusScanNotificationHandlerTests
             ScanError = "Virus detected",
             ScanEndTime = DateTime.UtcNow,
             ScannedFile = $"https://storage.test.blob.core.windows.net/external-uploads/user_example.com/test-file.txt",
-            OriginalBlobMetadata = null
+            UpdatedBlobMetadata = null
         };
 
         await sut.RunAsync(CreateServiceBusMessage(scanMessage));

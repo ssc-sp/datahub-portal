@@ -316,9 +316,9 @@ public class VirusScanNotificationHandler(
 
     private async Task<ClamAVBlobMetadata?> ResolveOriginalBlobMetadataAsync(ClamAVMessage scanResult, string? blobUri)
     {
-        if (scanResult.OriginalBlobMetadata is not null)
+        if (scanResult.UpdatedBlobMetadata is not null)
         {
-            return scanResult.OriginalBlobMetadata;
+            return scanResult.UpdatedBlobMetadata;
         }
 
         if (string.IsNullOrWhiteSpace(blobUri))
