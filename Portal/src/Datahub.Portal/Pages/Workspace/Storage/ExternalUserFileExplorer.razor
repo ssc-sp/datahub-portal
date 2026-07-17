@@ -51,7 +51,7 @@
                         <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                             <MudProgressCircular Indeterminate Color="Color.Info" Size="Size.Small" />
                             <MudText Typo="Typo.body2">
-                                @Localizer["Scanning uploaded file(s) for viruses... {0} file(s) pending.", FilesBeingScannedCount]
+                                @Localizer["Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.", FilesBeingScannedCount]
                             </MudText>
                         </MudStack>
                     </MudPaper>
@@ -316,5 +316,7 @@ else
         {
             // ignored
         }
+        virusScanStatusConsumer.OnVirusScanStatusReceived -= OnVirusScanStatusReceived;
+
     }
 }

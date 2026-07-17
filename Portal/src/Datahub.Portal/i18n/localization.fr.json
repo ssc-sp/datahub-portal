@@ -1373,6 +1373,7 @@
   "GAD": "AD",
   "Gain rapid insights into your data and demonstrate the art of the possible.": "Obtenez rapidement de l’information sur vos données et montrez l’art du possible.",
   "GC Hosting CBR": "BOI d'hébergement du GC",
+  "GC Hosting CBR is not configured": "Le BOI d'hébergement du GC n'est pas configuré",
   "GC Hosting Services Portal": "Portail des services d'hébergement du GC",
   "GC-SGB": "GC-DAG",
   "GCDOCS": "GCDOCS",
@@ -2675,7 +2676,7 @@
   "Scan Error": "Erreur d'analyse",
   "Scan Result": "Résultat de l'analyse",
   "Scanning": "Analyse en cours",
-  "Scanning uploaded file(s) for viruses... {0} file(s) pending.": "Analyse des fichiers téléchargés à la recherche de virus... {0} fichier(s) en attente.",
+  "Scanning uploaded file(s) for viruses... This can take a few minutes. {0} file(s) pending.": "Analyse des fichiers téléchargés à la recherche de virus... Cela peut prendre quelques minutes. {0} fichier(s) en attente.",
   "SCD": "DCS",
   "Schedule": "Planifier",
   "Science and Technology": "Science & technologie",
@@ -3582,5 +3583,7 @@
   "Your workspace's daily costs": "Coûts quotidiens de votre espace de travail",
   "Your workspaces": "Vos espaces de travail",
   "YRO": "BRY",
-  "YT": "YN"
+  "YT": "YN",
+  "No external users in this workspace.": "Aucun utilisateur externe dans cet espace de travail.",
+  "Only the workspace lead can invite external users": "Seul le responsable de l'espace de travail peut inviter des utilisateurs externes"
 }

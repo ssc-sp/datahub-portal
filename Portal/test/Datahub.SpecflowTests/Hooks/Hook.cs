@@ -1,5 +1,6 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Core.Configuration;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Services.Projects;
 using Datahub.Infrastructure.Offline;
@@ -9,6 +10,7 @@ using MassTransit;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NSubstitute.ClearExtensions;
@@ -16,7 +18,6 @@ using Reqnroll;
 using Reqnroll.BoDi;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.FileProviders;
 
 namespace Datahub.SpecflowTests.Hooks;
 
@@ -45,16 +46,18 @@ public class Hooks
         var mockSendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
-        var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, workspaceVersionService, mockSubnetPoolService);
+        var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
+
+        var actualResourceMessageService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
 
         var substituteResourceMessageService = Substitute.For<IResourceMessagingService>();
         substituteResourceMessageService.ClearSubstitute();
         substituteResourceMessageService.SendToTerraformQueue(Arg.Any<WorkspaceDefinition>())
             .Returns(Task.CompletedTask);
 
-        substituteResourceMessageService.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string?>())
+        substituteResourceMessageService.CreateWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string?>())
             .Returns(callInfo =>
-                actualResourceMessageService.GetWorkspaceDefinition((string)callInfo[0]));
+                actualResourceMessageService.CreateWorkspaceDefinition((string)callInfo[0]));
 
         var requestManagementService = new RequestManagementService(
             Substitute.For<ILogger<RequestManagementService>>(),

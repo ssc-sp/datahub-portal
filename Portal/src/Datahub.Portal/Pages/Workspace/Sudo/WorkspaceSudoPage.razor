@@ -127,7 +127,7 @@
 		await _projectCreationService.CreateNewTemplateWorkspaceResourceAsync(WorkspaceAcronym);
 
 		var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-		var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+		var workspaceDefinition = await _resourceMessagingService.CreateWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
 
 		var workspaceDefinitionJsonString = JsonSerializer.Serialize(workspaceDefinition,
 			new JsonSerializerOptions
@@ -199,7 +199,7 @@
     private async Task HandlePostToServiceBus()
     {
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+        var workspaceDefinition = await _resourceMessagingService.CreateWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
         await _resourceMessagingService.SendToTerraformQueue(workspaceDefinition);
 
         _snackbar.Add(Localizer["Definition sent to Service Bus"], Severity.Success);
@@ -208,7 +208,7 @@
     private async Task HandleWorkspaceUpgrade()
     {
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
-        var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
+        var workspaceDefinition = await _resourceMessagingService.CreateWorkspaceDefinition(WorkspaceAcronym, currentUser.Email);
 
         workspaceDefinition.Workspace.Version = TerraformWorkspace.DefaultVersion;
         

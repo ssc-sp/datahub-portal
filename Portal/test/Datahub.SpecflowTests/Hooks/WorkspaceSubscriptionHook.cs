@@ -4,6 +4,7 @@ using Datahub.Application.Services.Metadata;
 using Datahub.Application.Services.Security;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Core.Configuration;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Users;
@@ -64,13 +65,14 @@ public class WorkspaceSubscriptionHook
         var mockISendEndpointProvider = Substitute.For<ISendEndpointProvider>();
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
+        var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
 
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, workspaceVersionService, mockSubnetPoolService);
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockISendEndpointProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
         var resourceMessagingSubstitute = Substitute.For<IResourceMessagingService>();
 
-        resourceMessagingSubstitute.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
+        resourceMessagingSubstitute.CreateWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
             .Returns(callInfo =>
-                resourceMessagingService.GetWorkspaceDefinition((string)callInfo[0], (string)callInfo[1])); 
+                resourceMessagingService.CreateWorkspaceDefinition((string)callInfo[0], (string)callInfo[1])); 
 
         var currentUser = new PortalUser
         {

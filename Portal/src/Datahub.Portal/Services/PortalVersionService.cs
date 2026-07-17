@@ -1,4 +1,4 @@
-﻿using Datahub.Core.Services;
+using Datahub.Core.Services;
 using Microsoft.Extensions.Options;
 using System.Reflection;
 
@@ -6,14 +6,14 @@ namespace Datahub.Portal.Services;
 
 public class PortalVersionService : IPortalVersionService
 {
-    private readonly Dictionary<string, string> _attributes;
+    private readonly Dictionary<string, string?> _attributes;
     private readonly string _release;
     private readonly PortalVersion _portalVersion;
 
     public PortalVersionService(IOptions<PortalVersion> config)
     {
         _attributes = Assembly.GetExecutingAssembly().GetCustomAttributes<AssemblyMetadataAttribute>().ToDictionary(a => a.Key, a => a.Value);
-        _release = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>().InformationalVersion;
+        _release = Assembly.GetExecutingAssembly().GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? string.Empty;
         _portalVersion = config.Value;
     }
 

@@ -119,7 +119,7 @@ namespace Datahub.Functions.UnitTests
             var projectAcronym = TestHelper.OVERBUDGET_WEB_APP_PROJECT_ACRONYM;
             var cancellationToken = CancellationToken.None;
 
-            _resourceMessagingServiceMock.GetWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
+            _resourceMessagingServiceMock.CreateWorkspaceDefinition(Arg.Any<string>(), Arg.Any<string>())
                 .Returns(TestHelper.TestWorkspaceDefinition);
 
             // Act

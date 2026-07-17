@@ -1,4 +1,4 @@
-﻿@using Datahub.Application.Services
+@using Datahub.Application.Services
 @using Datahub.Application.Services.Announcements
 @using Datahub.Application.Services.Notification
 @using Datahub.Application.Services.UserManagement
@@ -437,7 +437,7 @@
                 return;
             }
 
-            var workspaceDefinition = await _resourceMessagingService.GetWorkspaceDefinition(workspace.Project_Acronym_CD, userEmail);
+            var workspaceDefinition = await _resourceMessagingService.CreateWorkspaceDefinition(workspace.Project_Acronym_CD, userEmail);
             await _workspaceVersionService.SetResourcesToCreateRequested(workspace.Project_ID);        
             await _requestManagementService.SendVersionUpdateToQueueAsync(_latestVersion, workspaceDefinition);            
             await _workspaceVersionService.SetWorkspaceToUpdateRequested(workspace.Project_ID);

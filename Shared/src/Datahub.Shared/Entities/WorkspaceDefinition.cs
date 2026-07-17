@@ -11,7 +11,7 @@ public partial class WorkspaceDefinition
     public required string RequestingUserEmail { get; set; }
 
     public string? ResourceGroupName { get; set; }
-    public string? CBRID { get; set; } = string.Empty;
+    public string CBRID { get; set; } = string.Empty;
 
     public bool UpdateWorkspaceVersion { get; set; } = false;
 }

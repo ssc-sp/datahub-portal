@@ -50,6 +50,10 @@ public static class TerraformVariables
     public const string BackendKeyName = "key";
     public const string BackendSubscriptionIdName = "subscription_id";
 
+    // Service Bus Information
+    public const string ServiceBusNamespace = "service_bus_namespace";
+    public const string ServiceBusObjectId = "service_bus_objectid";
+
     // Workspace related variables
     public const string ProjectAcronym = "project_cd";
     public const string BudgetAmount = "budget_amount";

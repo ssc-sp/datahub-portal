@@ -7,6 +7,7 @@ using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Onboarding;
+using Datahub.Shared.Clients;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -16,18 +17,18 @@ public partial class UserEnrollmentService : IUserEnrollmentService
 {
     private readonly ILogger<UserEnrollmentService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly DatahubPortalConfiguration _datahubPortalConfiguration;
+    private readonly IAzureConfiguration _configuration;
     private readonly IDbContextFactory<DatahubProjectDBContext> _contextFactory;
 
     public UserEnrollmentService(
         ILogger<UserEnrollmentService> logger, 
         IHttpClientFactory httpClientFactory,
-        DatahubPortalConfiguration datahubPortalConfiguration,
+        IAzureConfiguration datahubPortalConfiguration,
         IDbContextFactory<DatahubProjectDBContext> contextFactory) 
     {
         _logger = logger;
         _httpClientFactory = httpClientFactory;
-        _datahubPortalConfiguration = datahubPortalConfiguration;
+        _configuration = datahubPortalConfiguration;
         _contextFactory = contextFactory;
     }
 
@@ -35,7 +36,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
     {
         if(email == null) return false;
         
-        var url = _datahubPortalConfiguration.AllowedUserEmailDomains;
+        var url = _configuration.AllowedUserEmailDomains;
 
         foreach (var item in url)
         {
@@ -73,7 +74,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         };
 
         var jsonBody = new JsonObject(payload!);
-        var url = _datahubPortalConfiguration.DatahubGraphInviteFunctionUrl;
+        var url = _configuration.GraphInviteFunctionUrl;
 
         var numberOfRetries = 0;
         const int maxNumberOfRetries = 5;
@@ -129,7 +130,7 @@ public partial class UserEnrollmentService : IUserEnrollmentService
         };
 
         var jsonBody = new JsonObject(payload!);
-        var url = _datahubPortalConfiguration.DatahubAddUserToGroupFunctionUrl;
+        var url = _configuration.AddUserToGroupFunctionUrl;
 
         var content = new StringContent(jsonBody.ToString(), Encoding.UTF8, "application/json");
         

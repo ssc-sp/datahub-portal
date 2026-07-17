@@ -4,8 +4,6 @@ using Azure.Messaging.ServiceBus;
 using Datahub.Application.Services;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
-using Datahub.Functions.Extensions;
-using Datahub.Infrastructure.Services;
 using Datahub.Shared;
 using Datahub.Shared.Configuration;
 using Datahub.Shared.Entities;
@@ -13,7 +11,6 @@ using Datahub.Shared.Entities.WorkspaceToolConfiguration;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using MimeKit;
 
 namespace Datahub.Functions;
 
@@ -213,9 +210,9 @@ public class TerraformOutputHandler(
         _logger.LogInformation("Processing user updates to external permissions for project {ProjectAcronym}",
             projectAcronym.Value);
         var workspaceDefinition =
-            await resourceMessagingService.GetWorkspaceDefinition(project.Project_Acronym_CD,
+            await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD,
                 TerraformOutputHandlerName);
-        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
+        await resourceMessagingService.QueueRBACSync(workspaceDefinition);
         _logger.LogInformation(
             "Processing complete for user updates to external permissions for project {ProjectAcronym}",
             projectAcronym.Value);

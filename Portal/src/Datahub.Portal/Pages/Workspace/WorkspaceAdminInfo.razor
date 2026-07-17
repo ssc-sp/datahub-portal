@@ -14,6 +14,12 @@
         <MudItem xs="12">
             <MudText Typo="Typo.h2">@Localizer["Administrative Summary"]</MudText>
         </MudItem>
+        @if (_workspaceCBR is not null)
+        {
+            <MudItem xs="12" Class="pt-1">
+                <b>@Localizer["GC Hosting CBR"] @_workspaceCBR</b>
+            </MudItem>
+        }
         <MudItem xs="12" sm="6">
             <MudChart T="double" ChartType="ChartType.Donut"
                       ChartOptions="@_chartOptions"
@@ -44,7 +50,7 @@
     [Parameter, EditorRequired] public string WorkspaceAcronym { get; set; }
 
     private decimal _projectBudget { get; set; }
-    private Project_Credits _projectCredits { get; set; }
+    private Project_Credits? _projectCredits { get; set; }
 
     private decimal CurrentCost => Convert.ToDecimal(_projectCredits?.Current ?? 0);
 
@@ -55,6 +61,7 @@
     private List<DailyServiceCost> _currentDailyCosts { get; set; } = new();
     private List<DailyServiceCost> _currentServiceCosts { get; set; } = new();
     private List<DailyServiceCost> _yesterdayServiceCosts { get; set; } = new();
+    private string? _workspaceCBR = null;
 
     private readonly DonutChartOptions _chartOptions = new DonutChartOptions
     {
@@ -68,9 +75,10 @@
 
         var project = await ctx.Projects
             .Include(p => p.Credits)
+            .Include(p => p.ParentGCHostingBudget)
             .AsSingleQuery()
             .FirstOrDefaultAsync(p => p.Project_Acronym_CD == WorkspaceAcronym);
-
+        _workspaceCBR = project?.ParentGCHostingBudget?.CBRID;
         _projectCredits = project.Credits;
         _projectBudget = project.Project_Budget ?? 0;
 
@@ -81,33 +89,34 @@
 
     private void HydrateCosts()
     {
+        if (_projectCredits is null || _projectCredits.CurrentPerService is null) return;
         try
         {
-            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+            _currentDailyCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService) ?? new();
         }
         catch (Exception e)
         {
-            var dailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerService);
+            var dailyCosts = JsonSerializer.Deserialize<List<AzureDailyCost>>(_projectCredits.CurrentPerService) ?? new();
             _currentDailyCosts = ConvertCosts(dailyCosts);
         }
 
         try
         {
-            _currentServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService);
+            _currentServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.CurrentPerService) ?? new();
         }
         catch (Exception e)
         {
-            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService);
+            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.CurrentPerService) ?? new();
             _currentServiceCosts = ConvertCosts(serviceCosts);
         }
 
         try
         {
-            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.YesterdayPerService);
+            _yesterdayServiceCosts = JsonSerializer.Deserialize<List<DailyServiceCost>>(_projectCredits.YesterdayPerService ?? string.Empty) ?? new();
         }
         catch (Exception e)
         {
-            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService);
+            var serviceCosts = JsonSerializer.Deserialize<List<AzureServiceCost>>(_projectCredits.YesterdayPerService ?? string.Empty) ?? new();
             _yesterdayServiceCosts = ConvertCosts(serviceCosts);
         }
     }

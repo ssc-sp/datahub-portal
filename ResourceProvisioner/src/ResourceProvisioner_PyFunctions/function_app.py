@@ -252,7 +252,8 @@ def sync_storage_workspace_users_function(workspace_definition):
     tenantId = os.environ["AzureTenantId"]
 
     sg_client = azsg_utils.get_authorization_client(subscription_id, tenantId)
-    azsg_utils.synchronize_access_policies(sg_client,subscription_id, environment_name, workspace_definition)
+    blob_containers = ["users", "shared", "datahub"]
+    azsg_utils.synchronize_access_policies(sg_client,subscription_id, environment_name, workspace_definition, blob_containers)
 
     # Cleanup users in workspace that aren't in AAD Graph
     #remove_deleted_users_in_workspace(workspace_client)
