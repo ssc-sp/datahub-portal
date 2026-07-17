@@ -23,7 +23,7 @@ public class RequestManagementService(
     {
         var workspaceDefinition =
             await resourceMessagingService.CreateWorkspaceDefinition(project.Project_Acronym_CD, currentPortalUser.Email);
-        await resourceMessagingService.SendToUserQueue(workspaceDefinition);
+        await resourceMessagingService.QueueRBACSync(workspaceDefinition);
     }
 
     /// <summary>

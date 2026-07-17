@@ -16,7 +16,9 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
+using System.Text;
 using System.Text.Json;
+using System.Text.Unicode;
 
 namespace Datahub.Functions.UnitTests.Functions;
 
@@ -28,6 +30,8 @@ public class VirusScanNotificationHandlerTests
     public async Task RunAsync_WhenScanIsClean_QueuesStatusAndMovesBlobToUsersContainer()
     {
         var sendEndpointProvider = Substitute.For<ISendEndpointProvider>();
+        var userGuid = Guid.NewGuid().ToString();
+        var dbContextFactory = CreateDbContextFactoryForVirusScanning(userGuid);
         var endpoint = Substitute.For<ISendEndpoint>();
         sendEndpointProvider.GetSendEndpoint(Arg.Any<Uri>()).Returns(Task.FromResult(endpoint));
 
@@ -37,7 +41,8 @@ public class VirusScanNotificationHandlerTests
 
         var sut = CreateHandler(
             sendEndpointProvider: sendEndpointProvider,
-            storageManagementService: storageManagementService);
+            storageManagementService: storageManagementService,
+            dbContextFactory: dbContextFactory);
 
         var scanMessage = new ClamAVMessage
         {
@@ -85,18 +90,18 @@ public class VirusScanNotificationHandlerTests
         await gcNotifyService.Received(1).SendInfectedFileNotification(
             IGCNotifyService.DEFAULT_MAILBOX,
             "test-file.txt",
-            "unknown",
+            "storage",
             Arg.Any<string>());
 
         await gcNotifyService.Received(1).SendInfectedFileNotification(
             "lead@example.com",
             "test-file.txt",
-            "unknown",
+            "storage",
             Arg.Any<string>());
 
         await lockedUserManagementService.Received(1).LockUserAsync(
             1,
-            Arg.Is<string>(details => details.Contains("test-file.txt") && details.Contains("unknown")),
+            Arg.Is<string>(details => details.Contains("test-file.txt") && details.Contains("storage")),
             null);
     }
 
@@ -125,7 +130,7 @@ public class VirusScanNotificationHandlerTests
         await gcNotifyService.Received(1).SendInfectedFileNotification(
             IGCNotifyService.DEFAULT_MAILBOX,
             "just-a-file.txt",
-            "unknown",
+            "storage",
             Arg.Any<string>());
 
         await lockedUserManagementService.DidNotReceiveWithAnyArgs().LockUserAsync(default, default!, default);
@@ -160,7 +165,7 @@ public class VirusScanNotificationHandlerTests
         await gcNotifyService.Received(1).SendInfectedFileNotification(
             IGCNotifyService.DEFAULT_MAILBOX,
             "test-file.txt",
-            "unknown",
+            "storage",
             Arg.Any<string>());
 
         await lockedUserManagementService.Received(1).LockUserAsync(
@@ -190,7 +195,7 @@ public class VirusScanNotificationHandlerTests
 
     private static ServiceBusReceivedMessage CreateServiceBusMessage(ClamAVMessage message)
     {
-        var payload = JsonSerializer.Serialize(new { message });
+        var payload = JsonSerializer.Serialize(message);
         return ServiceBusModelFactory.ServiceBusReceivedMessage(body: new BinaryData(payload));
     }
 
@@ -230,7 +235,7 @@ public class VirusScanNotificationHandlerTests
 
         context.Projects.Add(new Datahub_Project
         {
-            Project_Acronym_CD = "unknown",
+            Project_Acronym_CD = "storage",
             Project_Name = "Test Workspace",
             Project_Status_Desc = "Active",
             UserRoles =

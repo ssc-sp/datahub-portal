@@ -52,7 +52,7 @@ public class VirusScanNotificationHandler(
             var workspaceAcronym = !string.IsNullOrWhiteSpace(storageAccountName)
                 ? await ResolveWorkspaceAcronymAsync(storageAccountName) ?? storageAccountName
                 : "unknown";
-            var scanStatus = DetermineScanStatus(scanResult.ScanError);
+            var scanStatus = DetermineScanStatus(scanResult);
             var fileName = Path.GetFileName(scanResult.ScannedFile);
             var blobPath = scanResult.ScannedFile;
 
@@ -96,7 +96,7 @@ public class VirusScanNotificationHandler(
             else if (scanStatus == ScanStatusType.Infected) 
             {
                 // notify the default mailbox and the workspace lead about the infected file
-                var scanCompletedOn = scanResult.ScanEndTime.ToString("g");
+                var scanCompletedOn = scanResult.ScanStartTime.ToString("g");
                 await gcNotifyService.SendInfectedFileNotification(
                     IGCNotifyService.DEFAULT_MAILBOX,
                     fileName,
@@ -148,7 +148,7 @@ public class VirusScanNotificationHandler(
             } else
             {
                 // notify the default mailbox and the workspace lead about the infected file
-                var scanCompletedOn = scanResult.ScanEndTime.ToString("g");
+                var scanCompletedOn = scanResult.ScanStartTime.ToString("g");
                 await gcNotifyService.SendBugReportNotification(
                     fileName,
                     $"Unexpected scan status: {scanStatus}",
@@ -308,11 +308,11 @@ public class VirusScanNotificationHandler(
         return candidate;
     }
 
-    private static ScanStatusType DetermineScanStatus(string scanError)
+    private static ScanStatusType DetermineScanStatus(ClamAVMessage message)
     {
-        return string.IsNullOrWhiteSpace(scanError)
-            ? ScanStatusType.Clean
-            : ScanStatusType.Failed;
+        return string.IsNullOrWhiteSpace(message.ScanError)
+            ? (message.ScanEndTime is null ? ScanStatusType.Failed : ScanStatusType.Clean)
+            : ScanStatusType.Infected;
     }
 
     private async Task<ClamAVBlobMetadata?> ResolveOriginalBlobMetadataAsync(ClamAVMessage scanResult, string? blobUri)

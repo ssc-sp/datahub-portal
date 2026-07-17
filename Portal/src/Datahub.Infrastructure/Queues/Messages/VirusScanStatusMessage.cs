@@ -41,7 +41,7 @@ public class VirusScanStatusMessage
     /// <summary>
     /// Timestamp when the scan completed
     /// </summary>
-    public required DateTimeOffset ScanCompletedOn { get; init; }
+    public DateTimeOffset? ScanCompletedOn { get; init; }
 
     /// <summary>
     /// File size in bytes

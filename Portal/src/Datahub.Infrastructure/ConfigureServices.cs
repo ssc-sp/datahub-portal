@@ -1,20 +1,24 @@
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
-using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Announcements;
 using Datahub.Application.Services.Cost;
 using Datahub.Application.Services.Notebooks;
 using Datahub.Application.Services.Notifications;
+using Datahub.Application.Services.Projects;
 using Datahub.Application.Services.ResourceGroups;
-using Datahub.Application.Services.ReverseProxy;
 using Datahub.Application.Services.Security;
+using Datahub.Application.Services.Storage;
 using Datahub.Application.Services.Subscriptions;
 using Datahub.Application.Services.Toolbox;
 using Datahub.Application.Services.UserManagement;
+using Datahub.Application.Services.WebApp;
+using Datahub.Application.Services.Notification;
 using Datahub.Core;
+using Datahub.Core.Configuration;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Core.Services.Projects;
 using Datahub.Core.Storage;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Announcements;
@@ -23,6 +27,7 @@ using Datahub.Infrastructure.Services.Cost;
 using Datahub.Infrastructure.Services.Helpers;
 using Datahub.Infrastructure.Services.Notebooks;
 using Datahub.Infrastructure.Services.Notifications;
+using Datahub.Infrastructure.Services.Projects;
 using Datahub.Infrastructure.Services.ResourceGroups;
 using Datahub.Infrastructure.Services.ReverseProxy;
 using Datahub.Infrastructure.Services.Security;
@@ -31,13 +36,14 @@ using Datahub.Infrastructure.Services.Subscriptions;
 using Datahub.Infrastructure.Services.Toolbox;
 using Datahub.Infrastructure.Services.UserManagement;
 using Datahub.Infrastructure.Services.VirusScan;
+using Datahub.Infrastructure.Services.WebApp;
+using Datahub.Infrastructure.Services.Notification;
 using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using MassTransit;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Yarp.ReverseProxy.Configuration;
 
 namespace Datahub.Infrastructure;
 
@@ -50,7 +56,6 @@ public static class ConfigureServices
         services.AddMediatR(cfg =>
             cfg.RegisterServicesFromAssembly(typeof(Datahub.Infrastructure.ConfigureServices).Assembly));
         services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
-        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
         services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
         services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
         services.AddSingleton<IFileTokenService, FileTokenService>();
@@ -61,17 +66,18 @@ public static class ConfigureServices
         services.AddScoped<IProjectResourceWhitelistService, ProjectResourcingWhitelistService>();
         services.AddSingleton<IAnnouncementService, AnnouncementService>();
         services.AddScoped<IDatahubEmailService, DatahubEmailService>();
-        services.AddScoped<IDatabricksApiService, DatabricksApiService>();
         services.AddScoped<IUsersStatusService, UsersStatusService>();
-        services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
         services.AddScoped<IDatahubAzureSubscriptionService, DatahubAzureSubscriptionService>();
         services.AddScoped<INetworkingManagementService, NetworkingManagementService>();
-        services.AddScoped<IUserInformationService, UserInformationService>();
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
         services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
+        services.AddScoped<IUserInformationService, UserInformationService>();
 
+        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
+        services.AddScoped<IDatabricksApiService, DatabricksApiService>();
+        services.AddSingleton<IDatahubCatalogSearch, DatahubCatalogSearch>();
 
         services.AddSingleton<AzureDevOpsClient>();
         services.AddAzureResourceManager(configuration);
@@ -85,7 +91,6 @@ public static class ConfigureServices
 
         services.AddHostedService<PreloaderService>();
         services.AddMemoryCache();
-
 
         // in Development, using InMemory MassTransit transport, HealthCheckConsumer and file system (FileWatcherService)
         // to pass and process HealthCheck messages
@@ -125,6 +130,35 @@ public static class ConfigureServices
         return services;
     }
 
+    public static IServiceCollection AddFunctionsInfrastructureServices(this IServiceCollection services)
+    {
+        services.AddScoped<IQueuePongService, QueuePongService>();
+        services.AddScoped<IGCNotifyService, GCNotifyService>();
+        services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
+        services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
+        services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
+        services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
+        services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
+        services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
+        services.AddScoped<IRequestManagementService, RequestManagementService>();
+        services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
+        services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
+        services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
+        services.AddScoped<IMSGraphService, MSGraphService>();
+
+        services.AddScoped<ISubnetPoolService, SubnetPoolService>();
+        services.AddScoped<IKeyVaultCoreService, KeyVaultCoreService>();
+
+        services.AddSingleton<IWorkspaceBudgetManagementService, WorkspaceBudgetManagementService>();
+        services.AddSingleton<IWorkspaceCostManagementService, WorkspaceCostManagementService>();
+        services.AddSingleton<IWorkspaceResourceGroupsManagementService, WorkspaceResourceGroupsManagementService>();
+        services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStorageManagementService>();
+        services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();        
+
+        services.AddScoped<HealthCheckHelper>();
+        return services;
+    }
+
     public static IServiceCollection AddAzureResourceManager(this IServiceCollection services,
         IConfiguration configuration)
     {
@@ -152,4 +186,6 @@ public static class ConfigureServices
             });
         return services;
     }
+
+
 }

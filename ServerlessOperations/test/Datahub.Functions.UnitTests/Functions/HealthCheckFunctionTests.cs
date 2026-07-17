@@ -1,6 +1,7 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
 using Datahub.Application.Services.Security;
+using Datahub.Core.Configuration;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services;
 using Datahub.Infrastructure.Services.Helpers;
@@ -49,7 +50,8 @@ namespace Datahub.Functions.UnitTests.Functions
             var webAppService = TestHelper.CreateMockWebAppManagementService();
             var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
             var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
-            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, workspaceVersionService, mockSubnetPoolService);
+            var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
+            var resourceMessagingService = new ResourceMessagingService(dbContextFactory, sendProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
             var httpContextAccessor = Substitute.For<IHttpContextAccessor>();
 
             var tokenCredentialService = Substitute.For<ISystemTokenCredentialService>();

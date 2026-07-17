@@ -27,7 +27,7 @@ using Datahub.Shared.Clients;
 using Datahub.Shared.Configuration;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory; // ADDED
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -72,8 +72,11 @@ if (devopsConfig is not null)
     builder.Services.AddSingleton(devopsConfig);
 }
 
+builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
+
 builder.Services.AddSingleton<AzureConfig>();
 builder.Services.AddSingleton<IAzureConfiguration, AzureConfig>();
+builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
 builder.Services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
 builder.Services.AddKeyedSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>(SystemTokenCredentialServiceKeys.Infra);
 builder.Services.AddAzureResourceManager(config);
@@ -85,43 +88,11 @@ builder.Services.AddSingleton<IWorkspaceStorageManagementService, WorkspaceStora
 // IServiceBusConfiguration is only required to create workspace definitions shouldn't be required here
 builder.Services.AddSingleton<IServiceBusConfiguration, NoServiceBusConfiguration>();
 
-builder.Services.AddScoped<IMSGraphService, MSGraphService>();
-builder.Services.AddScoped<IUserTokenCredentialService, ServerUserTokenProviderService>();
-
-builder.Services.AddScoped<AzureDevOpsClient>();
-builder.Services.AddScoped<AzAccessTokenManager>();
-builder.Services.AddSingleton<IEmailService, EmailService>();
-builder.Services.AddScoped<IGCNotifyService, GCNotifyService>();
-builder.Services.AddSingleton<IAlertRecordService, AlertRecordService>();
-builder.Services.AddScoped<IQueuePongService, QueuePongService>();
-builder.Services.AddScoped<ILockedUserManagementService, LockedUserManagementService>();
-
-builder.Services.AddScoped<IKeyVaultUserService, ServerKeyVaultService>();
-
-builder.Services.AddScoped<ISubnetPoolService, SubnetPoolService>();
-builder.Services.AddScoped<IResourceMessagingService, ResourceMessagingService>();
-builder.Services.AddScoped<IProjectInactivityNotificationService, ProjectInactivityNotificationService>();
-builder.Services.AddScoped<IProjectStorageConfigurationService, ProjectStorageConfigurationService>();
-builder.Services.AddScoped<IWorkspaceWebAppManagementService, WorkspaceWebAppManagementService>();
-builder.Services.AddScoped<IUserInactivityNotificationService, UserInactivityNotificationService>();
-builder.Services.AddScoped<IWorkspaceVersionService, WorkspaceVersionService>();
-builder.Services.AddScoped<IDateProvider, DateProvider>();
-builder.Services.AddScoped<IUserInformationService, FunctionUserInformationService>();
-builder.Services.AddScoped<HealthCheckHelper>();
-builder.Services.AddDatahubConfigurationFromFunctionFormat(config);
-
-builder.Services.AddScoped<EmailNotificationHandler>();
-builder.Services.AddScoped<VirusScanNotificationHandler>();
-
-builder.Services.AddScoped<IRequestManagementService, RequestManagementService>();
-builder.Services.AddScoped<IUserEnrollmentService, UserEnrollmentService>();
-builder.Services.AddScoped<IDatahubAuditingService, DatahubTelemetryAuditingService>();
-builder.Services.AddScoped<IProjectUserManagementService, ProjectUserManagementService>();
-
-//builder.Services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
-
 // in-memory cache for health result
 builder.Services.AddMemoryCache();
+
+builder.Services.AddFunctionsHostServices();
+builder.Services.AddFunctionsInfrastructureServices();
 
 var host = builder.Build();
 await host.RunAsync();

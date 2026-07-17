@@ -1,4 +1,4 @@
-﻿using Datahub.Application.Services.Storage;
+using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Datahub;
 using Datahub.Core.Model.Projects;
@@ -100,6 +100,13 @@ namespace Datahub.SpecflowTests.Steps
         {
             var success = scenarioContext.Get<bool>("success");
             success.Should().BeFalse();
+        }
+
+        [Then(@"no error should be returned")]
+        public void ThenNoErrorShouldBeReturned()
+        {
+            var success = scenarioContext.Get<bool>("success");
+            success.Should().BeTrue();
         }
 
         [Given(@"a new workspace")]

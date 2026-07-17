@@ -1,5 +1,3 @@
-using System.Globalization;
-using System.Text;
 using AspNetCore.Localizer.Json.Extensions;
 using AspNetCore.Localizer.Json.JsonOptions;
 using Blazored.LocalStorage;
@@ -12,36 +10,43 @@ using Datahub.Application.Services.Security;
 using Datahub.Application.Services.UserManagement;
 using Datahub.CatalogSearch;
 using Datahub.Core.Services.CatalogSearch;
+using Datahub.Infrastructure;
 using Datahub.Infrastructure.Offline.Security;
+using Datahub.Infrastructure.Services;
+using Datahub.Infrastructure.Services.CatalogSearch;
+using Datahub.Infrastructure.Services.Notebooks;
+using Datahub.Infrastructure.Services.UserManagement;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.DependencyInjection;
+using System.Globalization;
+using System.Text;
 
 namespace Datahub.Infrastructure.Offline;
 
 public static class ConfigureServices
 {
-        
     public static IServiceCollection AddDatahubOfflineInfrastructureServices(this IServiceCollection services, DatahubPortalConfiguration? portalConfiguration = null)
     {
         portalConfiguration ??= new DatahubPortalConfiguration();
         services.AddScoped<ICultureService, OfflineUserCultureService>();
         services.AddDatahubLocalization(portalConfiguration);
-        
+
         services.AddScoped<IMetadataBrokerService, OfflineMetadataBrokerService>();
         services.AddScoped<IDatahubAuditingService, OfflineDatahubTelemetryAuditingService>();
         services.AddSingleton<ICatalogSearchEngine, CatalogSearchEngine>();
         services.AddScoped<IAzurePriceListService, OfflineAzurePriceListService>();
         services.AddScoped<IKeyVaultUserService, OfflineKeyVaultUserService>();
         services.AddScoped<IPortalUserTelemetryService, OfflinePortalUserTelemetryService>();
-        services.AddScoped<IUserInformationService, OfflineUserInformationService>();
-        services.AddSingleton<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
         services.AddScoped<IKeyVaultCoreService, OfflineKeyVaultService>();
+
         services.AddScoped<IProjectUserManagementService, OfflineProjectUserManagementService>();
+        services.AddScoped<IUserInformationService, OfflineUserInformationService>();
         services.AddScoped<IDatabricksApiService, OfflineDatabricksApiService>();
-        
-        services.AddBlazoredLocalStorage();        
-        
+        services.AddScoped<IDatahubCatalogSearch, OfflineDatahubCatalogSearch>();
+
+        services.AddBlazoredLocalStorage();
+
         return services;
     }
 

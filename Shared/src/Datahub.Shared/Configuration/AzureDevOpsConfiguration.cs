@@ -26,11 +26,11 @@ public class AzureDevOpsConfiguration : IAzureConfiguration
     public string SubscriptionId { get; set; } = null!;
     public string EnvironmentName => GetEnvironmentName();
 
-    public IEnumerable<string> AllowedUserEmailDomains => throw new NotImplementedException();
+    public IEnumerable<string> AllowedUserEmailDomains => [];
 
-    public string? GraphInviteFunctionUrl => throw new NotImplementedException();
+    public string? GraphInviteFunctionUrl => null;
 
-    public string? AddUserToGroupFunctionUrl => throw new NotImplementedException();
+    public string? AddUserToGroupFunctionUrl => null;
 
     public static string GetEnvironmentName()
     {

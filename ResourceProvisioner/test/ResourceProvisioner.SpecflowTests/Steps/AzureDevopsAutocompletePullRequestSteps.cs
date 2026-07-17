@@ -63,7 +63,7 @@ public sealed class AzureDevopsAutocompletePullRequestSteps(
 
         try
         {
-            await repositoryService.AutoApproveInfrastructurePullRequest(pullRequestId, workspaceAcronym!);
+            await repositoryService.AutoApproveInfrastructurePullRequest(pullRequestId, workspaceAcronym!, Guid.NewGuid().ToString());
         }
         catch (Exception e)
         {
@@ -87,7 +87,7 @@ public sealed class AzureDevopsAutocompletePullRequestSteps(
         
         try
         {
-            await repositoryService.AutoApproveInfrastructurePullRequest(pullRequestId, workspaceAcronym!);
+            await repositoryService.AutoApproveInfrastructurePullRequest(pullRequestId, workspaceAcronym!, Guid.NewGuid().ToString());
         }
         catch (Exception e)
         {

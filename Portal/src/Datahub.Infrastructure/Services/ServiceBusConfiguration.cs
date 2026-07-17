@@ -23,7 +23,7 @@ namespace Datahub.Infrastructure.Services
 
     public class NoServiceBusConfiguration : IServiceBusConfiguration
     {
-        public string ServiceBusHost => throw new NotImplementedException();
-        public string ServiceBusObjectID => throw new NotImplementedException();
+        public string ServiceBusHost => null!;
+        public string ServiceBusObjectID => null!;
     }
 }

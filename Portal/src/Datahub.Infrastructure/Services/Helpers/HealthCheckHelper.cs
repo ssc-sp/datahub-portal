@@ -391,20 +391,20 @@ namespace Datahub.Infrastructure.Services.Helpers
             return new(status, errors);
         }
 
-        public async Task<IntermediateHealthCheckResult?> TriggerWorkspaceSync(InfrastructureHealthCheckMessage request)
+        public async Task<IntermediateHealthCheckResult?> TriggerWorkspaceRBACSync(InfrastructureHealthCheckMessage request)
         {
             try
             {
                 var workspaceDefinition = await resourceMessagingService.CreateWorkspaceDefinition(request.Name);
-                await resourceMessagingService.SendToUserQueue(workspaceDefinition);
+                await resourceMessagingService.QueueRBACSync(workspaceDefinition);
 
-                logger.LogInformation("Triggered workspace sync");
+                logger.LogInformation("Triggered workspace RBAC sync");
                 return null;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Error while setting up workspace sync for {request.Name}");
-                return new(InfrastructureHealthStatus.Unhealthy, [$"Error running workspace sync: {ex.Message}"]);
+                logger.LogError(ex, $"Error while setting up workspace RBAC sync for {request.Name}");
+                return new(InfrastructureHealthStatus.Unhealthy, [$"Error running workspace RBAC sync: {ex.Message}"]);
             }
         }
 
@@ -774,8 +774,8 @@ namespace Datahub.Infrastructure.Services.Helpers
                 InfrastructureHealthResourceType.AsureServiceBus => await CheckAzureServiceBusQueue(request),
                 InfrastructureHealthResourceType.AzureWebApp => await CheckWebApp(request),
                 InfrastructureHealthResourceType.AzureFunction => await CheckAzureFunctions(request),
-                InfrastructureHealthResourceType.WorkspaceSync => await TriggerWorkspaceSync(request),
-                InfrastructureHealthResourceType.DatabricksSync => await TriggerWorkspaceSync(request),
+                InfrastructureHealthResourceType.WorkspaceSync => await TriggerWorkspaceRBACSync(request),
+                InfrastructureHealthResourceType.DatabricksSync => await TriggerWorkspaceRBACSync(request),
                 InfrastructureHealthResourceType.GCNotify => await CheckGCNotify(request),
                 _ => throw new InvalidOperationException()
             };

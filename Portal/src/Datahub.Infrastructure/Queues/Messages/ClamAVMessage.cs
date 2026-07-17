@@ -25,7 +25,7 @@ public class ClamAVMessage
     public DateTime ScanStartTime { get; set; }
 
     [JsonPropertyName("ScanEndTime")]
-    public DateTime ScanEndTime { get; set; }
+    public DateTime? ScanEndTime { get; set; }
 
     [JsonPropertyName("ScanError")]
     public string ScanError { get; set; } = string.Empty;

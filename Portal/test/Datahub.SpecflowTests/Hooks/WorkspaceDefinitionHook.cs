@@ -1,5 +1,6 @@
 using Datahub.Application.Configuration;
 using Datahub.Application.Services;
+using Datahub.Core.Configuration;
 using Datahub.Core.Model.Context;
 using Datahub.Infrastructure.Services;
 using MassTransit;
@@ -35,7 +36,9 @@ public class WorkspaceDefinitionHook
         var dbContextFactory = new SpecFlowDbContextFactory(options);
         var workspaceVersionService = Substitute.For<IWorkspaceVersionService>();
         var mockSubnetPoolService = Substitute.For<ISubnetPoolService>();
-        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, workspaceVersionService, mockSubnetPoolService);
+        var sbConfiguration = Substitute.For<IServiceBusConfiguration>();
+
+        var resourceMessagingService = new ResourceMessagingService(dbContextFactory, mockSendEndpointProvider, sbConfiguration, workspaceVersionService, mockSubnetPoolService);
         
         objectContainer.RegisterInstanceAs(datahubPortalConfiguration);
         objectContainer.RegisterInstanceAs<IResourceMessagingService>(resourceMessagingService);

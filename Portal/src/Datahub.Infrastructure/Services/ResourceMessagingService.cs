@@ -28,7 +28,7 @@ public class ResourceMessagingService(
 
    
 
-    public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition)
+    public async Task QueueRBACSync(WorkspaceDefinition workspaceDefinition)
     {
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition); 
     }

@@ -312,7 +312,7 @@ public class ProjectUserManagementService : IProjectUserManagementService
         try
         {
             var workspaceDefinition = await _resourceMessagingService.CreateWorkspaceDefinition(projectAcronym);
-            await _resourceMessagingService.SendToUserQueue(workspaceDefinition);
+            await _resourceMessagingService.QueueRBACSync(workspaceDefinition);
 
             _logger.LogInformation($"Triggered workspace sync for {projectAcronym}" );
             return true;
