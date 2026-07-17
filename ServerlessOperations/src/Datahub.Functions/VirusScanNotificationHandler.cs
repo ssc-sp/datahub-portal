@@ -54,7 +54,6 @@ public class VirusScanNotificationHandler(
                 : "unknown";
             var scanStatus = DetermineScanStatus(scanResult);
             var fileName = Path.GetFileName(scanResult.ScannedFile);
-            var blobPath = scanResult.ScannedFile;
 
             // read metadata either from the scan result or from the original blob if not present
             var originalBlobMetadata = await ResolveOriginalBlobMetadataAsync(scanResult, scanResult.ScannedFile);
