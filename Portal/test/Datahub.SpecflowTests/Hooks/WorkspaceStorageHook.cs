@@ -55,7 +55,6 @@ namespace Datahub.SpecflowTests.Hooks
             var dbContextFactory = new SpecFlowDbContextFactory(options);
             var armClient = Substitute.For<ArmClient>();
             var logger = Substitute.For<ILogger<WorkspaceStorageManagementService>>();
-            var memoryCache = Substitute.For<IMemoryCache>();
 
             MockServiceCalls(armClient, logger, dbContextFactory, datahubPortalConfiguration, objectContainer);
             await MockArmMethods(armClient);
