@@ -1,0 +1,32 @@
+[ req ]
+prompt = no
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+
+[ req_distinguished_name ]
+C = CA
+ST = Ontario
+L = Ottawa
+O = Shared Services Canada
+OU = FSDH
+CN = fsdh-dhsf.science.cloud-nuage.canada.ca
+emailAddress = DataSolutions-Solutiondedonnees@ssc-spc.gc.ca
+
+[ v3_req ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+
+DNS.1 = federal-science-datahub.canada.ca
+DNS.2 = sds.canada.ca
+DNS.3 = datahub-scientifique-federal.canada.ca
+DNS.4 = *.federal-science-datahub.canada.ca
+DNS.5 = *.datahub-scientifique-federal.canada.ca
+DNS.6 = fsdh-dhsf.science.cloud-nuage.canada.ca
+DNS.7 = *.fsdh-dhsf.science.cloud-nuage.canada.ca
+DNS.8 = *.cto-qa-fsdh-core.c.ent.cloud-nuage.canada.ca
+DNS.9 = *.cto-fsdh-core.c.ent.cloud-nuage.canada.ca
+DNS.10 = *.sds.canada.ca
+DNS.11 = plateforme-federale-donnees-scientifiques.canada.ca
+DNS.12 = *.plateforme-federale-donnees-scientifiques.canada.ca
+
