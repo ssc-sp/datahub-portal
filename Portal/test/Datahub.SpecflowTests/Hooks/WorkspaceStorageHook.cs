@@ -37,6 +37,15 @@ namespace Datahub.SpecflowTests.Hooks
     public class WorkspaceStorageHook
     {
         private MemoryCache? _memoryCache;
+
+        [After]
+        public void Cleanup()
+        {
+            _memoryCache?.Dispose();
+            _memoryCache = null;
+        }
+
+
         [BeforeScenario("WorkspaceStorage")]
         public async Task BeforeScenarioWorkspaceCosts(IObjectContainer objectContainer,
             ScenarioContext scenarioContext)
@@ -227,8 +236,6 @@ namespace Datahub.SpecflowTests.Hooks
             };
             context.Project_Storage_Avgs.Add(projectAverage);
             context.SaveChanges();
-            _memoryCache?.Dispose();
-            _memoryCache = null;
         }
 
         public void MockServiceCalls(ArmClient armClient, ILogger<WorkspaceStorageManagementService> logger,
