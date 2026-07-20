@@ -3,10 +3,14 @@ using Datahub.Core.Data;
 using Datahub.Core.Model;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Datahub;
+using Datahub.Infrastructure.Queues.Messages;
+using Datahub.Infrastructure.Services.VirusScan;
 using Datahub.Shared.Entities;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 using Microsoft.JSInterop;
 using MudBlazor;
+using System.Collections.Concurrent;
 
 namespace Datahub.Portal.Pages.Workspace.Storage;
 
@@ -15,8 +19,10 @@ public partial class ExternalUserFileExplorer
     private readonly object _uploadingFilesLock = new();
     private string? _lastContainerName;
     private string? _lastUploadContainerName;
-    private HashSet<string> _filesPendingAntivirusScan = new(StringComparer.OrdinalIgnoreCase);
+    private ConcurrentDictionary<Guid, string?> _filesPendingAntivirusScan = new();
     private CancellationTokenSource? _uploadContainerPollingCts;
+    [Inject]
+    private IVirusScanStatusConsumer virusScanStatusConsumer { get; set; } = null!;   
 
     private string UploadContainerName => UploadContainer.Name;
     private bool IsWaitingForAntivirusResults => _filesPendingAntivirusScan.Count > 0;
@@ -149,6 +155,7 @@ public partial class ExternalUserFileExplorer
             try
             {
                 await LoadContainersAsync();
+                virusScanStatusConsumer.OnVirusScanStatusReceived += OnVirusScanStatusReceived;
             }
             catch (Exception e)
             {
@@ -156,6 +163,12 @@ public partial class ExternalUserFileExplorer
                 _logger.LogError(e, "Failed to load file explorer");
             }
         }
+    }
+
+    private async Task OnVirusScanStatusReceived(VirusScanStatusMessage message)
+    {
+        _filesPendingAntivirusScan.TryRemove(message.FileId, out _);
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task HandleFilesDelete(string fileName)
@@ -241,47 +254,6 @@ public partial class ExternalUserFileExplorer
         var targetFile = _files.FirstOrDefault(f => f.name == currentFileName);
         if (targetFile is not null)
             targetFile.name = fileRename;
-    }
-
-    private async Task HandleDeleteFolder()
-    {
-        var folderName = _selectedItems?.FirstOrDefault();
-        if (folderName is null)
-        {
-            folderName = _currentFolder;
-        }
-
-        if (folderName.Length < _currentFolder.Length)  // delete from inside folder
-        {
-            folderName = _currentFolder;
-        }
-
-        var folderNameOnly = folderName.TrimEnd('/').Split('/').Last();
-
-        var message = string.Format(Localizer["Are you sure you want to delete folder \"{0}\"?"], folderNameOnly);
-      
-        if (!await _jsRuntime.InvokeAsync<bool>("confirm", message))
-            return;
-
-        var containerName = _selectedContainerName ?? ContainerName;
-        if (!await StorageManager.DeleteFolderAsync(containerName, folderName))
-            return;
-
-        if (folderName == _currentFolder)
-        {
-            await SetCurrentFolder(GetDirectoryName(_currentFolder));
-        }
-        else
-        {
-            _folders.Remove(folderName);
-        }
-        StateHasChanged();
-    }
-
-    private Task HandlePublishFiles(IEnumerable<PortalFileMetadata> files)
-    {
-        // External users cannot publish files
-        return Task.CompletedTask;
     }
 
     private async Task<(bool FileExists, bool AllowOverride)> VerifyOverwrite(string filePath, string? containerName = null)
@@ -545,33 +517,34 @@ public partial class ExternalUserFileExplorer
 
     private async Task RefreshUploadContainerPendingFilesAsync()
     {
-        var pendingFiles = await GetAllFilesInFolderAsync(UploadContainerName, _root);
-        _filesPendingAntivirusScan = pendingFiles.ToHashSet(StringComparer.OrdinalIgnoreCase);
-        TrackFilesBeingScannedPlaceholder(_filesPendingAntivirusScan);
+        var pendingFiles = await GetFileIdsInUploadFolderAsync(_root);
+        _filesPendingAntivirusScan = new ConcurrentDictionary<Guid, string?>(pendingFiles);
     }
 
-    private async Task<List<string>> GetAllFilesInFolderAsync(string containerName, string folderPath)
+    private async Task<Dictionary<Guid,string?>> GetFileIdsInUploadFolderAsync(string folderPath)
     {
-        var files = new List<string>();
+        var files = new Dictionary<Guid, string?>();
         var continuationToken = string.Empty;
         var safetyCounter = 0;
 
         do
         {
-            var page = await StorageManager.GetDfsPagesAsync(containerName, folderPath, continuationToken);
+            var page = await StorageManager.GetDfsPagesAsync(UploadContainerName, folderPath, continuationToken);
             var pageFiles = page.Files
-                .Select(f => f.name)
-                .Where(name => !string.IsNullOrWhiteSpace(name))
-                .Select(name => name!)
+                .Select(f => (fileId: Guid.Parse(f.fileid), fileName: f.name))
                 .ToList();
+            
+            foreach (var (fileId, fileName) in pageFiles)
+            {
+                files[fileId] = fileName;
+            }
 
-            files.AddRange(pageFiles);
             continuationToken = page.ContinuationToken;
             safetyCounter++;
 
             if (safetyCounter > 1000)
             {
-                _logger.LogWarning("Stopped counting files in container {Container} folder {Folder} due to pagination safety limit.", containerName, folderPath);
+                _logger.LogWarning("Stopped counting files in container {Container} folder {Folder} due to pagination safety limit.", UploadContainerName, folderPath);
                 break;
             }
         }
@@ -623,19 +596,5 @@ public partial class ExternalUserFileExplorer
                 _uploadContainerPollingCts = null;
             }
         }
-    }
-
-    private void TrackFilesBeingScannedPlaceholder(IEnumerable<string> filesBeingScanned)
-    {
-        // Placeholder: hook this into a central tracker/telemetry stream if scan progress must be shared across components.
-    }
-
-    private bool CanDeleteFolder(string folderName)
-    {
-        if (_folders.Contains(folderName) && _folderList != null)
-        {
-            return _folderList.TryGetValue($"{folderName}/", out int fileCount) && fileCount == 0;
-        }
-        return false;
     }
 }

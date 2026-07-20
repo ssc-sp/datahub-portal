@@ -9,12 +9,14 @@ using Datahub.Shared.Exceptions;
 using Datahub.Core.Extensions;
 using MassTransit;
 using Microsoft.EntityFrameworkCore;
+using Datahub.Core.Configuration;
 
 namespace Datahub.Infrastructure.Services;
 
 public class ResourceMessagingService(
     IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
     ISendEndpointProvider sendEndpointProvider,
+    IServiceBusConfiguration messageBusConfiguration,
     IWorkspaceVersionService workspaceVersionService,
     ISubnetPoolService subnetPoolService)
     : IResourceMessagingService
@@ -26,12 +28,12 @@ public class ResourceMessagingService(
 
    
 
-    public async Task SendToUserQueue(WorkspaceDefinition workspaceDefinition)
+    public async Task QueueRBACSync(WorkspaceDefinition workspaceDefinition)
     {
         await sendEndpointProvider.SendDatahubServiceBusMessage(QueueConstants.UserRunRequestQueueName, workspaceDefinition); 
     }
 
-    public async Task<WorkspaceDefinition> GetWorkspaceDefinition(string projectAcronym, string requestingUserEmail = "system-generated", string? cbrId = null)
+    public async Task<WorkspaceDefinition> CreateWorkspaceDefinition(string projectAcronym, string requestingUserEmail = "system-generated", string? cbrId = null)
     {
         await using var ctx = await dbContextFactory.CreateDbContextAsync();
         var project = await ctx.Projects
@@ -60,7 +62,7 @@ public class ResourceMessagingService(
             })
             .ToList();
 
-        var workspace = project.ToResourceWorkspace(entraUsers);
+        var tfWorkspace = project.ToResourceWorkspace(entraUsers, messageBusConfiguration);
         var templates = project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.VariableUpdate && r.Status != TerraformStatus.Deleted)
             .Select(r => r.ToTerraformTemplate())
@@ -68,7 +70,7 @@ public class ResourceMessagingService(
 
 
 
-        workspace.Version = workspace.Version == "latest" ? await workspaceVersionService.GetLatestVersionAsync() : workspace.Version;
+        tfWorkspace.Version = tfWorkspace.Version == "latest" ? await workspaceVersionService.GetLatestVersionAsync() : tfWorkspace.Version;
 
         var appData = new WorkspaceAppData
         {
@@ -80,24 +82,24 @@ public class ResourceMessagingService(
 
         // For Protected B workspaces that include an App Service, assign (or retrieve the
         // already-assigned) subnet from the VNet pool and inject it into the app configuration.
-        if (workspace.IsProtectedB
+        if (tfWorkspace.IsProtectedB
             && templates.Any(t => t.Name == TerraformTemplate.AzureAppService)
             && appData.AppServiceConfiguration is not null)
         {
             appData.AppServiceConfiguration.SubnetId =
                 await subnetPoolService.ClaimOrGetAppServiceSubnetIdAsync(
                     project.Project_ID,
-                    workspace.SubscriptionId);
+                    tfWorkspace.SubscriptionId);
         }
 
         return new WorkspaceDefinition
         {
-            Workspace = workspace,
+            Workspace = tfWorkspace,
             Templates = templates,
             AppData = appData,
             RequestingUserEmail = requestingUserEmail,
             ResourceGroupName = project.GetResourceGroupName(),
-            CBRID = project.ParentGCHostingBudget?.CBRID ?? string.Empty
+            CBRID = project.ParentGCHostingBudget?.CBRID ?? throw new InvalidOperationException($"Project {projectAcronym} is missing a CBRID in its parent GC Hosting Budget."),
         };
     }
 

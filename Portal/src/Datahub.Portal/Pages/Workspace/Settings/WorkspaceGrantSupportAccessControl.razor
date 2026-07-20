@@ -1,4 +1,4 @@
-﻿@using Datahub.Portal.Pages.Account
+@using Datahub.Portal.Pages.Account
 @using Datahub.Core.Model.Projects
 @using Toolbelt.Blazor.Globalization
 
@@ -6,17 +6,17 @@
 @inject ILocalTimeZone _localTz
 @inject ISnackbar _snackbar
 
-<SettingsField Label="@Localizer["Support access"]" Description="@Localizer["This setting lets the FSDH Support Team add and remove users, edit settings, and access your tools."]">
-    <MudSwitch T="bool" Label="@Localizer["Enable temporary administrative access to FSDH Support Team"]" Value="@ElevatedWorkspaceAccessEnabled" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
+<SettingsField Label="@Localizer["Support access"]" Description="@Localizer["This setting lets the {0} Support Team add and remove users, edit settings, and access your tools.", Localizer["MainAcronym"]]">
+    <MudSwitch T="bool" Label="@Localizer["Enable temporary administrative access to {0} Support Team", Localizer["MainAcronym"]]" Value="@ElevatedWorkspaceAccessEnabled" Color="Color.Primary" ValueChanged="@ToggleAdminAccess" Class="pb-2"/>
     @if (ElevatedWorkspaceAccessEnabled)
     {
         <MudText Typo="Typo.body2">
-            @Localizer["FSDH Support Team access is enabled until {0}", _accessDate.ToString()]
+            @Localizer["{0} Support Team access is enabled until {1}", Localizer["MainAcronym"], _accessDate.ToString()]
         </MudText>
     }
     else
     {
-        <MudText Typo="Typo.body2">@Localizer["The FSDH Support Team does not have access to your workspace."]</MudText>
+        <MudText Typo="Typo.body2">@Localizer["The {0} Support Team does not have access to your workspace.", Localizer["MainAcronym"]]</MudText>
     }
 </SettingsField>
 

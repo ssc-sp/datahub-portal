@@ -18,12 +18,12 @@ public class WorkspaceDefinitionHandler : IRequestHandler<WorkspaceDefinition, P
         _repositoryService = repositoryService;
     }
 
-    public async Task<PullRequestUpdateMessage> Handle(WorkspaceDefinition request,
+    public async Task<PullRequestUpdateMessage> Handle(WorkspaceDefinition workspaceDefinition,
         CancellationToken cancellationToken)
     {
-        var pullRequestMessage = await _repositoryService.HandleResourcing(request);
+        var pullRequestMessage = await _repositoryService.HandleResourcing(workspaceDefinition);
 
-        _logger.LogInformation("Pull request created for {WorkspaceAcronym}", request.Workspace.Acronym);
+        _logger.LogInformation("Pull request created for {WorkspaceAcronym}", workspaceDefinition.Workspace.Acronym);
         return await Task.FromResult(pullRequestMessage);
     }
 }

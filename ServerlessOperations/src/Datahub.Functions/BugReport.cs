@@ -55,13 +55,21 @@ namespace Datahub.Functions
 
                 // Build the ADO issue
                 var issue = CreateIssue(bug);
+                var emailSent = false;
+                var postedToDevops = false;
+                try
+                {
+                    // Post the issue to ADO and parse the response
+                    var workItem = await PostIssue(issue);
+                    postedToDevops = workItem is not null;
 
-                // Post the issue to ADO and parse the response
-                var workItem = await PostIssue(issue);
-                var postedToDevops = workItem is not null;
-
-                // Send the email
-                var emailSent = await SendEmailNotification(workItem, bug);
+                    // Send the email
+                    emailSent = await SendEmailNotification(workItem, bug);
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Cannot post issue to devops");
+                }
 
                 logger.LogDebug($"Posted to Teams: {postedToTeams}; posted to Devops: {postedToDevops}; sent email: {emailSent};");
 

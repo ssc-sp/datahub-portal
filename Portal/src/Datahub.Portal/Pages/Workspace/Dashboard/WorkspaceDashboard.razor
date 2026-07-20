@@ -113,7 +113,12 @@
     <MudItem xs="12" sm="4">
         @if (!_isDeleted)
         {
-
+            @if (_workspaceCBR is null)
+            {
+                <MudItem xs="12" Class="pt-1">
+                    <MudChip T="string" Disabled="true" Color="Color.Error">@Localizer["GC Hosting CBR is not configured"]</MudChip>
+                </MudItem>
+            }    
             <DatahubAuthView AuthLevel="DatahubAuthView.AuthLevels.WorkspaceAdmin" ProjectAcronym="@WorkspaceAcronym"
                             ElevatedWorkspaceAccessEnabled="@ElevatedWorkspaceAccessEnabled">
                 <WorkspaceAdminInfo WorkspaceAcronym="@WorkspaceAcronym"/>
@@ -132,14 +137,15 @@
 
 @code {
 
-    [Parameter] public string WorkspaceAcronym { get; set; }
+    [Parameter] public string WorkspaceAcronym { get; set; } = null!;
     [Parameter] public bool ElevatedWorkspaceAccessEnabled { get; set; } = false;
 
-    private Datahub_Project _project;
+    private Datahub_Project _project = null!;
     private bool _isDeleted;
-    private List<Project_Resources2> _resources;
+    private List<Project_Resources2> _resources = null!;
     private string _toolboxLink => $"/{PageRoutes.WorkspacePrefix}/{WorkspaceAcronym}/{WorkspaceSidebar.SectionViews.Toolbox}";
-    private string _latestWorkspaceVersion;
+    private string _latestWorkspaceVersion = null!;
+    private string? _workspaceCBR = null;
 
     private Dictionary<string, Type> _cardComponents = new()
     {
@@ -157,16 +163,16 @@
         _project = await context.Projects
             .Include(w => w.Resources)
             .Include(p => p.Credits)
-            .FirstOrDefaultAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
-
+            .Include(p => p.ParentGCHostingBudget)
+            .FirstAsync(w => w.Project_Acronym_CD == WorkspaceAcronym);
+        _workspaceCBR = _project.ParentGCHostingBudget?.CBRID;
         _resources = _project.Resources
             .Where(r => r.ResourceType != TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
             .OrderBy(r => r.ResourceType)
             .ToList();
 
         var newTemplateResource = _project.Resources.Where(
-                r => r.Project.Project_Acronym_CD == WorkspaceAcronym &&
-                    r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
+                r => r.ResourceType == TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate))
             .FirstOrDefault();
 
         _isDeleted = _project.IsDeleted;

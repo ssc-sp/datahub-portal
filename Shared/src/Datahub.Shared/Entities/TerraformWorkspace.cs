@@ -17,6 +17,16 @@ public class TerraformWorkspace
     public double BudgetAmount { get; set; } = 100;
 
     /// <summary>
+    /// Gets or sets the service Bus Object Id for TF permissions
+    /// </summary>
+    public string ServiceBusObjectId { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Gets or sets the service Bus Namespace for the Logic App
+    /// </summary>
+    public string ServiceBusNamespace { get; set; } = string.Empty;
+
+    /// <summary>
     /// Gets or sets the unique identifier of the Azure Subscription.
     /// </summary>
     /// <value>

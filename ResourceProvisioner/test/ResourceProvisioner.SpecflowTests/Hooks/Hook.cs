@@ -81,8 +81,14 @@ public class Hooks
                     id = "ae4d3b3d-4b3d-4b3d-4b3d-4b3d4b3d4b3d",
                     displayName = "test-user"
                 }
-                : null
-        };
+                : null,
+            autoCompleteSetBy = new
+            {
+                displayName = "test-user",
+                url = "https://azure.devops.com/bla"
+            }
+        }
+        ;
 
         var responseMessage = new HttpResponseMessage
         {

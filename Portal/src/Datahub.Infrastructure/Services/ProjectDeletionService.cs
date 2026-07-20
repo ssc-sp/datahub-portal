@@ -78,7 +78,7 @@ namespace Datahub.Infrastructure.Services
                     logger.LogError($"Invalid workspace - {acronym} - no resource group name found. Marked as deleted.");
                     return true;
                 }
-                var workspaceDefinition = await resourceMessagingService.GetWorkspaceDefinition(acronym);
+                var workspaceDefinition = await resourceMessagingService.CreateWorkspaceDefinition(acronym);
                 workspaceDefinition.ResourceGroupName = rgName;
                 workspaceDefinition.RequestingUserEmail = currentUser.Email;
                 await resourceMessagingService.SendToTerraformQueue(workspaceDefinition);

@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 @using Datahub.Application.Services
 @using Datahub.Core.Services.UserManagement;
 @using Microsoft.Identity.Web
@@ -14,7 +14,7 @@
 @inject IConfiguration _configuration
 @inject IUserInformationService _userInformationService
 
-<PageTitle>@Localizer["Federal Science DataHub"]</PageTitle>
+<PageTitle>@Localizer["MainTitle"]</PageTitle>
 
 <ErrorBoundary @ref="_errorBoundary">
     <ChildContent>

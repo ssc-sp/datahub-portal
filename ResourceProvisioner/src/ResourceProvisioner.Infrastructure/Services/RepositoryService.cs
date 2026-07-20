@@ -133,7 +133,7 @@ public partial class RepositoryService(
         return isValidIssuer || valid;
     }
 
-    public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition command)
+    public async Task<PullRequestUpdateMessage> HandleResourcing(WorkspaceDefinition workspaceDefinition)
     {
         await _semaphore.WaitAsync();
         try
@@ -141,29 +141,29 @@ public partial class RepositoryService(
             DirectoryUtils.tempDirectory = Guid.NewGuid().ToString().Substring(0, 8);
             CreateTemporaryDirectory();
 
-            var user = command.RequestingUserEmail ??
+            var user = workspaceDefinition.RequestingUserEmail ??
                 throw new NullReferenceException("Requesting user's email is null");
-            logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", command.Workspace.Acronym);
-            await FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
+            logger.LogInformation("Checking out workspace branch for {WorkspaceAcronym}", workspaceDefinition.Workspace.Acronym);
+            await FetchRepositoriesAndCheckoutProjectBranch(workspaceDefinition.Workspace);
 
             logger.LogInformation(
                 "Executing the following resource runs in workspace {WorkspaceAcronym} for user {User}: [{ResourceRuns}]",
-                command.Workspace.Acronym, user, string.Join(", ", command.Templates.Select(x => x.Name)));
+                workspaceDefinition.Workspace.Acronym, user, string.Join(", ", workspaceDefinition.Templates.Select(x => x.Name)));
             var repositoryUpdateEvents =
-                await ExecuteResourceRuns(command, user);
+                await ExecuteResourceRuns(workspaceDefinition, user);
 
             logger.LogInformation("Pushing changes to remote repository for {WorkspaceAcronym}",
-                command.Workspace.Acronym);
-            await PushInfrastructureRepository(command.Workspace.Acronym!);
+                workspaceDefinition.Workspace.Acronym);
+            await PushInfrastructureRepository(workspaceDefinition.Workspace.Acronym!);
 
-            logger.LogInformation("Creating pull request for {WorkspaceAcronym}", command.Workspace.Acronym);
+            logger.LogInformation("Creating pull request for {WorkspaceAcronym}", workspaceDefinition.Workspace.Acronym);
             var pullRequestValueObject =
-                await CreateInfrastructurePullRequest(command.Workspace.Acronym!);
+                await CreateInfrastructurePullRequest(workspaceDefinition.Workspace.Acronym!);
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
                 PullRequestValueObject = pullRequestValueObject,
-                TerraformWorkspace = command.Workspace,
+                TerraformWorkspace = workspaceDefinition.Workspace,
                 Events = repositoryUpdateEvents
             };
 
@@ -559,7 +559,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         await CheckoutInfrastructureBranch(terraformWorkspace.Acronym!);
     }
 
-    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition command, string username)
+    public async Task<List<RepositoryUpdateEvent>> ExecuteResourceRuns(WorkspaceDefinition workspaceDefinition, string username)
     {
         var repositoryUpdateEvents = new List<RepositoryUpdateEvent>();
 
@@ -567,11 +567,11 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
 
 
         // Execute each module but make sure the `new-project-template` module is first for creation
-        command.Templates = command.Templates.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
+        workspaceDefinition.Templates = workspaceDefinition.Templates.OrderBy(x => x.Name != TerraformTemplate.NewProjectTemplate).ToList();
 
-        foreach (var resourcetemplate in command.Templates)
+        foreach (var resourcetemplate in workspaceDefinition.Templates)
         {
-            var result = await ExecuteResourceRun(resourcetemplate, command, username);
+            var result = await ExecuteResourceRun(resourcetemplate, workspaceDefinition, username);
             repositoryUpdateEvents.Add(result);
         }
 

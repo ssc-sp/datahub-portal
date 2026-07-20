@@ -1,20 +1,26 @@
-﻿using Azure.Core;
+using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Monitor;
 using Azure.ResourceManager.Monitor.Models;
 using Azure.ResourceManager.Storage;
+using Azure.Storage.Blobs;
+using Azure.Storage.Blobs.Models;
 using Datahub.Application.Services.ResourceGroups;
 using Datahub.Application.Services.Storage;
 using Datahub.Core.Model.Context;
 using Datahub.Core.Model.Projects;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using System.Runtime.Caching;
 
 namespace Datahub.Infrastructure.Services.Storage
 {
     public class WorkspaceStorageManagementService(
         ArmClient armClient,
         ILogger<WorkspaceStorageManagementService> logger,
+        IMemoryCache cache,
         IDbContextFactory<DatahubProjectDBContext> dbContextFactory,
         IWorkspaceResourceGroupsManagementService rgMgmtService)
         : IWorkspaceStorageManagementService
@@ -69,15 +75,26 @@ namespace Datahub.Infrastructure.Services.Storage
         }
 
         /// <inheritdoc />
-        public async Task<double> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
+        public async Task<double?> UpdateStorageCapacity(string workspaceAcronym, List<string>? storageAccountIds = null)
         {
+            var cacheEntry = $"Capacity-{workspaceAcronym}";
+            if (cache.TryGetValue(cacheEntry,out object? value))
+            {
+                return (double?)value;
+            }
+            MemoryCacheEntryOptions options = new()
+            {
+                AbsoluteExpirationRelativeToNow =
+                    TimeSpan.FromMinutes(10)
+            };
             using var ctx = await dbContextFactory.CreateDbContextAsync();
             var date = DateTime.UtcNow.Date;
             var project = await ctx.Projects.FirstOrDefaultAsync(p => p.Project_Acronym_CD == workspaceAcronym);
             if (project is null)
             {
                 logger.LogError("Project with acronym {WorkspaceAcronym} not found", workspaceAcronym);
-                throw new Exception($"Project with acronym {workspaceAcronym} not found");
+                cache.Set<double?>(cacheEntry, null, options);
+                return null;
             }
 
             var projectAverage =
@@ -99,6 +116,7 @@ namespace Datahub.Infrastructure.Services.Storage
                 workspaceAcronym, capacity);
             ctx.Project_Storage_Avgs.Update(projectAverage);
             await ctx.SaveChangesAsync();
+            cache.Set<double?>(cacheEntry, capacity, options);
             return capacity;
         }
 
@@ -114,6 +132,76 @@ namespace Datahub.Infrastructure.Services.Storage
                 .FirstOrDefault(p => p.ProjectId == project.Project_ID && p.Date == date.Date);
             if (projectAverage is null) return true;
             return false;
+        }
+
+        /// <inheritdoc />
+        public async Task<string?> MoveBlobToUsersContainerAsync(string scannedFileUri, TokenCredential credential)
+        {
+            if (string.IsNullOrWhiteSpace(scannedFileUri))
+            {
+                throw new InvalidOperationException("Scanned file URI is missing.");
+            }
+
+            if (credential is null)
+            {
+                throw new ArgumentNullException(nameof(credential));
+            }
+
+            if (!Uri.TryCreate(scannedFileUri, UriKind.Absolute, out var sourceUri))
+            {
+                throw new InvalidOperationException($"Invalid scanned file URI: {scannedFileUri}");
+            }
+
+            var path = sourceUri.AbsolutePath.TrimStart('/');
+            var split = path.Split('/', 2, StringSplitOptions.RemoveEmptyEntries);
+
+            if (split.Length < 2)
+            {
+                throw new InvalidOperationException($"Invalid scanned file URI path: {scannedFileUri}");
+            }
+
+            var sourceContainerName = split[0];
+            var blobName = Uri.UnescapeDataString(split[1]);
+            var targetBlobPath = $"{IWorkspaceStorageManagementService.AzureExternalUsersContainerName}/{blobName}";
+            logger.LogInformation($"Copying {scannedFileUri} to {targetBlobPath}");
+            if (sourceContainerName.Equals(IWorkspaceStorageManagementService.AzureExternalUsersContainerName, StringComparison.OrdinalIgnoreCase))
+            {
+                logger.LogWarning($"source and target containers are the same - {scannedFileUri} not copied");
+                return targetBlobPath;
+            }
+
+            var serviceClient = new BlobServiceClient(new Uri($"{sourceUri.Scheme}://{sourceUri.Host}"), credential);
+            var sourceContainer = serviceClient.GetBlobContainerClient(sourceContainerName);
+            var destinationContainer = serviceClient.GetBlobContainerClient(IWorkspaceStorageManagementService.AzureExternalUsersContainerName);
+
+            var sourceBlob = sourceContainer.GetBlobClient(blobName);
+            if (!await sourceBlob.ExistsAsync())
+            {
+                return null;
+            }
+            var destinationBlob = destinationContainer.GetBlobClient(blobName);
+
+            await destinationContainer.CreateIfNotExistsAsync();
+            await destinationBlob.DeleteIfExistsAsync();
+
+            var sourceProperties = await sourceBlob.GetPropertiesAsync();
+            var metadata = sourceProperties.Value.Metadata is { Count: > 0 }
+                ? new Dictionary<string, string>(sourceProperties.Value.Metadata, StringComparer.OrdinalIgnoreCase)
+                : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            var copyOperation = await destinationBlob.StartCopyFromUriAsync(sourceBlob.Uri);
+            await copyOperation.WaitForCompletionAsync();
+
+            var destinationProperties = await destinationBlob.GetPropertiesAsync();
+            if (destinationProperties.Value.CopyStatus != CopyStatus.Success)
+            {
+                throw new InvalidOperationException($"Copy to {IWorkspaceStorageManagementService.AzureExternalUsersContainerName} container failed with status {destinationProperties.Value.CopyStatus}.");
+            }
+
+            await destinationBlob.SetMetadataAsync(metadata);
+            await sourceBlob.DeleteIfExistsAsync();
+            logger.LogInformation($"Successfully moved {scannedFileUri} to {targetBlobPath}");
+            return targetBlobPath;
         }
 
         #endregion
@@ -132,7 +220,7 @@ namespace Datahub.Infrastructure.Services.Storage
             var rgIds = await rgMgmtService.GetWorkspaceResourceGroupsIdentifiersAsync(workspaceAcronym);
             if (rgIds is null || rgIds.Count == 0)
             {
-                throw new Exception($"No resource groups found for workspace {workspaceAcronym}");
+                return new();
             }
             var storageIds = new List<string>();
 

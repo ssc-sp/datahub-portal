@@ -1,3 +1,4 @@
+using Datahub.Core.Configuration;
 using Datahub.Shared.Clients;
 using Newtonsoft.Json;
 
@@ -56,6 +57,12 @@ public class DatahubPortalConfiguration : IAzureConfiguration
     public string SubscriptionId => AzureAd.SubscriptionId;
 
     public string EnvironmentName => Hosting.EnvironmentName;
+
+    IEnumerable<string> IAzureConfiguration.AllowedUserEmailDomains => AllowedUserEmailDomains;
+
+    public string? GraphInviteFunctionUrl => DatahubGraphInviteFunctionUrl;
+
+    public string? AddUserToGroupFunctionUrl => DatahubAddUserToGroupFunctionUrl;
 }
 
 public class Achievements
@@ -161,6 +168,9 @@ public class KeyVault
 public class DatahubServiceBus
 {
     public string ConnectionString { get; set; } = null!;
+
+    public string ObjectId { get; set; } = null!;
+
 }
 
 public class ReverseProxy
@@ -211,7 +221,7 @@ public class StorageConfiguration
     public string BlockedFileExtensions { get; set; } = ".ace,.ade,.adp,.ani,.app,.apk,.bas,.bat,.chm,.cmd,.com,.cpl,.crt,.docm,.dll,.exe,.hlp,.ht,.hta,.inf,.ins,.isp,.jar,.job,.js,.jse,.lnk,.mda,.mdb,.mde,.mdz,.msc,.msi,.msp,.mst,.pcd,.pif,.reg,.scr,.sct,.shs,.url,.vb,.vbe,.vbs,.wsc,.wsf,.wsh";
     public IReadOnlyCollection<string> BlockedFileExtensionCollection => BlockedFileExtensions
         .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
-        .AsReadOnly();    
+        .AsReadOnly();
 }
 
 public class ToolboxConfig
