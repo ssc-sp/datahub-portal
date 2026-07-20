@@ -157,24 +157,30 @@ jobs:
           name: missing-translations-report
           path: ${{ steps.translation_check.outputs.report_path }}
 
-      - name: Comment missing translations on pull request
-        if: github.event_name == 'pull_request' && steps.translation_check.outputs.missing_found == 'true'
+      - name: Comment translation check result on pull request
+        if: github.event_name == 'pull_request'
         continue-on-error: true
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           REPORT_PATH: ${{ steps.translation_check.outputs.report_path }}
           MISSING_COUNT: ${{ steps.translation_check.outputs.missing_count }}
+          MISSING_FOUND: ${{ steps.translation_check.outputs.missing_found }}
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
             const fs = require("fs");
             const marker = "<!-- translation-lint-report -->";
             const reportPath = process.env.REPORT_PATH;
-            const missingCount = process.env.MISSING_COUNT;
+            const missingCount = Number(process.env.MISSING_COUNT || 0);
+            const missingFound = process.env.MISSING_FOUND === "true";
             const report = fs.readFileSync(reportPath, "utf8");
 
+            const title = missingFound
+              ? `## Missing translations detected (${missingCount})`
+              : "## All translations are present";
+
             const body = `${marker}
-            ## Missing translations detected (${missingCount})
+            ${title}
 
             ${report}
             `;
