@@ -3,30 +3,15 @@
 
 @layout HeaderPublicLayout
 
-
 <PageTitle>@Localizer["Not Found - {0}", Localizer["MainTitle"]]</PageTitle>
 
-<MudContainer Style="width: 100%">
-    <MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
-    <MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
-    <MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of the {0}.", Localizer["MainTitle"]]</MudText>
-    <MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
-    <DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to {0}", Localizer["MainAcronym"]]</DHButton>
-    <br />
-    @if (random.Next(0, 2) == 0)
-    {
-        <MudImage Src="img/errors/dogs/2288512261_31eedc8b0d_b.jpg" Alt="@Localizer["DogImageAltText"]" Elevation="25" Width="400" Class="rounded-lg my-5" />
-    }
-    else
-    {
-        <MudImage Src="img/errors/cats/8369751532_e0596f5f8e_c.jpg" Alt="@Localizer["CatImageAltText"]" Elevation="25" Width="300" Class="rounded-lg my-5" />
-    }
-</MudContainer>
+<MudText Typo="Typo.h2" Class="py-3">@Localizer["404-Page-error"]</MudText>
+<MudText Typo="Typo.body1" Class="py-3">@Localizer["If you believe this is an error, please fill out a Support Request Form and we'll get right on it."]</MudText>
+<MudText Typo="Typo.body1" Class="py-3">@Localizer["Otherwise, you can click the button below to return to the main page of the {0}.", Localizer["MainTitle"]]</MudText>
+<MudText Typo="Typo.body1" Class="py-3">@Localizer["We apologize for any inconvenience."]</MudText>
+<DHButton Variant="Variant.Filled" Color="Color.Primary" Href="@Localizer[PageRoutes.Home]" Class="py-3">@Localizer["Back to {0}", Localizer["MainAcronym"]]</DHButton>
 
-
-    @code {
-
-
+@code {
     Random random = new Random();
 
     protected override void OnInitialized()
@@ -36,6 +21,5 @@
         {
             ctx.Response.StatusCode = StatusCodes.Status404NotFound;
         }
-
     }
 }
