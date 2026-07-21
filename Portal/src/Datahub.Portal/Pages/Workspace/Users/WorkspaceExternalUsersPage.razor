@@ -98,7 +98,7 @@ else if (_gccfEnabled)
                                 {
                                     <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
                                 }
-                                else if (rowContext.ExternalUser.FirstLoginDateTime is null)
+                                else if (rowContext.ExternalUser.FirstLoginDateTime is null || (rowContext.LatestInvitation is not null && rowContext.LatestInvitation.InvitationCodeAccepted is null))
                                 {
                                     <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
                                 }
@@ -485,7 +485,7 @@ else
 
     private bool ShouldShowInvitationDetails(ExternalWorkspaceUserRow projectUser)
     {
-        return projectUser.ExternalUser.FirstLoginDateTime is null && projectUser.LatestInvitation is not null;
+        return projectUser.LatestInvitation is not null && projectUser.LatestInvitation.InvitationCodeAccepted is null;
     }
 
     private string GetInvitationCode(ExternalWorkspaceUserRow projectUser)
