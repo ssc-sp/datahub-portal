@@ -120,7 +120,17 @@ else if (_gccfEnabled)
                         </MudStack>
                     </MudTd>
                     <MudTd>
-                        <MudText>@GetInvitationCode(rowContext)</MudText>
+                        @if (ShouldShowInvitationDetails(rowContext))
+                        {
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ContentCopy"
+                                       OnClick="@(() => CopyInvitationCodeAsync(rowContext.LatestInvitation))">
+                                @GetInvitationCode(rowContext)
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
                     </MudTd>
                     <MudTd>
                         @if (ShouldShowInvitationDetails(rowContext))
@@ -320,6 +330,25 @@ else
         {
             // Reset to the original culture after generating the URL
             CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+        }
+    }
+
+    private async Task CopyInvitationCodeAsync(WorkspaceInvitation? invitation)
+    {
+        if (invitation is null)
+        {
+            _snackbar.Add(Localizer["No invitation found"], Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", invitation.InvitationCode);
+            _snackbar.Add(Localizer["Code copied"], Severity.Success);
+        }
+        catch
+        {
+            _snackbar.Add(Localizer["Unable to copy code"], Severity.Error);
         }
     }
 
