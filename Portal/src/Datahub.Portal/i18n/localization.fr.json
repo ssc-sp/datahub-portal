@@ -1197,6 +1197,7 @@
   "Expected Terraform Output": "Sortie Terraform attendue",
   "Expected_Lifespan_DT": "Date anticipée de cessation des activités ",
   "Expired": "Expiré",
+  "Expired Invite": "Invitation expirée",
   "Explore": "Explorer",
   "Explore - {0}": "Explorer - {0}",
   "Explore other workspaces and users": "Explorer d'autres espaces de travail et utilisateurs",

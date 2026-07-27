@@ -869,6 +869,7 @@
   "Expected Terraform Output": "Expected Terraform Output",
   "Expected_Lifespan_DT": "Expected lifespan or retirement date for the Team",
   "Expired": "Expired",
+  "Expired Invite": "Expired Invite",
   "Explore": "Explore",
   "Explore - {0}": "Explore - {0}",
   "Explore other workspaces and users": "Explore other workspaces and users",
