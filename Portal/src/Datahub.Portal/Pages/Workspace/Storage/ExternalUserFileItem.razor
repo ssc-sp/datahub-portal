@@ -38,31 +38,6 @@
     </MudText>
     <MudText class="file-item-size">@(ByteSize ?? "")</MudText>
     <MudText class="file-item-modified" title="@(Modified?.ToString("F") ?? "")">@(Modified?.ToString("d") ?? "")</MudText>
-    <MudText class="file-item-scan-status">
-        @if (ScanStatus.HasValue)
-        {
-            @switch (ScanStatus.Value)
-            {
-                case FileScanStatus.ScanInProgress:
-                    <MudChip T="string" Color="Color.Info" Size="MudBlazor.Size.Medium" Class="scan-status-chip">
-                        <MudProgressCircular Size="MudBlazor.Size.Small" Indeterminate="true" />
-                        @Localizer["Scanning"]
-                    </MudChip>
-                    break;
-                case FileScanStatus.Succeeded:
-                    <MudChip T="string" Color="Color.Success" Size="MudBlazor.Size.Medium" Icon="fas fa-check" Class="scan-status-chip">
-                        @Localizer["Succeeded"]
-                    </MudChip>
-                    break;
-                case FileScanStatus.Error:
-                    <MudChip T="string" Color="Color.Error" Size="MudBlazor.Size.Medium" Icon="fas fa-exclamation-triangle" Class="scan-status-chip"
-                             OnClick="@(() => OnScanErrorClick.InvokeAsync())" Style="cursor: pointer;">
-                        @Localizer["Error"]
-                    </MudChip>
-                    break;
-            }
-        }
-    </MudText>
 </div>
 
 @code {
@@ -87,12 +62,6 @@
 
     [Parameter]
     public DateTime? Modified { get; set; }
-
-    [Parameter]
-    public FileScanStatus? ScanStatus { get; set; }
-
-    [Parameter]
-    public EventCallback OnScanErrorClick { get; set; }
 
     [Parameter]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
