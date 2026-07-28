@@ -71,6 +71,7 @@ public static class ConfigureServices
         services.AddScoped<INetworkingManagementService, NetworkingManagementService>();
         services.AddScoped<IExternalUserInvitationService, ExternalUserInvitationService>();
         services.AddScoped<IUserSettingsService, UserSettingsService>();
+        services.AddScoped<IUserTokenCredentialService, UserTokenCredentialService>();
         services.AddSingleton<IToolboxService, ToolboxService>();
         services.AddSingleton<ISystemTokenCredentialService, SystemTokenCredentialService>();
         services.AddScoped<IUserInformationService, UserInformationService>();
