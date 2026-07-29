@@ -3,6 +3,31 @@
 <!-- markdownlint-disable MD024 -->
 # Changelog
 
+## [10.0.0](https://github.com/ssc-sp/datahub-portal/compare/v9.0.1...v10.0.0) (2026-07-29)
+
+
+### ⚠ BREAKING CHANGES
+
+* reorg storage containers and UI for external users ([#2036](https://github.com/ssc-sp/datahub-portal/issues/2036))
+
+### Features
+
+* Adding note and link between User and External User pages ([#2061](https://github.com/ssc-sp/datahub-portal/issues/2061)) ([9362cd3](https://github.com/ssc-sp/datahub-portal/commit/9362cd38db8fa414f06d0710743744fd4864ea82))
+* Changes to the help page to clearly communicate ticket status to users ([#2066](https://github.com/ssc-sp/datahub-portal/issues/2066)) ([5ffd364](https://github.com/ssc-sp/datahub-portal/commit/5ffd364b9055715483a1100a8004ca476faabf00))
+* completed flows for AV scans ([#2062](https://github.com/ssc-sp/datahub-portal/issues/2062)) ([48f2f2d](https://github.com/ssc-sp/datahub-portal/commit/48f2f2dbcdc9637567cd1241a73c2847a7e2d656))
+* reorg storage containers and UI for external users ([#2036](https://github.com/ssc-sp/datahub-portal/issues/2036)) ([c517bdd](https://github.com/ssc-sp/datahub-portal/commit/c517bdd6a06b33dab51eaa1c6ed6040f58c9759c))
+* Updating the external users page to let a lead copy/paste the activation code ([#2067](https://github.com/ssc-sp/datahub-portal/issues/2067)) ([6373af2](https://github.com/ssc-sp/datahub-portal/commit/6373af2ff014e054f905fb1db2019bddb56bf19e))
+
+
+### Bug Fixes
+
+* **deps:** update azure sdks ([#2040](https://github.com/ssc-sp/datahub-portal/issues/2040)) ([a837e18](https://github.com/ssc-sp/datahub-portal/commit/a837e18b36a882a914902c6fb44c4ef2c4445969))
+* **deps:** update microsoft identity ([#2041](https://github.com/ssc-sp/datahub-portal/issues/2041)) ([81b8c53](https://github.com/ssc-sp/datahub-portal/commit/81b8c530febf3a21da98cebb587bb101a1d84326))
+* Displaying activation link and pending status for external users in multiple workspaces ([#2065](https://github.com/ssc-sp/datahub-portal/issues/2065)) ([feed00a](https://github.com/ssc-sp/datahub-portal/commit/feed00ab5b0ee197e7c1ac00716af63e61878e72))
+* fixed refresh on file upload for external users ([#2068](https://github.com/ssc-sp/datahub-portal/issues/2068)) ([592e3d0](https://github.com/ssc-sp/datahub-portal/commit/592e3d01811e73f06f0006c251177da5a7a3d337))
+* Fixing the not found page currently using the old public layout ([#2060](https://github.com/ssc-sp/datahub-portal/issues/2060)) ([96a4db6](https://github.com/ssc-sp/datahub-portal/commit/96a4db6183b9d0dd0bd5bde929470ca14ca966f2))
+* Letting workspace leads re-send invites after expiry ([#2070](https://github.com/ssc-sp/datahub-portal/issues/2070)) ([cee2755](https://github.com/ssc-sp/datahub-portal/commit/cee27551f65337608266c8b369e1f7b05ad4ffd6))
+
 ## [9.0.1](https://github.com/ssc-sp/datahub-portal/compare/v9.0.0...v9.0.1) (2026-07-14)
 
 
