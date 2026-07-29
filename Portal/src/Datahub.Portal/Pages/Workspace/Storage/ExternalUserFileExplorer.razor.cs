@@ -1,8 +1,5 @@
-using Datahub.Application.Exceptions;
 using Datahub.Core.Data;
-using Datahub.Core.Model;
 using Datahub.Core.Model.Achievements;
-using Datahub.Core.Model.Datahub;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Infrastructure.Services.VirusScan;
 using Datahub.Shared.Entities;
@@ -22,7 +19,7 @@ public partial class ExternalUserFileExplorer
     private ConcurrentDictionary<Guid, string?> _filesPendingAntivirusScan = new();
     private CancellationTokenSource? _uploadContainerPollingCts;
     [Inject]
-    private IVirusScanStatusConsumer virusScanStatusConsumer { get; set; } = null!;   
+    private IVirusScanStatusListener virusScanStatusConsumer { get; set; } = null!;   
 
     private string UploadContainerName => UploadContainer.Name;
     private bool IsWaitingForAntivirusResults => _filesPendingAntivirusScan.Count > 0;
@@ -140,7 +137,6 @@ public partial class ExternalUserFileExplorer
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Select(name => name!)
             .ToList();
-        _fileScanResults = await FileScanService.GetFileScanResultsAsync(fileNames);
         await RefreshUploadContainerPendingFilesAsync();
 
         _loading = false;
@@ -155,7 +151,6 @@ public partial class ExternalUserFileExplorer
             try
             {
                 await LoadContainersAsync();
-                virusScanStatusConsumer.OnVirusScanStatusReceived += OnVirusScanStatusReceived;
             }
             catch (Exception e)
             {
@@ -167,8 +162,12 @@ public partial class ExternalUserFileExplorer
 
     private async Task OnVirusScanStatusReceived(VirusScanStatusMessage message)
     {
-        _filesPendingAntivirusScan.TryRemove(message.FileId, out _);
-        await InvokeAsync(StateHasChanged);
+        var wasTracked = _filesPendingAntivirusScan.TryRemove(message.FileId, out _);
+        if (wasTracked)
+        {
+            //refresh the file list
+            await InvokeAsync(RefreshStoragePageAsync);
+        }
     }
 
     private async Task HandleFilesDelete(string fileName)
@@ -200,7 +199,6 @@ public partial class ExternalUserFileExplorer
                 continue;
 
             _files?.RemoveAll(f => f.name.Equals(selectedFile, StringComparison.OrdinalIgnoreCase));
-            _fileScanResults.Remove(selectedFile);
         }
 
         // Clear selected items and reset to the current folder
@@ -351,14 +349,6 @@ public partial class ExternalUserFileExplorer
                 }
 
                 _files.Add(fileMetadata);
-
-                // Set initial scan status for newly uploaded file
-                _fileScanResults[fileMetadata.name] = new FileScanResult
-                {
-                    FileName = fileMetadata.name,
-                    Status = FileScanStatus.ScanInProgress,
-                    ScanDate = DateTime.UtcNow
-                };
             }
 
             await InvokeAsync(StateHasChanged);
@@ -518,7 +508,12 @@ public partial class ExternalUserFileExplorer
     private async Task RefreshUploadContainerPendingFilesAsync()
     {
         var pendingFiles = await GetFileIdsInUploadFolderAsync(_root);
+        var prevCount = _filesPendingAntivirusScan?.Count ?? 0;
         _filesPendingAntivirusScan = new ConcurrentDictionary<Guid, string?>(pendingFiles);
+        if (_filesPendingAntivirusScan.Count != prevCount)
+        {
+            await InvokeAsync(RefreshStoragePageAsync);
+        }
     }
 
     private async Task<Dictionary<Guid,string?>> GetFileIdsInUploadFolderAsync(string folderPath)

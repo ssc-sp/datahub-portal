@@ -472,8 +472,6 @@ public class Startup
         services.AddScoped<IDownloadService, DownloadService>();
         services.AddScoped<ICsvService, CsvService>();
         
-        services.AddScoped<IFileScanService, FileScanService>();
-
         services.AddTransient<CorrelationIdHandler>();
         services.AddHttpClient<ExternalSearchService>()
             .AddHttpMessageHandler<CorrelationIdHandler>();
