@@ -506,7 +506,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
             },
             ["completionOptions"] = new JsonObject
             {
-                ["deleteSourceBranch"] = false,
+                ["deleteSourceBranch"] = true,
                 ["bypassPolicy"] = false,
                 ["mergeCommitMessage"] =
                     $"[{workspaceAcronym}] Auto-merged by ResourceProvisioner"
