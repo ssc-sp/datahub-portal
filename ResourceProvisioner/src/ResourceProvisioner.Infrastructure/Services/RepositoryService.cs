@@ -160,6 +160,11 @@ public partial class RepositoryService(
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(workspaceDefinition.Workspace.Acronym!);
 
+            await AutoApproveInfrastructurePullRequest(
+                pullRequestValueObject.PullRequestId,
+                pullRequestValueObject.WorkspaceAcronym,
+                pullRequestValueObject.CreatedById);
+
             var pullRequestMessage = new PullRequestUpdateMessage
             {
                 PullRequestValueObject = pullRequestValueObject,
