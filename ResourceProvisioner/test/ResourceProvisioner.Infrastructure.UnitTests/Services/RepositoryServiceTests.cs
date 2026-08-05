@@ -270,27 +270,51 @@ public class RepositoryServiceTests : TemplateTestCollection
     [Test]
     public async Task ShouldPushInfrastructureChangesToRepository()
     {
-        var repository = InitializeTestInfrastructureRepository();
-        var mockTerraformService = SetupMockTerraformService();
-        var httpClientFactory = new Mock<IHttpClientFactory>();
-        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
+        var branchWasPushed = false;
 
-        var featureManager = new Mock<IFeatureManagerSnapshot>();
-        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
+        try
+        {
+            var repository = InitializeTestInfrastructureRepository();
+            var mockTerraformService = SetupMockTerraformService();
 
-        var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
+            var httpClientFactory = new Mock<IHttpClientFactory>();
+            httpClientFactory
+                .Setup(x => x.CreateClient(It.IsAny<string>()))
+                .Returns(Mock.Of<HttpClient>());
 
-        await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+            var featureManager = new Mock<IFeatureManagerSnapshot>();
+            featureManager
+                .Setup(x => x.IsEnabledAsync(It.IsAny<string>()))
+                .ReturnsAsync(true);
 
-        await Task.Run(DeleteAllFilesInTestProject);
+            var repositoryService = new RepositoryService(
+                httpClientFactory.Object,
+                Mock.Of<ILogger<RepositoryService>>(),
+                _resourceProvisionerConfiguration.AsOptions(),
+                mockTerraformService,
+                featureManager.Object,
+                _configuration);
 
-        CreateFakeFileInTestProject();
-        Commands.Stage(repository, "*");
-        repository.Commit("Push test commit", new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now),
-            new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now));
+            await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(
+                TestingWorkspace);
 
-        await repositoryService.PushInfrastructureRepository(ProjectAcronym);
+            await Task.Run(DeleteAllFilesInTestProject);
+
+            CreateFakeFileInTestProject();
+            Commands.Stage(repository, "*");
+            repository.Commit("Push test commit",new Signature(RequestingUser,RequestingUser,DateTimeOffset.Now),new Signature(RequestingUser, RequestingUser,DateTimeOffset.Now));
+
+            await repositoryService.PushInfrastructureRepository(ProjectAcronym);
+
+            branchWasPushed = true;
+        }
+        finally
+        {
+            if (branchWasPushed)
+            {
+                await DeleteRemoteTestBranch(ProjectAcronym);
+            }
+        }
     }
 
 
