@@ -453,4 +453,63 @@ public class RepositoryServiceTests : TemplateTestCollection
             file.Delete();
         }
     }
+
+    private static async Task DeleteRemoteTestBranch(string branchName)
+    {
+        if (!string.Equals(branchName,ProjectAcronym,StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException(
+                $"Refusing to delete unexpected branch '{branchName}'.");
+        }
+
+        var repositoryPath =
+            DirectoryUtils.GetInfrastructureRepositoryPath(
+                _resourceProvisionerConfiguration);
+
+        if (!Repository.IsValid(repositoryPath))
+        {
+            return;
+        }
+
+        var azureDevOpsConfiguration =
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .AzureDevOpsConfiguration;
+
+        var credentialService =
+            new InfraTokenCredentialService(
+                azureDevOpsConfiguration);
+
+        var tokenManager =
+            new AzAccessTokenManager(
+                credentialService,
+                credentialService);
+
+        var accessToken =
+            await tokenManager.AccessDevopsTokenAsync();
+
+        using var repository =
+            new Repository(repositoryPath);
+
+        var remote =
+            repository.Network.Remotes["origin"]
+            ?? throw new InvalidOperationException(
+                "The origin remote was not found.");
+
+        var pushOptions = new PushOptions
+        {
+            CredentialsProvider = (_, _, _) =>
+                new UsernamePasswordCredentials
+                {
+                    Username = azureDevOpsConfiguration.ClientId,
+                    Password = accessToken.Token
+                }
+        };
+
+        await Task.Run(() =>
+            repository.Network.Push(
+                remote,
+                $":refs/heads/{branchName}",
+                pushOptions));
+    }
 }
