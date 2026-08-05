@@ -17,6 +17,10 @@ public partial class Testing
     private static IServiceScopeFactory _scopeFactory = null!;
     private static string? _currentUserId;
 
+    internal static string GenerateRemoteTestName(string purpose)
+    {
+        return $"TEST-{purpose}-{Guid.NewGuid().ToString("N")[..8]}";
+    }
 
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
@@ -78,7 +82,7 @@ public partial class Testing
             ["status"] = "abandoned"
         };
 
-        var patchContent = new StringContent(
+        using var patchContent = new StringContent(
             JsonSerializer.Serialize(patchData),
             Encoding.UTF8,
             "application/json");
@@ -161,7 +165,7 @@ public partial class Testing
             }
         };
 
-        var deleteContent = new StringContent(
+        using var deleteContent = new StringContent(
             JsonSerializer.Serialize(deleteData),
             Encoding.UTF8,
             "application/json");
