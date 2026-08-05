@@ -15,11 +15,7 @@ public partial class Testing
 
     internal static string GenerateRemoteTestName(string purpose)
     {
-        var uniqueId = Guid.NewGuid()
-            .ToString("N")[..8]
-            .ToUpperInvariant();
-
-        return $"TEST-{purpose}-{uniqueId}";
+        return $"TEST-{purpose}-{Guid.NewGuid().ToString("N")[..8]}";
     }
 
     [OneTimeSetUp]
