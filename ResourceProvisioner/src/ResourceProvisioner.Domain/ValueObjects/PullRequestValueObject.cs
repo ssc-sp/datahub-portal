@@ -14,4 +14,5 @@ public class PullRequestValueObject
         PullRequestId = id;
         CreatedById = createdById;
     }
+    
 }
