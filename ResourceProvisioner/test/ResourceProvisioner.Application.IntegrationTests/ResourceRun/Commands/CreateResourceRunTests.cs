@@ -56,7 +56,7 @@ public class CreateResourceRunTests
                         Code = "SBDA-42"
                     }
                 },
-                RequestingUserEmail = "John@test.gc.ca",
+                RequestingUserEmail = "Integration-Code-Test@abc.gc.ca",
                 ResourceGroupName = "test-rg",
                 AppData = new WorkspaceAppData()
             };
