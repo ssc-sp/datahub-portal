@@ -45,6 +45,15 @@ public class Testing
 
     internal static readonly TerraformTemplate TestTemplate = new("TestModule", TerraformStatus.CreateRequested, DateTime.UtcNow);
 
+    internal static string GenerateRemoteTestName(string purpose)
+    {
+        var uniqueId = Guid.NewGuid()
+            .ToString("N")[..8]
+            .ToUpperInvariant();
+
+        return $"TEST-{purpose}-{uniqueId}";
+    }
+
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
     {
@@ -218,9 +227,13 @@ public class Testing
             .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;
     }
 
-    internal static string GenerateWorkspaceAcronym()
+    internal static string GenerateWorkspaceAcronym(string purpose)
     {
-        return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
+        var uniqueId = Guid.NewGuid()
+            .ToString("N")[..8]
+            .ToUpperInvariant();
+
+        return $"TEST-{purpose}-{uniqueId}";
     }
     
     internal static WorkspaceDefinition GenerateTestWorkspaceDefinition(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
