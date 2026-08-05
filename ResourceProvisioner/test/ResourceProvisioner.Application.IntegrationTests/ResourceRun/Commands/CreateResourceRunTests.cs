@@ -30,33 +30,60 @@ public class CreateResourceRunTests
             SendAsync(command)).Should().ThrowAsync<ValidationException>();
     }
     
-    [Test]    
+    [Test]
     public async Task ShouldCreateResourceRun()
     {
         await RunAsDefaultUserAsync();
-        
-        var command = new WorkspaceDefinition
+
+        var projectAcronym = GenerateRemoteTestName("PR");
+        int? pullRequestId = null;
+
+        try
         {
-            Templates = new List<TerraformTemplate>
+            var command = new WorkspaceDefinition
             {
-                new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
-            },
-            Workspace = new TerraformWorkspace
-            {
-                Acronym = "TEST",
-                Name = "Test Project",
-                TerraformOrganization = new TerraformOrganization
+                Templates = new List<TerraformTemplate>
                 {
-                    Name = "SBDA Number 42",
-                    Code = "SBDA-42"
+                    new("azure-storage-blob", TerraformStatus.CreateRequested, DateTime.UtcNow),
+                },
+                Workspace = new TerraformWorkspace
+                {
+                    Acronym = projectAcronym,
+                    Name = "Test Project",
+                    TerraformOrganization = new TerraformOrganization
+                    {
+                        Name = "SBDA Number 42",
+                        Code = "SBDA-42"
+                    }
+                },
+                RequestingUserEmail = "John@test.gc.ca",
+                ResourceGroupName = "test-rg",
+                AppData = new WorkspaceAppData()
+            };
+
+            var id = await SendAsync(command);
+
+            Assert.That(id, Is.Not.Null);
+            Assert.That(id.PullRequestValueObject, Is.Not.Null);
+
+            pullRequestId =
+                id.PullRequestValueObject!.PullRequestId;
+        }
+        finally
+        {
+            try
+            {
+                if (pullRequestId.HasValue)
+                {
+                    await AbandonPullRequest(
+                        pullRequestId.Value);
                 }
-            },
-            RequestingUserEmail = "John@test.gc.ca",
-            ResourceGroupName = "test-rg",
-            AppData = new WorkspaceAppData()
-        };
-        
-        var id = await SendAsync(command);
-        Assert.That(id, Is.Not.Null);
+            }
+            finally
+            {
+                await DeleteRemoteBranch(
+                    projectAcronym);
+            }
+        }
     }
 }
