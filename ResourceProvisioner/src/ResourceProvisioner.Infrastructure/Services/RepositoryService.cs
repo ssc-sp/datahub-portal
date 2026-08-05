@@ -426,25 +426,19 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         var pullRequestId = data?["pullRequestId"]?.ToString();
         var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString(); // Extract directly from ADO
 
-        if (string.IsNullOrWhiteSpace(pullRequestId))
+        if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
         {
-            if (data?["typeKey"]?.ToString() == "GitPullRequestExistsException")
-            {
-                var existingPr = await GetExistingPullRequestDetails(workspaceAcronym);
-                pullRequestId = existingPr.PullRequestId;
-                autoCompleteIdentityId = existingPr.CreatedById;
-            }
-            else
-            {
-                throw new Exception($"Could not get pull request id for {workspaceAcronym}");
-            }
+            throw new Exception($"Could not get pull request creator id for {workspaceAcronym}");
         }
-
 
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        return new PullRequestValueObject(workspaceAcronym,pullRequestUrl, int.Parse(pullRequestId),autoCompleteIdentityId);
+        return new PullRequestValueObject(
+            workspaceAcronym,
+            pullRequestUrl,
+            int.Parse(pullRequestId),
+            autoCompleteIdentityId);
     }
 
 
