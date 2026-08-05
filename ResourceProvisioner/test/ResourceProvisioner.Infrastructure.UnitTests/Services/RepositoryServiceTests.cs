@@ -314,8 +314,7 @@ public class RepositoryServiceTests : TemplateTestCollection
                     System.Text.Json.JsonSerializer.Serialize(new
                     {
                         pullRequestId = fakePullRequestId,
-                        createdBy = new { id = fakeIdentityId },
-                        autoCompleteSetBy = new { id = fakeIdentityId }
+                        createdBy = new { id = fakeIdentityId }
                     }),
                     System.Text.Encoding.UTF8,
                     "application/json")
