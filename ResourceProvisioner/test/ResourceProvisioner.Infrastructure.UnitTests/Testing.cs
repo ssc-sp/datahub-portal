@@ -227,13 +227,9 @@ public class Testing
             .GetFiles(moduleDestinationPath, "*.*", SearchOption.TopDirectoryOnly).Length;
     }
 
-    internal static string GenerateWorkspaceAcronym(string purpose)
+    internal static string GenerateWorkspaceAcronym()
     {
-        var uniqueId = Guid.NewGuid()
-            .ToString("N")[..8]
-            .ToUpperInvariant();
-
-        return $"TEST-{purpose}-{uniqueId}";
+        return $"{Guid.NewGuid().ToString().Replace("-", "")[..8]}";
     }
     
     internal static WorkspaceDefinition GenerateTestWorkspaceDefinition(string workspaceAcronym, List<string> terraformTemplates, bool withUsers = true)
