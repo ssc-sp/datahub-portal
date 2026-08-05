@@ -160,10 +160,22 @@ public partial class RepositoryService(
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(workspaceDefinition.Workspace.Acronym!);
 
-            await AutoApproveInfrastructurePullRequest(
-                pullRequestValueObject.PullRequestId,
-                pullRequestValueObject.WorkspaceAcronym,
-                pullRequestValueObject.CreatedById);
+            if (resourceProvisionerConfiguration
+                .Value
+                .InfrastructureRepository
+                .EnablePullRequestAutoComplete)
+            {
+                await AutoApproveInfrastructurePullRequest(
+                    pullRequestValueObject.PullRequestId,
+                    pullRequestValueObject.WorkspaceAcronym,
+                    pullRequestValueObject.CreatedById);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Auto-complete is disabled for pull request {PullRequestId}",
+                    pullRequestValueObject.PullRequestId);
+            }
 
             var pullRequestMessage = new PullRequestUpdateMessage
             {
