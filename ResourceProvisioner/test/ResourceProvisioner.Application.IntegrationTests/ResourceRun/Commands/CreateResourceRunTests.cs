@@ -29,7 +29,7 @@ public class CreateResourceRunTests
         await FluentActions.Invoking(() =>
             SendAsync(command)).Should().ThrowAsync<ValidationException>();
     }
-    
+
     [Test]
     public async Task ShouldCreateResourceRun()
     {
