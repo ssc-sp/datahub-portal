@@ -32,7 +32,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
 
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()

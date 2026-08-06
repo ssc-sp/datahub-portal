@@ -42,7 +42,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate
          });
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
