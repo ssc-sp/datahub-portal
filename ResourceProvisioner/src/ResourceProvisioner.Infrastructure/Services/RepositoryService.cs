@@ -423,6 +423,9 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         var content = await response.Content.ReadAsStringAsync();
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
+        var pullRequestId = data?["pullRequestId"]?.ToString();
+        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString();
+
         if (string.IsNullOrWhiteSpace(pullRequestId))
         {
             if (data?["typeKey"]?.ToString() == "GitPullRequestExistsException")
