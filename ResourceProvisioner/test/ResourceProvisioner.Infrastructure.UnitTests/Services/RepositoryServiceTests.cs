@@ -289,6 +289,9 @@ public class RepositoryServiceTests : TemplateTestCollection
         var branchName =
             $"TEST-PROJECT-{Guid.NewGuid().ToString("N")[..8]}";
 
+        TestContext.Progress.WriteLine(
+            $"Creating remote test branch: {branchName}");
+
         var testingWorkspace = new TerraformWorkspace
         {
             Acronym = branchName,
@@ -297,13 +300,22 @@ public class RepositoryServiceTests : TemplateTestCollection
 
         var mockTerraformService = SetupMockTerraformService();
         var httpClientFactory = new Mock<IHttpClientFactory>();
-        httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
+        httpClientFactory
+            .Setup(x => x.CreateClient(It.IsAny<string>()))
+            .Returns(Mock.Of<HttpClient>());
 
         var featureManager = new Mock<IFeatureManagerSnapshot>();
-        featureManager.Setup(x => x.IsEnabledAsync(It.IsAny<string>())).ReturnsAsync(true);
+        featureManager
+            .Setup(x => x.IsEnabledAsync(It.IsAny<string>()))
+            .ReturnsAsync(true);
 
-        var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
-            _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
+        var repositoryService = new RepositoryService(
+            httpClientFactory.Object,
+            Mock.Of<ILogger<RepositoryService>>(),
+            _resourceProvisionerConfiguration.AsOptions(),
+            mockTerraformService,
+            featureManager.Object,
+            _configuration);
 
         try
         {
@@ -334,15 +346,32 @@ public class RepositoryServiceTests : TemplateTestCollection
 
             Commands.Stage(repository, "*");
 
-            repository.Commit("Push test commit", new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now),
-                new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now));
+            repository.Commit(
+                "Push test commit",
+                new Signature(
+                    RequestingUser,
+                    RequestingUser,
+                    DateTimeOffset.Now),
+                new Signature(
+                    RequestingUser,
+                    RequestingUser,
+                    DateTimeOffset.Now));
 
             await repositoryService.PushInfrastructureRepository(
                 branchName);
+
+            TestContext.Progress.WriteLine(
+                $"Successfully pushed test commit to branch: {branchName}");
         }
         finally
         {
+            TestContext.Progress.WriteLine(
+                $"Deleting remote test branch: {branchName}");
+
             await DeleteRemotePushBranch(branchName);
+
+            TestContext.Progress.WriteLine(
+                $"Successfully deleted remote test branch: {branchName}");
         }
     }
 
