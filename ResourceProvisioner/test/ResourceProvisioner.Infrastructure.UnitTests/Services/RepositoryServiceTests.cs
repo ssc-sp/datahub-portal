@@ -20,6 +20,9 @@ using Datahub.Shared;
 using NUnit.Framework.Internal.Execution;
 using ResourceProvisioner.Infrastructure.UnitTests.Collections;
 using ResourceProvisioner.SpecflowTests;
+using System.Net.Http.Headers;
+using Datahub.Infrastructure.Services.Security;
+using Datahub.Shared.Clients;
 
 namespace ResourceProvisioner.Infrastructure.UnitTests.Services;
 
@@ -270,7 +273,15 @@ public class RepositoryServiceTests : TemplateTestCollection
     [Test]
     public async Task ShouldPushInfrastructureChangesToRepository()
     {
-        var repository = InitializeTestInfrastructureRepository();
+        var branchName =
+            $"TEST-PUSH-{Guid.NewGuid().ToString("N")[..8]}";
+
+        var testingWorkspace = new TerraformWorkspace
+        {
+            Acronym = branchName,
+            Version = TestingWorkspace.Version
+        };
+
         var mockTerraformService = SetupMockTerraformService();
         var httpClientFactory = new Mock<IHttpClientFactory>();
         httpClientFactory.Setup(x => x.CreateClient(It.IsAny<string>())).Returns(Mock.Of<HttpClient>());
@@ -281,16 +292,31 @@ public class RepositoryServiceTests : TemplateTestCollection
         var repositoryService = new RepositoryService(httpClientFactory.Object, Mock.Of<ILogger<RepositoryService>>(),
             _resourceProvisionerConfiguration.AsOptions(), mockTerraformService, featureManager.Object, _configuration);
 
-        await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        try
+        {
+            await repositoryService.FetchRepositoriesAndCheckoutProjectBranch(
+                testingWorkspace);
 
-        await Task.Run(DeleteAllFilesInTestProject);
+            var repositoryPath =
+                DirectoryUtils.GetInfrastructureRepositoryPath(
+                    _resourceProvisionerConfiguration);
 
-        CreateFakeFileInTestProject();
-        Commands.Stage(repository, "*");
-        repository.Commit("Push test commit", new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now),
-            new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now));
+            using var repository = new Repository(repositoryPath);
 
-        await repositoryService.PushInfrastructureRepository(ProjectAcronym);
+            await Task.Run(DeleteAllFilesInTestProject);
+
+            CreateFakeFileInTestProject();
+            Commands.Stage(repository, "*");
+            repository.Commit("Push test commit", new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now),
+                new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now));
+
+            await repositoryService.PushInfrastructureRepository(
+                branchName);
+        }
+        finally
+        {
+            await DeleteRemotePushBranch(branchName);
+        }
     }
 
 
@@ -428,4 +454,120 @@ public class RepositoryServiceTests : TemplateTestCollection
             file.Delete();
         }
     }
+    private static async Task DeleteRemotePushBranch(string branchName)
+    {
+        if (!branchName.StartsWith(
+                "TEST-PUSH-",
+                StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                $"Refusing to delete non-test branch {branchName}");
+        }
+
+        var credentialService = new InfraTokenCredentialService(
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .AzureDevOpsConfiguration);
+
+        var tokenManager = new AzAccessTokenManager(
+            credentialService,
+            credentialService);
+
+        var accessToken =
+            await tokenManager.AccessDevopsTokenAsync();
+
+        using var httpClient = new HttpClient();
+
+        httpClient.DefaultRequestHeaders.Authorization =
+            new AuthenticationHeaderValue(
+                "Bearer",
+                accessToken.Token);
+
+        var pullRequestUrl =
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .PullRequestUrl;
+
+        var apiVersion =
+            _resourceProvisionerConfiguration
+                .InfrastructureRepository
+                .ApiVersion;
+
+        var refsUrl = pullRequestUrl.Replace(
+            "/pullrequests",
+            "/refs",
+            StringComparison.OrdinalIgnoreCase);
+
+        var branchFilter = Uri.EscapeDataString(
+            $"heads/{branchName}");
+
+        var getResponse = await httpClient.GetAsync(
+            $"{refsUrl}?filter={branchFilter}&api-version={apiVersion}");
+
+        getResponse.EnsureSuccessStatusCode();
+
+        var getContent =
+            await getResponse.Content.ReadAsStringAsync();
+
+        var getData =
+            JsonSerializer.Deserialize<JsonNode>(getContent);
+
+        var branch = getData?["value"]?
+            .AsArray()
+            .FirstOrDefault(node =>
+                node?["name"]?.ToString() ==
+                $"refs/heads/{branchName}");
+
+        var oldObjectId =
+            branch?["objectId"]?.ToString();
+
+        if (string.IsNullOrWhiteSpace(oldObjectId))
+        {
+            return;
+        }
+
+        var deleteData = new JsonArray
+        {
+            new JsonObject
+            {
+                ["name"] = $"refs/heads/{branchName}",
+                ["oldObjectId"] = oldObjectId,
+                ["newObjectId"] =
+                    "0000000000000000000000000000000000000000"
+            }
+        };
+
+        using var deleteContent = new StringContent(
+            JsonSerializer.Serialize(deleteData),
+            Encoding.UTF8,
+            "application/json");
+
+        var deleteResponse = await httpClient.PostAsync(
+            $"{refsUrl}?api-version={apiVersion}",
+            deleteContent);
+
+        deleteResponse.EnsureSuccessStatusCode();
+
+        var deleteResponseContent =
+            await deleteResponse.Content.ReadAsStringAsync();
+
+        var deleteResponseData =
+            JsonSerializer.Deserialize<JsonNode>(
+                deleteResponseContent);
+
+        var deleteResult = deleteResponseData?["value"]?
+            .AsArray()
+            .FirstOrDefault();
+
+        if (deleteResult?["success"]?.GetValue<bool>() != true)
+        {
+            var updateStatus =
+                deleteResult?["updateStatus"]?.ToString();
+
+            throw new InvalidOperationException(
+                $"Could not delete branch {branchName}. " +
+                $"Azure DevOps status: {updateStatus}");
+        }
+    }
+
 }
