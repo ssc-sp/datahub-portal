@@ -274,7 +274,7 @@ public class RepositoryServiceTests : TemplateTestCollection
     public async Task ShouldPushInfrastructureChangesToRepository()
     {
         var branchName =
-            $"TEST-PUSH-{Guid.NewGuid().ToString("N")[..8]}";
+            $"TEST-PROJECT-{Guid.NewGuid().ToString("N")[..8]}";
 
         var testingWorkspace = new TerraformWorkspace
         {
@@ -303,10 +303,24 @@ public class RepositoryServiceTests : TemplateTestCollection
 
             using var repository = new Repository(repositoryPath);
 
-            await Task.Run(DeleteAllFilesInTestProject);
+            var projectPath =
+                DirectoryUtils.GetProjectPath(
+                    _resourceProvisionerConfiguration,
+                    branchName);
 
-            CreateFakeFileInTestProject();
+            Directory.CreateDirectory(projectPath);
+
+            var testFilePath =
+                Path.Join(
+                    projectPath,
+                    $"{Guid.NewGuid()}.tf");
+
+            await File.WriteAllTextAsync(
+                testFilePath,
+                "# Push integration test");
+
             Commands.Stage(repository, "*");
+
             repository.Commit("Push test commit", new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now),
                 new Signature(RequestingUser, RequestingUser, DateTimeOffset.Now));
 
@@ -457,7 +471,7 @@ public class RepositoryServiceTests : TemplateTestCollection
     private static async Task DeleteRemotePushBranch(string branchName)
     {
         if (!branchName.StartsWith(
-                "TEST-PUSH-",
+                "TEST-PROJECT-",
                 StringComparison.OrdinalIgnoreCase))
         {
             throw new InvalidOperationException(
