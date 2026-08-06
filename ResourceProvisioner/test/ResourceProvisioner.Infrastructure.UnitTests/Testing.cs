@@ -29,14 +29,7 @@ public class Testing
 
     internal static ResourceProvisionerConfiguration _resourceProvisionerConfiguration = null!;
 
-
-    internal const string ProjectAcronym = "TEST";
-
-    internal static TerraformWorkspace TestingWorkspace => new()
-    {
-        Acronym = ProjectAcronym,
-        Version = "v5.0.4",
-    };
+    internal const string TestWorkspaceVersion = "v5.0.4";
 
     internal const string RequestingUser = "Unit Test User";
     internal const string RequestingUserEmail = "unittest@user.com";
@@ -190,12 +183,12 @@ public class Testing
         };
         try
         {
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         }
         catch (IOException)
         {
             await Task.Delay(1000);
-            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+            await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         }   
 
         var command = GenerateTestWorkspaceDefinition(
@@ -230,7 +223,7 @@ public class Testing
             Templates = terraformTemplates
                 .Select(s => new TerraformTemplate(s, TerraformStatus.CreateRequested, DateTime.UtcNow))
                 .ToList(),
-            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestingWorkspace.Version),
+            Workspace = GenerateTestTerraformWorkspace(workspaceAcronym, withUsers, TestWorkspaceVersion),
             RequestingUserEmail = RequestingUser,
             ResourceGroupName = ResourceGroup,
             AppData = new WorkspaceAppData()            

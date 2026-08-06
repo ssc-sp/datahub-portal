@@ -31,7 +31,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
@@ -62,7 +62,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
                    TerraformTemplate.NewProjectTemplate,
                    TerraformTemplate.NewProjectTemplate
             });
-        workspace.Version = TestingWorkspace.Version;
+        workspace.Version = TestWorkspaceVersion;
         command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
 
