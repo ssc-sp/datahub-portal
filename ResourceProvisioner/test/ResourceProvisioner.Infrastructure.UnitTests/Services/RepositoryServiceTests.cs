@@ -453,7 +453,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         return mockTerraformService.Object;
     }
 
-    private static void CreateFakeFileInTestProject()
+    private static void CreateFakeFileInTestProject(string workspaceAcronym)
     {
         var fileName = $"{Guid.NewGuid()}.tf";
         const string content = "# Commit this!";
