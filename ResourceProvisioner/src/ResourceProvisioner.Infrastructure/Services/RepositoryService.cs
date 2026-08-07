@@ -293,14 +293,30 @@ public partial class RepositoryService(
         logger.LogInformation("Checking out branch {WorkspaceName} in {Path}", workspaceName, repositoryPath);
         using var repo = new Repository(repositoryPath);
         var branch = repo.Branches[workspaceName];
+        bool isNewBranch = false;
         if (branch == null)
         {
             logger.LogInformation("Branch {WorkspaceName} does not exist in {Path}, creating it now", workspaceName,
                 repositoryPath);
             branch = repo.CreateBranch(workspaceName);
+            isNewBranch = true;
         }
 
         Commands.Checkout(repo, branch);
+        if (!isNewBranch)
+        {
+            var mainBranchName = resourceProvisionerConfiguration.Value.InfrastructureRepository.MainBranch;
+            var mainBranch = repo.Branches[mainBranchName];
+            if (mainBranch is null)
+            {
+                logger.LogWarning("Main branch {MainBranchName} does not exist in {Path}; skipping rebranch", mainBranchName, repositoryPath);
+            }
+            else
+            {
+                logger.LogInformation("Resetting {WorkspaceName} to {MainBranchName}", workspaceName, mainBranchName);
+                repo.Reset(ResetMode.Hard, mainBranch.Tip);
+            }
+        }
 
         logger.LogInformation("Branch {WorkspaceName} checked out in {Path}", workspaceName, repositoryPath);
 
