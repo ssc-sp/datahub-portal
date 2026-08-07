@@ -424,7 +424,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         var data = JsonSerializer.Deserialize<JsonNode>(content);
 
         var pullRequestId = data?["pullRequestId"]?.ToString();
-        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString();
+        var autoCompleteIdentityId = data?["createdBy"]?["id"]?.ToString(); // Extract directly from ADO
 
         if (string.IsNullOrWhiteSpace(pullRequestId))
         {
