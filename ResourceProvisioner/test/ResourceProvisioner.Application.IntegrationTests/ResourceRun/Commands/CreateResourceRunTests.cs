@@ -35,7 +35,7 @@ public class CreateResourceRunTests
     {
         await RunAsDefaultUserAsync();
 
-        var projectAcronym = GenerateRemoteTestName("PR");
+        var projectAcronym = $"TEST-PR-{Guid.NewGuid().ToString("N")[..8]}";
         int? pullRequestId = null;
 
         try

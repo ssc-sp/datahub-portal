@@ -162,7 +162,7 @@ public partial class RepositoryService(
 
             if (resourceProvisionerConfiguration.Value.InfrastructureRepository.EnablePullRequestAutoComplete)
             {
-                await AutoApproveInfrastructurePullRequest(int.Parse(pullRequestValueObject.PullRequestId), pullRequestValueObject.WorkspaceAcronym, pullRequestValueObject.CreatedById);
+                await AutoApproveInfrastructurePullRequest(pullRequestValueObject.PullRequestId, pullRequestValueObject.WorkspaceAcronym, pullRequestValueObject.CreatedById);
             }
             else
             {

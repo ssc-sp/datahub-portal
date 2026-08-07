@@ -17,11 +17,6 @@ public partial class Testing
     private static IServiceScopeFactory _scopeFactory = null!;
     private static string? _currentUserId;
 
-    internal static string GenerateRemoteTestName(string purpose)
-    {
-        return $"TEST-{purpose}-{Guid.NewGuid().ToString("N")[..8]}";
-    }
-
     [OneTimeSetUp]
     public void RunBeforeAnyTests()
     {
