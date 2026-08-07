@@ -448,10 +448,7 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        return new PullRequestValueObject(
-            workspaceAcronym,
-            pullRequestUrl,
-            int.Parse(pullRequestId),
+        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId),
             autoCompleteIdentityId);
     }
 
