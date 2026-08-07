@@ -519,7 +519,7 @@ expected format.
             var workItems = await client2.GetWorkItemsAsync(ids.Skip(i).Take(150).ToArray()).ConfigureAwait(false);
             foreach (var workItem in workItems)
             {
-                var issue = new IssueForDisplaying(workItem, false);
+                var issue = new IssueForDisplaying(workItem, true);
                 _issuesList.Add(issue);
             }
         }
@@ -561,6 +561,7 @@ expected format.
             "Closed" => Color.Success,
             "Active" => Color.Default,
             "New" => Color.Default,
+            "Waiting" => Color.Warning,
             _ => Color.Default
         };
     }

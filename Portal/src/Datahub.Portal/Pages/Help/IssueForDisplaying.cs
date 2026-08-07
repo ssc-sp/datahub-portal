@@ -1,4 +1,4 @@
-﻿using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
+using Microsoft.TeamFoundation.WorkItemTracking.WebApi.Models;
 using Newtonsoft.Json.Linq;
 
 namespace Datahub.Portal.Pages.Help
@@ -81,16 +81,16 @@ namespace Datahub.Portal.Pages.Help
             switch (state)
             {
                 case "New":
-                    message = "Your request is submitted and awaiting review.";
+                    message = "Your request is awaiting review.";
                     break;
                 case "Active":
-                    message = "Your request is currently active and being worked on.";
+                    message = "Your request is being worked on.";
                     break;
                 case "Waiting":
-                    message = "We have reached out for more information.";
+                    message = "We have contacted you for more information.";
                     break;
                 case "Closed":
-                    message = "Your request has been marked as closed.";
+                    message = "Your request is closed.";
                     break;
                 default:
                     message = "The state of your request is currently unknown.";

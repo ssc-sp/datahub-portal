@@ -98,9 +98,16 @@ else if (_gccfEnabled)
                                 {
                                     <MudChip T="string" Color="Color.Error">@Localizer["Expired"]</MudChip>
                                 }
-                                else if (rowContext.ExternalUser.FirstLoginDateTime is null || (rowContext.LatestInvitation is not null && rowContext.LatestInvitation.InvitationCodeAccepted is null))
+                                else if (rowContext.LatestInvitation is not null && rowContext.LatestInvitation.InvitationCodeAccepted is null)
                                 {
-                                    <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
+                                    if (IsInviteExpired(rowContext))
+                                    {
+                                        <MudChip T="string" Color="Color.Error">@Localizer["Expired Invite"]</MudChip>
+                                    }
+                                    else if (rowContext.LatestInvitation.InvitationCodeAccepted is null)
+                                    {
+                                        <MudChip T="string" Color="Color.Warning">@Localizer["Pending Invite"]</MudChip>
+                                    }
                                 }
                                 else
                                 {
@@ -120,7 +127,17 @@ else if (_gccfEnabled)
                         </MudStack>
                     </MudTd>
                     <MudTd>
-                        <MudText>@GetInvitationCode(rowContext)</MudText>
+                        @if (ShouldShowInvitationDetails(rowContext))
+                        {
+                            <MudButton Variant="Variant.Text" Color="Color.Primary" StartIcon="@Icons.Material.Outlined.ContentCopy"
+                                       OnClick="@(() => CopyInvitationCodeAsync(rowContext.LatestInvitation))">
+                                @GetInvitationCode(rowContext)
+                            </MudButton>
+                        }
+                        else
+                        {
+                            <MudText>-</MudText>
+                        }
                     </MudTd>
                     <MudTd>
                         @if (ShouldShowInvitationDetails(rowContext))
@@ -158,7 +175,7 @@ else if (_gccfEnabled)
                                 {
                                     <DHButton Variant="Variant.Filled" OnClick="() => CancelInvitationAsync(rowContext)">@Localizer["Cancel invitation"]</DHButton>
                                 }
-                                @if (CanResendInvitation(rowContext))
+                                @if (CanResendInvitation(rowContext) || IsInviteExpired(rowContext))
                                 {
                                     <DHButton Variant="Variant.Filled" OnClick="() => ResendInvitationAsync(rowContext)">@Localizer["Resend invitation"]</DHButton>
                                 }
@@ -320,6 +337,25 @@ else
         {
             // Reset to the original culture after generating the URL
             CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+        }
+    }
+
+    private async Task CopyInvitationCodeAsync(WorkspaceInvitation? invitation)
+    {
+        if (invitation is null)
+        {
+            _snackbar.Add(Localizer["No invitation found"], Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await _jsRuntime.InvokeVoidAsync("navigator.clipboard.writeText", invitation.InvitationCode);
+            _snackbar.Add(Localizer["Code copied"], Severity.Success);
+        }
+        catch
+        {
+            _snackbar.Add(Localizer["Unable to copy code"], Severity.Error);
         }
     }
 
@@ -541,4 +577,10 @@ else
         return matchesSearch;
     }
 
+    private bool IsInviteExpired(ExternalWorkspaceUserRow projectUser)
+    {
+        return projectUser.LatestInvitation is not null
+            && projectUser.LatestInvitation.InvitationCodeAccepted is null
+            && projectUser.LatestInvitation.InvitationExpiry < DateTimeOffset.UtcNow;
+    }
 }
