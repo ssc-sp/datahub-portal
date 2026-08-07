@@ -289,7 +289,7 @@ public class RepositoryServiceTests : TemplateTestCollection
         var branchName =
             $"TEST-PROJECT-{Guid.NewGuid().ToString("N")[..8]}";
 
-        TestContext.Progress.WriteLine(
+        TestContext.Out.WriteLine(
             $"Creating remote test branch: {branchName}");
 
         var testingWorkspace = new TerraformWorkspace
@@ -360,17 +360,17 @@ public class RepositoryServiceTests : TemplateTestCollection
             await repositoryService.PushInfrastructureRepository(
                 branchName);
 
-            TestContext.Progress.WriteLine(
+            TestContext.Out.WriteLine(
                 $"Successfully pushed test commit to branch: {branchName}");
         }
         finally
         {
-            TestContext.Progress.WriteLine(
+            TestContext.Out.WriteLine(
                 $"Deleting remote test branch: {branchName}");
 
             await DeleteRemotePushBranch(branchName);
 
-            TestContext.Progress.WriteLine(
+            TestContext.Out.WriteLine(
                 $"Successfully deleted remote test branch: {branchName}");
         }
     }
