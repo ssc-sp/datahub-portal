@@ -31,9 +31,9 @@ public class AzureVirtualMachineTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate
             });
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
@@ -55,15 +55,15 @@ public class AzureVirtualMachineTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate
             });
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
-        
+
         await _terraformService.CopyTemplateAsync(module.Name, command);
-        
+
         // assert that no new files were created
         Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
         var newFileCount = Directory.GetFiles(moduleDestinationPath, "*", SearchOption.AllDirectories).Length;

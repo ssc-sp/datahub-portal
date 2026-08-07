@@ -35,12 +35,12 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         var command = GenerateTestWorkspaceDefinition(
-         workspaceAcronym, new List<string>()
-         {
+        workspaceAcronym, new List<string>()
+        {
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate
-         });
+        });
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
@@ -55,12 +55,12 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
         var command = GenerateTestWorkspaceDefinition(
-              workspaceAcronym, new List<string>()
-              {
+            workspaceAcronym, new List<string>()
+            {
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate
-              });
+            });
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
         await _repositoryService.FetchModuleRepository(command.Workspace.Version);
@@ -109,8 +109,8 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
             });
-        
-        
+
+
         await _terraformService.CopyTemplateAsync(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
 
@@ -146,12 +146,12 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
 
         var command = GenerateTestWorkspaceDefinition(
-         workspaceAcronym, new List<string>()
-         {
+        workspaceAcronym, new List<string>()
+        {
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
-         });
+        });
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
         await _terraformService.ExtractVariables(module.Name, command);

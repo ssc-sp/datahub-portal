@@ -36,9 +36,9 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate
             });
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
@@ -58,9 +58,9 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate
             });
         workspace.Version = TestWorkspaceVersion;
         command.Workspace = workspace;
@@ -86,7 +86,7 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken,
-               $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspace.Version}");
+                $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspace.Version}");
 
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
@@ -107,9 +107,9 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate
             });
         command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
@@ -147,9 +147,9 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
             {
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate,
-                   TerraformTemplate.NewProjectTemplate
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate,
+                    TerraformTemplate.NewProjectTemplate
             });
         command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
@@ -180,15 +180,15 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         // Setup new project template
         await SetupNewProjectTemplate(workspaceAcronym);
 
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);        
+        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
         var expectedVariables = GenerateExpectedVariables(workspace);
 
         var command = GenerateTestWorkspaceDefinition(
         workspaceAcronym, new List<string>()
         {
-               TerraformTemplate.NewProjectTemplate,
-               TerraformTemplate.NewProjectTemplate,
-               TerraformTemplate.NewProjectTemplate
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate,
+                TerraformTemplate.NewProjectTemplate
         });
         command.Workspace = workspace;
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);

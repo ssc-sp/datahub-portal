@@ -36,12 +36,12 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var command = GenerateTestWorkspaceDefinition(
-         workspaceAcronym, new List<string>()
-         {
+        workspaceAcronym, new List<string>()
+        {
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate,
                         TerraformTemplate.NewProjectTemplate
-         });
+        });
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
@@ -59,13 +59,13 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var command = GenerateTestWorkspaceDefinition(
-             workspaceAcronym, new List<string>()
-             {
+            workspaceAcronym, new List<string>()
+            {
                             TerraformTemplate.NewProjectTemplate,
                             TerraformTemplate.NewProjectTemplate,
                             TerraformTemplate.NewProjectTemplate
-             });
-        
+            });
+
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
         _repositoryService.FetchModuleRepository(command.Workspace.Version);
@@ -92,7 +92,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
             var sourceFileContent = await File.ReadAllTextAsync(file);
             var expectedContent = sourceFileContent
                 .Replace(TerraformService.TerraformTagToken,
-               $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
+                $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
             var destinationFileContent =
                 await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
@@ -110,12 +110,12 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var expectedVariables = GenerateExpectedVariables(workspace);
 
         var command = GenerateTestWorkspaceDefinition(
-         workspaceAcronym, new List<string>()
-         {
+        workspaceAcronym, new List<string>()
+        {
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
-         });
+        });
 
         command.Workspace = workspace;
 
@@ -153,12 +153,12 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
 
         var command = GenerateTestWorkspaceDefinition(
-         workspaceAcronym, new List<string>()
-         {
+        workspaceAcronym, new List<string>()
+        {
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
-         });
+        });
 
         command.Workspace = workspace;
 
@@ -194,12 +194,12 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         var expectedVariables = GenerateExpectedVariables(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureDatabricks);
         var command = GenerateTestWorkspaceDefinition(
-         workspaceAcronym, new List<string>()
-         {
+        workspaceAcronym, new List<string>()
+        {
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate,
                 TerraformTemplate.NewProjectTemplate
-         });
+        });
         command.Workspace = workspace;
 
         await _terraformService.CopyTemplateAsync(module.Name, command);
