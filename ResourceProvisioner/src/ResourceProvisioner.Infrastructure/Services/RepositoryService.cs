@@ -398,7 +398,7 @@ public partial class RepositoryService(
         logger.LogInformation("Pushing changes in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);
 
-        await Task.Run(() => repo.Network.Push(repo.Branches[workspaceAcronym], options));
+        repo.Network.Push(repo.Branches[workspaceAcronym], options);
 
         logger.LogInformation("Changes pushed in {LocalPath} to {Branch} branch", repositoryPath,
             branch.CanonicalName);

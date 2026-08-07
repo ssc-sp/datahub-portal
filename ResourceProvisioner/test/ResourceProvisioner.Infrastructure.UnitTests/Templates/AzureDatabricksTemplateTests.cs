@@ -34,7 +34,7 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
     public async Task ShouldThrowExceptionIfProjectNotInitialized()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
+        _ = GenerateTestTerraformWorkspace(workspaceAcronym, false);
         var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
