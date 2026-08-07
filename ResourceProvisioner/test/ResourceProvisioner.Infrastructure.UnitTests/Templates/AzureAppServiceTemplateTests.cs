@@ -32,8 +32,7 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, 
-            new List<string> { TerraformTemplate.NewProjectTemplate }); // Fixed duplicate templates
-
+            new List<string> { TerraformTemplate.NewProjectTemplate });
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
@@ -87,7 +86,6 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
 
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureAppService);
         var expectedVariables = GenerateExpectedVariables();
-
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, 
             new List<string> { TerraformTemplate.NewProjectTemplate });
@@ -126,15 +124,12 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, 
             new List<string> { TerraformTemplate.NewProjectTemplate });
-            
-
         await _terraformService.CopyTemplateAsync(module.Name, command);
 
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
         await _terraformService.ExtractVariables(module.Name, command);
         await _repositoryService.FetchModuleRepository(command.Workspace.Version);
-
 
         var expectedVariablesFilename = Path.Join(
             DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
