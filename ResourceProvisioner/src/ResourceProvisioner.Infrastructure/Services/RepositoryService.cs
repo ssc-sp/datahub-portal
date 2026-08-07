@@ -455,9 +455,6 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
             autoCompleteIdentityId);
     }
 
-
-
-
     public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym,string autoCompleteIdentityId)
     {
         var patchContent = BuildPullRequestPatchBody(workspaceAcronym, autoCompleteIdentityId);
