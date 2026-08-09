@@ -141,8 +141,8 @@
     <PackageVersion Include="Microsoft.Kiota.Abstractions" Version="1.22.2" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.85.2" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.12.2" />
-    <PackageVersion Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.15.1" />
-    <PackageVersion Include="Microsoft.Identity.Web.UI" Version="3.15.1" />
+    <PackageVersion Include="Microsoft.Identity.Web.MicrosoftGraph" Version="4.13.2" />
+    <PackageVersion Include="Microsoft.Identity.Web.UI" Version="4.13.2" />
     <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.1" />
     <PackageVersion Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
