@@ -3,6 +3,7 @@ using Datahub.Application.Services;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.Projects;
 using Datahub.Core.Model.Context;
+using Datahub.Core.Model.Projects;
 using Datahub.Functions.Extensions;
 using Datahub.Functions.Providers;
 using Datahub.Functions.Validators;
@@ -66,11 +67,11 @@ namespace Datahub.Functions
             }
         
             // get project info
-            var lastLoginDate = project?.LastLoginDate ?? project.Last_Updated_DT;
+            var lastLoginDate = project.LastLoginDate ?? project.Last_Updated_DT;
             var daysSinceLastLogin = (dateProvider.Today - lastLoginDate).Days;
             var daysUntilDeletion = dateProvider.ProjectSoftDeletionDay() - daysSinceLastLogin;
             var operationalWindow = project.OperationalWindow;
-            var (contacts, acronym) = await GetProjectDetails(message.ProjectId, ct);
+            var (contacts, acronym) = GetProjectDetails(project);
 
             _logger.LogInformation("Project {Acronym} (ID: {ProjectId}) last activity: {LastLoginDate}, inactive for {DaysSinceLastLogin} days, {DaysUntilDeletion} days until soft deletion.",
                 acronym, message.ProjectId, lastLoginDate, daysSinceLastLogin, daysUntilDeletion);
@@ -120,22 +121,14 @@ namespace Datahub.Functions
                    !hasCostRecovery;
         }
 
-        private async Task<(List<string>, string)> GetProjectDetails(int projectId, CancellationToken cancellationToken)
+        private static (List<string>, string) GetProjectDetails(Datahub_Project project)
         {
-            var ctx = await dbContextFactory.CreateDbContextAsync(cancellationToken);
-
-            var project = await ctx.Projects
-                .AsNoTracking()
-                .Where(e => e.Project_ID == projectId)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (project is null)
-                return default;
-
             var contacts = project.UserRoles?
-                .Select(u => u.PortalUser.Email)
+                .Select(u => u.PortalUser?.Email)
+                .Where(email => !string.IsNullOrWhiteSpace(email))
+                .Select(email => email!)
                 .Where(EmailValidator.IsValidEmail)
-                .ToList();
+                .ToList() ?? new List<string>();
 
             return (contacts, project.Project_Acronym_CD);
         }
