@@ -160,6 +160,20 @@ public partial class RepositoryService(
             var pullRequestValueObject =
                 await CreateInfrastructurePullRequest(workspaceDefinition.Workspace.Acronym!);
 
+            if (resourceProvisionerConfiguration.Value.InfrastructureRepository.EnablePullRequestAutoComplete)
+            {
+                await AutoApproveInfrastructurePullRequest(
+                    pullRequestValueObject.PullRequestId,
+                    pullRequestValueObject.WorkspaceAcronym,
+                    pullRequestValueObject.CreatedById);
+            }
+            else
+            {
+                logger.LogInformation(
+                    "Auto-complete is disabled for pull request {PullRequestId}",
+                    pullRequestValueObject.PullRequestId);
+            }
+
             var pullRequestMessage = new PullRequestUpdateMessage
             {
                 PullRequestValueObject = pullRequestValueObject,
@@ -444,16 +458,21 @@ public async Task<PullRequestValueObject> CreateInfrastructurePullRequest(string
 
         if (string.IsNullOrWhiteSpace(autoCompleteIdentityId))
         {
-            autoCompleteIdentityId = Guid.NewGuid().ToString();
+            throw new Exception($"Could not get pull request creator id for {workspaceAcronym}");
         }
 
         var pullRequestUrl = BuildPullRequestUrl(pullRequestId);
         logger.LogInformation("Infrastructure pull request url is {PullRequestUrl}", pullRequestUrl);
 
-        await AutoApproveInfrastructurePullRequest(int.Parse(pullRequestId), workspaceAcronym, autoCompleteIdentityId);
-
-        return new PullRequestValueObject(workspaceAcronym, pullRequestUrl, int.Parse(pullRequestId));
+        return new PullRequestValueObject(
+            workspaceAcronym,
+            pullRequestUrl,
+            int.Parse(pullRequestId),
+            autoCompleteIdentityId);
     }
+
+
+
 
     public async Task AutoApproveInfrastructurePullRequest(int pullRequestId, string workspaceAcronym,string autoCompleteIdentityId)
     {
