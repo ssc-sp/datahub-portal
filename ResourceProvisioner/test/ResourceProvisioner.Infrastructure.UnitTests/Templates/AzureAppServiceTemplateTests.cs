@@ -31,14 +31,15 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
 
-
-        var command = GenerateTestWorkspaceDefinition(
         await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
-        workspaceAcronym, new List<string>() { TerraformTemplate.NewProjectTemplate });
+
+        var definition = GenerateTestWorkspaceDefinition(
+            workspaceAcronym,
+            new List<string> { TerraformTemplate.NewProjectTemplate });
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, command);
+            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, definition);
         });
     }
 
