@@ -30,16 +30,12 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
     public async Task ShouldThrowExceptionIfProjectNotInitialized()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
 
         var command = GenerateTestWorkspaceDefinition(
-            workspaceAcronym, new List<string>()
-            {
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate
-            });
+            workspaceAcronym, 
+            new List<string> { TerraformTemplate.NewProjectTemplate });
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
@@ -51,25 +47,17 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
     public async Task ShouldCopyAzureStorageBlobTemplate()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-
-        // Setup new project template
         var newProjectTemplateExpectedFileCount = await SetupNewProjectTemplate(workspaceAcronym);
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
+        
         var command = GenerateTestWorkspaceDefinition(
-            workspaceAcronym, new List<string>()
-            {
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate
-            });
-        workspace.Version = TestWorkspaceVersion;
-        command.Workspace = workspace;
+            workspaceAcronym, 
+            new List<string> { TerraformTemplate.NewProjectTemplate });
+
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
 
         var moduleSourcePath = DirectoryUtils.GetTemplatePath(_resourceProvisionerConfiguration, TerraformTemplate.AzureStorageBlob);
         var moduleDestinationPath = DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym);
 
-        // verify all the files are copied except for the datahub readme
         var expectedFiles = Directory.GetFiles(moduleSourcePath, "*.*", SearchOption.TopDirectoryOnly)
             .Where(filename => !TerraformService.EXCLUDED_FILE_EXTENSIONS.Contains(Path.GetExtension(filename)))
             .ToList();
@@ -77,19 +65,15 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
         Assert.Multiple(() =>
         {
             Assert.That(Directory.Exists(moduleDestinationPath), Is.True);
-            Assert.That(Directory.GetFiles(moduleDestinationPath),
-                Has.Length.EqualTo(expectedFiles.Count + newProjectTemplateExpectedFileCount));
+            Assert.That(Directory.GetFiles(moduleDestinationPath), Has.Length.EqualTo(expectedFiles.Count + newProjectTemplateExpectedFileCount));
         });
 
-        // go through each file and assert that the content is the same
         foreach (var file in expectedFiles)
         {
             var sourceFileContent = await File.ReadAllTextAsync(file);
-            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken,
-                $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{workspace.Version}");
+            var expectedContent = sourceFileContent.Replace(TerraformService.TerraformTagToken, $"?ref={_resourceProvisionerConfiguration.ModuleRepository.Branch}-{command.Workspace.Version}");
 
-            var destinationFileContent =
-                await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
+            var destinationFileContent = await File.ReadAllTextAsync(Path.Join(moduleDestinationPath, Path.GetFileName(file)));
             Assert.That(destinationFileContent, Is.EqualTo(expectedContent));
         }
     }
@@ -98,30 +82,21 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
     public async Task ShouldExtractAzureStorageBlobTemplateVariables()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        // Setup new project template
         await SetupNewProjectTemplate(workspaceAcronym);
 
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        var expectedVariables = GenerateExpectedVariables(workspace);
-
         var command = GenerateTestWorkspaceDefinition(
-            workspaceAcronym, new List<string>()
-            {
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate
-            });
-        command.Workspace = workspace;
+            workspaceAcronym, 
+            new List<string> { TerraformTemplate.NewProjectTemplate });
+
+        var expectedVariables = GenerateExpectedVariables(command.Workspace);
+
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{TerraformTemplate.AzureStorageBlob}.auto.tfvars.json");
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym), $"{TerraformTemplate.AzureStorageBlob}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
-        var actualVariables =
-            JsonSerializer.Deserialize<JsonObject>(
-                await File.ReadAllTextAsync(expectedVariablesFilename));
+        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
 
         foreach (var (key, value) in actualVariables!)
         {
@@ -137,31 +112,22 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
     public async Task ShouldExtractAzureStorageBlobTemplateVariablesWithNoUsers()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        // Setup new project template
         await SetupNewProjectTemplate(workspaceAcronym);
 
-
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        var expectedVariables = GenerateExpectedVariables(workspace, false);
-
         var command = GenerateTestWorkspaceDefinition(
-            workspaceAcronym, new List<string>()
-            {
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate,
-                    TerraformTemplate.NewProjectTemplate
-            });
-        command.Workspace = workspace;
+            workspaceAcronym, 
+            new List<string> { TerraformTemplate.NewProjectTemplate },
+            false);
+
+        var expectedVariables = GenerateExpectedVariables(command.Workspace, false);
+
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{TerraformTemplate.AzureStorageBlob}.auto.tfvars.json");
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym), $"{TerraformTemplate.AzureStorageBlob}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
-        var actualVariables =
-            JsonSerializer.Deserialize<JsonObject>(
-                await File.ReadAllTextAsync(expectedVariablesFilename));
+        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
 
         foreach (var (key, value) in actualVariables!)
         {
@@ -177,32 +143,23 @@ public class AzureStorageBlobTemplateTests : TemplateTestCollection
     public async Task ShouldExtractNewProjectTemplateVariablesWithoutDuplicates()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        // Setup new project template
         await SetupNewProjectTemplate(workspaceAcronym);
 
-        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym);
-        var expectedVariables = GenerateExpectedVariables(workspace);
-
         var command = GenerateTestWorkspaceDefinition(
-        workspaceAcronym, new List<string>()
-        {
-                TerraformTemplate.NewProjectTemplate,
-                TerraformTemplate.NewProjectTemplate,
-                TerraformTemplate.NewProjectTemplate
-        });
-        command.Workspace = workspace;
+            workspaceAcronym, 
+            new List<string> { TerraformTemplate.NewProjectTemplate });
+
+        var expectedVariables = GenerateExpectedVariables(command.Workspace);
+
         await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureStorageBlob, command);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
         await _terraformService.ExtractVariables(TerraformTemplate.AzureStorageBlob, command);
 
-        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym),
-            $"{TerraformTemplate.AzureStorageBlob}.auto.tfvars.json");
+        var expectedVariablesFilename = Path.Join(DirectoryUtils.GetProjectPath(_resourceProvisionerConfiguration, workspaceAcronym), $"{TerraformTemplate.AzureStorageBlob}.auto.tfvars.json");
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
-        var actualVariables =
-            JsonSerializer.Deserialize<JsonObject>(
-                await File.ReadAllTextAsync(expectedVariablesFilename));
+        var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
 
         foreach (var (key, value) in actualVariables!)
         {

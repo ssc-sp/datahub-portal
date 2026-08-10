@@ -189,7 +189,7 @@ public class Testing
         {
             await Task.Delay(1000);
             await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
-        }
+        }   
 
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
