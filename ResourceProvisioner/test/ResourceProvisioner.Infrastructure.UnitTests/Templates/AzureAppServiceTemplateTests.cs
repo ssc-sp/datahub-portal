@@ -29,15 +29,17 @@ public class AzureAppServiceTemplateTests : TemplateTestCollection
     public async Task ShouldThrowExceptionIfProjectNotInitialized()
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
-        
-        var command = GenerateTestWorkspaceDefinition(
-            workspaceAcronym, 
+        var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
+
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
+
+        var definition = GenerateTestWorkspaceDefinition(
+            workspaceAcronym,
             new List<string> { TerraformTemplate.NewProjectTemplate });
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(command.Workspace);
 
         Assert.ThrowsAsync<ProjectNotInitializedException>(async () =>
         {
-            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, command);
+            await _terraformService.CopyTemplateAsync(TerraformTemplate.AzureAppService, definition);
         });
     }
 
