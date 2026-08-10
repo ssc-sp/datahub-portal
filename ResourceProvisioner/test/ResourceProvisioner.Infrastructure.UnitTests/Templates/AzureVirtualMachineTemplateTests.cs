@@ -26,7 +26,7 @@ public class AzureVirtualMachineTemplateTests : TemplateTestCollection
     {
         var workspaceAcronym = GenerateWorkspaceAcronym();
         var workspace = GenerateTestTerraformWorkspace(workspaceAcronym, false);
-        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(TestingWorkspace);
+        await _repositoryService.FetchRepositoriesAndCheckoutProjectBranch(workspace);
         var module = GenerateTerraformTemplate(TerraformTemplate.AzureVirtualMachine);
         var command = GenerateTestWorkspaceDefinition(
             workspaceAcronym, new List<string>()
