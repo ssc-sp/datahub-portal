@@ -58,7 +58,7 @@ public class CreateGraphUser(
             if (e.Message.Contains("blocked from signing in"))
             {
                 await SendFailureEmail(e.Message);
-                throw new Exception(e.Message);
+                throw;
             }
 
             return new BadRequestResult();
@@ -202,7 +202,7 @@ public class CreateGraphUser(
 
     private async Task SendFailureEmail(string message)
     {
-        notifyService.SendDataHubErrorNotification(message, configuration.Email.AdminEmail);
+        await notifyService.SendDataHubErrorNotification(message, configuration.Email.AdminEmail);
     }
 
     record CreateUserRequest(string email, string mockInvite, string inviter);
