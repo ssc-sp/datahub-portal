@@ -139,11 +139,11 @@
     <PackageVersion Include="Microsoft.Graph" Version="5.105.0" />
     <!-- this one should be a transitive dependency but the current version has a high severity issue so it is here explicitly -->
     <PackageVersion Include="Microsoft.Kiota.Abstractions" Version="1.22.2" />
-    <PackageVersion Include="Microsoft.Identity.Client" Version="4.85.2" />
-    <PackageVersion Include="Microsoft.Identity.Web" Version="4.12.2" />
+    <PackageVersion Include="Microsoft.Identity.Client" Version="4.87.0" />
+    <PackageVersion Include="Microsoft.Identity.Web" Version="4.14.0" />
     <PackageVersion Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.15.1" />
     <PackageVersion Include="Microsoft.Identity.Web.UI" Version="3.15.1" />
-    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.19.1" />
+    <PackageVersion Include="Microsoft.IdentityModel.Protocols.OpenIdConnect" Version="8.21.0" />
     <PackageVersion Include="Microsoft.Maui.Controls" Version="8.0.100" />
     <PackageVersion Include="Microsoft.Maui.Controls.Compatibility" Version="8.0.100" />
     <PackageVersion Include="Microsoft.NET.Sdk.Functions" Version="4.6.0" />
@@ -187,7 +187,7 @@
     <PackageVersion Include="SuchByte.SpeedTestSharp" Version="1.0.2" />
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.2.1" />
     <PackageVersion Include="System.Drawing.Common" Version="10.0.10" />
-    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.19.1" />
+    <PackageVersion Include="System.IdentityModel.Tokens.Jwt" Version="8.21.0" />
     <PackageVersion Include="System.Linq.Async" Version="7.0.1" />
     <PackageVersion Include="System.Net.Http.Json" Version="10.0.10" />
     <PackageVersion Include="System.Runtime.Caching" Version="10.0.10" />
