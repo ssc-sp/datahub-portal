@@ -798,7 +798,6 @@ namespace Datahub.Infrastructure.Services.Helpers
                 };
 
                 await StoreHealthCheck(result);
-                await StoreHealthCheckRun(result);
 
                 return new(result, intermediateResult.Errors);
             }
@@ -898,28 +897,6 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
 
             ctx.InfrastructureHealthChecks.Add(CloneWithoutId(check));
-
-            try
-            {
-                await ctx.SaveChangesAsync();
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, $"Error saving health check (type: {check.ResourceType}; group: {check.Group}; name: {check.Name})");
-            }
-
-        }
-
-        public async Task StoreHealthCheckRun(InfrastructureHealthCheck check)
-        {
-            if (string.IsNullOrEmpty(check.Name) || string.IsNullOrEmpty(check.Group))
-            {
-                logger.LogWarning("Got a health check run with empty identifier");
-                return;
-            }
-
-            await using var ctx = await dbContextFactory.CreateDbContextAsync();
-
             ctx.InfrastructureHealthCheckRuns.Add(CloneWithoutId(check));
 
             try
@@ -928,7 +905,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, $"Error saving health check run (type: {check.ResourceType}; group: {check.Group}; name: {check.Name})");
+                logger.LogError(ex, $"Error saving health check (type: {check.ResourceType}; group: {check.Group}; name: {check.Name})");
             }
         }
 

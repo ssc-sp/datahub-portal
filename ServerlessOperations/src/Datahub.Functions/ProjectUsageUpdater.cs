@@ -10,7 +10,6 @@ using Datahub.Functions.Extensions;
 using Datahub.Functions.Validators;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using Datahub.Shared.Configuration;
 using FluentValidation;
 using MassTransit;
