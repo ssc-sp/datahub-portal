@@ -865,7 +865,7 @@ namespace Datahub.Infrastructure.Services.Helpers
             });
 
             var allChecks = coreChecks.Concat(workspaceChecks).Concat(queueChecks).ToList();
-            var throttler = new SemaphoreSlim(MaxHealthCheckConcurrency, MaxHealthCheckConcurrency);
+            using var throttler = new SemaphoreSlim(MaxHealthCheckConcurrency, MaxHealthCheckConcurrency);
 
             var results = await Task.WhenAll(allChecks.Select(async request =>
             {
