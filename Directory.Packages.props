@@ -136,7 +136,7 @@
     <PackageVersion Include="Microsoft.Extensions.TimeProvider.Testing" Version="10.7.0" />
     <PackageVersion Include="Microsoft.FeatureManagement" Version="4.5.0" />
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
-    <PackageVersion Include="Microsoft.Graph" Version="5.105.0" />
+    <PackageVersion Include="Microsoft.Graph" Version="6.2.0" />
     <!-- this one should be a transitive dependency but the current version has a high severity issue so it is here explicitly -->
     <PackageVersion Include="Microsoft.Kiota.Abstractions" Version="1.22.2" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.87.0" />
