@@ -25,6 +25,7 @@ using Polly;
 using Polly.Contrib.WaitAndRetry;
 using System.Net;
 using Datahub.Core.Configuration;
+using Microsoft.Azure.Functions.Worker;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -33,6 +34,9 @@ builder.Configuration
     .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
     .AddUserSecrets<Program>(optional: true)
     .AddEnvironmentVariables();
+
+builder.Services.AddApplicationInsightsTelemetryWorkerService();
+builder.Services.ConfigureFunctionsApplicationInsights();
 
 var config = builder.Configuration;
 var env = builder.Environment;

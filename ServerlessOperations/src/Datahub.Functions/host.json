@@ -2,13 +2,11 @@
   "version": "2.0",
   "logging": {
     "logLevel": {
-      "Microsoft": "Warning",
-      "Function": "Information",
       "Datahub": "Debug",
-      "ResourceProvisioner": "Debug",
-      "Microsoft.Hosting.Lifetime": "Information",
-      "AspNetCore.Localizer": "Debug",
-      "Default": "Warning"
+      "ResourceProvisioner": "Information",
+      "Function": "Warning",
+      "Default": "Warning",
+      "Microsoft": "Warning"
     },
     "applicationInsights": {
       "samplingSettings": {
