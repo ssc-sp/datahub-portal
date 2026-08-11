@@ -138,7 +138,7 @@
     <PackageVersion Include="Microsoft.FeatureManagement.AspNetCore" Version="4.5.0" />
     <PackageVersion Include="Microsoft.Graph" Version="5.105.0" />
     <!-- this one should be a transitive dependency but the current version has a high severity issue so it is here explicitly -->
-    <PackageVersion Include="Microsoft.Kiota.Abstractions" Version="1.22.2" />
+    <PackageVersion Include="Microsoft.Kiota.Abstractions" Version="2.0.0" />
     <PackageVersion Include="Microsoft.Identity.Client" Version="4.87.0" />
     <PackageVersion Include="Microsoft.Identity.Web" Version="4.14.0" />
     <PackageVersion Include="Microsoft.Identity.Web.MicrosoftGraph" Version="3.15.1" />
