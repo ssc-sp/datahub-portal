@@ -59,6 +59,7 @@
                     </MudText>
                     <MudText>@Localizer["Size"]</MudText>
                     <MudText>@Localizer["Last Modified"]</MudText>
+                    <MudText>@Localizer["Storage"]</MudText>
                 </div>
 
                 @if (_loading)
@@ -110,7 +111,9 @@
                                           Size="@file.filesize"
                                           @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
                                           OnSelectionClick="() => HandleFileSelectionClick(file.name)"
-                                          Highlighted="_selectedItems.Contains(file.name)">
+                                          Highlighted="_selectedItems.Contains(file.name)"
+                                          StorageManager="@StorageManager"
+                                          ContainerName="@Container.Name">
                                     <Icon>
                                         <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
                                     </Icon>
