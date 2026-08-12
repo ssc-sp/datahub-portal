@@ -93,5 +93,15 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> GetFileStorageTierAsync(string container, string file)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> SetFileStorageTierAsync(string container, string file, string newTier)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -31,6 +31,10 @@ public interface ICloudStorageManager
 
     Task<List<FileMetadata>> SearchFilesAsync(string container, string folderPath, string searchTerm, CancellationToken cancellationToken, bool searchInContent = false);
 
+    Task<string> GetFileStorageTierAsync(string container, string file);
+
+    Task<bool> SetFileStorageTierAsync(string container, string file, string newTier);
+
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
     CloudStorageProviderType ProviderType { get; }
