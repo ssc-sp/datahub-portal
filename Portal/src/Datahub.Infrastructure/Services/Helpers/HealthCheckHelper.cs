@@ -618,7 +618,7 @@ namespace Datahub.Infrastructure.Services.Helpers
 
         /// <summary>
         /// Function that checks the health of the Azure Service Bus
-        /// </param>
+        /// </summary>
         /// <param name="request"></param>
         /// <returns>An IntermediateHealthCheckResult indicating the result of the check.</returns>
         public async Task<IntermediateHealthCheckResult> CheckAzureServiceBusQueue(InfrastructureHealthCheckMessage request)
