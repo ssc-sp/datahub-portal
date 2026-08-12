@@ -171,7 +171,7 @@ namespace Datahub.Infrastructure.Services.Helpers
         }
 
 
-        // TODO: Verify correct key vault addresses
+        // TODO: Verify correct key vault addresses 
         /// <summary>
         /// Function that gets the Azure Key Vault URL based on the request.
         /// </summary>
