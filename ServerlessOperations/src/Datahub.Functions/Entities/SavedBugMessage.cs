@@ -1,11 +1,5 @@
-﻿using Azure;
+using Azure;
 using Azure.Data.Tables;
-using Datahub.Infrastructure.Queues.Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Datahub.Functions.Entities
 {
