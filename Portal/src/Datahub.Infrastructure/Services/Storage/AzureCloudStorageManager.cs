@@ -579,4 +579,15 @@ public class AzureCloudStorageManager : ICloudStorageManager
         await blobClient.SetAccessTierAsync(newTier);
         return true;
     }
+
+    public List<string> GetFileStorageTiersList()
+    {
+        return new List<string>
+        {
+            AccessTier.Hot.ToString(),
+            AccessTier.Cool.ToString(),
+            AccessTier.Cold.ToString(),
+            AccessTier.Archive.ToString()
+        };
+    }
 }

@@ -33,7 +33,7 @@
         <div>
             <MudText Typo="Typo.h4">@Localizer["Storage Tier"]</MudText>
             <MudSelect T="string" Value="_storageTier" ValueChanged="@(async (string v) => await OnStorageTierChanged(v))" aria-label="Storage tier">
-                @foreach (string s in storageTiers)
+                @foreach (string s in _storageTiers)
                 {
                     <MudSelectItem T="string" Value="@s">@s</MudSelectItem>
                 }
@@ -107,7 +107,7 @@
 
     private string _storageTier = "Hot";
 
-    private List<string> storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
+    private List<string> _storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive", "Test" };
 
 
     protected override async Task OnParametersSetAsync()
@@ -137,6 +137,8 @@
             _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
         _classification = Project.Data_Sensitivity;
+        _storageTier = await GetStorageTier(File.name);
+        _storageTiers = StorageManager.GetFileStorageTiersList();
     }
 
     private string GenerateEffectiveFolderPath()
