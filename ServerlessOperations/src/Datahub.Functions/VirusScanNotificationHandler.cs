@@ -15,11 +15,8 @@ using Datahub.Shared.Entities;
 using MassTransit;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
-using System.Text.RegularExpressions;
-using static MudBlazor.FilterOperator;
 
 namespace Datahub.Functions;
 

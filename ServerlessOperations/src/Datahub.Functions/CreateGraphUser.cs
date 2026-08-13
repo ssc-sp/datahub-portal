@@ -1,9 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Azure.Identity;
 using Datahub.Application.Services.Notification;
 using Datahub.Application.Services.UserManagement;
-using Datahub.Infrastructure.Services.Azure;
 using MassTransit;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
