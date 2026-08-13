@@ -1,6 +1,7 @@
 @using Datahub.Application.Services.Publishing
 @using Datahub.Core.Model.Projects
 @using Datahub.Core.Model.Users
+@using Datahub.Core.Storage;
 @using Datahub.Metadata.Model;
 @using Datahub.Application.Services
 @using Datahub.Application.Services.Metadata
@@ -32,10 +33,28 @@
                 || (action is ButtonAction.DeleteFolder && !ShowDeleteFolder)
                 || (action is ButtonAction.Publish && !ShowPublish))
             { continue; }
-
-            <DHButton @onclick="() => GetButtonActionHandler(action)" StartIcon="@GetButtonActionIcon(action)" Disabled="@IsActionDisabled(action)">
-                @Localizer[ButtonActionToString(action)]
-            </DHButton>
+            else if (action is ButtonAction.TierChange)
+            {
+                <MudSelect T="string"
+                           Variant="Variant.Outlined"
+                           ValueChanged="@(async (string v) => await HandleTierChange(v))"
+                           Label="@Localizer["Storage Tier"]"
+                           Disabled="@IsActionDisabled(action)"
+                           FitContent="true"
+                           Margin="Margin.Dense"
+                           aria-label="Storage tier">
+                    @foreach (string s in _storageTiers)
+                    {
+                        <MudSelectItem T="string" Value="@s">@s</MudSelectItem>
+                    }
+                </MudSelect>
+            }
+            else
+            {
+                <DHButton @onclick="() => GetButtonActionHandler(action)" StartIcon="@GetButtonActionIcon(action)" Disabled="@IsActionDisabled(action)">
+                    @Localizer[ButtonActionToString(action)]
+                </DHButton>
+            }
         }
     </div>
 
@@ -112,6 +131,12 @@
 
     [Parameter]
     public EventCallback OnBackToContainers { get; set; }
+    
+    [Parameter]
+    public ICloudStorageManager StorageManager { get; set; }
+
+    [Parameter]
+    public string ContainerName { get; set; } = "datahub";
 
     private IJSObjectReference _module = null!;
 
@@ -136,8 +161,12 @@
         ButtonAction.Delete,
         ButtonAction.NewFolder,
         ButtonAction.DeleteFolder,
+        ButtonAction.TierChange,
         ButtonAction.Publish
     };
+
+    // private string _storageTier;
+    private List<string> _storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
 
     protected override async Task OnInitializedAsync()
     {
@@ -147,6 +176,8 @@
         
         // Check if publishing is blocked for this workspace
         _isPublishingBlockedForWorkspace = await _openDataPublishingService.IsPublishingBlockedForWorkspaceAsync(ProjectAcronym);
+        _storageTiers = StorageManager.GetFileStorageTiersList();
+        // _storageTier = _storageTiers.FirstOrDefault() ?? "Hot";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

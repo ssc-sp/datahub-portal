@@ -40,7 +40,9 @@
                             OnFileRename="HandleFileRename"
                             ShowMntHierarchy="@(string.Equals(Container?.Name, "datahub", StringComparison.OrdinalIgnoreCase))"
                             OnDeleteFolder="HandleDeleteFolder"
-                            CanDeleteFolder="CanDeleteFolder" />
+                            CanDeleteFolder="CanDeleteFolder"
+                            StorageManager="@StorageManager"
+                            ContainerName="@ContainerName"/>
 
             <div class="file-list">
                 <div class="file-list-header">

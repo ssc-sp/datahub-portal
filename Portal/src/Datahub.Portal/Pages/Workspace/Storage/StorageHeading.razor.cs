@@ -2,6 +2,8 @@ using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Storage;
 using Microsoft.JSInterop;
+using MudBlazor;
+using System.Timers;
 
 namespace Datahub.Portal.Pages.Workspace.Storage;
 
@@ -18,6 +20,7 @@ public partial class StorageHeading
         AzSync,
         DeleteFolder,
         NewFolder,
+        TierChange,
         Publish
     }
 
@@ -54,6 +57,8 @@ public partial class StorageHeading
                 return "fas fa-folder-plus";
             case ButtonAction.DeleteFolder:
                 return "fas fa-folder-minus";
+            case ButtonAction.TierChange:
+                return Icons.Material.Filled.Storage;
             case ButtonAction.Publish:
                 return "fas fa-bullhorn";
             default:
@@ -226,6 +231,17 @@ public partial class StorageHeading
         return CanDeleteFolder(folderName);
     }
 
+    private async Task HandleTierChange(string newTier)
+    {
+        var filesToChange = SelectedItems?
+            .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+
+        foreach (var file in filesToChange)
+        {
+            await StorageManager.SetFileStorageTierAsync(ContainerName, file, newTier);
+        }
+    }
+
 
     private bool IsActionDisabled(ButtonAction buttonAction)
     {
@@ -252,6 +268,7 @@ public partial class StorageHeading
             ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
             ButtonAction.NewFolder => !canWriteStorage,
             ButtonAction.DeleteFolder => !CanDeleteCurrentFolder() || !canWriteStorage,
+            ButtonAction.TierChange => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             ButtonAction.Publish => !_config.CkanConfiguration.IsFeatureEnabled || _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             _ => false
         };
