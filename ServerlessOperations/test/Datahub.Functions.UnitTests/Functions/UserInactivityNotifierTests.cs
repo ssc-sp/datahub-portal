@@ -69,7 +69,7 @@ namespace Datahub.Functions.UnitTests.Functions
             _dateProvider.UserInactivityNotificationDays().Returns(notificationDays);
 
             // Act
-            var result = await _sut.CheckIfUserToBeNotified(10, daysUntilLocked, 999, "test@example.com");
+            var result = _sut.CheckIfUserToBeNotified(10, daysUntilLocked, 999, "test@example.com");
 
             // Assert
             result.Should().BeTrue();
@@ -85,7 +85,7 @@ namespace Datahub.Functions.UnitTests.Functions
             _dateProvider.UserInactivityNotificationDays().Returns(notificationDays);
 
             // Act
-            var result = await _sut.CheckIfUserToBeNotified(10, 999, daysUntilDeleted, "test@example.com");
+            var result = _sut.CheckIfUserToBeNotified(10, 999, daysUntilDeleted, "test@example.com");
 
             // Assert
             result.Should().BeTrue();
@@ -102,7 +102,7 @@ namespace Datahub.Functions.UnitTests.Functions
             _dateProvider.UserInactivityNotificationDays().Returns(notificationDays);
 
             // Act
-            var result = await _sut.CheckIfUserToBeNotified(10, daysUntilLocked, daysUntilDeleted, "test@example.com");
+            var result = _sut.CheckIfUserToBeNotified(10, daysUntilLocked, daysUntilDeleted, "test@example.com");
 
             // Assert
             result.Should().BeFalse();
@@ -150,6 +150,24 @@ namespace Datahub.Functions.UnitTests.Functions
                 Arg.Is<List<ProjectUserAddEntraUserCommand>>(addCommands => addCommands.Count == 0),
                 portalUserId.ToString()
             );
+        }
+
+        [Test]
+        public void CalculateInactivityMetrics_WhenLastLoginDateIsNull_UsesTodayAsBaseline()
+        {
+            // Arrange
+            var today = new DateTime(2024, 1, 10);
+            _dateProvider.Today.Returns(today);
+            _dateProvider.UserInactivityLockedDay().Returns(30);
+            _dateProvider.UserInactivityDeletionDay().Returns(60);
+
+            // Act
+            var result = _sut.CalculateInactivityMetrics(null);
+
+            // Assert
+            result.daysSinceLastLogin.Should().Be(0);
+            result.daysUntilLocked.Should().Be(30);
+            result.daysUntilDeleted.Should().Be(60);
         }
 
         [OneTimeTearDown]

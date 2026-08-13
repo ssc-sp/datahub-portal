@@ -22,6 +22,11 @@ internal class CustomWebApiFactory : WebApplicationFactory<Program>
             configurationBuilder.AddConfiguration(integrationConfig);
             // add secrets to config
             configurationBuilder.AddUserSecrets<CustomWebApiFactory>();
+            configurationBuilder.AddInMemoryCollection(
+                new Dictionary<string, string?>
+                {
+                    ["InfrastructureRepository:EnablePullRequestAutoComplete"] = "false"
+                });
         });
 
 
