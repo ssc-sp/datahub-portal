@@ -59,7 +59,6 @@
                     </MudText>
                     <MudText>@Localizer["Size"]</MudText>
                     <MudText>@Localizer["Last Modified"]</MudText>
-                    <MudText>@Localizer["Storage"]</MudText>
                 </div>
 
                 @if (_loading)
@@ -137,7 +136,8 @@
                                             ProjectId=@ProjectId
                                             File=@file
                                             Readonly="!OwnsFile(file)"
-                                            OnMetadataChanged=@HandleMetadataChanged />
+                                            OnMetadataChanged=@HandleMetadataChanged
+                                            StorageManager="@StorageManager" />
                         }
                     </div>
                 </div>
