@@ -73,15 +73,7 @@
     public EventCallback<MouseEventArgs> OnDblClick { get; set; }
 
     [Parameter]
-    public ICloudStorageManager StorageManager { get; set; }
-
-    [Parameter]
-    public string ContainerName { get; set; }
-
-    [Parameter]
     public string StorageTier { get; set; } = "Hot";
-
-    private List<string> storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
 
     private string ByteSize
     {
