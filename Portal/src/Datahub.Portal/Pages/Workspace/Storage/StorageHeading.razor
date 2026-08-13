@@ -37,6 +37,7 @@
             {
                 <MudSelect T="string"
                            Variant="Variant.Outlined"
+                           Value="@SelectedStorageTier"
                            ValueChanged="@(async (string v) => await HandleTierChange(v))"
                            Label="@Localizer["Storage Tier"]"
                            Disabled="@IsActionDisabled(action)"
@@ -168,6 +169,12 @@
     // private string _storageTier;
     private List<string> _storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
 
+    [Parameter]
+    public string SelectedStorageTier { get; set; } = "Hot";
+
+    [Parameter]
+    public EventCallback<string> OnStorageTierChanged { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         var currentUser = await _userInformationService.GetCurrentPortalUserAsync();
@@ -177,7 +184,6 @@
         // Check if publishing is blocked for this workspace
         _isPublishingBlockedForWorkspace = await _openDataPublishingService.IsPublishingBlockedForWorkspaceAsync(ProjectAcronym);
         _storageTiers = StorageManager.GetFileStorageTiersList();
-        // _storageTier = _storageTiers.FirstOrDefault() ?? "Hot";
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

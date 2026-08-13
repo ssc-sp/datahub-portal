@@ -233,6 +233,8 @@ public partial class StorageHeading
 
     private async Task HandleTierChange(string newTier)
     {
+        SelectedStorageTier = newTier;
+
         var filesToChange = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
 
@@ -240,6 +242,9 @@ public partial class StorageHeading
         {
             await StorageManager.SetFileStorageTierAsync(ContainerName, file, newTier);
         }
+
+        if (OnStorageTierChanged.HasDelegate)
+            await OnStorageTierChanged.InvokeAsync(newTier);
     }
 
 
