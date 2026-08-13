@@ -35,6 +35,8 @@ public interface ICloudStorageManager
 
     Task<bool> SetFileStorageTierAsync(string container, string file, string newTier);
 
+    List<string> GetFileStorageTiersList();
+
     bool AzCopyEnabled { get; }
     bool DatabrickEnabled { get; }
     CloudStorageProviderType ProviderType { get; }
