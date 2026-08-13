@@ -56,8 +56,8 @@ namespace Datahub.Infrastructure.Services.Storage
                 logger.LogInformation("Getting metrics for storage account with id {Id}", id);
                 var metrics = armClient.GetMonitorMetrics(storageId, option).ToList();
                 var timeseries = metrics[0].Timeseries.ToList()[0];
-                var timeseriesData = timeseries.Data.ToList().Last(x => x.Average != null);
-                var average = timeseriesData.Average;
+                var timeseriesData = timeseries.Data.ToList().LastOrDefault(x => x.Average != null);
+                var average = timeseriesData?.Average;
                 if (average is null)
                 {
                     logger.LogError("Could not parse data from storage account with id {Id}", id);

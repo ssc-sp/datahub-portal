@@ -167,7 +167,6 @@ public class LocalMessageReaderService : BackgroundService
         try
         {
             await helper.StoreHealthCheck(result);
-            await helper.StoreHealthCheckRun(result);
         }
         catch (Exception ex)
         {
