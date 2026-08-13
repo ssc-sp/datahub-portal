@@ -1,3 +1,4 @@
+using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
 using Datahub.Infrastructure.Services.Storage;
@@ -101,7 +102,7 @@ public partial class StorageHeading
     
     private async Task HandleUpload()
     {
-        if (IsActionDisabled(ButtonAction.Upload))
+        if (await IsActionDisabled(ButtonAction.Upload))
             return;
 
         await _module.InvokeVoidAsync("promptForFileUpload");
@@ -114,7 +115,7 @@ public partial class StorageHeading
 
     private async Task HandleDownload()
     {
-        if (IsActionDisabled(ButtonAction.Download))
+        if (await IsActionDisabled(ButtonAction.Download))
             return;
 
         var downloads = SelectedItems?
@@ -132,7 +133,7 @@ public partial class StorageHeading
 
     private async Task HandlePublish()
     {
-        if (IsActionDisabled(ButtonAction.Publish)) return;
+        if (await IsActionDisabled(ButtonAction.Publish)) return;
 
         if (_isPublishingBlockedForWorkspace)
         {
@@ -153,7 +154,7 @@ public partial class StorageHeading
     }
     private async Task HandleDelete()
     {
-        if (IsActionDisabled(ButtonAction.Delete))
+        if (await IsActionDisabled(ButtonAction.Delete))
             return;
 
         var deletes = SelectedItems?
@@ -170,7 +171,7 @@ public partial class StorageHeading
 
     private async Task HandleRename()
     {
-        if (IsActionDisabled(ButtonAction.Rename))
+        if (await IsActionDisabled(ButtonAction.Rename))
             return;
         
         var selectedFile = _selectedFiles?.FirstOrDefault();
@@ -186,7 +187,7 @@ public partial class StorageHeading
 
     private async Task HandleNewFolder()
     {
-        if (IsActionDisabled(ButtonAction.NewFolder))
+        if (await IsActionDisabled(ButtonAction.NewFolder))
             return;
         
         var newFolderName = await _module.InvokeAsync<string>("promptForNewFolderName", Localizer["Enter a new name for the folder."].ToString());
@@ -197,7 +198,7 @@ public partial class StorageHeading
     }
     private async Task HandleDeleteFolder()
     {
-        if (IsActionDisabled(ButtonAction.DeleteFolder))
+        if (await IsActionDisabled(ButtonAction.DeleteFolder))
             return;
 
         var folderName = SelectedItems?.FirstOrDefault();
@@ -247,8 +248,22 @@ public partial class StorageHeading
             await OnStorageTierChanged.InvokeAsync(newTier);
     }
 
+    private async Task<bool> AreAnyFilesArchived(List<PortalFileMetadata> selectedFiles)
+    {
+        foreach (var file in selectedFiles)
+        {
+            var path = file.fullPathFromRoot;
+            var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, path);
+            if (tier == "Archive")
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
-    private bool IsActionDisabled(ButtonAction buttonAction)
+
+    private async Task<bool> IsActionDisabled(ButtonAction buttonAction)
     {
         if(buttonAction is ButtonAction.BackToContainers)
         { return false; }
@@ -267,7 +282,7 @@ public partial class StorageHeading
         {
             ButtonAction.Upload => !canWriteStorage,
             ButtonAction.AzSync => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage,
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage || await AreAnyFilesArchived(_selectedFiles),
             ButtonAction.Share => !_isUnclassifiedSingleFile,
             ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
