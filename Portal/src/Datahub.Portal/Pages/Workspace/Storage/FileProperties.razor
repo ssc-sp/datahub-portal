@@ -30,18 +30,10 @@
             </span>
         </div>
 
-        <div>
-            <MudText Typo="Typo.h4">@Localizer["Storage Tier"]</MudText>
-            <MudSelect T="string" Value="_storageTier" ValueChanged="@(async (string v) => await OnStorageTierChanged(v))" aria-label="Storage tier">
-                @foreach (string s in _storageTiers)
-                {
-                    <MudSelectItem T="string" Value="@s">@s</MudSelectItem>
-                }
-            </MudSelect>
-        </div>
-
         <div class="properties">
             <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
+            <MudText class="label">@Localizer["Storage Tier"]</MudText>
+            <MudText class="text">@_storageTier</MudText>
             @foreach (var (key, value) in _properties)
             {
                 if (!string.IsNullOrEmpty(value) && value != "[]")
@@ -107,9 +99,6 @@
 
     private string _storageTier = "Hot";
 
-    private List<string> _storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive", "Test" };
-
-
     protected override async Task OnParametersSetAsync()
     {
         await base.OnParametersSetAsync();
@@ -138,7 +127,6 @@
         }
         _classification = Project.Data_Sensitivity;
         _storageTier = await GetStorageTier(File.name);
-        _storageTiers = StorageManager.GetFileStorageTiersList();
     }
 
     private string GenerateEffectiveFolderPath()
@@ -160,21 +148,6 @@
 
         var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, filename);
         return tier;
-    }
-
-    private async Task SetStorageTier(string filename, string tier)
-    {
-        if (StorageManager == null || string.IsNullOrEmpty(ContainerName) || string.IsNullOrEmpty(filename))
-        {
-            return;
-        }
-        await StorageManager.SetFileStorageTierAsync(ContainerName, filename, tier);
-    }
-
-    private async Task OnStorageTierChanged(string newTier)
-    {
-        await SetStorageTier(File.name, newTier);
-        _storageTier = newTier;
     }
 }
 
