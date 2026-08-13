@@ -341,5 +341,16 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             return false; // Not implemented yet for GCP
         }
+
+        public List<string> GetFileStorageTiersList()
+        {
+            return new List<string>
+            {
+                "STANDARD",
+                "NEARLINE",
+                "COLDLINE",
+                "ARCHIVE"
+            };
+        }
     }
 }
