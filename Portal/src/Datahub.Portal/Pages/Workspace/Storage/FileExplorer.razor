@@ -115,8 +115,6 @@
                                           @onclick="@(() => _selectedItems = new HashSet<string> { file.name })"
                                           OnSelectionClick="() => HandleFileSelectionClick(file.name)"
                                           Highlighted="_selectedItems.Contains(file.name)"
-                                          StorageManager="@StorageManager"
-                                          ContainerName="@Container.Name"
                                           StorageTier="@GetStorageTierFor(file.name)">
                                     <Icon>
                                         <i class="@DatahubTools.GetFileTypeIcon(file.fileformat)"></i>
@@ -142,7 +140,6 @@
                                             File=@file
                                             Readonly="!OwnsFile(file)"
                                             OnMetadataChanged=@HandleMetadataChanged
-                                            StorageManager="@StorageManager"
                                             StorageTier="@(file is null ? _selectedStorageTier : GetStorageTierFor(file.name))" />
                         }
                     </div>
