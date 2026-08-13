@@ -36,7 +36,7 @@
         </span>
         @Name
     </MudText>
-    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder ? $"({_storageTier})" : "")</MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder ? $"({StorageTier})" : "")</MudText>
     <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
 </div>
 
@@ -78,7 +78,8 @@
     [Parameter]
     public string ContainerName { get; set; }
 
-    public string _storageTier = "Hot";
+    [Parameter]
+    public string StorageTier { get; set; } = "Hot";
 
     private List<string> storageTiers = new List<string> { "Hot", "Cool", "Cold", "Archive" };
 
@@ -117,8 +118,6 @@
             {
             }
         }
-
-        _storageTier = await GetStorageTier(Name);
     }
 
     public async ValueTask DisposeAsync()
@@ -134,30 +133,4 @@
         {
         }
     }
-
-    private async Task<string> GetStorageTier(string filename)
-    {
-        if (StorageManager == null || string.IsNullOrEmpty(ContainerName) || string.IsNullOrEmpty(filename))
-        {
-            return "Not found";
-        }
-
-        var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, filename);
-        return tier;
-    }
-
-    // private async Task SetStorageTier(string filename, string tier)
-    // {
-    //     if (StorageManager == null || string.IsNullOrEmpty(ContainerName) || string.IsNullOrEmpty(filename))
-    //     {
-    //         return;
-    //     }
-    //     await StorageManager.SetFileStorageTierAsync(ContainerName, filename, tier);
-    // }
-
-    // private async Task OnStorageTierChanged(string newTier)
-    // {
-    //     await SetStorageTier(Name, newTier);
-    //     _storageTier = newTier;
-    // }
 }
