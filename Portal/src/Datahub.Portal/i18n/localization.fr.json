@@ -3114,6 +3114,7 @@
   "This action is permanent. Upon deletion, all workspace admins will be notified via email.": "Cette action est permanente. Après la suppression, tous les administrateurs de l'espace de travail seront informés par courriel.",
   "This action is permanent. Upon deletion, the workspace and all its resources will be deleted": "Cette action est permanente. Lors de la suppression, l'espace de travail et toutes ses ressources seront supprimés.",
   "This allows you to test the standard FSDH email templates. Emails will only be sent to you.": "Cela vous permet de tester les modèles d'e-mails standard de la PFDS. Les e-mails ne vous seront envoyés qu'à vous.",
+  "This file is currently in the Archive storage tier. It may take several hours to restore it before it can be accessed.": "Ce fichier est actuellement dans le niveau de stockage Archive. Il peut falloir plusieurs heures pour le restaurer avant qu'il puisse être consulté.",
   "This includes making business intelligence and analytics tools integrated within DataHub, easy to use and available for everyone.": "Cela consiste notamment à intégrer des outils d’intelligence d’affaires et d’analyse à DataHub, les rendant faciles à utiliser et accessible à tous.",
   "This includes working with any combination of text, tables/databases, documents, maps, images, videos, etc.": "Cela inclut le travail avec n’importe quelle combinaison de textes, de tableaux/bases de données, de documents, de cartes, d’images, de vidéos, etc.",
   "This includes:": "Cela inclut :",
