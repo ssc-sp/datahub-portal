@@ -36,17 +36,8 @@
         </span>
         @Name
     </MudText>
-    <MudText class="file-item-size">@(ByteSize ?? "")</MudText>
+    <MudText class="file-item-size">@(ByteSize ?? "") @(!Folder ? $"({_storageTier})" : "")</MudText>
     <MudText class="file-item-modified">@(Modified?.ToString("r") ?? "")</MudText>
-    @if (!Folder)
-    {
-        <MudSelect T="string" Value="_storageTier" ValueChanged="@(async (string v) => await OnStorageTierChanged(v))" aria-label="Storage tier">
-            @foreach (string s in storageTiers)
-            {
-                <MudSelectItem T="string" Value="@s">@s</MudSelectItem>
-            }
-        </MudSelect>
-    }
 </div>
 
 @code {
@@ -155,18 +146,18 @@
         return tier;
     }
 
-    private async Task SetStorageTier(string filename, string tier)
-    {
-        if (StorageManager == null || string.IsNullOrEmpty(ContainerName) || string.IsNullOrEmpty(filename))
-        {
-            return;
-        }
-        await StorageManager.SetFileStorageTierAsync(ContainerName, filename, tier);
-    }
+    // private async Task SetStorageTier(string filename, string tier)
+    // {
+    //     if (StorageManager == null || string.IsNullOrEmpty(ContainerName) || string.IsNullOrEmpty(filename))
+    //     {
+    //         return;
+    //     }
+    //     await StorageManager.SetFileStorageTierAsync(ContainerName, filename, tier);
+    // }
 
-    private async Task OnStorageTierChanged(string newTier)
-    {
-        await SetStorageTier(Name, newTier);
-        _storageTier = newTier;
-    }
+    // private async Task OnStorageTierChanged(string newTier)
+    // {
+    //     await SetStorageTier(Name, newTier);
+    //     _storageTier = newTier;
+    // }
 }
