@@ -328,4 +328,9 @@ public class AWSCloudStorageManager : ICloudStorageManager
 
         return false; // Not implemented yet for AWS
     }
+
+    public List<string> GetFileStorageTiersList()
+    {
+        return new List<string> { "STANDARD", "REDUCED_REDUNDANCY", "STANDARD_IA", "ONEZONE_IA", "INTELLIGENT_TIERING", "GLACIER", "DEEP_ARCHIVE" };
+    }
 }

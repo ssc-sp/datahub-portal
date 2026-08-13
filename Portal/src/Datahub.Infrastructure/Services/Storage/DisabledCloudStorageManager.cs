@@ -103,5 +103,10 @@ namespace Datahub.Infrastructure.Services.Storage
         {
             throw new NotImplementedException();
         }
+
+        public List<string> GetFileStorageTiersList()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
