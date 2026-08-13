@@ -33,7 +33,7 @@
         <div class="properties">
             <MudText class="properties-title" Typo="Typo.h4">@Localizer["Storage Properties"]</MudText>
             <MudText class="label">@Localizer["Storage Tier"]</MudText>
-            <MudText class="text">@_storageTier</MudText>
+            <MudText class="text">@StorageTier</MudText>
             @foreach (var (key, value) in _properties)
             {
                 if (!string.IsNullOrEmpty(value) && value != "[]")
@@ -97,7 +97,8 @@
     private string _databricksPasteText;
     private ClassificationType _classification;
 
-    private string _storageTier = "Hot";
+    [Parameter]
+    public string StorageTier { get; set; } = "Hot";
 
     protected override async Task OnParametersSetAsync()
     {
@@ -126,7 +127,6 @@
             _databricksPasteText = $"/mnt/fsdh-dbk-main-mount/{fullFilePath}";
         }
         _classification = Project.Data_Sensitivity;
-        _storageTier = await GetStorageTier(File.name);
     }
 
     private string GenerateEffectiveFolderPath()
@@ -139,15 +139,6 @@
         return $"{FolderName}/{File.folderpath}".Replace("//", "/");
     }
 
-    private async Task<string> GetStorageTier(string filename)
-    {
-        if (StorageManager == null || string.IsNullOrEmpty(ContainerName) || string.IsNullOrEmpty(filename))
-        {
-            return "Not found";
-        }
-
-        var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, filename);
-        return tier;
-    }
+    // Storage tier is provided by parent via the `StorageTier` parameter.
 }
 
