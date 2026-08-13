@@ -1,3 +1,4 @@
+using Azure.Storage.Blobs.Models;
 using Datahub.Core.Data;
 using Datahub.Core.Model.Achievements;
 using Datahub.Core.Model.Projects;
@@ -232,8 +233,20 @@ public partial class StorageHeading
         return CanDeleteFolder(folderName);
     }
 
+    /// <summary>
+    /// Handler for a new tier being selected. Iterates through selected items and updates their tier.
+    /// </summary>
+    /// <param name="newTier">New tier to be set</param>
+    /// <returns></returns>
     private async Task HandleTierChange(string newTier)
     {
+        if (newTier == AccessTier.Archive.ToString())
+        {
+            bool confirm = await _module.InvokeAsync<bool>("confirmStorageTierChange", Localizer["Are you sure you want to change the file(s) to archive tier? If you need to access them, it will take time to re-hydrate."].ToString());
+
+            if (!confirm) return;
+        }
+
         SelectedStorageTier = newTier;
 
         var filesToChange = SelectedItems?
@@ -248,13 +261,19 @@ public partial class StorageHeading
             await OnStorageTierChanged.InvokeAsync(newTier);
     }
 
+    /// <summary>
+    /// Checks if any files in the selected set are archived and returns true if so.
+    /// Used to prevent downloading of archived files, which is not possible directly.
+    /// </summary>
+    /// <param name="selectedFiles">List of selected files</param>
+    /// <returns>Whether there are archived files present in the list</returns>
     private async Task<bool> AreAnyFilesArchived(List<PortalFileMetadata> selectedFiles)
     {
         foreach (var file in selectedFiles)
         {
             var path = file.fullPathFromRoot;
             var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, path);
-            if (tier == "Archive")
+            if (tier == AccessTier.Archive.ToString())
             {
                 return true;
             }

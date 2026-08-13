@@ -88,9 +88,6 @@
     [Parameter]
     public EventCallback OnMetadataChanged { get; set; }
 
-    [Parameter]
-    public ICloudStorageManager StorageManager { get; set; }
-
     private List<(string, string)> _properties;
     private string _powerBiPasteText;
     private string _fileLinkUrl;
@@ -138,7 +135,5 @@
 
         return $"{FolderName}/{File.folderpath}".Replace("//", "/");
     }
-
-    // Storage tier is provided by parent via the `StorageTier` parameter.
 }
 
