@@ -38,7 +38,8 @@ public class WorkspaceSharedKeyAccessControlSteps(
         var resourceGroup = new Project_Resources2
         {
             ResourceType = TerraformTemplate.GetTerraformServiceType(TerraformTemplate.NewProjectTemplate),
-            JsonContent = $"{{\"resource_group_name\": \"{resourceGroupName}\"}}",
+            JsonContent = $"{{\"resource_group_name\": \"{resourceGroupName}\",\"storage_account\": \"{storageAccountName}\"}}"
+
         };
         
         workspace.Resources.Add(resourceGroup);
