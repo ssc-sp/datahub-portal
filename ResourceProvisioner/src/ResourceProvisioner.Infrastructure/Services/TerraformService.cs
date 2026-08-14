@@ -340,6 +340,7 @@ public class TerraformService(
         {
             TerraformVariables.ServiceBusNamespace => terraformWorkspace.ServiceBusNamespace,
             TerraformVariables.ServiceBusObjectId => terraformWorkspace.ServiceBusObjectId,
+            TerraformVariables.ServiceBusId => terraformWorkspace.ServiceBusObjectId,
             TerraformVariables.ProjectAcronym => terraformWorkspace.Acronym,
             TerraformVariables.BudgetAmount => terraformWorkspace.BudgetAmount,
             TerraformVariables.StorageSizeLimitInTb => terraformWorkspace.StorageSizeLimitInTB,
