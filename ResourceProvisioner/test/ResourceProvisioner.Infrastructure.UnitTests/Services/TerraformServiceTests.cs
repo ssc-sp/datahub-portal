@@ -29,9 +29,9 @@ public class TerraformServiceTests : TemplateTestCollection
         var command = GenerateTestWorkspaceDefinition(
          workspaceAcronym, new List<string>()
          {
-                       TerraformTemplate.NewProjectTemplate,
-                       TerraformTemplate.NewProjectTemplate,
-                       TerraformTemplate.NewProjectTemplate
+            TerraformTemplate.NewProjectTemplate,
+            TerraformTemplate.NewProjectTemplate,
+            TerraformTemplate.NewProjectTemplate
          });
         var moduleDestinationPath = Path.Join(AppDomain.CurrentDomain.BaseDirectory, _resourceProvisionerConfiguration.InfrastructureRepository.LocalPath, DirectoryUtils.tempDirectory, _resourceProvisionerConfiguration.ModuleRepository.Name);
         Assert.That(Directory.Exists(moduleDestinationPath), Is.False);

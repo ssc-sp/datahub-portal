@@ -1,5 +1,4 @@
-﻿using Datahub.Core.Model.Context;
-using Datahub.Core.Model.Datahub;
+using Datahub.Core.Model.Context;
 using Datahub.Infrastructure.Extensions;
 using Datahub.Infrastructure.Queues.Messages;
 using Datahub.Shared.Configuration;

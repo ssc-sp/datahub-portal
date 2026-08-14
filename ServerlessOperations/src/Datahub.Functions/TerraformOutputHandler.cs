@@ -105,8 +105,16 @@ public class TerraformOutputHandler(
             // Parse and deserialize
             var messageEnvelope = System.Text.Json.JsonDocument.Parse(messageToDeserialize);
             messageEnvelope.RootElement.TryGetProperty("message", out var messageContent);
-
-            return System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(messageContent.GetRawText(), deserializeOptions);
+            var content = messageContent.GetRawText();
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                _logger.LogError("Message content is empty");
+                return null;
+            }
+            var dict = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, TerraformOutputVariable>>(content, deserializeOptions);
+            if (dict?.Count == 0)
+                return null;
+            return dict;
         }
         catch (Exception ex)
         {
@@ -126,10 +134,10 @@ public class TerraformOutputHandler(
         var resourcesall = await projectDbContext.Project_Resources2
             .ToListAsync();
 
-        var resources = await projectDbContext.Projects
+        var resources = (await projectDbContext.Projects
             .Where(p => p.Project_Acronym_CD == projectAcronym)
-            .SelectMany(p => p.Resources.Where(r => r.PipelineId == null && TerraformStatus.RequestedOrInProcessOf(r.Status)))
-            .ToListAsync();
+            .ToListAsync())
+            .SelectMany(p => p.Resources.Where(r => r.PipelineId == null && TerraformStatus.RequestedOrInProcessOf(r.Status)));
 
         if (resources is null || !resources.Any())
         {
@@ -169,7 +177,7 @@ public class TerraformOutputHandler(
         }
 
         _logger.LogInformation("Retrieved {ResourceCount} project resources for project {ProjectAcronym}", 
-            resources.Count, projectAcronym);
+            resources.Count(), projectAcronym);
     }
 
     private async Task ProcessPostTerraformTriggers(IReadOnlyDictionary<string, TerraformOutputVariable> output)

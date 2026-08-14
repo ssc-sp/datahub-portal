@@ -1,5 +1,4 @@
 using Datahub.Infrastructure.Queues.Messages;
-using Datahub.Infrastructure.Services;
 using MailKit.Net.Smtp;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.Logging;

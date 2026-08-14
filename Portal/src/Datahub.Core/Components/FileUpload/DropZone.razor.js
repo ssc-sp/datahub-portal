@@ -1,6 +1,12 @@
 // https://www.meziantou.net/upload-files-with-drag-drop-or-paste-from-clipboard-in-blazor.htm
 
 export function initializeFileDropZone(dropZoneElement, inputFile, dotNetHelper) {
+    if (!dropZoneElement) {
+        return {
+            dispose: () => {}
+        };
+    }
+
     // Add a class when the user drags a file over the drop zone
     function onDragHover(e) {
         e.preventDefault();
@@ -10,6 +16,7 @@ export function initializeFileDropZone(dropZoneElement, inputFile, dotNetHelper)
 
     function onDragLeave(e) {
         e.preventDefault();
+        e.stopPropagation();
         dropZoneElement.classList.remove("hover");
     }
 
@@ -22,9 +29,9 @@ export function initializeFileDropZone(dropZoneElement, inputFile, dotNetHelper)
         if (inputFile == null) {
             return;
         }
-        
-        let draggedFile = e.dataTransfer.getData("text") 
-        if(draggedFile != null) {
+
+        let draggedFile = e.dataTransfer.getData("text")
+        if (draggedFile != null) {
             dotNetHelper.invokeMethodAsync("HandleFileItemDropped", draggedFile);
         }
 
@@ -55,7 +62,7 @@ export function initializeFileDropZone(dropZoneElement, inputFile, dotNetHelper)
             dropZoneElement.removeEventListener('dragover', onDragHover);
             dropZoneElement.removeEventListener('dragleave', onDragLeave);
             dropZoneElement.removeEventListener("drop", onDrop);
-            dropZoneElement.removeEventListener('paste', handler);
+            dropZoneElement.removeEventListener('paste', onPaste);
         }
     }
 }
