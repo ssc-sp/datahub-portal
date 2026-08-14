@@ -110,13 +110,14 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
+        Assert.NotNull(actualVariables);
 
-        foreach (var (key, value) in actualVariables!)
+        foreach (var (key, value) in expectedVariables!)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Expected variable '{key}' was not found.");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
     }
@@ -145,13 +146,14 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
+        Assert.NotNull(actualVariables);
 
-        foreach (var (key, value) in actualVariables!)
+        foreach (var (key, value) in expectedVariables!)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Expected variable '{key}' was not found.");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
     }
@@ -182,13 +184,14 @@ public class AzureDatabricksTemplateTests : TemplateTestCollection
         Assert.That(File.Exists(expectedVariablesFilename), Is.True);
 
         var actualVariables = JsonSerializer.Deserialize<JsonObject>(await File.ReadAllTextAsync(expectedVariablesFilename));
+        Assert.NotNull(actualVariables);
 
-        foreach (var (key, value) in actualVariables!)
+        foreach (var (key, value) in expectedVariables!)
         {
             Assert.Multiple(() =>
             {
-                Assert.That(expectedVariables.ContainsKey(key), Is.True);
-                Assert.That(value?.ToJsonString(), Is.EqualTo(expectedVariables[key]?.ToJsonString()));
+                Assert.That(actualVariables.ContainsKey(key), Is.True, $"Expected variable '{key}' was not found.");
+                Assert.That(actualVariables[key]?.ToJsonString(), Is.EqualTo(value?.ToJsonString()));
             });
         }
     }
