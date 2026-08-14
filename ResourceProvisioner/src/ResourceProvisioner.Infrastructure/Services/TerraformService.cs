@@ -224,7 +224,6 @@ public class TerraformService(
     
     internal static readonly Dictionary<string, string> TerraformModuleStatusOutputName = new()
     {
-        {TerraformTemplate.AzureStorageBlob, TerraformVariables.OutputAzureStorageBlobStatus},
         {TerraformTemplate.AzureDatabricks, TerraformVariables.OutputAzureDatabricksStatus},
         // {TerraformTemplate.AzureVirtualMachine, "public_ip_address"},
         {TerraformTemplate.AzureAppService, TerraformVariables.OutputAzureAppServiceStatus},

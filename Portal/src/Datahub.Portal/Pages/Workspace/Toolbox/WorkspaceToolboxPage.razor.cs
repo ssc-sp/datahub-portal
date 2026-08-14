@@ -66,9 +66,9 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     }
                 }
             },
-            { TerraformTemplate.AzureStorageBlob, new VersionAwareWorkspaceToolInfo
+            { TerraformTemplate.NewProjectTemplate, new VersionAwareWorkspaceToolInfo
                 {
-                    ToolName = TerraformTemplate.AzureStorageBlob,
+                    ToolName = TerraformTemplate.NewProjectTemplate,
                     ToolLabel = "Azure Storage Blob",
                     ToolCategory = "Storage",
                     ToolDescription =
