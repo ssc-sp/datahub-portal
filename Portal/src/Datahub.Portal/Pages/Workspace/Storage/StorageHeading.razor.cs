@@ -119,8 +119,21 @@ public partial class StorageHeading
         if (await IsActionDisabled(ButtonAction.Download))
             return;
 
+        List<string> tiers = new List<string>
+        {
+            AccessTier.Cool.ToString(),
+            AccessTier.Cold.ToString()
+        };
+
         var downloads = SelectedItems?
             .Where(selectedItem => Files?.Any(f => f.name == selectedItem) ?? false);
+
+        if (await CheckIfAnyFilesInTiers(_selectedFiles, tiers))
+        {
+            bool confirm = await _module.InvokeAsync<bool>("confirmDownloadCoolOrCold", Localizer["Are you sure you want to download these files? There is increased cost to download this storage type."].ToString());
+
+            if (!confirm) return;
+        }
         
         if (downloads is null)
             return;
@@ -262,25 +275,27 @@ public partial class StorageHeading
     }
 
     /// <summary>
-    /// Checks if any files in the selected set are archived and returns true if so.
-    /// Used to prevent downloading of archived files, which is not possible directly.
+    /// Checks if any files in the selected are the matching tier and returns true if so.
     /// </summary>
     /// <param name="selectedFiles">List of selected files</param>
-    /// <returns>Whether there are archived files present in the list</returns>
-    private async Task<bool> AreAnyFilesArchived(List<PortalFileMetadata> selectedFiles)
+    /// <returns>Whether there are cool or cold files present in the list</returns>
+    private async Task<bool> CheckIfAnyFilesInTiers(List<PortalFileMetadata> selectedFiles, List<string> checkTiers)
     {
         foreach (var file in selectedFiles)
         {
             var path = file.fullPathFromRoot;
-            var tier = await StorageManager.GetFileStorageTierAsync(ContainerName, path);
-            if (tier == AccessTier.Archive.ToString())
+            var fileTier = await StorageManager.GetFileStorageTierAsync(ContainerName, path);
+
+            foreach (var tier in checkTiers)
             {
-                return true;
+                if (fileTier == tier)
+                {
+                    return true;
+                }
             }
         }
         return false;
     }
-
 
     private async Task<bool> IsActionDisabled(ButtonAction buttonAction)
     {
@@ -301,7 +316,7 @@ public partial class StorageHeading
         {
             ButtonAction.Upload => !canWriteStorage,
             ButtonAction.AzSync => !_isElectron,
-            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage || await AreAnyFilesArchived(_selectedFiles),
+            ButtonAction.Download => _selectedFiles is null || !_selectedFiles.Any() || !canReadStorage || await CheckIfAnyFilesInTiers(_selectedFiles, new List<string> { AccessTier.Archive.ToString() }),
             ButtonAction.Share => !_isUnclassifiedSingleFile,
             ButtonAction.Delete => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage,
             ButtonAction.Rename => _selectedFiles is null || !_selectedFiles.Any() || !canWriteStorage || SelectedItems.Count > 1,
