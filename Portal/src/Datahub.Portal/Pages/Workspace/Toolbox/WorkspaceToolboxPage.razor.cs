@@ -20,20 +20,6 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
 
         private readonly IDictionary<string, VersionAwareWorkspaceToolInfo> _versionAwareTools = new Dictionary<string, VersionAwareWorkspaceToolInfo>()
         {
-            { TerraformTemplate.NewProjectTemplate, new VersionAwareWorkspaceToolInfo
-                {
-                    ToolName = TerraformTemplate.NewProjectTemplate,
-                    ToolLabel = "Azure Workspace Essentials",
-                    ToolCategory = "Core",
-                    ToolDescription =
-                        "The basic tools required to host your workspace. This includes Azure Key vault, some monitoring and a virtual network, among other things.",
-                    ToolIcon = SidebarIcons.Workspace,
-                    MinAvailableVersion = VersionAwareWorkspaceToolInfo.ALWAYS,
-                    CanBeDeleted = false,
-                    ToolCostInformation = ("Workspace essentials are the backbone of your workspace in the cloud, and costs related to the various resources this includes sum up to less than {0:C2} per month.", [1.0]),
-                    ToolCostSummaryFunction = (config) => ("< {0:C2}/month", [1.0m])
-                }
-            },
             { TerraformTemplate.AzureDatabricks, new VersionAwareWorkspaceToolInfo
                 {
                     ToolName = TerraformTemplate.AzureDatabricks,
@@ -66,10 +52,10 @@ namespace Datahub.Portal.Pages.Workspace.Toolbox
                     }
                 }
             },
-            { TerraformTemplate.AzureStorageBlob, new VersionAwareWorkspaceToolInfo
+            { TerraformTemplate.NewProjectTemplate, new VersionAwareWorkspaceToolInfo
                 {
-                    ToolName = TerraformTemplate.AzureStorageBlob,
-                    ToolLabel = "Azure Storage Blob",
+                    ToolName = TerraformTemplate.NewProjectTemplate,
+                    ToolLabel = "Azure Workspace and Storage Blob",
                     ToolCategory = "Storage",
                     ToolDescription =
                         "Azure Blob storage is Microsoft's object storage solution for the cloud. Blob storage is optimized for storing massive amounts of unstructured data, such as text or binary data.",
