@@ -267,7 +267,8 @@ public partial class StorageHeading
 
         foreach (var file in filesToChange)
         {
-            await StorageManager.SetFileStorageTierAsync(ContainerName, file, newTier);
+            string filePath = $"{CurrentFolder}/{file}";
+            await StorageManager.SetFileStorageTierAsync(ContainerName, filePath, newTier);
         }
 
         if (OnStorageTierChanged.HasDelegate)
